@@ -45,7 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 
 @Component
-public class ShadowCacheReconciler extends ShadowCache{
+public class ShadowCacheReconciler extends ShadowCache {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
@@ -59,7 +59,8 @@ public class ShadowCacheReconciler extends ShadowCache{
 	}
 
 	@Override
-	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
+			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
 		try {
 			cleanShadowInRepository(shadow, parentResult);

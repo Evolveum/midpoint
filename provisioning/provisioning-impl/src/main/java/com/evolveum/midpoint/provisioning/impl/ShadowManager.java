@@ -751,7 +751,7 @@ public class ShadowManager {
 					"Error while creating account shadow object to save in the reposiotory. Shadow is null.");
 		}
 
-		addPendingOperation(repoShadow, addResult);
+		addPendingOperationAdd(repoShadow, addResult);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Adding repository shadow\n{}", repoShadow.debugDump());
@@ -782,7 +782,7 @@ public class ShadowManager {
 		return repoShadow.getOid();
 	}
 	
-	private void addPendingOperation(PrismObject<ShadowType> repoShadow, 
+	private void addPendingOperationAdd(PrismObject<ShadowType> repoShadow, 
 			AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult) throws SchemaException {
 		if (!addResult.isInProgress()) {
 			return;
@@ -799,6 +799,34 @@ public class ShadowManager {
 		repoShadow.asObjectable().getPendingOperation().add(pendingOperation);
 	}
 
+	private void addPendingOperationModify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> pendingModifications, 
+			OperationResult resourceOperationResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		
+		ObjectDelta<ShadowType> pendingDelta = shadow.createModifyDelta();
+		for (ItemDelta pendingModification: pendingModifications) {
+			pendingDelta.addModification(pendingModification.clone());
+		}
+		ObjectDeltaType pendingDeltaType = DeltaConvertor.toObjectDeltaType(pendingDelta);
+		
+		PendingOperationType pendingOperation = new PendingOperationType();
+		pendingOperation.setDelta(pendingDeltaType);
+		pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
+		pendingOperation.setResultStatus(OperationResultStatusType.IN_PROGRESS);
+		pendingOperation.setAsynchronousOperationReference(resourceOperationResult.getAsynchronousOperationReference());
+		
+		Collection repoDeltas = new ArrayList<>(1);
+		ContainerDelta<PendingOperationType> cdelta = ContainerDelta.createDelta(ShadowType.F_PENDING_OPERATION, shadow.getDefinition());
+		cdelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
+		repoDeltas.add(cdelta);
+		
+		try {
+			repositoryService.modifyObject(ShadowType.class, shadow.getOid(), repoDeltas, parentResult);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw new SystemException(ex);
+		}
+	}
+			
+	
 	/**
 	 * Create a copy of a shadow that is suitable for repository storage.
 	 */
@@ -904,8 +932,24 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
-	public void modifyShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) 
+	public void modifyShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
+			OperationResult resourceOperationResult, OperationResult parentResult) 
 			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException {
+		LOGGER.trace("Updating repository shadow, resourceOperationResult={}, {} modifications", resourceOperationResult.getStatus(), modifications.size());
+		if (resourceOperationResult.isInProgress()) {
+			addPendingOperationModify(ctx, shadow, modifications, resourceOperationResult, parentResult);
+		} else {
+			modifyShadowAttributes(ctx, shadow, modifications, parentResult);
+		}
+	}
+		
+	/**
+	 * Really modifies shadow attributes. It applies the changes. It is used for synchronous operations and also for
+	 * applying the results of completed asynchronous operations. 
+	 */
+	public void modifyShadowAttributes(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
+			OperationResult parentResult) 
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException { 
 		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(

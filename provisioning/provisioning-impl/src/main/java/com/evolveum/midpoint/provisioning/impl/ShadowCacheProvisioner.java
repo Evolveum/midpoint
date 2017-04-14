@@ -67,8 +67,9 @@ public class ShadowCacheProvisioner extends ShadowCache {
 	}
 
 	@Override
-	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException {
-		shadowManager.modifyShadow(ctx, shadow, modifications, parentResult);
+	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
+			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException {
+		shadowManager.modifyShadow(ctx, shadow, modifications, resourceOperationResult, parentResult);
 	}
 	
 	@Override

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -119,8 +120,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		PrismObject<CaseType> acase = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).instantiate();
 		CaseType caseType = acase.asObjectable();
 		
+		String caseOid = OidUtil.generateOid();
+		
+		caseType.setOid(caseOid);
 		// TODO: human-readable case ID
-		caseType.setName(new PolyStringType("case"));
+		caseType.setName(new PolyStringType(caseOid));
 		
 		caseType.setDescription(description);
 		

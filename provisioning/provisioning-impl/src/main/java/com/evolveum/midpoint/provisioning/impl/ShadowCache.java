@@ -145,8 +145,11 @@ public abstract class ShadowCache {
 	/**
 	 * Get the value of repositoryService.
 	 * 
+	 * DO NOT USE. Only ShadowManager shoudl access repository
+	 * 
 	 * @return the value of repositoryService
 	 */
+	@Deprecated
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
@@ -409,7 +412,7 @@ public abstract class ShadowCache {
 			return null;
 		}
 
-		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncResult;
+		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue;
 		PrismObject<ShadowType> addedShadow;
 		try {
 			preprocessEntitlements(ctx, shadow, parentResult);
@@ -419,9 +422,9 @@ public abstract class ShadowCache {
 			accessChecker.checkAdd(ctx, shadow, parentResult);
 
 			// RESOURCE OPERATION: add
-			asyncResult = 
+			asyncReturnValue = 
 					resouceObjectConverter.addResourceObject(ctx, shadow, scripts, parentResult);
-			addedShadow = asyncResult.getReturnValue();
+			addedShadow = asyncReturnValue.getReturnValue();
 
 		} catch (Exception ex) {
 			addedShadow = handleError(ctx, ex, shadow, FailedOperation.ADD, null,
@@ -431,10 +434,10 @@ public abstract class ShadowCache {
 
 		// REPO OPERATION: add
 		// This is where the repo shadow is created (if needed)
-		String oid = afterAddOnResource(ctx, asyncResult, parentResult);
+		String oid = afterAddOnResource(ctx, asyncReturnValue, parentResult);
 		addedShadow.setOid(oid);
 
-		if (!asyncResult.isInProgress()) {
+		if (!asyncReturnValue.isInProgress()) {
 			ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
 			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, addedShadow,
 					delta, parentResult);
@@ -459,7 +462,7 @@ public abstract class ShadowCache {
 	}
 
 	public abstract void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-			Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, OperationResult resourceOperationResult, OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, ConfigurationException,
 					CommunicationException;
 
@@ -493,7 +496,7 @@ public abstract class ShadowCache {
 		ProvisioningContext ctx = ctxFactory.create(repoShadow, additionalAuxiliaryObjectClassQNames, task,
 				parentResult);
 
-		Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges;
+		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue;
 		try {
 			ctx.assertDefinition();
 			RefinedObjectClassDefinition rOCDef = ctx.getObjectClassDefinition();
@@ -511,7 +514,7 @@ public abstract class ShadowCache {
 				LOGGER.trace("Applying change: {}", DebugUtil.debugDump(modifications));
 			}
 
-			sideEffectChanges = resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts,
+			asyncReturnValue = resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts,
 					modifications, parentResult);
 			
 		} catch (Exception ex) {
@@ -532,18 +535,24 @@ public abstract class ShadowCache {
 			return repoShadow.getOid();
 		}
 
+		Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
 		if (sideEffectChanges != null) {
 			ItemDelta.addAll(modifications, sideEffectChanges);
 		}
 
-		afterModifyOnResource(ctx, repoShadow, modifications, parentResult);
+		afterModifyOnResource(ctx, repoShadow, modifications, asyncReturnValue.getOperationResult(), parentResult);
 
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(repoShadow.getOid(), modifications,
-				repoShadow.getCompileTimeClass(), prismContext);
-		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
-				delta, parentResult);
-		operationListener.notifySuccess(operationDescription, task, parentResult);
-		parentResult.recordSuccess();
+		if (asyncReturnValue.isInProgress()) {
+			parentResult.recordInProgress();
+			parentResult.setAsynchronousOperationReference(asyncReturnValue.getOperationResult().getAsynchronousOperationReference());
+		} else {
+			ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(repoShadow.getOid(), modifications,
+					repoShadow.getCompileTimeClass(), prismContext);
+			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
+					delta, parentResult);
+			operationListener.notifySuccess(operationDescription, task, parentResult);
+			parentResult.recordSuccess();
+		}
 		return oid;
 	}
 
@@ -717,7 +726,7 @@ public abstract class ShadowCache {
 		}
 		
 		if (!shadowDelta.isEmpty()) {
-			getRepositoryService().modifyObject(ShadowType.class, shadowDelta.getOid(), shadowDelta.getModifications(), null, parentResult);
+			shadowManager.modifyShadowAttributes(ctx, shadow, shadowDelta.getModifications(), parentResult);
 		}
 		
 		if (hasRecentlyCompletedOperation) {
