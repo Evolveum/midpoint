@@ -62,7 +62,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	private ModelService model;
 	
 	protected abstract AuthenticationEvaluator<T> getAuthenticationEvaluator();
-	protected abstract T createAuthenticationContext(AuthorizationPolicy policy) throws IOException;
+	protected abstract T createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx);
 	
 	 public void handleRequest(AuthorizationPolicy policy, Message m, ContainerRequestContext requestCtx) {
 	        
@@ -72,14 +72,12 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        }
 	        
 	        
-	        T authenticationContext;
-			try {
-				authenticationContext = createAuthenticationContext(policy);
-			} catch (IOException e1) {
-				RestServiceUtil.createAbortMessage(requestCtx);
-				return;
-			}	
+	        T authenticationContext = createAuthenticationContext(policy, requestCtx);
 	        
+	        if (authenticationContext == null) {
+	        	return;
+	        }
+
 	        String enteredUsername = authenticationContext.getUsername();
 	        
 	        if (enteredUsername == null){
@@ -188,4 +186,17 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 			return connEnv;
 		}
 
+	    public SecurityEnforcer getSecurityEnforcer() {
+			return securityEnforcer;
+		}
+	    
+	    public ModelService getModel() {
+			return model;
+		}
+	    
+	    public TaskManager getTaskManager() {
+			return taskManager;
+		}
+	    
+	    
 }
