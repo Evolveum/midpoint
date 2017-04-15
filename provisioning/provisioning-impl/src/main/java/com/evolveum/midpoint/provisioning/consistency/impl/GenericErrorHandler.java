@@ -111,7 +111,7 @@ public class GenericErrorHandler extends ErrorHandler{
 				}
 				try {
 					//ProvisioningOperationOptions.createCompletePostponed(false);
-					provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);
+					provisioningService.refreshShadow(shadow.asPrismObject(), null, task, result);
 					result.computeStatus();
 					if (result.isSuccess()) {
 						LOGGER.trace("Postponed operation was finished successfully while getting shadow. Getting new object.");
@@ -151,7 +151,7 @@ public class GenericErrorHandler extends ErrorHandler{
 							.asPrismObject().getDefinition());
 			}
 			PropertyDelta.applyTo(modifications, shadow.asPrismObject());
-			provisioningService.finishOperation(shadow.asPrismObject(), null, task, result);						
+			provisioningService.refreshShadow(shadow.asPrismObject(), null, task, result);						
 			result.computeStatus();
 
 			if (!result.isSuccess()) {

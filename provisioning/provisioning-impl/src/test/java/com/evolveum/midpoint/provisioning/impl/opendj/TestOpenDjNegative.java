@@ -620,14 +620,13 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		final String TEST_NAME = "test530AddAccountWill";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
-				+ "." + TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		ShadowType object = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
-
 		display("Account to add", object);
 
-		Task task = taskManager.createTaskInstance();
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 		

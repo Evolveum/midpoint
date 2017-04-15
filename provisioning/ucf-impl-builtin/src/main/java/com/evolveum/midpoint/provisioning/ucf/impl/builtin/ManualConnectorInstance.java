@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -119,8 +120,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		PrismObject<CaseType> acase = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).instantiate();
 		CaseType caseType = acase.asObjectable();
 		
+		String caseOid = OidUtil.generateOid();
+		
+		caseType.setOid(caseOid);
 		// TODO: human-readable case ID
-		caseType.setName(new PolyStringType("case"));
+		caseType.setName(new PolyStringType(caseOid));
 		
 		caseType.setDescription(description);
 		
@@ -154,22 +158,30 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		String state = caseType.getState();
 		
 		if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_OPEN_QNAME, state)) {
+			result.recordSuccess();
 			return OperationResultStatus.IN_PROGRESS;
 			
 		} else if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSED_QNAME, state)) {
 			
 			String outcome = caseType.getOutcome();
-			return translateOutcome(outcome);
+			OperationResultStatus status = translateOutcome(outcome);
+			result.recordSuccess();
+			return status;
 			
 		} else {
-			throw new SchemaException("Unknown case state "+state);
+			SchemaException e = new SchemaException("Unknown case state "+state);
+			result.recordFatalError(e);
+			throw e;
 		}
+		
 	}
 
 	private OperationResultStatus translateOutcome(String outcome) {
 		
 		// TODO: better algorithm
-		if (outcome.equals(OperationResultStatusType.SUCCESS.value())) {
+		if (outcome == null) {
+			return null;
+		} else if (outcome.equals(OperationResultStatusType.SUCCESS.value())) {
 			return OperationResultStatus.SUCCESS;
 		} else {
 			return OperationResultStatus.UNKNOWN;

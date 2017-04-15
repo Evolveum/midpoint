@@ -64,7 +64,7 @@ public class TestSamples {
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 	
-	@Test
+	@Test(enabled = false)
 	public void testSamples() throws FileNotFoundException {
 		testSamplesDirectory(new File(SAMPLES_DIRECTORY_NAME));
 	}

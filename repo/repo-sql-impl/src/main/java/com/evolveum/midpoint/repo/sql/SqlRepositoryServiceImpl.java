@@ -454,6 +454,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
     }
+    
+    @Override
     public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
                                                     Collection<? extends ItemDelta> modifications,
                                                     OperationResult result)

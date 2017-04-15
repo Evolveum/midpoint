@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.ucf.api;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
+package com.evolveum.midpoint.schema.result;
 
 /**
+ * This may seems too simple and maybe pointless now. But we expect
+ * that it may later evolve to something like future/promise.
+ * 
  * @author semancik
  *
  */
-public class ConnectorOperationReturnValue<T> extends ConnectorOperationResult {
+public class AsynchronousOperationReturnValue<T> extends AsynchronousOperationResult {
 
 	private T returnValue;
 
@@ -33,8 +34,8 @@ public class ConnectorOperationReturnValue<T> extends ConnectorOperationResult {
 		this.returnValue = returnValue;
 	}
 	
-	public static <T> ConnectorOperationReturnValue<T> wrap(T returnValue, OperationResult result) {
-		ConnectorOperationReturnValue<T> ret = new ConnectorOperationReturnValue<>();
+	public static <T> AsynchronousOperationReturnValue<T> wrap(T returnValue, OperationResult result) {
+		AsynchronousOperationReturnValue<T> ret = new AsynchronousOperationReturnValue<>();
 		ret.setOperationResult(result);
 		ret.setReturnValue(returnValue);
 		return ret;

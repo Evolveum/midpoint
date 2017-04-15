@@ -11,6 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.cxf.common.util.StringUtils;
 
@@ -97,6 +98,9 @@ public class PrismIdentifierGenerator {
         }
     }
 
+    // TODO: This seems to be wrong. We want to generate IDs for all multivalue containers
+    // This is maybe some historic code. It has to be cleaned up.
+    // MID-3869
     private List<PrismContainer> getChildrenContainers(PrismObject parent) {
         List<PrismContainer> containers = new ArrayList<>();
         if (ObjectType.class.isAssignableFrom(parent.getCompileTimeClass())) {
@@ -133,6 +137,10 @@ public class PrismIdentifierGenerator {
             	containers.add(policyConstraints.findContainer(PolicyConstraintsType.F_MAX_ASSIGNEES));
             	containers.add(policyConstraints.findContainer(PolicyConstraintsType.F_MIN_ASSIGNEES));
             }
+        }
+        
+        if (ShadowType.class.isAssignableFrom(parent.getCompileTimeClass())) {
+            containers.add(parent.findContainer(ShadowType.F_PENDING_OPERATION));
         }
 
         return containers;

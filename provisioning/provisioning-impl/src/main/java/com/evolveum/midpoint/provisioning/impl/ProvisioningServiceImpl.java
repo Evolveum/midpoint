@@ -991,54 +991,53 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return objectList;
 	}
 	
-	public <T extends ShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+	@Override
+	public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException {
-		Validate.notNull(object, "Object for finishing operation must not be null.");
+		Validate.notNull(shadow, "Shadow for refresh must not be null.");
 		OperationResult result = parentResult.createSubresult(ProvisioningServiceImpl.class.getName() +".finishOperation");
-		PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-		ShadowType shadowType = shadow.asObjectable();
 		
-		LOGGER.debug("Finishing operation {} on {}", shadowType.getFailedOperationType(), object);
+		LOGGER.debug("Refreshing shadow {}", shadow);
 		
 		try {
-			if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
-				getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
-			} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
-				getShadowCache(Mode.RECON).modifyShadow(shadow, shadow.getOid(), new ArrayList<ItemDelta>(), null, options, task, result);
-			} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()) {
-				getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, task, result);
-			} else {
-				result.recordWarning("Missing or unknown type of operation to finish: " + shadowType.getFailedOperationType());
-			}
-		} catch (CommunicationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: communication problem: " + e.getMessage(), e);
-			throw e;
+			
+			getShadowCache(Mode.RECON).refreshShadow(shadow, options, task, result);
+			
+			refreshShadowLegacy(shadow, options, task, result);
+		
 		} catch (GenericFrameworkException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: generic error in the connector: " + e.getMessage(),
-					e);
+			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": "+ e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);
-		} catch (SchemaException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: schema problem: " + e.getMessage(), e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: object doesn't exist: " + e.getMessage(), e);
-			throw e;
-		} catch (RuntimeException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: unexpected problem: " + e.getMessage(), e);
-			throw new SystemException("Internal error: " + e.getMessage(), e);
-		} catch (ConfigurationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: configuration problem: " + e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: security violation: " + e.getMessage(), e);
-			throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't finish operation: object after modification would conflict with another existing object: " + e.getMessage(), e);
+			
+		} catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException 
+				| SecurityViolationException | ObjectAlreadyExistsException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": "+ e.getMessage(), e);
 			throw e;
 		}
+		
+		result.computeStatus();
 		result.cleanupResult();
-		LOGGER.debug("Finished operation {} on {}: ", shadowType.getFailedOperationType(), object, result);
+		
+		LOGGER.debug("Finished refreshing shadow {}: ", shadow, result);
+	}
+	
+	private  void refreshShadowLegacy(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ObjectAlreadyExistsException, SecurityViolationException, GenericFrameworkException {
+		
+		ShadowType shadowType = shadow.asObjectable();
+		
+		if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
+			getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
+		} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
+			getShadowCache(Mode.RECON).modifyShadow(shadow, shadow.getOid(), new ArrayList<ItemDelta>(), null, options, task, result);
+		} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()) {
+			getShadowCache(Mode.RECON).deleteShadow(shadow, options, null, task, result);
+		} else {
+			result.recordWarning("Missing or unknown type of operation to finish: " + shadowType.getFailedOperationType());
+		}
+		
 	}
 	
 	private <T extends ObjectType> boolean handleRepoObject(final Class<T> type, PrismObject<T> object,

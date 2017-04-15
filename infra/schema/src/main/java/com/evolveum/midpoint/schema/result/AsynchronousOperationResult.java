@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.ucf.api;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
+package com.evolveum.midpoint.schema.result;
 
 /**
  * Primary goal of this class is to support asynchronous operations.
- * The call to UCF operation may return even if the resource operation
+ * The call to operation may return even if the resource operation
  * is still in progress. The IN_PROGRESS status will be indicated in
- * this class in the operation result. The connector may also include 
+ * this class in the operation result. The result may also include 
  * the asynchronous operation reference in the operational status.
  * This reference may be later used to check the status of the
  * operation. 
  * 
+ * This may seems too simple and maybe pointless now. But we expect
+ * that it may later evolve to something like future/promise.
+ * 
  * @author semancik
  *
  */
-public class ConnectorOperationResult {
+public class AsynchronousOperationResult {
 
 	private OperationResult operationResult;
 
@@ -41,10 +42,13 @@ public class ConnectorOperationResult {
 		this.operationResult = operationResult;
 	}
 	
-	public static ConnectorOperationResult wrap(OperationResult result) {
-		ConnectorOperationResult ret = new ConnectorOperationResult();
+	public static AsynchronousOperationResult wrap(OperationResult result) {
+		AsynchronousOperationResult ret = new AsynchronousOperationResult();
 		ret.setOperationResult(result);
 		return ret;
 	}
 	
+	public boolean isInProgress() {
+		return operationResult.isInProgress();
+	}
 }

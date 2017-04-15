@@ -44,10 +44,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
@@ -77,6 +74,9 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private static final String ID_DELEGATE_APPROVAL_WI = "approvalWorkItems";
     private static final String ID_DELEGATE_CERTIFICATION_WI = "certificationWorkItems";
     private static final String ID_DELEGATE_MANAGEMENT_WI = "managementWorkItems";
+    private static final String ID_ASSIGNMENT_PRIVILEGES_CHECKBOX = "assignmentPrivilegesCheckbox";
+    private static final String ID_ASSIGNMENT_PRIVILEGES_LABEL = "assignmentPrivilegesLabel";
+    private static final String ID_ASSIGNMENT_PRIVILEGES_CONTAINER = "assignmentPrivilegesContainer";
 
     private static final String DOT_CLASS = DelegationEditorPanel.class.getName() + ".";
     private static final String OPERATION_GET_TARGET_REF_NAME = DOT_CLASS + "getTargetRefName";
@@ -206,7 +206,95 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         description.setEnabled(getModel().getObject().isEditable());
         body.add(description);
 
-        addOrReplacePrivilegesPanel(body);
+        WebMarkupContainer assignmentPrivilegesContainer = new WebMarkupContainer(ID_ASSIGNMENT_PRIVILEGES_CONTAINER);
+        assignmentPrivilegesContainer.setOutputMarkupId(true);
+        assignmentPrivilegesContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())){
+                    return true;
+                }
+                return privilegesList != null && privilegesList.size() > 0;
+            }
+        });
+        body.add(assignmentPrivilegesContainer);
+
+        AjaxCheckBox assignmentPrivilegesCheckbox = new AjaxCheckBox(ID_ASSIGNMENT_PRIVILEGES_CHECKBOX,
+                new IModel<Boolean>(){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Boolean getObject(){
+                        return getModelObject().getPrivilegeLimitationList() != null
+                                && getModelObject().getPrivilegeLimitationList().size() > 0;
+                    }
+
+                    @Override
+                    public void setObject(Boolean value){
+                        if (value){
+                            getModelObject().setPrivilegeLimitationList(privilegesList);
+                        } else {
+                            getModelObject().setPrivilegeLimitationList(new ArrayList<>());
+                        }
+                    }
+
+                    @Override
+                    public void detach(){
+                    }
+                }) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(DelegationEditorPanel.this.get(ID_BODY).get(ID_ASSIGNMENT_PRIVILEGES_CONTAINER));
+            }
+        };
+        assignmentPrivilegesCheckbox.setOutputMarkupId(true);
+        assignmentPrivilegesCheckbox.add(new AjaxFormComponentUpdatingBehavior("blur") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
+        assignmentPrivilegesCheckbox.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                return UserDtoStatus.ADD.equals(getModelObject().getStatus());
+            }
+        });
+        assignmentPrivilegesContainer.add(assignmentPrivilegesCheckbox);
+
+        Label assignmentPrivilegesLabel = new Label(ID_ASSIGNMENT_PRIVILEGES_LABEL,
+                new AbstractReadOnlyModel<String>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getObject() {
+                        if (assignmentPrivilegesCheckbox.getModelObject()){
+                            if (allAssignmentPrivilegesSelected()){
+                                return createStringResource("DelegationEditorPanel.allPrivilegesLabel").getString();
+                            }
+                        } else {
+                            return createStringResource("DelegationEditorPanel.noPrivilegesLabel").getString();
+                        }
+                         return "";
+                    };
+                });
+        assignmentPrivilegesLabel.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible(){
+                if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())
+                        && getModelObject().getPrivilegeLimitationList() != null
+                        && getModelObject().getPrivilegeLimitationList().size() > 0){
+                    return false;
+                }
+                return true;
+            }
+        });
+        assignmentPrivilegesLabel.setOutputMarkupId(true);
+        assignmentPrivilegesContainer.add(assignmentPrivilegesLabel);
+
+        addOrReplacePrivilegesPanel(assignmentPrivilegesContainer);
         AjaxButton limitPrivilegesButton = new AjaxButton(ID_LIMIT_PRIVILEGES_BUTTON,
                 pageBase.createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
             @Override
@@ -238,10 +326,11 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         limitPrivilegesButton.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
-                return UserDtoStatus.ADD.equals(getModelObject().getStatus());
+                return UserDtoStatus.ADD.equals(getModelObject().getStatus()) &&
+                        assignmentPrivilegesCheckbox.getModelObject();
             }
         });
-        body.add(limitPrivilegesButton);
+        assignmentPrivilegesContainer.add(limitPrivilegesButton);
 
         AjaxCheckBox approvalRights = new AjaxCheckBox(ID_DELEGATE_APPROVAL_WI,
                 new IModel<Boolean>(){
@@ -380,7 +469,24 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         };
         privilegesListComponent.setOutputMarkupId(true);
+        privilegesListComponent.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())){
+                    return true;
+                }
+                return !allAssignmentPrivilegesSelected();
+            }
+        });
         body.addOrReplace(privilegesListComponent);
+    }
+
+    private boolean allAssignmentPrivilegesSelected(){
+        return getModelObject().getPrivilegeLimitationList() == null ||
+                    getModelObject().getPrivilegeLimitationList().size() == 0 ||
+                    getModelObject().getPrivilegeLimitationList().size() == privilegesList.size();
     }
 
     private List<String> getPrivilegesNamesList(){
@@ -395,7 +501,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     }
 
     private void reloadBodyComponent(AjaxRequestTarget target){
-        addOrReplacePrivilegesPanel((WebMarkupContainer) DelegationEditorPanel.this.get(ID_BODY));
+        addOrReplacePrivilegesPanel((WebMarkupContainer) DelegationEditorPanel.this.get(ID_BODY).get(ID_ASSIGNMENT_PRIVILEGES_CONTAINER));
         target.add(get(ID_BODY));
     }
 
