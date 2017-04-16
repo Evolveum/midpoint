@@ -806,6 +806,21 @@ public class ShadowManager {
 		for (ItemDelta pendingModification: pendingModifications) {
 			pendingDelta.addModification(pendingModification.clone());
 		}
+		
+		addPendingOperationDelta(ctx, shadow, pendingDelta, resourceOperationResult, parentResult);
+	}
+		
+	
+	private void addPendingOperationDelete(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow,
+			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+		
+		ObjectDelta<ShadowType> pendingDelta = oldRepoShadow.createDeleteDelta();
+		
+		addPendingOperationDelta(ctx, oldRepoShadow, pendingDelta, resourceOperationResult, parentResult);
+	}
+
+	private void addPendingOperationDelta(ProvisioningContext ctx, PrismObject<ShadowType> shadow, ObjectDelta<ShadowType> pendingDelta,
+			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		ObjectDeltaType pendingDeltaType = DeltaConvertor.toObjectDeltaType(pendingDelta);
 		
 		PendingOperationType pendingOperation = new PendingOperationType();
@@ -825,7 +840,6 @@ public class ShadowManager {
 			throw new SystemException(ex);
 		}
 	}
-			
 	
 	/**
 	 * Create a copy of a shadow that is suitable for repository storage.
@@ -1205,6 +1219,15 @@ public class ShadowManager {
 		PropertyDelta<T> itemDelta = PrismProperty.diff(oldProperty, currentProperty);
 		if (itemDelta != null && !itemDelta.isEmpty()) {
 			shadowDelta.addModification(itemDelta);
+		}
+	}
+	
+	public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult resourceOperationResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		LOGGER.trace("Deleting repository {}, resourceOperationResult={}", oldRepoShadow, resourceOperationResult.getStatus());
+		if (resourceOperationResult != null && resourceOperationResult.isInProgress()) {
+			addPendingOperationDelete(ctx, oldRepoShadow, resourceOperationResult, parentResult);
+		} else {
+			repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
 		}
 	}
 

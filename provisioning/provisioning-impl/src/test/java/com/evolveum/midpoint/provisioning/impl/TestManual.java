@@ -1412,8 +1412,184 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
-	// TODO: delete account
+	@Test
+	public void test140DeleteAccountWill() throws Exception {
+		final String TEST_NAME = "test140DeleteAccountWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		willLastCaseOid = assertInProgress(result);
+		
+		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+				
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		display("Repo shadow", shadowRepo);
+		assertPendingOperationDeltas(shadowRepo, 1);
+		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, 
+				OperationResultStatusType.IN_PROGRESS, null);
+		assertPendingOperation(shadowRepo, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+		
+		assertNotNull("No ID in pending operation", pendingOperation.getId());
+		// Still old data in the repo. The operation is not completed yet.
+		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+			
+		syncServiceMock.assertNoNotifyChange();
+
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, null, task, result);
+		
+		display("Provisioning shadow", shadowProvisioning);
+		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
+		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+
+		assertPendingOperationDeltas(shadowProvisioning, 1);
+		pendingOperation = findPendingOperation(shadowProvisioning, 
+				OperationResultStatusType.IN_PROGRESS, null);
+		assertPendingOperation(shadowProvisioning, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+		
+		assertNotNull("No async reference in result", willLastCaseOid);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		
+	}
 	
+	/**
+	 * Case is closed. The operation is complete.
+	 */
+	@Test
+	public void test144CloseCaseAndRefreshAccountWill() throws Exception {
+		final String TEST_NAME = "test144CloseCaseAndRefreshAccountWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		closeCase(willLastCaseOid);
+		
+		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow before", shadowBefore);
+		
+		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		display("Repo shadow", shadowRepo);
+		assertSinglePendingOperation(shadowRepo, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		assertShadowDead(shadowRepo);
+			
+		syncServiceMock.assertNoNotifyChange();
+
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, null, task, result);
+		
+		display("Provisioning shadow", shadowProvisioning);
+		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
+		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertShadowDead(shadowRepo);
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		// TODO: assert notifications
+	}
+	
+	/**
+	 * ff 5min, everything should be the same (grace not expired yet)
+	 */
+	@Test
+	public void test146RefreshAccountWillAfter5min() throws Exception {
+		final String TEST_NAME = "test146RefreshAccountWillAfter5min";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		clock.overrideDuration("PT5M");
+		
+		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow before", shadowBefore);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		display("Repo shadow", shadowRepo);
+		assertSinglePendingOperation(shadowRepo, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		assertShadowDead(shadowRepo);
+			
+		syncServiceMock.assertNoNotifyChange();
+
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, null, task, result);
+		
+		display("Provisioning shadow", shadowProvisioning);
+		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
+		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertShadowDead(shadowRepo);
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+
 	private void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
 		assertEquals("Wroung number of pending operations in "+shadow, expectedNumber, pendingOperations.size());

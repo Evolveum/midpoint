@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -574,7 +575,7 @@ public abstract class ShadowCache {
 			// although the resource does not exists..
 			if (ProvisioningOperationOptions.isForce(options)) {
 				parentResult.muteLastSubresultError();
-				getRepositoryService().deleteObject(ShadowType.class, shadow.getOid(), parentResult);
+				shadowManager.deleteShadow(ctx, shadow, null, parentResult);		
 				parentResult.recordHandledError(
 						"Resource defined in shadow does not exists. Shadow was deleted from the repository.");
 				return;
@@ -587,11 +588,14 @@ public abstract class ShadowCache {
 
 		LOGGER.trace("Deleting object {} from the resource {}.", shadow, ctx.getResource());
 
+		AsynchronousOperationResult asyncReturnValue = null;
 		if (shadow.asObjectable().getFailedOperationType() == null
 				|| (shadow.asObjectable().getFailedOperationType() != null
 						&& FailedOperationTypeType.ADD != shadow.asObjectable().getFailedOperationType())) {
 			try {
-				resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, parentResult);
+				
+				asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, parentResult);
+				
 			} catch (Exception ex) {
 				try {
 					handleError(ctx, ex, shadow, FailedOperation.DELETE, null,
@@ -605,20 +609,24 @@ public abstract class ShadowCache {
 
 		LOGGER.trace("Detele object with oid {} form repository.", shadow.getOid());
 		try {
-			getRepositoryService().deleteObject(ShadowType.class, shadow.getOid(), parentResult);
-			ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(),
-					shadow.getOid(), prismContext);
-			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
-					delta, parentResult);
-			operationListener.notifySuccess(operationDescription, task, parentResult);
+			shadowManager.deleteShadow(ctx, shadow, asyncReturnValue.getOperationResult(), parentResult);			
 		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Can't delete object " + shadow + ". Reason: " + ex.getMessage(),
 					ex);
 			throw new ObjectNotFoundException("An error occured while deleting resource object " + shadow
 					+ "whith identifiers " + shadow + ": " + ex.getMessage(), ex);
 		}
+		
+		if (!asyncReturnValue.isInProgress()) {
+			ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(),
+					shadow.getOid(), prismContext);
+			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
+					delta, parentResult);
+			operationListener.notifySuccess(operationDescription, task, parentResult);
+		}
+		
 		LOGGER.trace("Object deleted from repository successfully.");
-		parentResult.recordSuccess();
+		parentResult.computeStatus();
 		resourceManager.modifyResourceAvailabilityStatus(ctx.getResource().asPrismObject(),
 				AvailabilityStatusType.UP, parentResult);
 	}
@@ -640,14 +648,12 @@ public abstract class ShadowCache {
 		}
 		
 		List<PendingOperationType> sortedOperations = sortOperations(pendingOperations);
-		LOGGER.info("SHADOW:\n{}", shadow.debugDump(1));
 		
 		boolean hasRecentlyCompletedOperation = false;
 		ObjectDelta<ShadowType> shadowDelta = shadow.createModifyDelta();
 		for (PendingOperationType pendingOperation: sortedOperations) {
 
 			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
-			LOGGER.info("CPATH: {}", containerPath);
 			OperationResultStatusType statusType = pendingOperation.getResultStatus();
 			XMLGregorianCalendar completionTimestamp = pendingOperation.getCompletionTimestamp();
 			XMLGregorianCalendar now = null;
@@ -679,32 +685,39 @@ public abstract class ShadowCache {
 							PropertyDelta<OperationResultStatusType> statusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
 							statusDelta.setValuesToReplace(new PrismPropertyValue<>(newStatusType));
 							shadowDelta.addModification(statusDelta);
-							statusType = newStatusType;
+						}
+
+						statusType = newStatusType;
+						
+						if (operationCompleted) {
+							// Operation completed
+							PropertyDelta<XMLGregorianCalendar> timestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
+							timestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+							shadowDelta.addModification(timestampDelta);
+							completionTimestamp = now;
 							
-							if (operationCompleted) {
-								// Operation completed
-								PropertyDelta<Object> timestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-								timestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
-								shadowDelta.addModification(timestampDelta);
-								completionTimestamp = now;
-								
-								ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-								ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
-								
-								// We do not need to care about add deltas here. The add operation is already applied to
-								// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
-								// model can find unique values while taking pending create operations into consideration.
-								
-								if (pendingDelta.isModify()) {
-									for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
-										shadowDelta.addModification(pendingModification.clone());
-									}
+							ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
+							ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+							
+							// We do not need to care about add deltas here. The add operation is already applied to
+							// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
+							// model can find unique values while taking pending create operations into consideration.
+							
+							if (pendingDelta.isModify()) {
+								for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
+									shadowDelta.addModification(pendingModification.clone());
 								}
-								
-								if (pendingDelta.isDelete()) {
-									// TODO: dead
+							}
+							
+							if (pendingDelta.isDelete()) {
+								if (gracePeriod == null) {
+									shadowDelta = shadow.createDeleteDelta();
+									break;
+								} else {
+									PropertyDelta<Boolean> deadDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_DEAD));
+									deadDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+									shadowDelta.addModification(deadDelta);
 								}
-								
 							}
 						}
 						
