@@ -535,6 +535,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 				Objects.equals(relationalValueSearchQuery, that.relationalValueSearchQuery) &&
 				Objects.equals(allowNotFound, that.allowNotFound) &&
 				Objects.equals(readOnly, that.readOnly) &&
+				Objects.equals(pointInTimeType, that.pointInTimeType) &&
 				Objects.equals(staleness, that.staleness) &&
 				Objects.equals(distinct, that.distinct);
 	}
@@ -556,6 +557,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         clone.retrieve = this.retrieve;
         clone.allowNotFound = this.allowNotFound;
         clone.readOnly = this.readOnly;
+        clone.pointInTimeType = this.pointInTimeType;
         clone.staleness = this.staleness;
         clone.distinct = this.distinct;
         if (this.relationalValueSearchQuery != null) {
@@ -575,6 +577,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		appendVal(sb, "retrieve", retrieve);
 		appendFlag(sb, "allowNotFound", allowNotFound);
 		appendFlag(sb, "readOnly", readOnly);
+		appendVal(sb, "pointInTimeType", pointInTimeType);
 		appendVal(sb, "staleness", staleness);
 		appendVal(sb, "distinct", distinct);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);

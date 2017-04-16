@@ -54,6 +54,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -1329,8 +1330,10 @@ public class ChangeExecutor {
 		PrismObject<T> shadowToModify = null;
 		OperationProvisioningScriptsType scripts = null;
 		try {
+			GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
+			rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
 			shadowToModify = provisioning.getObject(objectTypeClass, oid,
-					SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+					SelectorOptions.createCollection(rootOpts), task, result);
 		} catch (ObjectNotFoundException ex) {
 			// this is almost OK, mute the error and try to delete account (it
 			// will fail if something is wrong)
@@ -1355,8 +1358,10 @@ public class ChangeExecutor {
 		PrismObject<T> shadowToModify = null;
 		OperationProvisioningScriptsType scripts = null;
 		try {
+			GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
+			rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
 			shadowToModify = provisioning.getObject(objectTypeClass, oid,
-					SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
+					SelectorOptions.createCollection(rootOpts), task, result);
 		} catch (ObjectNotFoundException e) {
 			// We do not want the operation to fail here. The object might have
 			// been re-created on the resource
