@@ -991,7 +991,7 @@ public class ShadowManager {
 					continue;
 				}
 			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getParentPath())) {
-				if (!ProvisioningUtil.shouldStoreActivationItemInShadow(itemDelta.getElementName())) {
+				if (!ProvisioningUtil.shouldStoreActivationItemInShadow(itemDelta.getElementName(), cachingStrategy)) {
 					continue;
 				}
 			} else if (new ItemPath(ShadowType.F_ACTIVATION).equivalent(itemDelta.getPath())) {		// should not occur, but for completeness...
