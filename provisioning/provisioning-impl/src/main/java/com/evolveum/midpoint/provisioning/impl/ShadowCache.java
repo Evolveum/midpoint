@@ -210,6 +210,7 @@ public abstract class ShadowCache {
 		
 		if (canReturnCached(options, repositoryShadow, resource)) {
 			applyDefinition(repositoryShadow, parentResult);
+			futurizeShadow(repositoryShadow, options);
 			return repositoryShadow;
 		}
 		
@@ -278,6 +279,7 @@ public abstract class ShadowCache {
 				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
 			}
 
+			futurizeShadow(repositoryShadow, options);
 			parentResult.recordSuccess();
 			return resultShadow;
 
@@ -312,11 +314,40 @@ public abstract class ShadowCache {
 		}
 	}
 
+	private void futurizeShadow(PrismObject<ShadowType> shadow,
+			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
+		if (pit != PointInTimeType.FUTURE) {
+			return;
+		}
+		List<PendingOperationType> sortedOperations = sortOperations(shadow.asObjectable().getPendingOperation());
+		for (PendingOperationType pendingOperation: sortedOperations) {
+			OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
+			if (resultStatus != null && resultStatus != OperationResultStatusType.IN_PROGRESS && resultStatus != OperationResultStatusType.UNKNOWN) {
+				continue;
+			}
+			ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
+			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+			if (pendingDelta.isModify()) {
+				pendingDelta.applyTo(shadow);
+			}
+			if (pendingDelta.isDelete()) {
+				shadow.asObjectable().setDead(true);
+			}
+		}
+	}
+
 	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
 		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
 		Boolean cachingOnly = readCapabilityType.isCachingOnly();
 		if (cachingOnly == Boolean.TRUE) {
 			return true;
+		}
+		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
+		if (pit != null) {
+			if (pit != PointInTimeType.CACHED) {
+				return false;
+			}
 		}
 		long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
 		if (stalenessOption == 0L) {

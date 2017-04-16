@@ -56,6 +56,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -642,6 +645,20 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 
 		assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+
+		
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
@@ -696,6 +713,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
 		assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
@@ -763,6 +793,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		// TODO: assert notifications
@@ -811,6 +854,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -879,6 +935,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		pendingOperation = findPendingOperation(shadowProvisioning, 
 				OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		assertPendingOperation(shadowProvisioning, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.DISABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
@@ -956,6 +1025,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertPendingOperation(shadowProvisioning, pendingOperation, 
 				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
 		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
@@ -1028,7 +1110,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1037,6 +1118,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
@@ -1104,7 +1198,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1113,6 +1206,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
@@ -1186,7 +1292,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1195,6 +1300,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1265,7 +1383,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		
 		assertPendingOperationDeltas(shadowProvisioning, 2);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1274,6 +1391,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1342,7 +1472,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		
 		assertPendingOperationDeltas(shadowProvisioning, 1);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1351,6 +1480,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1407,6 +1549,19 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertPendingOperationDeltas(shadowProvisioning, 0);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1467,6 +1622,14 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		pendingOperation = findPendingOperation(shadowProvisioning, 
 				OperationResultStatusType.IN_PROGRESS, null);
 		assertPendingOperation(shadowProvisioning, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertShadowDead(shadowProvisioningFuture);
 		
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
@@ -1530,6 +1693,14 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertShadowDead(shadowProvisioningFuture);
+		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		// TODO: assert notifications
@@ -1586,6 +1757,14 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertShadowDead(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
