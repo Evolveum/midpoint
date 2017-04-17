@@ -208,6 +208,8 @@ public abstract class ShadowCache {
 			throw new UnsupportedOperationException("Resource does not support 'read' operation");
 		}
 		
+		refreshShadow(repositoryShadow, task, parentResult);
+		
 		if (canReturnCached(options, repositoryShadow, resource)) {
 			applyDefinition(repositoryShadow, parentResult);
 			futurizeShadow(repositoryShadow, options);
@@ -663,7 +665,7 @@ public abstract class ShadowCache {
 				AvailabilityStatusType.UP, parentResult);
 	}
 
-	public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
+	public void refreshShadow(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ShadowType shadowType = shadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
 		if (pendingOperations.isEmpty()) {

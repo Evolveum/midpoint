@@ -1002,7 +1002,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		try {
 			
-			getShadowCache(Mode.RECON).refreshShadow(shadow, options, task, result);
+			getShadowCache(Mode.RECON).refreshShadow(shadow, task, result);
 			
 			refreshShadowLegacy(shadow, options, task, result);
 		

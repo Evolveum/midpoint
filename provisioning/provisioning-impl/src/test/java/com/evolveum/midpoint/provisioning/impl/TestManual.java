@@ -1048,10 +1048,11 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 	/**
 	 * Disable case is closed. The account should be disabled. But there is still the other
 	 * delta pending.
+	 * Do NOT explicitly refresh the shadow in this case. Just reading it should cause the refresh.
 	 */
 	@Test
-	public void test124CloseDisableCaseAndRefreshAccountWill() throws Exception {
-		final String TEST_NAME = "test114CloseCaseAndRefreshAccountWill";
+	public void test124CloseDisableCaseAndReadAccountWill() throws Exception {
+		final String TEST_NAME = "test124CloseDisableCaseAndReadAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1067,7 +1068,8 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.refreshShadow(shadowBefore, null, task, result);
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1096,9 +1098,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
-
-		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, task, result);
 		
 		display("Provisioning shadow", shadowProvisioning);
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
