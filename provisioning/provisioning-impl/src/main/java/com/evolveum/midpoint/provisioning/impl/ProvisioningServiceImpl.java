@@ -1002,7 +1002,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		try {
 			
-			getShadowCache(Mode.RECON).refreshShadow(shadow, options, task, result);
+			getShadowCache(Mode.RECON).refreshShadow(shadow, task, result);
 			
 			refreshShadowLegacy(shadow, options, task, result);
 		
@@ -1028,7 +1028,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		ShadowType shadowType = shadow.asObjectable();
 		
-		if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
+		if (shadowType.getFailedOperationType() == null) {
+			return;
+		} else if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).addShadow(shadow, null, null, options, task, result);
 		} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
 			getShadowCache(Mode.RECON).modifyShadow(shadow, shadow.getOid(), new ArrayList<ItemDelta>(), null, options, task, result);

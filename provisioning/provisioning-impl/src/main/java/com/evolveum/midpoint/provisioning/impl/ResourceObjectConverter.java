@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -92,7 +93,9 @@ public class ResourceObjectConverter {
 	public static final String OPERATION_MODIFY_ENTITLEMENT = DOT_CLASS + "modifyEntitlement";
 	private static final String OPERATION_ADD_RESOURCE_OBJECT = DOT_CLASS + "addResourceObject";
 	private static final String OPERATION_MODIFY_RESOURCE_OBJECT = DOT_CLASS + "modifyResourceObject";
+	private static final String OPERATION_DELETE_RESOURCE_OBJECT = DOT_CLASS + "deleteResourceObject";
 	private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
+	
 	
 	@Autowired
 	private EntitlementConverter entitlementConverter;
@@ -309,10 +312,12 @@ public class ResourceObjectConverter {
 		return AsynchronousOperationReturnValue.wrap(shadow, result);
 	}
 
-	public void deleteResourceObject(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
+	public AsynchronousOperationResult deleteResourceObject(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
 			OperationProvisioningScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
+		
+		OperationResult result = parentResult.createSubresult(OPERATION_DELETE_RESOURCE_OBJECT);
 		
 		LOGGER.trace("Deleting resource object {}", shadow);
 
@@ -322,8 +327,10 @@ public class ResourceObjectConverter {
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry)) {
 			LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
 					+ identifiers + "; ignoring the request");
-			throw new SecurityViolationException("Cannot delete protected resource object "
+			SecurityViolationException e = new SecurityViolationException("Cannot delete protected resource object "
 					+ ctx.getObjectClassDefinition() + ": " + identifiers);
+			result.recordFatalError(e);
+			throw e;
 		}
 		
 		//check idetifier if it is not null
@@ -333,13 +340,13 @@ public class ResourceObjectConverter {
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesDelete(ctx, shadow, scripts, parentResult);
+		executeEntitlementChangesDelete(ctx, shadow, scripts, result);
 
 		Collection<Operation> additionalOperations = new ArrayList<Operation>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, ctx.getResource(),
-				parentResult);
+				result);
 
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(result);
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -351,35 +358,38 @@ public class ResourceObjectConverter {
 			}
 			
 			if (!ResourceTypeUtil.isDeleteCapabilityEnabled(ctx.getResource())){
-				throw new UnsupportedOperationException("Resource does not support 'delete' operation");
+				UnsupportedOperationException e = new UnsupportedOperationException("Resource does not support 'delete' operation");
+				result.recordFatalError(e);
+				throw e;
 			}
 
-			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, identifiers, ctx, parentResult);
+			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, identifiers, ctx, result);
 
-			computeResultStatus(parentResult);
-			LOGGER.debug("PROVISIONING DELETE: {}", parentResult.getStatus());
+			computeResultStatus(result);
+			LOGGER.debug("PROVISIONING DELETE: {}", result.getStatus());
 
 		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Can't delete object " + shadow
+			result.recordFatalError("Can't delete object " + shadow
 					+ ". Reason: " + ex.getMessage(), ex);
 			throw new ObjectNotFoundException("An error occured while deleting resource object " + shadow
 					+ "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
 		} catch (CommunicationException ex) {
-			parentResult.recordFatalError(
+			result.recordFatalError(
 					"Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
 			throw new CommunicationException("Error communicating with the connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (ConfigurationException ex) {
-			parentResult.recordFatalError(
+			result.recordFatalError(
 					"Configuration error in connector " + connector + ": " + ex.getMessage(), ex);
 			throw new ConfigurationException("Configuration error in connector " + connector + ": "
 					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
+			result.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 		}
 		
 		LOGGER.trace("Deleted resource object {}", shadow);
+		return AsynchronousOperationResult.wrap(result);
 	}
 	
 	public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> modifyResourceObject(

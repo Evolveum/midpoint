@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -150,8 +151,10 @@ public class ReconciliationProcessor {
 
 			if (!projCtx.isFullShadow()) {
 				// We need to load the object
+				GetOperationOptions rootOps = GetOperationOptions.createDoNotDiscovery();
+				rootOps.setPointInTimeType(PointInTimeType.FUTURE);
 				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-						projCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+						projCtx.getOid(), SelectorOptions.createCollection(rootOps),
 						task, result);
 				ShadowType oldShadow = objectOld.asObjectable();
 				projCtx.determineFullShadowFlag(oldShadow.getFetchResult());
@@ -860,7 +863,9 @@ public class ReconciliationProcessor {
 		}
 		PrismObject<ShadowType> target;
 		try {
-			target = provisioningService.getObject(ShadowType.class, oid, GetOperationOptions.createNoFetchCollection(), task, result);
+			GetOperationOptions rootOpt = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
+			rootOpt.setNoFetch(true);
+			target = provisioningService.getObject(ShadowType.class, oid, SelectorOptions.createCollection(rootOpt), task, result);
 		} catch (ObjectNotFoundException e) {
 			// TODO maybe warn/error log would suffice (also for other exceptions?)
 			throw new ObjectNotFoundException("Couldn't evaluate tolerant/intolerant values for association " + isCValue

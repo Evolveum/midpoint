@@ -154,7 +154,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -201,7 +201,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -250,7 +250,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -300,7 +300,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -347,7 +347,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -396,7 +396,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -406,21 +406,20 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
         		
-        ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
-			@Override
-			public boolean handle(PrismObject<ResourceType> resource, OperationResult parentResult) {
+        ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, false);
 				resources.add(resource);
 				return true;
-			}
-		};
+			};
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
         
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
         modelService.searchObjectsIterative(ResourceType.class, null, handler, options, task, result);
 
 		// THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess("searchObjects result", result);
 
@@ -447,7 +446,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -457,14 +456,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
         		
-        ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
-			@Override
-			public boolean handle(PrismObject<ResourceType> resource, OperationResult parentResult) {
+        ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, false);
 				resources.add(resource);
 				return true;
-			}
-		};
+			};
 		
 		GetOperationOptions option = GetOperationOptions.createNoFetch();
         option.setReadOnly(true);
@@ -499,7 +495,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -533,7 +529,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -618,14 +614,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
         		
-        ResultHandler<ResourceType> handler = new ResultHandler<ResourceType>() {
-			@Override
-			public boolean handle(PrismObject<ResourceType> resource, OperationResult parentResult) {
+        ResultHandler<ResourceType> handler = (resource, parentResult) -> {
 				assertResource(resource, true);
 				resources.add(resource);
 				return true;
-			}
-		};
+			};
         
 		// WHEN
         modelService.searchObjectsIterative(ResourceType.class, null, handler, null, task, result);
@@ -750,15 +743,158 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
+        
+        IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 	}
 	
+    @Test
+    public void test750GetResourceRaw() throws Exception {
+		final String TEST_NAME = "test750GetResourceRaw";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        // precondition
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+        rememberPrismObjectCloneCount();
+        
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options , task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+        
+        display("Resource", resource);
+        IntegrationTestTools.displayXml("Initialized dummy resource", resource);
+        
+        assertPrismObjectCloneIncrement(1);
+        
+		assertResourceDummy(resource, true);
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+	}
+    
+    @Test
+    public void test752GetResourceDummy() throws Exception {
+		final String TEST_NAME = "test752GetResourceDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        rememberPrismObjectCloneCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertPrismObjectCloneIncrement(2);
+        
+        assertResourceDummy(resource, true);
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+        
+        IntegrationTestTools.displayXml("Initialized dummy resource", resource);
+	}
+    
+    @Test
+    public void test760ModifyConfiguration() throws Exception {
+		final String TEST_NAME = "test760ModifyConfiguration";
+        TestUtil.displayTestTile(this, TEST_NAME);
+    	
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+        		IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
+		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+				DOMUtil.XSD_STRING, prismContext);
+		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, "whatever wherever");
+    	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
+    	display("Resource delta", resourceDelta);
+    	Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+    	
+    	// WHEN
+    	TestUtil.displayWhen(TEST_NAME);
+    	modelService.executeChanges(deltas, null, task, result);
+    	
+    	// THEN
+    	TestUtil.displayThen(TEST_NAME);
+    	result.computeStatus();
+    	TestUtil.assertSuccess(result);
+    	
+    	PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+    	PrismAsserts.assertPropertyValue(resourceAfter, propPath, "whatever wherever");
+    	
+    }
+	
+	@Test
+    public void test800GetResourceDummy() throws Exception {
+		final String TEST_NAME = "test800GetResourceDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        rememberPrismObjectCloneCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertPrismObjectCloneIncrement(2);
+        
+        assertResourceDummy(resource, true);
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(1);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+        
+        IntegrationTestTools.displayXml("Initialized dummy resource", resource);
+	}
 	
 	@Test
     public void test820SingleDescriptionModify() throws Exception {
 		final String TEST_NAME = "test820SingleDescriptionModify";
         TestUtil.displayTestTile(this, TEST_NAME);
     	
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
     	singleModify(descriptionAnt, -1, task, result);
@@ -769,7 +905,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     	final String TEST_NAME = "test840RadomModifySequence";
     	TestUtil.displayTestTile(this, TEST_NAME);
     	
-    	Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
+    	Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
     	
     	for(int i=0; i <= MAX_RANDOM_SEQUENCE_ITERATIONS; i++) {
@@ -804,37 +940,15 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         lastVersion = resourceAfter.getVersion();
         display("Version", lastVersion);
         
+        Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceAfter);
+        if (xsdSchema != null) {
+	        String targetNamespace = xsdSchema.getAttribute("targetNamespace");
+	        assertNotNull("No targetNamespace in schema after application of "+objectDelta, targetNamespace);
+        }
+        
         IntegrationTestTools.assertNoRepoCache();
         
         ant.assertModification(resourceAfter, iteration);
-    }
-    
-    @Test
-    public void test850ModifyConfiguration() throws Exception {
-		final String TEST_NAME = "test850ModifyConfiguration";
-        TestUtil.displayTestTile(this, TEST_NAME);
-    	
-        Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        
-        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
-        		IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
-		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
-				DOMUtil.XSD_STRING, prismContext);
-		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, "whatever wherever");
-    	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
-    	Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
-    	
-    	// WHEN
-    	modelService.executeChanges(deltas, null, task, result);
-    	
-    	// THEN
-    	result.computeStatus();
-    	TestUtil.assertSuccess(result);
-    	
-    	PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
-    	PrismAsserts.assertPropertyValue(resourceAfter, propPath, "whatever wherever");
-    	
     }
 
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

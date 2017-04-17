@@ -1009,9 +1009,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, roleOid, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         display(result);
 		// there is a failure while reading dummy account - it was not created

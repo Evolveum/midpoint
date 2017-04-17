@@ -381,11 +381,15 @@ public class ProvisioningUtil {
 		}
 	}
 
-	public static boolean shouldStoreActivationItemInShadow(QName elementName) {	// MID-2585
-		return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
+	public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStategyType cachingStrategy) {	// MID-2585
+		if (cachingStrategy == CachingStategyType.PASSIVE) {
+			return true;
+		} else {
+			return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
 				QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP) ||
 				QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP) ||
 				QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
+		}
 	}
 
 	public static void cleanupShadowActivation(ShadowType repoShadowType) {

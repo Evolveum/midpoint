@@ -118,6 +118,18 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	private Boolean readOnly;
 	
 	/**
+	 * Specifies the point in time for the returned data. This option controls whether fresh or cached data will
+	 * be returned or whether future data projection will be returned. MidPoint usually deals with fresh data
+	 * that describe situation at the current point in time. But the client code may want to get data from the
+	 * cache that may be possibly stale. Or the client code may want a projection about the future state of the
+	 * data (e.g. taking running asynchronous operation into consideration).
+	 * If this option is not specified then the current point in time is the default if no staleness option is
+	 * specified or if it is zero. If non-zero staleness option is specified then this option defaults to cached
+	 * data.
+	 */
+	private PointInTimeType pointInTimeType;
+	
+	/**
 	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods. 
 	 * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
 	 * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
@@ -415,6 +427,30 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options.readOnly;
 	}
 	
+	public PointInTimeType getPointInTimeType() {
+		return pointInTimeType;
+	}
+
+	public void setPointInTimeType(PointInTimeType pointInTimeType) {
+		this.pointInTimeType = pointInTimeType;
+	}
+	
+	public static GetOperationOptions createPointInTimeType(PointInTimeType pit) {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setPointInTimeType(pit);
+		return opts;
+	}
+	
+	public static PointInTimeType getPointInTimeType(GetOperationOptions options) {
+		if (options == null) {
+			return null;
+		}
+		if (options.getPointInTimeType() == null) {
+			return null;
+		}
+		return options.getPointInTimeType();
+	}
+
 	public Long getStaleness() {
 		return staleness;
 	}
@@ -499,6 +535,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 				Objects.equals(relationalValueSearchQuery, that.relationalValueSearchQuery) &&
 				Objects.equals(allowNotFound, that.allowNotFound) &&
 				Objects.equals(readOnly, that.readOnly) &&
+				Objects.equals(pointInTimeType, that.pointInTimeType) &&
 				Objects.equals(staleness, that.staleness) &&
 				Objects.equals(distinct, that.distinct);
 	}
@@ -520,6 +557,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         clone.retrieve = this.retrieve;
         clone.allowNotFound = this.allowNotFound;
         clone.readOnly = this.readOnly;
+        clone.pointInTimeType = this.pointInTimeType;
         clone.staleness = this.staleness;
         clone.distinct = this.distinct;
         if (this.relationalValueSearchQuery != null) {
@@ -539,6 +577,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		appendVal(sb, "retrieve", retrieve);
 		appendFlag(sb, "allowNotFound", allowNotFound);
 		appendFlag(sb, "readOnly", readOnly);
+		appendVal(sb, "pointInTimeType", pointInTimeType);
 		appendVal(sb, "staleness", staleness);
 		appendVal(sb, "distinct", distinct);
 		appendVal(sb, "relationalValueSearchQuery", relationalValueSearchQuery);
