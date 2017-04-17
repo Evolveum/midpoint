@@ -632,7 +632,8 @@ public abstract class ShadowCache {
 					handleError(ctx, ex, shadow, FailedOperation.DELETE, null,
 							isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
 				} catch (ObjectAlreadyExistsException e) {
-					e.printStackTrace();
+					parentResult.recordFatalError(e);
+					throw new SystemException(e.getMessage(), e);
 				}
 				return;
 			}
@@ -640,7 +641,7 @@ public abstract class ShadowCache {
 
 		LOGGER.trace("Detele object with oid {} form repository.", shadow.getOid());
 		try {
-			shadowManager.deleteShadow(ctx, shadow, asyncReturnValue.getOperationResult(), parentResult);			
+			shadowManager.deleteShadow(ctx, shadow, asyncReturnValue==null?null:asyncReturnValue.getOperationResult(), parentResult);			
 		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Can't delete object " + shadow + ". Reason: " + ex.getMessage(),
 					ex);
@@ -648,7 +649,7 @@ public abstract class ShadowCache {
 					+ "whith identifiers " + shadow + ": " + ex.getMessage(), ex);
 		}
 		
-		if (!asyncReturnValue.isInProgress()) {
+		if (asyncReturnValue == null || !asyncReturnValue.isInProgress()) {
 			ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(),
 					shadow.getOid(), prismContext);
 			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,

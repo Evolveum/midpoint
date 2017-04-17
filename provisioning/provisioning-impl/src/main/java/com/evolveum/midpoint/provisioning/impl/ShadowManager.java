@@ -1223,7 +1223,8 @@ public class ShadowManager {
 	}
 	
 	public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult resourceOperationResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		LOGGER.trace("Deleting repository {}, resourceOperationResult={}", oldRepoShadow, resourceOperationResult.getStatus());
+		LOGGER.trace("Deleting repository {}, resourceOperationResult={}", oldRepoShadow, 
+				resourceOperationResult==null?null:resourceOperationResult.getStatus());
 		if (resourceOperationResult != null && resourceOperationResult.isInProgress()) {
 			addPendingOperationDelete(ctx, oldRepoShadow, resourceOperationResult, parentResult);
 		} else {
