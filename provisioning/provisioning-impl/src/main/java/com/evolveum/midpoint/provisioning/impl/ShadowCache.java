@@ -208,7 +208,7 @@ public abstract class ShadowCache {
 			throw new UnsupportedOperationException("Resource does not support 'read' operation");
 		}
 		
-		refreshShadow(repositoryShadow, task, parentResult);
+		repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
 		
 		if (canReturnCached(options, repositoryShadow, resource)) {
 			applyDefinition(repositoryShadow, parentResult);
@@ -471,10 +471,12 @@ public abstract class ShadowCache {
 		String oid = afterAddOnResource(ctx, asyncReturnValue, parentResult);
 		addedShadow.setOid(oid);
 
-		if (!asyncReturnValue.isInProgress()) {
-			ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
-			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, addedShadow,
-					delta, parentResult);
+		ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
+		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, addedShadow,
+				delta, parentResult);
+		if (asyncReturnValue.isInProgress()) {
+			operationListener.notifyInProgress(operationDescription, task, parentResult);
+		} else {
 			operationListener.notifySuccess(operationDescription, task, parentResult);
 		}
 		return oid;
@@ -576,14 +578,15 @@ public abstract class ShadowCache {
 
 		afterModifyOnResource(ctx, repoShadow, modifications, asyncReturnValue.getOperationResult(), parentResult);
 
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(repoShadow.getOid(), modifications,
+				repoShadow.getCompileTimeClass(), prismContext);
+		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
+				delta, parentResult);
 		if (asyncReturnValue.isInProgress()) {
+			operationListener.notifyInProgress(operationDescription, task, parentResult);
 			parentResult.recordInProgress();
 			parentResult.setAsynchronousOperationReference(asyncReturnValue.getOperationResult().getAsynchronousOperationReference());
 		} else {
-			ObjectDelta<ShadowType> delta = ObjectDelta.createModifyDelta(repoShadow.getOid(), modifications,
-					repoShadow.getCompileTimeClass(), prismContext);
-			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
-					delta, parentResult);
 			operationListener.notifySuccess(operationDescription, task, parentResult);
 			parentResult.recordSuccess();
 		}
@@ -651,11 +654,13 @@ public abstract class ShadowCache {
 					+ "whith identifiers " + shadow + ": " + ex.getMessage(), ex);
 		}
 		
-		if (asyncReturnValue == null || !asyncReturnValue.isInProgress()) {
-			ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(),
-					shadow.getOid(), prismContext);
-			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
-					delta, parentResult);
+		ObjectDelta<ShadowType> delta = ObjectDelta.createDeleteDelta(shadow.getCompileTimeClass(),
+				shadow.getOid(), prismContext);
+		ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow,
+				delta, parentResult);
+		if (asyncReturnValue != null && asyncReturnValue.isInProgress()) {
+			operationListener.notifyInProgress(operationDescription, task, parentResult);
+		} else {
 			operationListener.notifySuccess(operationDescription, task, parentResult);
 		}
 		
@@ -665,14 +670,14 @@ public abstract class ShadowCache {
 				AvailabilityStatusType.UP, parentResult);
 	}
 
-	public void refreshShadow(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ShadowType shadowType = shadow.asObjectable();
+	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ShadowType shadowType = repoShadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
 		if (pendingOperations.isEmpty()) {
-			return;
+			return repoShadow;
 		}
 		
-		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
+		ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
 		ctx.assertDefinition();
 		
 		Duration gracePeriod = null;
@@ -681,10 +686,10 @@ public abstract class ShadowCache {
 			gracePeriod = consistency.getPendingOperationGracePeriod();
 		}
 		
+		List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
 		List<PendingOperationType> sortedOperations = sortOperations(pendingOperations);
 		
-		boolean hasRecentlyCompletedOperation = false;
-		ObjectDelta<ShadowType> shadowDelta = shadow.createModifyDelta();
+		ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
 		for (PendingOperationType pendingOperation: sortedOperations) {
 
 			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
@@ -695,7 +700,7 @@ public abstract class ShadowCache {
 			String asyncRef = pendingOperation.getAsynchronousOperationReference();
 			if (asyncRef != null) {
 				
-				OperationResultStatus newStaus = resouceObjectConverter.refreshOperationStatus(ctx, shadow, asyncRef, parentResult);
+				OperationResultStatus newStaus = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
 				
 				now = clock.currentTimeXMLGregorianCalendar();
 						
@@ -705,11 +710,7 @@ public abstract class ShadowCache {
 						
 						
 						boolean operationCompleted = isCompleted(newStatusType) && pendingOperation.getCompletionTimestamp() == null;
-						
-						if (operationCompleted) {
-							hasRecentlyCompletedOperation = true;
-						}
-						
+										
 						if (operationCompleted && gracePeriod == null) {
 							LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
 							shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
@@ -745,7 +746,7 @@ public abstract class ShadowCache {
 							
 							if (pendingDelta.isDelete()) {
 								if (gracePeriod == null) {
-									shadowDelta = shadow.createDeleteDelta();
+									shadowDelta = repoShadow.createDeleteDelta();
 									break;
 								} else {
 									PropertyDelta<Boolean> deadDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_DEAD));
@@ -753,6 +754,8 @@ public abstract class ShadowCache {
 									shadowDelta.addModification(deadDelta);
 								}
 							}
+							
+							notificationDeltas.add(pendingDelta);
 						}
 						
 					}
@@ -773,12 +776,20 @@ public abstract class ShadowCache {
 		}
 		
 		if (!shadowDelta.isEmpty()) {
-			shadowManager.modifyShadowAttributes(ctx, shadow, shadowDelta.getModifications(), parentResult);
+			shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
 		}
 		
-		if (hasRecentlyCompletedOperation) {
-			// TODO: notify
+		for (ObjectDelta<ShadowType> notificationDelta: notificationDeltas) {
+			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
+					notificationDelta, parentResult);
+			operationListener.notifySuccess(operationDescription, task, parentResult);
 		}
+		
+		if (shadowDelta.isEmpty()) {
+			return repoShadow;
+		}
+		shadowDelta.applyTo(repoShadow);
+		return repoShadow;
 	}
 	
 	private boolean isOverGrace(XMLGregorianCalendar now, Duration gracePeriod, XMLGregorianCalendar completionTimestamp) {

@@ -364,6 +364,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifyInProgressOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -419,6 +420,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -452,11 +454,11 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
-
-		closeCase(willLastCaseOid);
 		
 		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow before", shadowBefore);
+
+		closeCase(willLastCaseOid);
 		
 		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 		
@@ -482,6 +484,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -504,8 +507,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		
-		// TODO: assert notifications
 	}
 	
 	/**
@@ -550,6 +551,9 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 	}
 	
 	/**
@@ -587,6 +591,9 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertNoPendingOperation(shadowProvisioning);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 	}
 
 	@Test
@@ -625,9 +632,9 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifyInProgressOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -657,12 +664,10 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		
 	}
 	
 	@Test
@@ -693,10 +698,9 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
-		
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -743,10 +747,10 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		closeCase(willLastCaseOid);
-		
 		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow before", shadowBefore);
+
+		closeCase(willLastCaseOid);
 		
 		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 		
@@ -769,10 +773,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		
-			
-		syncServiceMock.assertNoNotifyChange();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -807,8 +807,11 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		
-		// TODO: assert notifications
+
+		// In this case check notifications at the end. There were some reads that
+		// internally triggered refresh. Maku sure no extra notifications were sent.
+		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifySuccessOnly();
 	}
 	
 	/**
@@ -842,7 +845,9 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -916,6 +921,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifyInProgressOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -952,7 +958,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		
 	}
 	
 	/**
@@ -1004,6 +1009,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 		
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifyInProgressOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1042,7 +1048,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		
 	}
 	
 	/**
@@ -1098,6 +1103,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifySuccessOnly();
 		
 		display("Provisioning shadow", shadowProvisioning);
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
@@ -1133,8 +1139,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		
-		// TODO: assert notifications
 	}
 	
 	/**
@@ -1183,6 +1187,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1238,7 +1243,9 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 
 		closeCase(willSecondLastCaseOid);
 		
-		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		// Get repo shadow here. Make sure refresh works with this as well.
+		PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		provisioningService.applyDefinition(shadowBefore, result);
 		display("Shadow before", shadowBefore);
 		
 		accountWillSecondCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
@@ -1277,6 +1284,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1315,8 +1323,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		
-		// TODO: assert notifications
 	}
 	
 	/**
@@ -1368,6 +1374,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1457,6 +1464,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1511,7 +1519,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 
 		clock.overrideDuration("PT5M");
 		
-		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
 		display("Shadow before", shadowBefore);
 		
 		// WHEN
@@ -1532,6 +1540,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1602,6 +1611,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifyInProgressOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1633,7 +1643,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		
 	}
 	
 	/**
@@ -1674,6 +1683,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertShadowDead(shadowRepo);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -1701,8 +1711,6 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertShadowDead(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		
-		// TODO: assert notifications
 	}
 	
 	/**
@@ -1739,6 +1747,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertShadowDead(shadowRepo);
 			
 		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
