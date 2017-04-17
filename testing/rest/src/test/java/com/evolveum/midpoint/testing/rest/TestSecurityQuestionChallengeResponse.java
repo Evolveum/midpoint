@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.fail;
 
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.cxf.common.util.Base64Exception;
@@ -29,6 +30,7 @@ import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -100,6 +102,21 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 		Response response = client.get();
 		return response;
+	}
+
+	@Override
+	protected String getAcceptHeader() {
+		return MediaType.APPLICATION_JSON;
+	}
+
+	@Override
+	protected String getContentType() {
+		return MediaType.APPLICATION_JSON;
+	}
+
+	@Override
+	protected MidpointAbstractProvider getProvider() {
+		return jsonProvider;
 	}
 
 }

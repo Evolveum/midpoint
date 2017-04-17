@@ -22,37 +22,18 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.cxf.endpoint.Server;
-import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
-import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.transport.local.LocalConduit;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -61,7 +42,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -123,10 +103,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	private static final String MODIFICATION_ENABLE = "modification-enable"; //new File(REQ_DIR, "modification-enable.xml");
 	private static final String MODIFICATION_ASSIGN_ROLE_MODIFIER = "modification-assign-role-modifier"; //new File(REQ_DIR, "modification-assign-role-modifier.xml");
 
-	
-	protected abstract String getAcceptHeader();
-	protected abstract String getContentType();
-	protected abstract MidpointAbstractProvider getProvider();
 	
 	protected abstract File getRepoFile(String fileBaseName);
 	protected abstract File getRequestFile(String fileBaseName);
@@ -1033,36 +1009,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
 	}
 	
-	private WebClient prepareClient(String username, String password) {
-		
-		List providers = new ArrayList<>();
-		providers.add(getProvider());
-		WebClient client = WebClient.create(ENDPOINT_ADDRESS, providers);//, provider);
-
-		ClientConfiguration clientConfig = WebClient.getConfig(client);
-
-		clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
-		
-		client.accept(getAcceptHeader());
-		client.type(getContentType());
-
-		createAuthorizationHeader(client, username, password);
-		return client;
-
-	}
 	
-	protected void createAuthorizationHeader(WebClient client, String username, String password){
-		if (username != null) {
-			String authorizationHeader = "Basic "
-					+ org.apache.cxf.common.util.Base64Utility.encode((username+":"+(password==null?"":password)).getBytes());
-			client.header("Authorization", authorizationHeader);
-		}
-	}
-	
-	private void assertStatus(Response response, int expStatus) {
-		assertEquals("Expected "+expStatus+" but got " + response.getStatus(), expStatus, response.getStatus());
-	}
-
 	private void assertNoEmptyResponse(Response response) {
 		String respBody = response.readEntity(String.class);
 		assertTrue("Unexpected reposponse: "+respBody, StringUtils.isBlank(respBody));

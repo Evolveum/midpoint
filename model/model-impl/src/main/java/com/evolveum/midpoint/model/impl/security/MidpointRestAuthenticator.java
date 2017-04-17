@@ -111,7 +111,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        task.setOwner(user.asPrismObject());
 	        
 	        //  m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
-	        if (!authorizeUser(user, enteredUsername, false, connEnv, requestCtx)){
+	        if (!authorizeUser(user, null, enteredUsername, connEnv, requestCtx)){
 	        	return;
 	        }
 	        
@@ -121,17 +121,20 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        	try {
 					PrismObject<UserType> authorizedUser = model.getObject(UserType.class, oid, null, task, result);
 					task.setOwner(authorizedUser);
-					user = authorizedUser.asObjectable();
+					if (!authorizeUser(AuthorizationConstants.AUTZ_REST_PROXY_URL, user, authorizedUser, enteredUsername, connEnv, requestCtx)){
+		        		return;
+		        	}
+					if (!authorizeUser(authorizedUser.asObjectable(), null, authorizedUser.getName().getOrig(), connEnv, requestCtx)){
+		        		return;
+		        	}
 				} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
 						| CommunicationException | ConfigurationException e) {
 					LOGGER.trace("Exception while authenticating user identified with '{}' to REST service: {}", oid, e.getMessage(), e);
-		        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build());
+		        	requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Proxy Authentication failed. Cannot authenticate user.").build());
 					return;
 				}
 	        	
-	        	if (!authorizeUser(user, user.getName().getOrig(), true, connEnv, requestCtx)){
-	        		return;
-	        	}
+	        	
 	        }
 	        
 	        m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
@@ -140,7 +143,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        
 	    }
 	 
-	   private boolean authorizeUser(UserType user, String enteredUsername, boolean isProxyUser, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
+	   private boolean authorizeUser(UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
 	    	try {
 	        	securityEnforcer.setupPreAuthenticatedSecurityContext(user.asPrismObject());
 	        } catch (SchemaException e) {
@@ -151,22 +154,13 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        
 	        LOGGER.trace("Authenticated to REST service as {}", user);
 	        
-	        if (!authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, user, enteredUsername, connEnv, requestCtx)){
-	        	return false;
-	        }
-	        
-	        if (isProxyUser) {
-	        	return authorizeUser(AuthorizationConstants.AUTZ_REST_PROXY_URL, user, enteredUsername, connEnv, requestCtx);
-	        }
-	        
-	        return true;
-	        
+	        return authorizeUser(AuthorizationConstants.AUTZ_REST_ALL_URL, user, null, enteredUsername, connEnv, requestCtx);
 	    }
 	    
-	    private boolean authorizeUser(String authorization, UserType user, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx){
+	    private boolean authorizeUser(String authorization, UserType user, PrismObject<UserType> proxyUser, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx){
 	    	OperationResult authorizeResult = new OperationResult("Rest authentication/authorization operation.");
 	    	try {
-				securityEnforcer.authorize(AuthorizationConstants.AUTZ_REST_ALL_URL, null, null, null, null, null, authorizeResult);
+				securityEnforcer.authorize(authorization, null, proxyUser, null, null, null, authorizeResult);
 			} catch (SecurityViolationException e){
 				securityHelper.auditLoginFailure(enteredUsername, user, connEnv, "Not authorized");
 				requestCtx.abortWith(Response.status(Status.FORBIDDEN).build());
