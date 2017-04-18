@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<resource oid="ef2bc95b-76e0-59e2-86d6-9999cccccccc"
+<resource oid="b39e0b10-2449-11e7-b0c1-73f52bb2a496"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -23,16 +23,17 @@
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
-	<name>Embedded Test CSV</name>
+	<name>Test CSV: guid</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
 					   
 		<icfc:configurationProperties>
-			<icfi:filePath>target/midpoint-flatfile.csv</icfi:filePath>
+			<icfi:filePath>target/midpoint.csv</icfi:filePath>
 			<icfi:encoding>utf-8</icfi:encoding>
 			<icfi:fieldDelimiter>,</icfi:fieldDelimiter>
 			<icfi:multivalueDelimiter>;</icfi:multivalueDelimiter>
-			<icfi:uniqueAttribute>username</icfi:uniqueAttribute>
+			<icfi:uniqueAttribute>guid</icfi:uniqueAttribute>
+			<icfi:nameAttribute>uname</icfi:nameAttribute>
 			<icfi:passwordAttribute>password</icfi:passwordAttribute>
 		</icfc:configurationProperties>
 
