@@ -105,8 +105,6 @@ public class TestCsv extends AbstractProvisioningIntegrationTest {
 	private static final String ACCOUNT_JACK_FIRSTNAME = "Jack";
 	private static final String ACCOUNT_JACK_LASTNAME = "Sparrow";
 	
-	private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
-	
 	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "midpoint-flatfile.csv");
 	private static final File CSV_TARGET_FILE = new File("target/midpoint-flatfile.csv");
 
