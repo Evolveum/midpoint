@@ -92,17 +92,17 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestCsvFile extends AbstractProvisioningIntegrationTest {
+public class TestCsv extends AbstractProvisioningIntegrationTest {
 
 	private static final File RESOURCE_CSV_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-csv.xml");
 	private static final String RESOURCE_CSV_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
 	
-	private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.csvfile.CSVFileConnector";
+	private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
 	
 	private static final String CSV_SOURCE_FILE_PATH = "src/test/resources/midpoint-flatfile.csv";
 	private static final String CSV_TARGET_FILE_PATH = "target/midpoint-flatfile.csv";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestCsvFile.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestCsv.class);
 
 	private PrismObject<ResourceType> resource;
 	private ResourceType resourceType;
@@ -129,7 +129,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
 
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
+		OperationResult result = new OperationResult(TestCsv.class.getName()
 				+ ".test000Integrity");
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
@@ -155,7 +155,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 	public void test003Connection() throws ObjectNotFoundException, SchemaException {
 		TestUtil.displayTestTile("test003Connection");
 		// GIVEN
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
+		OperationResult result = new OperationResult(TestCsv.class.getName()
 				+ ".test003Connection");
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
@@ -204,7 +204,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		TestUtil.displayTestTile("test004Configuration");
 		// GIVEN
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
+		OperationResult result = new OperationResult(TestCsv.class.getName()
 				+ ".test004Configuration");
 
 		// WHEN
@@ -227,7 +227,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 		TestUtil.displayTestTile("test005ParsedSchema");
 		// GIVEN
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
+		OperationResult result = new OperationResult(TestCsv.class.getName()
 				+ ".test005ParsedSchema");
 
 		// THEN
@@ -274,8 +274,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
         List<Host> scriptHosts = capScript.getHost();
-        assertEquals("Wrong number of script hosts", 2, scriptHosts.size());
-        assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
+        assertEquals("Wrong number of script hosts", 1, scriptHosts.size());
         assertScriptHost(capScript, ProvisioningScriptHostType.CONNECTOR);
                 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
@@ -293,48 +292,5 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 		}
 		AssertJUnit.fail("No script capability with host type "+expectedHostType);
 	}
-	
-	@Test
-	public void test500ExeucuteScript() throws Exception {
-		final String TEST_NAME = "test500ExeucuteScript";
-		TestUtil.displayTestTile(TEST_NAME);
 		
-		String osName = System.getProperty("os.name");
-		IntegrationTestTools.display("OS", osName);
-		if (!"Linux".equals(osName)) {
-			display("SKIPPING test, cannot execute on "+osName);
-			return;
-		}
-
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		ProvisioningScriptType script = new ProvisioningScriptType();
-		script.setHost(ProvisioningScriptHostType.RESOURCE);
-		script.setLanguage("exec");
-		script.setCode("src/test/script/csvscript.sh");
-		ProvisioningScriptArgumentType argument = new ProvisioningScriptArgumentType();
-		argument.setName("NAME");
-		JAXBElement<RawType> valueEvaluator = (JAXBElement) new ObjectFactory().createValue(null);
-        RawType value = new RawType(new PrimitiveXNode<String>("World"), prismContext);
-		valueEvaluator.setValue(value);
-		argument.getExpressionEvaluator().add(valueEvaluator);
-		script.getArgument().add(argument);
-
-		// WHEN
-		provisioningService.executeScript(RESOURCE_CSV_OID, script, task, result);
-		
-		// THEN
-		result.computeStatus();
-		display("executeScript result", result);
-		TestUtil.assertSuccess("executeScript has failed (result)", result);
-		
-		File scriptOutFile = new File("target/hello.txt");
-		assertTrue("Script haven't created the file", scriptOutFile.exists());
-		String fileContent = MiscUtil.readFile(scriptOutFile);
-		assertEquals("Wrong script output", "Hello World", fileContent);
-		
-	}
-	
 }

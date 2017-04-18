@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,26 +15,23 @@
   ~ limitations under the License.
   -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<resource oid="ef2bc95b-76e0-59e2-86d6-9999cccccccc"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          oid="ef2bc95b-76e0-59e2-86d6-9999cccccccc"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 								  
-	<name>Embedded Test CSVFile</name>
+	<name>Embedded Test CSV</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
 					   
 		<icfc:configurationProperties>
 			<icfi:filePath>target/midpoint-flatfile.csv</icfi:filePath>
-				<icfi:encoding>utf-8</icfi:encoding>
-				<icfi:valueQualifier>"</icfi:valueQualifier>
-				<icfi:fieldDelimiter>,</icfi:fieldDelimiter>
-				<icfi:multivalueDelimiter>;</icfi:multivalueDelimiter>
-				<icfi:usingMultivalue>false</icfi:usingMultivalue>
-				<icfi:uniqueAttribute>id</icfi:uniqueAttribute>
+			<icfi:encoding>utf-8</icfi:encoding>
+			<icfi:fieldDelimiter>,</icfi:fieldDelimiter>
+			<icfi:multivalueDelimiter>;</icfi:multivalueDelimiter>
+			<icfi:uniqueAttribute>id</icfi:uniqueAttribute>
+				
 <!--				<icfi:nameAttribute>id</icfi:nameAttribute>-->
 <!--				<icfi:passwordAttribute>password</icfi:passwordAttribute>-->
 		</icfc:configurationProperties>
