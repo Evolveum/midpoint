@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -39,9 +40,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
@@ -83,6 +86,10 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
 	}
 	
+	public RoleMemberPanel(String id, IModel<T> model, List<RelationTypes> relations, PageBase pageBase) {
+		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations, pageBase);
+	}
+
 	protected boolean isRole() {
 		return true;
 	}
@@ -186,17 +193,27 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	private ObjectQuery createAllMemberQuery(boolean allRelations) {
-		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(createReferenceValue(allRelations))
-				.build();
+		return getRelationsFilter(allRelations).build();
 	}
 
-	private PrismReferenceValue createReferenceValue(boolean allRelations) {
-		PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-		if (allRelations) {
-			rv.setRelation(PrismConstants.Q_ANY);
+	private List<PrismReferenceValue> createReferenceValuesList(boolean allRelations) {
+		List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
+		if (relations.size() > 0){
+			for (RelationTypes relation : relations) {
+				PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
+				rv.setRelation(relation.getRelation());
+				referenceValuesList.add(rv);
+			}
+		} else {
+			PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
+			if (allRelations) {
+				rv.setRelation(PrismConstants.Q_ANY);
+			}
+			referenceValuesList.add(rv);
 		}
-		return rv;
+
+		return referenceValuesList;
+
 	}
 
 	private ObjectQuery createRecomputeQuery() {
@@ -336,10 +353,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		ObjectQuery query;
 
 		String oid = getModelObject().getOid();
-
-		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, getPrismContext())
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-						.ref(createReference(allRelations ? PrismConstants.Q_ANY : null).asReferenceValue());
+		S_AtomicFilterExit q = getRelationsFilter(allRelations);
 		DropDownChoice<OrgType> tenantChoice = (DropDownChoice) get(createComponentPath(ID_TENANT));
 		OrgType tenant = tenantChoice.getModelObject();
 		if (tenant != null) {
@@ -365,4 +379,26 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 		}
 	}
+
+	private S_AtomicFilterExit getRelationsFilter(boolean allRelations){
+		List<PrismReferenceValue> referenceValues = createReferenceValuesList(allRelations);
+		S_AtomicFilterExit q = null;
+		S_FilterEntryOrEmpty filter = QueryBuilder.queryFor(FocusType.class, getPrismContext());
+		for (PrismReferenceValue value : referenceValues) {
+			if (q == null) {
+				q = filter.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+						.ref(value);
+			} else {
+				q = q.or().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+						.ref(value);
+			}
+		}
+		return q;
+	}
+
+	@Override
+	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
+		return super.createNewMemberInlineMenuItems();
+	}
+
 }

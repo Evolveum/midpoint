@@ -186,7 +186,7 @@
 		</dependency>
 		<dependency>
             <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-csvfile</artifactId>
+            <artifactId>connector-csv</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

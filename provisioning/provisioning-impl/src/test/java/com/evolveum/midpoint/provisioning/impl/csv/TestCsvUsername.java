@@ -17,9 +17,10 @@
 /**
  * 
  */
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.csv;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -29,43 +30,39 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.dummy.TestDummy;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -73,41 +70,91 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
+ * The test of Provisioning service on the API level. The test is using CSV resource.
+ * 
  * @author Radovan Semancik
+ * 
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegrationTest {
+public class TestCsvUsername extends AbstractCsvTest {
 
-	public static final File COMMON_DIR = ProvisioningTestUtil.COMMON_TEST_DIR_FILE;
-
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractProvisioningIntegrationTest.class);
-
-	@Autowired(required=true)
-	protected ProvisioningService provisioningService;
+	private static final File RESOURCE_CSV_USERNAME_FILE = new File(TEST_DIR, "resource-csv-username.xml");
+	private static final String RESOURCE_CSV_USERNAME_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
 	
-	@Autowired(required = true)
-	protected SynchornizationServiceMock syncServiceMock;
+	private static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack-username.xml");;
+	private static final String ACCOUNT_JACK_OID = "2db718b6-243a-11e7-a9e5-bbb2545f80ed";
+	private static final String ACCOUNT_JACK_USERNAME = "jack";
 	
+	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "midpoint-username.csv");
+
+	protected static final String ATTR_USERNAME = "username";
+	protected static final QName ATTR_USERNAME_QNAME = new QName(RESOURCE_NS, ATTR_USERNAME);
+	
+	private static final Trace LOGGER = TraceManager.getTrace(TestCsvUsername.class);
+
 	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		InternalsConfig.encryptionChecks = false;
-		provisioningService.postInit(initResult);
+	protected File getResourceFile() {
+		return RESOURCE_CSV_USERNAME_FILE;
+	}
+
+	@Override
+	protected String getResourceOid() {
+		return RESOURCE_CSV_USERNAME_OID;
+	}
+
+	@Override
+	protected File getSourceCsvFile() {
+		return CSV_SOURCE_FILE;
 	}
 	
+	@Override
+	protected File getAccountJackFile() {
+		return ACCOUNT_JACK_FILE;
+	}
+
+	@Override
+	protected String getAccountJackOid() {
+		return ACCOUNT_JACK_OID;
+	}	
+
+	@Override
+	protected void assertAccountDefinition(ObjectClassComplexTypeDefinition accountDef) {
+
+		assertEquals("Unexpected number of definitions", 4, accountDef.getDefinitions().size());
+		
+		ResourceAttributeDefinition<String> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
+		assertNotNull("No definition for username", usernameDef);
+		assertEquals(1, usernameDef.getMaxOccurs());
+		assertEquals(1, usernameDef.getMinOccurs());
+		assertTrue("No username create", usernameDef.canAdd());
+		assertTrue("No username update", usernameDef.canModify());
+		assertTrue("No username read", usernameDef.canRead());
+		
+	}
+
+	@Override
+	protected void assertAccountJackAttributes(ShadowType shadowType) {
+		assertEquals("Wrong username", ACCOUNT_JACK_USERNAME, getAttributeValue(shadowType, ATTR_USERNAME_QNAME));
+        assertEquals("Wrong firstname", ACCOUNT_JACK_FIRSTNAME, getAttributeValue(shadowType, ATTR_FIRSTNAME_QNAME));
+        assertEquals("Wrong lastname", ACCOUNT_JACK_LASTNAME, getAttributeValue(shadowType, ATTR_LASTNAME_QNAME));
+	}
+
+	@Override
+	protected void assertAccountJackAttributesRepo(ShadowType repoShadowType) {
+        assertEquals("Wrong identifier (repo)", ACCOUNT_JACK_USERNAME, getAttributeValue(repoShadowType, ATTR_USERNAME_QNAME));
+	}
 }
