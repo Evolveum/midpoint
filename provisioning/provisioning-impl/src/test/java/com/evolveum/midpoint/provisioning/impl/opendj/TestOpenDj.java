@@ -684,9 +684,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);
+		
 		assertNotNull(shadow);
 
 		display(SchemaDebugUtil.prettyPrint(shadow));
