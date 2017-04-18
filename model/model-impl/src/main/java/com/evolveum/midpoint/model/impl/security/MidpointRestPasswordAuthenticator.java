@@ -2,6 +2,8 @@ package com.evolveum.midpoint.model.impl.security;
 
 import java.io.IOException;
 
+import javax.ws.rs.container.ContainerRequestContext;
+
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,7 +24,7 @@ public class MidpointRestPasswordAuthenticator extends MidpointRestAuthenticator
 	}
 
 	@Override
-	protected PasswordAuthenticationContext createAuthenticationContext(AuthorizationPolicy policy) throws IOException{
+	protected PasswordAuthenticationContext createAuthenticationContext(AuthorizationPolicy policy, ContainerRequestContext requestCtx){
 		return new PasswordAuthenticationContext(policy.getUserName(), policy.getPassword());
 	}
 

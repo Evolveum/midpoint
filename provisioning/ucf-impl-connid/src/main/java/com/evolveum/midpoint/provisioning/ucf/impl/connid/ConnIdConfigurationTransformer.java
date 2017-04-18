@@ -103,7 +103,7 @@ public class ConnIdConfigurationTransformer {
 					SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME));
 		}
 
-		transformConnectorConfiguration(configProps, configurationPropertiesContainer, connectorConfNs);
+		transformConnectorConfigurationProperties(configProps, configurationPropertiesContainer, connectorConfNs);
 
 		PrismContainer connectorPoolContainer = configuration.findContainer(new QName(
 				SchemaConstants.NS_ICF_CONFIGURATION,
@@ -133,7 +133,7 @@ public class ConnIdConfigurationTransformer {
 
 	}
 
-	private void transformConnectorConfiguration(ConfigurationProperties configProps,
+	private void transformConnectorConfigurationProperties(ConfigurationProperties configProps,
 			PrismContainer<?> configurationPropertiesContainer, String connectorConfNs)
 			throws ConfigurationException, SchemaException {
 
@@ -159,7 +159,7 @@ public class ConnIdConfigurationTransformer {
 				numConfingProperties++;
 
 				// Local name of the element is the same as the name
-				// of ICF configuration property
+				// of ConnId configuration property
 				String propertyName = propertyQName.getLocalPart();
 				ConfigurationProperty property = configProps.getProperty(propertyName);
 				
@@ -167,16 +167,18 @@ public class ConnIdConfigurationTransformer {
 					throw new ConfigurationException("Unknown configuration property "+propertyName);
 				}
 
-				// Check (java) type of ICF configuration property,
-				// behave accordingly
 				Class<?> type = property.getType();
 				if (type.isArray()) {
-					property.setValue(convertToIcfArray(prismProperty, type.getComponentType()));
-					// property.setValue(prismProperty.getRealValuesArray(type.getComponentType()));
+					Object[] connIdArray = convertToConnIdfArray(prismProperty, type.getComponentType());
+					if (connIdArray != null && connIdArray.length != 0) {
+						property.setValue(connIdArray);
+					}
+					
 				} else {
-					// Single-valued property are easy to convert
-					property.setValue(convertToIcfSingle(prismProperty, type));
-					// property.setValue(prismProperty.getRealValue(type));
+					Object connIdValue = convertToConnIdSingle(prismProperty, type);
+					if (connIdValue != null) {
+						property.setValue(connIdValue);
+					}
 				}
 			}
 		}
@@ -316,7 +318,7 @@ public class ConnIdConfigurationTransformer {
         return prop.getRealValue(Boolean.class);
     }
 
-    private Object convertToIcfSingle(PrismProperty<?> configProperty, Class<?> expectedType)
+    private Object convertToConnIdSingle(PrismProperty<?> configProperty, Class<?> expectedType)
 			throws ConfigurationException {
 		if (configProperty == null) {
 			return null;
@@ -325,7 +327,7 @@ public class ConnIdConfigurationTransformer {
 		return convertToIcf(pval, expectedType);
 	}
 
-	private Object[] convertToIcfArray(PrismProperty prismProperty, Class<?> componentType)
+	private Object[] convertToConnIdfArray(PrismProperty prismProperty, Class<?> componentType)
 			throws ConfigurationException {
 		List<PrismPropertyValue> values = prismProperty.getValues();
 		Object valuesArrary = Array.newInstance(componentType, values.size());

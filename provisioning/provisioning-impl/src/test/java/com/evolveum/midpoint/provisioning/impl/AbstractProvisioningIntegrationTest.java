@@ -55,6 +55,7 @@ import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -107,6 +108,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
 	}
 	

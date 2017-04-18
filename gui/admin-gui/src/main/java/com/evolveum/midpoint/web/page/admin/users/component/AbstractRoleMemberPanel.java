@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -78,8 +79,18 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected static final String ID_MANAGER_TABLE = "managerTable";
 	protected static final String ID_MEMBER_TABLE = "memberTable";
 
+	protected List<RelationTypes> relations = new ArrayList<>();
+
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model, PageBase parentPage) {
 		super(id, model);
+		setParent(parentPage);
+		initLayout(tableId);
+	}
+
+	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model,
+								   List<RelationTypes> relations, PageBase parentPage) {
+		super(id, model);
+		this.relations = relations;
 		setParent(parentPage);
 		initLayout(tableId);
 	}
@@ -175,25 +186,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createMember"),
-				false, new HeaderMenuAction(this) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						createFocusMemberPerformed(null, target);
-					}
-				}));
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers"), false,
-				new HeaderMenuAction(this) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						addMembers(null, target);
-					}
-				}));
+		headerMenuItems.addAll(createNewMemberInlineMenuItems());
 
 		headerMenuItems.add(new InlineMenuItem());
 
@@ -252,6 +245,30 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 						}));
 
 		return headerMenuItems;
+	}
+
+	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
+		List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
+		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createMember"),
+				false, new HeaderMenuAction(this) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				createFocusMemberPerformed(null, target);
+			}
+		}));
+
+		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers"), false,
+				new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						addMembers(null, target);
+					}
+				}));
+		return newMemberMenuItems;
 	}
 
 	protected void createFocusMemberPerformed(final QName relation, AjaxRequestTarget target) {

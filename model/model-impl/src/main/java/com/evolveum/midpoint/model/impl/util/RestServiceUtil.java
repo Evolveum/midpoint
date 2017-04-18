@@ -23,6 +23,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -132,5 +135,17 @@ public class RestServiceUtil {
 	public static void createAbortMessage(ContainerRequestContext requestCtx){
 		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
 				.header("WWW-Authenticate", RestAuthenticationMethod.BASIC.getMethod() + " realm=\"midpoint\", " + RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod()).build());
+	}
+	
+	public static void createSecurityQuestionAbortMessage(ContainerRequestContext requestCtx, String secQChallenge){
+		String challenge = "";
+		if (StringUtils.isNotBlank(secQChallenge)) {
+			challenge = " " + Base64Utility.encode(secQChallenge.getBytes());
+		}
+		
+		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
+				.header("WWW-Authenticate",
+						RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod() + challenge)
+				.build());
 	}
 }
