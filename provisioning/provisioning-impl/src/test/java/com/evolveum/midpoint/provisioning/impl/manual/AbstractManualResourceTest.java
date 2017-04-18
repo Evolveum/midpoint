@@ -17,7 +17,7 @@
 /**
  * 
  */
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.manual;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
@@ -54,6 +54,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -105,50 +107,52 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestManual extends AbstractProvisioningIntegrationTest {
+public abstract class AbstractManualResourceTest extends AbstractProvisioningIntegrationTest {
 
 	protected static final File TEST_DIR = new File("src/test/resources/manual/");
 	
-	private static final File RESOURCE_MANUAL_FILE = new File(TEST_DIR, "resource-manual.xml");
-	private static final String RESOURCE_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
+	protected static final File RESOURCE_MANUAL_FILE = new File(TEST_DIR, "resource-manual.xml");
+	protected static final String RESOURCE_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
 	
-	private static final String MANUAL_CONNECTOR_TYPE = "ManualConnector";
+	protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
+	protected static final String RESOURCE_SEMI_MANUAL_OID = "b6eb1e50-2414-11e7-bf12-579151795f29";
 	
-	private static final Trace LOGGER = TraceManager.getTrace(TestManual.class);
-
-	private static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
-	private static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
-
-	private static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
-	private static final String ACCOUNT_WILL_OID = "c1add81e-1df7-11e7-bbb7-5731391ba751";
-	private static final String ACCOUNT_WILL_USERNAME = "will";
-	private static final String ACCOUNT_WILL_FULLNAME = "Will Turner";
-	private static final String ACCOUNT_WILL_FULLNAME_PIRATE = "Pirate Will Turner";
-
-	private static final String ATTR_USERNAME = "username";
-	private static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
+	protected static final String MANUAL_CONNECTOR_TYPE = "ManualConnector";
 	
-	private static final String ATTR_FULLNAME = "fullname";
-	private static final QName ATTR_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_FULLNAME);
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
 
+	protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
+	protected static final QName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new QName(NS_MANUAL_CONF, "defaultAssignee");
 
-	private PrismObject<ResourceType> resource;
-	private ResourceType resourceType;
+	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
+	protected static final String ACCOUNT_WILL_OID = "c1add81e-1df7-11e7-bbb7-5731391ba751";
+	protected static final String ACCOUNT_WILL_USERNAME = "will";
+	protected static final String ACCOUNT_WILL_FULLNAME = "Will Turner";
+	protected static final String ACCOUNT_WILL_FULLNAME_PIRATE = "Pirate Will Turner";
+
+	protected static final String ATTR_USERNAME = "username";
+	protected static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
 	
-	private XMLGregorianCalendar accountWillReqestTimestampStart;
-	private XMLGregorianCalendar accountWillReqestTimestampEnd;
-	
-	private XMLGregorianCalendar accountWillCompletionTimestampStart;
-	private XMLGregorianCalendar accountWillCompletionTimestampEnd;
-	
-	private XMLGregorianCalendar accountWillSecondReqestTimestampStart;
-	private XMLGregorianCalendar accountWillSecondReqestTimestampEnd;
+	protected static final String ATTR_FULLNAME = "fullname";
+	protected static final QName ATTR_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_FULLNAME);
 
-	private XMLGregorianCalendar accountWillSecondCompletionTimestampStart;
-	private XMLGregorianCalendar accountWillSecondCompletionTimestampEnd;
+	protected PrismObject<ResourceType> resource;
+	protected ResourceType resourceType;
+	
+	protected XMLGregorianCalendar accountWillReqestTimestampStart;
+	protected XMLGregorianCalendar accountWillReqestTimestampEnd;
+	
+	protected XMLGregorianCalendar accountWillCompletionTimestampStart;
+	protected XMLGregorianCalendar accountWillCompletionTimestampEnd;
+	
+	protected XMLGregorianCalendar accountWillSecondReqestTimestampStart;
+	protected XMLGregorianCalendar accountWillSecondReqestTimestampEnd;
 
-	private String willLastCaseOid;
-	private String willSecondLastCaseOid;
+	protected XMLGregorianCalendar accountWillSecondCompletionTimestampStart;
+	protected XMLGregorianCalendar accountWillSecondCompletionTimestampEnd;
+
+	protected String willLastCaseOid;
+	protected String willSecondLastCaseOid;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -157,10 +161,11 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		InternalsConfig.encryptionChecks = false;
 				
 		super.initSystem(initTask, initResult);
-		
-		resource = addResourceFromFile(RESOURCE_MANUAL_FILE, MANUAL_CONNECTOR_TYPE, initResult);
-		resourceType = resource.asObjectable();
 	}
+	
+	protected abstract File getResourceFile();
+	
+	protected abstract String getResourceOid();
 
 	@Test
 	public void test000Sanity() throws Exception {
@@ -170,10 +175,10 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
 
-		OperationResult result = new OperationResult(TestManual.class.getName()
+		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
 
-		ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_MANUAL_OID,
+		ResourceType repoResource = repositoryService.getObject(ResourceType.class, getResourceOid(),
 				null, result).asObjectable();
 		assertNotNull("No connector ref", repoResource.getConnectorRef());
 		String connectorOid = repoResource.getConnectorRef().getOid();
@@ -192,10 +197,10 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		final String TEST_NAME = "test003Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestManual.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 		
 		// Check that there is a schema, but no capabilities before test (pre-condition)
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_MANUAL_OID,
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, getResourceOid(),
 				null, result).asObjectable();
 		
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
@@ -205,13 +210,13 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		AssertJUnit.assertNull("Capabilities present before test connection. Bad test setup?", capabilities);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_MANUAL_OID);
+		OperationResult testResult = provisioningService.testResource(getResourceOid());
 
 		// THEN
 		display("Test result", testResult);
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_MANUAL_OID, null, result);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, getResourceOid(), null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable(); 
 		display("Resource after test", resourceTypeRepoAfter);
 
@@ -240,11 +245,11 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		final String TEST_NAME = "test004Configuration";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestManual.class.getName()
+		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, RESOURCE_MANUAL_OID, null, null, result);
+		resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
 		resourceType = resource.asObjectable();
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -265,7 +270,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		final String TEST_NAME = "test005ParsedSchema";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestManual.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -293,7 +298,7 @@ public class TestManual extends AbstractProvisioningIntegrationTest {
 		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_MANUAL_OID, null, null, result).asObjectable();
+		ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
 		
 		// THEN
 		display("Resource from provisioninig", resource);

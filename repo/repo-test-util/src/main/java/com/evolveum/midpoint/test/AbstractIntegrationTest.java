@@ -482,16 +482,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	
-	protected void fillInConnectorRef(PrismObject<ResourceType> resourcePrism, String connectorType, OperationResult result)
+	protected void fillInConnectorRef(PrismObject<ResourceType> resource, String connectorType, OperationResult result)
 			throws SchemaException {
-		ResourceType resource = resourcePrism.asObjectable();
-		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
-		ConnectorType connector = connectorPrism.asObjectable();
-		if (resource.getConnectorRef() == null) {
-			resource.setConnectorRef(new ObjectReferenceType());
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connector = findConnectorByType(connectorType, result);
+		if (resourceType.getConnectorRef() == null) {
+			resourceType.setConnectorRef(new ObjectReferenceType());
 		}
-		resource.getConnectorRef().setOid(connector.getOid());
-		resource.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
+		resourceType.getConnectorRef().setOid(connector.getOid());
+		resourceType.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
+	}
+	
+	protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, String connectorName, String connectorType, OperationResult result)
+			throws SchemaException {
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
+		for (ConnectorInstanceSpecificationType additionalConnector: resourceType.getAdditionalConnector()) {
+			if (connectorName.equals(additionalConnector.getName())) {
+				ObjectReferenceType ref = new ObjectReferenceType().oid(connectorPrism.getOid());
+				additionalConnector.setConnectorRef(ref);
+			}
+		}
 	}
 	
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {

@@ -96,9 +96,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 
 	private static final File RESOURCE_CSV_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-csv.xml");
 	private static final String RESOURCE_CSV_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
-	
-	private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.csvfile.CSVFileConnector";
-	
+		
 	private static final String CSV_SOURCE_FILE_PATH = "src/test/resources/midpoint-flatfile.csv";
 	private static final String CSV_TARGET_FILE_PATH = "target/midpoint-flatfile.csv";
 
