@@ -86,7 +86,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 				return null;
 			}
 			JsonNode userNameNode = node.findPath("user");
-			if (userNameNode == null) {
+			if (userNameNode instanceof MissingNode) {
 				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{" + USER_CHALLENGE + "}");
 				return null;
 			}
@@ -135,8 +135,8 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 					}
 				}
 				
-				
-				String challenge = "{" + USER_CHALLENGE + ", \"answer\" : [" + questionChallenge + "]}";
+				String userChallenge = USER_CHALLENGE.replace("username", userName);
+				String challenge = "{" + userChallenge + ", \"answer\" : [" + questionChallenge + "]}";
 				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, challenge);
 				return null;
 				

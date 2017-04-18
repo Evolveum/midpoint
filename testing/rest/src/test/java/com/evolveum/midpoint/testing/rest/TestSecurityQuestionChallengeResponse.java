@@ -65,7 +65,7 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 		} catch (Base64Exception e) {
 			fail("Failed to decode base64 username challenge");
 		}
-		String secQAnswerChallenge = answerChallenge.replaceFirst("username", "administrator").replaceFirst("useranswer", "5ecr3t").replaceFirst("useranswer", "black");
+		String secQAnswerChallenge = answerChallenge.replaceFirst("useranswer", "5ecr3t").replaceFirst("useranswer", "black");
 		LOGGER.info("Answer response: " +secQAnswerChallenge);
 		
 		response = getUserAdministrator("SecQ " + Base64Utility.encode(secQAnswerChallenge.getBytes()));
