@@ -65,7 +65,20 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 		} catch (Base64Exception e) {
 			fail("Failed to decode base64 username challenge");
 		}
-		String secQAnswerChallenge = answerChallenge.replaceFirst("useranswer", "5ecr3t").replaceFirst("useranswer", "black");
+		String secQAnswerChallenge = "{"
+				+ "\"user\" : \"administrator\","
+				+ "\"answer\" : ["
+					+ "{ "
+						+ "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001\"," 
+						+ "\"qans\" : \"5ecr3t\""
+					+ "},"
+					+ "{ "
+							+ "\"qid\" : \"http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002\"," 
+							+ "\"qans\" : \"black\""
+						+ "}"
+				+ "]"
+				+ "}";
+		
 		LOGGER.info("Answer response: " +secQAnswerChallenge);
 		
 		response = getUserAdministrator("SecQ " + Base64Utility.encode(secQAnswerChallenge.getBytes()));
