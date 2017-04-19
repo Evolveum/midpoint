@@ -86,14 +86,16 @@
                                             <input type="checkbox" wicket:id="assignmentPrivilegesCheckbox"/>
                                         </div>
                                         <div>
-                                            <div wicket:id="assignmentPrivilegesLabel" />
+                                            <div wicket:id="assignmentPrivilegesLabelContainer">
+                                                <div wicket:id="assignmentPrivilegesLabel" />
+                                                <a wicket:id="limitPrivilegesButton"></a>
+                                            </div>
                                             <div wicket:id="privilegesList">
                                                 <div wicket:id="privilege"/>
                                             </div>
                                         </div>
-                                        <div class="pull-right">
-                                            <a wicket:id="limitPrivilegesButton" class="btn btn-info"></a>
-                                        </div>
+                                        <!--<div class="pull-right">-->
+                                        <!--</div>-->
                                 </div>
                             </div>
                         </div>
