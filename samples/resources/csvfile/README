@@ -1,0 +1,2 @@
+The CSVFile connector is deprecated. Please use CSV connector instead.
+See https://wiki.evolveum.com/display/midPoint/CSVFile+Connector+Migration
