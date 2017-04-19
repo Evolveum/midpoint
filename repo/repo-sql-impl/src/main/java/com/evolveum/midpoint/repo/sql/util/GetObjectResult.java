@@ -1,9 +1,9 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
-import org.apache.commons.lang.Validate;
 import org.hibernate.transform.BasicTransformerAdapter;
 import org.hibernate.transform.ResultTransformer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
@@ -23,7 +23,8 @@ public class GetObjectResult implements Serializable {
         }
     };
 
-    private byte[] fullObject;
+    @NotNull private final String oid;
+    @NotNull private final byte[] fullObject;
 
     private Short stringsCount;
     private Short longsCount;
@@ -33,20 +34,20 @@ public class GetObjectResult implements Serializable {
     private Short booleansCount;
 
     public GetObjectResult(Object[] values) {
-        this((byte[]) values[0],
-                values.length > 1 ? (Short) values[1] : null,
+        this((String) values[0], (byte[]) values[1],
                 values.length > 2 ? (Short) values[2] : null,
                 values.length > 3 ? (Short) values[3] : null,
                 values.length > 4 ? (Short) values[4] : null,
                 values.length > 5 ? (Short) values[5] : null,
-                values.length > 6 ? (Short) values[6] : null);
+                values.length > 6 ? (Short) values[6] : null,
+                values.length > 7 ? (Short) values[7] : null);
     }
 
-    public GetObjectResult(byte[] fullObject, Short stringsCount, Short longsCount, Short datesCount,
+    public GetObjectResult(@NotNull String oid, @NotNull byte[] fullObject, Short stringsCount, Short longsCount, Short datesCount,
                            Short referencesCount, Short polysCount, Short booleansCount) {
 
-        Validate.notNull(fullObject, "Full object xml must not be null.");
 
+        this.oid = oid;
         this.fullObject = fullObject;
 
         this.stringsCount = stringsCount;
@@ -62,6 +63,12 @@ public class GetObjectResult implements Serializable {
                 getReferencesCount(), getPolysCount(), getBooleansCount()};
     }
 
+    @NotNull
+    public String getOid() {
+        return oid;
+    }
+
+    @NotNull
     public byte[] getFullObject() {
         return fullObject;
     }

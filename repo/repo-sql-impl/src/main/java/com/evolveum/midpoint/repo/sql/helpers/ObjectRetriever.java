@@ -184,7 +184,7 @@ public class ObjectRetriever {
 			RObject obj = (RObject) criteria.uniqueResult();
 
 			if (obj != null) {
-				fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
+				fullObject = new GetObjectResult(obj.getOid(), obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
 						obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
 			}
 		}
@@ -233,8 +233,7 @@ public class ObjectRetriever {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             List<GetObjectResult> focuses = query.list();
-            LOGGER.trace("Found {} focuses, transforming data to JAXB types.",
-                    new Object[]{(focuses != null ? focuses.size() : 0)});
+            LOGGER.trace("Found {} focuses, transforming data to JAXB types.", focuses != null ? focuses.size() : 0);
 
             if (focuses == null || focuses.isEmpty()) {
                 // account shadow owner was not found
@@ -272,8 +271,7 @@ public class ObjectRetriever {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             List<GetObjectResult> users = query.list();
-            LOGGER.trace("Found {} users, transforming data to JAXB types.",
-                    new Object[]{(users != null ? users.size() : 0)});
+            LOGGER.trace("Found {} users, transforming data to JAXB types.", users != null ? users.size() : 0);
 
             if (users == null || users.isEmpty()) {
                 // account shadow owner was not found
@@ -352,9 +350,9 @@ public class ObjectRetriever {
 			rQuery = engine.interpret(query, type, options, false, session);
 
             List<GetObjectResult> queryResult = rQuery.list();
-            LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(queryResult != null ? queryResult.size() : 0)});
+            LOGGER.trace("Found {} objects, translating to JAXB.", queryResult != null ? queryResult.size() : 0);
 
-			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, null, options, session, result);
+			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, options, session, result);
             session.getTransaction().commit();
 			return new SearchResultList<>(list);
 
@@ -368,11 +366,12 @@ public class ObjectRetriever {
 
 	@NotNull
 	private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(List<GetObjectResult> objects, Class<T> type,
-			String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+			Collection<SelectorOptions<GetOperationOptions>> options,
 			Session session, OperationResult result) throws SchemaException {
 		List<PrismObject<T>> rv = new ArrayList<>();
 		if (objects != null) {
 			for (GetObjectResult object : objects) {
+				String oid = object.getOid();
 				Holder<PrismObject<T>> partialValueHolder = new Holder<>();
 				PrismObject<T> prismObject;
 				try {
@@ -382,7 +381,7 @@ public class ObjectRetriever {
 						prismObject = partialValueHolder.getValue();
 					} else {
 						prismObject = prismContext.createObject(type);
-						prismObject.setOid(oid);        // most probably null
+						prismObject.setOid(oid);
 						prismObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
 					}
 					result.recordFatalError("Couldn't retrieve " + type + " " + oid + ": " + t.getMessage(), t);
@@ -572,8 +571,7 @@ public class ObjectRetriever {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             List<GetObjectResult> shadows = query.list();
-            LOGGER.debug("Query returned {} shadows, transforming to JAXB types.",
-                    new Object[]{(shadows != null ? shadows.size() : 0)});
+            LOGGER.debug("Query returned {} shadows, transforming to JAXB types.", shadows != null ? shadows.size() : 0);
 
             if (shadows != null) {
                 for (GetObjectResult shadow : shadows) {
@@ -843,7 +841,7 @@ main:       for (;;) {
 				// raw GetObjectResult instances are useless outside repo-sql-impl module, so we'll convert them to objects
 				@SuppressWarnings("unchecked")
 				List<GetObjectResult> listOfGetObjectResults = (List<GetObjectResult>) objects;
-				objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, null, session, result);
+				objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, session, result);
 			}
 
 			RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(objects, implementationLevelQuery, implementationLevelQueryParameters);

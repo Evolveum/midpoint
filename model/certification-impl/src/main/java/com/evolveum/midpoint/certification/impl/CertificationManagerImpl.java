@@ -99,39 +99,16 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
 
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    protected SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    protected AccCertGeneralHelper generalHelper;
-
-    @Autowired
-    protected AccCertEventHelper eventHelper;
-
-    @Autowired
-    protected AccCertResponseComputationHelper computationHelper;
-
-    @Autowired
-    protected AccCertQueryHelper queryHelper;
-
-    @Autowired
-    protected AccCertUpdateHelper updateHelper;
-
-    @Autowired
-    protected AccCertCaseOperationsHelper caseHelper;
-
-    @Autowired
-    private AccessCertificationRemediationTaskHandler remediationTaskHandler;
+    @Autowired private PrismContext prismContext;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private ModelService modelService;
+    @Autowired protected SecurityEnforcer securityEnforcer;
+    @Autowired protected AccCertGeneralHelper generalHelper;
+    @Autowired protected AccCertEventHelper eventHelper;
+    @Autowired protected AccCertQueryHelper queryHelper;
+    @Autowired protected AccCertUpdateHelper updateHelper;
+    @Autowired protected AccCertCaseOperationsHelper caseHelper;
+    @Autowired private AccessCertificationRemediationTaskHandler remediationTaskHandler;
 
     private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 

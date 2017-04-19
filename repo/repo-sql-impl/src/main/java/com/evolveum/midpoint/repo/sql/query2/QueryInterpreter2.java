@@ -138,6 +138,7 @@ public class QueryInterpreter2 {
 			String rootAlias = hibernateQuery.getPrimaryEntityAlias();
             // TODO other objects if parent is requested?
             if (context.isObject()) {
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".oid"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".fullObject"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".stringsCount"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".longsCount"));

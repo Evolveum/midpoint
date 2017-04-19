@@ -23,6 +23,7 @@ import com.evolveum.midpoint.notifications.impl.helpers.CertHelper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -111,6 +112,9 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
         if (stage != null) {
             body.append("Stage start time: ").append(XmlTypeConverter.toDate(stage.getStartTimestamp()));
             body.append("\nStage deadline: ").append(XmlTypeConverter.toDate(stage.getDeadline()));
+            if (stage.getEscalationLevel() != null) {
+            	body.append("\nEscalation level: ").append(WfContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()));
+			}
             if (stage.getDeadline() != null) {
                 long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();
                 if (delta > 0) {

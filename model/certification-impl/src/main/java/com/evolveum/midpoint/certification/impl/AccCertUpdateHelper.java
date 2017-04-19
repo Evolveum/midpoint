@@ -307,13 +307,7 @@ public class AccCertUpdateHelper {
         }
         eventHelper.onCampaignStageStart(campaign, task, result);
 
-        final List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
-        Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
-        for (String reviewerOid : reviewers) {
-            final List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
-            final ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-            eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
-        }
+		notifyReviewers(campaign, task, result);
 
         if (newStage.getNumber() == 1 && campaign.getDefinitionRef() != null) {
             List<ItemDelta<?,?>> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
@@ -323,7 +317,17 @@ public class AccCertUpdateHelper {
         }
     }
 
-    //endregion
+	private void notifyReviewers(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SchemaException {
+		final List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
+		Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
+		for (String reviewerOid : reviewers) {
+			final List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
+			final ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+			eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
+		}
+	}
+
+	//endregion
     //region ================================ Delegation/escalation ================================
 
     public void delegateWorkItems(String campaignOid, List<AccessCertificationWorkItemType> workItems,
@@ -372,6 +376,9 @@ public class AccCertUpdateHelper {
 			// notification (after modifications)
 		}
 		modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
+		AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+		// TODO differentiate between "old" and "new" reviewers
+		notifyReviewers(campaign, task, result);
 
 //		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
 //		LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
