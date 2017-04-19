@@ -115,7 +115,7 @@ public class PrismIdentifierGenerator {
         }
 
         if (ShadowType.class.isAssignableFrom(parent.getCompileTimeClass())) {
-            containers.add(parent.findContainer(ShadowType.F_PENDING_OPERATION));
+            CollectionUtils.addIgnoreNull(containers, parent.findContainer(ShadowType.F_PENDING_OPERATION));
         }
 
         return containers;
