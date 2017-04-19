@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<intent>default</intent>
 	<attributes>
-		<icfs:name>jack</icfs:name>
-		<icfs:uid>jack</icfs:uid>
+		<ri:username>jack</ri:username>
 	</attributes>
 </account>

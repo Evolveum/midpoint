@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2014 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,40 +26,30 @@
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-
-    	<!-- Resource name. It will be displayed in GUI.  -->
 	<name>Localhost CSVfile Broken</name>
      
-     	<!-- Reference to the ICF Flatfile connector. It contains a search filter that finds the right connector by connectorType. -->
 	<connectorRef type="ConnectorType">
 		<filter>
 	        <q:equal>
 			<q:path>c:connectorType</q:path>
-	          <q:value>com.evolveum.polygon.csvfile.CSVFileConnector</q:value>
+	          <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
 	        </q:equal>
 	      </filter>
 	</connectorRef>
 
-        <!-- Configuration section contains configuration of the connector,
-             such as hostnames and passwords -->
 	<connectorConfiguration>
 	
-            <!-- Configuration specific for the CSVfile connector -->
 		<icfc:configurationProperties
-		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
+		      xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
 
 				<icfccsvfile:filePath>target/test/negative/broken.csv</icfccsvfile:filePath>
 				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
 				<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
 				<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-				<icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
-				<icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
-	<!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
+				<icfccsvfile:uniqueAttribute>username</icfccsvfile:uniqueAttribute>
 				<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
 			</icfc:configurationProperties>
 		
-			<!-- Generic ICF configuration -->
 
 	</connectorConfiguration>
 
@@ -75,28 +65,13 @@
         -->
 		<schemaHandling>
 
-            <!-- Definition of default account type.
-                 This is now the only account type that midPoint can work with. -->
 			<objectType>
-                <!-- Readable name for the account type -->
 				<displayName>Default Account</displayName>
 				<default>true</default>
-                <!-- Reference to the Resource Schema (see above) specifying
-                     object class for this account type -->
 				<objectClass>ri:AccountObjectClass</objectClass>
 				<attribute>
-					<ref>icfs:uid</ref>
-
-                    <!-- Readable name for the attribute. This will be used in GUI -->
-					<displayName>Entry UUID</displayName>
-
-				</attribute>
-				<attribute>
-					<ref>icfs:name</ref>
-
-                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<ref>ri:username</ref>
 					<displayName>Name</displayName>
-
 					<outbound>
 						<strength>weak</strength>
 						<source>
