@@ -17,12 +17,13 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -53,7 +54,7 @@ public class AuditSearchDto implements Serializable {
 	private ObjectReferenceType initiatorName;
 	private QName channel;
 	private String hostIdentifier;
-	private ObjectReferenceType targetName;
+	private List<ObjectReferenceType> targetNames = new ArrayList<>();
 	private ObjectReferenceType targetOwnerName;
 	private AuditEventTypeType eventType;
 	private AuditEventStageType eventStage;
@@ -100,12 +101,12 @@ public class AuditSearchDto implements Serializable {
 		this.hostIdentifier = hostIdentifier;
 	}
 
-	public ObjectReferenceType getTargetName() {
-		return targetName;
+	public List<ObjectReferenceType> getTargetNames() {
+		return targetNames;
 	}
 
-	public void setTargetName(ObjectReferenceType targetName) {
-		this.targetName = targetName;
+	public void setTargetNames(List<ObjectReferenceType> targetNameList) {
+		this.targetNames = targetNameList;
 	}
 
 	public ObjectReferenceType getTargetOwnerName() {
