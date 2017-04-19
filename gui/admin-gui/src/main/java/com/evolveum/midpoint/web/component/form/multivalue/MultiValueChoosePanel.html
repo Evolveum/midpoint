@@ -14,34 +14,29 @@
   ~ limitations under the License.
   -->
 
-
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="showPopup" />
 
-    <label class="control-label" wicket:id="label" />
+	<button wicket:id="edit" type="button" class="btn btn-sm btn-primary multi-button-edit">
+		<wicket:message key="PageBase.button.edit" />
+	</button>
 
-    <wicket:container wicket:id="repeater">
-        <div wicket:id="textWrapper">
-            <div class="input-group input-group-sm">
-                <span class="input-group-btn">
-                    <button wicket:id="edit" class="btn btn-primary" type="button">
-                        <wicket:message key="PageBase.button.edit" />
-                    </button>
-                </span>
-                <input type="text" class="form-control input-sm" wicket:id="text" />
-                <span class="text-danger" wicket:id="feedback" />
-            </div>
-        </div>
-
-        <div class="col-md-2" wicket:id="buttonGroup">
-            <span class="btn-group">
-                <a class="btn btn-danger btn-sm" wicket:id="remove"><i class="glyphicon glyphicon-minus"/></a>
-                <a class="btn btn-success btn-sm" wicket:id="add"><i class="glyphicon glyphicon-plus"/></a>
-            </span>
-        </div>
-    </wicket:container>
+	<div wicket:id="selectedRows">
+			<div class="row">
+				<div wicket:id="textWrapper" class="col-md-10">
+					<div>
+						<input type="text" class="form-control input-sm" wicket:id="text" />
+						<span class="text-danger" wicket:id="feedback" />
+					</div>
+				</div>
+				<div wicket:id="buttonGroup">
+					<span class="btn-group"> <a class="btn btn-danger btn-sm"
+						wicket:id="remove"><i class="glyphicon glyphicon-minus" /></a>
+					</span>
+				</div>
+			</div>
+		</div>
 </wicket:panel>
 </html>

@@ -202,10 +202,10 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		} else {
             parameters.remove("targetOwnerName");
 		}
-		if (parameters.get("targetName") != null) {
-			query += "(aer.targetOid = :targetName) and ";
+		if (parameters.get("targetNames") != null) {
+			query += "(aer.targetOid in ( :targetNames )) and ";
 		} else {
-            parameters.remove("targetName");
+            parameters.remove("targetNames");
 		}
 		if (parameters.get("taskIdentifier") != null) {
 			query += "(aer.taskIdentifier = :taskIdentifier) and ";
