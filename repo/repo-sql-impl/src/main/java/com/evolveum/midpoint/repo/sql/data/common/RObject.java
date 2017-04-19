@@ -105,10 +105,10 @@ import java.util.Set;
         @NamedQuery(name = "delete.lookupTableDataRowByKey", query = "delete RLookupTableRow r where r.ownerOid = :oid and r.key = :key"),
         @NamedQuery(name = "get.campaignCaseLastId", query = "select max(c.id) from RAccessCertificationCase c where c.ownerOid = :oid"),
         @NamedQuery(name = "delete.campaignCases", query = "delete RAccessCertificationCase c where c.ownerOid = :oid"),
-        @NamedQuery(name = "delete.campaignCasesDecisions", query = "delete RAccessCertificationDecision d where d.ownerOwnerOid = :oid"),
-        @NamedQuery(name = "delete.campaignCasesReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid"),
+        // @NamedQuery(name = "delete.campaignCasesReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid"),
+        @NamedQuery(name = "delete.campaignCasesWorkItems", query = "delete RAccessCertificationWorkItem r where r.ownerOwnerOid = :oid"),
+        @NamedQuery(name = "delete.campaignCasesWorkItemReferences", query = "delete RCertWorkItemReference r where r.ownerOwnerOwnerOid = :oid"),
         @NamedQuery(name = "delete.campaignCase", query = "delete RAccessCertificationCase c where c.ownerOid = :oid and c.id = :id"),
-        @NamedQuery(name = "delete.campaignCaseDecisions", query = "delete RAccessCertificationDecision d where d.ownerOwnerOid = :oid and d.ownerId = :id"),
         // doesn't work; generates SQL of "delete from m_acc_cert_case_reference where owner_owner_oid=? and owner_id=? and owner_owner_oid=? and reference_type=? and relation=? and targetOid=?"
         //@NamedQuery(name = "delete.campaignCaseReferences", query = "delete RCertCaseReference r where r.ownerOid = :oid and r.id = :id"),
         @NamedQuery(name = "resolveReferences", query = "select o.oid, o.name from RObject as o where o.oid in (:oid)"),

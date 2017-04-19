@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalLevel;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.impl.util.SerializationSafeContainer;
@@ -60,29 +59,22 @@ public class ActivitiUtil implements Serializable {
     private static final Trace LOGGER = TraceManager.getTrace(ActivitiUtil.class);
 
 	@NotNull
-	public static ApprovalLevelType getAndVerifyCurrentStage(DelegateExecution execution, Task wfTask, boolean stageInContextSet,
+	public static ApprovalStageDefinitionType getAndVerifyCurrentStage(DelegateExecution execution, Task wfTask, boolean stageInContextSet,
 			PrismContext prismContext) {
-		int levelIndex = getRequiredVariable(execution, ProcessVariableNames.LEVEL_INDEX, Integer.class, prismContext);
-		int stageNumber = levelIndex+1;
-		ApprovalLevelType level;
+		int stageNumber = getRequiredVariable(execution, ProcessVariableNames.STAGE_NUMBER_LOCAL, Integer.class, prismContext);
+		ApprovalStageDefinitionType stageDefinition;
 		if (stageInContextSet) {
-			level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
-			if (level == null) {
+			stageDefinition = WfContextUtil.getCurrentStageDefinition(wfTask.getWorkflowContext());
+			if (stageDefinition == null) {
 				throw new IllegalStateException("No current stage information in " + wfTask);
 			}
 		} else {
-			level = WfContextUtil.getApprovalLevel(wfTask.getWorkflowContext(), stageNumber);
-			if (level == null) {
+			stageDefinition = WfContextUtil.getStageDefinition(wfTask.getWorkflowContext(), stageNumber);
+			if (stageDefinition == null) {
 				throw new IllegalStateException("No stage #" + stageNumber + " in " + wfTask);
 			}
 		}
-		ApprovalLevel wfLevel = getRequiredVariable(execution, ProcessVariableNames.LEVEL, ApprovalLevel.class, prismContext);
-		if (!level.getOrder().equals(wfLevel.getOrder()) || level.getOrder() != stageNumber) {
-			throw new IllegalStateException("Current stage number in " + wfTask + " (" + level.getOrder()
-					+ "), number present in activiti process (" + wfLevel
-					+ "), and the stage number according to activiti process (" + stageNumber + ") do not match.");
-		}
-		return level;
+		return stageDefinition;
 	}
 
 	public PrismContext getPrismContext() {
@@ -180,23 +172,22 @@ public class ActivitiUtil implements Serializable {
 
 	// TODO move to better place (it is called also from WorkItemManager)
 	// Make sure this does not refer to variables modified in activity db but not in the Java task object
+	// TODO CLEAN THIS UP!!! (maybe by reading WorkItemType?)
 	public static void fillInWorkItemEvent(WorkItemEventType event, MidPointPrincipal currentUser, String workItemId,
 			Map<String, Object> variables, PrismContext prismContext) {
 		if (currentUser != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(currentUser.getUser()));
 		}
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
-		event.setWorkItemId(workItemId);
+		event.setExternalWorkItemId(workItemId);
 		String originalAssigneeString = ActivitiUtil.getVariable(variables, VARIABLE_ORIGINAL_ASSIGNEE, String.class, prismContext);
 		if (originalAssigneeString != null) {
 			event.setOriginalAssigneeRef(MiscDataUtil.stringToRef(originalAssigneeString));
 		}
 		event.setStageNumber(ActivitiUtil.getRequiredVariable(variables, VARIABLE_STAGE_NUMBER, Integer.class, prismContext));
-		event.setStageName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_NAME, String.class, prismContext));
-		event.setStageDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_STAGE_DISPLAY_NAME, String.class, prismContext));
-		event.setEscalationLevelNumber(ActivitiUtil.getEscalationLevelNumber(variables));
-		event.setEscalationLevelName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext));
-		event.setEscalationLevelDisplayName(ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext));
+		event.setEscalationLevel(WfContextUtil.createEscalationLevel(ActivitiUtil.getEscalationLevelNumber(variables),
+				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_NAME, String.class, prismContext),
+				ActivitiUtil.getVariable(variables, VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, String.class, prismContext)));
 	}
 
 	public static int getEscalationLevelNumber(Map<String, Object> variables) {

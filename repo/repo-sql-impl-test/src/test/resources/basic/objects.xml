@@ -1405,31 +1405,32 @@
                 <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></defaultReviewerRef>
             </reviewerSpecification>
         </stageDefinition>
-        <start>2015-12-04T00:38:03.031+01:00</start>
+        <startTimestamp>2015-12-04T00:38:03.031+01:00</startTimestamp>
         <state>inReviewStage</state>
         <stageNumber>1</stageNumber>
         <stage id="8">
             <number>1</number>
             <name>Administrator's review</name>
             <description>In this stage, the administrator has to review all the assignments of all users.</description>
-            <start>2015-12-04T00:38:00.708+01:00</start>
-            <end>2015-12-18T23:59:59.999+01:00</end>
+            <startTimestamp>2015-12-04T00:38:00.708+01:00</startTimestamp>
+            <endTimestamp>2015-12-18T23:59:59.999+01:00</endTimestamp>
         </stage>
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="1"
               xsi:type="c:AccessCertificationAssignmentCaseType">
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-            <currentStageNumber>1</currentStageNumber>
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-            <decision id="1">
-                <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>notDecided</response>
-                <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
-            </decision>
+            <stageNumber>1</stageNumber>
+			<workItem id="1">
+				<stageNumber>1</stageNumber>
+				<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+				<output>
+					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#notDecided</outcome>
+				</output>
+				<outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
+			</workItem>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>notDecided</currentStageOutcome>
             <assignment id="1">
                 <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
@@ -1441,16 +1442,17 @@
               xsi:type="c:AccessCertificationAssignmentCaseType">
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
-            <currentStageNumber>1</currentStageNumber>
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-            <decision id="1">
-                <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>accept</response>
-                <timestamp>2015-12-04T01:04:06.385+01:00</timestamp>
-            </decision>
+            <stageNumber>1</stageNumber>
+			<workItem id="1">
+				<stageNumber>1</stageNumber>
+            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+				<output>
+					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+				</output>
+				<outputChangeTimestamp>2015-12-04T01:04:06.385+01:00</outputChangeTimestamp>
+			</workItem>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>accept</currentStageOutcome>
             <assignment id="2">
                 <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
@@ -1460,19 +1462,20 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="3"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+				<stageNumber>1</stageNumber>
+            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+				<output>
+					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+				</output>
+				<outputChangeTimestamp>2015-12-04T01:10:08.670+01:00</outputChangeTimestamp>
+			</workItem>
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-            <decision id="1">
-                <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>noResponse</response>
-                <timestamp>2015-12-04T01:10:08.670+01:00</timestamp>
-            </decision>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>noResponse</currentStageOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <stageNumber>1</stageNumber>
             <assignment id="3">
                 <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
             </assignment>
@@ -1481,19 +1484,20 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="4"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+				<stageNumber>1</stageNumber>
+				<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+				<output>
+					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+				</output>
+				<outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
+			</workItem>
             <objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"><!-- u001 --></objectRef>
             <targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></targetRef>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-            <decision id="1">
-                <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>revoke</response>
-                <timestamp>2015-12-04T01:10:13.814+01:00</timestamp>
-            </decision>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>revoke</currentStageOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <stageNumber>1</stageNumber>
             <assignment id="1">
                 <construction>
                     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></resourceRef>
@@ -1522,19 +1526,20 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="5"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+				<stageNumber>1</stageNumber>
+            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+				<output>
+					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+				</output>
+				<outputChangeTimestamp>2015-12-04T01:10:14.614+01:00</outputChangeTimestamp>
+			</workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-            <decision id="1">
-                <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>revoke</response>
-                <timestamp>2015-12-04T01:10:14.614+01:00</timestamp>
-            </decision>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>revoke</currentStageOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <stageNumber>1</stageNumber>
             <assignment id="1">
                 <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
             </assignment>
@@ -1543,19 +1548,20 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="6"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+				<stageNumber>1</stageNumber>
+            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+				<output>
+					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#reduce</outcome>
+				</output>
+				<outputChangeTimestamp>2015-12-04T01:10:15.375+01:00</outputChangeTimestamp>
+			</workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-            <decision id="1">
-                <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>reduce</response>
-                <timestamp>2015-12-04T01:10:15.375+01:00</timestamp>
-            </decision>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>reduce</currentStageOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <stageNumber>1</stageNumber>
             <assignment id="2">
                 <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
             </assignment>
@@ -1564,19 +1570,20 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="7"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-            <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
+			<workItem id="1">
+				<stageNumber>1</stageNumber>
+            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+				<output>
+					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+				</output>
+				<outputChangeTimestamp>2015-12-04T01:10:16.136+01:00</outputChangeTimestamp>
+			</workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
-            <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-            <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-            <decision id="1">
-                <stageNumber>1</stageNumber>
-                <reviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></reviewerRef>
-                <response>revoke</response>
-                <timestamp>2015-12-04T01:10:16.136+01:00</timestamp>
-            </decision>
+            <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+            <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>revoke</currentStageOutcome>
-            <currentStageNumber>1</currentStageNumber>
+            <stageNumber>1</stageNumber>
             <assignment id="3">
                 <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
             </assignment>

@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrDecisionDto;
+import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseOrWorkItemDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationAssignmentCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -43,9 +43,9 @@ import java.util.List;
  */
 public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
     @Override
-    public String getCaseInfoButtonTitle(IModel<? extends CertCaseOrDecisionDto> rowModel, PageBase page) {
+    public String getCaseInfoButtonTitle(IModel<? extends CertCaseOrWorkItemDto> rowModel, PageBase page) {
 
-        CertCaseOrDecisionDto dto = rowModel.getObject();
+        CertCaseOrWorkItemDto dto = rowModel.getObject();
         AccessCertificationCaseType _case = dto.getCertCase();
         if (!(_case instanceof AccessCertificationAssignmentCaseType)) {
             return null;            // should not occur, TODO treat gracefully

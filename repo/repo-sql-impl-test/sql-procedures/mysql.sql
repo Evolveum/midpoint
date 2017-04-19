@@ -9,8 +9,8 @@ DETERMINISTIC
     DECLARE run TINYINT DEFAULT 0;
 
     DELETE FROM m_sequence;
-    DELETE FROM m_acc_cert_case_reference;
-    DELETE FROM m_acc_cert_decision;
+    DELETE FROM m_acc_cert_wi_reference;
+    DELETE FROM m_acc_cert_wi;
     DELETE FROM m_acc_cert_case;
     DELETE FROM m_acc_cert_campaign;
     DELETE FROM m_acc_cert_definition;

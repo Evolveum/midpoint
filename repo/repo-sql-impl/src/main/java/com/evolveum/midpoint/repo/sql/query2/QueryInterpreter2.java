@@ -37,12 +37,15 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ProperDataSearchResult;
 import com.evolveum.midpoint.repo.sql.query2.restriction.*;
+import com.evolveum.midpoint.repo.sql.util.GetCertificationWorkItemResult;
 import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -133,9 +136,9 @@ public class QueryInterpreter2 {
 			hibernateQuery.setDistinct(distinct);
 
 			String rootAlias = hibernateQuery.getPrimaryEntityAlias();
-            hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".fullObject"));
             // TODO other objects if parent is requested?
             if (context.isObject()) {
+                hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".fullObject"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".stringsCount"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".longsCount"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".datesCount"));
@@ -143,10 +146,19 @@ public class QueryInterpreter2 {
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".polysCount"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".booleansCount"));
                 hibernateQuery.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-            } else {
+            } else if (AccessCertificationCaseType.class.equals(context.getType())) {
+				hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".fullObject"));
                 hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".ownerOid"));
                 hibernateQuery.setResultTransformer(GetContainerableResult.RESULT_TRANSFORMER);
-            }
+            } else if (AccessCertificationWorkItemType.class.equals(context.getType())) {
+            	// TODO owner's full object
+				hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".ownerOwnerOid"));
+				hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".ownerId"));
+				hibernateQuery.addProjectionElement(new ProjectionElement(rootAlias + ".id"));
+				hibernateQuery.setResultTransformer(GetCertificationWorkItemResult.RESULT_TRANSFORMER);
+            } else {
+            	throw new QueryException("Unsupported type: " + context.getType());
+			}
         }
 
         return hibernateQuery;
@@ -234,7 +246,7 @@ public class QueryInterpreter2 {
             ProperDataSearchResult<JpaPropertyDefinition> propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class,
                     context.getPrismContext());
             if (propDefRes == null) {
-                throw new QueryException("Couldn't find a proper restriction for a ValueFilter: " + valFilter.debugDump());
+                throw new QueryException("Couldn't find a proper data item to query, given base entity " + baseEntityDefinition + " and this filter: " + valFilter.debugDump());
             }
             // TODO can't be unified?
             if (propDefRes.getTargetDefinition() instanceof JpaAnyPropertyDefinition) {
@@ -356,11 +368,11 @@ public class QueryInterpreter2 {
 
     }
 
-    public <T extends Object> Matcher<T> findMatcher(T value) {
+    public <T> Matcher<T> findMatcher(T value) {
         return findMatcher(value != null ? (Class<T>) value.getClass() : null);
     }
 
-    public <T extends Object> Matcher<T> findMatcher(Class<T> type) {
+    public <T> Matcher<T> findMatcher(Class<T> type) {
         Matcher<T> matcher = AVAILABLE_MATCHERS.get(type);
         if (matcher == null) {
             //we return default matcher

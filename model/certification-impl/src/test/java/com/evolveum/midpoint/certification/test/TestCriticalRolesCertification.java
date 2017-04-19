@@ -57,7 +57,7 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class CriticalRolesCertificationTest extends AbstractCertificationTest {
+public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
     protected static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-critical-roles.xml");
 
@@ -78,7 +78,7 @@ public class CriticalRolesCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         certificationDefinition = repoAddObjectFromFile(CERT_DEF_FILE,
@@ -127,7 +127,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -159,12 +159,12 @@ jack->CTO                   none (A) -> A
         checkSpecificCase(jackCeoCase, userJack);
         checkSpecificCase(jackCtoCase, userJack);
 
-        assertCaseReviewers(elaineCeoCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 1, Arrays.asList(USER_CHEESE_OID));
-        assertCaseReviewers(administratorCooCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(administratorCeoCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(jackCeoCase, ACCEPT, 1, Collections.<String>emptyList());
-        assertCaseReviewers(jackCtoCase, ACCEPT, 1, Collections.<String>emptyList());
+        assertCaseReviewers(elaineCeoCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 1, Collections.singletonList(USER_CHEESE_OID));
+        assertCaseReviewers(administratorCooCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(administratorCeoCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(jackCeoCase, ACCEPT, 1, Collections.emptyList());
+        assertCaseReviewers(jackCtoCase, ACCEPT, 1, Collections.emptyList());
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -182,7 +182,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -193,7 +193,7 @@ jack->CTO                   none (A) -> A
         assertEquals("unexpected # of cases", 6, caseList.size());
         AccessCertificationCaseType guybrushCooCase = findCase(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID);
 
-        recordDecision(campaignOid, guybrushCooCase, ACCEPT, null, 1, USER_CHEESE_OID, task, result);
+        recordDecision(campaignOid, guybrushCooCase, ACCEPT, null, USER_CHEESE_OID, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -219,7 +219,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -255,7 +255,7 @@ jack->CTO                   none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -293,12 +293,12 @@ jack->CEO                   none (A) -> A       elaine
 jack->CTO                   none (A) -> A       none (A) -> A
          */
 
-        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCtoCase, ACCEPT, 2, Arrays.<String>asList());
+        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(guybrushCooCase, NO_RESPONSE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCtoCase, ACCEPT, 2, Collections.emptyList());
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -316,7 +316,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -346,7 +346,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -377,10 +377,10 @@ jack->CTO                   none (A) -> A       none (A) -> A
         AccessCertificationCaseType administratorCooCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID);
         AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);
 
-        recordDecision(campaignOid, elaineCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, guybrushCooCase, REVOKE, "no", 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, administratorCooCase, ACCEPT, "ok", 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, elaineCeoCase, ACCEPT, null, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, guybrushCooCase, REVOKE, "no", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, administratorCooCase, ACCEPT, "ok", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, USER_ELAINE_OID, task, result);
         // jackCeo: no response
         // jackCto: no reviewers
 
@@ -402,12 +402,12 @@ jack->CTO                   none (A) -> A       none (A) -> A
         AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         AccessCertificationCaseType jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        assertDecisions(elaineCeoCase, 1);
-        assertDecisions(guybrushCooCase, 2);
-        assertDecisions(administratorCooCase, 1);
-        assertDecisions(administratorCeoCase, 1);
-        assertDecisions(jackCeoCase, 1);
-        assertDecisions(jackCtoCase, 0);
+        assertWorkItems(elaineCeoCase, 1);
+        assertWorkItems(guybrushCooCase, 2);
+        assertWorkItems(administratorCooCase, 1);
+        assertWorkItems(administratorCeoCase, 1);
+        assertWorkItems(jackCeoCase, 1);
+        assertWorkItems(jackCtoCase, 0);
 
         assertSingleDecision(elaineCeoCase, ACCEPT, null, 2, USER_ELAINE_OID, ACCEPT, false);
         assertSingleDecision(guybrushCooCase, REVOKE, "no", 2, USER_ADMINISTRATOR_OID, REVOKE, false);
@@ -425,7 +425,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -455,7 +455,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -490,7 +490,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -533,10 +533,10 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
          */
 
         assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
         assertCaseReviewers(administratorCooCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
         assertCaseReviewers(jackCtoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -555,7 +555,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -582,10 +582,10 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         AccessCertificationCaseType jackCeoCase;
         AccessCertificationCaseType jackCtoCase;
 
-        recordDecision(campaignOid, elaineCeoCase, NOT_DECIDED, null, 3, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, 3, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, 3, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, 3, USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, elaineCeoCase, NOT_DECIDED, null, USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, NO_RESPONSE, null, USER_ADMINISTRATOR_OID, task, result);
         // no response for jackCto
 
         // THEN
@@ -606,19 +606,19 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         jackCtoCase = findCase(caseList, USER_JACK_OID, ROLE_CTO_OID);
 
-        assertDecisions(elaineCeoCase, 3);
-        assertDecisions(guybrushCooCase, 2);
-        assertDecisions(administratorCooCase, 3);
-        assertDecisions(administratorCeoCase, 3);
-        assertDecisions(jackCeoCase, 1);
-        assertDecisions(jackCtoCase, 2);
+        assertWorkItems(elaineCeoCase, 3);
+        assertWorkItems(guybrushCooCase, 2);
+        assertWorkItems(administratorCooCase, 3);
+        assertWorkItems(administratorCeoCase, 3);
+        assertWorkItems(jackCeoCase, 1);
+        assertWorkItems(jackCtoCase, 2);
 
         assertReviewerDecision(elaineCeoCase, NOT_DECIDED, null, 3, USER_ADMINISTRATOR_OID, NOT_DECIDED, false);
         assertNoDecision(guybrushCooCase, 3, REVOKE, false);
         assertReviewerDecision(administratorCooCase, ACCEPT, null, 3, USER_ELAINE_OID, ACCEPT, false);
         assertReviewerDecision(administratorCooCase, null, null, 3, USER_ADMINISTRATOR_OID, ACCEPT, false);
-        assertReviewerDecision(administratorCeoCase, NO_RESPONSE, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
-        assertReviewerDecision(administratorCeoCase, NO_RESPONSE, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
+        assertReviewerDecision(administratorCeoCase, null, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
+        assertReviewerDecision(administratorCeoCase, null, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
         assertNoDecision(jackCeoCase, 3, NO_RESPONSE, false);
         assertReviewerDecision(jackCtoCase, null, null, 3, USER_ELAINE_OID, NO_RESPONSE, false);
         assertReviewerDecision(jackCtoCase, null, null, 3, USER_ADMINISTRATOR_OID, NO_RESPONSE, false);
@@ -651,7 +651,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -705,7 +705,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -748,11 +748,11 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
          */
 
         assertCaseReviewers(elaineCeoCase, NOT_DECIDED, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Arrays.asList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 4, Arrays.asList(USER_CHEESE_OID));
-        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 4, Arrays.asList(USER_CHEESE_OID));
-        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Arrays.asList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 4, Arrays.asList(USER_CHEESE_OID));
+        assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
+        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
+        assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
+        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NOT_DECIDED, NOT_DECIDED, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, REVOKE, REVOKE, null);
@@ -770,7 +770,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -801,8 +801,8 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         AccessCertificationCaseType jackCeoCase;
         AccessCertificationCaseType jackCtoCase;
 
-        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, 4, USER_CHEESE_OID, task, result);
-        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, 4, USER_CHEESE_OID, task, result);
+        recordDecision(campaignOid, administratorCooCase, ACCEPT, null, USER_CHEESE_OID, task, result);
+        recordDecision(campaignOid, administratorCeoCase, ACCEPT, null, USER_CHEESE_OID, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -837,12 +837,12 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese:NR -> NR | NR
 */
 
-        assertDecisions(elaineCeoCase, 3);
-        assertDecisions(guybrushCooCase, 2);
-        assertDecisions(administratorCooCase, 4);
-        assertDecisions(administratorCeoCase, 4);
-        assertDecisions(jackCeoCase, 1);
-        assertDecisions(jackCtoCase, 3);
+        assertWorkItems(elaineCeoCase, 3);
+        assertWorkItems(guybrushCooCase, 2);
+        assertWorkItems(administratorCooCase, 4);
+        assertWorkItems(administratorCeoCase, 4);
+        assertWorkItems(jackCeoCase, 1);
+        assertWorkItems(jackCtoCase, 3);
 
         assertNoDecision(elaineCeoCase, 4, NOT_DECIDED, false);
         assertNoDecision(guybrushCooCase, 4, REVOKE, false);
@@ -867,7 +867,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -924,7 +924,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -952,7 +952,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 5, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertApproximateTime("end time", new Date(), campaign.getEnd());
+        assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 4, campaign.getStage().size());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -977,7 +977,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(CriticalRolesCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN

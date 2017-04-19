@@ -73,3 +73,59 @@ ALTER TABLE m_case
   ADD CONSTRAINT fk_case
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+ALTER TABLE m_assignment_reference RENAME COLUMN containerType TO targetType;
+ALTER TABLE m_reference RENAME COLUMN containerType TO targetType;
+
+DROP TABLE m_acc_cert_case_reference;
+
+ALTER TABLE m_acc_cert_case RENAME COLUMN currentStageNumber TO stageNumber;
+ALTER TABLE m_acc_cert_case DROP COLUMN currentStageOutcome;
+ALTER TABLE m_acc_cert_case DROP COLUMN overallOutcome;
+ALTER TABLE m_acc_cert_case ADD COLUMN currentStageOutcome VARCHAR(255);
+ALTER TABLE m_acc_cert_case ADD COLUMN outcome VARCHAR(255);
+
+DROP TABLE m_acc_cert_decision;
+
+CREATE TABLE m_acc_cert_wi (
+  id                     INT4        NOT NULL,
+  owner_id               INT4        NOT NULL,
+  owner_owner_oid        VARCHAR(36) NOT NULL,
+  closeTimestamp         TIMESTAMP,
+  outcome                VARCHAR(255),
+  outputChangeTimestamp  TIMESTAMP,
+  performerRef_relation  VARCHAR(157),
+  performerRef_targetOid VARCHAR(36),
+  performerRef_type      INT4,
+  stageNumber            INT4,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+);
+
+CREATE TABLE m_acc_cert_wi_reference (
+  owner_id              INT4         NOT NULL,
+  owner_owner_id        INT4         NOT NULL,
+  owner_owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation              VARCHAR(157) NOT NULL,
+  targetOid             VARCHAR(36)  NOT NULL,
+  targetType            INT4,
+  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
+);
+
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
+
+ALTER TABLE m_acc_cert_case DROP CONSTRAINT fk_acc_cert_case_owner;
+
+ALTER TABLE m_acc_cert_case
+  ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_acc_cert_campaign;
+
+ALTER TABLE m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
+FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
+REFERENCES m_acc_cert_wi;

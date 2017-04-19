@@ -40,6 +40,8 @@ import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -313,45 +315,54 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return;
 		}
 		ItemPath path = selector.getPath();
-		ItemPath.checkNoReferences(path);
+		ItemPath.checkNoSpecialSymbolsExceptParent(path);
 		resolve(object, path, option, task, result);
 	}
-		
+
+	// TODO clean this mess
 	private <O extends ObjectType> void resolve(Containerable containerable, ItemPath path, SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (path == null || path.isEmpty()) {
 			return;
 		}
 		ItemPathSegment first = path.first();
 		ItemPath rest = path.rest();
-		QName refName = ItemPath.getName(first);
-		PrismContainerValue containerValue = containerable.asPrismContainerValue();
-
-		PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(refName);
-		if (reference == null) {
-			reference = containerValue.findReference(refName);	// alternatively look up by reference name (e.g. linkRef)
+		PrismContainerValue<?> containerValue = containerable.asPrismContainerValue();
+		if (first instanceof NameItemPathSegment) {
+			QName refName = ItemPath.getName(first);
+			PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(refName);
+			if (reference == null) {
+				reference = containerValue.findReference(refName);	// alternatively look up by reference name (e.g. linkRef)
+			}
+			if (reference != null) {
+				for (PrismReferenceValue refVal : reference.getValues()) {
+					PrismObject<O> refObject = refVal.getObject();
+					if (refObject == null) {
+						refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
+						refObject = refObject.cloneIfImmutable();
+						schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
+						refVal.setObject(refObject);
+					}
+					if (!rest.isEmpty()) {
+						resolve(refObject.asObjectable(), rest, option, task, result);
+					}
+				}
+				return;
+			}
 		}
-		if (reference == null) {
-			if (rest.isEmpty()) {
-				return;
-			}
-			PrismContainer<?> childContainer = containerValue.findContainer(refName);	// it may be e.g. taskRef -> workflowContext -> requesterRef
-			if (childContainer == null) {
-				return;
-			}
-			for (PrismContainerValue pcv : childContainer.getValues()) {
-				resolve(pcv.asContainerable(), rest, option, task, result);
+		if (rest.isEmpty()) {
+			return;
+		}
+		if (first instanceof ParentPathSegment) {
+			PrismContainerValue<?> parent = containerValue.getParentContainerValue();
+			if (parent != null) {
+				resolve(parent.asContainerable(), rest, option, task, result);
 			}
 		} else {
-			for (PrismReferenceValue refVal : reference.getValues()) {
-				PrismObject<O> refObject = refVal.getObject();
-				if (refObject == null) {
-					refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
-					refObject = refObject.cloneIfImmutable();
-					schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
-					refVal.setObject(refObject);
-				}
-				if (!rest.isEmpty()) {
-					resolve(refObject.asObjectable(), rest, option, task, result);
+			QName nextName = ItemPath.getName(first);
+			PrismContainer<?> nextContainer = containerValue.findContainer(nextName);
+			if (nextContainer != null) {
+				for (PrismContainerValue<?> pcv : nextContainer.getValues()) {
+					resolve(pcv.asContainerable(), rest, option, task, result);
 				}
 			}
 		}
@@ -2084,13 +2095,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
-	public void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
-		getCertificationManagerChecked().recordDecision(campaignOid, caseId, decision, task, parentResult);
+	public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+		getCertificationManagerChecked().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
 	}
 
+	@Deprecated
 	@Override
-	public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
-		return getCertificationManagerChecked().searchDecisionsToReview(caseQuery, notDecidedOnly, options, task, parentResult);
+	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
 	}
 
 	@Override

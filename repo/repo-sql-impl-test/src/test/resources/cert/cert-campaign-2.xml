@@ -41,33 +41,35 @@
                                 type="c:UserType"><!-- administrator --></defaultReviewerRef>
         </reviewerSpecification>
     </stageDefinition>
-    <start>2015-12-04T00:38:03.031+01:00</start>
+    <startTimestamp>2015-12-04T00:38:03.031+01:00</startTimestamp>
     <state>inReviewStage</state>
     <stageNumber>1</stageNumber>
     <stage>
         <number>1</number>
         <name>Administrator's review</name>
         <description>In this stage, the administrator has to review all the assignments of all users.</description>
-        <start>2015-12-04T00:38:00.708+01:00</start>
-        <end>2015-12-18T23:59:59.999+01:00</end>
+        <startTimestamp>2015-12-04T00:38:00.708+01:00</startTimestamp>
+        <endTimestamp>2015-12-18T23:59:59.999+01:00</endTimestamp>
     </stage>
     <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           id="1"
           xsi:type="c:AccessCertificationAssignmentCaseType">
         <objectRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
-        <currentStageNumber>1</currentStageNumber>
-        <currentReviewerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></currentReviewerRef>
-        <currentReviewerRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></currentReviewerRef>
-        <currentReviewRequestedTimestamp>2015-12-04T00:38:00.708+01:00</currentReviewRequestedTimestamp>
-        <currentReviewDeadline>2015-12-18T23:59:59.999+01:00</currentReviewDeadline>
-        <decision id="1">
+        <stageNumber>1</stageNumber>
+        <workItem id="1">
+            <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+            <output>
+                <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+            </output>
             <stageNumber>1</stageNumber>
-            <reviewerRef oid="00000001-0000-0000-0000-000000000002"
-                         type="c:UserType"><!-- administrator --></reviewerRef>
-            <response>accept</response>
-            <timestamp>2015-12-04T01:10:20.032+01:00</timestamp>
-        </decision>
+            <outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
+        </workItem>
+        <workItem id="2">
+            <assigneeRef oid="00000001-0000-0000-0000-000000000002" type="c:UserType"></assigneeRef>
+        </workItem>
+        <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+        <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
         <currentStageOutcome>accept</currentStageOutcome>
         <assignment id="1">
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"></targetRef>

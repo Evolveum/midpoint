@@ -83,6 +83,7 @@ public class ExpressionConstants {
 	public static final QName OUTPUT_ELEMENT_NAME = new QName(SchemaConstants.NS_C, "output");
 
 	// "case" would collide with java keyword
+	public static final QName VAR_WORK_ITEM = new QName(SchemaConstants.NS_C, "workItem");
 	public static final QName VAR_CERTIFICATION_CASE = new QName(SchemaConstants.NS_C, "certificationCase");
 	public static final QName VAR_CAMPAIGN = new QName(SchemaConstants.NS_C, "campaign");
 	public static final QName VAR_REVIEWER_SPECIFICATION = new QName(SchemaConstants.NS_C, "reviewerSpecification");

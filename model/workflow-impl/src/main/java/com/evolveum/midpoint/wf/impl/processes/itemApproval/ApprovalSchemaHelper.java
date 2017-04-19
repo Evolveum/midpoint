@@ -34,31 +34,31 @@ import java.util.List;
 public class ApprovalSchemaHelper {
 
 	public void prepareSchema(ApprovalSchemaType schema, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
-		WfContextUtil.orderAndRenumberLevels(schema);
-		for (ApprovalLevelType level : schema.getLevel()) {
-			prepareLevel(level, relationResolver, referenceResolver);
+		WfContextUtil.normalizeStages(schema);
+		for (ApprovalStageDefinitionType stageDef : schema.getStage()) {
+			prepareStage(stageDef, relationResolver, referenceResolver);
 		}
 	}
 
-	public void prepareLevel(ApprovalLevelType level, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
+	public void prepareStage(ApprovalStageDefinitionType stageDef, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
 		try {
 			// resolves filters in approvers
 			List<ObjectReferenceType> resolvedApprovers = new ArrayList<>();
-			for (ObjectReferenceType ref : level.getApproverRef()) {
+			for (ObjectReferenceType ref : stageDef.getApproverRef()) {
 				resolvedApprovers.addAll(referenceResolver.resolveReference(ref, "approver ref"));
 			}
 			// resolves approver relations
-			resolvedApprovers.addAll(relationResolver.getApprovers(level.getApproverRelation()));
-			level.getApproverRef().clear();
-			level.getApproverRef().addAll(resolvedApprovers);
-			level.getApproverRelation().clear();
+			resolvedApprovers.addAll(relationResolver.getApprovers(stageDef.getApproverRelation()));
+			stageDef.getApproverRef().clear();
+			stageDef.getApproverRef().addAll(resolvedApprovers);
+			stageDef.getApproverRelation().clear();
 
 			// default values
-			if (level.getOutcomeIfNoApprovers() == null) {
-				level.setOutcomeIfNoApprovers(ApprovalLevelOutcomeType.REJECT);
+			if (stageDef.getOutcomeIfNoApprovers() == null) {
+				stageDef.setOutcomeIfNoApprovers(ApprovalLevelOutcomeType.REJECT);
 			}
-			if (level.getGroupExpansion() == null) {
-				level.setGroupExpansion(GroupExpansionType.BY_CLAIMING_WORK_ITEMS);
+			if (stageDef.getGroupExpansion() == null) {
+				stageDef.setGroupExpansion(GroupExpansionType.BY_CLAIMING_WORK_ITEMS);
 			}
 		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException e) {
 			throw new SystemException("Couldn't prepare approval schema for execution: " + e.getMessage(), e); // todo propagate these exceptions?
@@ -67,13 +67,13 @@ public class ApprovalSchemaHelper {
 
 	// should be called only after preparation!
 	public boolean shouldBeSkipped(ApprovalSchemaType schema) {
-		return schema.getLevel().stream().allMatch(this::shouldBeSkipped);
+		return schema.getStage().stream().allMatch(this::shouldBeSkipped);
 	}
 
-	private boolean shouldBeSkipped(ApprovalLevelType level) {
-		if (!level.getApproverRelation().isEmpty()) {
-			throw new IllegalStateException("Schema level was not prepared correctly; contains unresolved approver relations: " + level);
+	private boolean shouldBeSkipped(ApprovalStageDefinitionType stage) {
+		if (!stage.getApproverRelation().isEmpty()) {
+			throw new IllegalStateException("Schema stage was not prepared correctly; contains unresolved approver relations: " + stage);
 		}
-		return level.getOutcomeIfNoApprovers() == ApprovalLevelOutcomeType.SKIP && level.getApproverRef().isEmpty() && level.getApproverExpression().isEmpty();
+		return stage.getOutcomeIfNoApprovers() == ApprovalLevelOutcomeType.SKIP && stage.getApproverRef().isEmpty() && stage.getApproverExpression().isEmpty();
 	}
 }

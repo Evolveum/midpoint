@@ -40,13 +40,8 @@ public abstract class BaseProcessMidPointInterface implements ProcessMidPointInt
 	private String beanName;
 
     @Override
-    public String getAnswer(Map<String, Object> variables) {
-        return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WF_ANSWER, String.class);
-    }
-
-    @Override
-    public String getState(Map<String, Object> variables) {
-        return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WF_STATE, String.class);
+    public String getOutcome(Map<String, Object> variables) {
+        return ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_OUTCOME, String.class);
     }
 
 	@Override

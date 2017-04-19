@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
 
 import javax.xml.namespace.QName;
 
@@ -94,10 +95,12 @@ public final class ClassMapper {
         return hqlType.getSimpleName();
     }
 
+	@Contract("!null -> !null; null -> null")
     public static RObjectType getHQLTypeForQName(QName qname) {
-        if (qname == null) {
-            return null;
-        }
+    	if (qname == null) {
+    		return null;
+		}
+
         for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
             if (QNameUtil.match(entry.getKey().getTypeQName(), qname)) {
                 return entry.getValue();

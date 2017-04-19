@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -251,14 +252,18 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         return this;
     }
 
-    private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, Object v) {
+    private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, @NotNull Object v) {
         ItemDefinition definition = currentDelta.getDefinition();
         if (definition instanceof PrismPropertyDefinition) {
             return new PrismPropertyValue<>(v);
         } else if (definition instanceof PrismContainerDefinition) {
             return ((Containerable) v).asPrismContainerValue();
         } else if (definition instanceof PrismReferenceDefinition) {
-            throw new IllegalStateException("Using real value for reference deltas is not supported: " + v);
+            if (v instanceof Referencable) {
+                return ((Referencable) v).asReferenceValue();
+            } else {
+                throw new IllegalStateException("Expected Referencable, got: " + v);
+            }
         } else {
             throw new IllegalStateException("Unsupported definition type: " + definition);
         }

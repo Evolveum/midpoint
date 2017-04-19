@@ -237,7 +237,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpChildWfTaskCreationInstruction instruction =
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(
-                    		getChangeProcessor(), approvalTaskName, approvalRequest.getApprovalSchema(),
+                    		getChangeProcessor(), approvalTaskName,
 							approvalRequest.getApprovalSchemaType(), null);
 
             // set some common task/process attributes

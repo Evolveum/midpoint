@@ -50,9 +50,9 @@ public interface S_ConditionEntry {
 	S_MatchingRuleEntry contains(Object value);
 	S_MatchingRuleEntry containsPoly(String orig, String norm);
 	S_MatchingRuleEntry containsPoly(String orig);
-    S_AtomicFilterExit ref(PrismReferenceValue value);
-	S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);			// not supported by repo QueryInterpreter yet
-    S_AtomicFilterExit ref(String oid);
+    S_AtomicFilterExit ref(PrismReferenceValue... value);
+	S_AtomicFilterExit ref(Collection<PrismReferenceValue> values);
+    S_AtomicFilterExit ref(String... oid);
     S_AtomicFilterExit ref(String oid, QName targetTypeName);
     S_AtomicFilterExit isNull();
 

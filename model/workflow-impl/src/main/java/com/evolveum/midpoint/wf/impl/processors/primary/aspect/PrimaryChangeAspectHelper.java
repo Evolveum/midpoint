@@ -91,7 +91,7 @@ public class PrimaryChangeAspectHelper {
      */
     public ObjectTreeDeltas prepareDeltaOut(ProcessEvent event, PcpWfTask pcpJob, OperationResult result) throws SchemaException {
         ObjectTreeDeltas deltaIn = pcpJob.retrieveDeltasToProcess();
-        if (ApprovalUtils.isApproved(event.getAnswer())) {
+        if (ApprovalUtils.isApprovedFromUri(event.getOutcome())) {
             return deltaIn;
         } else {
             return null;

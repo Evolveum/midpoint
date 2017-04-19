@@ -43,8 +43,7 @@ CREATE TABLE m_acc_cert_case (
   validTo                  TIMESTAMP,
   validityChangeTimestamp  TIMESTAMP,
   validityStatus           INTEGER,
-  currentStageNumber       INTEGER,
-  currentStageOutcome      INTEGER,
+  currentStageOutcome      VARCHAR(255),
   fullObject               BLOB,
   objectRef_relation       VARCHAR(157),
   objectRef_targetOid      VARCHAR(36),
@@ -52,10 +51,11 @@ CREATE TABLE m_acc_cert_case (
   orgRef_relation          VARCHAR(157),
   orgRef_targetOid         VARCHAR(36),
   orgRef_type              INTEGER,
-  overallOutcome           INTEGER,
+  outcome                  VARCHAR(255),
   remediedTimestamp        TIMESTAMP,
   reviewDeadline           TIMESTAMP,
   reviewRequestedTimestamp TIMESTAMP,
+  stageNumber              INTEGER,
   targetRef_relation       VARCHAR(157),
   targetRef_targetOid      VARCHAR(36),
   targetRef_type           INTEGER,
@@ -63,30 +63,6 @@ CREATE TABLE m_acc_cert_case (
   tenantRef_targetOid      VARCHAR(36),
   tenantRef_type           INTEGER,
   PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_acc_cert_case_reference (
-  owner_id        INTEGER      NOT NULL,
-  owner_owner_oid VARCHAR(36)  NOT NULL,
-  reference_type  INTEGER      NOT NULL,
-  relation        VARCHAR(157) NOT NULL,
-  targetOid       VARCHAR(36)  NOT NULL,
-  containerType   INTEGER,
-  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
-);
-
-CREATE TABLE m_acc_cert_decision (
-  id                    INTEGER     NOT NULL,
-  owner_id              INTEGER     NOT NULL,
-  owner_owner_oid       VARCHAR(36) NOT NULL,
-  reviewerComment       VARCHAR(255),
-  response              INTEGER,
-  reviewerRef_relation  VARCHAR(157),
-  reviewerRef_targetOid VARCHAR(36),
-  reviewerRef_type      INTEGER,
-  stageNumber           INTEGER     NOT NULL,
-  timestamp             TIMESTAMP,
-  PRIMARY KEY (id, owner_id, owner_owner_oid)
 );
 
 CREATE TABLE m_acc_cert_definition (
@@ -100,6 +76,30 @@ CREATE TABLE m_acc_cert_definition (
   ownerRef_type                INTEGER,
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_acc_cert_wi (
+  id                     INTEGER     NOT NULL,
+  owner_id               INTEGER     NOT NULL,
+  owner_owner_oid        VARCHAR(36) NOT NULL,
+  closeTimestamp         TIMESTAMP,
+  outcome                VARCHAR(255),
+  outputChangeTimestamp  TIMESTAMP,
+  performerRef_relation  VARCHAR(157),
+  performerRef_targetOid VARCHAR(36),
+  performerRef_type      INTEGER,
+  stageNumber            INTEGER,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+);
+
+CREATE TABLE m_acc_cert_wi_reference (
+  owner_id              INTEGER      NOT NULL,
+  owner_owner_id        INTEGER      NOT NULL,
+  owner_owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation              VARCHAR(157) NOT NULL,
+  targetOid             VARCHAR(36)  NOT NULL,
+  targetType            INTEGER,
+  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
 );
 
 CREATE TABLE m_assignment (
@@ -244,7 +244,7 @@ CREATE TABLE m_assignment_reference (
   reference_type  INTEGER      NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
-  containerType   INTEGER,
+  targetType      INTEGER,
   PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 );
 
@@ -569,7 +569,7 @@ CREATE TABLE m_reference (
   reference_type INTEGER      NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
-  containerType  INTEGER,
+  targetType     INTEGER,
   PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 );
 
@@ -796,13 +796,10 @@ CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
 
 CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
 
-CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
-
-ALTER TABLE m_acc_cert_decision
-ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
-
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
+
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
@@ -984,22 +981,22 @@ ALTER TABLE m_acc_cert_campaign
 ALTER TABLE m_acc_cert_case
 ADD CONSTRAINT fk_acc_cert_case_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_acc_cert_case_reference
-ADD CONSTRAINT fk_acc_cert_case_ref_owner
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_acc_cert_case;
-
-ALTER TABLE m_acc_cert_decision
-ADD CONSTRAINT fk_acc_cert_decision_owner
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_acc_cert_case;
+REFERENCES m_acc_cert_campaign;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
     FOREIGN KEY (oid)
     REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
+FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
+REFERENCES m_acc_cert_wi;
 
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment_owner

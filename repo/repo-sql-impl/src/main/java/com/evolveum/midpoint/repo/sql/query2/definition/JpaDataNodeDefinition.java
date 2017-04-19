@@ -90,14 +90,13 @@ public abstract class JpaDataNodeDefinition implements DebugDumpable, Visitable 
      *
      * @param path A path to be resolved. Always non-null and non-empty. Should produce at least one transition.
      * @param itemDefinition Item definition for the item being sought. Needed only for "any" items.
-     * @param prismContext
 	 * @return
      * - Normally it returns the search result containing next item definition (entity, collection, ...) in the chain
      *   and the unresolved remainder of the path. The transition may be empty ("self") e.g. for metadata or construction.
      * - If the search was not successful, returns null.
      *
      */
-    public abstract DataSearchResult<JpaDataNodeDefinition> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition,
+    public abstract DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition,
 			PrismContext prismContext) throws QueryException;
 
     public String toString() {

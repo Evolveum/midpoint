@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -29,22 +30,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createResolveNames;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+
 /**
  * @author lazyman
  * @author mederly
  */
-public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisionDto> {
+public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkItemDto> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CertDecisionDtoProvider.class);
-    private static final String DOT_CLASS = CertDecisionDtoProvider.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(CertWorkItemDtoProvider.class);
+    private static final String DOT_CLASS = CertWorkItemDtoProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
@@ -54,12 +60,12 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
     private boolean notDecidedOnly;
     private String reviewerOid;
 
-    public CertDecisionDtoProvider(Component component) {
-        super(component, false);        // TODO make this cacheable
+    public CertWorkItemDtoProvider(Component component) {
+        super(component, false);        // TODO make this cache-able
     }
 
     @Override
-    public Iterator<CertDecisionDto> internalIterator(long first, long count) {
+    public Iterator<CertWorkItemDto> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
 
@@ -69,22 +75,14 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
             
             ObjectQuery caseQuery = getQuery();
-            if (caseQuery == null) {
-            	caseQuery = new ObjectQuery();
-            } else {
-                caseQuery = caseQuery.clone();
-            }
+            caseQuery = caseQuery != null ? caseQuery.clone() : new ObjectQuery();
             caseQuery.setPaging(paging);
-            SearchingUtils.hackPaging(caseQuery);
 
-            Collection<SelectorOptions<GetOperationOptions>> resolveNames =
-                    SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-
+            Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             AccessCertificationService acs = getPage().getCertificationService();
-            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(caseQuery, notDecidedOnly, resolveNames, task, result);
-
-            for (AccessCertificationCaseType _case : caseList) {
-                getAvailableData().add(new CertDecisionDto(_case, getPage()));
+            List<AccessCertificationWorkItemType> workitems = acs.searchOpenWorkItems(caseQuery, notDecidedOnly, resolveNames, task, result);
+            for (AccessCertificationWorkItemType workItem : workitems) {
+                getAvailableData().add(new CertWorkItemDto(workItem, getPage()));
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list decisions.", ex);
@@ -101,7 +99,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         return getAvailableData().iterator();
     }
 
-    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
+    private void handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
         getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
@@ -117,8 +115,8 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
             AccessCertificationService acs = getPage().getCertificationService();
             ObjectQuery query = getQuery().clone();
             query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
-            List<AccessCertificationCaseType> caseList = acs.searchDecisionsToReview(query, notDecidedOnly, null, task, result);
-            count = caseList.size();
+            List<AccessCertificationWorkItemType> workItems = acs.searchOpenWorkItems(query, notDecidedOnly, null, task, result);
+            count = workItems.size();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
@@ -135,6 +133,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         return count;
     }
 
+    @SuppressWarnings("unused")
     public ObjectQuery getCampaignQuery() {
         return campaignQuery;
     }
@@ -143,6 +142,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         this.campaignQuery = campaignQuery;
     }
 
+    @SuppressWarnings("unused")
     public String getReviewerOid() {
         return reviewerOid;
     }
@@ -151,6 +151,7 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
         this.reviewerOid = reviewerOid;
     }
 
+    @SuppressWarnings("unused")
     public boolean isNotDecidedOnly() {
         return notDecidedOnly;
     }
@@ -158,4 +159,11 @@ public class CertDecisionDtoProvider extends BaseSortableDataProvider<CertDecisi
     public void setNotDecidedOnly(boolean notDecidedOnly) {
         this.notDecidedOnly = notDecidedOnly;
     }
+
+	@NotNull
+	@Override
+	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+		return SearchingUtils.createObjectOrderings(sortParam, true);
+	}
+
 }

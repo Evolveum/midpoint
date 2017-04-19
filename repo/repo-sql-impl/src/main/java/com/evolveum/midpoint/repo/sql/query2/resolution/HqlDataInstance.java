@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Describes result of ItemPath resolution: HQL property path + current data node definition.
@@ -40,16 +40,14 @@ import org.apache.commons.lang.Validate;
  */
 public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDumpable {
 
+    @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(HqlDataInstance.class);
 
-    final protected String hqlPath;                         // concrete path for accessing this item
-    final protected D jpaDefinition;                        // definition of this item
-    final protected HqlDataInstance parentDataItem;         // how we got here - optional
+	@NotNull final String hqlPath;                         // concrete path for accessing this item
+	@NotNull final D jpaDefinition;                        // definition of this item
+    final HqlDataInstance<?> parentDataItem;         	   // how we got here - optional
 
-    public HqlDataInstance(String hqlPath, D jpaDefinition,
-                           HqlDataInstance parentDataItem) {
-        Validate.notNull(hqlPath, "hqlPath");
-        Validate.notNull(jpaDefinition, "jpaDefinition");
+    HqlDataInstance(@NotNull String hqlPath, @NotNull D jpaDefinition, HqlDataInstance<?> parentDataItem) {
         this.hqlPath = hqlPath;
         this.jpaDefinition = jpaDefinition;
         this.parentDataItem = parentDataItem;
@@ -65,11 +63,12 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
         }
     }
 
+	@NotNull
     public D getJpaDefinition() {
         return jpaDefinition;
     }
 
-    public HqlDataInstance getParentItem() {
+    HqlDataInstance<?> getParentItem() {
         return parentDataItem;
     }
 
@@ -78,6 +77,7 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
         return debugDump(0);
     }
 
+    @SuppressWarnings("unused")
     public String debugDumpNoParent() {
         return debugDump(0, false);
     }

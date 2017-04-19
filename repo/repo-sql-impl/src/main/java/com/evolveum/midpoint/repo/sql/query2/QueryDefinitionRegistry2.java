@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.ClassDefinitionParser;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
@@ -55,73 +57,82 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     private static QueryDefinitionRegistry2 registry;
 
     static {
-        LOGGER.trace("Initializing query definition registry.");
-        ClassDefinitionParser classDefinitionParser = new ClassDefinitionParser();
+    	try {
+			LOGGER.trace("Initializing query definition registry.");
+			ClassDefinitionParser classDefinitionParser = new ClassDefinitionParser();
 
-        final Map<QName, JpaEntityDefinition> map = new HashMap<>();
-        final Map<Class<? extends RObject>, JpaEntityDefinition> definitionsByClass = new HashMap<>();
+			final Map<QName, JpaEntityDefinition> map = new HashMap<>();
+			final Map<Class<?>, JpaEntityDefinition> definitionsByClass = new HashMap<>();
 
-        Collection<RObjectType> types = ClassMapper.getKnownTypes();
-        for (RObjectType type : types) {
-            Class clazz = type.getClazz();
-            if (!RObject.class.isAssignableFrom(clazz)) {
-                continue;
-            }
+			Collection<RObjectType> types = ClassMapper.getKnownTypes();
+			for (RObjectType type : types) {
+				Class clazz = type.getClazz();
+				if (!RObject.class.isAssignableFrom(clazz)) {
+					continue;
+				}
 
-            JpaEntityDefinition definition = classDefinitionParser.parseRootClass(clazz);
-            if (definition == null) {
-                continue;
-            }
+				JpaEntityDefinition definition = classDefinitionParser.parseRootClass(clazz);
+				if (definition == null) {
+					continue;
+				}
 
-            ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
-            map.put(objectType.getTypeQName(), definition);
-            definitionsByClass.put(definition.getJpaClass(), definition);
-        }
+				ObjectTypes objectType = ClassMapper.getObjectTypeForHQLType(type);
+				map.put(objectType.getTypeQName(), definition);
+				definitionsByClass.put(definition.getJpaClass(), definition);
+			}
 
-        // TODO fix this hack
-        JpaEntityDefinition caseDefinition = classDefinitionParser.parseRootClass(RAccessCertificationCase.class);
-        map.put(AccessCertificationCaseType.COMPLEX_TYPE, caseDefinition);
+			// TODO fix this hack
+			JpaEntityDefinition caseDefinition = classDefinitionParser.parseRootClass(RAccessCertificationCase.class);
+			definitionsByClass.put(RAccessCertificationCase.class, caseDefinition);
+			map.put(AccessCertificationCaseType.COMPLEX_TYPE, caseDefinition);
+			JpaEntityDefinition certWorkItemDefinition = classDefinitionParser.parseRootClass(RAccessCertificationWorkItem.class);
+			definitionsByClass.put(RAccessCertificationWorkItem.class, certWorkItemDefinition);
+			map.put(AccessCertificationWorkItemType.COMPLEX_TYPE, certWorkItemDefinition);
 
-        // link parents (maybe not needed at all, we'll see) and referenced entity definitions
-        // sort definitions
-        for (final JpaEntityDefinition definition : map.values()) {
-            Visitor resolutionVisitor = visitable -> {
-				if (visitable instanceof JpaEntityDefinition) {
-					JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
-					Class superclass = entityDef.getJpaClass().getSuperclass();
-					if (superclass == null || !RObject.class.isAssignableFrom(superclass)) {
-						return;
-					}
-					JpaEntityDefinition superclassDefinition = definitionsByClass.get(superclass);
-					if (superclassDefinition == null) {
-						throw new IllegalStateException("No definition for superclass " + superclass + " of " + entityDef);
-					}
-					entityDef.setSuperclassDefinition(superclassDefinition);
-				} else if (visitable instanceof JpaEntityPointerDefinition) {
-					JpaEntityPointerDefinition entPtrDef = ((JpaEntityPointerDefinition) visitable);
-					if (!entPtrDef.isResolved()) {
-						Class referencedEntityJpaClass = entPtrDef.getJpaClass();
-						JpaEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
-						if (realEntDef == null) {
-							throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);
+			// link parents (maybe not needed at all, we'll see) and referenced entity definitions
+			// sort definitions
+			for (final JpaEntityDefinition definition : map.values()) {
+				Visitor resolutionVisitor = visitable -> {
+					if (visitable instanceof JpaEntityDefinition) {
+						JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
+						Class superclass = entityDef.getJpaClass().getSuperclass();
+						if (superclass == null || !RObject.class.isAssignableFrom(superclass)) {
+							return;
 						}
-						entPtrDef.setResolvedEntityDefinition(realEntDef);
+						JpaEntityDefinition superclassDefinition = definitionsByClass.get(superclass);
+						if (superclassDefinition == null) {
+							throw new IllegalStateException("No definition for superclass " + superclass + " of " + entityDef);
+						}
+						entityDef.setSuperclassDefinition(superclassDefinition);
+					} else if (visitable instanceof JpaEntityPointerDefinition) {
+						JpaEntityPointerDefinition entPtrDef = ((JpaEntityPointerDefinition) visitable);
+						if (!entPtrDef.isResolved()) {
+							Class referencedEntityJpaClass = entPtrDef.getJpaClass();
+							JpaEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
+							if (realEntDef == null) {
+								throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);
+							}
+							entPtrDef.setResolvedEntityDefinition(realEntDef);
+						}
 					}
-				}
-			};
-            definition.accept(resolutionVisitor);
+				};
+				definition.accept(resolutionVisitor);
 
-            Visitor sortingVisitor = visitable -> {
-				if (visitable instanceof JpaEntityDefinition) {
-					JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
-					entityDef.sortDefinitions();
-				}
-			};
-            definition.accept(sortingVisitor);
-        }
+				Visitor sortingVisitor = visitable -> {
+					if (visitable instanceof JpaEntityDefinition) {
+						JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
+						entityDef.sortDefinitions();
+					}
+				};
+				definition.accept(sortingVisitor);
+			}
 
-        definitions = Collections.unmodifiableMap(map);
-    }
+			definitions = Collections.unmodifiableMap(map);
+		} catch (Throwable t) {
+    		LOGGER.error("Couldn't initialize query definition registry: {}", t.getMessage(), t);
+    		throw t;
+		}
+	}
 
     private QueryDefinitionRegistry2() {
     }
@@ -176,7 +187,9 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
         }
         if (AccessCertificationCaseType.class.equals(type)) {           // TODO generalize
             return AccessCertificationCaseType.COMPLEX_TYPE;
-        }
+        } else if (AccessCertificationWorkItemType.class.equals(type)) {           // TODO generalize
+			return AccessCertificationWorkItemType.COMPLEX_TYPE;
+		}
         throw new QueryException("Unsupported type " + type);
     }
 

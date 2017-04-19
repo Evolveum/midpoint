@@ -19,31 +19,32 @@ package com.evolveum.midpoint.repo.sql.query2.resolution;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
  */
 public class DataSearchResult<T extends JpaDataNodeDefinition> {
-    private JpaLinkDefinition<T> linkDefinition;
-    private ItemPath remainder;                             // what has remained unresolved of the original search path
+    @NotNull private final JpaLinkDefinition<T> linkDefinition;
+    @NotNull private final ItemPath remainder;                             // what has remained unresolved of the original search path
 
-    public DataSearchResult(JpaLinkDefinition<T> linkDefinition, ItemPath remainder) {
-        Validate.notNull(linkDefinition, "linkDefinition");
+    public DataSearchResult(@NotNull JpaLinkDefinition<T> linkDefinition, @NotNull ItemPath remainder) {
         this.linkDefinition = linkDefinition;
         this.remainder = remainder;
     }
 
+    @NotNull
     public JpaLinkDefinition<T> getLinkDefinition() {
         return linkDefinition;
     }
 
+    @NotNull
     public ItemPath getRemainder() {
         return remainder;
     }
 
     public boolean isComplete() {
-        return ItemPath.isNullOrEmpty(remainder);
+        return remainder.isEmpty();
     }
 
     public T getTargetDefinition() {

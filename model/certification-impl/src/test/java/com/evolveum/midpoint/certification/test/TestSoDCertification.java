@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -47,7 +48,7 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class SoDCertificationTest extends AbstractCertificationTest {
+public class TestSoDCertification extends AbstractCertificationTest {
 
 	protected static final File TEST_DIR = new File("src/test/resources/sod");
 
@@ -101,7 +102,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         certificationDefinition = repoAddObjectFromFile(SOD_CERTIFICATION_DEF_FILE,
@@ -133,7 +134,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -155,7 +156,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -185,7 +186,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         display("jack", getUser(USER_JACK_OID));
@@ -231,7 +232,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -247,7 +248,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         checkAllCases(caseList, campaignOid);
 		UserType jack = getUser(USER_JACK_OID).asObjectable();
         AccessCertificationCaseType _case = checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
-        assertEquals("Unexpected number of reviewers in a-test-2a case", 1, _case.getCurrentReviewerRef().size());
+        assertEquals("Unexpected number of reviewers in a-test-2a case", 1, CertCampaignTypeUtil.getCurrentReviewers(_case).size());
     }
 
     @Test
@@ -256,7 +257,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -270,11 +271,11 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
         AccessCertificationCaseType test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
-        recordDecision(campaignOid, test2aCase, REVOKE, "no way", 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test2bCase, ACCEPT, null, 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test2cCase, ACCEPT, null, 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test3aCase, ACCEPT, "OK", 1, USER_JACK_OID, task, result);
-        recordDecision(campaignOid, test3bCase, NOT_DECIDED, "dunno", 1, USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test2aCase, REVOKE, "no way", USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test2bCase, ACCEPT, null, USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test2cCase, ACCEPT, null, USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test3aCase, ACCEPT, "OK", USER_JACK_OID, task, result);
+        recordDecision(campaignOid, test3bCase, NOT_DECIDED, "dunno", USER_JACK_OID, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -313,7 +314,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -358,7 +359,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(SoDCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -387,7 +388,7 @@ public class SoDCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 2, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertApproximateTime("end time", new Date(), campaign.getEnd());
+        assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);

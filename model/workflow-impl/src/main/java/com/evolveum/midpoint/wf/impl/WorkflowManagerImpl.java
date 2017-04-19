@@ -154,7 +154,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     public void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
-        workItemManager.completeWorkItem(taskId, ApprovalUtils.approvalStringValue(decision), comment, additionalDelta,
+        workItemManager.completeWorkItem(taskId, ApprovalUtils.toUri(decision), comment, additionalDelta,
 				causeInformation, parentResult);
     }
 
@@ -171,7 +171,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        workItemManager.delegateWorkItem(workItemId, delegates, method, false, null, null, null, null, parentResult);
+        workItemManager.delegateWorkItem(workItemId, delegates, method, null, null, null, parentResult);
     }
 
     /*
@@ -245,7 +245,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException {
+    public Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException {
         return wfTaskUtil.getApprovedByFromTaskTree(task, result);
     }
 

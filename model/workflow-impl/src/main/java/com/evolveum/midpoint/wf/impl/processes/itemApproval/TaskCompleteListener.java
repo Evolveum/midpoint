@@ -28,10 +28,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
@@ -40,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getActivitiInterface;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getItemApprovalProcessInterface;
 import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationContextHolder.getPrismContext;
-import static com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP;
+import static com.evolveum.midpoint.wf.impl.processes.itemApproval.ProcessVariableNames.LOOP_APPROVERS_IN_STAGE_STOP;
 
 /**
  * @author mederly
@@ -57,7 +55,7 @@ public class TaskCompleteListener implements TaskListener {
 		PrismContext prismContext = getPrismContext();
 		OperationResult opResult = new OperationResult(TaskCompleteListener.class.getName() + ".notify");
 		Task wfTask = ActivitiUtil.getTask(execution, opResult);
-		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
+		ApprovalStageDefinitionType stageDef = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		delegateTask.setVariableLocal(CommonProcessVariableNames.VARIABLE_WORK_ITEM_WAS_COMPLETED, Boolean.TRUE);
 
@@ -80,29 +78,26 @@ public class TaskCompleteListener implements TaskListener {
 		@NotNull WorkItemResultType result1 = getItemApprovalProcessInterface().extractWorkItemResult(delegateTask.getVariables());
 		boolean isApproved = ApprovalUtils.isApproved(result1);
 
-        LevelEvaluationStrategyType levelEvaluationStrategyType = level.getEvaluationStrategy();
-        Boolean setLoopApprovesInLevelStop = null;
+        LevelEvaluationStrategyType levelEvaluationStrategyType = stageDef.getEvaluationStrategy();
+        Boolean setLoopApprovesInStageStop = null;
         if (levelEvaluationStrategyType == LevelEvaluationStrategyType.FIRST_DECIDES) {
-			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level evaluation strategy is 'firstDecides'.");
-            setLoopApprovesInLevelStop = true;
+			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_STAGE_STOP + " to true, because the stage evaluation strategy is 'firstDecides'.");
+            setLoopApprovesInStageStop = true;
         } else if ((levelEvaluationStrategyType == null || levelEvaluationStrategyType == LevelEvaluationStrategyType.ALL_MUST_AGREE) && !isApproved) {
-			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_LEVEL_STOP + " to true, because the level eval strategy is 'allMustApprove' and the decision was 'reject'.");
-            setLoopApprovesInLevelStop = true;
+			LOGGER.trace("Setting " + LOOP_APPROVERS_IN_STAGE_STOP + " to true, because the stage eval strategy is 'allMustApprove' and the decision was 'reject'.");
+            setLoopApprovesInStageStop = true;
         }
 
-        if (setLoopApprovesInLevelStop != null) {
+        if (setLoopApprovesInStageStop != null) {
 			//noinspection ConstantConditions
-			execution.setVariable(LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
+			execution.setVariable(LOOP_APPROVERS_IN_STAGE_STOP, setLoopApprovesInStageStop);
         }
-        // consider removing this
-        execution.setVariable(
-                CommonProcessVariableNames.VARIABLE_WF_STATE, "User " + (user!=null?user.getName():null) + " decided to " + (isApproved ? "approve" : "reject") + " the request.");
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Approval process instance {} (id {}), level {}: recording decision {}; level stops now: {}",
+            LOGGER.debug("Approval process instance {} (id {}), stage {}: recording decision {}; stage stops now: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
                     execution.getProcessInstanceId(),
-					WfContextUtil.getLevelDiagName(level), result1.getOutcomeAsString(), setLoopApprovesInLevelStop);
+					WfContextUtil.getStageDiagName(stageDef), result1.getOutcome(), setLoopApprovesInStageStop);
         }
 
 		getActivitiInterface().notifyMidpointAboutTaskEvent(delegateTask);

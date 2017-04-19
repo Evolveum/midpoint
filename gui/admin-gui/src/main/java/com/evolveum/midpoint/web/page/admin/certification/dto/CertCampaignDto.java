@@ -48,6 +48,7 @@ public class CertCampaignDto extends Selectable {
     public static final String F_CAMPAIGN_END = "campaignEnd";
     public static final String F_STAGE_START = "stageStart";
     public static final String F_STAGE_DEADLINE = "stageDeadline";
+    public static final String F_ESCALATION_LEVEL_INFO = "escalationLevelInfo";
 
     private AccessCertificationCampaignType campaign;           // TODO consider replacing this by constituent primitive data items
     private String ownerName;
@@ -121,16 +122,16 @@ public class CertCampaignDto extends Selectable {
     }
 
     public String getCampaignStart() {
-        return WebComponentUtil.formatDate(campaign.getStart());
+        return WebComponentUtil.formatDate(campaign.getStartTimestamp());
     }
 
     public String getCampaignEnd() {
-        return WebComponentUtil.formatDate(campaign.getEnd());
+        return WebComponentUtil.formatDate(campaign.getEndTimestamp());
     }
 
     public String getStageStart() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-        return stage != null ? WebComponentUtil.formatDate(stage.getStart()) : null;
+        return stage != null ? WebComponentUtil.formatDate(stage.getStartTimestamp()) : null;
     }
 
     public String getStageDeadline() {
@@ -140,7 +141,7 @@ public class CertCampaignDto extends Selectable {
 
     public String getStageEnd() {
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
-        return stage != null ? WebComponentUtil.formatDate(stage.getEnd()) : null;
+        return stage != null ? WebComponentUtil.formatDate(stage.getEndTimestamp()) : null;
     }
 
     public AccessCertificationCampaignStateType getState() {
@@ -153,5 +154,9 @@ public class CertCampaignDto extends Selectable {
 
     public String getHandlerUri() {
         return campaign.getHandlerUri();
+    }
+
+    public String getEscalationLevelInfo() {
+        return CertCampaignTypeUtil.getEscalationLevelInfo(campaign);
     }
 }

@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -234,14 +235,14 @@ public class TestStrings extends AbstractStoryTest {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask", wfTask);
 
 		assertTriggers(wfTask, 2);
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
-		assertEquals("Wrong # of approval levels", 3, schema.getLevel().size());
+		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
 		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
@@ -287,7 +288,7 @@ public class TestStrings extends AbstractStoryTest {
 		// WHEN
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
-		workflowService.completeWorkItem(workItem.getWorkItemId(), true, "OK. LeChuck", null, result);
+		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", null, result);
 
 		// THEN
 		login(userAdministrator);
@@ -295,7 +296,7 @@ public class TestStrings extends AbstractStoryTest {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask after 1st approval", wfTask);
 
 		assertStage(wfTask, 2, 3, "Security", null);
@@ -337,7 +338,7 @@ public class TestStrings extends AbstractStoryTest {
 				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
 		// events
-		List<WfProcessEventType> events = assertEvents(wfTask, 2);
+		List<CaseEventType> events = assertEvents(wfTask, 2);
 		assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 
 		display("audit", dummyAuditService);
@@ -360,13 +361,13 @@ public class TestStrings extends AbstractStoryTest {
 
 		// WHEN
 		// Second approval
-		workflowService.completeWorkItem(firstWorkItem.getWorkItemId(), true, "OK. Security.", null, result);
+		workflowService.completeWorkItem(firstWorkItem.getExternalId(), true, "OK. Security.", null, result);
 
 		// THEN
 		workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 2nd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 2, workItems.size());
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask after 2nd approval", wfTask);
 
 		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
@@ -436,7 +437,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		// WHEN
 		login(getUser(userCheeseOid));
-		workflowService.completeWorkItem(workItemsMap.get(userCheeseOid).getWorkItemId(), true, "OK. Cheese.", null, result);
+		workflowService.completeWorkItem(workItemsMap.get(userCheeseOid).getExternalId(), true, "OK. Cheese.", null, result);
 
 		// THEN
 		login(userAdministrator);
@@ -444,7 +445,7 @@ public class TestStrings extends AbstractStoryTest {
 		displayWorkItems("Work item after 3rd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 1, workItems.size());
 		workItemsMap = sortByOriginalAssignee(workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask after 3rd approval", wfTask);
 
 		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
@@ -486,12 +487,12 @@ public class TestStrings extends AbstractStoryTest {
 		// GIVEN
 		login(userAdministrator);
 		List<WorkItemType> workItems = getWorkItems(task, result);
-		String taskOid = workItems.get(0).getTaskRef().getOid();
+		String taskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
 		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 
 		// WHEN
 		login(getUser(userChefOid));
-		String workItemId = workItemsMap.get(userChefOid).getWorkItemId();
+		String workItemId = workItemsMap.get(userChefOid).getExternalId();
 		workflowService.completeWorkItem(workItemId, true, "OK. Chef.", null, result);
 
 		// THEN
@@ -570,7 +571,7 @@ public class TestStrings extends AbstractStoryTest {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask", wfTask);
 
 		assertTriggers(wfTask, 2);
@@ -652,7 +653,7 @@ public class TestStrings extends AbstractStoryTest {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items after timed escalation", workItems);
 		assertEquals("Wrong # of work items after timed escalation", 1, workItems.size());
-		String taskOid = workItems.get(0).getTaskRef().getOid();
+		String taskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
 		PrismObject<TaskType> wfTask = getTask(taskOid);
 		display("wfTask after timed escalation", wfTask);
 
@@ -670,10 +671,10 @@ public class TestStrings extends AbstractStoryTest {
 		PrismAsserts.assertDuration("Wrong duration between now and deadline", "P9D", System.currentTimeMillis(), workItem.getDeadline(), null);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userGuybrushOid);
 		assertEquals("Wrong stage #", (Integer) 1, workItem.getStageNumber());
-		assertEquals("Wrong escalation level #", (Integer) 1, workItem.getEscalationLevelNumber());
-		assertEquals("Wrong escalation level name", "Line manager escalation", workItem.getEscalationLevelName());
+		assertEquals("Wrong escalation level #", 1, WfContextUtil.getEscalationLevelNumber(workItem));
+		assertEquals("Wrong escalation level name", "Line manager escalation", WfContextUtil.getEscalationLevelName(workItem));
 
-		List<WfProcessEventType> events = assertEvents(wfTask, 2);
+		List<CaseEventType> events = assertEvents(wfTask, 2);
 		assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
 				Collections.singletonList(userGuybrushOid), Collections.singletonList(userCheeseOid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
 				1, "Line manager escalation");
@@ -772,7 +773,7 @@ public class TestStrings extends AbstractStoryTest {
 		login(cheese);
 
 		// WHEN
-		workflowService.completeWorkItem(workItem.getWorkItemId(), true, "OK. Cheese.", null, result);
+		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. Cheese.", null, result);
 
 		// THEN
 		login(userAdministrator);
@@ -780,7 +781,7 @@ public class TestStrings extends AbstractStoryTest {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask after 1st approval", wfTask);
 
 		assertStage(wfTask, 2, 3, "Security", null);
@@ -963,14 +964,14 @@ public class TestStrings extends AbstractStoryTest {
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after start", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask", wfTask);
 		
 //		assertTriggers(wfTask, 2);
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
-		assertEquals("Wrong # of approval levels", 2, schema.getLevel().size());
+		assertEquals("Wrong # of approval levels", 2, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Role approvers (first)", "P5D", 2);
 		assertStage(wfTask, 1, 2, "Line managers", null);
@@ -1002,16 +1003,16 @@ public class TestStrings extends AbstractStoryTest {
 		// WHEN
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
-		workflowService.completeWorkItem(workItem.getWorkItemId(), true, "OK. LeChuck", null, result);
+		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", null, result);
 
 		// THEN
 		login(userAdministrator);
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
 
-		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.asObjectable().getWorkflowContext());
+		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(wfTask.asObjectable().getWorkflowContext());
 		assertEquals("Wrong evaluation strategy", LevelEvaluationStrategyType.FIRST_DECIDES, level.getEvaluationStrategy());
 
 		// notifications
@@ -1049,7 +1050,7 @@ public class TestStrings extends AbstractStoryTest {
 		ObjectDelta formDelta = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_DESCRIPTION).replace("Hello")
 				.asObjectDelta(userBobOid);
-		workflowService.completeWorkItem(workItem.getWorkItemId(), true, "OK. LeChuck", formDelta, result);
+		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", formDelta, result);
 
 		// THEN
 		login(userAdministrator);
@@ -1058,7 +1059,7 @@ public class TestStrings extends AbstractStoryTest {
 		displayWorkItems("Work item after 2nd approval", workItems);
 		assertEquals("Wrong # of work items after 2nd approval", 0, workItems.size());
 
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask after 2nd approval", wfTask);
 
 		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
@@ -1109,12 +1110,12 @@ public class TestStrings extends AbstractStoryTest {
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after start", workItems);
-		PrismObject<TaskType> wfTask = getTask(workItems.get(0).getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask", wfTask);
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
-		assertEquals("Wrong # of approval levels", 3, schema.getLevel().size());
+		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
 		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
@@ -1252,26 +1253,26 @@ public class TestStrings extends AbstractStoryTest {
 	private void assertStage(PrismObject<TaskType> wfTask, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
 		WfContextType wfc = wfTask.asObjectable().getWorkflowContext();
 		assertEquals("Wrong stage number", stageNumber, wfc.getStageNumber());
-		assertEquals("Wrong stage count", stageCount, wfc.getStageCount());
-		assertEquals("Wrong stage name", stageName, wfc.getStageName());
-		assertEquals("Wrong stage name", stageDisplayName, wfc.getStageDisplayName());
+		assertEquals("Wrong stage count", stageCount, WfContextUtil.getStageCount(wfc));
+		assertEquals("Wrong stage name", stageName, WfContextUtil.getStageName(wfc));
+		assertEquals("Wrong stage name", stageDisplayName, WfContextUtil.getStageDisplayName(wfc));
 	}
 
 	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
-		ApprovalLevelType level = schema.getLevel().get(number-1);
-		assertEquals("Wrong level number", number, (int) level.getOrder());
+		ApprovalStageDefinitionType level = schema.getStage().get(number-1);
+		assertEquals("Wrong level number", number, (int) level.getNumber());
 		assertEquals("Wrong level name", name, level.getName());
 		assertEquals("Wrong level duration", XmlTypeConverter.createDuration(duration), level.getDuration());
 		assertEquals("Wrong # of timed actions", timedActions, level.getTimedActions().size());
 	}
 
-	private List<WfProcessEventType> assertEvents(PrismObject<TaskType> wfTask, int expectedCount) {
+	private List<CaseEventType> assertEvents(PrismObject<TaskType> wfTask, int expectedCount) {
 		WfContextType wfc = wfTask.asObjectable().getWorkflowContext();
 		assertEquals("Wrong # of wf events", expectedCount, wfc.getEvent().size());
 		return wfc.getEvent();
 	}
 
-	private void assertEscalationEvent(WfProcessEventType wfProcessEventType, String initiator, String originalAssignee,
+	private void assertEscalationEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
 			int stageNumber, String stageName, List<String> assigneesBefore, List<String> delegatedTo,
 			WorkItemDelegationMethodType methodType, int newEscalationLevelNumber, String newEscalationLevelName) {
 		if (!(wfProcessEventType instanceof WorkItemEscalationEventType)) {
@@ -1282,22 +1283,22 @@ public class TestStrings extends AbstractStoryTest {
 		PrismAsserts.assertReferenceValues(ref(event.getAssigneeBefore()), assigneesBefore.toArray(new String[0]));
 		PrismAsserts.assertReferenceValues(ref(event.getDelegatedTo()), delegatedTo.toArray(new String[0]));
 		assertEquals("Wrong delegation method", methodType, event.getDelegationMethod());
-		assertEquals("Wrong escalation level #", newEscalationLevelNumber, event.getNewEscalationLevelNumber());
-		assertEquals("Wrong escalation level name", newEscalationLevelName, event.getNewEscalationLevelName());
+		assertEquals("Wrong escalation level #", (Integer) newEscalationLevelNumber, event.getNewEscalationLevel().getNumber());
+		assertEquals("Wrong escalation level name", newEscalationLevelName, event.getNewEscalationLevel().getName());
 	}
 
-	private void assertCompletionEvent(WfProcessEventType wfProcessEventType, String initiator, String originalAssignee,
+	private void assertCompletionEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
 			int stageNumber, String stageName, WorkItemOutcomeType outcome, String comment) {
 		if (!(wfProcessEventType instanceof WorkItemCompletionEventType)) {
 			fail("Wrong event class: expected: " + WorkItemCompletionEventType.class + ", real: " + wfProcessEventType.getClass());
 		}
 		WorkItemCompletionEventType event = (WorkItemCompletionEventType) wfProcessEventType;
 		assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
-		assertEquals("Wrong outcome", outcome, event.getResult().getOutcome());
-		assertEquals("Wrong comment", comment, event.getResult().getComment());
+		assertEquals("Wrong outcome", outcome, ApprovalUtils.fromUri(event.getOutput().getOutcome()));
+		assertEquals("Wrong comment", comment, event.getOutput().getComment());
 	}
 
-	private void assertEvent(WfProcessEventType processEvent, String initiator, String originalAssignee, Integer stageNumber,
+	private void assertEvent(CaseEventType processEvent, String initiator, String originalAssignee, Integer stageNumber,
 			String stageName) {
 		if (!(processEvent instanceof WorkItemEventType)) {
 			fail("Wrong event class: expected: " + WorkItemEventType.class + ", real: " + processEvent.getClass());
@@ -1305,7 +1306,7 @@ public class TestStrings extends AbstractStoryTest {
 		WorkItemEventType event = (WorkItemEventType) processEvent;
 		PrismAsserts.assertReferenceValue(ref(event.getInitiatorRef()), initiator);
 		assertEquals("Wrong stage #", stageNumber, event.getStageNumber());
-		assertEquals("Wrong stage name", stageName, event.getStageName());
+		//assertEquals("Wrong stage name", stageName, event.getStageName());
 		if (originalAssignee != null) {
 			assertNotNull("Null original assignee", event.getOriginalAssigneeRef());
 			PrismAsserts.assertReferenceValue(ref(event.getOriginalAssigneeRef()), originalAssignee);

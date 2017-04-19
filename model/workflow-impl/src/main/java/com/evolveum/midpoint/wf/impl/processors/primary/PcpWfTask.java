@@ -43,10 +43,6 @@ public class PcpWfTask extends WfTask {
         getWfTaskUtil().storeResultingDeltas(deltas, getTask());
     }
 
-    public void addApprovedBy(List<ObjectReferenceType> approvedBy) throws SchemaException {
-        getWfTaskUtil().addApprovedBy(getTask(), approvedBy);
-    }
-
     public ObjectTreeDeltas retrieveDeltasToProcess() throws SchemaException {
         return getWfTaskUtil().retrieveDeltasToProcess(getTask());
     }
