@@ -742,7 +742,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         		null, // delete
         		null);  // replace
         
-        PrismAsserts.assertModifications(accountSecondaryDelta, 14);
+        PrismAsserts.assertModifications(accountSecondaryDelta, 15);
 	}
 	
 	/**
@@ -1799,7 +1799,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
-		PrismAsserts.assertModifications(accountSecondaryDelta, 8);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
 		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
 				getAttributePath(getDummyResourceObject(), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 		
@@ -1815,7 +1815,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
         accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (red)", accountSecondaryDelta);
-		PrismAsserts.assertModifications(accountSecondaryDelta, 8);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
 				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_RED_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Kate Capsize");
@@ -1832,7 +1832,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
-		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 10);
 		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
 				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 		assertPasswordDelta(accountSecondaryDelta);
@@ -1898,7 +1898,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
 		assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
 		// administrativeStatus (ENABLED), enableTimestamp, name, drink, quote, iteration, iterationToken, password/value
-		PrismAsserts.assertModifications(accountSecondaryDelta, 8);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
 		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
 				getAttributePath(getDummyResourceObject(), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 
@@ -1915,7 +1915,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		accountSecondaryDelta = accContext.getSecondaryDelta();
 		assertNotNull("No account secondary delta (lemon)", accountSecondaryDelta);
 		// administrativeStatus (ENABLED), enableTimestamp, ship (from organizationalUnit), name, gossip, water, iteration, iterationToken, password/value
-		PrismAsserts.assertModifications(accountSecondaryDelta, 9);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 10);
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta,
 				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_LEMON_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
 				"The crew of The Sea Monkey");

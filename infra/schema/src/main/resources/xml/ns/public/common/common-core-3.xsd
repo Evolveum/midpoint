@@ -4315,6 +4315,21 @@
 		            </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="pendingOperationGracePeriod" type="xsd:duration" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Duration for which the completed asychronous operations will be kept in the
+            			shadow objects. This may be needed to avoid repeating operations in semi-manual
+            			resources. But this may also be desirable in other cases if the administrator
+            			wants to inspect result of an asynchronous operation.
+            			By default there is no grace period and completed operations are immediately
+            			deleted.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.6</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -7656,7 +7671,12 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Description of changes that happened to an resource object shadow.
+								This is still used in midPoint 3.6 for consistency mechanism. However, it is
+								deprecated. Later midPoint versions will use pendingOperation instead.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="attemptNumber" type="xsd:int" minOccurs="0">
@@ -7670,6 +7690,8 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Description of operation during the processing of account failed. 
+								This is still used in midPoint 3.6 for consistency mechanism. However, it is
+								deprecated. Later midPoint versions will use pendingOperation instead.
 							</xsd:documentation>
 							 <xsd:appinfo>
 		                    	<a:displayName>ShadowType.failedOperationType</a:displayName>
@@ -7685,6 +7707,24 @@
 							<xsd:appinfo>
 		                    	<a:displayName>ShadowType.dead</a:displayName>
 		                    	<a:emphasized>true</a:emphasized>
+		                    </xsd:appinfo>
+						</xsd:annotation>
+     				</xsd:element>
+     				<xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Description of an operation which which execution is pending for this shadow.
+								This may be asynchronous operation in progress. E.g. operation that has to be
+								manually completed by human operator. It may also be operation that could not
+								be completed because there was a temporary error while communicating with the
+								resource. There may be also operations that are in fact already executed, but
+								we have not yet received the feedback. Or operations that are executed but are
+								still kept in the shadow for review by midPoint administrator. 
+							</xsd:documentation>
+							 <xsd:appinfo>
+		                    	<a:displayName>ShadowType.pendingOperation</a:displayName>
+		                    	<a:since>3.6</a:since>
+		                    	<a:index>presence</a:index>
 		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -7999,6 +8039,87 @@
 	    <xsd:sequence>
 	        <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
 	        </xsd:any>
+	    </xsd:sequence>
+	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+    
+    <xsd:complexType name="PendingOperationType">
+    	<xsd:annotation>
+            <xsd:documentation>
+                Description of an operation that is pending (in progress) or that was
+                recently completed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+	    <xsd:sequence>
+	        <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation delta. This is the change that is executed by the operation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp of operation request. The point in time when the operation was
+    						recoded and when it was initiated for the first time. It is set once and should never be changed.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.6</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+			<xsd:element name="completionTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp of operation completion. The point in time when the operation was
+    						successful or when it has failed for the last time. No attempts to re-try the
+    						operation were done after this timestamp.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.6</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+			<xsd:element name="resultStatus" type="tns:OperationResultStatusType" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						Operation status. If set to in_progress then the operation is
+    						still executing. If not present at all then the operation was
+    						not yet tried.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.6</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="asynchronousOperationReference" type="xsd:string" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						Reference to an asynchronous operation that can be used to refresh
+							the status of the running operation.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.6</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<!-- TODO operation type? E.g. distinguish between manual connector and consistency mechanism? Or is that implicit? -->
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>

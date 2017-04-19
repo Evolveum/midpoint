@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2016 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="00000000-0000-0000-0000-000000000008"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>End user</name>
+    <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
+    <authorization>
+    	<name>gui-self-service-access</name>
+    	<description>
+    		Allow access to all self-service operations in GUI.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+    </authorization>
+    <authorization>
+    	<name>self-read</name>
+    	<description>
+    		Allow to read all the properties of "self" object. I.e. every logged-in user can read
+    		object that represent his own identity.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
+    </authorization>
+    <authorization>
+	    <name>self-shadow-read</name>
+    	<description>
+    		Allow to read all the properties of all the shadows that belong to "self" object. 
+    		I.e. every logged-in user can read all his accounts.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ShadowType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+    	<name>self-credentials-request</name>
+    	<description>
+    		Allow to modify user's own credentials.
+    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+    	<phase>request</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+    <authorization>
+    	<name>self-shadow-credentials-request</name>
+    	<description>
+    		Allow to modify credentials of all users accounts.
+    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+    	<phase>request</phase>
+    	<object>
+    		<type>ShadowType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    	<item>credentials</item>
+    </authorization>
+    <authorization>
+    	<name>assign-requestable-roles</name>
+    	<description>
+    		Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+    	    The requestable roles will be displayed in the role request dialog by default.
+    	    Please note that the roles also need an approved definition to go through the approval process.
+    	    Otherwise they will be assigned automatically wihout any approval. 
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+    	<phase>request</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<target>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>requestable</q:path>
+    				<q:value>true</q:value>
+    			</q:equal>
+    		</filter>
+    	</target>
+    </authorization>
+    <authorization>
+    	<name>self-execution-modify</name>
+    	<description>
+    		Authorization that allows to self-modification of some properties, but only in execution phase. 
+    		The limitation real limitation of these operations is done in the request phase.
+    		E.g. the modification of assignments is controlled in the request phase by using the #assign
+    		authorization.
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<object>
+    		<special>self</special>
+    	</object>
+    	<item>credentials</item>
+    	<item>assignment</item>
+    	<item>parentOrgRef</item>
+    	<item>roleMembershipRef</item>
+    </authorization>
+    <authorization>
+    	<name>self-shadow-execution-add-modify-delete</name>
+    	<description>
+    		Authorization that allows to self-modification of user's accounts, but only in execution phase.
+    		The real limitation of these operations is done in the request phase.
+    	</description>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    	<phase>execution</phase>
+    	<object>
+    		<type>ShadowType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>assignment-target-read</name>
+    	<description>
+    		Authorization that allows to read all the object that are possible assignment targets. We want that
+    		to display the targets in the selection windows.
+    		Note that this authorization may be too broad for production use. Normally it should be limited to just
+    		selected properties such as name and description.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <object>
+            <type>ServiceType</type>
+        </object>
+    </authorization>
+    <authorization>
+    	<name>assignment-target-read-task</name>
+    	<description>
+    		Authorization that allows to read workflow status of tasks. This is used to display requests
+    		to the end users, especially in the "My Requests" box in user dashboard.
+    		This authorization is a temporary solution. It will be replaced by a finer-grained
+    		permissions in the future.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+        </object>
+        <item>workflowContext</item>
+    </authorization>
+    <roleType>system</roleType>
+</role>

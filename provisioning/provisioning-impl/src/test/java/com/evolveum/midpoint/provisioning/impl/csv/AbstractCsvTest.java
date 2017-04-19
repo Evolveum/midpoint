@@ -17,9 +17,10 @@
 /**
  * 
  */
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.csv;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -29,40 +30,39 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.dummy.TestDummy;
+import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -70,19 +70,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.
@@ -92,47 +90,64 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestCsvFile extends AbstractProvisioningIntegrationTest {
+public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTest {
 
-	private static final File RESOURCE_CSV_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-csv.xml");
-	private static final String RESOURCE_CSV_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
+	protected static final File TEST_DIR = new File("src/test/resources/csv/");
 	
-	private static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.csvfile.CSVFileConnector";
+	protected static final String RESOURCE_NS = MidPointConstants.NS_RI;
 	
-	private static final String CSV_SOURCE_FILE_PATH = "src/test/resources/midpoint-flatfile.csv";
-	private static final String CSV_TARGET_FILE_PATH = "target/midpoint-flatfile.csv";
-
-	private static final Trace LOGGER = TraceManager.getTrace(TestCsvFile.class);
-
-	private PrismObject<ResourceType> resource;
-	private ResourceType resourceType;
+	public static final QName RESOURCE_CSV_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS, "AccountObjectClass");
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
-	 */
+	protected static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
+	
+	private static final File CSV_TARGET_FILE = new File("target/midpoint.csv");
+	
+	protected static final String ACCOUNT_JACK_FIRSTNAME = "Jack";
+	protected static final String ACCOUNT_JACK_LASTNAME = "Sparrow";
 
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractCsvTest.class);
+
+	protected static final String ATTR_FIRSTNAME = "firstname";
+	protected static final QName ATTR_FIRSTNAME_QNAME = new QName(RESOURCE_NS, ATTR_FIRSTNAME);
+	
+	protected static final String ATTR_LASTNAME = "lastname";
+	protected static final QName ATTR_LASTNAME_QNAME = new QName(RESOURCE_NS, ATTR_LASTNAME);
+
+	protected PrismObject<ResourceType> resource;
+	protected ResourceType resourceType;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(RESOURCE_CSV_FILE, CSV_CONNECTOR_TYPE, initResult);
+		super.initSystem(initTask, initResult);
+		
+		resource = addResourceFromFile(getResourceFile(), CSV_CONNECTOR_TYPE, initResult);
 		resourceType = resource.asObjectable();
 		
-		FileUtils.copyFile(new File(CSV_SOURCE_FILE_PATH), new File(CSV_TARGET_FILE_PATH));
+		FileUtils.copyFile(getSourceCsvFile(), CSV_TARGET_FILE);
 	}
 
+	protected abstract File getResourceFile();
+	
+	protected abstract String getResourceOid();
+	
+	protected abstract File getSourceCsvFile();
+	
+	protected abstract File getAccountJackFile();
+	
+	protected abstract String getAccountJackOid();
+
 	@Test
-	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile("test000Integrity");
+	public void test000Integrity() throws Exception {
+		final String TEST_NAME = "test000Integrity";
+		TestUtil.displayTestTile(TEST_NAME);
 		
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
 
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
-				+ ".test000Integrity");
+		OperationResult result = new OperationResult(AbstractCsvTest.class.getName()
+				+ "." + TEST_NAME);
 
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
+		ResourceType resource = repositoryService.getObject(ResourceType.class, getResourceOid(),
 				null, result).asObjectable();
 		String connectorOid = resource.getConnectorRef().getOid();
 		ConnectorType connector = repositoryService
@@ -152,13 +167,14 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 	 * that executes testResource and checks whether the schema was generated.
 	 */
 	@Test
-	public void test003Connection() throws ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile("test003Connection");
+	public void test003Connection() throws Exception {
+		final String TEST_NAME = "test003Connection";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
-				+ ".test003Connection");
+		OperationResult result = new OperationResult(AbstractCsvTest.class.getName()
+				+ "." + TEST_NAME);
 		// Check that there is no schema before test (pre-condition)
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID,
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, getResourceOid(),
 				null, result).asObjectable();
 		assertNotNull("No connector ref", resourceBefore.getConnectorRef());
 		assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
@@ -170,13 +186,13 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_CSV_OID);
+		OperationResult testResult = provisioningService.testResource(getResourceOid());
 
 		// THEN
 		display("Test result", testResult);
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, result);
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, getResourceOid(), null, result);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable(); 
 		display("Resource after test", resourceTypeRepoAfter);
 
@@ -204,11 +220,11 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		TestUtil.displayTestTile("test004Configuration");
 		// GIVEN
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
+		OperationResult result = new OperationResult(AbstractCsvTest.class.getName()
 				+ ".test004Configuration");
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, null, result);
+		resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
 		resourceType = resource.asObjectable();
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -224,30 +240,44 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 	}
 
 	@Test
-	public void test005ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
-		TestUtil.displayTestTile("test005ParsedSchema");
-		// GIVEN
-		OperationResult result = new OperationResult(TestCsvFile.class.getName()
-				+ ".test005ParsedSchema");
+	public void test005ParsedSchema() throws Exception {
+		final String TEST_NAME = "test005ParsedSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// THEN
 		// The returned type should have the schema pre-parsed
 		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
 
 		// Also test if the utility method returns the same thing
-		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 		
-		display("Parsed resource schema", returnedSchema);
+		display("Parsed resource schema", resourceSchema);
+		assertNotNull("No resource schema", resourceSchema);
 
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_CSV_ACCOUNT_OBJECTCLASS);
+		assertNotNull("Account definition is missing", accountDef);
+		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+
+		assertAccountDefinition(accountDef);
+		
+		ResourceAttributeDefinition<String> icfsNameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+		assertNull("ICFS NAME definition sneaked in", icfsNameDef);
+		
+		ResourceAttributeDefinition<String> icfsUidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
+		assertNull("ICFS UID definition sneaked in", icfsUidDef);
+		
 		// Check whether it is reusing the existing schema and not parsing it all over again
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
-		assertTrue("Broken caching", returnedSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
-		
-		IntegrationTestTools.assertIcfResourceSchemaSanity(returnedSchema, resourceType);
+		assertTrue("Broken caching", resourceSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
 
 	}
 	
+	protected abstract void assertAccountDefinition(ObjectClassComplexTypeDefinition accountDef);
+
 	@Test
 	public void test006Capabilities() throws Exception {
 		final String TEST_NAME = "test006Capabilities";
@@ -257,7 +287,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
 
 		// WHEN
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_CSV_OID, null, null, result).asObjectable();
+		ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
 		
 		// THEN
 		display("Resource from provisioninig", resource);
@@ -274,8 +304,7 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
         ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
         assertNotNull("No script capability", capScript);
         List<Host> scriptHosts = capScript.getHost();
-        assertEquals("Wrong number of script hosts", 2, scriptHosts.size());
-        assertScriptHost(capScript, ProvisioningScriptHostType.RESOURCE);
+        assertEquals("Wrong number of script hosts", 1, scriptHosts.size());
         assertScriptHost(capScript, ProvisioningScriptHostType.CONNECTOR);
                 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
@@ -293,48 +322,66 @@ public class TestCsvFile extends AbstractProvisioningIntegrationTest {
 		}
 		AssertJUnit.fail("No script capability with host type "+expectedHostType);
 	}
-	
+
 	@Test
-	public void test500ExeucuteScript() throws Exception {
-		final String TEST_NAME = "test500ExeucuteScript";
+	public void test100AddAccountJack() throws Exception {
+		final String TEST_NAME = "test100AddAccountJack";
 		TestUtil.displayTestTile(TEST_NAME);
-		
-		String osName = System.getProperty("os.name");
-		IntegrationTestTools.display("OS", osName);
-		if (!"Linux".equals(osName)) {
-			display("SKIPPING test, cannot execute on "+osName);
-			return;
-		}
 
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		
-		ProvisioningScriptType script = new ProvisioningScriptType();
-		script.setHost(ProvisioningScriptHostType.RESOURCE);
-		script.setLanguage("exec");
-		script.setCode("src/test/script/csvscript.sh");
-		ProvisioningScriptArgumentType argument = new ProvisioningScriptArgumentType();
-		argument.setName("NAME");
-		JAXBElement<RawType> valueEvaluator = (JAXBElement) new ObjectFactory().createValue(null);
-        RawType value = new RawType(new PrimitiveXNode<String>("World"), prismContext);
-		valueEvaluator.setValue(value);
-		argument.getExpressionEvaluator().add(valueEvaluator);
-		script.getArgument().add(argument);
 
+		PrismObject<ShadowType> shadowBefore = parseObject(getAccountJackFile());
+		
 		// WHEN
-		provisioningService.executeScript(RESOURCE_CSV_OID, script, task, result);
-		
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.addObject(shadowBefore, null, null, task, result);
+
 		// THEN
-		result.computeStatus();
-		display("executeScript result", result);
-		TestUtil.assertSuccess("executeScript has failed (result)", result);
-		
-		File scriptOutFile = new File("target/hello.txt");
-		assertTrue("Script haven't created the file", scriptOutFile.exists());
-		String fileContent = MiscUtil.readFile(scriptOutFile);
-		assertEquals("Wrong script output", "Hello World", fileContent);
-		
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);		
 	}
 	
+	@Test
+	public void test110GetAccountJack() throws Exception {
+		final String TEST_NAME = "test110GetAccountJack";
+		TestUtil.displayTestTile(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, getAccountJackOid(), null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertNotNull(shadow);
+
+		display("Shadow after", shadow);
+		
+		ShadowType shadowType = shadow.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong name", "jack", shadow.getName());
+        assertNotNull(shadow.getOid());
+        assertEquals(RESOURCE_CSV_ACCOUNT_OBJECTCLASS, shadowType.getObjectClass());
+        assertEquals(getResourceOid(), shadowType.getResourceRef().getOid());
+        assertAccountJackAttributes(shadowType);
+        assertNotNull("Missing activation", shadowType.getActivation());
+        assertNotNull("Missing activation status", shadowType.getActivation().getAdministrativeStatus());
+        assertEquals("Not enabled", ActivationStatusType.ENABLED, shadowType.getActivation().getAdministrativeStatus());
+		
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadow.getOid(), null, result);
+        ShadowType repoShadowType = repoShadow.asObjectable();
+        assertEquals(RESOURCE_CSV_ACCOUNT_OBJECTCLASS, repoShadowType.getObjectClass());
+        assertEquals(getResourceOid(), repoShadowType.getResourceRef().getOid());
+        assertAccountJackAttributesRepo(shadowType);
+        
+	}
+
+	protected abstract void assertAccountJackAttributes(ShadowType shadowType);
+	
+	protected abstract void assertAccountJackAttributesRepo(ShadowType shadowType);
+
 }

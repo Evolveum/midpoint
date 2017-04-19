@@ -103,8 +103,6 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationResult;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationReturnValue;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -118,6 +116,8 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
@@ -1250,7 +1250,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public ConnectorOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> shadow, Collection<Operation> additionalOperations, StateReporter reporter,
+	public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> shadow, Collection<Operation> additionalOperations, StateReporter reporter,
 													  OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 		validateShadow(shadow, "add", false);
@@ -1409,7 +1409,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		connIdResult.recordSuccess();
 
 		result.recordSuccess();
-		return ConnectorOperationReturnValue.wrap(attributesContainer.getAttributes(), result);
+		return AsynchronousOperationReturnValue.wrap(attributesContainer.getAttributes(), result);
 	}
 
 	private void validateShadow(PrismObject<? extends ShadowType> shadow, String operation,
@@ -1443,7 +1443,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	//     (other identifiers are ignored on input and output of this method)
 
 	@Override
-	public ConnectorOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClassDef, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
+	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClassDef, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
 														   OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
 
@@ -1456,7 +1456,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (changes.isEmpty()){
 			LOGGER.info("No modifications for connector object specified. Skipping processing.");
 			result.recordNotApplicableIfUnknown();
-			return ConnectorOperationReturnValue.wrap(new ArrayList<PropertyModificationOperation>(0), result);
+			return AsynchronousOperationReturnValue.wrap(new ArrayList<PropertyModificationOperation>(0), result);
 		}
 
 		ObjectClass objClass = connIdNameMapper.objectClassToIcf(objectClassDef, getSchemaNamespace(), connectorType, legacySchema);
@@ -1860,7 +1860,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 			replaceUidValue(objectClassDef, identifiers, uid);
 		}
-		return ConnectorOperationReturnValue.wrap(sideEffectChanges, result);
+		return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
 	}
 
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
@@ -1895,7 +1895,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public ConnectorOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
+	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass, Collection<Operation> additionalOperations, Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter,
 							 OperationResult parentResult) 
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
 		Validate.notNull(objectClass, "No objectclass");
@@ -1957,7 +1957,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 
 		result.computeStatus();
-		return ConnectorOperationResult.wrap(result);
+		return AsynchronousOperationResult.wrap(result);
 	}
 	
 	@Override

@@ -30,6 +30,7 @@
 	<c:fullName>Some Body</c:fullName>
 	<c:givenName>Some</c:givenName>
 	<c:familyName>body</c:familyName>
+	<c:employeeType>enduser</c:employeeType>
 	<c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 		<c:password>
 			<c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">

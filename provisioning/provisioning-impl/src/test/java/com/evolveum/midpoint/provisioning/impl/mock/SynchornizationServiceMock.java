@@ -65,6 +65,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 	@Autowired(required=true)
 	ChangeNotificationDispatcher notificationManager;
+	
 	@Autowired(required=true)
 	RepositoryService repositoryService;
 	
@@ -350,6 +351,20 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
 		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
 		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+	}
+	
+	public void assertNotifyInProgressOnly() {
+		assert wasInProgress : "Expected that notifyInProgress will be called but it was not";				
+		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
+		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
+		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+	}
+	
+	public void assertNoNotifcations() {
+		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";				
+		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
+		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
+		assert callCountNotifyOperation == 0 : "Expected no notification call but there was "+callCountNotifyOperation+" calls";
 	}
 
 	/* (non-Javadoc)

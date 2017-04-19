@@ -1226,6 +1226,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual);
 		}
 	}
+	
+	protected void assertShadowDead(PrismObject<ShadowType> shadow) {
+		assertEquals("Shadow not dead: "+shadow, Boolean.TRUE, shadow.asObjectable().isDead());
+	}
 
 	protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
 		ActivationType activationType = shadow.asObjectable().getActivation();
@@ -1618,7 +1622,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 		}
 		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
-		return result.getAsyncronousOperationReference();
+		return result.getAsynchronousOperationReference();
 	}
 	
 	protected void fail(String message) {

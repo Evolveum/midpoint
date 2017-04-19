@@ -40,11 +40,11 @@
 
     <schemaHandling>
         <objectType>
+        	<kind>account</kind>
+        	<intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
-            <kind>account</kind>
-            <intent>default</intent>
             <attribute>
                 <c:ref>icfs:name</c:ref>
                 <limitations>

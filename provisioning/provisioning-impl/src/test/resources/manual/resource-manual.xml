@@ -78,4 +78,8 @@
 	<!-- No schemaHandling as well. -->
 	<!-- No capabilities. Connector should generate those. -->
 	
+	<consistency>
+		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+	</consistency>
+	
 </resource>
