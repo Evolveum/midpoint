@@ -23,16 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.Marker;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.query.definition.Any;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
-import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
-import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualEntity;
+import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -153,12 +144,14 @@ public class ClassDefinitionParser {
         } else if (isEntity(jpaClass)) {
             JpaEntityDefinition content = parseClass(jpaClass);
             boolean embedded = method.isAnnotationPresent(Embedded.class) || jpaClass.isAnnotationPresent(Embeddable.class);
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, embedded, content);
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, embedded,
+                    content);
         } else {
             boolean lob = method.isAnnotationPresent(Lob.class);
             boolean enumerated = method.isAnnotationPresent(Enumerated.class);
             //todo implement also lookup for @Table indexes
             boolean indexed = method.isAnnotationPresent(Index.class);
+            boolean count = method.isAnnotationPresent(Count.class);
             Class jaxbClass = getJaxbClass(method, jpaClass);
 
             if (method.isAnnotationPresent(IdQueryProperty.class)) {
@@ -173,9 +166,10 @@ public class ClassDefinitionParser {
                 itemPath = new ItemPath(new ParentPathSegment(), new IdentifierPathSegment());
             }
 
-            JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed);
+            JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated, indexed, count);
             // Note that properties are considered to be embedded
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, true, propertyDefinition);
+            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, true,
+                    propertyDefinition);
         }
         return linkDefinition;
     }
@@ -266,7 +260,11 @@ public class ClassDefinitionParser {
             }
             return new ItemPath(names.toArray(new QName[0]));
         } else {
-            return new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, getPropertyName(method.getName())));
+            String propertyName = getPropertyName(method.getName());
+            if (method.isAnnotationPresent(Count.class)) {
+                propertyName = StringUtils.removeEnd(propertyName, "Count");
+            }
+            return new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, propertyName));
         }
     }
 

@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 
 /**
@@ -28,25 +27,21 @@ import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
  */
 public class JpaPropertyDefinition extends JpaDataNodeDefinition {
 
-    //jpa special types
-    private boolean lob;
-    private boolean enumerated;
-    //jpa special things
-    private boolean indexed;            // currently unused
+    private final boolean lob;
+    private final boolean enumerated;
+	private final boolean indexed;			// unused now (true if @Index-ed)
+	private final boolean count;			// "count"-type variable, like RShadow.pendingOperationCount
 
-    public JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed) {
+    JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed, boolean count) {
         super(jpaClass, jaxbClass);
         this.lob = lob;
         this.enumerated = enumerated;
         this.indexed = indexed;
+        this.count = count;
     }
 
     public boolean isLob() {
         return lob;
-    }
-
-    public boolean isPolyString() {
-        return RPolyString.class.equals(getJpaClass());
     }
 
     public boolean isEnumerated() {
@@ -57,19 +52,11 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
         return indexed;
     }
 
-    void setLob(boolean lob) {
-        this.lob = lob;
-    }
+	public boolean isCount() {
+		return count;
+	}
 
-    void setEnumerated(boolean enumerated) {
-        this.enumerated = enumerated;
-    }
-
-    void setIndexed(boolean indexed) {
-        this.indexed = indexed;
-    }
-
-    @Override
+	@Override
     protected String getDebugDumpClassName() {
         return "Prop";
     }
@@ -89,14 +76,17 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(super.getShortInfo());
-        if (isLob()) {
+        if (lob) {
             sb.append(", lob");
         }
-        if (isEnumerated()) {
+        if (enumerated) {
             sb.append(", enumerated");
         }
-        if (isIndexed()) {
+        if (indexed) {
             sb.append(", indexed");
+        }
+        if (count) {
+            sb.append(", count");
         }
         return sb.toString();
     }

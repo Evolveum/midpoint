@@ -222,10 +222,10 @@ public class QueryInterpreter2 {
             ExistsFilter existsFilter = (ExistsFilter) filter;
             ItemPath path = existsFilter.getFullPath();
             ItemDefinition definition = existsFilter.getDefinition();
-            ProperDataSearchResult<JpaEntityDefinition> searchResult = resolver.findProperDataDefinition(
-                    baseEntityDefinition, path, definition, JpaEntityDefinition.class, context.getPrismContext());
+            ProperDataSearchResult<JpaDataNodeDefinition> searchResult = resolver.findProperDataDefinition(
+                    baseEntityDefinition, path, definition, JpaDataNodeDefinition.class, context.getPrismContext());
             if (searchResult == null) {
-                throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity within " + baseEntityDefinition);
+                throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity or property within " + baseEntityDefinition);
             }
             return new ExistsRestriction(context, existsFilter, searchResult.getEntityDefinition(), parent);
         } else if (filter instanceof RefFilter) {

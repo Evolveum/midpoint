@@ -282,7 +282,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     @Override
-    public S_FilterEntry exists(QName... names) {
+    public S_FilterEntryOrEmpty exists(QName... names) {
         if (existsRestriction != null) {
             throw new IllegalStateException("Exists within exists");
         }
