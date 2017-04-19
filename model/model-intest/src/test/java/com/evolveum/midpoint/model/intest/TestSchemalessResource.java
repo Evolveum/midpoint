@@ -80,9 +80,9 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
         // THEN
 		display("Test result", testResult);
 		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONFIGURATION_VALIDATION);
+		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
 		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-		assertTestResourceFailure(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
+		assertTestResourceFailure(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
 
 	}
 	

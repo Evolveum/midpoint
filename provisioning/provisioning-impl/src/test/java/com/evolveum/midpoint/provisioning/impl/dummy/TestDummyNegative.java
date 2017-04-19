@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,12 +59,6 @@ public class TestDummyNegative extends AbstractDummyTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
 	
 	private static final String ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME = TEST_DIR + "account-elaine-resource-not-found.xml";
-	
-//	@Autowired
-//	TaskManager taskManager;
-	
-//	@Autowired
-//	private ResourceObjectChangeListener syncServiceMock;
 	
 	@Test
 	public void test110GetResourceBrokenSchemaNetwork() throws Exception {
@@ -127,8 +121,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		final String TEST_NAME = "test200AddAccountNullAttributes";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 

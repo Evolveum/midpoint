@@ -57,6 +57,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1636,7 +1637,30 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return result.getAsynchronousOperationReference();
 	}
 	
+	protected void assertFailure(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertFailure(result);
+	}
+	
 	protected void fail(String message) {
 		AssertJUnit.fail(message);
+	}
+	
+	protected OperationResult assertSingleConnectorTestResult(OperationResult testResult) {
+		return IntegrationTestTools.assertSingleConnectorTestResult(testResult);
+	}
+	
+	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceSuccess(testResult, operation);
+	}
+
+	public static void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceFailure(testResult, operation);
+	}
+	
+	public static void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
 	}
 }

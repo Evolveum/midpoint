@@ -18,7 +18,9 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -157,7 +159,7 @@ public class ResourceManager {
 	private PrismObject<ResourceType> loadAndCacheResource(PrismObject<ResourceType> repositoryObject, 
 			GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
-		PrismObject<ResourceType> completedResource = completeResource(repositoryObject, null, false, options, parentResult);
+		PrismObject<ResourceType> completedResource = completeResource(repositoryObject, null, false, null, options, parentResult);
 		
 		if (!isComplete(completedResource)) {
 			// No not cache non-complete resources (e.g. those retrieved with noFetch)
@@ -221,7 +223,7 @@ public class ResourceManager {
 	 * @throws ConfigurationException
 	 */
 	private PrismObject<ResourceType> completeResource(PrismObject<ResourceType> repoResource, ResourceSchema resourceSchema,
-			boolean fetchedSchema, GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			boolean fetchedSchema, Map<String,Collection<Object>> capabilityMap, GetOperationOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException {
 
 		// do not add as a subresult..it will be added later, if the completing
@@ -231,6 +233,7 @@ public class ResourceManager {
 		
 		try {
 			
+			// TODO
 			applyConnectorSchemaToResource(repoResource, result);
 						
 		} catch (SchemaException e) {
@@ -267,7 +270,7 @@ public class ResourceManager {
 	
 			try {
 				
-				completeSchemaAndCapabilities(repoResource, resourceSchema, fetchedSchema, result);
+				completeSchemaAndCapabilities(repoResource, resourceSchema, fetchedSchema, capabilityMap, result);
 				
 			} catch (Exception ex) {
 				// Catch the exceptions. There are not critical. We need to catch them all because the connector may
@@ -340,16 +343,15 @@ public class ResourceManager {
 
 
 	private void completeSchemaAndCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema, boolean fetchedSchema,
-			OperationResult result) throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException, ConfigurationException {
+			Map<String,Collection<Object>> capabilityMap, OperationResult result) 
+					throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException, ConfigurationException {
 		ResourceType resourceType = resource.asObjectable();
 
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
 		// Capabilities
 		// we need to process capabilities first. Schema is one of the connector capabilities.
-
-		completeCapabilities(resource, modifications, result);		
-		
+		completeCapabilities(resource, capabilityMap != null, capabilityMap, modifications, result);		
 		
 		if (resourceSchema == null) { 
 			// Try to get existing schema from resource. We do not want to override this if it exists
@@ -361,14 +363,7 @@ public class ResourceManager {
 		
 			LOGGER.trace("Fetching resource schema for {}", resource);
 			
-			// Fetch schema from connector, UCF will convert it to
-			// Schema Processor format and add all necessary annotations
-			InternalMonitor.recordResourceSchemaFetch();
-			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
-//			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
-//				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
-//			}
-			resourceSchema = fetchResourceSchema(resource, generateObjectClasses, result);
+			resourceSchema = fetchResourceSchema(resource, result);
 
 			if (resourceSchema == null) {
 				LOGGER.warn("No resource schema fetched from {}", resource);
@@ -405,7 +400,7 @@ public class ResourceManager {
 
 	}
 	
-	private void completeCapabilities(PrismObject<ResourceType> resource, Collection<ItemDelta<?, ?>> modifications,
+	private void completeCapabilities(PrismObject<ResourceType> resource, boolean forceRefresh, Map<String,Collection<Object>> capabilityMap, Collection<ItemDelta<?, ?>> modifications,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		ResourceType resourceType = resource.asObjectable();
 		ConnectorSpec defaultConnectorSpec = getDefaultConnectorSpec(resource);
@@ -414,7 +409,9 @@ public class ResourceManager {
 			resourceCapType = new CapabilitiesType();
 			resourceType.setCapabilities(resourceCapType);
 		}
-		completeConnectorCapabilities(defaultConnectorSpec, resourceCapType, new ItemPath(ResourceType.F_CAPABILITIES), modifications, result);
+		completeConnectorCapabilities(defaultConnectorSpec, resourceCapType, new ItemPath(ResourceType.F_CAPABILITIES), forceRefresh, 
+				capabilityMap==null?null:capabilityMap.get(null),
+				modifications, result);
 		
 		for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
 			ConnectorSpec connectorSpec = getConnectorSpec(resource, additionalConnectorType);
@@ -424,29 +421,37 @@ public class ResourceManager {
 				additionalConnectorType.setCapabilities(connectorCapType);
 			}
 			ItemPath itemPath = additionalConnectorType.asPrismContainerValue().getPath().subPath(ConnectorInstanceSpecificationType.F_CAPABILITIES);
-			completeConnectorCapabilities(connectorSpec, connectorCapType, itemPath, modifications, result);
+			completeConnectorCapabilities(connectorSpec, connectorCapType, itemPath, forceRefresh, 
+					capabilityMap==null?null:capabilityMap.get(additionalConnectorType.getName()),
+					modifications, result);
 		}
 	}
 		
-	private void completeConnectorCapabilities(ConnectorSpec connectorSpec, CapabilitiesType capType, ItemPath itemPath, 
-			Collection<ItemDelta<?, ?>> modifications, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	private void completeConnectorCapabilities(ConnectorSpec connectorSpec, CapabilitiesType capType, ItemPath itemPath, boolean forceRefresh, 
+			Collection<Object> retrievedCapabilities, Collection<ItemDelta<?, ?>> modifications, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
-		Collection<Object> capabilities;
-		try {
-
-			InternalMonitor.recordConnectorCapabilitiesFetchCount();
-			
-			ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
-			capabilities = connector.fetchCapabilities(result);
-
-		} catch (GenericFrameworkException e) {
-			throw new GenericConnectorException("Generic error in connector " + connectorSpec + ": "
-					+ e.getMessage(), e);
+		if (!forceRefresh && !capType.getNative().getAny().isEmpty()) {
+			return;
+		}
+		
+		if (retrievedCapabilities == null) {
+			try {
+	
+				InternalMonitor.recordConnectorCapabilitiesFetchCount();
+				
+				ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
+				retrievedCapabilities = connector.fetchCapabilities(result);
+	
+			} catch (GenericFrameworkException e) {
+				throw new GenericConnectorException("Generic error in connector " + connectorSpec + ": "
+						+ e.getMessage(), e);
+			}
 		}
 				
 		CapabilityCollectionType nativeCapType = new CapabilityCollectionType();
 		capType.setNative(nativeCapType);
-		nativeCapType.getAny().addAll(capabilities);
+		nativeCapType.getAny().addAll(retrievedCapabilities);
 
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 		capType.setCachingMetadata(cachingMetadata);
@@ -556,6 +561,20 @@ public class ResourceManager {
 		}
 	}
 
+	private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, OperationResult parentResult) 
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException, SchemaException {
+		ConnectorSpec connectorSpec = selectConnectorSpec(resource, SchemaCapabilityType.class);
+		if (connectorSpec == null) {
+			LOGGER.trace("No connector has schema capability, cannot fetch resource schema");
+			return null;
+		}
+		InternalMonitor.recordResourceSchemaFetch();
+		List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
+		ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
+		return connectorInstance.fetchResourceSchema(generateObjectClasses, parentResult);
+		
+	}
+	
 	public void testConnection(PrismObject<ResourceType> resource, OperationResult parentResult) {
 
 		List<ConnectorSpec> allConnectorSpecs;
@@ -567,29 +586,28 @@ public class ResourceManager {
 			return;
 		}
 		
+		Map<String,Collection<Object>> capabilityMap = new HashMap<>();
 		for (ConnectorSpec connectorSpec: allConnectorSpecs) {
 			
 			OperationResult connectorTestResult = parentResult
-					.createSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+					.createSubresult(ConnectorTestOperation.CONNECTOR_TEST.getOperation());
 			connectorTestResult.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());
 			connectorTestResult.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
 			
-			testConnectionConnector(connectorSpec, connectorTestResult);
+			testConnectionConnector(connectorSpec, capabilityMap, connectorTestResult);
 			
 			connectorTestResult.computeStatus();
 		}
 
 		// === test SCHEMA ===
 
-		OperationResult schemaResult = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_SCHEMA
+		OperationResult schemaResult = parentResult.createSubresult(ConnectorTestOperation.RESOURCE_SCHEMA
 				.getOperation());
 
 		ResourceSchema schema = null;
 		try {
-			InternalMonitor.recordResourceSchemaFetch();
-			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 
-			schema = fetchResourceSchema(resource, generateObjectClasses, schemaResult);
+			schema = fetchResourceSchema(resource, schemaResult);
 			
 		} catch (CommunicationException e) {
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
@@ -638,7 +656,7 @@ public class ResourceManager {
 		// generate the resource schema - until we have full schema caching
 		// capability.
 		try {
-			resource = completeResource(resource, schema, true, null, schemaResult);
+			resource = completeResource(resource, schema, true, capabilityMap, null, schemaResult);
 		} catch (ObjectNotFoundException e) {
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
 			schemaResult.recordFatalError(
@@ -661,24 +679,12 @@ public class ResourceManager {
 
 		schemaResult.recordSuccess();
 
-		// TODO: connector sanity (e.g. at least one account type, identifiers
+		// TODO: connector sanity (e.g. refined schema, at least one account type, identifiers
 		// in schema, etc.)
 
 	}
 	
-	private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, List<QName> generateObjectClasses,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException, SchemaException {
-		ConnectorSpec connectorSpec = selectConnectorSpec(resource, SchemaCapabilityType.class);
-		if (connectorSpec == null) {
-			LOGGER.trace("No connector has schema capability, cannot fetch resource schema");
-			return null;
-		}
-		ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
-		return connectorInstance.fetchResourceSchema(generateObjectClasses, parentResult);
-		
-	}
-
-	public void testConnectionConnector(ConnectorSpec connectorSpec, OperationResult parentResult) {
+	public void testConnectionConnector(ConnectorSpec connectorSpec, Map<String,Collection<Object>> capabilityMap, OperationResult parentResult) {
 
 		// === test INITIALIZATION ===
 
@@ -700,7 +706,7 @@ public class ResourceManager {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("Schema error while dealing with the connector definition: "+e.getMessage(), e);
 			return;
-		} catch (RuntimeException e) {
+		} catch (RuntimeException | Error e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("Unexpected runtime error: "+e.getMessage(), e);
 			return;
@@ -721,7 +727,7 @@ public class ResourceManager {
 		// === test CONFIGURATION ===
 
 		OperationResult configResult = parentResult
-				.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION.getOperation());
+				.createSubresult(ConnectorTestOperation.CONNECTOR_CONFIGURATION.getOperation());
 
 		try {
 			connector.configure(connectorSpec.getConnectorConfiguration().getValue(), configResult);
@@ -742,7 +748,7 @@ public class ResourceManager {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Configuration error", e);
 			return;
-		} catch (RuntimeException e) {
+		} catch (RuntimeException | Error e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Unexpected runtime error", e);
 			return;
@@ -763,6 +769,33 @@ public class ResourceManager {
 		} else {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.UP, parentResult);
 		}
+		
+		OperationResult capabilitiesResult = parentResult
+				.createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
+
+		try {
+			InternalMonitor.recordConnectorCapabilitiesFetchCount();
+			Collection<Object> capabilities = connector.fetchCapabilities(capabilitiesResult);
+			capabilityMap.put(connectorSpec.getConnectorName(), capabilities);
+			capabilitiesResult.recordSuccess();
+		} catch (CommunicationException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			capabilitiesResult.recordFatalError("Communication error", e);
+			return;
+		} catch (GenericFrameworkException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			capabilitiesResult.recordFatalError("Generic error", e);
+			return;
+		} catch (ConfigurationException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			capabilitiesResult.recordFatalError("Configuration error", e);
+			return;
+		} catch (RuntimeException | Error e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			capabilitiesResult.recordFatalError("Unexpected runtime error", e);
+			return;
+		}
+		
 	}
 	
 	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType status, OperationResult result){

@@ -417,7 +417,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		if (resourceSchema == null || capabilities == null) {
 			try {
-				retrieveResourceSchema(null, result);
+				boolean supportsSchema = processOperationCapabilities(result);
+				if (supportsSchema) {
+					retrieveResourceSchema(null, result);
+				}
 			} catch (CommunicationException ex) {
 				// This is in fact fatal. There is not schema. Not even the pre-cached one. 
 				// The connector will not be able to work.

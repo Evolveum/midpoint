@@ -102,6 +102,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -409,7 +410,14 @@ public class TestDummy extends AbstractDummyTest {
 
 		// THEN
 		display("Test result", testResult);
-		TestUtil.assertSuccess("Test resource failed (result)", testResult);
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+		assertSuccess(connectorResult);
+		assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+		assertSuccess(testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_OID, null, result);
@@ -421,8 +429,7 @@ public class TestDummy extends AbstractDummyTest {
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-		display("Resource XML", resourceXml);
+		IntegrationTestTools.displayXml("Resource XML", resourceRepoAfter);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
 		assertNotNull("No caching metadata", cachingMetadata);
