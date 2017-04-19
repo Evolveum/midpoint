@@ -74,12 +74,12 @@ ALTER TABLE m_case
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
-EXEC sp_RENAME 'm_assignment_reference.containerType', 'targetType', 'COLUMN';
-EXEC sp_RENAME 'm_reference.containerType', 'targetType', 'COLUMN';
+EXEC sp_rename 'm_assignment_reference.containerType', 'targetType', 'COLUMN';
+EXEC sp_rename 'm_reference.containerType', 'targetType', 'COLUMN';
 
 DROP TABLE m_acc_cert_case_reference;
 
-EXEC sp_RENAME 'm_acc_cert_case.currentStageNumber', 'stageNumber', 'COLUMN';
+EXEC sp_rename 'm_acc_cert_case.currentStageNumber', 'stageNumber', 'COLUMN';
 ALTER TABLE m_acc_cert_case DROP COLUMN currentStageOutcome;
 ALTER TABLE m_acc_cert_case DROP COLUMN overallOutcome;
 ALTER TABLE m_acc_cert_case ADD currentStageOutcome NVARCHAR(255);
