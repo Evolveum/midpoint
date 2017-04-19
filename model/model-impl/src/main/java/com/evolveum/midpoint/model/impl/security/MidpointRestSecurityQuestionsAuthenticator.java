@@ -54,7 +54,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 
 	protected static final String USER_CHALLENGE = "\"user\" : \"username\"";
 	protected static final String USER_QUESTION_ANSWER_CHALLENGE = ", \"answer\" :";
-	protected static final String QUESTION = "{\"qid\" : \"$QID\", \"qtxt\" : \"$QTXT\", \"qans\" : \"useranswer\"}";
+	protected static final String QUESTION = "{\"qid\" : \"$QID\", \"qtxt\" : \"$QTXT\"}";
 	
 	private static final String Q_ID = "$QID";
 	private static final String Q_TXT = "$QTXT";

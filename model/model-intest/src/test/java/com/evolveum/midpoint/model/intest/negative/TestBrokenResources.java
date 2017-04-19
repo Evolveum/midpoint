@@ -152,10 +152,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	
 	@Test
     public void test010TestResourceBroken() throws Exception {
-        TestUtil.displayTestTile(this, "test010TestResourceBroken");
+		final String TEST_NAME = "test010TestResourceBroken";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test010TestResourceBroken");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -168,10 +169,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	
 	@Test
     public void test020GetResourceBroken() throws Exception {
-        TestUtil.displayTestTile(this, "test020GetResourceBroken");
+		final String TEST_NAME = "test020GetResourceBroken";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test020GetResourceBroken");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		// WHEN
@@ -198,10 +200,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 	@Test
     public void test100GetAccountMurray() throws Exception {
-        TestUtil.displayTestTile(this, "test100GetAccountMurray");
+		final String TEST_NAME = "test100GetAccountMurray";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test100GetAccountMurray");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         try {
@@ -210,6 +213,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	        PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, ACCOUNT_SHADOW_MURRAY_CSVFILE_OID,
 	        		null, task, result);
 
+	        display("Account (unexpected)", account);
 	        AssertJUnit.fail("Expected SystemException but the operation was successful");
         } catch (SystemException e) {
         	// This is expected
@@ -223,10 +227,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	
 	@Test
     public void test101GetAccountMurrayNoFetch() throws Exception {
-        TestUtil.displayTestTile(this, "test101GetAccountMurrayNoFetch");
+		final String TEST_NAME = "test101GetAccountMurrayNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test101GetAccountMurrayNoFetch");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
