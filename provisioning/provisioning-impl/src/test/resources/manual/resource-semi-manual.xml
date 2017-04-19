@@ -20,7 +20,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
-        xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
+        xmlns:csvconf="	http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
@@ -35,8 +35,32 @@
 		<name>csv</name>
 		<connectorRef oid="will-be-supplied-by-the-test-code"/>
 		<connectorConfiguration>
-			<conf:defaultAssignee>administrator</conf:defaultAssignee>
+			<csvconf:filePath>target/semi-manual.csv</csvconf:filePath>
+			<csvconf:encoding>utf-8</csvconf:encoding>
+			<csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
+			<csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
+			<csvconf:uniqueAttribute>username</csvconf:uniqueAttribute>
+			<csvconf:passwordAttribute>password</csvconf:passwordAttribute>
 		</connectorConfiguration>
+		<capabilities>
+			<configured>
+				<cap:liveSync>
+					<cap:enabled>false</cap:enabled>
+				</cap:liveSync>
+				<cap:create>
+					<cap:enabled>false</cap:enabled>
+				</cap:create>
+				<cap:update>
+					<cap:enabled>false</cap:enabled>
+				</cap:update>
+				<cap:delete>
+					<cap:enabled>false</cap:enabled>
+				</cap:delete>
+				<cap:script>
+				    <cap:enabled>false</cap:enabled>
+				</cap:script>
+			</configured>
+		</capabilities>
 	</additionalConnector>
 	
 	<!-- Schema definition comes from the CSV file -->

@@ -204,7 +204,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				null, result).asObjectable();
 		
 		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
-		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
+		assertResourceSchemaBeforeTest(resourceXsdSchemaElementBefore);
 		
 		CapabilitiesType capabilities = resourceBefore.getCapabilities();
 		AssertJUnit.assertNull("Capabilities present before test connection. Bad test setup?", capabilities);
@@ -240,6 +240,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		// schema will be checked in next test
 	}
 	
+	protected abstract void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore);
+
 	@Test
 	public void test004Configuration() throws Exception {
 		final String TEST_NAME = "test004Configuration";

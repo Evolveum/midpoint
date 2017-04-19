@@ -58,6 +58,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -144,7 +150,7 @@ public class ResourceObjectConverter {
 		
 		LOGGER.trace("Locating resource object {}", identifiers);
 		
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 		
@@ -261,7 +267,7 @@ public class ResourceObjectConverter {
 				result);
 		entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
 		
-		ConnectorInstance connector = ctx.getConnector(result);
+		ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -346,7 +352,7 @@ public class ResourceObjectConverter {
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, ctx.getResource(),
 				result);
 
-		ConnectorInstance connector = ctx.getConnector(result);
+		ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -603,10 +609,10 @@ public class ResourceObjectConverter {
 		}
 		
 		// Invoke ICF
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, parentResult);
 		try {
 			
-			if (ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource())){
+			if (ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource())) {
 
 				if (currentShadow == null) {
 					LOGGER.trace("Fetching shadow for duplicate filtering");
@@ -635,7 +641,7 @@ public class ResourceObjectConverter {
 						filteredOperations.add(origOperation);					
 					}
 				}
-				if (filteredOperations.isEmpty()){
+				if (filteredOperations.isEmpty()) {
 					LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
 					parentResult.recordSuccess();
 					return new ArrayList<>(0);
@@ -1144,7 +1150,7 @@ public class ResourceObjectConverter {
 			}
 		};
 		
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
 		SearchResultMetadata metadata = null;
 		try {
 			metadata = connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, objectClassDef.getPagedSearches(), searchHierarchyConstraints, ctx,
@@ -1197,7 +1203,7 @@ public class ResourceObjectConverter {
 		LOGGER.trace("Fetcing current sync token for {}", ctx);
 		
 		PrismProperty lastToken;
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
 		try {
 			lastToken = connector.fetchCurrentToken(ctx.getObjectClassDefinition(), ctx, parentResult);
 		} catch (GenericFrameworkException e) {
@@ -1622,7 +1628,7 @@ public class ResourceObjectConverter {
 			attrsToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 		}
 		
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
 		
 		// get changes from the connector
 		List<Change> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, ctx, parentResult);
@@ -1708,7 +1714,6 @@ public class ResourceObjectConverter {
 			PrismObject<ShadowType> resourceObject, boolean fetchAssociations,
             OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = ctx.getResource();
-		ConnectorInstance connector = ctx.getConnector(parentResult);
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry);
@@ -2250,7 +2255,8 @@ public class ResourceObjectConverter {
 		ConnectorInstance connector;
 		try {
 			resource = ctx.getResource();
-			connector = ctx.getConnector(result);
+			// TODO: not really correct. But good enough for now.
+			connector = ctx.getConnector(UpdateCapabilityType.class, result);
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException
 				| ConfigurationException e) {
 			result.recordFatalError(e);

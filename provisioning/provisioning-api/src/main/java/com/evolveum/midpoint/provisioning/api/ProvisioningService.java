@@ -403,7 +403,7 @@ public interface ProvisioningService {
 	 */
 	Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
 	
-	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
+	List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**

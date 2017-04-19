@@ -96,7 +96,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 
 	public static final File COMMON_DIR = ProvisioningTestUtil.COMMON_TEST_DIR_FILE;
 	
-	protected static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.csvfile.CSVFileConnector";
+	protected static final String CSV_CONNECTOR_TYPE = "com.evolveum.polygon.connector.csv.CsvConnector";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractProvisioningIntegrationTest.class);
 

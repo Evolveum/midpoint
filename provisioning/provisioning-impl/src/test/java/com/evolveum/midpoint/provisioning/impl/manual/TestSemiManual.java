@@ -36,6 +36,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -114,6 +115,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext
 public class TestSemiManual extends AbstractManualResourceTest {
 	
+	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
+	private static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
+	
 	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
 	
 	@Override
@@ -122,6 +126,8 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		
 		resource = addResource(initResult);
 		resourceType = resource.asObjectable();
+		
+		FileUtils.copyFile(CSV_SOURCE_FILE, CSV_TARGET_FILE);
 	}
 
 
@@ -146,6 +152,11 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		String oid = repositoryService.addObject(resource, null, result);
 		resource.setOid(oid);
 		return resource;
+	}
+	
+	@Override
+	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
+		AssertJUnit.assertNull("Resource schema sneaked in before test connection", resourceXsdSchemaElementBefore);
 	}
 
 }

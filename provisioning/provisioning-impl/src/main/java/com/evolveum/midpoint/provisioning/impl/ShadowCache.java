@@ -1338,7 +1338,7 @@ public abstract class ShadowCache {
 			if (simulate == null) {
 				// We have native capability
 
-				ConnectorInstance connector = ctx.getConnector(result);
+				ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 				try {
 					ObjectQuery attributeQuery = createAttributeQuery(query);
 					int count;
