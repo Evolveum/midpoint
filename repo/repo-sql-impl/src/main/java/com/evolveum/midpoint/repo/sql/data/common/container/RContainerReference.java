@@ -37,7 +37,7 @@ import java.util.Objects;
  * This is a reference that is contained in (any) container. Its owner is identified by OID, container value ID,
  * and owner type.
  *
- * It is created as a superclass for both RAssignmentReference and RCertCaseReference because they share
+ * It is created as a superclass for both RAssignmentReference and RCertCaseReference (now non-existent) because they share
  * almost all the code.
  *
  */

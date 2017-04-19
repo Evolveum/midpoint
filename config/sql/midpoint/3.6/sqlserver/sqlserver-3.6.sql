@@ -43,8 +43,7 @@ CREATE TABLE m_acc_cert_case (
   validTo                  DATETIME2,
   validityChangeTimestamp  DATETIME2,
   validityStatus           INT,
-  currentStageNumber       INT,
-  currentStageOutcome      INT,
+  currentStageOutcome      NVARCHAR(255) COLLATE database_default,
   fullObject               VARBINARY(MAX),
   objectRef_relation       NVARCHAR(157) COLLATE database_default,
   objectRef_targetOid      NVARCHAR(36) COLLATE database_default,
@@ -52,10 +51,11 @@ CREATE TABLE m_acc_cert_case (
   orgRef_relation          NVARCHAR(157) COLLATE database_default,
   orgRef_targetOid         NVARCHAR(36) COLLATE database_default,
   orgRef_type              INT,
-  overallOutcome           INT,
+  outcome                  NVARCHAR(255) COLLATE database_default,
   remediedTimestamp        DATETIME2,
   reviewDeadline           DATETIME2,
   reviewRequestedTimestamp DATETIME2,
+  stageNumber              INT,
   targetRef_relation       NVARCHAR(157) COLLATE database_default,
   targetRef_targetOid      NVARCHAR(36) COLLATE database_default,
   targetRef_type           INT,
@@ -63,30 +63,6 @@ CREATE TABLE m_acc_cert_case (
   tenantRef_targetOid      NVARCHAR(36) COLLATE database_default,
   tenantRef_type           INT,
   PRIMARY KEY (id, owner_oid)
-);
-
-CREATE TABLE m_acc_cert_case_reference (
-  owner_id        INT                                    NOT NULL,
-  owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
-  reference_type  INT                                    NOT NULL,
-  relation        NVARCHAR(157) COLLATE database_default NOT NULL,
-  targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
-  containerType   INT,
-  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
-);
-
-CREATE TABLE m_acc_cert_decision (
-  id                    INT                                   NOT NULL,
-  owner_id              INT                                   NOT NULL,
-  owner_owner_oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  reviewerComment       NVARCHAR(255) COLLATE database_default,
-  response              INT,
-  reviewerRef_relation  NVARCHAR(157) COLLATE database_default,
-  reviewerRef_targetOid NVARCHAR(36) COLLATE database_default,
-  reviewerRef_type      INT,
-  stageNumber           INT                                   NOT NULL,
-  timestamp             DATETIME2,
-  PRIMARY KEY (id, owner_id, owner_owner_oid)
 );
 
 CREATE TABLE m_acc_cert_definition (
@@ -100,6 +76,30 @@ CREATE TABLE m_acc_cert_definition (
   ownerRef_type                INT,
   oid                          NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
+);
+
+CREATE TABLE m_acc_cert_wi (
+  id                     INT                                   NOT NULL,
+  owner_id               INT                                   NOT NULL,
+  owner_owner_oid        NVARCHAR(36) COLLATE database_default NOT NULL,
+  closeTimestamp         DATETIME2,
+  outcome                NVARCHAR(255) COLLATE database_default,
+  outputChangeTimestamp  DATETIME2,
+  performerRef_relation  NVARCHAR(157) COLLATE database_default,
+  performerRef_targetOid NVARCHAR(36) COLLATE database_default,
+  performerRef_type      INT,
+  stageNumber            INT,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+);
+
+CREATE TABLE m_acc_cert_wi_reference (
+  owner_id              INT                                    NOT NULL,
+  owner_owner_id        INT                                    NOT NULL,
+  owner_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
+  relation              NVARCHAR(157) COLLATE database_default NOT NULL,
+  targetOid             NVARCHAR(36) COLLATE database_default  NOT NULL,
+  targetType            INT,
+  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
 );
 
 CREATE TABLE m_assignment (
@@ -244,7 +244,7 @@ CREATE TABLE m_assignment_reference (
   reference_type  INT                                    NOT NULL,
   relation        NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
-  containerType   INT,
+  targetType      INT,
   PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 );
 
@@ -569,7 +569,7 @@ CREATE TABLE m_reference (
   reference_type INT                                    NOT NULL,
   relation       NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid      NVARCHAR(36) COLLATE database_default  NOT NULL,
-  containerType  INT,
+  targetType     INT,
   PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 );
 
@@ -796,13 +796,10 @@ CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
 
 CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
 
-CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
-
-ALTER TABLE m_acc_cert_decision
-ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
-
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
+
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
@@ -984,22 +981,22 @@ ALTER TABLE m_acc_cert_campaign
 ALTER TABLE m_acc_cert_case
 ADD CONSTRAINT fk_acc_cert_case_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_object;
-
-ALTER TABLE m_acc_cert_case_reference
-ADD CONSTRAINT fk_acc_cert_case_ref_owner
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_acc_cert_case;
-
-ALTER TABLE m_acc_cert_decision
-ADD CONSTRAINT fk_acc_cert_decision_owner
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_acc_cert_case;
+REFERENCES m_acc_cert_campaign;
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
     FOREIGN KEY (oid)
     REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
+FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
+REFERENCES m_acc_cert_wi;
 
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment_owner

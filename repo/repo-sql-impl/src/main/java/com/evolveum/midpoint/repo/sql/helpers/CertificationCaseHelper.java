@@ -32,7 +32,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
-import com.evolveum.midpoint.repo.sql.data.common.container.RCertCaseReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
@@ -40,9 +39,7 @@ import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -127,9 +124,9 @@ public class CertificationCaseHelper {
 
     public void deleteCertificationCampaignCases(Session session, String oid) {
         // TODO couldn't this cascading be done by hibernate itself?
-        Query deleteReferences = session.getNamedQuery("delete.campaignCasesReferences");
-        deleteReferences.setParameter("oid", oid);
-        deleteReferences.executeUpdate();
+//        Query deleteReferences = session.getNamedQuery("delete.campaignCasesReferences");
+//        deleteReferences.setParameter("oid", oid);
+//        deleteReferences.executeUpdate();
 
         Query deleteWorkItemReferences = session.getNamedQuery("delete.campaignCasesWorkItemReferences");
         deleteWorkItemReferences.setParameter("oid", oid);
@@ -201,11 +198,11 @@ public class CertificationCaseHelper {
                         affectedIds.add(id);
                         // TODO couldn't this cascading be done by hibernate itself?
                         Integer integerCaseId = RUtil.toInteger(id);
-                        Query deleteCaseReferences = session.createSQLQuery("delete from " + RCertCaseReference.TABLE +
-                                " where owner_owner_oid=:oid and owner_id=:id");
-                        deleteCaseReferences.setString("oid", campaignOid);
-                        deleteCaseReferences.setInteger("id", integerCaseId);
-                        deleteCaseReferences.executeUpdate();
+//                        Query deleteCaseReferences = session.createSQLQuery("delete from " + RCertCaseReference.TABLE +
+//                                " where owner_owner_oid=:oid and owner_id=:id");
+//                        deleteCaseReferences.setString("oid", campaignOid);
+//                        deleteCaseReferences.setInteger("id", integerCaseId);
+//                        deleteCaseReferences.executeUpdate();
                         Query deleteWorkItemReferences = session.createSQLQuery("delete from " + RCertWorkItemReference.TABLE +
                                 " where owner_owner_owner_oid=:oid and owner_owner_id=:id");
                         deleteWorkItemReferences.setString("oid", campaignOid);

@@ -74,3 +74,58 @@ ALTER TABLE m_case
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+EXEC sp_RENAME 'm_assignment_reference.containerType', 'targetType', 'COLUMN';
+EXEC sp_RENAME 'm_reference.containerType', 'targetType', 'COLUMN';
+
+DROP TABLE m_acc_cert_case_reference;
+
+EXEC sp_RENAME 'm_acc_cert_case.currentStageNumber', 'stageNumber', 'COLUMN';
+ALTER TABLE m_acc_cert_case DROP COLUMN currentStageOutcome;
+ALTER TABLE m_acc_cert_case DROP COLUMN overallOutcome;
+ALTER TABLE m_acc_cert_case ADD currentStageOutcome NVARCHAR(255);
+ALTER TABLE m_acc_cert_case ADD outcome NVARCHAR(255);
+
+DROP TABLE m_acc_cert_decision;
+
+CREATE TABLE m_acc_cert_wi (
+  id                     INT                                   NOT NULL,
+  owner_id               INT                                   NOT NULL,
+  owner_owner_oid        NVARCHAR(36) COLLATE database_default NOT NULL,
+  closeTimestamp         DATETIME2,
+  outcome                NVARCHAR(255) COLLATE database_default,
+  outputChangeTimestamp  DATETIME2,
+  performerRef_relation  NVARCHAR(157) COLLATE database_default,
+  performerRef_targetOid NVARCHAR(36) COLLATE database_default,
+  performerRef_type      INT,
+  stageNumber            INT,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+);
+
+CREATE TABLE m_acc_cert_wi_reference (
+  owner_id              INT                                    NOT NULL,
+  owner_owner_id        INT                                    NOT NULL,
+  owner_owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
+  relation              NVARCHAR(157) COLLATE database_default NOT NULL,
+  targetOid             NVARCHAR(36) COLLATE database_default  NOT NULL,
+  targetType            INT,
+  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
+);
+
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
+
+ALTER TABLE m_acc_cert_case DROP CONSTRAINT fk_acc_cert_case_owner;
+
+ALTER TABLE m_acc_cert_case
+  ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_acc_cert_campaign;
+
+ALTER TABLE m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
+FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
+REFERENCES m_acc_cert_wi;

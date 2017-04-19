@@ -129,7 +129,7 @@ public class RCertWorkItemReference extends RReference {
         return super.getRelation();
     }
 
-	@Column(name = "containerType")
+	@Column(name = "targetType")
 	@Enumerated(EnumType.ORDINAL)
 	@Override
 	public RObjectType getType() {
