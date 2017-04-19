@@ -376,9 +376,8 @@ public class AccCertUpdateHelper {
 			// notification (after modifications)
 		}
 		modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
-		AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-		// TODO differentiate between "old" and "new" reviewers
-		notifyReviewers(campaign, task, result);
+
+		// TODO notifications
 
 //		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
 //		LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
@@ -478,7 +477,11 @@ public class AccCertUpdateHelper {
 
 		modifyObjectViaModel(AccessCertificationCampaignType.class, campaignOid, deltas, task, result);
 
-//		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
+		campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+		// TODO differentiate between "old" and "new" reviewers
+		notifyReviewers(campaign, task, result);
+
+		//		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
 //		LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
 //		eventHelper.onCampaignEnd(updatedCampaign, task, result);
 

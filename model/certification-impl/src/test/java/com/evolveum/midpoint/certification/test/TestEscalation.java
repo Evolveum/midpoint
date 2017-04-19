@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.test;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -43,7 +44,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  *
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestEscalation extends AbstractCertificationTest {
 
@@ -91,7 +92,7 @@ public class TestEscalation extends AbstractCertificationTest {
         display("campaign", campaign);
         assertAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
-    }
+	}
 
     @Test
     public void test013SearchAllCases() throws Exception {
@@ -128,6 +129,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -156,6 +158,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertPercentComplete(campaign, 0, 0, 0);
 
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
+		display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -217,6 +220,7 @@ public class TestEscalation extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
+		dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -260,7 +264,11 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action (P3D)
-    }
+
+		display("dummy transport", dummyTransport);
+		List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
+		assertEquals("Wrong # of dummy notifications", 2, messages.size());			// original + new approver
+	}
 
 	@Test
 	public void test120EscalateAgain() throws Exception {
@@ -271,6 +279,8 @@ public class TestEscalation extends AbstractCertificationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -316,6 +326,10 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		display("campaign after escalation", campaign);
         assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size());           // completion
+
+		display("dummy transport", dummyTransport);
+		List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
+		assertEquals("Wrong # of dummy notifications", 1, messages.size());			// new approver
     }
 
 	protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
