@@ -303,7 +303,28 @@ public abstract class SchemaConstants {
 	public static final String MODEL_POLICY_SITUATION_ASSIGNED = 
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assigned"));
 
-	
+	public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
+	public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";
+	public static final String MODEL_APPROVAL_OUTCOME_APPROVE =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "approve"));
+	public static final String MODEL_APPROVAL_OUTCOME_REJECT =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "reject"));
+	public static final String MODEL_APPROVAL_OUTCOME_SKIP =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_APPROVAL_OUTCOME, "skip"));
+
+	public static final String NS_MODEL_CERTIFICATION = NS_MODEL + "/certification";
+	public static final String NS_MODEL_CERTIFICATION_OUTCOME = NS_MODEL_CERTIFICATION + "/outcome";
+	public static final String MODEL_CERTIFICATION_OUTCOME_ACCEPT =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "accept"));
+	public static final String MODEL_CERTIFICATION_OUTCOME_REVOKE =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "revoke"));
+	public static final String MODEL_CERTIFICATION_OUTCOME_REDUCE =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "reduce"));
+	public static final String MODEL_CERTIFICATION_OUTCOME_NOT_DECIDED =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "notDecided"));
+	public static final String MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_CERTIFICATION_OUTCOME, "noResponse"));		// only for aggregated decisions
+
 	public static final QName MODEL_EXTENSION_OBJECT_TYPE = new QName(NS_MODEL_EXTENSION, "objectType");
 	public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
 	public static final QName MODEL_EXTENSION_OBJECT_DELTA = new QName(NS_MODEL_EXTENSION, "objectDelta");

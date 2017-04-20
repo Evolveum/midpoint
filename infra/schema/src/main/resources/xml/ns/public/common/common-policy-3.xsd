@@ -601,7 +601,7 @@
                             <xsd:annotation>
                                 <xsd:documentation>
                                     <p>
-                                        More complex (multi-level) approval schema.
+                                        More complex (multi-stages) approval schema.
                                     </p>
                                 </xsd:documentation>
                             </xsd:annotation>
@@ -677,8 +677,8 @@
 						Mergeable fragments must have "order" attribute set.
 
                         Restrictions on merging schema fragments:
-                        1) Mergeable fragments must contain exactly one level. It is merged with the level(s) of the other
-                        fragment(s) without any further considerations (e.g. regarding level order or name or whatever).
+                        1) Mergeable fragments must contain exactly one stage. It is merged with the stage(s) of the other
+                        fragment(s) without any further considerations (e.g. regarding stage order or name or whatever).
                         2) It is expected that single policy rule triggered all the fragments that are being merged. So
                         we consider any of these rules.
                     </xsd:documentation>
@@ -693,7 +693,7 @@
                     <xsd:documentation>
                         Which fragments should this one be merged with. This is mutually exclusive with the "order" attribute.
 						If order is set, it is not possible to specify mergeIntoOrder. Both fragments with the same order are
-						considered "equal". This can be used e.g. to provide a different set of approvers (for the given level).
+						considered "equal". This can be used e.g. to provide a different set of approvers (for the given stage).
 						If mergeIntoOrder is set (usually with multiple values), this fragment is considered as an augmentation
 						of other ones. This can be used e.g. to provide an escalation or notification strategy, custom form information, etc.
                     </xsd:documentation>
@@ -728,7 +728,7 @@
             <xsd:element name="mergeOverwriting" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If level B is being merged into existing level A (i.e. mergeOrder B is greater mergeOrder A),
+                        If stage B is being merged into existing stage A (i.e. mergeOrder B is greater mergeOrder A),
                         all non-null values of B will be added to values of A; overwriting them in case of single-valued items.
                         For items marked as "mergeOverwriting", the actual values of B (even those that are null or empty)
                         overwrite those in A.

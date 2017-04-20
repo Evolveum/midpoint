@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -221,11 +222,6 @@ public class WfTaskController {
             notifyProcessStart(wfTask, result);
         } catch (SchemaException|RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send a request to start a process instance to workflow management system", e);
-			try {
-				wfTask.setProcessInstanceState("Workflow process instance creation could not be requested: " + e);
-			} catch (SchemaException e1) {
-				throw new SystemException(e1);		// never occurs
-			}
 			result.recordFatalError("Couldn't send a request to start a process instance to workflow management system: " + e.getMessage(), e);
             throw new SystemException("Workflow process instance creation could not be requested", e);
         } finally {
@@ -248,19 +244,6 @@ public class WfTaskController {
 
 		// update state description
 		ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
-		String stateDescription = pmi.getState(variables);
-		if (stateDescription == null || stateDescription.isEmpty()) {
-			if (event instanceof ProcessStartedEvent) {
-				stateDescription = "Approval process has been started";
-			} else if (event instanceof ProcessFinishedEvent) {
-				stateDescription = "Approval process has finished";
-			} else {
-				stateDescription = null;
-			}
-		}
-        if (stateDescription != null) {
-            wfTask.setProcessInstanceState(stateDescription);
-        }
         wfTask.setProcessInstanceStageInformation(pmi.getStageNumber(variables), pmi.getStageCount(variables),
 				pmi.getStageName(variables), pmi.getStageDisplayName(variables));
 
@@ -277,7 +260,7 @@ public class WfTaskController {
         LOGGER.trace("Calling onProcessEnd on {}", wfTask.getChangeProcessor());
         wfTask.getChangeProcessor().onProcessEnd(event, wfTask, result);
 		wfTask.setProcessInstanceEndTimestamp();
-		wfTask.setAnswer(event.getAnswer());			// TODO or should we do this on each process event?
+		wfTask.setOutcome(event.getOutcome());
 		wfTask.commitChanges(result);
 
         auditProcessEnd(wfTask, event, result);
@@ -310,7 +293,7 @@ public class WfTaskController {
 	@SuppressWarnings("unchecked")
     public void onTaskEvent(WorkItemType workItem, TaskEvent taskEvent, OperationResult result) throws WorkflowException, SchemaException {
 
-		final TaskType shadowTaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
+		final TaskType shadowTaskType = WfContextUtil.getTask(workItem);
 		if (shadowTaskType == null) {
 			LOGGER.warn("No task in workItem " + workItem + ", audit and notifications couldn't be performed.");
 			return;
@@ -359,7 +342,7 @@ public class WfTaskController {
 				throw new SystemException("Couldn't determine current user: " + e.getMessage(), e);
 			}
 
-			ObjectReferenceType userRef = user != null ? user.toObjectReference() : workItem.getCompletedByRef();	// partial fallback
+			ObjectReferenceType userRef = user != null ? user.toObjectReference() : workItem.getPerformerRef();	// partial fallback
 
 			if (!genuinelyCompleted) {
 				TaskType task = wfTask.getTask().getTaskPrismObject().asObjectable();
@@ -391,10 +374,9 @@ public class WfTaskController {
 					cause.setName(completeAction.getName());
 					cause.setDisplayName(completeAction.getDisplayName());
 					foundTimedActions++;
-					WorkItemResultType workItemResult = new WorkItemResultType();
-					workItemResult.setOutcome(completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT);
-					workItemResult.setOutcomeAsString(ApprovalUtils.approvalStringValue(completeAction.getOutcome()));
-					workItem.setResult(workItemResult);
+					WorkItemResultType workItemOutput = new WorkItemResultType();
+					workItemOutput.setOutcome(completeAction.getOutcome() != null ? completeAction.getOutcome() : SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
+					workItem.setOutput(workItemOutput);
 				}
 				if (foundTimedActions > 1) {
 					LOGGER.warn("Multiple 'work item complete' timed actions ({}) for {}: {}", foundTimedActions,
@@ -423,14 +405,14 @@ public class WfTaskController {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
             }
 
-			WorkItemResultType workItemResult = workItem.getResult();
-			if (genuinelyCompleted || workItemResult != null) {
+			AbstractWorkItemOutputType output = workItem.getOutput();
+			if (genuinelyCompleted || output != null) {
 				WorkItemCompletionEventType event = new WorkItemCompletionEventType();
 				ActivitiUtil.fillInWorkItemEvent(event, user, taskEvent.getTaskId(), taskEvent.getVariables(), prismContext);
 				event.setCause(cause);
-				event.setResult(workItemResult);
-				ObjectDeltaType additionalDelta = workItemResult.getAdditionalDeltas() != null ?
-						workItemResult.getAdditionalDeltas().getFocusPrimaryDelta() : null;
+				event.setOutput(output);
+				ObjectDeltaType additionalDelta = output instanceof WorkItemResultType && ((WorkItemResultType) output).getAdditionalDeltas() != null ?
+						((WorkItemResultType) output).getAdditionalDeltas().getFocusPrimaryDelta() : null;
 				MidpointUtil.recordEventInTask(event, additionalDelta, wfTask.getTask().getOid(), result);
 			}
 

@@ -23,16 +23,17 @@ import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 
-public class InitializeLoopThroughLevels implements JavaDelegate {
+import java.util.List;
 
-    private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughLevels.class);
+public class InitializeLoopThroughStages implements JavaDelegate {
+
+    private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughStages.class);
 
     public void execute(DelegateExecution execution) {
         LOGGER.trace("Executing the delegate; execution = {}", execution);
-		ApprovalSchema schema = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.APPROVAL_SCHEMA, ApprovalSchema.class,
-				null);
-		execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_COUNT, schema.getLevels().size());
-		execution.setVariableLocal(ProcessVariableNames.LOOP_LEVELS_STOP, Boolean.FALSE);
+		List stages = ActivitiUtil.getRequiredVariable(execution, ProcessVariableNames.APPROVAL_STAGES, List.class, null);
+		execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_COUNT, stages.size());
+		execution.setVariableLocal(ProcessVariableNames.LOOP_STAGES_STOP, Boolean.FALSE);
     }
 
 }

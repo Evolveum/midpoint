@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.processes.BaseProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
-import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
@@ -79,8 +77,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
 		    return null;
 	    }
 		WorkItemResultType result = new WorkItemResultType();
-		result.setOutcomeAsString(ActivitiUtil.getVariable(variables, FORM_FIELD_DECISION, String.class, prismContext));
-		result.setOutcome(ApprovalUtils.approvalOutcomeValue(result.getOutcomeAsString()));
+		result.setOutcome(ActivitiUtil.getVariable(variables, FORM_FIELD_OUTCOME, String.class, prismContext));
 		result.setComment(ActivitiUtil.getVariable(variables, FORM_FIELD_COMMENT, String.class, prismContext));
 		String additionalDeltaString = ActivitiUtil.getVariable(variables, FORM_FIELD_ADDITIONAL_DELTA, String.class, prismContext);
 		boolean isApproved = ApprovalUtils.isApproved(result);
@@ -108,11 +105,11 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
     public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
     	WfContextType wfc = job.getTask().getWorkflowContext();
 		List<ObjectReferenceType> rv = new ArrayList<>();
-    	if (!ApprovalUtils.isApproved(event.getAnswer())) {		// wfc.approved is not filled in yet
+    	if (!ApprovalUtils.isApprovedFromUri(event.getOutcome())) {		// wfc.approved is not filled in yet
     		return rv;
 		}
 		for (WorkItemCompletionEventType completionEvent : WfContextUtil.getEvents(wfc, WorkItemCompletionEventType.class)) {
-			if (ApprovalUtils.isApproved(completionEvent.getResult()) && completionEvent.getInitiatorRef() != null) {
+			if (ApprovalUtils.isApproved(completionEvent.getOutput()) && completionEvent.getInitiatorRef() != null) {
 				rv.add(completionEvent.getInitiatorRef().clone());
 			}
 		}

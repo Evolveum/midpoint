@@ -18,6 +18,7 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationEventListener;
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -39,11 +40,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
@@ -82,47 +88,27 @@ public class CertificationManagerImpl implements CertificationManager {
     private static final transient Trace LOGGER = TraceManager.getTrace(CertificationManager.class);
 
     public static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
+    public static final String CLASS_DOT = CertificationManagerImpl.class.getName() + ".";
     public static final String OPERATION_CREATE_CAMPAIGN = INTERFACE_DOT + "createCampaign";
     public static final String OPERATION_OPEN_NEXT_STAGE = INTERFACE_DOT + "openNextStage";
     public static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
     public static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
-    public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchDecisionsToReview";
+    public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchOpenWorkItems";
+    public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
+    public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
 
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    protected SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    protected AccCertGeneralHelper generalHelper;
-
-    @Autowired
-    protected AccCertEventHelper eventHelper;
-
-    @Autowired
-    protected AccCertResponseComputationHelper computationHelper;
-
-    @Autowired
-    protected AccCertQueryHelper queryHelper;
-
-    @Autowired
-    protected AccCertUpdateHelper updateHelper;
-
-    @Autowired
-    protected AccCertCaseOperationsHelper caseHelper;
-
-    @Autowired
-    private AccessCertificationRemediationTaskHandler remediationTaskHandler;
+    @Autowired private PrismContext prismContext;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private ModelService modelService;
+    @Autowired protected SecurityEnforcer securityEnforcer;
+    @Autowired protected AccCertGeneralHelper generalHelper;
+    @Autowired protected AccCertEventHelper eventHelper;
+    @Autowired protected AccCertQueryHelper queryHelper;
+    @Autowired protected AccCertUpdateHelper updateHelper;
+    @Autowired protected AccCertCaseOperationsHelper caseHelper;
+    @Autowired private AccessCertificationRemediationTaskHandler remediationTaskHandler;
 
     private Map<String,CertificationHandler> registeredHandlers = new HashMap<>();
 
@@ -302,7 +288,7 @@ public class CertificationManagerImpl implements CertificationManager {
                     result.recordWarning("The automated remediation is not configured. The campaign state was set to IN REMEDIATION, but all remediation actions have to be done by hand.");
                 }
 
-                campaign = updateHelper.refreshCampaign(campaign, task, result);
+                campaign = updateHelper.refreshCampaign(campaign, result);
                 eventHelper.onCampaignStageStart(campaign, task, result);
             }
         } catch (RuntimeException e) {
@@ -313,25 +299,30 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
+    @Deprecated
     @Override
     public List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly,
-                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                     Task task, OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+        throw new UnsupportedOperationException("not available any more");
+    }
+
+    @Override
+    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 
-        Validate.notNull(task, "task");
-        Validate.notNull(parentResult, "parentResult");
-
-        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_DECISIONS);
+        OperationResult result = parentResult.createSubresult(OPERATION_SEARCH_OPEN_WORK_ITEMS);
 
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
                     null, null, null, null, result);
 
             String reviewerOid = securityEnforcer.getPrincipal().getOid();
-            return queryHelper.searchDecisions(caseQuery, reviewerOid, notDecidedOnly, options, task, result);
+            return queryHelper.searchWorkItems(baseWorkItemsQuery, reviewerOid, notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
-            result.recordFatalError("Couldn't search for certification decisions: unexpected exception: " + e.getMessage(), e);
+            result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
@@ -339,24 +330,43 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
-                               Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
-
-        Validate.notNull(campaignOid, "campaignOid");
-        Validate.notNull(decision, "decision");
+    public void recordDecision(@NotNull String campaignOid, long caseId, long workItemId, @Nullable AccessCertificationResponseType response,
+			@Nullable String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			SecurityViolationException, ObjectAlreadyExistsException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_RECORD_DECISION);
         try {
             securityEnforcer.authorize(ModelAuthorizationAction.RECORD_CERTIFICATION_DECISION.getUrl(), null,
                     null, null, null, null, result);
-            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
-            caseHelper.recordDecision(campaign, caseId, decision, task, result);
+            caseHelper.recordDecision(campaignOid, caseId, workItemId, response, comment, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't record reviewer decision: unexpected exception: " + e.getMessage(), e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    public void delegateWorkItems(@NotNull String campaignOid, @NotNull List<AccessCertificationWorkItemType> workItems,
+            @NotNull DelegateWorkItemActionType delegateAction, Task task,
+            OperationResult parentResult)
+			throws SchemaException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+			ObjectAlreadyExistsException {
+		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEMS);
+		result.addParam("campaignOid", campaignOid);
+		result.addCollectionOfSerializablesAsParam("workItems", workItems);	// TODO only IDs?
+		result.addParam("delegateAction", delegateAction);
+		try {
+			// TODO security
+			securityEnforcer.authorize(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS.getUrl(), null,
+					null, null, null, null, result);
+			updateHelper.delegateWorkItems(campaignOid, workItems, delegateAction, task, result);
+		} catch (RuntimeException|CommonException e) {
+			result.recordFatalError("Couldn't delegate work items: unexpected exception: " + e.getMessage(), e);
+			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
     }
 
     @Override
@@ -403,13 +413,13 @@ public class CertificationManagerImpl implements CertificationManager {
             for (AccessCertificationCaseType _case : campaign.getCase()) {
                 AccessCertificationResponseType outcome;
                 if (currentStageOnly) {
-                    if (_case.getCurrentStageNumber() == campaign.getStageNumber()) {
-                        outcome = _case.getCurrentStageOutcome();
+                    if (_case.getStageNumber() == campaign.getStageNumber()) {
+                        outcome = OutcomeUtils.fromUri(_case.getCurrentStageOutcome());
                     } else {
                         continue;
                     }
                 } else {
-                    outcome = _case.getOverallOutcome();
+                    outcome = OutcomeUtils.fromUri(_case.getOutcome());
                 }
                 if (outcome == null) {
                     outcome = AccessCertificationResponseType.NO_RESPONSE;

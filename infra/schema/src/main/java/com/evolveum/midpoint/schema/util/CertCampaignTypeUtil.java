@@ -16,30 +16,20 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -59,6 +49,7 @@ public class CertCampaignTypeUtil {
         return findStageDefinition(campaign, campaign.getStageNumber());
     }
 
+    @NotNull
     public static AccessCertificationStageDefinitionType findStageDefinition(AccessCertificationCampaignType campaign, int stageNumber) {
         for (AccessCertificationStageDefinitionType stage : campaign.getStageDefinition()) {
             if (stage.getNumber() == stageNumber) {
@@ -86,13 +77,18 @@ public class CertCampaignTypeUtil {
         return null;
     }
 
-    public static AccessCertificationDecisionType findDecision(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
-        for (AccessCertificationDecisionType d : _case.getDecision()) {
-            if (d.getStageNumber() == stageNumber && d.getReviewerRef().getOid().equals(reviewerOid)) {
-                return d;
-            }
-        }
-        return null;
+    // to be used in tests (beware: there could be more work items)
+    // TODO move to a test class
+    public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, int stageNumber, String reviewerOid) {
+        return _case.getWorkItem().stream()
+                .filter(wi -> wi.getStageNumber() == stageNumber && ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
+                .findFirst().orElse(null);
+    }
+
+    public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, long workItemId) {
+		return _case.getWorkItem().stream()
+				.filter(wi -> wi.getId() != null && wi.getId() == workItemId)
+				.findFirst().orElse(null);
     }
 
     public static int getNumberOfStages(AccessCertificationCampaignType campaign) {
@@ -155,7 +151,7 @@ public class CertCampaignTypeUtil {
             campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
         }
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getCurrentStageNumber() != campaignStageNumber) {
+            if (aCase.getStageNumber() != campaignStageNumber) {
                 continue;
             }
             open++;
@@ -171,19 +167,14 @@ public class CertCampaignTypeUtil {
             campaignStageNumber = campaignStageNumber - 1;          // move to last campaign state
         }
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getCurrentStageNumber() != campaignStageNumber) {
-                continue;
-            }
-            // we assume that an empty decision was created for each reviewer
-            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
-                if (decision.getStageNumber() != aCase.getCurrentStageNumber()) {
-                    continue;
-                }
-                if (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE || decision.getResponse() == DELEGATE) {
-                    unansweredCases++;
-                    break;
-                }
-            }
+			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+				if (workItem.getStageNumber() == campaignStageNumber
+                        && workItem.getCloseTimestamp() == null
+                        && WorkItemTypeUtil.getOutcome(workItem) == null) {
+					unansweredCases++;
+					break;
+				}
+			}
         }
         return unansweredCases;
     }
@@ -219,7 +210,9 @@ public class CertCampaignTypeUtil {
         }
         int decided = 0;
         for (AccessCertificationCaseType aCase : caseList) {
-            if (aCase.getOverallOutcome() == ACCEPT || aCase.getOverallOutcome() == REVOKE || aCase.getOverallOutcome() == REDUCE) {
+            if (QNameUtil.matchUri(aCase.getOutcome(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT)
+                    || QNameUtil.matchUri(aCase.getOutcome(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REVOKE)
+                    || QNameUtil.matchUri(aCase.getOutcome(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_REDUCE)) {
                 decided++;
             }
         }
@@ -231,7 +224,6 @@ public class CertCampaignTypeUtil {
         return getDecisionsDonePercentage(campaign.getCase(), campaign.getStageNumber(), campaign.getState());
     }
 
-    // we expect that we have a 'placeholder' decision for each reviewer
     public static float getDecisionsDonePercentage(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
         int decisionsRequested = 0;
         int decisionsDone = 0;
@@ -240,15 +232,15 @@ public class CertCampaignTypeUtil {
         }
 
         for (AccessCertificationCaseType aCase : caseList) {
-            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
-                if (decision.getStageNumber() != campaignStageNumber) {
-                    continue;
-                }
-                decisionsRequested++;
-                if (decision.getResponse() != null && decision.getResponse() != NO_RESPONSE && decision.getResponse() != DELEGATE) {
-                    decisionsDone++;
-                }
-            }
+			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+				if (workItem.getStageNumber() != campaignStageNumber) {
+					continue;
+				}
+				decisionsRequested++;
+				if (WorkItemTypeUtil.getOutcome(workItem) != null) {
+					decisionsDone++;
+				}
+			}
         }
         if (decisionsRequested == 0) {
             return 100.0f;
@@ -257,62 +249,61 @@ public class CertCampaignTypeUtil {
         }
     }
 
-    public static Date getReviewedTimestamp(List<AccessCertificationDecisionType> decisions) {
+    public static Date getReviewedTimestamp(List<AccessCertificationWorkItemType> workItems) {
         Date lastDate = null;
-        for (AccessCertificationDecisionType decision : decisions) {
-            if (isEmpty(decision)) {
+        for (AccessCertificationWorkItemType workItem : workItems) {
+            if (hasNoResponse(workItem)) {
                 continue;
             }
-            Date decisionDate = XmlTypeConverter.toDate(decision.getTimestamp());
-            if (lastDate == null || decisionDate.after(lastDate)) {
-                lastDate = decisionDate;
+            Date responseDate = XmlTypeConverter.toDate(workItem.getOutputChangeTimestamp());
+            if (lastDate == null || responseDate.after(lastDate)) {
+                lastDate = responseDate;
             }
         }
         return lastDate;
     }
 
-    protected static boolean isEmpty(AccessCertificationDecisionType decision) {
-        return (decision.getResponse() == null || decision.getResponse() == NO_RESPONSE) && StringUtils.isEmpty(decision.getComment());
+    private static boolean hasNoResponse(AccessCertificationWorkItemType workItem) {
+        return WorkItemTypeUtil.getOutcome(workItem) == null && StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem));
     }
 
-    public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationDecisionType> decisions) {
+    public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationWorkItemType> workItems) {
         List<ObjectReferenceType> rv = new ArrayList<>();
-        for (AccessCertificationDecisionType decision : decisions) {
-            if (isEmpty(decision)) {
+        for (AccessCertificationWorkItemType workItem : workItems) {
+            if (hasNoResponse(workItem)) {
                 continue;
             }
-            rv.add(decision.getReviewerRef());
+            rv.add(workItem.getPerformerRef());
         }
         return rv;
     }
 
-    public static List<String> getComments(List<AccessCertificationDecisionType> decisions) {
+    public static List<String> getComments(List<AccessCertificationWorkItemType> workItems) {
         List<String> rv = new ArrayList<>();
-        for (AccessCertificationDecisionType decision : decisions) {
-            if (StringUtils.isEmpty(decision.getComment())) {
+        for (AccessCertificationWorkItemType workItem : workItems) {
+            if (StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem))) {
                 continue;
             }
-            rv.add(decision.getComment());
+            rv.add(WorkItemTypeUtil.getComment(workItem));
         }
         return rv;
     }
 
-    // TODO find a better place for this
-    public static ItemPath getOrderBy(QName oldName) {
-        if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TARGET_REF)) {
-            return new ItemPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_OBJECT_REF)) {
-            return new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TENANT_REF)) {
-            return new ItemPath(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_ORG_REF)) {
-            return new ItemPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
-        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_CAMPAIGN_REF)) {
-            return new ItemPath(T_PARENT, ObjectType.F_NAME);
-        } else {
-            return new ItemPath(oldName);
-        }
-    }
+//    // TODO find a better place for this
+//	@Deprecated
+//    public static ItemPath getOrderBy(QName oldName) {
+//        if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TARGET_REF)) {
+//            return new ItemPath(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+//        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_OBJECT_REF)) {
+//            return new ItemPath(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+//        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_TENANT_REF)) {
+//            return new ItemPath(AccessCertificationCaseType.F_TENANT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+//        } else if (QNameUtil.match(oldName, AccessCertificationCaseType.F_ORG_REF)) {
+//            return new ItemPath(AccessCertificationCaseType.F_ORG_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME);
+//        } else {
+//            return new ItemPath(oldName);
+//        }
+//    }
 
     public static ObjectQuery createCasesForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
         return QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
@@ -320,13 +311,20 @@ public class CertCampaignTypeUtil {
                 .build();
     }
 
-    public static AccessCertificationCaseStageOutcomeType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
-        for (AccessCertificationCaseStageOutcomeType outcome : aCase.getCompletedStageOutcome()) {
-            if (outcome.getStageNumber() == stageNumber) {
-                return outcome;
-            }
-        }
-        throw new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase);
+    public static ObjectQuery createWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
+        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                .exists(PrismConstants.T_PARENT)
+                   .ownerId(campaignOid)
+                .build();
+    }
+
+    public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+        StageCompletionEventType event = aCase.getEvent().stream()
+                .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber)
+                .map(e -> (StageCompletionEventType) e)
+                .findAny().orElseThrow(
+                        () -> new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase));
+        return event.getOutcome();
     }
 
     public static List<AccessCertificationResponseType> getOutcomesToStopOn(List<AccessCertificationResponseType> stopReviewOn, List<AccessCertificationResponseType> advanceToNextStageOn) {
@@ -336,5 +334,113 @@ public class CertCampaignTypeUtil {
         List<AccessCertificationResponseType> rv = new ArrayList<>(Arrays.asList(AccessCertificationResponseType.values()));
         rv.removeAll(advanceToNextStageOn);
         return rv;
+    }
+
+    // useful e.g. for tests
+    public static Set<ObjectReferenceType> getCurrentReviewers(AccessCertificationCaseType aCase) {
+        return aCase.getWorkItem().stream()
+                // TODO check also with campaign stage?
+                .filter(wi -> wi.getStageNumber() == aCase.getStageNumber() && wi.getCloseTimestamp() == null)
+                .flatMap(wi -> wi.getAssigneeRef().stream())
+                .collect(Collectors.toSet());
+    }
+
+    @NotNull
+    public static AccessCertificationCaseType getCaseChecked(AccessCertificationWorkItemType workItem) {
+        AccessCertificationCaseType aCase = getCase(workItem);
+        if (aCase == null) {
+            throw new IllegalStateException("No certification case for work item " + workItem);
+        }
+        return aCase;
+    }
+
+    @NotNull
+    public static AccessCertificationCampaignType getCampaignChecked(AccessCertificationCaseType aCase) {
+        AccessCertificationCampaignType campaign = getCampaign(aCase);
+        if (campaign == null) {
+            throw new IllegalStateException("No certification campaign for case " + aCase);
+        }
+        return campaign;
+    }
+
+    @NotNull
+    public static AccessCertificationCampaignType getCampaignChecked(AccessCertificationWorkItemType workItem) {
+        return getCampaignChecked(getCaseChecked(workItem));
+    }
+
+    public static AccessCertificationCaseType getCase(AccessCertificationWorkItemType workItem) {
+        @SuppressWarnings({"unchecked", "raw"})
+        PrismContainerable<AccessCertificationWorkItemType> parent = workItem.asPrismContainerValue().getParent();
+        if (!(parent instanceof PrismContainer)) {
+            return null;
+        }
+        PrismValue parentParent = ((PrismContainer<AccessCertificationWorkItemType>) parent).getParent();
+        if (!(parentParent instanceof PrismContainerValue)) {
+            return null;
+        }
+        @SuppressWarnings({"unchecked", "raw"})
+        PrismContainerValue<AccessCertificationCaseType> parentParentPcv = (PrismContainerValue<AccessCertificationCaseType>) parentParent;
+        return parentParentPcv.asContainerable();
+    }
+
+    public static AccessCertificationCampaignType getCampaign(AccessCertificationCaseType aCase) {
+        @SuppressWarnings({"unchecked", "raw"})
+        PrismContainer<AccessCertificationCaseType> caseContainer = (PrismContainer<AccessCertificationCaseType>) aCase.asPrismContainerValue().getParent();
+        if (caseContainer == null) {
+            return null;
+        }
+        @SuppressWarnings({"unchecked", "raw"})
+        PrismContainerValue<AccessCertificationCampaignType> campaignValue = (PrismContainerValue<AccessCertificationCampaignType>) caseContainer.getParent();
+        if (campaignValue == null) {
+            return null;
+        }
+        PrismObject<AccessCertificationCampaignType> campaign = (PrismObject<AccessCertificationCampaignType>) campaignValue.getParent();
+        return campaign != null ? campaign.asObjectable() : null;
+    }
+
+    public static List<String> getOutcomesFromCompletedStages(AccessCertificationCaseType aCase) {
+        return aCase.getEvent().stream()
+                .filter(e -> e instanceof StageCompletionEventType)
+                .map(e -> ((StageCompletionEventType) e).getOutcome())
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    public static List<StageCompletionEventType> getCompletedStageEvents(AccessCertificationCaseType aCase) {
+        return aCase.getEvent().stream()
+                .filter(e -> e instanceof StageCompletionEventType)
+                .map(e -> (StageCompletionEventType) e)
+                .collect(Collectors.toList());
+    }
+
+    public static int getCurrentStageEscalationLevelNumberSafe(@NotNull AccessCertificationCampaignType campaign) {
+        AccessCertificationStageType currentStage = getCurrentStage(campaign);
+        return currentStage != null ? getEscalationLevelNumber(currentStage) : 0;
+    }
+
+    public static int getCurrentStageEscalationLevelNumber(@NotNull AccessCertificationCampaignType campaign) {
+        AccessCertificationStageType currentStage = getCurrentStage(campaign);
+        if (currentStage == null) {
+            throw new IllegalStateException("No current stage for " + campaign);
+        }
+        return getEscalationLevelNumber(currentStage);
+    }
+
+    private static int getEscalationLevelNumber(AccessCertificationStageType currentStage) {
+        if (currentStage.getEscalationLevel() != null && currentStage.getEscalationLevel().getNumber() != null) {
+            return currentStage.getEscalationLevel().getNumber();
+        } else {
+            return 0;
+        }
+    }
+
+    // see WfContextUtil.getEscalationLevelInfo
+    @Nullable
+    public static String getEscalationLevelInfo(AccessCertificationCampaignType campaign) {
+        if (campaign == null) {
+            return null;
+        }
+        AccessCertificationStageType stage = getCurrentStage(campaign);
+        return stage != null ? WfContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()) : null;
     }
 }

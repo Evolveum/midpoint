@@ -35,6 +35,4 @@ public interface ApprovalRequest<I extends Serializable> extends Serializable {
     ApprovalSchemaType getApprovalSchemaType();
 
     I getItemToApprove();
-
-    ApprovalSchema getApprovalSchema();
 }

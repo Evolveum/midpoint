@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.itemApproval.ApprovalSchema;
 import com.evolveum.midpoint.wf.impl.processes.itemApproval.ItemApprovalSpecificContent;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
@@ -52,10 +51,10 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
     }
 
 	public static PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> createItemApprovalInstruction(
-			ChangeProcessor changeProcessor, String approvalTaskName, @NotNull ApprovalSchema approvalSchema,
+			ChangeProcessor changeProcessor, String approvalTaskName,
 			@NotNull ApprovalSchemaType approvalSchemaType, SchemaAttachedPolicyRulesType attachedPolicyRules) {
 		ItemApprovalSpecificContent itemApprovalInstruction = new ItemApprovalSpecificContent(
-				changeProcessor.getPrismContext(), approvalTaskName, approvalSchema, approvalSchemaType, attachedPolicyRules);
+				changeProcessor.getPrismContext(), approvalTaskName, approvalSchemaType, attachedPolicyRules);
 		return new PcpChildWfTaskCreationInstruction<>(changeProcessor, itemApprovalInstruction);
 	}
 
@@ -79,7 +78,7 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
             setExecuteModelOperationHandler(true);
         }
 
-		WfProcessCreationEventType event = new WfProcessCreationEventType();
+		CaseCreationEventType event = new CaseCreationEventType();
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester));

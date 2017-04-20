@@ -43,7 +43,6 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
-import org.hibernate.mapping.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;

@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ExistsFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaPropertyDefinition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query2.resolution.HqlEntityInstance;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
@@ -39,18 +43,21 @@ public class ExistsRestriction extends ItemRestriction<ExistsFilter> {
     public Condition interpret() throws QueryException {
         HqlDataInstance dataInstance = getItemPathResolver()
                 .resolveItemPath(filter.getFullPath(), filter.getDefinition(), getBaseHqlEntity(), false);
-        if (!(dataInstance.getJpaDefinition() instanceof JpaEntityDefinition)) {
-            // should be checked when instantiating this restriction, so now we can throw hard exception
-            throw new IllegalStateException("Internal error - resolutionState for ExistsRestriction points to non-entity node: " + dataInstance.getJpaDefinition());
-        }
-        setHqlDataInstance(dataInstance);
 
-        InterpretationContext context = getContext();
-        QueryInterpreter2 interpreter = context.getInterpreter();
-
-		if (filter.getFilter() != null) {
+        boolean isAll = filter.getFilter() == null || filter.getFilter() instanceof AllFilter;
+		JpaDataNodeDefinition jpaDefinition = dataInstance.getJpaDefinition();
+		if (!isAll) {
+        	if (!(jpaDefinition instanceof JpaEntityDefinition)) {	// partially checked already (for non-null-ness)
+             	throw new QueryException("ExistsRestriction with non-empty subfilter points to non-entity node: " + jpaDefinition);
+        	}
+        	setHqlDataInstance(dataInstance);
+    	    QueryInterpreter2 interpreter = context.getInterpreter();
 			return interpreter.interpretFilter(context, filter.getFilter(), this);
+		} else if (jpaDefinition instanceof JpaPropertyDefinition && (((JpaPropertyDefinition) jpaDefinition).isCount())) {
+			RootHibernateQuery hibernateQuery = context.getHibernateQuery();
+			return hibernateQuery.createSimpleComparisonCondition(dataInstance.getHqlPath(), 0, ">");
 		} else {
+			// TODO support exists also for other properties (single valued or multi valued)
 			throw new UnsupportedOperationException("Exists filter with 'all' subfilter is currently not supported");
 		}
     }

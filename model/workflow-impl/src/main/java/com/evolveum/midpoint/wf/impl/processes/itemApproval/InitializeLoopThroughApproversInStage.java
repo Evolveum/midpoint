@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.*;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -41,15 +42,15 @@ import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationCo
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.REJECT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.SKIP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedDecisionReasonType.AUTO_COMPLETION_CONDITION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedDecisionReasonType.NO_APPROVERS_FOUND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 
 /**
  * @author mederly
  */
-public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
+public class InitializeLoopThroughApproversInStage implements JavaDelegate {
 
-	private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughApproversInLevel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(InitializeLoopThroughApproversInStage.class);
 
     public void execute(DelegateExecution execution) {
 
@@ -58,48 +59,48 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         LOGGER.trace("Executing the delegate; execution = {}", execution);
 
-		OperationResult opResult = new OperationResult(InitializeLoopThroughApproversInLevel.class.getName() + ".execute");
+		OperationResult opResult = new OperationResult(InitializeLoopThroughApproversInStage.class.getName() + ".execute");
 		Task opTask = getTaskManager().createTaskInstance();
         Task wfTask = ActivitiUtil.getTask(execution, opResult);
-		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, false, prismContext);
-		int stageNumber = level.getOrder();
+		ApprovalStageDefinitionType stageDef = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, false, prismContext);
+		int stageNumber = stageDef.getNumber();
 		opTask.setChannel(wfTask.getChannel());
 
 		ExpressionVariables expressionVariables = null;
 
         ApprovalLevelOutcomeType predeterminedOutcome = null;
-        if (level.getAutomaticallyApproved() != null) {
+        if (stageDef.getAutomaticallyApproved() != null) {
             try {
                 expressionVariables = evaluationHelper.getDefaultVariables(execution, wfTask, opResult);
-                boolean preApproved = evaluationHelper.evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables,
+                boolean preApproved = evaluationHelper.evaluateBooleanExpression(stageDef.getAutomaticallyApproved(), expressionVariables,
 						"automatic approval expression", opTask, opResult);
-				LOGGER.trace("Pre-approved = {} for level {}", preApproved, level);
+				LOGGER.trace("Pre-approved = {} for stage {}", preApproved, stageDef);
 				if (preApproved) {
 					predeterminedOutcome = APPROVE;
-					recordAutoCompletionDecision(wfTask.getOid(), APPROVE, AUTO_COMPLETION_CONDITION, stageNumber, level, opResult);
+					recordAutoCompletionDecision(wfTask.getOid(), APPROVE, AUTO_COMPLETION_CONDITION, stageNumber, opResult);
 				}
             } catch (Exception e) {     // todo
                 throw new SystemException("Couldn't evaluate auto-approval expression", e);
             }
         }
 
-        if (predeterminedOutcome == null && level.getAutomaticallyCompleted() != null) {
+        if (predeterminedOutcome == null && stageDef.getAutomaticallyCompleted() != null) {
             try {
 				if (expressionVariables == null) {
 					expressionVariables = evaluationHelper.getDefaultVariables(execution, wfTask, opResult);
 				}
-                List<ApprovalLevelOutcomeType> outcomes = evaluationHelper.evaluateExpression(level.getAutomaticallyCompleted(), expressionVariables,
-						"automatic completion expression", ApprovalLevelOutcomeType.class,
+                List<String> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), expressionVariables,
+						"automatic completion expression", String.class,
 						SchemaConstants.APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE, opTask, opResult);
-				LOGGER.trace("Pre-completed = {} for level {}", outcomes, level);
-				Set<ApprovalLevelOutcomeType> distinctOutcomes = new HashSet<>(outcomes);
+				LOGGER.trace("Pre-completed = {} for stage {}", outcomes, stageDef);
+				Set<String> distinctOutcomes = new HashSet<>(outcomes);
 				if (distinctOutcomes.size() > 1) {
 					throw new IllegalStateException("Ambiguous result from 'automatically completed' expression: " + distinctOutcomes);
 				} else if (!distinctOutcomes.isEmpty()) {
-					predeterminedOutcome = distinctOutcomes.iterator().next();
+					predeterminedOutcome = ApprovalUtils.approvalLevelOutcomeFromUri(distinctOutcomes.iterator().next());
 					if (predeterminedOutcome != null && predeterminedOutcome != SKIP) {
 						recordAutoCompletionDecision(wfTask.getOid(), predeterminedOutcome, AUTO_COMPLETION_CONDITION,
-								stageNumber, level, opResult);
+								stageNumber, opResult);
 					}
 				}
             } catch (Exception e) {     // todo
@@ -110,43 +111,43 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         Set<ObjectReferenceType> approverRefs = new HashSet<>();
 
         if (predeterminedOutcome == null) {
-            approverRefs.addAll(CloneUtil.cloneCollectionMembers(level.getApproverRef()));
+            approverRefs.addAll(CloneUtil.cloneCollectionMembers(stageDef.getApproverRef()));
 
-            if (!level.getApproverExpression().isEmpty()) {
+            if (!stageDef.getApproverExpression().isEmpty()) {
                 try {
                 	if (expressionVariables == null) {
 						expressionVariables = evaluationHelper.getDefaultVariables(execution, wfTask, opResult);
 					}
-                    approverRefs.addAll(evaluationHelper.evaluateRefExpressions(level.getApproverExpression(), expressionVariables,
+                    approverRefs.addAll(evaluationHelper.evaluateRefExpressions(stageDef.getApproverExpression(), expressionVariables,
 							"resolving approver expression", opTask, opResult));
                 } catch (ExpressionEvaluationException|ObjectNotFoundException|SchemaException|RuntimeException e) {
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
             }
 
-            LOGGER.trace("Approvers at the level {} (before potential group expansion) are: {}", level, approverRefs);
-            if (level.getGroupExpansion() == GroupExpansionType.ON_WORK_ITEM_CREATION) {
+            LOGGER.trace("Approvers at the stage {} (before potential group expansion) are: {}", stageDef, approverRefs);
+            if (stageDef.getGroupExpansion() == GroupExpansionType.ON_WORK_ITEM_CREATION) {
             	approverRefs = MidpointUtil.expandGroups(approverRefs);
-				LOGGER.trace("Approvers at the level {} (after group expansion) are: {}", level, approverRefs);
+				LOGGER.trace("Approvers at the stage {} (after group expansion) are: {}", stageDef, approverRefs);
 			}
 
             if (approverRefs.isEmpty()) {
-                LOGGER.debug("No approvers at the level '{}' for process {} (id {}) - response is {}", level.getName(),
+                LOGGER.debug("No approvers at the stage '{}' for process {} (id {}) - response is {}", stageDef.getName(),
 						execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
-						execution.getProcessInstanceId(), level.getOutcomeIfNoApprovers());
-                predeterminedOutcome = level.getOutcomeIfNoApprovers();
+						execution.getProcessInstanceId(), stageDef.getOutcomeIfNoApprovers());
+                predeterminedOutcome = stageDef.getOutcomeIfNoApprovers();
                 switch (predeterminedOutcome) {
 					case APPROVE:
-						recordAutoCompletionDecision(wfTask.getOid(), APPROVE, NO_APPROVERS_FOUND, stageNumber, level, opResult);
+						recordAutoCompletionDecision(wfTask.getOid(), APPROVE, NO_ASSIGNEES_FOUND, stageNumber, opResult);
 						break;
 					case REJECT:
-						recordAutoCompletionDecision(wfTask.getOid(), REJECT, NO_APPROVERS_FOUND, stageNumber, level, opResult);
+						recordAutoCompletionDecision(wfTask.getOid(), REJECT, NO_ASSIGNEES_FOUND, stageNumber, opResult);
 						break;
 					case SKIP:
-						// do nothing, just silently skip the level
+						// do nothing, just silently skip the stage
 						break;
 					default:
-						throw new IllegalStateException("Unexpected outcome: " + level.getOutcomeIfNoApprovers() + " in " + level);
+						throw new IllegalStateException("Unexpected outcome: " + stageDef.getOutcomeIfNoApprovers() + " in " + stageDef);
 				}
             }
         }
@@ -159,29 +160,29 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
 
         execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NUMBER, stageNumber);
-        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NAME, level.getName());
-        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, level.getDisplayName());
-        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_LEVEL, ActivitiUtil.toLightweightReferences(approverRefs));
-        execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_NAME, stageDef.getName());
+        execution.setVariable(CommonProcessVariableNames.VARIABLE_STAGE_DISPLAY_NAME, stageDef.getDisplayName());
+        execution.setVariableLocal(ProcessVariableNames.APPROVERS_IN_STAGE, ActivitiUtil.toLightweightReferences(approverRefs));
+        execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_STAGE_STOP, stop);
 
         if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Approval process instance {} (id {}), level {}: predetermined outcome: {}, approvers: {}",
+			LOGGER.debug("Approval process instance {} (id {}), stage {}: predetermined outcome: {}, approvers: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
 					execution.getProcessInstanceId(),
-					WfContextUtil.getLevelDiagName(level), predeterminedOutcome, approverRefs);
+					WfContextUtil.getStageDiagName(stageDef), predeterminedOutcome, approverRefs);
 		}
 		getActivitiInterface().notifyMidpointAboutProcessEvent(execution);		// store stage information in midPoint task
     }
 
-	private void recordAutoCompletionDecision(String taskOid, ApprovalLevelOutcomeType outcome, AutomatedDecisionReasonType reason,
-			int stageNumber, ApprovalLevelType level, OperationResult opResult) {
-    	WfStageCompletionEventType event = new WfStageCompletionEventType();
+	private void recordAutoCompletionDecision(String taskOid, ApprovalLevelOutcomeType outcome,
+			AutomatedCompletionReasonType reason, int stageNumber, OperationResult opResult) {
+    	StageCompletionEventType event = new StageCompletionEventType();
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setStageNumber(stageNumber);
-		event.setStageName(level.getName());
-		event.setStageDisplayName(level.getDisplayName());
+		//event.setStageName(level.getName());
+		//event.setStageDisplayName(level.getDisplayName());
 		event.setAutomatedDecisionReason(reason);
-		event.setOutcome(outcome);
+		event.setOutcome(ApprovalUtils.toUri(outcome));
 		MidpointUtil.recordEventInTask(event, null, taskOid, opResult);
 	}
 }

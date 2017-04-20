@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageDefinitionType;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
@@ -40,18 +40,18 @@ public class TaskCreateListener implements TaskListener {
 		String taskId = delegateTask.getId();
 
 		// duration/deadline
-		ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
-		if (level == null) {
-			throw new IllegalStateException("No approval level information in " + delegateTask);
+		ApprovalStageDefinitionType stageDef = WfContextUtil.getCurrentStageDefinition(wfTask.getWorkflowContext());
+		if (stageDef == null) {
+			throw new IllegalStateException("No approval stage information in " + delegateTask);
 		}
-		if (level.getDuration() != null) {
-			MidpointUtil.setTaskDeadline(delegateTask, level.getDuration());
+		if (stageDef.getDuration() != null) {
+			MidpointUtil.setTaskDeadline(delegateTask, stageDef.getDuration());
 		}
 
 		// triggers
 		int escalationLevel = ActivitiUtil.getEscalationLevelNumber(delegateTask.getVariables());
 		MidpointUtil.createTriggersForTimedActions(taskId, escalationLevel, delegateTask.getCreateTime(),
-				delegateTask.getDueDate(), wfTask, level.getTimedActions(), result);
+				delegateTask.getDueDate(), wfTask, stageDef.getTimedActions(), result);
 
 		// originalAssignee
 		String assignee = delegateTask.getAssignee();

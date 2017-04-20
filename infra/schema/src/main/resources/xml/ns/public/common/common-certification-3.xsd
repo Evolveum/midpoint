@@ -268,15 +268,24 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
+			<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						What actions are to be applied to work items when given timer(s) occur.
+						EXPERIMENTAL
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="AccessCertificationReviewerSpecificationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies how to select reviewers for a campaign stage
-                and how to derive final decision from their decisions.
-                (TODO consider extracting this strategy to element outside reviewer specification)
+                Specifies how to select reviewers for a campaign stage.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -321,7 +330,7 @@
             <xsd:element name="useObjectApprover" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Indicates that obbject (Org, Role) approver(s) should be used as reviewer(s).
+                        Indicates that object (Org, Role) approver(s) should be used as reviewer(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -438,14 +447,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+                    <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 When this campaign has to start (or has started).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+                    <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 When this campaign has finished.
@@ -520,7 +529,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When this stage has started.
@@ -534,10 +543,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When this stage has actually finished.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="escalationLevel" type="tns:WorkItemEscalationLevelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The escalation level is currently the same for open all cases and their open work items in the stage.
+                        (This might change in the future.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -786,7 +803,7 @@
                 </xsd:annotation>
             </xsd:element>
             -->
-            <xsd:element name="currentStageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
+            <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         The number of current stage in which this case is.
@@ -799,17 +816,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentReviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="workItem" type="tns:AccessCertificationWorkItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Who are the reviewers? They are related to the stage mentioned in "currentStageNumber".
+                        Work items for this stage. Some might be completed; however, they remains here until the stage is closed.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+						<a:since>3.6</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentReviewRequestedTimestamp" type="xsd:dateTime">
+            <xsd:element name="currentStageCreateTimestamp" type="xsd:dateTime">
                 <xsd:annotation>
                     <xsd:documentation>
                         When was this certification case requested to be reviewed?
@@ -818,7 +835,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentReviewDeadline" type="xsd:dateTime" minOccurs="0">
+            <xsd:element name="currentStageDeadline" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         When should this certification case be reviewed?
@@ -827,14 +844,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="decision" type="tns:AccessCertificationDecisionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Decision(s) done.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="currentStageOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentStageOutcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Currently valid outcome, relevant to the current stage. It is recomputed on each reviewer's
@@ -843,14 +853,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="completedStageOutcome" type="tns:AccessCertificationCaseStageOutcomeType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Outcomes of stages that are already completed.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="overallOutcome" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         The outcome, taking into account all closed stages plus current stage (if any).
@@ -867,20 +870,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="campaignRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A bit of hack. Sometimes it is necessary for a case (viewed out of context of any
-                        campaign) point back to its owning certification campaign.
-
-                        This is only a temporary information - not to be stored in the repository.
-                        It is used only for objects that are returned from certification API.
-
-                        EXPERIMENTAL
+                        Events that occurred during lifetime of this case.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:AccessCertificationCampaignType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -899,6 +893,31 @@
             <xsd:element name="outcome" type="tns:AccessCertificationResponseType" minOccurs="1" />
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationWorkItemType">
+        <xsd:annotation>
+			<xsd:documentation>
+				A work item for a certification case.
+			</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+				<a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkItemType">
+                <xsd:sequence>
+                    <xsd:element name="outputChangeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the decision was made or changed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AccessCertificationAssignmentCaseType">
@@ -929,59 +948,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="accessCertificationAssignmentCase" type="tns:AccessCertificationAssignmentCaseType"/>
-
-    <xsd:complexType name="AccessCertificationDecisionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Decision that has been done regarding a given certification case.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="stageNumber" type="xsd:int">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Stage to which this decision belong.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="reviewerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Who made this decision?
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="response" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The response.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The reviewer's comment.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        When the decision was made.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- TODO expiration, delegation ... -->
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
-    </xsd:complexType>
 
     <xsd:simpleType name="AccessCertificationResponseType">
         <xsd:annotation>

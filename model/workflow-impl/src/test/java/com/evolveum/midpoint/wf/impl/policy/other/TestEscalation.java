@@ -25,12 +25,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -111,9 +113,9 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		assertNotAssignedRole(userJackOid, roleE1Oid, task, result);
 
 		WorkItemType workItem = getWorkItem(task, result);
-		workItemId = workItem.getWorkItemId();
+		workItemId = workItem.getExternalId();
 
-		approvalTaskOid = workItem.getTaskRef().getOid();
+		approvalTaskOid = WfContextUtil.getTask(workItem).getOid();
 		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
 
 		display("work item", workItem);
@@ -144,7 +146,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		String wfTaskOid = workItem.getTaskRef().getOid();
+		String wfTaskOid = WfContextUtil.getTask(workItem).getOid();
 		PrismObject<TaskType> wfTask = getTask(wfTaskOid);
 		display("task", wfTask);
 		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
@@ -168,13 +170,13 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		WorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(workItem.getTaskRef().getOid());
+		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("task", wfTask);
 		assertEquals("Wrong # of triggers", 1, wfTask.asObjectable().getTrigger().size());
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
-		assertEquals("Wrong escalation level number", (Integer) 1, workItem.getEscalationLevelNumber());
+		assertEquals("Wrong escalation level number", 1, WfContextUtil.getEscalationLevelNumber(workItem));
 
 	}
 
@@ -224,7 +226,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items", workItems);
 
-		approvalTaskOid = workItems.get(0).getTaskRef().getOid();
+		approvalTaskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
 		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
 
 		display("workflow task", wfTask);
@@ -293,12 +295,12 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		display("workflow task", wfTask);
 		assertEquals("Wrong # of triggers", 0, wfTask.asObjectable().getTrigger().size());
 		Map<String, WorkItemCompletionEventType> eventMap = new HashMap<>();
-		for (WfProcessEventType event : wfTask.asObjectable().getWorkflowContext().getEvent()) {
+		for (CaseEventType event : wfTask.asObjectable().getWorkflowContext().getEvent()) {
 			if (event instanceof WorkItemCompletionEventType) {
 				WorkItemCompletionEventType c = (WorkItemCompletionEventType) event;
-				eventMap.put(c.getWorkItemId(), c);
-				assertNotNull("No result in "+c, c.getResult());
-				assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, c.getResult().getOutcome());
+				eventMap.put(c.getExternalWorkItemId(), c);
+				assertNotNull("No result in "+c, c.getOutput());
+				assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getOutput().getOutcome()));
 				assertNotNull("No cause in "+c, c.getCause());
 				assertEquals("Wrong cause type in "+c, WorkItemEventCauseTypeType.TIMED_ACTION, c.getCause().getType());
 				assertEquals("Wrong cause name in "+c, "auto-reject", c.getCause().getName());

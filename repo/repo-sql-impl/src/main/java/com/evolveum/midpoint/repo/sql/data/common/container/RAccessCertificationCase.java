@@ -20,12 +20,9 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RAccessCertificationResponse;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerGetter;
@@ -39,30 +36,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
+import org.jetbrains.annotations.NotNull;
 
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Index;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -80,7 +64,7 @@ import java.util.Set;
         @Index(name = "iCaseOrgRefTargetOid", columnList = "orgRef_targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
-public class RAccessCertificationCase implements Container {
+public class RAccessCertificationCase implements Container<RAccessCertificationCampaign> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationCase.class);
 
@@ -90,11 +74,11 @@ public class RAccessCertificationCase implements Container {
 
     private byte[] fullObject;
 
-    private RObject owner;
+    private RAccessCertificationCampaign owner;
     private String ownerOid;
     private Integer id;
 
-    private Set<RCertCaseReference> reviewerRef;
+    private Set<RAccessCertificationWorkItem> workItems = new HashSet<>();
     private REmbeddedReference objectRef;
     private REmbeddedReference targetRef;
     private REmbeddedReference tenantRef;
@@ -104,17 +88,11 @@ public class RAccessCertificationCase implements Container {
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
     private XMLGregorianCalendar remediedTimestamp;
-    private Set<RAccessCertificationDecision> decisions;
-    private RAccessCertificationResponse currentStageOutcome;
-    private Integer currentStageNumber;
-    private RAccessCertificationResponse overallOutcome;
+    private String currentStageOutcome;
+    private Integer stageNumber;
+    private String outcome;
 
     public RAccessCertificationCase() {
-        this(null);
-    }
-
-    public RAccessCertificationCase(RObject owner) {
-        this.setOwner(owner);
     }
 
     @Id
@@ -122,16 +100,13 @@ public class RAccessCertificationCase implements Container {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @OwnerGetter(ownerClass = RAccessCertificationCampaign.class)
-    public RObject getOwner() {
+    public RAccessCertificationCampaign getOwner() {
         return owner;
     }
 
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
-        if (owner != null && ownerOid == null) {
-            ownerOid = owner.getOid();
-        }
         return ownerOid;
     }
 
@@ -144,20 +119,16 @@ public class RAccessCertificationCase implements Container {
         return id;
     }
 
-    @JaxbName(localPart = "currentReviewerRef")
-    @Where(clause = RCertCaseReference.REFERENCE_TYPE + "= 2")
+    @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @org.hibernate.annotations.ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RCertCaseReference> getReviewerRef() {
-        if (reviewerRef == null) {
-            reviewerRef = new HashSet<>();
-        }
-        return reviewerRef;
+    public Set<RAccessCertificationWorkItem> getWorkItems() {
+        return workItems;
     }
 
-    public void setReviewerRef(Set<RCertCaseReference> reviewerRef) {
-        this.reviewerRef = reviewerRef;
+    public void setWorkItems(Set<RAccessCertificationWorkItem> workItems) {
+        this.workItems = workItems != null ? workItems : new HashSet<>();
     }
 
     @Embedded
@@ -185,12 +156,12 @@ public class RAccessCertificationCase implements Container {
         return activation;
     }
 
-    @JaxbName(localPart = "currentReviewRequestedTimestamp")
+    @JaxbName(localPart = "currentStageCreateTimestamp")
     public XMLGregorianCalendar getReviewRequestedTimestamp() {
         return reviewRequestedTimestamp;
     }
 
-    @JaxbName(localPart = "currentReviewDeadline")
+    @JaxbName(localPart = "currentStageDeadline")
     public XMLGregorianCalendar getReviewDeadline() {
         return reviewDeadline;
     }
@@ -199,30 +170,23 @@ public class RAccessCertificationCase implements Container {
         return remediedTimestamp;
     }
 
-    @OneToMany(mappedBy = RAccessCertificationDecision.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAccessCertificationDecision> getDecision() {
-        if (decisions == null) {
-            decisions = new HashSet<>();
-        }
-        return decisions;
-    }
-
-    public RAccessCertificationResponse getCurrentStageOutcome() {
+    public String getCurrentStageOutcome() {
         return currentStageOutcome;
     }
 
-    public Integer getCurrentStageNumber() {
-        return currentStageNumber;
+    public Integer getStageNumber() {
+        return stageNumber;
     }
 
-    public RAccessCertificationResponse getOverallOutcome() {
-        return overallOutcome;
+    public String getOutcome() {
+        return outcome;
     }
 
-    public void setOwner(RObject owner) {
+    public void setOwner(RAccessCertificationCampaign owner) {
         this.owner = owner;
+        if (owner != null) {        // sometimes we are called with null owner but non-null ownerOid
+            this.ownerOid = owner.getOid();
+        }
     }
 
     public void setOwnerOid(String ownerOid) {
@@ -265,20 +229,16 @@ public class RAccessCertificationCase implements Container {
         this.remediedTimestamp = remediedTimestamp;
     }
 
-    public void setDecision(Set<RAccessCertificationDecision> decisions) {
-        this.decisions = decisions;
-    }
-
-    public void setCurrentStageOutcome(RAccessCertificationResponse currentStageOutcome) {
+    public void setCurrentStageOutcome(String currentStageOutcome) {
         this.currentStageOutcome = currentStageOutcome;
     }
 
-    public void setCurrentStageNumber(Integer currentStageNumber) {
-        this.currentStageNumber = currentStageNumber;
+    public void setStageNumber(Integer stageNumber) {
+        this.stageNumber = stageNumber;
     }
 
-    public void setOverallOutcome(RAccessCertificationResponse overallOutcome) {
-        this.overallOutcome = overallOutcome;
+    public void setOutcome(String outcome) {
+        this.outcome = outcome;
     }
 
     @Lob
@@ -290,47 +250,36 @@ public class RAccessCertificationCase implements Container {
         this.fullObject = fullObject;
     }
 
+    // Notes to equals/hashCode: don't include trans nor owner
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RAccessCertificationCase)) return false;
-
+        if (this == o)
+            return true;
+        if (!(o instanceof RAccessCertificationCase))
+            return false;
         RAccessCertificationCase that = (RAccessCertificationCase) o;
-
-        if (!Arrays.equals(fullObject, that.fullObject)) return false;
-        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (reviewerRef != null ? !reviewerRef.equals(that.reviewerRef) : that.reviewerRef != null) return false;
-        if (objectRef != null ? !objectRef.equals(that.objectRef) : that.objectRef != null) return false;
-        if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
-        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
-        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) return false;
-        if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
-        if (reviewRequestedTimestamp != null ? !reviewRequestedTimestamp.equals(that.reviewRequestedTimestamp) : that.reviewRequestedTimestamp != null)
-            return false;
-        if (reviewDeadline != null ? !reviewDeadline.equals(that.reviewDeadline) : that.reviewDeadline != null)
-            return false;
-        if (remediedTimestamp != null ? !remediedTimestamp.equals(that.remediedTimestamp) : that.remediedTimestamp != null)
-            return false;
-        if (decisions != null ? !decisions.equals(that.decisions) : that.decisions != null) return false;
-        if (currentStageOutcome != that.currentStageOutcome) return false;
-        return !(currentStageNumber != null ? !currentStageNumber.equals(that.currentStageNumber) : that.currentStageNumber != null);
-
+        return Arrays.equals(fullObject, that.fullObject) &&
+                Objects.equals(ownerOid, that.ownerOid) &&
+                Objects.equals(id, that.id) &&
+                Objects.equals(workItems, that.workItems) &&
+                Objects.equals(objectRef, that.objectRef) &&
+                Objects.equals(targetRef, that.targetRef) &&
+                Objects.equals(tenantRef, that.tenantRef) &&
+                Objects.equals(orgRef, that.orgRef) &&
+                Objects.equals(activation, that.activation) &&
+                Objects.equals(reviewRequestedTimestamp, that.reviewRequestedTimestamp) &&
+                Objects.equals(reviewDeadline, that.reviewDeadline) &&
+                Objects.equals(remediedTimestamp, that.remediedTimestamp) &&
+                currentStageOutcome == that.currentStageOutcome &&
+                Objects.equals(stageNumber, that.stageNumber) &&
+                Objects.equals(outcome, that.outcome);
     }
 
     @Override
     public int hashCode() {
-        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (id != null ? id.hashCode() : 0);
-        result = 31 * result + (reviewerRef != null ? reviewerRef.hashCode() : 0);
-        result = 31 * result + (objectRef != null ? objectRef.hashCode() : 0);
-        result = 31 * result + (targetRef != null ? targetRef.hashCode() : 0);
-        result = 31 * result + (reviewRequestedTimestamp != null ? reviewRequestedTimestamp.hashCode() : 0);
-        result = 31 * result + (reviewDeadline != null ? reviewDeadline.hashCode() : 0);
-        result = 31 * result + (remediedTimestamp != null ? remediedTimestamp.hashCode() : 0);
-        result = 31 * result + (currentStageOutcome != null ? currentStageOutcome.hashCode() : 0);
-        result = 31 * result + (currentStageNumber != null ? currentStageNumber.hashCode() : 0);
-        return result;
+        return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
+                reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, stageNumber,
+                outcome);
     }
 
     @Override
@@ -355,20 +304,22 @@ public class RAccessCertificationCase implements Container {
         this.trans = trans;
     }
 
-    public static RAccessCertificationCase toRepo(RAccessCertificationCampaign owner, AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
-        RAccessCertificationCase rCase = toRepo(case1, context);
-        rCase.setOwner(owner);
+    public static RAccessCertificationCase toRepo(@NotNull RAccessCertificationCampaign owner, AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
+		RAccessCertificationCase rCase = new RAccessCertificationCase();
+		rCase.setOwner(owner);
+        toRepo(rCase, case1, context);
         return rCase;
     }
 
     public static RAccessCertificationCase toRepo(String ownerOid, AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
-        RAccessCertificationCase rCase = toRepo(case1, context);
-        rCase.setOwnerOid(ownerOid);
+		RAccessCertificationCase rCase = new RAccessCertificationCase();
+		rCase.setOwnerOid(ownerOid);
+        toRepo(rCase, case1, context);
         return rCase;
     }
 
-    private static RAccessCertificationCase toRepo(AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
-        RAccessCertificationCase rCase = new RAccessCertificationCase();
+    private static RAccessCertificationCase toRepo(RAccessCertificationCase rCase, AccessCertificationCaseType case1,
+			RepositoryContext context) throws DtoTranslationException {
         rCase.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), context.prismContext));
@@ -380,19 +331,15 @@ public class RAccessCertificationCase implements Container {
             RActivation.copyFromJAXB(case1.getActivation(), activation, context);
             rCase.setActivation(activation);
         }
-        rCase.getReviewerRef().addAll(RCertCaseReference.safeListReferenceToSet(
-                case1.getCurrentReviewerRef(), context.prismContext, rCase, RCReferenceOwner.CASE_REVIEWER));
-        rCase.setReviewRequestedTimestamp(case1.getCurrentReviewRequestedTimestamp());
-        rCase.setReviewDeadline(case1.getCurrentReviewDeadline());
+		for (AccessCertificationWorkItemType workItem : case1.getWorkItem()) {
+			rCase.getWorkItems().add(RAccessCertificationWorkItem.toRepo(rCase, workItem, context));
+		}
+        rCase.setReviewRequestedTimestamp(case1.getCurrentStageCreateTimestamp());
+        rCase.setReviewDeadline(case1.getCurrentStageDeadline());
         rCase.setRemediedTimestamp(case1.getRemediedTimestamp());
-        rCase.setCurrentStageOutcome(RUtil.getRepoEnumValue(case1.getCurrentStageOutcome(), RAccessCertificationResponse.class));
-        rCase.setCurrentStageNumber(case1.getCurrentStageNumber());
-        rCase.setOverallOutcome(RUtil.getRepoEnumValue(case1.getOverallOutcome(), RAccessCertificationResponse.class));
-        for (AccessCertificationDecisionType decision : case1.getDecision()) {
-            RAccessCertificationDecision rDecision = RAccessCertificationDecision.toRepo(rCase, decision, context);
-            rCase.getDecision().add(rDecision);
-        }
-
+        rCase.setCurrentStageOutcome(case1.getCurrentStageOutcome());
+        rCase.setStageNumber(case1.getStageNumber());
+        rCase.setOutcome(case1.getOutcome());
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {

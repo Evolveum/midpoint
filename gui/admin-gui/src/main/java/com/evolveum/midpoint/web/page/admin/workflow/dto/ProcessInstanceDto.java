@@ -40,9 +40,8 @@ public class ProcessInstanceDto extends Selectable {
     public static final String F_NAME = "name";
     public static final String F_START_FORMATTED = "startFormatted";
     public static final String F_END_FORMATTED = "endFormatted";
-    public static final String F_STATE = "state";
+    //public static final String F_STATE = "state";
     public static final String F_STAGE = "stage";
-    public static final String F_ANSWER = "answer";
 
     private TaskType task;
     private PatternDateConverter converter = new PatternDateConverter
@@ -76,8 +75,8 @@ public class ProcessInstanceDto extends Selectable {
         return PolyString.getOrig(task.getName());
     }
 
-    public String getAnswer() {
-        return task.getWorkflowContext().getAnswer();
+    public String getOutcome() {
+        return task.getWorkflowContext().getOutcome();
     }
 
 	public String getObjectName() {
@@ -104,9 +103,9 @@ public class ProcessInstanceDto extends Selectable {
 		return WebComponentUtil.getName(task.getWorkflowContext().getTargetRef());
 	}
 
-	public String getState() {
-		return task.getWorkflowContext().getState();
-	}
+	//public String getState() {
+	//		return task.getWorkflowContext().getState();
+	//}
 
 	public String getStage() {
     	return WfContextUtil.getStageInfo(task.getWorkflowContext());

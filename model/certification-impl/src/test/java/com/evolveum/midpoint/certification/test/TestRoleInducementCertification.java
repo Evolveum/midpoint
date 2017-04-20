@@ -20,13 +20,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -47,9 +44,9 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class RoleInducementCertificationTest extends AbstractCertificationTest {
+public class TestRoleInducementCertification extends AbstractCertificationTest {
 
     protected AccessCertificationDefinitionType certificationDefinition;
 
@@ -61,7 +58,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         certificationDefinition = repoAddObjectFromFile(ROLE_INDUCEMENT_CERT_DEF_FILE,
@@ -93,7 +90,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -115,7 +112,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -145,7 +142,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -186,7 +183,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -217,7 +214,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -232,7 +229,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         display("caseList", caseList);
         checkAllCases(caseList, campaignOid);
         AccessCertificationCaseType _case = checkCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID, roleSuperuser, campaignOid);
-        assertEquals("Unexpected number of reviewers in superuser case", 0, _case.getCurrentReviewerRef().size());
+        assertEquals("Unexpected number of reviewers in superuser case", 0, CertCampaignTypeUtil.getCurrentReviewers(_case).size());
     }
 
     @Test
@@ -241,13 +238,13 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                queryHelper.searchDecisions(null, USER_ADMINISTRATOR_OID, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                queryHelper.searchWorkItems(null, USER_ADMINISTRATOR_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -261,11 +258,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 3, caseList.size());
-        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo, campaignOid);
-        checkCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo, campaignOid);
-        checkCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo, campaignOid);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 3, workItems.size());
+        checkWorkItem(workItems, ROLE_COO_OID, RESOURCE_DUMMY_OID, roleCoo, campaignOid);
+        checkWorkItem(workItems, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID, roleCoo, campaignOid);
+        checkWorkItem(workItems, ROLE_COO_OID, ROLE_SUPERUSER_OID, roleCoo, campaignOid);
     }
 
     @Test
@@ -274,13 +271,13 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                queryHelper.searchDecisions(null, USER_ELAINE_OID, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                queryHelper.searchWorkItems(null, USER_ELAINE_OID, false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -292,9 +289,9 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo, campaignOid);
+        display("caseList", workItems);
+        assertEquals("Wrong number of work items", 1, workItems.size());
+        checkWorkItem(workItems, ROLE_CEO_OID, RESOURCE_DUMMY_OID, roleCeo, campaignOid);
     }
 
     @Test
@@ -303,13 +300,13 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                queryHelper.searchDecisions(null, USER_JACK_OID, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                queryHelper.searchWorkItems(null, USER_JACK_OID, false, null, task, result);
 
         /* Expected cases - phase 1: NONE */
 
@@ -318,8 +315,8 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 0, caseList.size());
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 0, workItems.size());
     }
 
     /*
@@ -339,7 +336,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -352,10 +349,10 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType cooDummyBlackCase = findCase(caseList, ROLE_COO_OID, RESOURCE_DUMMY_BLACK_OID);
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
 
-        recordDecision(campaignOid, ceoDummyCase, REVOKE, "no way", 1, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, cooDummyCase, REVOKE, null, 0, null, task, result);          // default reviewer - administrator
-        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", 1, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", 0, null, task, result);
+        recordDecision(campaignOid, ceoDummyCase, REVOKE, "no way", USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, cooDummyCase, REVOKE, null, null, task, result);          // default reviewer - administrator
+        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, cooSuperuserCase, NOT_DECIDED, "I'm so procrastinative...", null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -392,7 +389,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -423,7 +420,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -468,7 +465,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -498,7 +495,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -552,7 +549,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -582,7 +579,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -612,7 +609,7 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -624,10 +621,10 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         AccessCertificationCaseType cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
         AccessCertificationCaseType superuserDummyCase = findCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID);
 
-        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, cooDummyBlackCase, REVOKE, "Sorry", 2, USER_ELAINE_OID, task, result);
-        recordDecision(campaignOid, cooSuperuserCase, ACCEPT, null, 2, USER_ADMINISTRATOR_OID, task, result);
-        recordDecision(campaignOid, superuserDummyCase, ACCEPT, null, 2, USER_JACK_OID, task, result);       // decision of administrator is missing here
+        recordDecision(campaignOid, cooDummyBlackCase, ACCEPT, "OK", USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, cooDummyBlackCase, REVOKE, "Sorry", USER_ELAINE_OID, task, result);
+        recordDecision(campaignOid, cooSuperuserCase, ACCEPT, null, USER_ADMINISTRATOR_OID, task, result);
+        recordDecision(campaignOid, superuserDummyCase, ACCEPT, null, USER_JACK_OID, task, result);       // decision of administrator is missing here
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -646,11 +643,11 @@ public class RoleInducementCertificationTest extends AbstractCertificationTest {
         cooSuperuserCase = findCase(caseList, ROLE_COO_OID, ROLE_SUPERUSER_OID);
         superuserDummyCase = findCase(caseList, ROLE_SUPERUSER_OID, RESOURCE_DUMMY_OID);
 
-        assertDecisions(ceoDummyCase, 1);
-        assertDecisions(cooDummyCase, 1);
-        assertDecisions(cooDummyBlackCase, 3);
-        assertDecisions(cooSuperuserCase, 2);
-        assertDecisions(superuserDummyCase, 2);
+        assertWorkItems(ceoDummyCase, 1);
+        assertWorkItems(cooDummyCase, 1);
+        assertWorkItems(cooDummyBlackCase, 3);
+        assertWorkItems(cooSuperuserCase, 2);
+        assertWorkItems(superuserDummyCase, 2);
 
         assertDecision2(cooDummyBlackCase, ACCEPT, "OK", 2, USER_ADMINISTRATOR_OID, REVOKE);
         assertDecision2(cooDummyBlackCase, REVOKE, "Sorry", 2, USER_ELAINE_OID, REVOKE);
@@ -692,7 +689,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -722,7 +719,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -775,7 +772,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -804,7 +801,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 3, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition);
-        assertApproximateTime("end time", new Date(), campaign.getEnd());
+        assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 2, campaign.getStage().size());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -830,7 +827,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, certificationDefinition.getOid());
         assertApproximateTime("last campaign closed", new Date(), def.asObjectable().getLastCampaignClosedTimestamp());
 
-        // 80% cases has all decisions (or is not in current stage)
+        // 100% cases has all decisions (or is not in current stage)
         // 80% cases has an outcome
         // 80% decisions for this stage was done
         assertPercentComplete(campaign, 80, 80, 80);
@@ -842,7 +839,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processes.common;
+package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
@@ -25,21 +25,15 @@ public enum WorkflowResult {
 
     REJECTED, APPROVED, UNKNOWN, OTHER;
 
-    public static WorkflowResult fromStandardWfAnswer(String answer) {
-        return fromWfAnswer(answer, false);
-    }
-
     public static WorkflowResult fromNiceWfAnswer(String answer) {
-		return fromWfAnswer(answer, true);
+		return fromWfAnswer(answer);
     }
 
-	public static WorkflowResult fromWfAnswer(String answer, boolean nice) {
+	private static WorkflowResult fromWfAnswer(String answer) {
 		if (answer == null) {
 			return UNKNOWN;
 		} else {
-			Boolean booleanValue = nice ?
-					ApprovalUtils.approvalBooleanValueNice(answer) :
-					ApprovalUtils.approvalBooleanValue(answer);
+			Boolean booleanValue = ApprovalUtils.approvalBooleanValueNice(answer);
 			if (booleanValue == null) {
 				return OTHER;
 			} else if (booleanValue) {

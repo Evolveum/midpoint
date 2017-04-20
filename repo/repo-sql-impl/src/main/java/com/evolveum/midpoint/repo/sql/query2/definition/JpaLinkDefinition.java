@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -32,15 +32,14 @@ import javax.xml.namespace.QName;
  */
 public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visitable, DebugDumpable {
 
-    private ItemPath itemPath;                                  // usually single item, but might be longer
-    private String jpaName;                                     // beware - null for "same entity" transitions (metadata, construction, ...)
-    private CollectionSpecification collectionSpecification;    // null if single valued
-    private boolean embedded;
-    private D targetDefinition;
+    @NotNull private final ItemPath itemPath;                         // usually single item, but might be longer
+    private final String jpaName;                                     // beware - null for "same entity" transitions (metadata, construction, ...)
+    private final CollectionSpecification collectionSpecification;    // null if single valued
+    private final boolean embedded;
+    @NotNull private D targetDefinition;
 
-    public JpaLinkDefinition(ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
-        Validate.notNull(itemPath, "itemPath");
-        Validate.notNull(targetDefinition, "targetDefinition");
+    public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
+			boolean embedded, @NotNull D targetDefinition) {
         this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;
@@ -48,17 +47,16 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         this.targetDefinition = targetDefinition;
     }
 
-    public JpaLinkDefinition(ItemPathSegment itemPathSegment, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
+    public JpaLinkDefinition(@NotNull ItemPathSegment itemPathSegment, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
         this(new ItemPath(itemPathSegment), jpaName, collectionSpecification, embedded, targetDefinition);
-        Validate.notNull(itemPathSegment, "itemPathSegment");
     }
 
-    public JpaLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
+    public JpaLinkDefinition(@NotNull QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, boolean embedded, D targetDefinition) {
         this(new NameItemPathSegment(jaxbName), jpaName, collectionSpecification, embedded, targetDefinition);
-        Validate.notNull(jaxbName, "jaxbName");     // "this" must be the first - validation is better late than never ;)
 
     }
 
+    @NotNull
     public ItemPath getItemPath() {
         return itemPath;
     }
@@ -82,6 +80,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         return embedded;
     }
 
+    @NotNull
     public D getTargetDefinition() {
         return targetDefinition;
     }
@@ -94,6 +93,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         return itemPath.startsWith(this.itemPath);
     }
 
+    @SuppressWarnings("unchecked")
     public Class<D> getTargetClass() {
         return (Class<D>) targetDefinition.getClass();
     }
@@ -149,7 +149,8 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         return sb.toString();
     }
 
-    public void resolveEntityPointer() {
+	@SuppressWarnings("unchecked")
+    void resolveEntityPointer() {
         if (targetDefinition instanceof JpaEntityPointerDefinition) {
             // typing hack but we don't mind
             targetDefinition = (D) ((JpaEntityPointerDefinition) targetDefinition).getResolvedEntityDefinition();

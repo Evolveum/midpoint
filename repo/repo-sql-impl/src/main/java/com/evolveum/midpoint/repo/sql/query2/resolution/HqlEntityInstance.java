@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.resolution;
 
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
@@ -28,9 +28,7 @@ public class HqlEntityInstance extends HqlDataInstance<JpaEntityDefinition> {
         super(hqlPath, jpaDefinition, parentPropertyPath);
     }
 
-    public HqlEntityInstance narrowFor(JpaEntityDefinition overridingDefinition) {
-        Validate.notNull(overridingDefinition, "overridingDefinition");
-
+    public HqlEntityInstance narrowFor(@NotNull JpaEntityDefinition overridingDefinition) {
         if (overridingDefinition.isAssignableFrom(jpaDefinition)) {
             // nothing to do here
             return this;

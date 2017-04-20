@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.test;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -37,21 +38,15 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.getOrderBy;
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_ACTIVATION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_TARGET_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  * Very simple certification test.
@@ -59,9 +54,9 @@ import static org.testng.AssertJUnit.fail;
  *
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class BasicCertificationTest extends AbstractCertificationTest {
+public class TestCertificationBasic extends AbstractCertificationTest {
 
     protected static final File CERT_DEF_USER_ASSIGNMENT_BASIC_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments.xml");
     protected static final String CERT_DEF_USER_ASSIGNMENT_BASIC_OID = "33333333-0000-0000-0000-000000000001";
@@ -92,7 +87,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         roleInducementCertDefinition = repoAddObjectFromFile(ROLE_INDUCEMENT_CERT_DEF_FILE,
@@ -123,7 +118,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(RoleInducementCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -146,7 +141,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_ELAINE_OID));            // elaine is a reviewer, not authorized to create campaigns
 
@@ -166,7 +161,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
 
@@ -210,7 +205,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
     protected void searchWithNoCasesExpected(String TEST_NAME) throws Exception {
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -235,7 +230,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_ELAINE_OID));
 
@@ -255,7 +250,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
 
@@ -301,7 +296,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -325,7 +320,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -334,7 +329,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
                 SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                 .item(AccessCertificationCaseType.F_OBJECT_REF).ref(userAdministrator.getOid())
-                .desc(getOrderBy(F_TARGET_REF))
+                .desc(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
                 .offset(2).maxSize(2)
                 .build();
         List<AccessCertificationCaseType> caseList = modelService.searchContainers(
@@ -366,14 +361,14 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(
-                        CertCampaignTypeUtil.createCasesForCampaignQuery(campaignOid, prismContext),
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(
+                        CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
                         false, null, task, result);
 
         // THEN
@@ -381,9 +376,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 7, caseList.size());
-        checkAllCases(caseList, campaignOid);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 7, workItems.size());
+        checkAllWorkItems(workItems, campaignOid);
     }
 
     @Test
@@ -393,17 +388,20 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                .item(AccessCertificationCaseType.F_TENANT_REF).ref(ORG_GOVERNOR_OFFICE_OID)
-                .and().ownerId(campaignOid)
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                .exists(T_PARENT)
+                .block()
+                    .item(AccessCertificationCaseType.F_TENANT_REF).ref(ORG_GOVERNOR_OFFICE_OID)
+                    .and().ownerId(campaignOid)
+                .endBlock()
                 .build();
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(
                         query, false, null, task, result);
 
         // THEN
@@ -411,9 +409,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification cases", 1, workItems.size());
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
     }
 
     @Test
@@ -423,26 +421,29 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                .item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
-                .and().ownerId(campaignOid)
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+				.exists(T_PARENT)
+				.block()
+                	.item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
+                	.and().ownerId(campaignOid)
+				.endBlock()
                 .build();
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(query, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(query, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification work items", 1, workItems.size());
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
     }
 
     @Test
@@ -452,26 +453,29 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
-                .item(F_ACTIVATION, F_ADMINISTRATIVE_STATUS).eq(ENABLED)
-                .and().ownerId(campaignOid)
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                .exists(T_PARENT)
+                .block()
+                    .item(F_ACTIVATION, F_ADMINISTRATIVE_STATUS).eq(ENABLED)
+                    .and().ownerId(campaignOid)
+                .endBlock()
                 .build();
-        List<AccessCertificationCaseType> caseList =
-                certificationService.searchDecisionsToReview(query, false, null, task, result);
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(query, false, null, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("caseList", caseList);
-        assertEquals("Wrong number of certification cases", 1, caseList.size());
-        checkCase(caseList, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification cases", 1, workItems.size());
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
     }
 
     @Test
@@ -481,7 +485,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -489,12 +493,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(ACCEPT);
-        decision.setComment("no comment");
-        decision.setStageNumber(0);     // will be replaced by current stage number
+        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, USER_ADMINISTRATOR_OID);
         long id = superuserCase.asPrismContainerValue().getId();
-        certificationService.recordDecision(campaignOid, id, decision, task, result);
+        certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -520,7 +521,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -528,13 +529,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(ACCEPT);
-        decision.setComment("ok");
-        decision.setStageNumber(1);
+        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, USER_ADMINISTRATOR_OID);
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
-        certificationService.recordDecision(campaignOid, id, decision, task, result);
+        certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "ok", task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -560,7 +558,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
@@ -568,13 +566,10 @@ public class BasicCertificationTest extends AbstractCertificationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        AccessCertificationDecisionType decision = new AccessCertificationDecisionType(prismContext);
-        decision.setResponse(REVOKE);
-        decision.setComment("no way");
-        decision.setStageNumber(1);
         // reviewerRef will be taken from the current user
         long id = ceoCase.asPrismContainerValue().getId();
-        certificationService.recordDecision(campaignOid, id, decision, task, result);
+        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(ceoCase, 1, USER_ADMINISTRATOR_OID);
+        certificationService.recordDecision(campaignOid, id, workItem.getId(), REVOKE, "no way", task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -604,6 +599,16 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         checkCase(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack, campaignOid);
     }
 
+    protected void checkAllWorkItems(Collection<AccessCertificationWorkItemType> workItems, String campaignOid) {
+        assertEquals("Wrong number of certification work items", 7, workItems.size());
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, userAdministrator, campaignOid);
+        checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+        checkWorkItem(workItems, USER_JACK_OID, ORG_EROOT_OID, userJack, campaignOid);
+    }
+
     @Test
     public void test150CloseFirstStageDeny() throws Exception {
         final String TEST_NAME = "test150CloseFirstStageDeny";
@@ -611,7 +616,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN+THEN
@@ -631,7 +636,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN+THEN
@@ -651,7 +656,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -685,7 +690,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -705,7 +710,7 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(BasicCertificationTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
@@ -733,9 +738,9 @@ public class BasicCertificationTest extends AbstractCertificationTest {
         assertEquals("wrong campaign state", CLOSED, campaign.getState());
         assertEquals("wrong campaign stage", 2, campaign.getStageNumber());
         assertDefinitionAndOwner(campaign, certificationDefinition, USER_BOB_OID);
-        assertApproximateTime("end time", new Date(), campaign.getEnd());
+        assertApproximateTime("end time", new Date(), campaign.getEndTimestamp());
         assertEquals("wrong # of stages", 1, campaign.getStage().size());
-        assertApproximateTime("stage 1 end", new Date(), campaign.getStage().get(0).getEnd());
+        assertApproximateTime("stage 1 end", new Date(), campaign.getStage().get(0).getEndTimestamp());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         AccessCertificationCaseType jackCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);

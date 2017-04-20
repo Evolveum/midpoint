@@ -19,28 +19,30 @@ package com.evolveum.midpoint.web.page.admin.certification.dto;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
- * A common superclass for CertCaseDto + CertDecisionDto.
+ * A common superclass for CertCaseDto + CertWorkItemDto.
  *
  * TODO cleanup a bit
  *
  * @author mederly
  */
-public class CertCaseOrDecisionDto extends Selectable {
+public class CertCaseOrWorkItemDto extends Selectable {
 
     public static final String F_OBJECT_NAME = "objectName";
     public static final String F_TARGET_NAME = "targetName";
+	@SuppressWarnings("unused")
     public static final String F_TARGET_TYPE = "targetType";
     public static final String F_CAMPAIGN_NAME = "campaignName";
     public static final String F_REVIEW_REQUESTED = "reviewRequested";
@@ -52,9 +54,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     private String targetName;
     private String deadlineAsString;
 
-    public CertCaseOrDecisionDto(AccessCertificationCaseType _case, PageBase page) {
-        Validate.notNull(_case);
-
+    CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
         this.certCase = _case;
         this.objectName = getName(_case.getObjectRef());
         this.targetName = getName(_case.getTargetRef());
@@ -99,8 +99,8 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     public ObjectReferenceType getCampaignRef() {
-        return certCase.getCampaignRef();
-    }
+        return ObjectTypeUtil.createObjectRef(getCampaign());
+	}
 
     public Long getCaseId() {
         return certCase.asPrismContainerValue().getId();
@@ -111,11 +111,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     public AccessCertificationCampaignType getCampaign() {
-        try {
-            return (AccessCertificationCampaignType) certCase.getCampaignRef().asReferenceValue().getObject().asObjectable();
-        } catch (NullPointerException e) {
-            return null;      // TODO fix this really crude hack
-        }
+        return CertCampaignTypeUtil.getCampaign(certCase);
     }
 
     public String getCampaignName() {
@@ -133,8 +129,9 @@ public class CertCaseOrDecisionDto extends Selectable {
         return CertCampaignTypeUtil.getNumberOfStages(campaign);
     }
 
-    public Date getReviewRequested() {
-        XMLGregorianCalendar date = certCase.getCurrentReviewRequestedTimestamp();
+    @SuppressWarnings("unused")
+	public Date getReviewRequested() {
+        XMLGregorianCalendar date = certCase.getCurrentStageCreateTimestamp();
         return XmlTypeConverter.toDate(date);
     }
 
@@ -148,7 +145,7 @@ public class CertCaseOrDecisionDto extends Selectable {
             return null;
         }
         AccessCertificationStageType stage = CertCampaignTypeUtil.findStage(campaign, stageNumber);
-        return XmlTypeConverter.toDate(stage.getStart());
+        return XmlTypeConverter.toDate(stage.getStartTimestamp());
     }
 
     public String getCurrentStageName() {
@@ -169,7 +166,7 @@ public class CertCaseOrDecisionDto extends Selectable {
     }
 
     private String computeDeadlineAsString(PageBase page) {
-        XMLGregorianCalendar deadline = certCase.getCurrentReviewDeadline();
+        XMLGregorianCalendar deadline = certCase.getCurrentStageDeadline();
 
         if (deadline == null) {
             return "";
@@ -193,6 +190,7 @@ public class CertCaseOrDecisionDto extends Selectable {
         }
     }
 
+	@SuppressWarnings("unused")
     public String getDeadlineAsString() {
         return deadlineAsString;
     }
@@ -200,6 +198,7 @@ public class CertCaseOrDecisionDto extends Selectable {
 	/**
 	 * Preliminary implementation. Eventually we will create a list of hyperlinks pointing to the actual objects.
 	 */
+	@SuppressWarnings("unused")
 	public String getConflictingTargets() {
     	if (!(certCase instanceof AccessCertificationAssignmentCaseType)) {
     		return "";

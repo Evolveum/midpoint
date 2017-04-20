@@ -32,4 +32,18 @@
             <append>true</append>
         </appender>
     </logging>
+	<notificationConfiguration>
+		<handler>
+			<simpleReviewerNotifier>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleReviewerNotifier</transport>
+			</simpleReviewerNotifier>
+		</handler>
+		<mail>
+			<redirectToFile>target/mail-notifications.log</redirectToFile>
+		</mail>
+	</notificationConfiguration>
+
 </systemConfiguration>

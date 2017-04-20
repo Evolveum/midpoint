@@ -101,7 +101,7 @@ public class RAssignmentReference extends RContainerReference {
      *
      * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum
      */
-    @Column(name = "containerType")
+    @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override
     public RObjectType getType() {

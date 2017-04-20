@@ -56,11 +56,11 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
 
     // converts assignments to cases
     @Override
-    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> objectPrism,
+    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> objectPrism,
             AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		FocusType focus = castToFocus(objectPrism);
+		F focus = objectPrism.asObjectable();
 
         List<AccessCertificationCaseType> caseList = new ArrayList<>();
 		for (AssignmentType assignment : focus.getAssignment()) {

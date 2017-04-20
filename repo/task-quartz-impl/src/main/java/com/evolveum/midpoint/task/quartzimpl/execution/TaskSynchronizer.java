@@ -108,6 +108,11 @@ public class TaskSynchronizer {
         int changed = 0;
         int errors = 0;
         for (PrismObject<TaskType> taskPrism : tasks) {
+            if (taskPrism.getOid() == null) {
+                LOGGER.error("Skipping task with no OID: {}", taskPrism);
+                errors++;
+                continue;
+            }
             oidsInRepo.add(taskPrism.getOid());
             TaskQuartzImpl task;
             try {

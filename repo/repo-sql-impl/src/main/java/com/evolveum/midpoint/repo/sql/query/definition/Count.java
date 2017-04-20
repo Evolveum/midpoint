@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,20 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.processes.itemApproval;
+package com.evolveum.midpoint.repo.sql.query.definition;
 
-import java.io.Serializable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * TODO throw away this class completely
+ * Getter for the item count field. Used for the presence filter.
  *
  * @author mederly
  */
-public class ApprovalLevel implements Serializable {
-
-	private static final long serialVersionUID = -7425837742015830391L;
-
-	private final int order;
-
-	public ApprovalLevel(int order) {
-		this.order = order;
-	}
-
-	public int getOrder() {
-		return order;
-	}
-
-	@Override
-	public String toString() {
-		return "ApprovalLevelImpl(" + order + ")";
-	}
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Count {
 
 }

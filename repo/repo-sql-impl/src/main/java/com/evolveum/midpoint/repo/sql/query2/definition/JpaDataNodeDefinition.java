@@ -23,9 +23,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Defines piece of JPA data - entity, property, reference, or "any" container. Used to convert ItemPath to HQL query,
@@ -54,25 +53,23 @@ import org.apache.commons.lang.Validate;
  */
 public abstract class JpaDataNodeDefinition implements DebugDumpable, Visitable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(JpaDataNodeDefinition.class);
-
     /**
      * JPA class - either "composite" (RObject, RUser, RAssignment, ...) or "primitive" (String, Integer, int, ...)
      */
-    private Class jpaClass;
+    @NotNull private final Class jpaClass;
 
     /**
      * JAXB class - either "composite" (ObjectType, UserType, AssignmentType, ...) or "primitive" (String, Integer, int, ...)
      * Null if not known.
      */
-    private Class jaxbClass;
+    @Nullable private final Class jaxbClass;
 
-    public JpaDataNodeDefinition(Class jpaClass, Class jaxbClass) {
-        Validate.notNull(jpaClass, "jpaClass");
+    public JpaDataNodeDefinition(@NotNull Class jpaClass, @Nullable Class jaxbClass) {
         this.jpaClass = jpaClass;
         this.jaxbClass = jaxbClass;
     }
 
+    @NotNull
     public Class getJpaClass() {
         return jpaClass;
     }
@@ -81,6 +78,7 @@ public abstract class JpaDataNodeDefinition implements DebugDumpable, Visitable 
         return jpaClass.getSimpleName();
     }
 
+    @Nullable
     public Class getJaxbClass() {
         return jaxbClass;
     }
@@ -90,14 +88,13 @@ public abstract class JpaDataNodeDefinition implements DebugDumpable, Visitable 
      *
      * @param path A path to be resolved. Always non-null and non-empty. Should produce at least one transition.
      * @param itemDefinition Item definition for the item being sought. Needed only for "any" items.
-     * @param prismContext
 	 * @return
      * - Normally it returns the search result containing next item definition (entity, collection, ...) in the chain
      *   and the unresolved remainder of the path. The transition may be empty ("self") e.g. for metadata or construction.
      * - If the search was not successful, returns null.
      *
      */
-    public abstract DataSearchResult<JpaDataNodeDefinition> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition,
+    public abstract DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition,
 			PrismContext prismContext) throws QueryException;
 
     public String toString() {

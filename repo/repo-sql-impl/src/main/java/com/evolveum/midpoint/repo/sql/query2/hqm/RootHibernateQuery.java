@@ -153,7 +153,7 @@ public class RootHibernateQuery extends HibernateQuery {
         return createEq(propertyPath, value, false);
     }
 
-    public Condition createEqOrIn(String propertyPath, Collection<?> values) {
+    public Condition createEqOrInOrNull(String propertyPath, Collection<?> values) {
         if (values.isEmpty()) {
         	return createIsNull(propertyPath);
 		} else if (values.size() == 1) {

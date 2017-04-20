@@ -47,6 +47,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -333,7 +334,6 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         PrimaryChangeAspect aspect = pcpJob.getChangeAspect();
 
         pcpJob.storeResultingDeltas(aspect.prepareDeltaOut(event, pcpJob, result));
-        pcpJob.addApprovedBy(aspect.prepareApprovedBy(event, pcpJob, result));
     }
     //endregion
 
@@ -380,12 +380,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause,
 				wfTask, result);
         try {
-			WorkItemResultType workItemResult = workItem.getResult();
+			AbstractWorkItemOutputType output = workItem.getOutput();
         	// TODO - or merge with original deltas?
-        	if (workItemResult != null && workItemResult.getOutcome() == WorkItemOutcomeType.APPROVE
-					&& workItemResult.getAdditionalDeltas() != null) {
+        	if (output != null && ApprovalUtils.fromUri(output.getOutcome()) == WorkItemOutcomeType.APPROVE
+                    && output instanceof WorkItemResultType
+					&& ((WorkItemResultType) output).getAdditionalDeltas() != null) {
 				addDeltasToEventRecord(auditEventRecord,
-						ObjectTreeDeltas.fromObjectTreeDeltasType(workItemResult.getAdditionalDeltas(), getPrismContext()));
+						ObjectTreeDeltas.fromObjectTreeDeltasType(((WorkItemResultType) output).getAdditionalDeltas(), getPrismContext()));
 			}
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);

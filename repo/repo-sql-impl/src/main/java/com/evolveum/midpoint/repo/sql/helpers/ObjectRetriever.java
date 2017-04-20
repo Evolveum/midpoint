@@ -184,7 +184,7 @@ public class ObjectRetriever {
 			RObject obj = (RObject) criteria.uniqueResult();
 
 			if (obj != null) {
-				fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
+				fullObject = new GetObjectResult(obj.getOid(), obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
 						obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
 			}
 		}
@@ -233,8 +233,7 @@ public class ObjectRetriever {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             List<GetObjectResult> focuses = query.list();
-            LOGGER.trace("Found {} focuses, transforming data to JAXB types.",
-                    new Object[]{(focuses != null ? focuses.size() : 0)});
+            LOGGER.trace("Found {} focuses, transforming data to JAXB types.", focuses != null ? focuses.size() : 0);
 
             if (focuses == null || focuses.isEmpty()) {
                 // account shadow owner was not found
@@ -272,8 +271,7 @@ public class ObjectRetriever {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             List<GetObjectResult> users = query.list();
-            LOGGER.trace("Found {} users, transforming data to JAXB types.",
-                    new Object[]{(users != null ? users.size() : 0)});
+            LOGGER.trace("Found {} users, transforming data to JAXB types.", users != null ? users.size() : 0);
 
             if (users == null || users.isEmpty()) {
                 // account shadow owner was not found
@@ -352,9 +350,9 @@ public class ObjectRetriever {
 			rQuery = engine.interpret(query, type, options, false, session);
 
             List<GetObjectResult> queryResult = rQuery.list();
-            LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(queryResult != null ? queryResult.size() : 0)});
+            LOGGER.trace("Found {} objects, translating to JAXB.", queryResult != null ? queryResult.size() : 0);
 
-			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, null, options, session, result);
+			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, options, session, result);
             session.getTransaction().commit();
 			return new SearchResultList<>(list);
 
@@ -368,11 +366,12 @@ public class ObjectRetriever {
 
 	@NotNull
 	private <T extends ObjectType> List<PrismObject<T>> queryResultToPrismObjects(List<GetObjectResult> objects, Class<T> type,
-			String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+			Collection<SelectorOptions<GetOperationOptions>> options,
 			Session session, OperationResult result) throws SchemaException {
 		List<PrismObject<T>> rv = new ArrayList<>();
 		if (objects != null) {
 			for (GetObjectResult object : objects) {
+				String oid = object.getOid();
 				Holder<PrismObject<T>> partialValueHolder = new Holder<>();
 				PrismObject<T> prismObject;
 				try {
@@ -382,7 +381,7 @@ public class ObjectRetriever {
 						prismObject = partialValueHolder.getValue();
 					} else {
 						prismObject = prismContext.createObject(type);
-						prismObject.setOid(oid);        // most probably null
+						prismObject.setOid(oid);
 						prismObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
 					}
 					result.recordFatalError("Couldn't retrieve " + type + " " + oid + ": " + t.getMessage(), t);
@@ -395,14 +394,15 @@ public class ObjectRetriever {
 	}
 
 	public <C extends Containerable> SearchResultList<C> searchContainersAttempt(Class<C> type, ObjectQuery query,
-                                                                                 Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                                 OperationResult result) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        if (!(AccessCertificationCaseType.class.equals(type))) {
-            throw new UnsupportedOperationException("Only AccessCertificationCaseType is supported here now.");
+    	boolean cases = AccessCertificationCaseType.class.equals(type);
+    	boolean workItems = AccessCertificationWorkItemType.class.equals(type);
+        if (!cases && !workItems) {
+            throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
         }
 
-        LOGGER_PERFORMANCE.debug("> search containers {}", new Object[]{type.getSimpleName()});
+        LOGGER_PERFORMANCE.debug("> search containers {}", type.getSimpleName());
         List<C> list = new ArrayList<>();
         Session session = null;
         try {
@@ -411,16 +411,31 @@ public class ObjectRetriever {
             QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
-            List<GetContainerableResult> items = rQuery.list();
-            LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+            if (cases) {
+				List<GetContainerableResult> items = rQuery.list();
+				LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+				Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
+				for (GetContainerableResult item : items) {
+					@SuppressWarnings({ "raw", "unchecked" })
+					C value = (C) caseHelper.updateLoadedCertificationCase(item, campaignsCache, options, session, result);
+					list.add(value);
+				}
+			} else {
+            	assert workItems;
+				List<GetCertificationWorkItemResult> items = rQuery.list();
+				LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+				Map<String,PrismContainerValue<AccessCertificationCaseType>> casesCache = new HashMap<>();
+				Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
+				for (GetCertificationWorkItemResult item : items) {
+					@SuppressWarnings({ "raw", "unchecked" })
+					C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
+					list.add(value);
+				}
+			}
 
-            Map<String,PrismObject> ownersCache = new HashMap<>();
-            for (GetContainerableResult item : items) {
-                C value = (C) caseHelper.updateLoadedCertificationCase(item, ownersCache, options, session, result);
-                list.add(value);
-            }
+			nameResolutionHelper.resolveNamesIfRequested(session, PrismContainerValue.asPrismContainerValues(list), options);
 
-            session.getTransaction().commit();
+			session.getTransaction().commit();
         } catch (QueryException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {
@@ -556,8 +571,7 @@ public class ObjectRetriever {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             List<GetObjectResult> shadows = query.list();
-            LOGGER.debug("Query returned {} shadows, transforming to JAXB types.",
-                    new Object[]{(shadows != null ? shadows.size() : 0)});
+            LOGGER.debug("Query returned {} shadows, transforming to JAXB types.", shadows != null ? shadows.size() : 0);
 
             if (shadows != null) {
                 for (GetObjectResult shadow : shadows) {
@@ -827,7 +841,7 @@ main:       for (;;) {
 				// raw GetObjectResult instances are useless outside repo-sql-impl module, so we'll convert them to objects
 				@SuppressWarnings("unchecked")
 				List<GetObjectResult> listOfGetObjectResults = (List<GetObjectResult>) objects;
-				objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, null, session, result);
+				objects = queryResultToPrismObjects(listOfGetObjectResults, request.getType(), null, session, result);
 			}
 
 			RepositoryQueryDiagResponse response = new RepositoryQueryDiagResponse(objects, implementationLevelQuery, implementationLevelQueryParameters);

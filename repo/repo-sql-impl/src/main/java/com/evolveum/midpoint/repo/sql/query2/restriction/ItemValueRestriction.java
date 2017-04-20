@@ -80,12 +80,9 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
         InterpretationContext context = getContext();
         QueryInterpreter2 interpreter = context.getInterpreter();
         Matcher matcher = interpreter.findMatcher(value);
+        String matchingRule = filter.getMatchingRule() != null ? filter.getMatchingRule().getLocalPart() : null;
 
-        String matchingRule = null;
-        if (filter.getMatchingRule() != null){
-        	matchingRule = filter.getMatchingRule().getLocalPart();
-        }
-
+        // TODO treat null for multivalued properties (at least throw an exception!)
         return matcher.match(context.getHibernateQuery(), operation, hqlPropertyPath, value, matchingRule);
     }
 

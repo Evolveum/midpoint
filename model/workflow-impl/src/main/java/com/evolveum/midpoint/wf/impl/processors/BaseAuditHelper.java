@@ -88,9 +88,9 @@ public class BaseAuditHelper {
 			record.setMessage(stageInfo != null ? stageInfo + " : " + answer : answer);
 
 			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, wfc.getStageNumber());
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, wfc.getStageCount());
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, wfc.getStageName());
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, wfc.getStageDisplayName());
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, WfContextUtil.getStageCount(wfc));
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(wfc));
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(wfc));
 		}
 		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfc.getProcessInstanceId());
 		OperationBusinessContextType businessContext = WfContextUtil.getBusinessContext(wfc);
@@ -131,25 +131,25 @@ public class BaseAuditHelper {
 		record.setEventType(AuditEventType.WORK_ITEM);
 		record.setEventStage(stage);
 
-		ObjectReferenceType objectRef = resolveIfNeeded(workItem.getObjectRef(), result);
+		ObjectReferenceType objectRef = resolveIfNeeded(WfContextUtil.getObjectRef(workItem), result);
 		record.setTarget(objectRef.asReferenceValue());
 
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		record.setParameter(wfTask.getCompleteStageInfo());
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(workItem.getTargetRef(), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(WfContextUtil.getTargetRef(workItem), result));
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), result));
 		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), result));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, workItem.getStageCount());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, workItem.getStageName());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, workItem.getStageDisplayName());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, workItem.getEscalationLevelNumber());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, workItem.getEscalationLevelName());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, workItem.getEscalationLevelDisplayName());
-		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, workItem.getWorkItemId());
-		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, workItem.getProcessInstanceId());
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, WfContextUtil.getStageCount(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, WfContextUtil.getEscalationLevelNumber(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, WfContextUtil.getEscalationLevelName(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, WfContextUtil.getEscalationLevelDisplayName(workItem));
+		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, workItem.getExternalId());
+		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, WfContextUtil.getProcessInstanceId(workItem));
 		return record;
 	}
 
@@ -188,14 +188,14 @@ public class BaseAuditHelper {
 		if (stageInfo != null) {
 			message.append(stageInfo).append(" : ");
 		}
-		WorkItemResultType workItemResult = workItem.getResult();
-		if (workItemResult != null) {
-			String answer = ApprovalUtils.makeNice(workItemResult.getOutcomeAsString());
+		AbstractWorkItemOutputType output = workItem.getOutput();
+		if (output != null) {
+			String answer = ApprovalUtils.makeNiceFromUri(output.getOutcome());
 			record.setResult(answer);
 			message.append(answer);
-			if (workItemResult.getComment() != null) {
-				message.append(" : ").append(workItemResult.getComment());
-				record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, workItemResult.getComment());
+			if (output.getComment() != null) {
+				message.append(" : ").append(output.getComment());
+				record.addPropertyValue(WorkflowConstants.AUDIT_COMMENT, output.getComment());
 			}
 		} else {
 			message.append("(no decision)");		// TODO

@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
 
 import java.util.*;
 
@@ -75,8 +75,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -282,7 +280,7 @@ public class PageSelfDashboard extends PageSelf {
         try {
             ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
                     .item(WorkItemType.F_ASSIGNEE_REF).ref(user.getOid())
-                    .desc(F_WORK_ITEM_CREATED_TIMESTAMP)
+                    .desc(F_CREATE_TIMESTAMP)
                     .build();
             List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, null, task, result);
             for (WorkItemType workItem : workItems) {

@@ -76,7 +76,7 @@ public class ContainerIdGenerator implements IdentifierGenerator {
             return container.getId();
         }
 
-        throw new RuntimeException("Unknown id, should not happen.");
+        throw new RuntimeException("Unknown id, should not happen: " + container);
     }
 
     private String toString(L2Container container) {

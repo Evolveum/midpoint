@@ -17,9 +17,11 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
@@ -38,43 +40,45 @@ import static com.evolveum.midpoint.wf.impl.processes.common.SpringApplicationCo
 /**
  * @author mederly
  */
-public class SummarizeDecisionsInLevel implements JavaDelegate {
+public class SummarizeDecisionsInStage implements JavaDelegate {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SummarizeDecisionsInLevel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SummarizeDecisionsInStage.class);
 
     public void execute(DelegateExecution execution) {
 
 		PrismContext prismContext = getPrismContext();
-		OperationResult result = new OperationResult(SummarizeDecisionsInLevel.class.getName() + ".execute");
+		OperationResult result = new OperationResult(SummarizeDecisionsInStage.class.getName() + ".execute");
 		Task wfTask = ActivitiUtil.getTask(execution, result);
-		ApprovalLevelType level = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
+		ApprovalStageDefinitionType stageDef = ActivitiUtil.getAndVerifyCurrentStage(execution, wfTask, true, prismContext);
 
 		WfContextType wfc = ActivitiUtil.getWorkflowContext(wfTask);
-		List<WfStageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(wfc, WfStageCompletionEventType.class);
+		List<StageCompletionEventType> stageEvents = WfContextUtil.getEventsForCurrentStage(wfc, StageCompletionEventType.class);
 
 		boolean approved;
 		if (!stageEvents.isEmpty()) {
-			ApprovalLevelOutcomeType outcome = WfContextUtil.getCurrentStageOutcome(wfc, stageEvents);
-			switch (outcome) {
-				case APPROVE: approved = true; break;
-				case REJECT: approved = false; break;
-				case SKIP: approved = true; break;
-				default: throw new AssertionError("outcome: " + outcome);
+			String outcome = WfContextUtil.getCurrentStageOutcome(wfc, stageEvents);
+			if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)
+					|| QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP)) {
+				approved = true;
+			} else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
+				approved = false;
+			} else {
+				throw new IllegalStateException("Unknown outcome: " + outcome);		// TODO less draconian handling
 			}
 		} else {
-			LOGGER.trace("****************************************** Summarizing decisions in level {} (level evaluation strategy = {}): ", level.getName(), level.getEvaluationStrategy());
+			LOGGER.trace("****************************************** Summarizing decisions in stage {} (stage evaluation strategy = {}): ", stageDef.getName(), stageDef.getEvaluationStrategy());
 
 			List<WorkItemCompletionEventType> itemEvents = WfContextUtil.getEventsForCurrentStage(wfc, WorkItemCompletionEventType.class);
 
 			boolean allApproved = true;
 			for (WorkItemCompletionEventType event : itemEvents) {
 				LOGGER.trace(" - {}", event);
-				allApproved &= ApprovalUtils.isApproved(event.getResult());
+				allApproved &= ApprovalUtils.isApproved(event.getOutput());
 			}
 			approved = allApproved;
-			if (level.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
-				Set<WorkItemOutcomeType> outcomes = itemEvents.stream()
-						.map(e -> e.getResult().getOutcome())
+			if (stageDef.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
+				Set<String> outcomes = itemEvents.stream()
+						.map(e -> e.getOutput().getOutcome())
 						.collect(Collectors.toSet());
 				if (outcomes.size() > 1) {
 					LOGGER.warn("Ambiguous outcome with firstDecides strategy in {}: {} response(s), providing outcomes of {}",
@@ -86,11 +90,11 @@ public class SummarizeDecisionsInLevel implements JavaDelegate {
 		//MidpointUtil.removeAllStageTriggersForWorkItem(wfTask, result);
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Approval process instance {} (id {}), level {}: result of this level: {}",
+			LOGGER.debug("Approval process instance {} (id {}), stage {}: result of this stage: {}",
 					execution.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
-					execution.getProcessInstanceId(), WfContextUtil.getLevelDiagName(level), approved);
+					execution.getProcessInstanceId(), WfContextUtil.getStageDiagName(stageDef), approved);
 		}
-        execution.setVariable(ProcessVariableNames.LOOP_LEVELS_STOP, !approved);
+        execution.setVariable(ProcessVariableNames.LOOP_STAGES_STOP, !approved);
     }
 
 }

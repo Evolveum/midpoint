@@ -16,18 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,7 +41,7 @@ import java.util.List;
  *
  * @author mederly
  */
-public class CertCaseDto extends CertCaseOrDecisionDto {
+public class CertCaseDto extends CertCaseOrWorkItemDto {
 
     public static final String F_REMEDIED_AT = "remediedAt";
     public static final String F_REVIEWERS = "reviewers";
@@ -58,31 +56,30 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
 
     public CertCaseDto(AccessCertificationCaseType _case, PageBase page, Task task, OperationResult result) {
         super(_case, page);
-        for (AccessCertificationDecisionType decision : _case.getDecision()) {
-            if (decision.getResponse() == null && StringUtils.isEmpty(decision.getComment())) {
-                continue;
+		List<String> allReviewersNames = new ArrayList<>();
+        for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
+            if (StringUtils.isNotEmpty(WorkItemTypeUtil.getComment(workItem))) {
+                comments.add(WorkItemTypeUtil.getComment(workItem));
             }
-            if (StringUtils.isNotEmpty(decision.getComment())) {
-                comments.add(decision.getComment());
-            }
-            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(decision.getReviewerRef(), page, task, result);
-            if (reviewerObject != null) {
-                reviewerNames.add(WebComponentUtil.getName(reviewerObject));
-            }
+			boolean hasResponse = hasResponse(workItem);
+			for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
+				PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(reviewerRef, page, task, result);
+				String reviewerName = reviewerObject != null ? WebComponentUtil.getName(reviewerObject) : reviewerRef.getOid();
+				allReviewersNames.add(reviewerName);
+				if (hasResponse) {
+					reviewerNames.add(reviewerName);
+				}
+			}
         }
-        List<String> names = new ArrayList<>();
-        for (ObjectReferenceType reviewerRef : _case.getCurrentReviewerRef()) {
-            // TODO optimize - don't resolve reviewers twice
-            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(reviewerRef, page, task, result);
-            if (reviewerObject != null) {
-                names.add(WebComponentUtil.getName(reviewerObject));
-            }
-        }
-        if (names.isEmpty()) {
+        if (allReviewersNames.isEmpty()) {
             allReviewers = page.getString("PageCertCampaign.noReviewers");
         } else {
-            allReviewers = StringUtils.join(names, ", ");
+            allReviewers = StringUtils.join(allReviewersNames, ", ");
         }
+    }
+
+    private boolean hasResponse(AccessCertificationWorkItemType workItem) {
+        return workItem.getOutput() != null && (workItem.getOutput().getOutcome() != null || !StringUtils.isEmpty(workItem.getOutput().getComment()));
     }
 
     public String getReviewers() {
@@ -106,15 +103,15 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     private Date getReviewedTimestamp(AccessCertificationCaseType certCase) {
-        return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getDecision());
+        return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getWorkItem());
     }
 
     public AccessCertificationResponseType getOverallOutcome() {
-        return getCertCase().getOverallOutcome();
+        return OutcomeUtils.fromUri(getCertCase().getOutcome());
     }
 
     public Integer getCurrentResponseStageNumber() {
-        return getCertCase().getCurrentStageNumber();
+        return getCertCase().getStageNumber();
     }
 
 }

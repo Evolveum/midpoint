@@ -29,11 +29,10 @@ import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -63,14 +62,11 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     }
 
     public void sortDefinitions() {
-        Collections.sort(definitions, new LinkDefinitionComparator());
+        definitions.sort(new LinkDefinitionComparator());
     }
 
-    private <D extends JpaDataNodeDefinition> JpaLinkDefinition<D> findRawLinkDefinition(ItemPath itemPath, Class<D> type, boolean exact) {
-        Validate.notNull(itemPath, "ItemPath must not be null.");
-        Validate.notNull(type, "Definition type must not be null.");
-
-        for (JpaLinkDefinition definition : definitions) {
+    private <D extends JpaDataNodeDefinition> JpaLinkDefinition<D> findRawLinkDefinition(@NotNull ItemPath itemPath, @NotNull Class<D> type, boolean exact) {
+        for (JpaLinkDefinition<?> definition : definitions) {
             if (exact) {
                 if (!definition.matchesExactly(itemPath)) {
                     continue;
@@ -81,7 +77,9 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
                 }
             }
             if (type.isAssignableFrom(definition.getTargetClass())) {
-                return definition;
+                @SuppressWarnings({ "unchecked", "raw" })
+                JpaLinkDefinition<D> typeDefinition = (JpaLinkDefinition<D>) definition;
+                return typeDefinition;
             }
         }
         return null;
@@ -97,7 +95,6 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
      * @param path ItemPath to resolve. Non-empty!
      * @param itemDefinition Definition of the final path segment, if it's "any" property.
      * @param type Type of definition to be found
-     * @param prismContext
      * @return
      *
      * If successful, returns correct definition + empty path.
@@ -112,7 +109,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
             ItemDefinition itemDefinition, Class<D> type, LinkDefinitionHandler handler, PrismContext prismContext) throws QueryException {
         JpaDataNodeDefinition currentDefinition = this;
         for (;;) {
-            DataSearchResult<JpaDataNodeDefinition> result = currentDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
+            DataSearchResult<?> result = currentDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
             if (result == null) {   // oops
                 return null;
             }
@@ -144,7 +141,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) throws QueryException {
+    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition, PrismContext prismContext) throws QueryException {
 
         if (ItemPath.isNullOrEmpty(path)) {     // doesn't fulfill precondition
             return null;
@@ -157,12 +154,12 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
             throw new QueryException("'@' path segment cannot be used in the context of an entity " + this);
         }
 
-        JpaLinkDefinition link = findRawLinkDefinition(path, JpaDataNodeDefinition.class, false);
+        JpaLinkDefinition<?> link = findRawLinkDefinition(path, JpaDataNodeDefinition.class, false);
         if (link == null) {
             return null;
         } else {
             link.resolveEntityPointer();
-            return new DataSearchResult(link, path.tail(link.getItemPath().size()));
+            return new DataSearchResult<>(link, path.tail(link.getItemPath().size()));
         }
     }
 

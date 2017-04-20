@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ItemPathResolver;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *  An image of an ObjectFilter, forming a restriction tree.
@@ -55,9 +55,9 @@ import org.apache.commons.lang.Validate;
  */
 public abstract class Restriction<T extends ObjectFilter> {
 
-    final protected InterpretationContext context;
+    @NotNull final protected InterpretationContext context;
     final protected Restriction parent;
-    final protected T filter;
+    @NotNull final protected T filter;
 
     /**
      * Content of ItemPathResolutionStartInformation:
@@ -84,12 +84,9 @@ public abstract class Restriction<T extends ObjectFilter> {
      * segments in item paths.
      *
      */
-    final protected HqlEntityInstance baseHqlEntity;
+    private final HqlEntityInstance baseHqlEntity;
 
-    public Restriction(InterpretationContext context, T filter, JpaEntityDefinition baseEntityDefinition, Restriction parent) {
-        Validate.notNull(context, "context");
-        Validate.notNull(filter, "filter");
-        Validate.notNull(baseEntityDefinition, "baseEntityDefinition");
+    public Restriction(@NotNull InterpretationContext context, @NotNull T filter, @NotNull JpaEntityDefinition baseEntityDefinition, Restriction parent) {
         this.context = context;
         this.filter = filter;
         this.parent = parent;
@@ -100,10 +97,12 @@ public abstract class Restriction<T extends ObjectFilter> {
         }
     }
 
+    @NotNull
     public T getFilter() {
         return filter;
     }
 
+    @NotNull
     public InterpretationContext getContext() {
         return context;
     }
