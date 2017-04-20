@@ -24,6 +24,7 @@ public class ConvertingMultiValueChoosePanel<U, T extends ObjectType> extends Mu
 
 	public ConvertingMultiValueChoosePanel(String id, List<Class<? extends T>> types, Function<T, U> transformFunction,
 			IModel<List<U>> targetModel, boolean multiselect) {
+		// FIXME ? convert target model to List<T> with inverse function
 		super(id, new ListModel<>(), types, multiselect);
 
 		this.transformFunction = transformFunction;
@@ -32,6 +33,7 @@ public class ConvertingMultiValueChoosePanel<U, T extends ObjectType> extends Mu
 
 	@Override
 	protected void choosePerformedHook(AjaxRequestTarget target, List<T> selected) {
+
 		if(selected != null) {
 			targetModel.setObject(
 					selected.stream()
