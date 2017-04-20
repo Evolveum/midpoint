@@ -150,3 +150,17 @@ ALTER TABLE m_acc_cert_wi_reference
   ADD CONSTRAINT fk_acc_cert_wi_ref_owner
 FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
 REFERENCES m_acc_cert_wi (id, owner_id, owner_owner_oid);
+
+ALTER TABLE m_shadow ADD COLUMN pendingOperationCount INTEGER;
+
+CREATE INDEX iShadowKind ON m_shadow (kind);
+
+CREATE INDEX iShadowIntent ON m_shadow (intent);
+
+CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
+
+CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
+
+CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
+
+CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);

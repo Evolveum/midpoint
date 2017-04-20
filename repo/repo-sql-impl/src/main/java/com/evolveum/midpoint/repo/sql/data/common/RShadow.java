@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query.definition.Count;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -46,7 +47,7 @@ import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.Collection;
-
+import java.util.Objects;
 
 /**
  * @author lazyman
@@ -54,8 +55,16 @@ import java.util.Collection;
 @Entity
 @Table(name = "m_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
-        indexes = {@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
-                @Index(name = "iShadowDead", columnNames = "dead")})
+		indexes = {
+				@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
+                @Index(name = "iShadowDead", columnNames = "dead"),
+                @Index(name = "iShadowKind", columnNames = "kind"),
+                @Index(name = "iShadowIntent", columnNames = "intent"),
+                @Index(name = "iShadowObjectClass", columnNames = "objectClass"),
+                @Index(name = "iShadowFailedOperationType", columnNames = "failedOperationType"),
+                @Index(name = "iShadowSyncSituation", columnNames = "synchronizationSituation"),
+                @Index(name = "iShadowPendingOperationCount", columnNames = "pendingOperationCount")
+		})
 @ForeignKey(name = "fk_shadow")
 @QueryEntity(anyElements = {
         @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES)})
@@ -80,6 +89,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
     private RShadowKind kind;
     private Boolean exists;
     private XMLGregorianCalendar fullSynchronizationTimestamp;
+
+    private Integer pendingOperationCount;
 
     @Column(name = "exist")
     public Boolean isExists() {
@@ -196,7 +207,16 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         this.exists = exists;
     }
 
-    @Override
+	@Count
+	public Integer getPendingOperationCount() {
+		return pendingOperationCount;
+	}
+
+	public void setPendingOperationCount(Integer pendingOperationCount) {
+		this.pendingOperationCount = pendingOperationCount;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -216,6 +236,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         if (kind != null ? !kind.equals(that.kind) : that.kind != null) return false;
         if (exists != null ? !exists.equals(that.exists) : that.exists != null) return false;
         if (status != that.status) return false;
+        if (!Objects.equals(pendingOperationCount, that.pendingOperationCount)) return false;
 
         return true;
     }
@@ -271,6 +292,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         if (jaxb.getAttributes() != null) {
             copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES);
         }
+        repo.pendingOperationCount = jaxb.getPendingOperation().size();
     }
 
     @Override

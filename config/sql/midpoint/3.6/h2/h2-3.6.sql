@@ -654,6 +654,7 @@ CREATE TABLE m_shadow (
   name_norm                    VARCHAR(255),
   name_orig                    VARCHAR(255),
   objectClass                  VARCHAR(157),
+  pendingOperationCount        INTEGER,
   resourceRef_relation         VARCHAR(157),
   resourceRef_targetOid        VARCHAR(36),
   resourceRef_type             INTEGER,
@@ -932,6 +933,18 @@ ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
 
 CREATE INDEX iShadowDead ON m_shadow (dead);
+
+CREATE INDEX iShadowKind ON m_shadow (kind);
+
+CREATE INDEX iShadowIntent ON m_shadow (intent);
+
+CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
+
+CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
+
+CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
+
+CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);

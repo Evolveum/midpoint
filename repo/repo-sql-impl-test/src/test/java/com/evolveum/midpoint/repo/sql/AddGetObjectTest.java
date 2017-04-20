@@ -238,8 +238,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     private void checkContainersSize(PrismContainer newContainer, PrismContainer oldContainer) {
         LOGGER.info("checkContainersSize {} new {}  old {}",
-
-                new Object[]{newContainer.getElementName(), newContainer.size(), oldContainer.size()});
+                newContainer.getElementName(), newContainer.size(), oldContainer.size());
         AssertJUnit.assertEquals(newContainer.size(), oldContainer.size());
 
         List<Long> checked = new ArrayList<Long>();

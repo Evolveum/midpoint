@@ -3780,7 +3780,35 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 		}
 	}
 
-	//    @Test
+    @Test
+    public void testAdHoc107ExistsShadowPendingOperation() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                    .exists(ShadowType.F_PENDING_OPERATION)
+                    .build();
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+                    + "  s.oid,\n"
+                    + "  s.fullObject,\n"
+                    + "  s.stringsCount,\n"
+                    + "  s.longsCount,\n"
+                    + "  s.datesCount,\n"
+                    + "  s.referencesCount,\n"
+                    + "  s.polysCount,\n"
+                    + "  s.booleansCount\n"
+                    + "from\n"
+                    + "  RShadow s\n"
+                    + "where\n"
+                    + "  s.pendingOperationCount > :pendingOperationCount";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    //    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {
 //        Session session = open();
 //

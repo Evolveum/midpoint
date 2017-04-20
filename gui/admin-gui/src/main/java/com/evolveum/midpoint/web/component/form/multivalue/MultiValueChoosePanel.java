@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -165,12 +166,6 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 		add(selectedRowsList);
     }
 
-	protected void replaceIfEmpty(List<T> chosenValues) {
-				
-		getModel().setObject(chosenValues); 
-		LOGGER.debug("Replaced model object with selected : {}", chosenValues);
-	}
-
 	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
 		ArrayList<String> oidList = new ArrayList<>();
 		ObjectQuery query = new ObjectQuery();
@@ -219,17 +214,18 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List<T> selected) {
 				getPageBase().hideMainPopup(target);
-				choosePerformed(target, selected);
+				MultiValueChoosePanel.this.addPerformed(target, selected);
 			}
-			
+
 			@Override
-					protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
-						super.onSelectPerformed(target, focus);
-						if( ! multiselect) {
-							// asList alone is not modifiable, you can't add/remove elements later
-							choosePerformed(target, new ArrayList<>(asList(focus)));
-						}
-					}
+			protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
+				super.onSelectPerformed(target, focus);
+				if (!multiselect) {
+					// asList alone is not modifiable, you can't add/remove
+					// elements later
+					selectPerformed(target, new ArrayList<>(asList(focus)));
+				}
+			}
 
 		};
 
@@ -237,13 +233,23 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 
 	}
 
-	protected void choosePerformed(AjaxRequestTarget target, List<T> chosenValues) {
+	protected void selectPerformed(AjaxRequestTarget target, List<T> chosenValues) {
+		getModel().setObject(chosenValues);
 		choosePerformedHook(target, chosenValues);
-		replaceIfEmpty(chosenValues);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("New object instance has been added to the model.");
+		target.add(MultiValueChoosePanel.this);
+	}
+
+	protected void addPerformed(AjaxRequestTarget target, List<T> addedValues) {
+		List<T> modelList = getModelObject();
+		if(modelList == null) {
+			modelList = new ArrayList<T>();
 		}
+		addedValues.removeAll(modelList); // add values not already in
+		modelList.addAll(addedValues);
+		getModel().setObject(modelList);
+		choosePerformedHook(target, modelList);
+
 		target.add(MultiValueChoosePanel.this);
 	}
 

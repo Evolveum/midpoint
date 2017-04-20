@@ -794,6 +794,12 @@
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
         </activation>
+		<pendingOperation id="1">
+			<asynchronousOperationReference>123456</asynchronousOperationReference>
+		</pendingOperation>
+		<pendingOperation id="2">
+			<asynchronousOperationReference>789012</asynchronousOperationReference>
+		</pendingOperation>
     </object>
 
     <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
