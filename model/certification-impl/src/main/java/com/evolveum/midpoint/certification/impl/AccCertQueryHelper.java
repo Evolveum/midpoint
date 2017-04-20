@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -26,15 +25,15 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,14 +85,15 @@ public class AccCertQueryHelper {
     }
 
     // public because of testing
-    public List<AccessCertificationWorkItemType> searchWorkItems(ObjectQuery baseWorkItemsQuery, String reviewerOid, boolean notDecidedOnly,
+    // principal == null => take all work items
+    public List<AccessCertificationWorkItemType> searchWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal, boolean notDecidedOnly,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 
         // enhance filter with reviewerRef + enabled
         ObjectQuery newQuery;
 
-        ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(reviewerOid);
+        ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(principal);
 
         ObjectFilter filterToAdd;
         if (notDecidedOnly) {
@@ -145,13 +145,14 @@ public class AccCertQueryHelper {
                     .buildFilter();
     }
 
-    // TODO deputies!
-    private ObjectFilter getReviewerAndEnabledFilterForWI(String reviewerOid) throws SchemaException {
-        if (reviewerOid != null) {
-            return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-                    .item(F_ASSIGNEE_REF).ref(reviewerOid, UserType.COMPLEX_TYPE)
-                    .and().item(F_CLOSE_TIMESTAMP).isNull()
-                    .buildFilter();
+    private ObjectFilter getReviewerAndEnabledFilterForWI(MidPointPrincipal principal) throws SchemaException {
+        if (principal != null) {
+			return QueryUtils.filterForAssignees(
+						QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext),
+						principal,
+						OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS)
+					.and().item(F_CLOSE_TIMESTAMP).isNull()
+					.buildFilter();
         } else {
             return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
                     .item(F_CLOSE_TIMESTAMP).isNull()

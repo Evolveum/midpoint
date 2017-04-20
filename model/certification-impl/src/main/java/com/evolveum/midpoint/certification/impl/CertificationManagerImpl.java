@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -319,8 +320,7 @@ public class CertificationManagerImpl implements CertificationManager {
             securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
                     null, null, null, null, result);
 
-            String reviewerOid = securityEnforcer.getPrincipal().getOid();
-            return queryHelper.searchWorkItems(baseWorkItemsQuery, reviewerOid, notDecidedOnly, options, task, result);
+            return queryHelper.searchWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;

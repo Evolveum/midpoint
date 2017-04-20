@@ -322,11 +322,12 @@ public class AccCertUpdateHelper {
 		Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
 		for (String reviewerOid : reviewers) {
 			List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
-			Optional<AccessCertificationWorkItemType> noResponseItem = cases.stream().flatMap(c -> c.getWorkItem().stream())
-					.filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
-					.filter(wi -> wi.getOutput() == null || wi.getOutput().getOutcome() == null)
-					.findAny();
-			if (noResponseItem.isPresent()) {
+			boolean notify = !unansweredOnly ||
+					cases.stream()
+							.flatMap(c -> c.getWorkItem().stream())
+							.anyMatch(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid) &&
+											(wi.getOutput() == null || wi.getOutput().getOutcome() == null));
+			if (notify) {
 				ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
 				eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
 			}
