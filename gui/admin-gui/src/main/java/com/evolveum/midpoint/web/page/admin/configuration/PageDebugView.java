@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -31,39 +30,32 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.input.MultiStateHorizontalButton;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
 
 import javax.xml.namespace.QName;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -117,8 +109,7 @@ public class PageDebugView extends PageAdminConfiguration {
             }
 
             @Override
-            public void detach(){
-
+            public void detach() {
             }
         };
         dataLanguage = determineDataLanguage();
@@ -146,10 +137,22 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
-            	if (model == null || model.getObject() == null){
+                if (model == null) {
+                    return "";
+                }
+                ObjectViewDto object;
+                try {
+                    object = model.getObject();
+                } catch (RuntimeException e) {
+                    // e.g. when the object is unreadable
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object", e);
+                    return "";
+                }
+                if (object == null) {
             		return "";
-            	}
-                return createStringResource("PageDebugView.title", model.getObject().getName()).getString();
+            	} else {
+                    return createStringResource("PageDebugView.title", object.getName()).getString();
+                }
             }
         };
     }

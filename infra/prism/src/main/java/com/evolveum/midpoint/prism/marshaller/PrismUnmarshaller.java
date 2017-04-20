@@ -318,9 +318,7 @@ public class PrismUnmarshaller {
             }
             for (XNode subNode : listNode) {
                 PrismPropertyValue<T> pval = parsePropertyValue(subNode, itemDefinition, pc);
-                if (pval != null) {
-                    property.add(pval);
-                }
+                addItemValueIfPossible(property, pval, pc);
             }
         } else if (node instanceof MapXNode || node instanceof PrimitiveXNode || node.isHeterogeneousList()) {
             PrismPropertyValue<T> pval = parsePropertyValue(node, itemDefinition, pc);
@@ -331,25 +329,32 @@ public class PrismUnmarshaller {
             SchemaDefinitionType schemaDefType = getBeanUnmarshaller().unmarshalSchemaDefinitionType((SchemaXNode) node);
             @SuppressWarnings("unchecked")
             PrismPropertyValue<T> val = new PrismPropertyValue(schemaDefType);
-            property.add(val);
+			addItemValueIfPossible(property, val, pc);
         } else {
             throw new IllegalArgumentException("Cannot parse property from " + node);
         }
         return property;
     }
 
-    // if definition == null or any AND node has type defined, this type must be non-containerable (fit into PPV)
+	private <V extends PrismValue, D extends ItemDefinition> void addItemValueIfPossible(Item<V, D> item, V value, ParsingContext pc) throws SchemaException {
+		if (value != null) {
+			try {
+				item.add(value);
+			} catch (SchemaException e) {
+				pc.warnOrThrow(LOGGER, "Couldn't add a value of " + value + " to the containing item: " + e.getMessage(), e);
+			}
+		}
+	}
+
+	// if definition == null or any AND node has type defined, this type must be non-containerable (fit into PPV)
     private <T> PrismPropertyValue<T> parsePropertyValue(@NotNull XNode node,
             @Nullable PrismPropertyDefinition<T> definition, @NotNull ParsingContext pc) throws SchemaException {
+        QName typeFromDefinition = definition != null && !definition.isAnyType() ? definition.getTypeName() : null;
         QName typeName =
-                getSchemaRegistry().selectMoreSpecific(
-                        definition != null && !definition.isAnyType() ? definition.getTypeName() : null,
-                        node.getTypeQName()
-                );
+                getSchemaRegistry().areComparable(typeFromDefinition, node.getTypeQName()) ?
+                        getSchemaRegistry().selectMoreSpecific(typeFromDefinition, node.getTypeQName()) : null;
         if (typeName == null) {
-            PrismPropertyValue<T> ppv = PrismPropertyValue.createRaw(node);
-            ppv.setPrismContext(prismContext);
-            return ppv;
+			return createRawPrismPropertyValue(node);
         } else if (getBeanUnmarshaller().canProcess(typeName)) {
             T realValue = getBeanUnmarshaller().unmarshal(node, typeName, pc);
             // Postprocessing after returning from unmarshaller. It speaks bean language (e.g. PolyStringType, not PolyString).
@@ -371,11 +376,19 @@ public class PrismUnmarshaller {
             ppv.setPrismContext(prismContext);
             return ppv;
         } else {
-            throw new IllegalStateException("Cannot parse as " + typeName + ": " + node.debugDump());
+        	pc.warnOrThrow(LOGGER, "Cannot parse as " + typeName + ": " + node.debugDump());
+			return createRawPrismPropertyValue(node);
         }
     }
 
-    private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) throws SchemaException {
+	@NotNull
+	private <T> PrismPropertyValue<T> createRawPrismPropertyValue(@NotNull XNode node) {
+		PrismPropertyValue<T> ppv = PrismPropertyValue.createRaw(node);
+		ppv.setPrismContext(prismContext);
+		return ppv;
+	}
+
+	private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) throws SchemaException {
         if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
             return true;
         }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.api.expr;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -1054,4 +1055,6 @@ public interface MidpointFunctions {
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
 	String getChannel();
+
+	WorkflowService getWorkflowService();
 }

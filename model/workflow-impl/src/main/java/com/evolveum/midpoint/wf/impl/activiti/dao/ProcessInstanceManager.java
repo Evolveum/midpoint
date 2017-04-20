@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.wf.impl.activiti.dao;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,12 +37,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
+import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.history.HistoricProcessInstanceQuery;
+import org.activiti.engine.runtime.ProcessInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -49,11 +56,9 @@ public class ProcessInstanceManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(ProcessInstanceManager.class);
 
-    @Autowired
-    private ActivitiEngine activitiEngine;
-
-	@Autowired
-	private TaskManager taskManager;
+    @Autowired private ActivitiEngine activitiEngine;
+	@Autowired private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -135,7 +140,7 @@ public class ProcessInstanceManager {
 		try {
 			LOGGER.info("Starting synchronization of workflow requests between repository and Activiti");
 			final Set<String> activeProcessInstances = new HashSet<>();
-			final Map<String,String> activitiToMidpoint = getActivitToMidpoint(activeProcessInstances, result);
+			final Map<String,String> activitiToMidpoint = getActivitiToMidpoint(activeProcessInstances, result);
 			final Map<String,String> midpointToActiviti = getMidpointToActiviti(result);
 			Statistics s = new Statistics();
 			doPhase1(activitiToMidpoint, midpointToActiviti, activeProcessInstances, s, result);
@@ -289,7 +294,7 @@ public class ProcessInstanceManager {
 		return rv;
 	}
 
-	private Map<String, String> getActivitToMidpoint(Set<String> activeProcessInstances, OperationResult result) {
+	private Map<String, String> getActivitiToMidpoint(Set<String> activeProcessInstances, OperationResult result) {
 		Map<String,String> rv = new HashMap<>();
 		int processWithoutTaskOidCount = 0;
 		HistoricProcessInstanceQuery query = activitiEngine.getHistoryService().createHistoricProcessInstanceQuery()
@@ -310,4 +315,60 @@ public class ProcessInstanceManager {
 				rv.size(), processWithoutTaskOidCount, activeProcessInstances.size());
 		return rv;
 	}
+
+	public void cleanupActivitiProcesses(OperationResult result) throws SchemaException {
+		RuntimeService runtimeService = activitiEngine.getRuntimeService();
+		TaskService taskService = activitiEngine.getTaskService();
+
+		LOGGER.info("Starting cleanup of Activiti processes");
+		Collection<String> processInstancesToKeep = getProcessInstancesToKeep(result);
+		LOGGER.info("Process instances to keep: {}", processInstancesToKeep);
+
+		List<ProcessInstance> instances = runtimeService.createProcessInstanceQuery().list();
+		LOGGER.info("Existing process instances in Activiti: {}", instances.size());
+		int ok = 0, fail = 0;
+		for (ProcessInstance instance : instances) {
+			String instanceId = instance.getId();
+			if (processInstancesToKeep.contains(instanceId)) {
+				continue;
+			}
+			LOGGER.debug("Deleting process instance {}", instance);
+			try {
+				runtimeService.setVariable(instanceId, CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_IS_STOPPING, Boolean.TRUE);
+				runtimeService.deleteProcessInstance(instanceId, "Deleted as part of activiti processes cleanup");
+				ok++;
+			} catch (Throwable t) {
+				LOGGER.info("Couldn't delete process instance {}, retrying with explicit deletion of some variables for its tasks", instanceId);
+				List<org.activiti.engine.task.Task> tasks = taskService.createTaskQuery()
+						.processInstanceId(instanceId).list();
+				LOGGER.debug("Tasks: {}", tasks);
+				for (org.activiti.engine.task.Task task : tasks) {
+					taskService.removeVariables(task.getId(), Arrays.asList("approvalSchema", "level"));
+				}
+				try {
+					runtimeService.deleteProcessInstance(instanceId, "Deleted as part of activiti processes cleanup");
+					ok++;
+				} catch (Throwable t2) {
+					result.createSubresult(ProcessInstanceManager.class.getName() + ".cleanupActivitiProcess")
+							.recordPartialError("Couldn't delete Activiti process instance " + instanceId + ": " + t2.getMessage(),
+									t2);
+					fail++;
+				}
+			}
+		}
+		String message = "Successfully deleted "+ok+" instances; failed "+fail+" times";
+		LOGGER.info(message);
+		result.recordStatus(fail > 0 ? OperationResultStatus.PARTIAL_ERROR : OperationResultStatus.SUCCESS, message);
+	}
+
+	private Set<String> getProcessInstancesToKeep(OperationResult result) throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+				.not().item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).isNull()
+				.build();
+		SearchResultList<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+		return tasks.stream()
+				.map(t -> t.asObjectable().getWorkflowContext().getProcessInstanceId())
+				.collect(Collectors.toSet());
+	}
+
 }
