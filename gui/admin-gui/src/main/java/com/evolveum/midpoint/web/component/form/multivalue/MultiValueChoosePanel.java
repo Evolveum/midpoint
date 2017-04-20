@@ -237,9 +237,6 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 		getModel().setObject(chosenValues);
 		choosePerformedHook(target, chosenValues);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("New object instance has been added to the model.");
-		}
 		target.add(MultiValueChoosePanel.this);
 	}
 
@@ -253,9 +250,6 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 		getModel().setObject(modelList);
 		choosePerformedHook(target, modelList);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("New object instance has been added to the model.");
-		}
 		target.add(MultiValueChoosePanel.this);
 	}
 
