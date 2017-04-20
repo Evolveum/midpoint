@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static org.testng.AssertJUnit.assertEquals;
@@ -210,7 +211,43 @@ public class TestEscalation extends AbstractCertificationTest {
         checkAllWorkItems(workItems, campaignOid);
     }
 
-    @Test
+	@Test
+	public void test100RecordDecision() throws Exception {
+		final String TEST_NAME = "test100RecordDecision";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+		AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, USER_ADMINISTRATOR_OID);
+		long id = superuserCase.asPrismContainerValue().getId();
+		certificationService.recordDecision(campaignOid, id, workItem.getId(), ACCEPT, "no comment", task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		caseList = queryHelper.searchCases(campaignOid, null, null, result);
+		display("caseList", caseList);
+		checkAllCases(caseList, campaignOid);
+
+		superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
+		assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
+		assertSingleDecision(superuserCase, ACCEPT, "no comment", 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+	}
+
+
+	@Test
     public void test110Escalate() throws Exception {
         final String TEST_NAME = "test110Escalate";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -256,8 +293,12 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertEquals("Wrong delegationMethod", WorkItemDelegationMethodType.ADD_ASSIGNEES, event.getDelegationMethod());
 		assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
 
+		AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
+		AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, USER_ADMINISTRATOR_OID);
+		assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
+
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentComplete(campaign, 0, 0, 0);
+		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
 
 		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
 		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
@@ -318,8 +359,12 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertEquals("Wrong old escalation level", OLD_ESCALATION_LEVEL, event.getEscalationLevel());
 		assertEquals("Wrong new escalation level", NEW_ESCALATION_LEVEL, event.getNewEscalationLevel());
 
+		AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
+		AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, USER_ADMINISTRATOR_OID);
+		assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
+
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentComplete(campaign, 0, 0, 0);
+		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
 
 		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
 		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());

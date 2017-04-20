@@ -131,7 +131,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -143,6 +142,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -203,7 +203,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -408,7 +407,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -421,6 +419,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -484,7 +483,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -496,6 +494,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -568,7 +567,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(3, stat.getWithoutResponse());
     }
@@ -598,7 +596,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(3, stat.getWithoutResponse());
     }
@@ -708,7 +705,6 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(1, stat.getWithoutResponse());
     }
@@ -720,6 +716,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -858,7 +855,6 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         assertEquals(3, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(1, stat.getWithoutResponse());
     }
