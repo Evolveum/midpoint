@@ -19,31 +19,33 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
+import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
@@ -51,45 +53,20 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
-
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -100,6 +77,11 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author semancik
@@ -110,16 +92,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointFunctionsImpl.class);
 
-    @Autowired(required=true)
+    @Autowired
     private PrismContext prismContext;
 
-    @Autowired(required=true)
+    @Autowired
     private ModelService modelService;
     
-    @Autowired(required=true)
+    @Autowired
     private ModelObjectResolver modelObjectResolver;
 
-    @Autowired(required=true)
+    @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
@@ -129,13 +111,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired
     private SecurityEnforcer securityEnforcer;
 
-    @Autowired(required = true)
+    @Autowired
     private transient Protector protector;
 
     @Autowired
     private OrgStructFunctionsImpl orgStructFunctions;
-    
-    public String hello(String name) {
+
+	@Autowired
+	private WorkflowService workflowService;
+
+	public String hello(String name) {
         return "Hello "+name;
     }
     
@@ -147,7 +132,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public List<String> toList(String... s) {
         return Arrays.asList(s);
     }
-
 
     @Override
     public UserType getUserByOid(String oid) throws ObjectNotFoundException, SchemaException {
@@ -1289,5 +1273,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public String getChannel() {
 		Task task = getCurrentTask();
 		return task != null ? task.getChannel() : null;
+	}
+
+	@Override
+	public WorkflowService getWorkflowService() {
+		return workflowService;
 	}
 }
