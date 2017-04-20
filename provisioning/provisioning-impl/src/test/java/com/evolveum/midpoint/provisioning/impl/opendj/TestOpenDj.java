@@ -2806,12 +2806,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID);
+		OperationResult	testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID);
 		
-		display("Test connection result (expected failure)",operationResult);
-		TestUtil.assertFailure(operationResult);
+		display("Test connection result (expected failure)",testResult);
+		TestUtil.assertFailure(testResult);
 		
-		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
 	}
@@ -2844,12 +2845,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID);
+		OperationResult	testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID);
 		
-		display("Test connection result (expected failure)",operationResult);
-		TestUtil.assertFailure(operationResult);
+		display("Test connection result (expected failure)",testResult);
+		TestUtil.assertFailure(testResult);
 		
-		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
 	}

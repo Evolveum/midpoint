@@ -38,6 +38,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -114,7 +115,28 @@ public class TestDummyNegative extends AbstractDummyTest {
 			dummyResource.setSchemaBreakMode(BreakMode.NONE);
 		}
 	}
-	
+
+	@Test
+	public void test190GetResource() throws Exception {
+		final String TEST_NAME = "test190GetResource";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyResource.setSchemaBreakMode(BreakMode.NONE);
+		syncServiceMock.reset();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+			
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("Resource after", resource);
+		IntegrationTestTools.displayXml("Resource after (XML)", resource);
+		assertHasSchema(resource, "dummy");
+	}
 	
 	@Test
 	public void test200AddAccountNullAttributes() throws Exception {
@@ -135,6 +157,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
 			provisioningService.addObject(account, null, null, task, result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
@@ -143,6 +166,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			display("Expected exception", e);
 		}
 		
+		TestUtil.displayThen(TEST_NAME);
 		syncServiceMock.assertNotifyFailureOnly();
 	}
 	

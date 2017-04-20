@@ -143,7 +143,7 @@ public class ResourceManager {
 		
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Fetching resource {}, version {}, storing to cache (previously cached version {})", 
-					new Object[]{oid, version, resourceCache.getVersion(oid)});
+					oid, version, resourceCache.getVersion(oid));
 		}
 		
 		Collection<SelectorOptions<GetOperationOptions>> repoOptions = null;
@@ -345,12 +345,12 @@ public class ResourceManager {
 	private void completeSchemaAndCapabilities(PrismObject<ResourceType> resource, ResourceSchema resourceSchema, boolean fetchedSchema,
 			Map<String,Collection<Object>> capabilityMap, OperationResult result) 
 					throws SchemaException, CommunicationException, ObjectNotFoundException, GenericFrameworkException, ConfigurationException {
-		ResourceType resourceType = resource.asObjectable();
 
 		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 
 		// Capabilities
 		// we need to process capabilities first. Schema is one of the connector capabilities.
+		// We need to determine this capability to select the right connector for schema retrieval.
 		completeCapabilities(resource, capabilityMap != null, capabilityMap, modifications, result);		
 		
 		if (resourceSchema == null) { 
@@ -370,33 +370,28 @@ public class ResourceManager {
 			} else if (resourceSchema.isEmpty()) {
 				LOGGER.warn("Empty resource schema fetched from {}", resource);
 			} else {
-				fetchedSchema = true;
 				LOGGER.debug("Fetched resource schema for {}: {} definitions", resource, resourceSchema.getDefinitions().size());
+				fetchedSchema = true;
 			}
 		}
-
-		if (resourceSchema == null) {
-			return;
-		}
 		
-		// Schema
 		if (fetchedSchema) {
 			adjustSchemaForSimulatedCapabilities(resource, resourceSchema);
 			ContainerDelta<XmlSchemaType> schemaContainerDelta = createSchemaUpdateDelta(resource, resourceSchema);
 			modifications.add(schemaContainerDelta);
-		}		
-		
-		if (fetchedSchema) {
+			
 			// We have successfully fetched the resource schema. Therefore the resource must be up.
 			modifications.add(createResourceAvailabilityStatusDelta(resource, AvailabilityStatusType.UP));
 		}
 
-        try {
-			repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
-        } catch (ObjectAlreadyExistsException ex) {
-        	// This should not happen
-            throw new SystemException(ex);
-        }
+		if (!modifications.isEmpty()) {
+	        try {
+				repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
+	        } catch (ObjectAlreadyExistsException ex) {
+	        	// This should not happen
+	            throw new SystemException(ex);
+	        }
+		}
 
 	}
 	
@@ -431,7 +426,7 @@ public class ResourceManager {
 			Collection<Object> retrievedCapabilities, Collection<ItemDelta<?, ?>> modifications, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
-		if (!forceRefresh && !capType.getNative().getAny().isEmpty()) {
+		if (!forceRefresh && capType.getNative() != null && !capType.getNative().getAny().isEmpty()) {
 			return;
 		}
 		
