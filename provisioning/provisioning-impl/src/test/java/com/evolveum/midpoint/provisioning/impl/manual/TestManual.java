@@ -121,11 +121,6 @@ public class TestManual extends AbstractManualResourceTest {
 	protected File getResourceFile() {
 		return RESOURCE_MANUAL_FILE;
 	}
-
-	@Override
-	protected String getResourceOid() {
-		return RESOURCE_MANUAL_OID;
-	}
 	
 	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {

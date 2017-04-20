@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -200,14 +201,14 @@ public class ConnectorManager {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
-		ConnectorConfigurationType connectorConfigurationType = connectorSpec.getConnectorConfiguration().getValue().asContainerable();
-		if (connectorConfigurationType == null) {
+		PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration().getValue();
+		if (connectorConfigurationVal == null) {
 			SchemaException e = new SchemaException("No connector configuration in "+connectorSpec);
 			result.recordFatalError(e);
 			throw e;
 		}
 		try {
-			connector.configure(connectorConfigurationType.asPrismContainerValue(), result);
+			connector.configure(connectorConfigurationVal, result);
 			
 			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());

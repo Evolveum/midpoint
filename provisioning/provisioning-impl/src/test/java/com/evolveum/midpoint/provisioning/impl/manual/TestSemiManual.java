@@ -130,17 +130,10 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		FileUtils.copyFile(CSV_SOURCE_FILE, CSV_TARGET_FILE);
 	}
 
-
 	@Override
 	protected File getResourceFile() {
 		return RESOURCE_SEMI_MANUAL_FILE;
 	}
-
-	@Override
-	protected String getResourceOid() {
-		return RESOURCE_SEMI_MANUAL_OID;
-	}
-
 	
 	protected PrismObject<ResourceType> addResource(OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {

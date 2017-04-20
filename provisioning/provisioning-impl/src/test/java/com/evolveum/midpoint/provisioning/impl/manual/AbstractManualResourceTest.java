@@ -34,6 +34,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -64,6 +65,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -115,7 +118,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	protected static final String RESOURCE_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
 	
 	protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
-	protected static final String RESOURCE_SEMI_MANUAL_OID = "b6eb1e50-2414-11e7-bf12-579151795f29";
+	protected static final String RESOURCE_SEMI_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
+
+	public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 	
 	protected static final String MANUAL_CONNECTOR_TYPE = "ManualConnector";
 	
@@ -165,7 +170,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	
 	protected abstract File getResourceFile();
 	
-	protected abstract String getResourceOid();
+	protected String getResourceOid() {
+		return RESOURCE_MANUAL_OID;
+	}
 
 	@Test
 	public void test000Sanity() throws Exception {
@@ -279,16 +286,38 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
 
 		// Also test if the utility method returns the same thing
-		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 		
-		display("Parsed resource schema", returnedSchema);
+		display("Parsed resource schema", resourceSchema);
 
 		// Check whether it is reusing the existing schema and not parsing it all over again
 		// Not equals() but == ... we want to really know if exactly the same
 		// object instance is returned
-		assertTrue("Broken caching", returnedSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
-
-		// TODO: assert schema
+		assertTrue("Broken caching", resourceSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+		
+		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_ACCOUNT_OBJECTCLASS);
+		assertNotNull("Account definition is missing", accountDef);
+		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
+		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+		
+		assertEquals("Unexpected number of definitions", 4, accountDef.getDefinitions().size());
+		
+		ResourceAttributeDefinition<String> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
+		assertNotNull("No definition for username", usernameDef);
+		assertEquals(1, usernameDef.getMaxOccurs());
+		assertEquals(1, usernameDef.getMinOccurs());
+		assertTrue("No username create", usernameDef.canAdd());
+		assertTrue("No username update", usernameDef.canModify());
+		assertTrue("No username read", usernameDef.canRead());
+		
+		ResourceAttributeDefinition<String> fullnameDef = accountDef.findAttributeDefinition(ATTR_FULLNAME);
+		assertNotNull("No definition for fullname", fullnameDef);
+		assertEquals(1, fullnameDef.getMaxOccurs());
+		assertEquals(0, fullnameDef.getMinOccurs());
+		assertTrue("No fullname create", fullnameDef.canAdd());
+		assertTrue("No fullname update", fullnameDef.canModify());
+		assertTrue("No fullname read", fullnameDef.canRead());
 	}
 	
 	@Test
@@ -454,8 +483,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * Case is closed. The operation is complete.
 	 */
 	@Test
-	public void test104CloseCaseAndRefreshAccountWill() throws Exception {
-		final String TEST_NAME = "test104CloseCaseAndRefreshAccountWill";
+	public void test110CloseCaseAndRefreshAccountWill() throws Exception {
+		final String TEST_NAME = "test110CloseCaseAndRefreshAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -520,8 +549,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * ff 5min, everything should be the same (grace not expired yet)
 	 */
 	@Test
-	public void test106RefreshAccountWillAfter5min() throws Exception {
-		final String TEST_NAME = "test106RefreshAccountWillAfter5min";
+	public void test120RefreshAccountWillAfter5min() throws Exception {
+		final String TEST_NAME = "test120RefreshAccountWillAfter5min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -567,8 +596,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * ff 20min, grace should expire
 	 */
 	@Test
-	public void test108RefreshAccountWillAfter25min() throws Exception {
-		final String TEST_NAME = "test108RefreshAccountWillAfter25min";
+	public void test130RefreshAccountWillAfter25min() throws Exception {
+		final String TEST_NAME = "test130RefreshAccountWillAfter25min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -604,8 +633,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	}
 
 	@Test
-	public void test110ModifyAccountWillFullname() throws Exception {
-		final String TEST_NAME = "test110ModifyAccountWillFullname";
+	public void test200ModifyAccountWillFullname() throws Exception {
+		final String TEST_NAME = "test200ModifyAccountWillFullname";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -678,8 +707,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	}
 	
 	@Test
-	public void test112RefreshAccountWill() throws Exception {
-		final String TEST_NAME = "test112RefreshAccountWill";
+	public void test202RefreshAccountWill() throws Exception {
+		final String TEST_NAME = "test202RefreshAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -746,8 +775,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * Case is closed. The operation is complete.
 	 */
 	@Test
-	public void test114CloseCaseAndRefreshAccountWill() throws Exception {
-		final String TEST_NAME = "test114CloseCaseAndRefreshAccountWill";
+	public void test204CloseCaseAndRefreshAccountWill() throws Exception {
+		final String TEST_NAME = "test204CloseCaseAndRefreshAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -825,8 +854,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * ff 5min, everything should be the same (grace not expired yet)
 	 */
 	@Test
-	public void test116RefreshAccountWillAfter5min() throws Exception {
-		final String TEST_NAME = "test116RefreshAccountWillAfter5min";
+	public void test210RefreshAccountWillAfter5min() throws Exception {
+		final String TEST_NAME = "test210RefreshAccountWillAfter5min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -887,8 +916,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * disable - do not complete yet (do not wait for delta to expire, we want several deltas at once).
 	 */
 	@Test
-	public void test120ModifyAccountWillDisable() throws Exception {
-		final String TEST_NAME = "test120ModifyAccountWillDisable";
+	public void test220ModifyAccountWillDisable() throws Exception {
+		final String TEST_NAME = "test220ModifyAccountWillDisable";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -972,8 +1001,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * stored correctly.
 	 */
 	@Test
-	public void test122ModifyAccountWillChangePasswordAndEnable() throws Exception {
-		final String TEST_NAME = "test122ModifyAccountWillChangePasswordAndEnable";
+	public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
+		final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1063,8 +1092,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * Do NOT explicitly refresh the shadow in this case. Just reading it should cause the refresh.
 	 */
 	@Test
-	public void test124CloseDisableCaseAndReadAccountWill() throws Exception {
-		final String TEST_NAME = "test124CloseDisableCaseAndReadAccountWill";
+	public void test240CloseDisableCaseAndReadAccountWill() throws Exception {
+		final String TEST_NAME = "test240CloseDisableCaseAndReadAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1152,8 +1181,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * lets ff 5min just for fun. Refresh, make sure everything should be the same (grace not expired yet)
 	 */
 	@Test
-	public void test126RefreshAccountWillAfter5min() throws Exception {
-		final String TEST_NAME = "test126RefreshAccountWillAfter5min";
+	public void test250RefreshAccountWillAfter5min() throws Exception {
+		final String TEST_NAME = "test250RefreshAccountWillAfter5min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1240,8 +1269,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * delta pending.
 	 */
 	@Test
-	public void test128ClosePasswordChangeCaseAndRefreshAccountWill() throws Exception {
-		final String TEST_NAME = "test128ClosePasswordChangeCaseAndRefreshAccountWill";
+	public void test260ClosePasswordChangeCaseAndRefreshAccountWill() throws Exception {
+		final String TEST_NAME = "test260ClosePasswordChangeCaseAndRefreshAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1336,7 +1365,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * ff 10min. Refresh. Oldest delta should expire.
 	 */
 	@Test
-	public void test130RefreshAccountWillAfter10min() throws Exception {
+	public void test270RefreshAccountWillAfter10min() throws Exception {
 		final String TEST_NAME = "test130RefreshAccountWillAfter10min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
@@ -1426,7 +1455,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * ff 5min. Refresh. Another delta should expire.
 	 */
 	@Test
-	public void test132RefreshAccountWillAfter5min() throws Exception {
+	public void test280RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test132RefreshAccountWillAfter10min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
@@ -1516,7 +1545,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * ff 5min. Refresh. All delta should expire.
 	 */
 	@Test
-	public void test134RefreshAccountWillAfter5min() throws Exception {
+	public void test290RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test134RefreshAccountWillAfter5min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
@@ -1583,8 +1612,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	}
 	
 	@Test
-	public void test140DeleteAccountWill() throws Exception {
-		final String TEST_NAME = "test140DeleteAccountWill";
+	public void test300DeleteAccountWill() throws Exception {
+		final String TEST_NAME = "test300DeleteAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1656,8 +1685,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * Case is closed. The operation is complete.
 	 */
 	@Test
-	public void test144CloseCaseAndRefreshAccountWill() throws Exception {
-		final String TEST_NAME = "test144CloseCaseAndRefreshAccountWill";
+	public void test310CloseCaseAndRefreshAccountWill() throws Exception {
+		final String TEST_NAME = "test310CloseCaseAndRefreshAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1724,8 +1753,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	 * ff 5min, everything should be the same (grace not expired yet)
 	 */
 	@Test
-	public void test146RefreshAccountWillAfter5min() throws Exception {
-		final String TEST_NAME = "test146RefreshAccountWillAfter5min";
+	public void test320RefreshAccountWillAfter5min() throws Exception {
+		final String TEST_NAME = "test320RefreshAccountWillAfter5min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);

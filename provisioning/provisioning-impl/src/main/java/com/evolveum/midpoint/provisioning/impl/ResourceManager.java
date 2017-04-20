@@ -67,6 +67,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -233,7 +234,6 @@ public class ResourceManager {
 		
 		try {
 			
-			// TODO
 			applyConnectorSchemaToResource(repoResource, result);
 						
 		} catch (SchemaException e) {
@@ -363,7 +363,7 @@ public class ResourceManager {
 		
 			LOGGER.trace("Fetching resource schema for {}", resource);
 			
-			resourceSchema = fetchResourceSchema(resource, result);
+			resourceSchema = fetchResourceSchema(resource, capabilityMap, result);
 
 			if (resourceSchema == null) {
 				LOGGER.warn("No resource schema fetched from {}", resource);
@@ -386,6 +386,9 @@ public class ResourceManager {
 
 		if (!modifications.isEmpty()) {
 	        try {
+	        	if (LOGGER.isTraceEnabled()) {
+	        		LOGGER.trace("Completing {}:\n{}", resource, DebugUtil.debugDump(modifications, 1));
+	        	}
 				repositoryService.modifyObject(ResourceType.class, resource.getOid(), modifications, result);
 	        } catch (ObjectAlreadyExistsException ex) {
 	        	// This should not happen
@@ -416,6 +419,7 @@ public class ResourceManager {
 				additionalConnectorType.setCapabilities(connectorCapType);
 			}
 			ItemPath itemPath = additionalConnectorType.asPrismContainerValue().getPath().subPath(ConnectorInstanceSpecificationType.F_CAPABILITIES);
+			LOGGER.info("PPPPPPPPPPPPPPP: {}", itemPath);
 			completeConnectorCapabilities(connectorSpec, connectorCapType, itemPath, forceRefresh, 
 					capabilityMap==null?null:capabilityMap.get(additionalConnectorType.getName()),
 					modifications, result);
@@ -512,53 +516,74 @@ public class ResourceManager {
 	 */
 	private void applyConnectorSchemaToResource(PrismObject<ResourceType> resource, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
-
 		synchronized (resource) {
 			boolean immutable = resource.isImmutable();
 			if (immutable) {
 				resource.setImmutable(false);
 			}
 			try {
-				// TODO
-				ConnectorType connectorType = connectorManager.getConnectorTypeReadOnly(getDefaultConnectorSpec(resource), result);
-				PrismSchema connectorSchema = connectorManager.getConnectorSchema(connectorType);
-				if (connectorSchema == null) {
-					throw new SchemaException("No connector schema in " + connectorType);
-				}
-				PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = ConnectorTypeUtil
-						.findConfigurationContainerDefinition(connectorType, connectorSchema);
-				if (configurationContainerDefinition == null) {
-					throw new SchemaException("No configuration container definition in schema of " + connectorType);
-				}
 
-				configurationContainerDefinition = configurationContainerDefinition.clone();
-				PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil
-						.getConfigurationContainer(resource);
-				// We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
-				// the element is global in the connector schema. therefore it does not have correct maxOccurs
-				if (configurationContainer != null) {
-					configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
-					configurationContainer.applyDefinition(configurationContainerDefinition, true);
-				} else {
-					configurationContainerDefinition.adoptElementDefinitionFrom(
-							resource.getDefinition().findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
+				PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
+				
+				for (ConnectorSpec connectorSpec: getAllConnectorSpecs(resource)) {
+					applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, result);
 				}
-
-				PrismObjectDefinition<ResourceType> objectDefinition = resource.getDefinition();
-				PrismObjectDefinition<ResourceType> clonedObjectDefinition = objectDefinition
-						.cloneWithReplacedDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
-				resource.setDefinition(clonedObjectDefinition);
+				
+				resource.setDefinition(newResourceDefinition);
+				
 			} finally {
 				if (immutable) {
 					resource.setImmutable(true);
 				}
-			}
+			}				
 		}
 	}
+	
+	/**
+	 * Apply proper definition (connector schema) to the resource.
+	 */
+	private void applyConnectorSchemaToResource(ConnectorSpec connectorSpec, PrismObjectDefinition<ResourceType> resourceDefinition, 
+			OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
 
-	private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, OperationResult parentResult) 
+			ConnectorType connectorType = connectorManager.getConnectorTypeReadOnly(connectorSpec, result);
+			PrismSchema connectorSchema = connectorManager.getConnectorSchema(connectorType);
+			if (connectorSchema == null) {
+				throw new SchemaException("No connector schema in " + connectorType);
+			}
+			PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = ConnectorTypeUtil
+					.findConfigurationContainerDefinition(connectorType, connectorSchema);
+			if (configurationContainerDefinition == null) {
+				throw new SchemaException("No configuration container definition in schema of " + connectorType);
+			}
+
+			configurationContainerDefinition = configurationContainerDefinition.clone();
+			PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
+			// We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
+			// the element is global in the connector schema. therefore it does not have correct maxOccurs
+			if (configurationContainer != null) {
+				configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
+				configurationContainer.applyDefinition(configurationContainerDefinition, true);
+			} else {
+				configurationContainerDefinition.adoptElementDefinitionFrom(
+						resourceDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
+			}
+
+			if (connectorSpec.getConnectorName() == null) {
+				// Default connector, for compatibility
+				// It does not make sense to update this for any other connectors.
+				// We cannot have one definition for addiitionalConnector[1]/connectorConfiguraiton and
+				// different definition for addiitionalConnector[2]/connectorConfiguraiton in the object definition.
+				// The way to go is to set up definitions on the container level.
+				resourceDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
+			}
+			
+			
+	}
+
+	private ResourceSchema fetchResourceSchema(PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, OperationResult parentResult) 
 			throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException, SchemaException {
-		ConnectorSpec connectorSpec = selectConnectorSpec(resource, SchemaCapabilityType.class);
+		ConnectorSpec connectorSpec = selectConnectorSpec(resource, capabilityMap, SchemaCapabilityType.class);
 		if (connectorSpec == null) {
 			LOGGER.trace("No connector has schema capability, cannot fetch resource schema");
 			return null;
@@ -566,6 +591,7 @@ public class ResourceManager {
 		InternalMonitor.recordResourceSchemaFetch();
 		List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 		ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
+		LOGGER.trace("Trying to get schema from {}", connectorSpec);
 		return connectorInstance.fetchResourceSchema(generateObjectClasses, parentResult);
 		
 	}
@@ -602,7 +628,7 @@ public class ResourceManager {
 		ResourceSchema schema = null;
 		try {
 
-			schema = fetchResourceSchema(resource, schemaResult);
+			schema = fetchResourceSchema(resource, capabilityMap, schemaResult);
 			
 		} catch (CommunicationException e) {
 			modifyResourceAvailabilityStatus(resource, AvailabilityStatusType.BROKEN, parentResult);
@@ -688,6 +714,8 @@ public class ResourceManager {
 		ConnectorInstance connector;
 		try {
 
+			// TODO: this returns configured instance. Then there is another configuration down below.
+			// this means double configuration of the connector. TODO: clean this up
 			connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, true, initResult);
 			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
@@ -1104,6 +1132,18 @@ public class ResourceManager {
 		return connectorManager.getConfiguredConnectorInstance(connectorSpec, forceFresh, parentResult);
 	}
 	
+	private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Class<T> capabilityClass) throws SchemaException {
+		if (capabilityMap == null) {
+			return selectConnectorSpec(resource, capabilityClass);
+		}
+		for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
+			if (supportsCapability(additionalConnectorType, capabilityMap.get(additionalConnectorType.getName()), capabilityClass)) {
+				return getConnectorSpec(resource, additionalConnectorType);
+			}
+		}
+		return getDefaultConnectorSpec(resource);
+	}
+	
 	private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Class<T> capabilityClass) throws SchemaException {
 		for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
 			if (supportsCapability(additionalConnectorType, capabilityClass)) {
@@ -1115,6 +1155,25 @@ public class ResourceManager {
 	
 	private <T extends CapabilityType> boolean supportsCapability(ConnectorInstanceSpecificationType additionalConnectorType, Class<T> capabilityClass) {
 		T cap = CapabilityUtil.getEffectiveCapability(additionalConnectorType.getCapabilities(), capabilityClass);
+		if (cap == null) {
+			return false;
+		}
+		return CapabilityUtil.isCapabilityEnabled(cap);
+	}
+	
+	private <T extends CapabilityType> boolean supportsCapability(ConnectorInstanceSpecificationType additionalConnectorType, Collection<Object> nativeCapabilities, Class<T> capabilityClass) {
+		CapabilitiesType specifiedCapabilitiesType = additionalConnectorType.getCapabilities();
+		if (specifiedCapabilitiesType != null) {
+			CapabilityCollectionType configuredCapCollectionType = specifiedCapabilitiesType.getConfigured();
+			if (configuredCapCollectionType != null) {
+				T configuredCap = CapabilityUtil.getCapability(configuredCapCollectionType.getAny(), capabilityClass);
+				if (configuredCap != null && !CapabilityUtil.isCapabilityEnabled(configuredCap)) {
+					return false;
+				}
+			}
+			
+		}
+		T cap = CapabilityUtil.getCapability(nativeCapabilities, capabilityClass);
 		if (cap == null) {
 			return false;
 		}

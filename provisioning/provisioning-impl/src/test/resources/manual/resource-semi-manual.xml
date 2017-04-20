@@ -15,12 +15,13 @@
   ~ limitations under the License.
   -->
 
-<resource oid="b6eb1e50-2414-11e7-bf12-579151795f29"
+<resource oid="8a8e19de-1a14-11e7-965f-6f995b457a8b"
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
-        xmlns:csvconf="	http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
+        xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
@@ -35,12 +36,14 @@
 		<name>csv</name>
 		<connectorRef oid="will-be-supplied-by-the-test-code"/>
 		<connectorConfiguration>
-			<csvconf:filePath>target/semi-manual.csv</csvconf:filePath>
-			<csvconf:encoding>utf-8</csvconf:encoding>
-			<csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
-			<csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
-			<csvconf:uniqueAttribute>username</csvconf:uniqueAttribute>
-			<csvconf:passwordAttribute>password</csvconf:passwordAttribute>
+			<icfc:configurationProperties>
+				<csvconf:filePath>target/semi-manual.csv</csvconf:filePath>
+				<csvconf:encoding>utf-8</csvconf:encoding>
+				<csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
+				<csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
+				<csvconf:uniqueAttribute>username</csvconf:uniqueAttribute>
+				<csvconf:passwordAttribute>password</csvconf:passwordAttribute>
+			</icfc:configurationProperties>
 		</connectorConfiguration>
 		<capabilities>
 			<configured>
