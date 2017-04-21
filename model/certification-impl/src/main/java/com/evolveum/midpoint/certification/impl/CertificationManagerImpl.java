@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -319,8 +320,7 @@ public class CertificationManagerImpl implements CertificationManager {
             securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
                     null, null, null, null, result);
 
-            String reviewerOid = securityEnforcer.getPrincipal().getOid();
-            return queryHelper.searchWorkItems(baseWorkItemsQuery, reviewerOid, notDecidedOnly, options, task, result);
+            return queryHelper.searchWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, task, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;
@@ -409,7 +409,7 @@ public class CertificationManagerImpl implements CertificationManager {
                 throw new SystemException("Unexpected exception while getting campaign object: " + e.getMessage(), e);
             }
 
-            int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, delegate=0, noDecision=0, noResponse=0;
+            int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, noDecision=0, noResponse=0;
             for (AccessCertificationCaseType _case : campaign.getCase()) {
                 AccessCertificationResponseType outcome;
                 if (currentStageOnly) {
@@ -436,7 +436,6 @@ public class CertificationManagerImpl implements CertificationManager {
                                     reduceRemedied++;       // currently not possible
                                  }
                                  break;
-                    case DELEGATE: delegate++; break;
                     case NOT_DECIDED: noDecision++; break;
                     case NO_RESPONSE: noResponse++; break;
                     default: throw new IllegalStateException("Unexpected outcome: "+outcome);
@@ -447,7 +446,6 @@ public class CertificationManagerImpl implements CertificationManager {
             stat.setMarkedAsRevokeAndRemedied(revokeRemedied);
             stat.setMarkedAsReduce(reduce);
             stat.setMarkedAsReduceAndRemedied(reduceRemedied);
-            stat.setMarkedAsDelegate(delegate);
             stat.setMarkedAsNotDecide(noDecision);
             stat.setWithoutResponse(noResponse);
             return stat;

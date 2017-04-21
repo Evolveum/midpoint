@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_ACCEPT_ACCEPTS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 
 /**
@@ -136,7 +135,7 @@ public class AccCertResponseComputationHelper {
     private ResponsesSummary summarize(List<AccessCertificationResponseType> responses) {
         ResponsesSummary summary = new ResponsesSummary();
         for (AccessCertificationResponseType response : responses) {
-            if (response == null || response == DELEGATE) {
+            if (response == null) {
                 summary.add(NO_RESPONSE);
             } else {
                 summary.add(response);

@@ -104,7 +104,7 @@ public class CertHelper {
             return;
         }
         int all = stat.getMarkedAsAccept() + stat.getMarkedAsRevoke() + stat.getMarkedAsReduce() + stat.getMarkedAsNotDecide() +
-                stat.getMarkedAsDelegate() + stat.getWithoutResponse();
+                stat.getWithoutResponse();
         sb.append("Number of cases:\t").append(all);
         sb.append("\nMarked as ACCEPT:\t").append(stat.getMarkedAsAccept());
         sb.append("\nMarked as REVOKE:\t").append(stat.getMarkedAsRevoke())
@@ -112,7 +112,6 @@ public class CertHelper {
         sb.append("\nMarked as REDUCE:\t").append(stat.getMarkedAsReduce())
                 .append(" (remedied: ").append(stat.getMarkedAsReduceAndRemedied()).append(")");
         sb.append("\nMarked as NOT DECIDED:\t").append(stat.getMarkedAsNotDecide());
-        sb.append("\nMarked as DELEGATE:\t").append(stat.getMarkedAsDelegate());
         sb.append("\nNo response:\t\t").append(stat.getWithoutResponse());
     }
 }

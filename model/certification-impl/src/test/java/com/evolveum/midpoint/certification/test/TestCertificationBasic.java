@@ -119,6 +119,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -253,6 +254,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         login(getUserFromRepo(USER_BOB_OID));
+        task.setOwner(getUserFromRepo(USER_BOB_OID));
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -657,6 +659,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUserFromRepo(USER_BOB_OID));
         OperationResult result = task.getResult();
 
         // WHEN

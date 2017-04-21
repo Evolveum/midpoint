@@ -307,7 +307,7 @@ public class AccCertUpdateHelper {
         }
         eventHelper.onCampaignStageStart(campaign, task, result);
 
-		notifyReviewers(campaign, task, result);
+		notifyReviewers(campaign, false, task, result);
 
         if (newStage.getNumber() == 1 && campaign.getDefinitionRef() != null) {
             List<ItemDelta<?,?>> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
@@ -317,13 +317,20 @@ public class AccCertUpdateHelper {
         }
     }
 
-	private void notifyReviewers(AccessCertificationCampaignType campaign, Task task, OperationResult result) throws SchemaException {
+	private void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
 		final List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaign.getOid(), null, null, result);
 		Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
 		for (String reviewerOid : reviewers) {
-			final List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
-			final ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-			eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
+			List<AccessCertificationCaseType> cases = queryHelper.getCasesForReviewer(campaign, reviewerOid, task, result);
+			boolean notify = !unansweredOnly ||
+					cases.stream()
+							.flatMap(c -> c.getWorkItem().stream())
+							.anyMatch(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid) &&
+											(wi.getOutput() == null || wi.getOutput().getOutcome() == null));
+			if (notify) {
+				ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+				eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
+			}
 		}
 	}
 
@@ -437,6 +444,12 @@ public class AccCertUpdateHelper {
 			if (workItem.getStageNumber() != workItemCampaign.getStageNumber()) {
 				throw new IllegalStateException("Couldn't delegate a work item that is not in a current stage. Current stage: " + workItemCampaign.getStageNumber() + ", work item stage: " + workItem.getStageNumber());
 			}
+			if (workItem.getOutput() != null && workItem.getOutput().getOutcome() != null) {
+				// It is a bit questionable to skip this work item (as it is not signed off),
+				// but it is also not quite OK to escalate it, as there's some output present.
+				// The latter is less awkward, so let's do it that way.
+				continue;
+			}
 			List<ObjectReferenceType> delegates = computeDelegateTo(escalateAction, workItem, aCase, workItemCampaign, task, result);
 
 			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
@@ -479,7 +492,7 @@ public class AccCertUpdateHelper {
 
 		campaign = generalHelper.getCampaign(campaignOid, null, task, result);
 		// TODO differentiate between "old" and "new" reviewers
-		notifyReviewers(campaign, task, result);
+		notifyReviewers(campaign, true, task, result);
 
 		//		AccessCertificationCampaignType updatedCampaign = refreshCampaign(campaign, task, result);
 //		LOGGER.info("Updated campaign state: {}", updatedCampaign.getState());
