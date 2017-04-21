@@ -26,11 +26,18 @@ public class ApprovalInstruction {
 	public final ExpectedWorkItem expectedWorkItem;
 	public final boolean approval;
 	public final String approverOid;
+	public final CheckedRunnable beforeApproval, afterApproval;
 
-	public ApprovalInstruction(ExpectedWorkItem expectedWorkItem, boolean approval, String approverOid) {
+	public ApprovalInstruction(ExpectedWorkItem expectedWorkItem, boolean approval, String approverOid, CheckedRunnable beforeApproval, CheckedRunnable afterApproval) {
 		this.expectedWorkItem = expectedWorkItem;
 		this.approval = approval;
 		this.approverOid = approverOid;
+		this.beforeApproval = beforeApproval;
+		this.afterApproval = afterApproval;
+	}
+
+	public ApprovalInstruction(ExpectedWorkItem expectedWorkItem, boolean approval, String approverOid) {
+		this(expectedWorkItem, approval, approverOid, null, null);
 	}
 
 	public boolean matches(WorkItemType actualWorkItem) {
@@ -44,5 +51,10 @@ public class ApprovalInstruction {
 				", approval=" + approval +
 				", approverOid='" + approverOid + '\'' +
 				'}';
+	}
+
+	@FunctionalInterface
+	public interface CheckedRunnable {
+		void run() throws Exception;
 	}
 }

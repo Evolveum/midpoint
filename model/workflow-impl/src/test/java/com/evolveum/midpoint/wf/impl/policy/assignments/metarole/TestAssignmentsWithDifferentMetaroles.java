@@ -241,6 +241,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate,
 			boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
+		Task task = createTask("executeAssignRoles123ToJack");
 		PrismObject<UserType> jack = getUser(userJackOid);
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
@@ -353,11 +354,6 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				return null;            // ignore this way of approving
 			}
 
-			/*
-			,
-						new ExpectedWorkItem(userLead22Oid, roleRole22Oid, etasks.get(1)),
-
-			 */
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
 				List<ExpectedTask> tasks = getExpectedTasks();
@@ -369,9 +365,17 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				instructions.add(new ApprovalInstruction(
 								new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid));
 				if (approve3a) {
-					instructions.add(new ApprovalInstruction(
-							new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(2)), approve3b,
-									securityDeputy ? userSecurityApproverDeputyOid : userSecurityApproverOid));
+					ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(2));
+					ApprovalInstruction.CheckedRunnable before = () -> {
+						login(getUserFromRepo(userSecurityApproverOid));
+						checkVisibleWorkItem(expectedWorkItem, 1, task, task.getResult());
+						login(getUserFromRepo(userSecurityApproverDeputyOid));
+						checkVisibleWorkItem(expectedWorkItem, 1, task, task.getResult());
+						login(getUserFromRepo(userSecurityApproverDeputyLimitedOid));
+						checkVisibleWorkItem(null, 0, task, task.getResult());
+					};
+					instructions.add(new ApprovalInstruction(expectedWorkItem, approve3b,
+							securityDeputy ? userSecurityApproverDeputyOid : userSecurityApproverOid, before, null));
 				}
 				return instructions;
 			}
