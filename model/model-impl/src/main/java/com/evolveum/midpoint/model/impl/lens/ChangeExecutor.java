@@ -1480,13 +1480,15 @@ public class ChangeExecutor {
 
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr,
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
-		return evaluateScript(resourceScripts, discr, operation, null, variables, task, result);
+		return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
 
 	}
 
 	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts,
 			ResourceShadowDiscriminator discr, ProvisioningOperationTypeType operation, BeforeAfterType order,
-			ExpressionVariables variables, Task task, OperationResult result)
+			ExpressionVariables variables, LensContext<?> context,
+			LensElementContext<?> objectContext, Task task,
+			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 		if (resourceScripts != null) {
@@ -1505,7 +1507,7 @@ public class ChangeExecutor {
 				if (script.getOperation().contains(operation)) {
 					if (order == null || order == script.getOrder()) {
 						for (ProvisioningScriptArgumentType argument : script.getArgument()) {
-							evaluateScriptArgument(argument, variables, task, result);
+							evaluateScriptArgument(argument, variables, context, objectContext, task, result);
 						}
 						outScripts.getScript().add(script);
 					}
@@ -1517,7 +1519,9 @@ public class ChangeExecutor {
 	}
 
 	private void evaluateScriptArgument(ProvisioningScriptArgumentType argument,
-			ExpressionVariables variables, Task task, OperationResult result)
+			ExpressionVariables variables, LensContext<?> context,
+			LensElementContext<?> objectContext, Task task,
+			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
@@ -1532,7 +1536,8 @@ public class ChangeExecutor {
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, params, task, result);
+				.evaluateExpressionInContext(expression, params, context,
+						objectContext instanceof LensProjectionContext ? (LensProjectionContext) objectContext : null, task, result);
 
 		Collection<PrismPropertyValue<String>> nonNegativeValues = null;
 		if (outputTriple != null) {
@@ -1616,7 +1621,7 @@ public class ChangeExecutor {
 				context.getSystemConfiguration(), projContext);
 		OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
 				projContext.getResourceShadowDiscriminator(), ProvisioningOperationTypeType.RECONCILE, order,
-				variables, task, parentResult);
+				variables, context, projContext, task, parentResult);
 
 		for (OperationProvisioningScriptType script : evaluatedScript.getScript()) {
 			Utils.setRequestee(task, context);

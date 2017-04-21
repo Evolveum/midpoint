@@ -30,9 +30,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author Radovan Semancik
@@ -102,6 +100,21 @@ public class ModelExpressionThreadLocalHolder {
 			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext params, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(task, result);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
+		try {
+			exprResultTriple = expression.evaluate(params);
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
+		return exprResultTriple;
+	}
+
+	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
+			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext params,
+			LensContext<?> lensContext, LensProjectionContext projectionContext, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(lensContext, projectionContext, task, result);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
 		try {
