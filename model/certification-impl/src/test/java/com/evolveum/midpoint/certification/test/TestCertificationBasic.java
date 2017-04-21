@@ -157,6 +157,56 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     }
 
     @Test
+    public void test006CreateCampaignDeniedBobWrongDeputy() throws Exception {
+        final String TEST_NAME = "test006CreateCampaignDeniedBobWrongDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        login(getUserFromRepo(USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID));            // this is a deputy with limitation blocking all assignments
+
+        // WHEN/THEN
+        TestUtil.displayWhen(TEST_NAME);
+        try {
+            certificationService.createCampaign(certificationDefinition.getOid(), task, result);
+            fail("Unexpected success");
+        } catch (SecurityViolationException e) {
+            System.out.println("Expected security violation exception: " + e.getMessage());
+        }
+    }
+
+    @Test(enabled = false)      // https://jira.evolveum.com/browse/MID-3878
+    public void test010CreateCampaignAllowedForDeputy() throws Exception {
+        final String TEST_NAME = "test010CreateCampaignAllowedForDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        login(getUserFromRepo(USER_BOB_DEPUTY_FULL_OID));
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        AccessCertificationCampaignType campaign =
+                certificationService.createCampaign(certificationDefinition.getOid(), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        assertNotNull("Created campaign is null", campaign);
+
+        campaignOid = campaign.getOid();
+
+        campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
+        display("campaign", campaign);
+        assertAfterCampaignCreate(campaign, certificationDefinition);
+        assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
+    }
+
+    @Test
     public void test010CreateCampaignAllowed() throws Exception {
         final String TEST_NAME = "test010CreateCampaignAllowed";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -245,6 +295,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         }
     }
 
+    // TODO test with bob's full deputy
+
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         final String TEST_NAME = "test021OpenFirstStageAllowed";
@@ -292,10 +344,43 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     }
 
     @Test
+    public void test031SearchAllCasesDeniedLimitedDeputy() throws Exception {
+        final String TEST_NAME = "test031SearchAllCasesDeniedLimitedDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_BOB_DEPUTY_NO_PRIVILEGES_OID));
+
+        searchWithNoCasesExpected(TEST_NAME);
+    }
+
+    @Test
     public void test032SearchAllCasesAllowed() throws Exception {
         final String TEST_NAME = "test032SearchAllCasesAllowed";
         TestUtil.displayTestTile(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        List<AccessCertificationCaseType> caseList = modelService.searchContainers(
+                AccessCertificationCaseType.class, null, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        display("caseList", caseList);
+        checkAllCases(caseList, campaignOid);
+    }
+
+    @Test(enabled = false)
+    public void test034SearchAllCasesAllowedDeputy() throws Exception {
+        final String TEST_NAME = "test034SearchAllCasesAllowedDeputy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_BOB_DEPUTY_FULL_OID));
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -357,8 +442,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     }
 
     @Test
-    public void test050SearchDecisionsAdministrator() throws Exception {
-        final String TEST_NAME = "test050SearchDecisionsAdministrator";
+    public void test050SearchWorkItemsAdministrator() throws Exception {
+        final String TEST_NAME = "test050SearchWorkItemsAdministrator";
         TestUtil.displayTestTile(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
@@ -384,8 +469,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     }
 
     @Test
-    public void test052SearchDecisionsByTenantRef() throws Exception {
-        final String TEST_NAME = "test052SearchDecisionsByTenantRef";
+    public void test052SearchWorkItemsByTenantRef() throws Exception {
+        final String TEST_NAME = "test052SearchWorkItemsByTenantRef";
         TestUtil.displayTestTile(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
@@ -478,6 +563,57 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("workItems", workItems);
         assertEquals("Wrong number of certification cases", 1, workItems.size());
         checkWorkItem(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, campaignOid, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
+    }
+
+    @Test
+    public void test060SearchOpenWorkItemsDeputyDenied() throws Exception {
+        final String TEST_NAME = "test060SearchOpenWorkItemsDeputyDenied";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_DEPUTY_NONE_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        false, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification cases", 0, workItems.size());
+    }
+
+    @Test
+    public void test062SearchOpenWorkItemsDeputyAllowed() throws Exception {
+        final String TEST_NAME = "test062SearchOpenWorkItemsDeputyAllowed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        List<AccessCertificationWorkItemType> workItems =
+                certificationService.searchOpenWorkItems(CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),
+                        false, null, task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+
+        display("workItems", workItems);
+        assertEquals("Wrong number of certification cases", 7, workItems.size());
+        checkAllWorkItems(workItems, campaignOid);
     }
 
     @Test

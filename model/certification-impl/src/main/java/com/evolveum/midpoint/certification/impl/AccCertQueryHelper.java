@@ -86,8 +86,8 @@ public class AccCertQueryHelper {
 
     // public because of testing
     // principal == null => take all work items
-    public List<AccessCertificationWorkItemType> searchWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal, boolean notDecidedOnly,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+    public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
+			boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 
         // enhance filter with reviewerRef + enabled
