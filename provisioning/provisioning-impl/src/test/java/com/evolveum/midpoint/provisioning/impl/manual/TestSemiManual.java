@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
@@ -118,10 +119,32 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	protected void backingStoreAddWill() throws IOException {
 		appendToCsv(new String[]{ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_FULLNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", ACCOUNT_WILL_PASSWORD});
 	}
+	
+	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus) throws IOException {
+		String disabled;
+		if (newAdministrativeStatus == ActivationStatusType.ENABLED) {
+			disabled = "false";
+		} else {
+			disabled = "true";
+		}
+		replaceInCsv(new String[]{ACCOUNT_WILL_USERNAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", disabled, ACCOUNT_WILL_PASSWORD});
+	}
 
 	private void appendToCsv(String[] data) throws IOException {
 		String line = formatCsvLine(data) + "\n";
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), line.getBytes(), StandardOpenOption.APPEND);
+	}
+	
+	private void replaceInCsv(String[] data) throws IOException {
+		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
+		for (int i = 0; i < lines.size(); i++) {
+			String line = lines.get(i);
+			String[] cols = line.split(",");
+			if (cols[0].matches("\""+data[0]+"\"")) {
+				lines.set(i, formatCsvLine(data));
+			}
+		}
+		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines, StandardOpenOption.WRITE);
 	}
 
 	private String formatCsvLine(String[] data) {

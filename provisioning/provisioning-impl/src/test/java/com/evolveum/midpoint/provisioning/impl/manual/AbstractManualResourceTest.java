@@ -598,7 +598,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);		
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowProvisioning, true);
-		assertShadowPassword(shadowProvisioning);
+		// TODO
+//		assertShadowPassword(shadowProvisioning);
 		
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
 		display("Repo shadow", shadowRepo);
@@ -944,7 +945,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		if (supportsBackingStore()) {
+			assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		} else {
+			assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		}
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);		
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
@@ -962,6 +968,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1009,9 +1016,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
-		assertShadowActivationAdministrativeStatusFromCache(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttributeFromCache(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
@@ -1029,10 +1037,77 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
+	
+	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus) throws IOException {
+		// nothing to do here
+	}
+	
+	@Test
+	public void test212UpdateBackingStoreAndGetAccountWill() throws Exception {
+		final String TEST_NAME = "test212UpdateBackingStoreAndGetAccountWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow before", shadowBefore);
+		
+		backingStoreUpdateWill(ACCOUNT_WILL_FULLNAME_PIRATE, ActivationStatusType.ENABLED);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		display("Repo shadow", shadowRepo);
+		assertSinglePendingOperation(shadowRepo, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		syncServiceMock.assertNoNotifyChange();
+		syncServiceMock.assertNoNotifcations();
+
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, null, task, result);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowProvisioning);
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowProvisioningFuture);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+
 	
 	/**
 	 * disable - do not complete yet (do not wait for delta to expire, we want several deltas at once).
@@ -1091,6 +1166,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 
 		assertPendingOperationDeltas(shadowProvisioning, 2);
@@ -1108,6 +1184,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.DISABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertNotNull("No async reference in result", willLastCaseOid);
@@ -1176,6 +1253,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
@@ -1194,8 +1272,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadow(shadowProvisioningFuture);
 		
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 		
@@ -1265,6 +1343,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
@@ -1285,6 +1364,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 		
@@ -1350,6 +1430,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
@@ -1370,6 +1451,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 		
@@ -1445,6 +1527,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
@@ -1465,6 +1548,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1532,6 +1616,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 2);
@@ -1552,6 +1637,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1619,6 +1705,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 1);
@@ -1639,6 +1726,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1692,6 +1780,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 0);
@@ -1706,6 +1795,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1760,6 +1850,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioning);
 
 		assertPendingOperationDeltas(shadowProvisioning, 1);
@@ -1910,6 +2001,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
+	
+	// TODO: create, close case, then update backing store.
+	
+	// TODO: let grace period expire without updating the backing store (semi-manual-only)
 
 	private void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
