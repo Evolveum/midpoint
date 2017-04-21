@@ -128,6 +128,7 @@ jack->CTO                   none (A) -> A
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -220,6 +221,7 @@ jack->CTO                   none (A) -> A
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -256,6 +258,7 @@ jack->CTO                   none (A) -> A
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -335,7 +338,6 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(5, stat.getWithoutResponse());
     }
@@ -444,7 +446,6 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(1, stat.getWithoutResponse());
     }
@@ -456,6 +457,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -491,6 +493,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -652,6 +655,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -706,6 +710,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -868,6 +873,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -996,7 +1002,6 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertEquals(1, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(1, stat.getMarkedAsNotDecide());
         assertEquals(3, stat.getWithoutResponse());
     }

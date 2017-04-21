@@ -70,7 +70,12 @@
             <artifactId>model-api</artifactId>
             <version>3.6-SNAPSHOT</version>
         </dependency>
-        
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-api</artifactId>
+            <version>3.6-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>

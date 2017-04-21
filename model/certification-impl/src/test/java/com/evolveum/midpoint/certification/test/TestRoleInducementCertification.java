@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -131,7 +132,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -143,6 +143,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -203,7 +204,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -238,13 +238,14 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
+        login(userAdministrator.asPrismObject());
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchWorkItems(null, USER_ADMINISTRATOR_OID, false, null, task, result);
+                queryHelper.searchWorkItems(null, SecurityUtil.getPrincipal(), false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -271,13 +272,14 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
+        login(userElaine.asPrismObject());
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchWorkItems(null, USER_ELAINE_OID, false, null, task, result);
+                queryHelper.searchWorkItems(null, SecurityUtil.getPrincipal(), false, null, task, result);
 
         /* Expected cases - phase 1:
 
@@ -300,13 +302,14 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
+        login(userJack.asPrismObject());
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchWorkItems(null, USER_JACK_OID, false, null, task, result);
+                queryHelper.searchWorkItems(null, SecurityUtil.getPrincipal(), false, null, task, result);
 
         /* Expected cases - phase 1: NONE */
 
@@ -336,6 +339,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
+        login(userAdministrator.asPrismObject());
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -408,7 +412,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -421,6 +424,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -484,7 +488,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -496,6 +499,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -568,7 +572,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(3, stat.getWithoutResponse());
     }
@@ -598,7 +601,6 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(3, stat.getWithoutResponse());
     }
@@ -708,7 +710,6 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(1, stat.getWithoutResponse());
     }
@@ -720,6 +721,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -858,7 +860,6 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         assertEquals(3, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(1, stat.getWithoutResponse());
     }

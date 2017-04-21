@@ -386,9 +386,6 @@ public class PageCertDecisions extends PageAdminCertification {
         if (availableResponses.isAvailable(NOT_DECIDED)) {
             items.add(createMenu("PageCertDecisions.menu.notDecidedSelected", NOT_DECIDED));
         }
-        if (availableResponses.isAvailable(DELEGATE)) {
-            items.add(createMenu("PageCertDecisions.menu.delegateSelected", DELEGATE));
-        }
         if (availableResponses.isAvailable(NO_RESPONSE)) {
             items.add(createMenu("PageCertDecisions.menu.noResponseSelected", NO_RESPONSE));
         }

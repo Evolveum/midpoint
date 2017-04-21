@@ -77,7 +77,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	
 	// This is not ideal, TODO: refactor
-	private Map<Task, H> handlers = Collections.synchronizedMap(new HashMap<Task, H>());
+	// Note: The key is task OID. Originally here was the whole task, which caused occasional ConcurrentModificationException
+	// when computing hashCode of TaskQuartzImpl objects (not sure why). Anyway, OIDs are better; assuming we are dealing with
+	// persistent tasks only - which is obviously true.
+	private Map<String, H> handlers = Collections.synchronizedMap(new HashMap<String, H>());
 	
 	@Autowired
 	protected TaskManager taskManager;
@@ -197,7 +200,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		}
 		
 		// TODO: error checking - already running
-        handlers.put(coordinatorTask, resultHandler);
+		if (coordinatorTask.getOid() == null) {
+			throw new IllegalArgumentException("Transient tasks cannot be run by " + AbstractSearchIterativeTaskHandler.class + ": " + coordinatorTask);
+		}
+        handlers.put(coordinatorTask.getOid(), resultHandler);
 
         ObjectQuery query;
         try {
@@ -318,7 +324,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
         // TODO: check last handler status
 
-        handlers.remove(coordinatorTask);
+        handlers.remove(coordinatorTask.getOid());
 
         runResult.setProgress(resultHandler.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
@@ -366,7 +372,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	private H getHandler(Task task) {
-        return handlers.get(task);
+        return handlers.get(task.getOid());
     }
 
     @Override

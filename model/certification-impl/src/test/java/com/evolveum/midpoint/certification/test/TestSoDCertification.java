@@ -175,7 +175,6 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
         assertEquals(0, stat.getMarkedAsReduce());
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
-        assertEquals(0, stat.getMarkedAsDelegate());
         assertEquals(0, stat.getMarkedAsNotDecide());
         assertEquals(0, stat.getWithoutResponse());
     }
@@ -187,6 +186,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         display("jack", getUser(USER_JACK_OID));
@@ -315,6 +315,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN

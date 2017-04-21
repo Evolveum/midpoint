@@ -1007,6 +1007,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Responsible person delegates the decision to someone else.
+                        DEPRECATED
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DELEGATE"/>
@@ -1018,6 +1019,9 @@
                     <xsd:documentation>
                         No response was provided by the given reviewer.
                         (This state can be used e.g. to facilitate querying by state.)
+
+                        SHOULD NOT BE USED FOR INDIVIDUAL RESPONSES. (A null value should be used instead.)
+                        But it's OK to use this for stage/case outcome.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NO_RESPONSE"/>
@@ -1289,7 +1293,14 @@
             <xsd:element name="markedAsReduce" type="xsd:int" minOccurs="1" default="0"/>
             <xsd:element name="markedAsReduceAndRemedied" type="xsd:int" minOccurs="1" default="0"/>
             <xsd:element name="markedAsNotDecide" type="xsd:int" minOccurs="1" default="0"/>
-            <xsd:element name="markedAsDelegate" type="xsd:int" minOccurs="1" default="0"/>       <!-- TODO -->
+            <xsd:element name="markedAsDelegate" type="xsd:int" minOccurs="1" default="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.6</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="withoutResponse" type="xsd:int" minOccurs="1" default="0"/>
         </xsd:sequence>
     </xsd:complexType>

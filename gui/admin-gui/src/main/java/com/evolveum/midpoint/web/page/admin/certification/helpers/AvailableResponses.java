@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
@@ -57,7 +56,6 @@ public class AvailableResponses implements Serializable {
         addResponse(config, "PageCertDecisions.menu.revoke", REVOKE);
         addResponse(config, "PageCertDecisions.menu.reduce", REDUCE);
         addResponse(config, "PageCertDecisions.menu.notDecided", NOT_DECIDED);
-        addResponse(config, "PageCertDecisions.menu.delegate", DELEGATE);
         addResponse(config, "PageCertDecisions.menu.noResponse", NO_RESPONSE);
     }
 

@@ -72,7 +72,8 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	DELEGATE_OWN_WORK_ITEMS("delegateOwnWorkItems", "Delegate own work items", "DELEGATE_OWN_WORK_ITEMS_HELP"),
 	READ_ALL_WORK_ITEMS("readAllWorkItems", "Read all work items", "READ_ALL_WORK_ITEMS_HELP"),		// currently not implemented seriously
 	STOP_APPROVAL_PROCESS_INSTANCE("stopApprovalProcessInstance", "Stop approval process instance", "STOP_APPROVAL_PROCESS_INSTANCE_HELP"),
-	
+	CLEANUP_PROCESS_INSTANCES("cleanupProcessInstances", "Cleanup process instances", "CLEANUP_PROCESS_INSTANCES_HELP"),
+
 	AUDIT_READ("auditRead", "Audit Read", "AUDIT_READ_HELP"),
 	// Authorization to create a user-level (custom) audit record. Does not apply to internal records that are created automatically by the model without
 	// any special authorization

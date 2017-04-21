@@ -120,7 +120,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 			return q.build();
 		} else if (all || !claimable) {
 			// not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-			return QueryUtils.filterForAssignees(q, currentUserOid(), getRepositoryService(), result).build();
+			return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
         } else {
 			return QueryUtils.filterForGroups(q, currentUserOid(), getRepositoryService(), result).build();
         }
