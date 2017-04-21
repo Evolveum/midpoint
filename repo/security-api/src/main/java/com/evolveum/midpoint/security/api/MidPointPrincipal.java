@@ -45,6 +45,8 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     private ActivationStatusType effectiveActivationStatus;
     private AdminGuiConfigurationType adminGuiConfiguration;
     private SecurityPolicyType applicableSecurityPolicy;
+    // TODO: or a set?
+    @NotNull private final Collection<DelegatorWithOtherPrivilegesLimitations> delegatorWithOtherPrivilegesLimitationsCollection = new ArrayList<>();
 
     public MidPointPrincipal(@NotNull UserType user) {
         Validate.notNull(user, "User must not be null.");
@@ -165,7 +167,16 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	public void setApplicableSecurityPolicy(SecurityPolicyType applicableSecurityPolicy) {
 		this.applicableSecurityPolicy = applicableSecurityPolicy;
 	}
-	
+
+	@NotNull
+	public Collection<DelegatorWithOtherPrivilegesLimitations> getDelegatorWithOtherPrivilegesLimitationsCollection() {
+		return delegatorWithOtherPrivilegesLimitationsCollection;
+	}
+
+	public void addDelegatorWithOtherPrivilegesLimitations(DelegatorWithOtherPrivilegesLimitations value) {
+		delegatorWithOtherPrivilegesLimitationsCollection.add(value);
+	}
+
 	/**
 	 * Semi-shallow clone.
 	 */
@@ -175,6 +186,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 		clone.applicableSecurityPolicy = this.applicableSecurityPolicy;
 		clone.authorizations = cloneAuthorities();
 		clone.effectiveActivationStatus = this.effectiveActivationStatus;
+		clone.delegatorWithOtherPrivilegesLimitationsCollection.addAll(delegatorWithOtherPrivilegesLimitationsCollection);
 		return clone;
 	}
 
@@ -198,11 +210,10 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabel(sb, "MidPointPrincipal", indent);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "User", user.asPrismObject(), indent + 1);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "Authorizations", authorizations, indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "MidPointPrincipal", indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "User", user.asPrismObject(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
 		return sb.toString();
 	}
 

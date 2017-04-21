@@ -36,4 +36,6 @@ public interface WorkflowService {
 
     void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException;
+
+    void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException, SecurityViolationException;
 }

@@ -2051,7 +2051,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException {
         getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
     }
-    //endregion
+
+	@Override
+	public void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException, SecurityViolationException {
+		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, null, null, null, null, parentResult);
+		getWorkflowManagerChecked().cleanupActivitiProcesses(parentResult);
+	}
+
+	//endregion
 
     //region Scripting (bulk actions)
 	@Deprecated

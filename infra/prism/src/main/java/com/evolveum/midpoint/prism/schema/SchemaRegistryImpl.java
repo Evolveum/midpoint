@@ -1369,6 +1369,17 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 				+ " (" + cls1 + ") and " + type2 + " (" + cls2 + ")");
 	}
 
+	// TODO implement more efficiently
+	@Override
+	public boolean areComparable(QName type1, QName type2) throws SchemaException {
+		try {
+			selectMoreSpecific(type1, type2);
+			return true;
+		} catch (SchemaException e) {
+			return false;
+		}
+	}
+
 	@Override
 	public <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
 			throws SchemaException {
@@ -1401,9 +1412,10 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		if (QNameUtil.match(DOMUtil.XSD_ANYTYPE, subType)) {
 			return false;
 		}
-		Class<?> superClass = determineClassForTypeNotNull(superType);
-		Class<?> subClass = determineClassForTypeNotNull(subType);
-		return superClass.isAssignableFrom(subClass);
+		Class<?> superClass = determineClassForType(superType);
+		Class<?> subClass = determineClassForType(subType);
+		// TODO consider implementing "strict mode" that would throw an exception in the case of nullness
+		return superClass != null && subClass != null && superClass.isAssignableFrom(subClass);
 	}
 
 	@Override

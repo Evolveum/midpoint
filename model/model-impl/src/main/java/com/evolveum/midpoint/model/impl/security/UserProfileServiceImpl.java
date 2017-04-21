@@ -19,6 +19,8 @@ package com.evolveum.midpoint.model.impl.security;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -43,6 +45,7 @@ import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
@@ -228,6 +231,14 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 					if (assignment.isValid()) {
 						authorizations.addAll(assignment.getAuthorizations());
 						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+					}
+					for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+						if (target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+							&& DeputyUtils.isDelegationPath(target.getAssignmentPath())) {
+							List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
+							principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
+									(UserType) target.getTarget().asObjectable(), limitations));
+						}
 					}
 				} catch (SchemaException e) {
 					LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}",

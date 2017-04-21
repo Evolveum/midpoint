@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -70,6 +71,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE = DOT_CLASS + "testRepositoryCheckOrgClosure";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
     private static final String OPERATION_SUBMIT_REINDEX = DOT_CLASS + "submitReindex";
+    private static final String OPERATION_CLEANUP_ACTIVITI_PROCESSES = DOT_CLASS + "cleanupActivitiProcesses";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
 
     private static final String ID_BUILD = "build";
@@ -81,6 +83,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE = "testRepositoryCheckOrgClosure";
     private static final String ID_REINDEX_REPOSITORY_OBJECTS = "reindexRepositoryObjects";
     private static final String ID_TEST_PROVISIONING = "testProvisioning";
+    private static final String ID_CLEANUP_ACTIVITI_PROCESSES = "cleanupActivitiProcesses";
     private static final String ID_IMPLEMENTATION_SHORT_NAME = "implementationShortName";
     private static final String ID_IMPLEMENTATION_DESCRIPTION = "implementationDescription";
     private static final String ID_IS_EMBEDDED = "isEmbedded";
@@ -255,6 +258,16 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(testProvisioning);
+
+        AjaxButton cleanupActivitiProcesses = new AjaxButton(ID_CLEANUP_ACTIVITI_PROCESSES,
+                createStringResource("PageAbout.button.cleanupActivitiProcesses")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cleanupActivitiProcessesPerformed(target);
+            }
+        };
+        add(cleanupActivitiProcesses);
     }
 
     private RepositoryDiag loadRepoDiagModel() {
@@ -369,6 +382,20 @@ public class PageAbout extends PageAdminConfiguration {
         OperationResult result = getModelDiagnosticService().provisioningSelfTest(task);
         showResult(result);
 
+        target.add(getFeedbackPanel());
+    }
+
+    private void cleanupActivitiProcessesPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_CLEANUP_ACTIVITI_PROCESSES);
+        try {
+            WorkflowService workflowService = getWorkflowService();
+            workflowService.cleanupActivitiProcesses(result);
+        } catch (SecurityViolationException|SchemaException|RuntimeException e) {
+            result.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+        showResult(result);
         target.add(getFeedbackPanel());
     }
 

@@ -299,7 +299,7 @@ public class PageCertCampaign extends PageAdminCertification {
 			columns.add(column);
 		}
 
-		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewers"), CertCaseDto.F_REVIEWERS);
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewers"), CertCaseDto.F_CURRENT_REVIEWERS);
 		columns.add(column);
 
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedAt"), CertCaseDto.F_REVIEWED_AT);
@@ -373,7 +373,6 @@ public class PageCertCampaign extends PageAdminCertification {
 		mainForm.add(createStatLabel(ID_STAT_REVOKE_REMEDIED, F_MARKED_AS_REVOKE_AND_REMEDIED));
 		mainForm.add(createStatLabel(ID_STAT_REDUCE, F_MARKED_AS_REDUCE));
 		mainForm.add(createStatLabel(ID_STAT_REDUCE_REMEDIED, F_MARKED_AS_REDUCE_AND_REMEDIED));
-		mainForm.add(createStatLabel(ID_STAT_DELEGATE, F_MARKED_AS_DELEGATE));
 		mainForm.add(createStatLabel(ID_STAT_NO_DECISION, F_MARKED_AS_NOT_DECIDE));
 		mainForm.add(createStatLabel(ID_STAT_NO_RESPONSE, F_WITHOUT_RESPONSE));
 	}

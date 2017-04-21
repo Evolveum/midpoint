@@ -120,4 +120,6 @@ public interface WorkflowManager {
 			throws SchemaException, ObjectNotFoundException;
 
 	void synchronizeWorkflowRequests(OperationResult parentResult);
+
+	void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException;
 }

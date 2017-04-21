@@ -65,38 +65,17 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
 
-    @Autowired(required = true)
-    private PrismContext prismContext;
-    
-    @Autowired(required = true)
-    private WfConfiguration wfConfiguration;
-
-    @Autowired(required = true)
-    private ProcessInstanceProvider processInstanceProvider;
-
-    @Autowired(required = true)
-    private ProcessInstanceManager processInstanceManager;
-
-    @Autowired(required = true)
-    private WfTaskController wfTaskController;
-
-    @Autowired(required = true)
-    private WorkItemProvider workItemProvider;
-
-    @Autowired(required = true)
-    private WorkItemManager workItemManager;
-
-    @Autowired(required = true)
-    private WfTaskUtil wfTaskUtil;
-
-    @Autowired(required = true)
-    private MiscDataUtil miscDataUtil;
-    
-    @Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
+    @Autowired private PrismContext prismContext;
+	@Autowired private WfConfiguration wfConfiguration;
+	@Autowired private ProcessInstanceProvider processInstanceProvider;
+	@Autowired private ProcessInstanceManager processInstanceManager;
+	@Autowired private WfTaskController wfTaskController;
+	@Autowired private WorkItemProvider workItemProvider;
+	@Autowired private WorkItemManager workItemManager;
+	@Autowired private WfTaskUtil wfTaskUtil;
+	@Autowired private MiscDataUtil miscDataUtil;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private TaskManager taskManager;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -280,4 +259,16 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 		return miscDataUtil.getChangesByStateForChild(childTask, rootTask, modelInteractionService, prismContext, result);
 	}
 
+	@Override
+	public void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".cleanupActivitiProcesses");
+		try {
+			processInstanceManager.cleanupActivitiProcesses(result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't cleanup Activiti processes: " + t.getMessage(), t);
+			throw t;
+		} finally {
+			result.recordSuccessIfUnknown();
+		}
+	}
 }
