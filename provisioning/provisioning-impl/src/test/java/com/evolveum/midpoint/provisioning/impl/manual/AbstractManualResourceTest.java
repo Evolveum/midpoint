@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -134,12 +135,17 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	protected static final String ACCOUNT_WILL_USERNAME = "will";
 	protected static final String ACCOUNT_WILL_FULLNAME = "Will Turner";
 	protected static final String ACCOUNT_WILL_FULLNAME_PIRATE = "Pirate Will Turner";
+	protected static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
+	protected static final String ACCOUNT_WILL_DESCRIPTION_MANUAL = "manual";
 
 	protected static final String ATTR_USERNAME = "username";
 	protected static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
 	
 	protected static final String ATTR_FULLNAME = "fullname";
 	protected static final QName ATTR_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_FULLNAME);
+	
+	protected static final String ATTR_DESCRIPTION = "description";
+	protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
 
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
@@ -172,6 +178,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	
 	protected String getResourceOid() {
 		return RESOURCE_MANUAL_OID;
+	}
+	
+	protected boolean supportsBackingStore() {
+		return false;
 	}
 
 	@Test
@@ -214,7 +224,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertResourceSchemaBeforeTest(resourceXsdSchemaElementBefore);
 		
 		CapabilitiesType capabilities = resourceBefore.getCapabilities();
-		AssertJUnit.assertNull("Capabilities present before test connection. Bad test setup?", capabilities);
+		if (capabilities != null) {
+			AssertJUnit.assertNull("Native capabilities present before test connection. Bad test setup?", capabilities.getNative());
+		}
 
 		// WHEN
 		OperationResult testResult = provisioningService.testResource(getResourceOid());
@@ -301,7 +313,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 		
-		assertEquals("Unexpected number of definitions", 4, accountDef.getDefinitions().size());
+		assertEquals("Unexpected number of definitions", getNumberOfAccountAttributeDefinitions(), accountDef.getDefinitions().size());
 		
 		ResourceAttributeDefinition<String> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
 		assertNotNull("No definition for username", usernameDef);
@@ -320,6 +332,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertTrue("No fullname read", fullnameDef.canRead());
 	}
 	
+	protected int getNumberOfAccountAttributeDefinitions() {
+		return 4;
+	}
+
 	@Test
 	public void test006Capabilities() throws Exception {
 		final String TEST_NAME = "test006Capabilities";
@@ -357,10 +373,6 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         
 	}
 
-	private void assertManual(AbstractWriteCapabilityType cap) {
-		assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
-	}
-
 	@Test
 	public void test100AddAccountWill() throws Exception {
 		final String TEST_NAME = "test100AddAccountWill";
@@ -395,9 +407,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowRepo, false);
+		assertNoShadowPassword(shadowRepo);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifyInProgressOnly();
@@ -410,12 +423,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
-
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertAttributeFromCache(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertShadowActivationAdministrativeStatusFromCache(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowProvisioning, false);
+		assertNoShadowPassword(shadowProvisioning);
 
 		assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		
@@ -423,13 +434,47 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
+
 	
+
+	@Test
+	public void test102GetAccountWillFuture() throws Exception {
+		final String TEST_NAME = "test102GetAccountWillFuture";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);	
+		
+		display("Provisioning shadow", shadowProvisioning);
+		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
+		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertNoAttribute(shadowProvisioning, ATTR_DESCRIPTION_QNAME);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowProvisioning, true);
+		// TODO 
+//		assertShadowPassword(shadowProvisioning);
+	}
+
 	/**
 	 * Case haven't changed. There should be no change in the shadow.
 	 */
 	@Test
-	public void test102RefreshAccountWill() throws Exception {
-		final String TEST_NAME = "test102RefreshAccountWill";
+	public void test104RefreshAccountWill() throws Exception {
+		final String TEST_NAME = "test104RefreshAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -451,9 +496,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Repo shadow", shadowRepo);
 		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+		assertNoShadowPassword(shadowRepo);
+		assertShadowExists(shadowRepo, false);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -466,19 +513,104 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
-
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertAttributeFromCache(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertNoAttribute(shadowProvisioning, ATTR_DESCRIPTION_QNAME);
+		assertShadowActivationAdministrativeStatusFromCache(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertNoShadowPassword(shadowProvisioning);
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		
 		assertCase(pendingOperation.getAsynchronousOperationReference(), SchemaConstants.CASE_STATE_OPEN);
 	}
-	
 
+	protected void backingStoreAddWill() throws IOException {
+		// nothing to do here
+	}
+	
+	@Test
+	public void test106AddToBackingStoreAndGetAccountWill() throws Exception {
+		final String TEST_NAME = "test106AddToBackingStoreAndGetAccountWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		backingStoreAddWill();
+		
+		syncServiceMock.reset();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);	
+		
+		display("Provisioning shadow", shadowProvisioning);
+		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
+		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);		
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowProvisioning, supportsBackingStore());
+		assertShadowPassword(shadowProvisioning);
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		display("Repo shadow", shadowRepo);
+		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+		assertNoShadowPassword(shadowRepo);
+		assertShadowExists(shadowRepo, supportsBackingStore());
+	}
+	
+	@Test
+	public void test108GetAccountWillFuture() throws Exception {
+		final String TEST_NAME = "test108GetAccountWillFuture";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);	
+		
+		display("Provisioning shadow", shadowProvisioning);
+		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
+		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);		
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowProvisioning, true);
+		assertShadowPassword(shadowProvisioning);
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		display("Repo shadow", shadowRepo);
+		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
+		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+		assertNoShadowPassword(shadowRepo);
+		assertShadowExists(shadowRepo, supportsBackingStore());
+	}
+	
 	/**
 	 * Case is closed. The operation is complete.
 	 */
@@ -515,9 +647,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifySuccessOnly();
@@ -531,12 +662,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowPassword(shadowProvisioning);
 		
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
-
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
@@ -665,9 +794,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		// Still old data in the repo. The operation is not completed yet.
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifyInProgressOnly();
@@ -679,12 +808,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertAttributeFromBackingStore(shadowProvisioning, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowProvisioning);
 
 		assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		
@@ -695,11 +823,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
@@ -731,9 +859,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		// Still old data in the repo. The operation is not completed yet.
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -745,12 +873,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 
 		assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		
@@ -761,11 +887,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
@@ -806,9 +931,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
@@ -817,12 +942,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);		
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -836,11 +959,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
@@ -887,9 +1009,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, task, result);
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertShadowPassword(shadowProvisioning);
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -903,11 +1026,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -952,9 +1074,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		// Still old data in the repo. The operation is not completed yet.
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifyInProgressOnly();
@@ -966,12 +1088,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 
 		assertPendingOperationDeltas(shadowProvisioning, 2);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -985,11 +1105,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.DISABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.DISABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
@@ -1040,9 +1159,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		// Still old data in the repo. The operation is not completed yet.
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 		
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifyInProgressOnly();
@@ -1054,13 +1173,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertShadowPassword(shadowProvisioning);
 		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		assertPendingOperationDeltas(shadowProvisioning, 3);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
 				OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_PASSWORD_VALUE);
@@ -1074,7 +1191,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
@@ -1134,9 +1251,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_PASSWORD_VALUE);
 		assertPendingOperation(shadowRepo, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
 		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.DISABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.DISABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifySuccessOnly();
@@ -1145,12 +1262,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1167,11 +1282,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		// TODO
+//		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
@@ -1218,9 +1333,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				OperationResultStatusType.IN_PROGRESS, SchemaConstants.PATH_PASSWORD_VALUE);
 		assertPendingOperation(shadowRepo, pendingOperation, accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd);
 		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.DISABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.DISABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -1232,12 +1347,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.DISABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1254,11 +1367,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		// TODO
+//		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
@@ -1315,9 +1428,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				OperationResultStatusType.SUCCESS,
 				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
 		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifySuccessOnly();
@@ -1329,12 +1442,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 3);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1351,11 +1462,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1405,9 +1515,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				OperationResultStatusType.SUCCESS,
 				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
 		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -1419,12 +1529,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 2);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1441,11 +1549,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1495,9 +1602,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				OperationResultStatusType.SUCCESS,
 				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
 		
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -1509,12 +1616,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 1);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1531,11 +1636,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1571,9 +1675,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		
 		assertPendingOperationDeltas(shadowRepo, 0);
 				
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -1585,12 +1689,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 		
 		assertPendingOperationDeltas(shadowProvisioning, 0);
 		
@@ -1601,11 +1703,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowProvisioningFuture.asObjectable().getKind());
-		assertActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowProvisioningFuture.asObjectable(), new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1642,9 +1743,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		// Still old data in the repo. The operation is not completed yet.
-		assertActivationAdministrativeStatus(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 			
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNotifyInProgressOnly();
@@ -1656,12 +1757,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioning, ActivationStatusType.ENABLED);
 		assertAttribute(shadowProvisioning, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
 		assertAttribute(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
-
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowPassword(shadowProvisioning);
 
 		assertPendingOperationDeltas(shadowProvisioning, 1);
 		pendingOperation = findPendingOperation(shadowProvisioning, 
@@ -1675,6 +1774,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertShadowDead(shadowProvisioningFuture);
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertNotNull("No async reference in result", willLastCaseOid);
 		
@@ -1728,10 +1828,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowDead(shadowRepo);
-		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+		assertShadowDead(shadowProvisioning);
+		assertShadowPassword(shadowProvisioning);
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
@@ -1745,6 +1843,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertShadowDead(shadowProvisioningFuture);
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -1792,11 +1891,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowDead(shadowRepo);
+		assertShadowDead(shadowProvisioning);
+		assertShadowPassword(shadowProvisioning);
 		
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				shadowTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
-
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, 
 				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
@@ -1809,6 +1906,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		display("Provisioning shadow (future)", shadowProvisioningFuture);
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertShadowDead(shadowProvisioningFuture);
+		assertShadowPassword(shadowProvisioningFuture);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -1896,6 +1994,49 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
 		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+	}
+	
+	protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
+		ProvisioningTestUtil.assertNoAttribute(resource, shadow.asObjectable(), attrName);
+	}
+	
+	protected void assertAttributeFromCache(PrismObject<ShadowType> shadow, QName attrQName,
+			String... attrVals) {
+		if (supportsBackingStore()) {
+			assertNoAttribute(shadow, attrQName);
+		} else {
+			assertAttribute(shadow, attrQName, attrVals);
+		}
+	}
+	
+	protected void assertAttributeFromBackingStore(PrismObject<ShadowType> shadow, QName attrQName,
+			String... attrVals) {
+		if (supportsBackingStore()) {
+			assertAttribute(shadow, attrQName, attrVals);
+		} else {
+			assertNoAttribute(shadow, attrQName);
+		}
+	}
+	
+	protected void assertShadowActivationAdministrativeStatusFromCache(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
+		if (supportsBackingStore()) {
+			assertShadowActivationAdministrativeStatus(shadow, null);
+		} else {
+			assertShadowActivationAdministrativeStatus(shadow, expectedStatus);
+		}
+	}
+	
+	protected void assertShadowActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
+		assertActivationAdministrativeStatus(shadow, expectedStatus);
+	}
+	
+	protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
+		// pure manual resource should never "read" password
+		assertNoShadowPassword(shadow);
+	}
+		
+	private void assertManual(AbstractWriteCapabilityType cap) {
+		assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
 	}
 	
 	private void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {

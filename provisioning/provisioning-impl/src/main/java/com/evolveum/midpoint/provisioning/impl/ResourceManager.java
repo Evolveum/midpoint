@@ -1124,12 +1124,22 @@ public class ResourceManager {
 	}
 	
 	public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstance(PrismObject<ResourceType> resource,
-			Class<T> capabilityClass, boolean forceFresh, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		ConnectorSpec connectorSpec = selectConnectorSpec(resource, capabilityClass);
+			Class<T> operationCapabilityClass, boolean forceFresh, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);
 		if (connectorSpec == null) {
 			return null;
 		}
 		return connectorManager.getConfiguredConnectorInstance(connectorSpec, forceFresh, parentResult);
+	}
+	
+	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(PrismObject<ResourceType> resource,
+			Class<T> operationCapabilityClass) {
+		for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
+			if (supportsCapability(additionalConnectorType, operationCapabilityClass)) {
+				return additionalConnectorType.getCapabilities();
+			}
+		}
+		return resource.asObjectable().getCapabilities();
 	}
 	
 	private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Class<T> capabilityClass) throws SchemaException {
@@ -1144,9 +1154,9 @@ public class ResourceManager {
 		return getDefaultConnectorSpec(resource);
 	}
 	
-	private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Class<T> capabilityClass) throws SchemaException {
+	private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws SchemaException {
 		for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
-			if (supportsCapability(additionalConnectorType, capabilityClass)) {
+			if (supportsCapability(additionalConnectorType, operationCapabilityClass)) {
 				return getConnectorSpec(resource, additionalConnectorType);
 			}
 		}

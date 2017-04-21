@@ -228,7 +228,12 @@ public class ResourceTypeUtil {
 			// No capability at the level of resource object type, continuing at the resource level
 		}
 
-		// TODO: additional connector capabilities
+		for (ConnectorInstanceSpecificationType additionalConnector: resource.getAdditionalConnector()) {
+			T connectorCapability = CapabilityUtil.getEffectiveCapability(additionalConnector.getCapabilities(), capabilityClass);
+			if (CapabilityUtil.isCapabilityEnabled(connectorCapability)) {
+				return connectorCapability;
+			}
+		}
 		
 		return CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), capabilityClass);
 	}

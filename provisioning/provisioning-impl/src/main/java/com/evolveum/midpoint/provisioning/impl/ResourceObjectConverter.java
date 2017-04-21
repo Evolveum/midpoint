@@ -1713,27 +1713,16 @@ public class ResourceObjectConverter {
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceObject, boolean fetchAssociations,
             OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-		ResourceType resourceType = ctx.getResource();
-		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
+		
 		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry);
 		
-		// Simulated Activation
-		// FIXME??? when there are not native capabilities for activation, the
-		// resourceShadow.getActivation is null and the activation for the repo
-		// shadow are not completed..therefore there need to be one more check,
-		// we must check not only if the activation is null, but if it is, also
-		// if the shadow doesn't have defined simulated activation capability
-		if (resourceObjectType.getActivation() != null || ResourceTypeUtil.isActivationCapabilityEnabled(resourceType)) {
-			ActivationType activationType = completeActivation(resourceObject, resourceType, parentResult);
-			LOGGER.trace("Determined activation, administrativeStatus: {}, lockoutStatus: {}",
-					activationType == null ? "null activationType" : activationType.getAdministrativeStatus(),
-					activationType == null ? "null activationType" : activationType.getLockoutStatus());
-			resourceObjectType.setActivation(activationType);
-		} else {
-			resourceObjectType.setActivation(null);
+		if (resourceObjectType.isExists() != Boolean.FALSE) {
+			resourceObjectType.setExists(true);
 		}
 		
+		completeActivation(ctx, resourceObject, parentResult);
+				
 		// Entitlements
         if (fetchAssociations) {
             entitlementConverter.postProcessEntitlementsRead(ctx, resourceObject, parentResult);
@@ -1743,38 +1732,49 @@ public class ResourceObjectConverter {
 	}
 	
 	/**
-	 * Completes activation state by determinig simulated activation if
-	 * necessary.
-	 * 
-	 * TODO: The placement of this method is not correct. It should go back to
-	 * ShadowConverter
+	 * Completes activation state by determining simulated activation if necessary.
 	 */
-	private ActivationType completeActivation(PrismObject<ShadowType> shadow, ResourceType resource,
-			OperationResult parentResult) {
-
-		if (ResourceTypeUtil.hasResourceNativeActivationCapability(resource)) {
-			return shadow.asObjectable().getActivation();
-		} else if (ResourceTypeUtil.isActivationCapabilityEnabled(resource)) {
-			return convertFromSimulatedActivationAttributes(resource, shadow, parentResult);
+	private void completeActivation(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ResourceType resourceType = ctx.getResource();
+		ShadowType resourceObjectType = resourceObject.asObjectable();
+		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(ReadCapabilityType.class);
+		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);
+		
+		if (resourceObjectType.getActivation() != null || CapabilityUtil.isCapabilityEnabled(activationCapability)) {
+			ActivationType activationType = null;
+		
+			if (CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+				activationType = resourceObjectType.getActivation();
+				
+			} else if (CapabilityUtil.isCapabilityEnabled(activationCapability)) {
+				activationType = convertFromSimulatedActivationAttributes(resourceType, resourceObject, activationCapability, parentResult);
+				
+			} else {
+				// No activation capability, nothing to do
+			}
+			
+			LOGGER.trace("Determined activation, administrativeStatus: {}, lockoutStatus: {}",
+					activationType == null ? "null activationType" : activationType.getAdministrativeStatus(),
+					activationType == null ? "null activationType" : activationType.getLockoutStatus());
+			resourceObjectType.setActivation(activationType);
+			
 		} else {
-			// No activation capability, nothing to do
-			return null;
+			resourceObjectType.setActivation(null);
 		}
+		
 	}
 	
 	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource,
-			PrismObject<ShadowType> shadow, OperationResult parentResult) {
-		// LOGGER.trace("Start converting activation type from simulated activation atribute");
-		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-				ActivationCapabilityType.class);
+			PrismObject<ShadowType> resourceObject, ActivationCapabilityType activationCapability, OperationResult parentResult) {
+		// LOGGER.trace("Start converting activation type from simulated activation attribute");
 		if (activationCapability == null) {
 			return null;
 		}
 		
 		ActivationType activationType = new ActivationType();
 		
-		convertFromSimulatedActivationAdministrativeStatus(activationType, activationCapability, resource, shadow, parentResult);
-		convertFromSimulatedActivationLockoutStatus(activationType, activationCapability, resource, shadow, parentResult);
+		convertFromSimulatedActivationAdministrativeStatus(activationType, activationCapability, resource, resourceObject, parentResult);
+		convertFromSimulatedActivationLockoutStatus(activationType, activationCapability, resource, resourceObject, parentResult);
 		
 		return activationType;
 	}

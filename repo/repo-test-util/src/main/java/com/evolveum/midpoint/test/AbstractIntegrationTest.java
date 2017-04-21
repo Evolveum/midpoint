@@ -1242,6 +1242,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertShadowDead(PrismObject<ShadowType> shadow) {
 		assertEquals("Shadow not dead: "+shadow, Boolean.TRUE, shadow.asObjectable().isDead());
 	}
+	
+	protected void assertShadowExists(PrismObject<ShadowType> shadow, Boolean expectedValue) {
+		assertEquals("Wrong shadow 'exists': "+shadow, expectedValue, shadow.asObjectable().isExists());
+	}
 
 	protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
 		ActivationType activationType = shadow.asObjectable().getActivation();

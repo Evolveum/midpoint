@@ -29,6 +29,7 @@ import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -193,14 +194,14 @@ public class ProvisioningContext extends StateReporter {
 		return getTask()==null?null:getTask().getChannel();
 	}
 	
-	public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> capabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		if (connectorMap == null) {
 			connectorMap = new HashMap<>();
 		}
-		ConnectorInstance connector = connectorMap.get(capabilityClass);
+		ConnectorInstance connector = connectorMap.get(operationCapabilityClass);
 		if (connector == null) {
-			connector = getConnectorInstance(capabilityClass, parentResult);
-			connectorMap.put(capabilityClass, connector);
+			connector = getConnectorInstance(operationCapabilityClass, parentResult);
+			connectorMap.put(operationCapabilityClass, connector);
 		}
 		return connector;
 	}
@@ -277,11 +278,11 @@ public class ProvisioningContext extends StateReporter {
 		}
 	}
 
-	private <T extends CapabilityType> ConnectorInstance getConnectorInstance(Class<T> capabilityClass, OperationResult parentResult)
+	private <T extends CapabilityType> ConnectorInstance getConnectorInstance(Class<T> operationCapabilityClass, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		OperationResult connectorResult = parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
 		try {
-			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), capabilityClass, false, parentResult);
+			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, parentResult);
 			connectorResult.recordSuccess();
 			return connector;
 		} catch (ObjectNotFoundException | SchemaException e){
@@ -295,6 +296,10 @@ public class ProvisioningContext extends StateReporter {
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			throw e;
 		}
+	}
+	
+	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
+		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), operationCapabilityClass);
 	}
 	
 	@Override

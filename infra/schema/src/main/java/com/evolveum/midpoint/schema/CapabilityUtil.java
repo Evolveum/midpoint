@@ -22,6 +22,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -323,5 +324,16 @@ public class CapabilityUtil {
 		} else {
 			return null;
 		}
+	}
+
+	public static <T extends CapabilityType>  boolean hasNativeCapability(CapabilitiesType capabilities, Class<T> capabilityClass) {
+		if (capabilities == null) {
+			return false;
+		}
+		CapabilityCollectionType nativeCaps = capabilities.getNative();
+		if (nativeCaps == null) {
+			return false;
+		}
+		return getCapability(nativeCaps.getAny(), capabilityClass) != null;
 	}
 }
