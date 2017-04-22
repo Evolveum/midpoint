@@ -15,7 +15,7 @@ public class ServiceMemberPanel extends RoleMemberPanel<ServiceType>{
 	public ServiceMemberPanel(String id, IModel<ServiceType> model, PageBase pageBase) {
 		super(id, model, pageBase);
 	}
-	
+
 	@Override
 	protected boolean isRole() {
 		return false;

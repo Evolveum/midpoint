@@ -79,8 +79,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	private static final String ID_TENANT = "tenant";
 	private static final String ID_PROJECT = "project";
 	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
-	private static final String ID_ALL_RELATIONS_CONTAINER = "allRelationsContainer";
-	private static final String ID_ALL_RELATIONS = "allRelations";
 
 	public RoleMemberPanel(String id, IModel<T> model, PageBase pageBase) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
@@ -178,13 +176,12 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return assignmentToModify;
 	}
 
-	// actions are executed on members only (not on owners, approvers, etc)
 	private ObjectQuery getActionQuery(QueryScope scope) {
 		switch (scope) {
 			case ALL:
-				return createAllMemberQuery(false);
+				return createAllMemberQuery();
 			case ALL_DIRECT:
-				return createDirectMemberQuery(false);
+				return createDirectMemberQuery( );
 			case SELECTED:
 				return createRecomputeQuery();
 		}
@@ -192,13 +189,15 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return null;
 	}
 
-	private ObjectQuery createAllMemberQuery(boolean allRelations) {
-		return getRelationsFilter(allRelations).build();
+	private ObjectQuery createAllMemberQuery() {
+		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+				.ref(createReferenceValuesList()).build();
 	}
 
-	private List<PrismReferenceValue> createReferenceValuesList(boolean allRelations) {
+	private List<PrismReferenceValue> createReferenceValuesList() {
 		List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
-		if (relations.size() > 0){
+		if (relations != null && relations.size() > 0){
 			for (RelationTypes relation : relations) {
 				PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
 				rv.setRelation(relation.getRelation());
@@ -206,9 +205,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 			}
 		} else {
 			PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-			if (allRelations) {
-				rv.setRelation(PrismConstants.Q_ANY);
-			}
 			referenceValuesList.add(rv);
 		}
 
@@ -277,17 +273,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		add(includeIndirectMembers);
 		includeIndirectMembers.add(new VisibleBehaviour(this::isRole));		// TODO shouldn't we hide also the label?
 
-		WebMarkupContainer showAllRelationsContainer = new WebMarkupContainer(ID_ALL_RELATIONS_CONTAINER);
-		add(showAllRelationsContainer);
-		CheckBoxPanel showAllRelations = new CheckBoxPanel(ID_ALL_RELATIONS, new Model<>(false)) {
-			private static final long serialVersionUID = 1L;
-
-			public void onUpdate(AjaxRequestTarget target) {
-				refreshTable(target);
-			}
-		};
-		showAllRelationsContainer.add(showAllRelations);
-		showAllRelationsContainer.add(new VisibleBehaviour(() -> SystemConfigurationHolder.isExperimentalCodeEnabled() && isRole()));
 	}
 
 	@Override
@@ -343,17 +328,18 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	@Override
 	protected ObjectQuery createContentQuery() {
 		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS))).getValue();
-		boolean allRelations = ((CheckBoxPanel) get(createComponentPath(ID_ALL_RELATIONS_CONTAINER, ID_ALL_RELATIONS))).getValue();
 
-		return indirect ? createAllMemberQuery(allRelations) : createDirectMemberQuery(allRelations);
+		return indirect ? createAllMemberQuery() : createDirectMemberQuery();
 		
 	}
 
-	private ObjectQuery createDirectMemberQuery(boolean allRelations) {
+	private ObjectQuery createDirectMemberQuery() {
 		ObjectQuery query;
 
 		String oid = getModelObject().getOid();
-		S_AtomicFilterExit q = getRelationsFilter(allRelations);
+		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, getPrismContext())
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+				.ref(createReferenceValuesList());
 		DropDownChoice<OrgType> tenantChoice = (DropDownChoice) get(createComponentPath(ID_TENANT));
 		OrgType tenant = tenantChoice.getModelObject();
 		if (tenant != null) {
@@ -380,25 +366,18 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		}
 	}
 
-	private S_AtomicFilterExit getRelationsFilter(boolean allRelations){
-		List<PrismReferenceValue> referenceValues = createReferenceValuesList(allRelations);
-		S_AtomicFilterExit q = null;
-		S_FilterEntryOrEmpty filter = QueryBuilder.queryFor(FocusType.class, getPrismContext());
-		for (PrismReferenceValue value : referenceValues) {
-			if (q == null) {
-				q = filter.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-						.ref(value);
-			} else {
-				q = q.or().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-						.ref(value);
-			}
-		}
-		return q;
-	}
-
 	@Override
 	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
 		return super.createNewMemberInlineMenuItems();
 	}
 
+	@Override
+	protected List<InlineMenuItem> createRemoveMemberInlineMenuItems() {
+		return super.createRemoveMemberInlineMenuItems();
+	}
+
+	@Override
+	protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {
+		return super.createMemberRecomputeInlineMenuItems();
+	}
 }
