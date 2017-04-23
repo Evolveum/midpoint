@@ -126,9 +126,9 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 	private void executeCompleteAction(AccessCertificationCampaignType campaign, CompleteWorkItemActionType completeAction,
 			Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		List<AccessCertificationWorkItemType> workItems = queryHelper.searchWorkItems(
+		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
-				null, true, null, task, result);
+				null, true, null, result);
 		for (AccessCertificationWorkItemType workItem : workItems) {
 			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCase(workItem);
 			if (aCase == null || aCase.getId() == null || workItem.getId() == null) {
@@ -144,9 +144,9 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 			Task task, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			ObjectAlreadyExistsException {
-		List<AccessCertificationWorkItemType> workItems = queryHelper.searchWorkItems(
+		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
-				null, true, null, task, result);
+				null, true, null, result);
 		certManager.delegateWorkItems(campaign.getOid(), workItems, delegateAction, task, result);
 	}
 
