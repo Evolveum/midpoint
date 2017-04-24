@@ -76,6 +76,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String CONTEXT_RESOURCE = "resource";
 	
 	public static final String PARAM_OID = "oid";
+	public static final String PARAM_NAME = "name";
 	public static final String PARAM_TYPE = "type";
 	public static final String PARAM_OPTIONS = "options";
 	public static final String PARAM_TASK = "task";

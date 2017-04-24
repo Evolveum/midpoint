@@ -47,6 +47,7 @@ import org.identityconnectors.framework.api.operations.APIOperation;
 import org.identityconnectors.framework.api.operations.CreateApiOp;
 import org.identityconnectors.framework.api.operations.DeleteApiOp;
 import org.identityconnectors.framework.api.operations.GetApiOp;
+import org.identityconnectors.framework.api.operations.SchemaApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
 import org.identityconnectors.framework.api.operations.SearchApiOp;
@@ -160,6 +161,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
@@ -415,7 +417,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		if (resourceSchema == null || capabilities == null) {
 			try {
-				retrieveResourceSchema(null, result);
+				boolean supportsSchema = processOperationCapabilities(result);
+				if (supportsSchema) {
+					retrieveResourceSchema(null, result);
+				}
 			} catch (CommunicationException ex) {
 				// This is in fact fatal. There is not schema. Not even the pre-cached one. 
 				// The connector will not be able to work.
@@ -443,6 +448,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.addContext("connector", connectorType);
 
 		try {
+			boolean supportsSchema = processOperationCapabilities(result);
+			if (!supportsSchema) {
+				result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Connector does not support schema");
+				LOGGER.trace("Connector instance {} does not support schema, skipping", this);
+				return null;
+			}
 			retrieveResourceSchema(generateObjectClasses, result);
 		} catch (CommunicationException ex) {
 			result.recordFatalError(ex);
@@ -474,7 +485,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.addContext("connector", connectorType);
 
 		try {
-			retrieveResourceSchema(null, result);
+			boolean supportsSchema = processOperationCapabilities(result);
+			if (supportsSchema) {
+				LOGGER.trace("Connector instance {} does not support schema, skipping", this);
+				// we need to get schema to figure out all the capabilities
+				retrieveResourceSchema(null, result);
+			}
 		} catch (CommunicationException ex) {
 			result.recordFatalError(ex);
 			throw ex;
@@ -489,6 +505,74 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.recordSuccess();
 
 		return capabilities;
+	}
+	
+	private boolean processOperationCapabilities(OperationResult parentResult) {
+		capabilities = new ArrayList<>();
+
+		// Create capabilities from supported connector operations
+		
+		InternalMonitor.recordConnectorOperation("getSupportedOperations");
+		Set<Class<? extends APIOperation>> supportedOperations = connIdConnectorFacade.getSupportedOperations();
+		
+		LOGGER.trace("Connector supported operations: {}", supportedOperations);
+
+		boolean supportsSchema = false;
+		if (supportedOperations.contains(SchemaApiOp.class)) {
+			SchemaCapabilityType capSchema = new SchemaCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createSchema(capSchema));
+			supportsSchema = true;
+		}
+		
+		if (supportedOperations.contains(SyncApiOp.class)) {
+			LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createLiveSync(capSync));
+		}
+
+		if (supportedOperations.contains(TestApiOp.class)) {
+			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createTestConnection(capTest));
+		}
+		
+		if (supportedOperations.contains(CreateApiOp.class)){
+			CreateCapabilityType capCreate = new CreateCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(capCreate));
+		}
+		
+		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
+			ReadCapabilityType capRead = new ReadCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
+		}
+		
+		if (supportedOperations.contains(UpdateApiOp.class)){
+			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
+		}
+		
+		if (supportedOperations.contains(DeleteApiOp.class)){
+			DeleteCapabilityType capDelete = new DeleteCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(capDelete));
+		}
+
+		if (supportedOperations.contains(ScriptOnResourceApiOp.class)
+				|| supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
+			ScriptCapabilityType capScript = new ScriptCapabilityType();
+			if (supportedOperations.contains(ScriptOnResourceApiOp.class)) {
+				Host host = new Host();
+				host.setType(ProvisioningScriptHostType.RESOURCE);
+				capScript.getHost().add(host);
+				// language is unknown here
+			}
+			if (supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
+				Host host = new Host();
+				host.setType(ProvisioningScriptHostType.CONNECTOR);
+				capScript.getHost().add(host);
+				// language is unknown here
+			}
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createScript(capScript));
+		}
+		
+		return supportsSchema;
 	}
 	
 	private void retrieveResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException {
@@ -787,9 +871,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			((ObjectClassComplexTypeDefinitionImpl) ocDef).setAuxiliary(objectClassInfo.isAuxiliary());
 
 		}
-
-		capabilities = new ArrayList<>();
-
+		
 		// This is the default for all resources.
 		// (Currently there is no way how to obtain it from the connector.)
 		// It can be disabled manually.
@@ -864,61 +946,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createAuxiliaryObjectClasses(capAux));
 		}
 
-		// Create capabilities from supported connector operations
-
-		InternalMonitor.recordConnectorOperation("getSupportedOperations");
-		Set<Class<? extends APIOperation>> supportedOperations = connIdConnectorFacade.getSupportedOperations();
-		
-		LOGGER.trace("Connector supported operations: {}", supportedOperations);
-
-		if (supportedOperations.contains(SyncApiOp.class)) {
-			LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createLiveSync(capSync));
-		}
-
-		if (supportedOperations.contains(TestApiOp.class)) {
-			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createTestConnection(capTest));
-		}
-		
-		if (supportedOperations.contains(CreateApiOp.class)){
-			CreateCapabilityType capCreate = new CreateCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(capCreate));
-		}
-		
-		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
-			ReadCapabilityType capRead = new ReadCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
-		}
-		
-		if (supportedOperations.contains(UpdateApiOp.class)){
-			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
-		}
-		
-		if (supportedOperations.contains(DeleteApiOp.class)){
-			DeleteCapabilityType capDelete = new DeleteCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(capDelete));
-		}
-
-		if (supportedOperations.contains(ScriptOnResourceApiOp.class)
-				|| supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
-			ScriptCapabilityType capScript = new ScriptCapabilityType();
-			if (supportedOperations.contains(ScriptOnResourceApiOp.class)) {
-				Host host = new Host();
-				host.setType(ProvisioningScriptHostType.RESOURCE);
-				capScript.getHost().add(host);
-				// language is unknown here
-			}
-			if (supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
-				Host host = new Host();
-				host.setType(ProvisioningScriptHostType.CONNECTOR);
-				capScript.getHost().add(host);
-				// language is unknown here
-			}
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createScript(capScript));
-		}
-		
 		boolean canPageSize = false;
 		boolean canPageOffset = false;
 		boolean canSort = false;

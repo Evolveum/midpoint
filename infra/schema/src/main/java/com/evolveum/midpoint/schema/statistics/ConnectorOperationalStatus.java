@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 	private static final long serialVersionUID = 5644725183169800491L;
 
+	public static final String F_CONNECTOR_NAME = "connectorName";
 	public static final String F_CONNECTOR_CLASS_NAME = "connectorClassName";
 	public static final String F_POOL_CONFIG_MIN_SIZE = "poolConfigMinSize";
 	public static final String F_POOL_CONFIG_MAX_SIZE = "poolConfigMaxSize";
@@ -37,7 +38,7 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 	public static final String F_POOL_STATUS_NUM_IDLE = "poolStatusNumIdle";
 	public static final String F_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 	
-	
+	private String connectorName;
 	private String connectorClassName;
 	
 	// pool configuration
@@ -52,6 +53,14 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 	private Integer poolStatusNumIdle;
 	private Integer poolStatusNumActive;
 	
+	public String getConnectorName() {
+		return connectorName;
+	}
+
+	public void setConnectorName(String connectorName) {
+		this.connectorName = connectorName;
+	}
+
 	public String getConnectorClassName() {
 		return connectorClassName;
 	}
@@ -221,7 +230,7 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 
 	@Override
 	public String toString() {
-		return "ConnectorOperationalStatus(" + connectorClassName + ": " + poolStatusNumActive + "/" + poolConfigMaxSize+")";
+		return "ConnectorOperationalStatus(" + connectorName + ": " + connectorClassName + ": " + poolStatusNumActive + "/" + poolConfigMaxSize+")";
 	}
 
 	@Override
@@ -234,6 +243,7 @@ public class ConnectorOperationalStatus implements DebugDumpable, Serializable {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ConnectorOperationalStatus\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "connectorName", connectorName, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "connectorClassName", connectorClassName, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "poolConfigMinSize", poolConfigMinSize, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "poolConfigMaxSize", poolConfigMaxSize, indent + 1);

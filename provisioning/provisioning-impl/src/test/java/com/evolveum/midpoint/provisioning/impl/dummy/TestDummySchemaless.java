@@ -148,7 +148,8 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	@Test
 	public void test000Integrity() throws Exception {
-		TestUtil.displayTestTile("test000Integrity");
+		final String TEST_NAME = "test000Integrity";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		display("Dummy resource instance", dummyResourceSchemaless.toString());
 
@@ -180,10 +181,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test003ConnectionSchemaless() throws Exception {
-		TestUtil.displayTestTile("test003ConnectionSchemaless");
+		final String TEST_NAME = "test003ConnectionSchemaless";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
-				+ ".test003ConnectionSchemaless");
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
 				.asObjectable();
@@ -201,10 +202,14 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		// THEN
 		display("Test result", testResult);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONFIGURATION_VALIDATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-		assertTestResourceFailure(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+		assertSuccess(connectorResult);
+		assertTestResourceFailure(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+		assertFailure(testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
@@ -217,10 +222,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test005ParsedSchemaSchemaless() throws Exception {
-		TestUtil.displayTestTile("test005ParsedSchemaSchemaless");
+		final String TEST_NAME = "test005ParsedSchemaSchemaless";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
-				+ ".test005ParsedSchemaSchemaless");
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -236,10 +241,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	@Test
 	public void test006GetObjectSchemaless() throws Exception {
-		TestUtil.displayTestTile("test006GetObjectSchemaless");
+		final String TEST_NAME = "test006GetObjectSchemaless";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
-				+ ".test006GetObjectSchemaless");
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, null, result);
 		assertNotNull("Resource is null", resource);
@@ -257,10 +262,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test103ConnectionStaticSchema() throws Exception {
-		TestUtil.displayTestTile("test103ConnectionStaticSchema");
+		final String TEST_NAME = "test103ConnectionStaticSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
-				+ ".test003ConnectionSchemaless");
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
 		// Check that there a schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, 
@@ -275,10 +280,14 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		// THEN
 		display("Test result", testResult);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONFIGURATION_VALIDATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+		assertSuccess(connectorResult);
+		assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+		assertSuccess(testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
@@ -293,10 +302,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test105ParsedSchemaStaticSchema() throws Exception {
-		TestUtil.displayTestTile("test105ParsedSchemaStaticSchema");
+		final String TEST_NAME = "test105ParsedSchemaStaticSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
-				+ ".test105ParsedSchemaStaticSchema");
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -313,10 +322,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 	@Test
 	public void test106GetObjectStaticSchema() throws Exception {
-		TestUtil.displayTestTile("test106GetObjectStaticSchema");
+		final String TEST_NAME = "test106GetObjectStaticSchema";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
-				+ ".test106GetObjectStaticSchema");
+		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result);
 		assertNotNull("Resource is null", resource);
@@ -334,17 +343,20 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	
 	@Test
 	public void test107Capabilities() throws Exception {
-		TestUtil.displayTestTile("test107Capabilities");
+		final String TEST_NAME = "test107Capabilities";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test107Capabilities");
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result)
 				.asObjectable();
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
@@ -352,13 +364,6 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
-				CredentialsCapabilityType.class);
-		assertNotNull("password native capability not present", capCred.getPassword());
-		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
-				ActivationCapabilityType.class);
-		assertNotNull("native activation capability not present", capAct);
-		assertNotNull("native activation status capability not present", capAct.getStatus());
 		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
@@ -367,7 +372,13 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		assertNotNull("native script capability not present", capScript);
 		assertNotNull("No host in native script capability", capScript.getHost());
 		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
-		// TODO: better look inside
+		
+		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
+				CredentialsCapabilityType.class);
+		assertNull("Unexpected native credentials capability", capCred);
+		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
+				ActivationCapabilityType.class);
+		assertNull("Unexpected native activation capability", capAct);
 
 		// Check effective capabilites
 		capCred = ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class);
@@ -380,8 +391,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
 		for (Object capability : effectiveCapabilities) {
-			System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : "
-					+ capability);
+			display("Capability " + CapabilityUtil.getCapabilityDisplayName(capability), capability);
 		}
 	}
 
@@ -390,10 +400,10 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test200AddAccount() throws Exception {
-		TestUtil.displayTestTile("test110AddAccount");
+		final String TEST_NAME = "test200AddAccount";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test110AddAccount");
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
 		ShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
 		account.asPrismObject().checkConsistence();

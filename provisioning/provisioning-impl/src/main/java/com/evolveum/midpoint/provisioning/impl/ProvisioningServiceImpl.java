@@ -1296,7 +1296,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 	
 	@Override
-	public ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult) 
+	public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, OperationResult parentResult) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException  {
 		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName()
 				+ ".getConnectorOperationalStatus");
@@ -1313,9 +1313,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw ex;
 		}
 		
-		ConnectorOperationalStatus stats;
+		List<ConnectorOperationalStatus> stats;
 		try {
-			stats = connectorManager.getConnectorOperationalStatus(resource, result);
+			stats = resourceManager.getConnectorOperationalStatus(resource, result);
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException ex) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Getting operations status from connector for resource "+resourceOid+" failed: "+ex.getMessage(), ex);
 			throw ex;
