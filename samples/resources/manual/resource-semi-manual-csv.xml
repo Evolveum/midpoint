@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="aea5a57c-2904-11e7-8020-7b121a9e3595"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
+        xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+								  
+	<name>Semi-Manual CSV Resource</name>
+	
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:equal>
+				<q:path>c:connectorType</q:path>
+				<q:value>ManualConnector</q:value>
+			</q:equal>
+		</filter>
+	</connectorRef>
+
+	<connectorConfiguration>
+		<conf:defaultAssignee>administrator</conf:defaultAssignee>
+	</connectorConfiguration>
+	
+	<additionalConnector>
+		<name>csv</name>
+		<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+		<connectorConfiguration>
+			<icfc:configurationProperties>
+				<csvconf:filePath>/var/opt/midpoint/resources/semi-manual.csv</csvconf:filePath>
+				<csvconf:encoding>utf-8</csvconf:encoding>
+				<csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
+				<csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
+				<csvconf:uniqueAttribute>username</csvconf:uniqueAttribute>
+				<csvconf:passwordAttribute>password</csvconf:passwordAttribute>
+			</icfc:configurationProperties>
+		</connectorConfiguration>
+		<capabilities>
+			<configured>
+				<cap:liveSync>
+					<cap:enabled>false</cap:enabled>
+				</cap:liveSync>
+				<cap:create>
+					<cap:enabled>false</cap:enabled>
+				</cap:create>
+				<cap:update>
+					<cap:enabled>false</cap:enabled>
+				</cap:update>
+				<cap:delete>
+					<cap:enabled>false</cap:enabled>
+				</cap:delete>
+				<cap:script>
+				    <cap:enabled>false</cap:enabled>
+				</cap:script>
+				<cap:activation>
+					<cap:status>
+						<cap:attribute>ri:disabled</cap:attribute>
+						<cap:enableValue>false</cap:enableValue>
+						<cap:disableValue>true</cap:disableValue>
+					</cap:status>
+				</cap:activation>				
+			</configured>
+		</capabilities>
+	</additionalConnector>
+	
+	<!-- Schema definition comes from the CSV file -->
+
+	<!-- No schemaHandling -->
+	
+	<capabilities>
+		<configured>
+			<cap:activation>
+				<cap:status>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:status>
+			</cap:activation>				
+		</configured>
+	</capabilities>
+	
+	<consistency>
+		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+	</consistency>
+	
+</resource>
