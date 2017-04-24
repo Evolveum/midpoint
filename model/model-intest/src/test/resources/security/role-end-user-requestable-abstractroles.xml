@@ -127,6 +127,7 @@
     	    Otherwise they will be assigned automatically wihout any approval. 
     	</description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+	   <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
       <phase>request</phase>
       <object>
          <special>self</special>
