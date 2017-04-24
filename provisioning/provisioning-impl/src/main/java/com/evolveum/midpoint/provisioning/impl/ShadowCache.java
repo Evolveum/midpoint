@@ -211,7 +211,7 @@ public abstract class ShadowCache {
 		repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
 		
 		if (canReturnCached(options, repositoryShadow, resource)) {
-			PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options);
+			PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
 			applyDefinition(resultShadow, parentResult);
 			return resultShadow;
 		}
@@ -252,7 +252,7 @@ public abstract class ShadowCache {
 					parentResult.muteLastSubresultError();
 					parentResult.recordSuccess();
 					repositoryShadow.asObjectable().setExists(false);
-					PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options);
+					PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
 					applyDefinition(resultShadow, parentResult);
 					return resultShadow;
 				} else {
@@ -302,7 +302,7 @@ public abstract class ShadowCache {
 				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
 			}
 
-			resultShadow = futurizeShadow(resultShadow, options);
+			resultShadow = futurizeShadow(resultShadow, options, resource);
 			parentResult.recordSuccess();
 			return resultShadow;
 
@@ -338,7 +338,7 @@ public abstract class ShadowCache {
 	}
 
 	private PrismObject<ShadowType> futurizeShadow(PrismObject<ShadowType> shadow,
-			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options, ResourceType resource) throws SchemaException {
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
 		if (pit != PointInTimeType.FUTURE) {
 			return shadow;
@@ -346,10 +346,21 @@ public abstract class ShadowCache {
 		PrismObject<ShadowType> resultShadow = shadow;
 		ShadowType resultShadowType = resultShadow.asObjectable();
 		List<PendingOperationType> sortedOperations = sortOperations(resultShadowType.getPendingOperation());
+		boolean resourceReadIsCachingOnly = resourceReadIsCahingOnly(resource);
 		for (PendingOperationType pendingOperation: sortedOperations) {
 			OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
-			if (resultStatus != null && resultStatus != OperationResultStatusType.IN_PROGRESS && resultStatus != OperationResultStatusType.UNKNOWN) {
+			if (resultStatus == OperationResultStatusType.FATAL_ERROR || resultStatus == OperationResultStatusType.NOT_APPLICABLE) {
 				continue;
+			}
+			if (resourceReadIsCachingOnly) {
+				// We are getting the data from our own cache. So we know that all completed operations are already applied in the cache.
+				// Re-applying them will mean additional risk of corrupting the data.
+				if (resultStatus != null && resultStatus != OperationResultStatusType.IN_PROGRESS && resultStatus != OperationResultStatusType.UNKNOWN) {
+					continue;
+				}
+			} else {
+				// We want to apply all the deltas, even those that are already completed. They might not be reflected on the resource yet.
+				// E.g. they may be not be present in the CSV export until the next export cycle is scheduled
 			}
 			ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
 			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
@@ -380,6 +391,15 @@ public abstract class ShadowCache {
 		return resultShadow;
 	}
 
+	private boolean resourceReadIsCahingOnly(ResourceType resource) {
+		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+		Boolean cachingOnly = readCapabilityType.isCachingOnly();
+		if (cachingOnly == Boolean.TRUE) {
+			return true;
+		}
+		return false;
+	}
+
 	private boolean canReturnCachedAfterNotFoundOnResource(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
 		if (repositoryShadow.asObjectable().getPendingOperation().isEmpty()) {
 			return false;
@@ -400,9 +420,7 @@ public abstract class ShadowCache {
 	}
 	
 	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
-		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
-		Boolean cachingOnly = readCapabilityType.isCachingOnly();
-		if (cachingOnly == Boolean.TRUE) {
+		if (resourceReadIsCahingOnly(resource)) {
 			return true;
 		}
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));

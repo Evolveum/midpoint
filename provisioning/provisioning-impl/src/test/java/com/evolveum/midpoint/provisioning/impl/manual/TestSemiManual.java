@@ -117,17 +117,18 @@ public class TestSemiManual extends AbstractManualResourceTest {
 
 	@Override
 	protected void backingStoreAddWill() throws IOException {
-		appendToCsv(new String[]{ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_FULLNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", ACCOUNT_WILL_PASSWORD});
+		appendToCsv(new String[]{ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_FULLNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", ACCOUNT_WILL_PASSWORD_OLD});
 	}
 	
-	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus) throws IOException {
+	@Override
+	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
 		String disabled;
 		if (newAdministrativeStatus == ActivationStatusType.ENABLED) {
 			disabled = "false";
 		} else {
 			disabled = "true";
 		}
-		replaceInCsv(new String[]{ACCOUNT_WILL_USERNAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", disabled, ACCOUNT_WILL_PASSWORD});
+		replaceInCsv(new String[]{ACCOUNT_WILL_USERNAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", disabled, password});
 	}
 
 	private void appendToCsv(String[] data) throws IOException {
