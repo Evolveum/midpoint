@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="0ef80ab8-2906-11e7-b81a-3f343e28c264"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+								  
+	<name>Manual Resource</name>
+	
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:equal>
+				<q:path>c:connectorType</q:path>
+				<q:value>ManualConnector</q:value>
+			</q:equal>
+		</filter>
+	</connectorRef>
+	
+	<connectorConfiguration>
+		<conf:defaultAssignee>administrator</conf:defaultAssignee>
+	</connectorConfiguration>
+	
+	<!-- Static schema definition -->
+	<schema>
+		<definition>
+	         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+	            <xsd:complexType name="AccountObjectClass">
+	               <xsd:annotation>
+	                  <xsd:appinfo>
+	                     <ra:resourceObject/>
+	                     <ra:identifier>tns:username</ra:identifier>
+	                     <ra:displayNameAttribute>tns:username</ra:displayNameAttribute>
+	                     <ra:namingAttribute>tns:username</ra:namingAttribute>
+	                     <ra:account/>
+	                     <ra:default/>
+	                  </xsd:appinfo>
+	               </xsd:annotation>
+	               <xsd:sequence>
+	                  <xsd:element minOccurs="1" name="username" type="xsd:string">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayName>Username</a:displayName>
+	                           <a:displayOrder>110</a:displayOrder>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	                  <xsd:element name="fullname" type="xsd:string" minOccurs="0">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayOrder>200</a:displayOrder>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+	                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
+	               </xsd:sequence>
+	            </xsd:complexType>
+         	</xsd:schema>
+      	</definition>
+	</schema>
+	<!-- No schemaHandling as well. -->
+	<!-- No capabilities. Connector should generate those. -->
+	
+	<consistency>
+		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+	</consistency>
+	
+</resource>
