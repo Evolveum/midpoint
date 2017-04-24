@@ -371,6 +371,10 @@ public abstract class SchemaConstants {
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
 	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 
+	//GUI constants which are also used in the notificators
+	public static final String REGISTRATION_CONFIRAMTION_PREFIX = "/confirm/registration";
+	public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
+	
 	public static final String INTENT_DEFAULT = "default";
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
@@ -499,10 +503,10 @@ public abstract class SchemaConstants {
 	public static final QName APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE = new QName(SchemaConstants.NS_C, ApprovalLevelOutcomeType.class.getSimpleName());
 
 	// registration
-	public static final String REGISTRATION_ID = "registrationId";
-	public static final String REGISTRATION_TOKEN = "token";
+	public static final String USER_ID = "user";
+	public static final String TOKEN = "token";
 	
-	// resetPassword
-	public static final String RESET_PASSWORD_ID = "user";
-	public static final String RESET_PASSWORD_TOKEN = "token";
+//	// resetPassword
+//	public static final String RESET_PASSWORD_ID = "user";
+//	public static final String RESET_PASSWORD_TOKEN = "token";
 }

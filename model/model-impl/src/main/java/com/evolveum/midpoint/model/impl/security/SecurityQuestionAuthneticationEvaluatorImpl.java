@@ -110,5 +110,10 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 		authnCtx.setPolicy(policy);
 		return policy;
 	}
+	
+	@Override
+	protected boolean supportsActivation() {
+		return true;
+	}
 
 }

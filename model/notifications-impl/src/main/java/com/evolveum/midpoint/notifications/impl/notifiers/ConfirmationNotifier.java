@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,19 +33,19 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConfirmationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserRegistrationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * @author mederly
+ * @author katkav
  */
 @Component
-public class UserRegistrationNotifier extends GeneralNotifier {
+public class ConfirmationNotifier extends GeneralNotifier {
 
-	private static final Trace LOGGER = TraceManager.getTrace(UserRegistrationNotifier.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
 
 	@Autowired
 	private MidpointFunctions midpointFunctions;
@@ -53,12 +53,10 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 	@Autowired
 	private NotificationFunctionsImpl notificationsUtil;
 	
-	
-	private static String CONFIRMATION_LINK = "/confirm/";
 
 	@PostConstruct
 	public void init() {
-		register(UserRegistrationNotifierType.class);
+		register(ConfirmationNotifierType.class);
 	}
 
 	@Override
@@ -74,66 +72,16 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 		}
 	}
 
-	@Override
-	protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType,
-			OperationResult result) {
-		if (!event.isSuccess()) {
-			LOGGER.trace("Operation was not successful, exiting.");
-			return false;
-		}
 
-		ModelEvent modelEvent = (ModelEvent) event;
-		if (modelEvent.getFocusDeltas().isEmpty()) {
-			LOGGER.trace("No user deltas in event, exiting.");
-			return false;
-		}
-		if (SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI.equals(modelEvent.getChannel())) {
-			LOGGER.trace("Found change from registration channel.");
-			return true;
-		} else {
-			LOGGER.trace("No registration present in delta. Skip sending notifications.");
-			return false;
-		}
-	}
-
-
-	@Override
-	protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
-			Task task, OperationResult result) {
-		return "Registration confirmation";
-	}
-
-	@Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-
-      UserType userType = getUser(event);
-        
-		String plainTextPassword = "IhopeYouRememberYourPassword";
-		try {
-			plainTextPassword = midpointFunctions.getPlaintextUserPassword(userType);
-		} catch (EncryptionException e) {
-			//ignore...????
-		}
 		
-        StringBuilder messageBuilder = new StringBuilder("Dear ");
-        messageBuilder.append(userType.getGivenName()).append(",\n")
-        .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
-        .append("\n")
-        .append(createConfirmationLink(userType, generalNotifierType, result))
-        .append("\n\n")
-        .append("After your account is activated, use following credentials to log in: \n")
-        .append("username: ")
-        .append(userType.getName().getOrig())
-        .append("password: ")
-        .append(plainTextPassword);
-        
-        return messageBuilder.toString();
-    }
-
-	private String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType, OperationResult result){
+	public String getConfirmationLink(UserType userType){
+		throw new UnsupportedOperationException("Please implement in concrete notifier");
+	}
+	
+	protected String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType, OperationResult result){
 		
 			
-		UserRegistrationNotifierType userRegistrationNotifier = (UserRegistrationNotifierType) generalNotifierType;
+		ConfirmationNotifierType userRegistrationNotifier = (ConfirmationNotifierType) generalNotifierType;
 		
 		RegistrationConfirmationMethodType confirmationMethod = userRegistrationNotifier.getConfirmationMethod();
 		
@@ -149,12 +97,11 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 					return null;
 				}
 				String defaultHostname = systemConfiguration.getDefaultHostname();
-				StringBuilder confirmLinkBuilder = new StringBuilder(defaultHostname + CONFIRMATION_LINK);
-				confirmLinkBuilder.append(SchemaConstants.REGISTRATION_ID+"/").append(userType.getName().getOrig())
-				.append("/"+SchemaConstants.REGISTRATION_TOKEN+"/").append(getNonce(userType));
-				return confirmLinkBuilder.toString();
+				String confirmationLink = defaultHostname + getConfirmationLink(userType);
+				return confirmationLink;
 			case PIN:
-				return getNonce(userType);
+				throw new UnsupportedOperationException("PIN confirmation not supported yes");
+//				return getNonce(userType);
 			default:
 				break;
 		}
@@ -163,14 +110,14 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 		
 	}
 	
-	private UserType getUser(Event event){
+	protected UserType getUser(Event event){
 		ModelEvent modelEvent = (ModelEvent) event;
         PrismObject<UserType> newUser = modelEvent.getFocusContext().getObjectNew();
         UserType userType = newUser.asObjectable();
         return userType;
 	}
 	
-	private String getNonce(UserType user) {
+	protected String getNonce(UserType user) {
 		if (user.getCredentials() == null) {
 			return null;
 		}
@@ -208,4 +155,7 @@ public class UserRegistrationNotifier extends GeneralNotifier {
 		return LOGGER;
 	}
 
+	public MidpointFunctions getMidpointFunctions() {
+		return midpointFunctions;
+	}
 }

@@ -114,7 +114,7 @@ public class PageSecurityQuestions extends PageBase {
 	private static final String ID_BACK = "back";
 	private static final String ID_SAVE = "send";
 	private static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = "LOAD PASSWORD RESET POLICY";
-	private static final String SESSION_ATTRIBUTE_POID = "pOid";
+	public static final String SESSION_ATTRIBUTE_POID = "pOid";
 
 	private List<MyPasswordQuestionsPanel> pqPanels;
 
@@ -352,7 +352,7 @@ public class PageSecurityQuestions extends PageBase {
 	private PasswordQuestionsDto loadPageModel() {
 		LOGGER.debug("Loading user.");
 		
-		final String userOid = getSession().getAttribute(SESSION_ATTRIBUTE_POID).toString();
+		final String userOid = getPageParameters().get(SESSION_ATTRIBUTE_POID).toString();
 		
 		PrismObject<UserType> user = runPrivileged(new Producer<PrismObject<UserType>>() {
 			@Override

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
 import com.evolveum.midpoint.web.page.login.PageRegistrationConfirmation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 
-@PageDescriptor(url = "/resetPasswordConfrimation")
+@PageDescriptor(url = SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX)
 public class PageResetPasswordConfirmation extends PageRegistrationBase{
 
 	
@@ -73,9 +73,9 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 			return;
 		}
 
-		StringValue userNameValue = params.get(SchemaConstants.RESET_PASSWORD_ID);
+		StringValue userNameValue = params.get(SchemaConstants.USER_ID);
 		Validate.notEmpty(userNameValue.toString());
-		StringValue tokenValue = params.get(SchemaConstants.RESET_PASSWORD_TOKEN);
+		StringValue tokenValue = params.get(SchemaConstants.TOKEN);
 		Validate.notEmpty(tokenValue.toString());
 			
 		UsernamePasswordAuthenticationToken token = authenticateUser(userNameValue.toString(), tokenValue.toString(), result);
