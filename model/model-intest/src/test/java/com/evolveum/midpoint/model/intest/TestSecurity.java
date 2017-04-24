@@ -243,8 +243,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_LIMITED_USER_ADMIN_FILE = new File(TEST_DIR, "role-limited-user-admin.xml");
 	protected static final String ROLE_LIMITED_USER_ADMIN_OID = "66ee3a78-1b8a-11e7-aac6-5f43a0a86116";
 
-	protected static final File ROLE_END_USER_REQUESTABLE_ORGS_FILE = new File(TEST_DIR,"role-end-user-requestable-orgs.xml");
-	protected static final String ROLE_END_USER_REQUESTABLE_ORGS_OID = "9434bf5b-c088-456f-9286-84a1e5a0223c";
+	protected static final File ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE = new File(TEST_DIR,"role-end-user-requestable-abstractroles.xml");
+	protected static final String ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID = "9434bf5b-c088-456f-9286-84a1e5a0223c";
+
+	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
+	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -317,7 +320,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
 
-		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ORGS_FILE, initResult);
+		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE, initResult);
+
+		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -2341,7 +2346,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 
 	/**
-	 * MID-3636
+	 * MID-3636 partially
 	 */
 	@Test(enabled=false)
 	public void test275bAutzJackAssignRequestableOrgs() throws Exception {
@@ -2349,7 +2354,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		// GIVEN
 		cleanupAutzTest(USER_JACK_OID);
-		assignRole(USER_JACK_OID, ROLE_END_USER_REQUESTABLE_ORGS_OID);
+		assignRole(USER_JACK_OID, ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID);
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2357,21 +2362,35 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-
-
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		assertAssignments(user, 2);
-		assertAssignedRole(user, ROLE_END_USER_REQUESTABLE_ORGS_OID);
+		assertAssignedRole(user, ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID);
+
+		assertAllow("assign requestable org to jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				assignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result);
+			}
+		});
+		user = getUser(USER_JACK_OID);
+		assertAssignments(user, OrgType.class,1);
+
+		RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+		assertRoleTypes(spec);
 
 		ObjectQuery query = new ObjectQuery();
-		EqualFilter equalFilter = EqualFilter.createEqual(new ItemPath(AbstractRoleType.F_REQUESTABLE),null,null, user.getPrismContext(),true);
 
-		ObjectFilter filterRoleTypeRequestable=TypeFilter.createType(RoleType.COMPLEX_TYPE, equalFilter);
-		ObjectFilter filterOrgTypeRequestable=TypeFilter.createType(OrgType.COMPLEX_TYPE, equalFilter);
-		ObjectFilter orFilter =  ObjectQueryUtil.filterOr(filterRoleTypeRequestable,filterOrgTypeRequestable);
-		query.addFilter(TypeFilter.createType(RoleType.COMPLEX_TYPE, orFilter));
+		query.addFilter(spec.getFilter());
+		assertSearch(AbstractRoleType.class, query, 6); // set to 6 with requestable org
 
-		assertSearch(AbstractRoleType.class, query, 1);
+		assertAllow("unassign business role from jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result);
+			}
+		});
+		user = getUser(USER_JACK_OID);
+		assertAssignments(user, OrgType.class,0);
 
 		assertGlobalStateUntouched();
 	}

@@ -283,6 +283,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <!--<xsd:element name="targetType" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">-->
+                        <!--<xsd:annotation>-->
+                            <!--<xsd:documentation>-->
+                                <!--This policy only applies to targets of the specified type.-->
+                            <!--</xsd:documentation>-->
+							<!--<xsd:appinfo>-->
+								<!--<a:since>3.6</a:since>-->
+							<!--</xsd:appinfo>-->
+                        <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -796,7 +806,19 @@
         <xsd:complexContent>
             <xsd:extension base="tns:PolicyActionType">
                 <xsd:sequence>
-                    <!-- TODO -->
+                    <xsd:element name="definitionRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Certification definition(s) to be started as part of the action execution.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:AccessCertificationDefinitionType</a:objectReferenceTargetType>
+                                <a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

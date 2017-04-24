@@ -58,4 +58,13 @@ public class GetCertificationWorkItemResult implements Serializable {
 	public Integer getId() {
 		return id;
 	}
+
+	@Override
+	public String toString() {
+		return "GetCertificationWorkItemResult{" +
+				"campaignOid='" + campaignOid + '\'' +
+				", caseId=" + caseId +
+				", id=" + id +
+				'}';
+	}
 }

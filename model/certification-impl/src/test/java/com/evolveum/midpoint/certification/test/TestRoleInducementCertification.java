@@ -245,7 +245,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchWorkItems(null, SecurityUtil.getPrincipal(), false, null, task, result);
+                queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
 
         /* Expected cases - phase 1:
 
@@ -279,7 +279,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchWorkItems(null, SecurityUtil.getPrincipal(), false, null, task, result);
+                queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
 
         /* Expected cases - phase 1:
 
@@ -309,7 +309,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         List<AccessCertificationWorkItemType> workItems =
-                queryHelper.searchWorkItems(null, SecurityUtil.getPrincipal(), false, null, task, result);
+                queryHelper.searchOpenWorkItems(null, SecurityUtil.getPrincipal(), false, null, result);
 
         /* Expected cases - phase 1: NONE */
 
