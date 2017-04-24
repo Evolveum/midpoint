@@ -97,7 +97,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 
-	transient private DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple;
+	transient private DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
 
 	/**
 	 * Just a cached copy. Keep it in context so we do not need to reload it all
@@ -430,12 +430,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return doReconciliationForAllProjections ||  ModelExecuteOptions.isReconcileFocus(options);
 	}
 
-	public DeltaSetTriple<EvaluatedAssignmentImpl> getEvaluatedAssignmentTriple() {
+	public DeltaSetTriple<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentTriple() {
 		return evaluatedAssignmentTriple;
 	}
 
 	public void setEvaluatedAssignmentTriple(
-			DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple) {
+			DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple) {
 		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
 	}
 

@@ -30,7 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The triple of values (added, unchanged, deleted) that represents difference between two collections of values.
@@ -294,6 +296,11 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
     	addAllValuesSet(allValues, minusSet);
     	return allValues;
     }
+
+    public Stream<T> stream() {
+    	// concatenates the streams
+    	return Stream.of(zeroSet.stream(), plusSet.stream(), minusSet.stream()).flatMap(Function.identity());
+	}
 
 	private void addAllValuesSet(Collection<T> allValues, Collection<T> set) {
 		if (set == null) {

@@ -30,7 +30,11 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -110,7 +114,8 @@ public class AccCertUpdateHelper {
     //region ================================ Campaign create ================================
 
     AccessCertificationCampaignType createCampaignObject(AccessCertificationDefinitionType definition,
-                                                         Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
+			Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         AccessCertificationCampaignType newCampaign = new AccessCertificationCampaignType(prismContext);
 
         if (definition.getName() != null) {
@@ -146,7 +151,28 @@ public class AccCertUpdateHelper {
         return newCampaign;
     }
 
-    private PolyStringType generateCampaignName(AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	<O extends ObjectType> AccessCertificationCampaignType createAdHocCampaignObject(
+			AccessCertificationDefinitionType definition, PrismObject<O> focus, Task task,
+			OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+    	definition.setName(PolyStringType.fromOrig(PolyString.getOrig(definition.getName()) + " " + PolyString.getOrig(focus.getName())));
+    	definition.setLastCampaignIdUsed(null);
+		AccessCertificationCampaignType campaign = createCampaignObject(definition, task, result);
+		AccessCertificationObjectBasedScopeType scope;
+		if ((campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType)) {
+			scope = (AccessCertificationObjectBasedScopeType) campaign.getScopeDefinition();
+		} else {
+			// TODO!
+			scope = new AccessCertificationAssignmentReviewScopeType(prismContext);
+			campaign.setScopeDefinition(scope);
+		}
+		Class<? extends ObjectType> focusClass = focus.asObjectable().getClass();
+		scope.setObjectType(ObjectTypes.getObjectType(focusClass).getTypeQName());
+		ObjectFilter objectFilter = QueryBuilder.queryFor(focusClass, prismContext).id(focus.getOid()).buildFilter();
+		scope.setSearchFilter(QueryConvertor.createSearchFilterType(objectFilter, prismContext));
+		return campaign;
+	}
+
+	private PolyStringType generateCampaignName(AccessCertificationDefinitionType definition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         String prefix = definition.getName().getOrig();
         Integer lastCampaignIdUsed = definition.getLastCampaignIdUsed() != null ? definition.getLastCampaignIdUsed() : 0;
         for (int i = lastCampaignIdUsed+1;; i++) {
@@ -710,5 +736,5 @@ public class AccCertUpdateHelper {
         return repositoryService.getObject(AccessCertificationCampaignType.class, campaign.getOid(), null, result).asObjectable();
     }
 
-    //endregion
+	//endregion
 }
