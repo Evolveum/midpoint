@@ -78,8 +78,8 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 	}
 
 	public static <T> Collection<SelectorOptions<T>> createCollection(T options) {
-		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<SelectorOptions<T>>(1);
-		optionsCollection.add(new SelectorOptions<T>(options));
+		Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(1);
+		optionsCollection.add(new SelectorOptions<>(options));
 		return optionsCollection;
 	}
 
