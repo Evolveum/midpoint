@@ -47,10 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
@@ -91,10 +88,10 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
     public static final String CLASS_DOT = CertificationManagerImpl.class.getName() + ".";
     public static final String OPERATION_CREATE_CAMPAIGN = INTERFACE_DOT + "createCampaign";
+    public static final String OPERATION_CREATE_AD_HOC_CAMPAIGNS = INTERFACE_DOT + "createAdHocCampaigns";
     public static final String OPERATION_OPEN_NEXT_STAGE = INTERFACE_DOT + "openNextStage";
     public static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
     public static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
-    public static final String OPERATION_SEARCH_DECISIONS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
     public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
@@ -152,6 +149,63 @@ public class CertificationManagerImpl implements CertificationManager {
             result.computeStatusIfUnknown();
         }
     }
+
+    // This is an action that can be run in unprivileged context. No authorizations are checked. Take care when and where you call it.
+    // Child result is intentionally created only when a certification campaign is to be started (to avoid useless creation of many empty records)
+	<O extends ObjectType> void startAdHocCertifications(PrismObject<O> focus,
+			List<CertificationPolicyActionType> actions, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+        Set<String> definitionOids = new HashSet<>();
+        for (CertificationPolicyActionType action : actions) {
+            if (action.getDefinitionRef() != null) {
+                for (ObjectReferenceType definitionRef : action.getDefinitionRef()) {
+                    if (definitionRef.getOid() != null) {
+                        definitionOids.add(definitionRef.getOid());
+                    } else {
+                        // TODO resolve dynamic reference
+                        LOGGER.warn("Certification action having definition reference with no OID; the reference will be ignored: {}", definitionRef);
+                    }
+                }
+            } else {
+                LOGGER.warn("Certification action without definition reference; will be ignored: {}", action);
+            }
+        }
+        if (!definitionOids.isEmpty()) {
+			OperationResult result = parentResult.createSubresult(OPERATION_CREATE_AD_HOC_CAMPAIGNS);
+			result.addParam("focus", focus);
+			result.addCollectionOfSerializablesAsParam("definitionOids", definitionOids);
+			try {
+				PrismObject<UserType> administrator = repositoryService
+						.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
+				securityEnforcer.runAs(() -> {
+					for (String definitionOid : definitionOids) {
+						startAdHocCertification(focus, definitionOid, task, result);
+					}
+					parentResult.computeStatus();
+					return null;
+				}, administrator);
+			} catch (RuntimeException e) {
+				result.recordFatalError(e.getMessage(), e);		// TODO
+				throw e;
+			}
+		}
+    }
+
+    private <O extends ObjectType> void startAdHocCertification(PrismObject<O> focus, String definitionOid, Task task,
+            OperationResult result) {
+		try {
+			AccessCertificationDefinitionType definition = repositoryService.getObject(AccessCertificationDefinitionType.class, definitionOid, null, result).asObjectable();
+			AccessCertificationCampaignType newCampaign = updateHelper.createAdHocCampaignObject(definition, focus, task, result);
+			updateHelper.addObject(newCampaign, task, result);
+			openNextStage(newCampaign.getOid(), 1, task, result);
+			result.computeStatus();
+		} catch (RuntimeException|SchemaException|ObjectNotFoundException|SecurityViolationException|ObjectAlreadyExistsException e) {
+			result.recordFatalError("Couldn't create ad-hoc certification campaign: " + e.getMessage(), e);
+			throw new SystemException("Couldn't create ad-hoc certification campaign: " + e.getMessage(), e);
+		}
+    }
+
+
 
     @Override
     public void openNextStage(String campaignOid, int requestedStageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {

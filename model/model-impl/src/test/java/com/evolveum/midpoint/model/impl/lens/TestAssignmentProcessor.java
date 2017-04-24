@@ -692,7 +692,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         assertEquals("Wrong # of added assignments", 1, evaluatedAssignmentTriple.getPlusSet().size());
 
         display("Policy rules", context.dumpPolicyRules(3));
@@ -747,7 +747,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
 		assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		assertEquals("Wrong # of added assignments", 1, evaluatedAssignmentTriple.getPlusSet().size());
 
 		display("Policy rules", context.dumpPolicyRules(3));
