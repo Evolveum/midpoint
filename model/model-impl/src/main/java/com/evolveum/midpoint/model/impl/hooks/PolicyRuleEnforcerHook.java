@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 
 /**
- * Hook used to enfore the policy rules that have the enforce action.
+ * Hook used to enforce the policy rules that have the enforce action.
  * 
  * @author semancik
  *
@@ -71,8 +72,8 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	 * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#invoke(com.evolveum.midpoint.model.api.context.ModelContext, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <O extends ObjectType> HookOperationMode invoke(ModelContext<O> context, Task task,
-			OperationResult result) throws PolicyViolationException {
+	public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
+			@NotNull OperationResult result) throws PolicyViolationException {
 		
 		if (context.getState() != ModelState.PRIMARY) {
             return HookOperationMode.FOREGROUND;
@@ -165,8 +166,8 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	 * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#invokeOnException(com.evolveum.midpoint.model.api.context.ModelContext, java.lang.Throwable, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void invokeOnException(ModelContext context, Throwable throwable, Task task,
-			OperationResult result) {
+	public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task,
+			@NotNull OperationResult result) {
 		// Nothing to do
 	}
 

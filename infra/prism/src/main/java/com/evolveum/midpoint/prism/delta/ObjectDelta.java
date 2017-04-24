@@ -555,6 +555,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
      * The deltas as processed as an ORDERED sequence. Therefore it correctly processes item overwrites and so on.
      * It also means that if there is an ADD delta it has to be first. 
      */
+    @SafeVarargs
     public static <T extends Objectable> ObjectDelta<T> summarize(ObjectDelta<T>... deltas) throws SchemaException {
     	return summarize(Arrays.asList(deltas));
     }

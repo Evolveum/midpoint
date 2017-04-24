@@ -444,7 +444,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="userRegistrationNotifier" type="tns:UserRegistrationNotifierType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="userRegistrationNotifier" type="tns:RegistrationConfirmationNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+             <xsd:element name="passwordResetNotifier" type="tns:PasswordResetNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+             <xsd:element name="accountActivation" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -911,7 +925,7 @@
     </xsd:complexType>
 
 
-<xsd:complexType name="UserRegistrationNotifierType">
+	<xsd:complexType name="ConfirmationNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -923,6 +937,45 @@
                     <xsd:element name="confirmationMethod" type="tns:RegistrationConfirmationMethodType" minOccurs="0">
                     </xsd:element>
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="RegistrationConfirmationNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConfirmationNotifierType">
+             	
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="PasswordResetNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConfirmationNotifierType">
+             	
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="AccountActivationNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ConfirmationNotifierType">
+             	
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

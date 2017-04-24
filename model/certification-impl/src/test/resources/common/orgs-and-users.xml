@@ -233,18 +233,4 @@
 		<fullName>Captain LeChuck</fullName>
 		<familyName>LeChuck</familyName>
 	</user>
-
-	<user oid="c0c010c0-d34d-b33f-f00d-111111111134">
-		<name>bob</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
-		<assignment>
-			<targetRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
-		</assignment>
-		<assignment>
-			<targetRef oid="00000000-d34d-b33f-f00d-ffffffff0001" type="c:RoleType"/>	<!-- eroot user assignment campaign owner -->
-		</assignment>
-		<fullName>Ghost Pirate Bob</fullName>
-		<givenName>Bob</givenName>
-	</user>
-	
 </objects>

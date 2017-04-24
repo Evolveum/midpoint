@@ -1037,7 +1037,7 @@ public class Clockwork {
 						} else {
 							// No explicit decision for assignment modification yet
 							// process each assignment individually
-							DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+							DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 							
 							authorizeAssignmentRequest(ModelAuthorizationAction.ASSIGN.getUrl(), 
 									object, ownerResolver, evaluatedAssignmentTriple.getPlusSet(), true, result);
@@ -1116,11 +1116,11 @@ public class Clockwork {
 	}
 
 	private <F extends FocusType,O extends ObjectType> void authorizeAssignmentRequest(String assignActionUrl, PrismObject<O> object,
-			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl> evaluatedAssignments, boolean prohibitPolicies, OperationResult result) throws SecurityViolationException, SchemaException {
+			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl<?>> evaluatedAssignments, boolean prohibitPolicies, OperationResult result) throws SecurityViolationException, SchemaException {
 		if (evaluatedAssignments == null) {
 			return;
 		}
-		for (EvaluatedAssignment<F> evaluatedAssignment: evaluatedAssignments) {
+		for (EvaluatedAssignment<?> evaluatedAssignment: evaluatedAssignments) {
 			PrismObject target = evaluatedAssignment.getTarget();
 			if (prohibitPolicies) {
 				AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();

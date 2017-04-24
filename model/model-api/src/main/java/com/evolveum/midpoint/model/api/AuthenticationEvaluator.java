@@ -28,6 +28,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -36,6 +37,10 @@ import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext> {
 	
 	UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx) 
+			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
+			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
+	
+	UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx) 
 			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 	

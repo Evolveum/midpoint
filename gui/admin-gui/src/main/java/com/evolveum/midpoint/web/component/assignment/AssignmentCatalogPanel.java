@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -442,10 +443,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 addOrgMembersFilter(oid, memberQuery);
             }
         }
-        if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase))
-                || AssignmentViewType.ROLE_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))) {
-            addAssignableRolesFilter(memberQuery);
-        }
+        addAssignableRolesFilter(memberQuery);
         addViewTypeFilter(memberQuery);
         if (memberQuery == null) {
             memberQuery = new ObjectQuery();
@@ -463,12 +461,16 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private void addViewTypeFilter(ObjectQuery query) {
+        ObjectFilter prependedAndFilter = null;
         if (AssignmentViewType.ORG_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
-            query.addFilter(TypeFilter.createType(OrgType.COMPLEX_TYPE, query.getFilter()));
+            prependedAndFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(OrgType.COMPLEX_TYPE, null), query.getFilter());
+            query.addFilter(prependedAndFilter);
         } else if (AssignmentViewType.ROLE_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
-            query.addFilter(TypeFilter.createType(RoleType.COMPLEX_TYPE, query.getFilter()));
+            prependedAndFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(RoleType.COMPLEX_TYPE, null), query.getFilter());
+            query.addFilter(prependedAndFilter);
         } else if (AssignmentViewType.SERVICE_TYPE.equals(AssignmentViewType.getViewTypeFromSession(pageBase))){
-            query.addFilter(TypeFilter.createType(ServiceType.COMPLEX_TYPE, query.getFilter()));
+            prependedAndFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(ServiceType.COMPLEX_TYPE, null), query.getFilter());
+            query.addFilter(prependedAndFilter);
         }
     }
 
@@ -493,8 +495,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         if (query == null) {
             query = new ObjectQuery();
         }
-        query.addFilter(TypeFilter.createType(RoleType.COMPLEX_TYPE, filter));
-
+        query.addFilter(filter);
     }
 
     private ObjectQuery addOrgMembersFilter(String oid, ObjectQuery query) {
