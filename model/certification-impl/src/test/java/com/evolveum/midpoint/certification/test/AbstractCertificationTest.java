@@ -65,6 +65,12 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
 	protected static final File ORGS_AND_USERS_FILE = new File(COMMON_DIR, "orgs-and-users.xml");
+	protected static final File USER_BOB_FILE = new File(COMMON_DIR, "user-bob.xml");
+	protected static final File USER_BOB_DEPUTY_FULL_FILE = new File(COMMON_DIR, "user-bob-deputy-full.xml");
+	protected static final File USER_BOB_DEPUTY_NO_ASSIGNMENTS_FILE = new File(COMMON_DIR, "user-bob-deputy-no-assignments.xml");
+	protected static final File USER_BOB_DEPUTY_NO_PRIVILEGES_FILE = new File(COMMON_DIR, "user-bob-deputy-no-privileges.xml");
+	protected static final File USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_FILE = new File(COMMON_DIR, "user-administrator-deputy-no-assignments.xml");
+	protected static final File USER_ADMINISTRATOR_DEPUTY_NONE_FILE = new File(COMMON_DIR, "user-administrator-deputy-none.xml");
 
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
@@ -84,6 +90,11 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected static final String USER_BARKEEPER_OID = "c0c010c0-d34d-b33f-f00d-111111111132";
 	protected static final String USER_CARLA_OID = "c0c010c0-d34d-b33f-f00d-111111111133";
 	protected static final String USER_BOB_OID = "c0c010c0-d34d-b33f-f00d-111111111134";
+	protected static final String USER_BOB_DEPUTY_FULL_OID = "71d27191-df8c-4513-836e-ed01c68a4ab4";
+	protected static final String USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID = "afc1c45d-fdb8-48cf-860b-b305f96a07e3";
+	protected static final String USER_BOB_DEPUTY_NO_PRIVILEGES_OID = "ad371f45-352d-4c1f-80f3-2e279af399ae";
+	protected static final String USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID = "0b88d83f-1722-4b13-b7cc-a2d500470d7f";
+	protected static final String USER_ADMINISTRATOR_DEPUTY_NONE_OID = "e38df3fc-3510-45c2-a379-2b4a1406d4b6";
 
 	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
@@ -175,6 +186,12 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		}
 
 		repoAddObjectsFromFile(ORGS_AND_USERS_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(USER_BOB_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_BOB_DEPUTY_FULL_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_BOB_DEPUTY_NO_ASSIGNMENTS_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_BOB_DEPUTY_NO_PRIVILEGES_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(USER_ADMINISTRATOR_DEPUTY_NONE_FILE, UserType.class, initResult);
 
 		// roles
 		repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
@@ -472,13 +489,14 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 
+	// we return also closed ones (TODO: what is meant by 'current' work items?)
 	public List<AccessCertificationWorkItemType> getCurrentWorkItems(AccessCertificationCaseType _case, int stageNumber, boolean decidedOnly) {
 		List<AccessCertificationWorkItemType> rv = new ArrayList<>();
 		for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
 			if (decidedOnly && WorkItemTypeUtil.getOutcome(workItem) == null) {
 				continue;
 			}
-			if (workItem.getStageNumber() == stageNumber && workItem.getCloseTimestamp() == null) {
+			if (workItem.getStageNumber() == stageNumber) {
 				rv.add(workItem.clone());
 			}
 		}

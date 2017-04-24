@@ -161,6 +161,7 @@ public class CertCampaignTypeUtil {
 
     // unanswered cases = cases where one or more answers from reviewers are missing
     // "no reviewers" cases are treated as answered, because no answer can be provided
+	// closeTimestamp is not checked here: we are NOT interested in "answerable" cases; we are interested in how many cases has an answer
     public static int getUnansweredCases(List<AccessCertificationCaseType> caseList, int campaignStageNumber, AccessCertificationCampaignStateType state) {
         int unansweredCases = 0;
         if (state == AccessCertificationCampaignStateType.IN_REMEDIATION || state == AccessCertificationCampaignStateType.CLOSED) {
@@ -169,7 +170,6 @@ public class CertCampaignTypeUtil {
         for (AccessCertificationCaseType aCase : caseList) {
 			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
 				if (workItem.getStageNumber() == campaignStageNumber
-                        && workItem.getCloseTimestamp() == null
                         && WorkItemTypeUtil.getOutcome(workItem) == null) {
 					unansweredCases++;
 					break;
@@ -318,6 +318,15 @@ public class CertCampaignTypeUtil {
                 .build();
     }
 
+    // some methods, like searchOpenWorkItems, engage their own "openness" filter
+    public static ObjectQuery createOpenWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
+        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+                .item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+                .and().exists(PrismConstants.T_PARENT)
+                   .ownerId(campaignOid)
+                .build();
+    }
+
     public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
         StageCompletionEventType event = aCase.getEvent().stream()
                 .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber)
@@ -340,7 +349,7 @@ public class CertCampaignTypeUtil {
     public static Set<ObjectReferenceType> getCurrentReviewers(AccessCertificationCaseType aCase) {
         return aCase.getWorkItem().stream()
                 // TODO check also with campaign stage?
-                .filter(wi -> wi.getStageNumber() == aCase.getStageNumber() && wi.getCloseTimestamp() == null)
+                .filter(wi -> wi.getStageNumber() == aCase.getStageNumber())
                 .flatMap(wi -> wi.getAssigneeRef().stream())
                 .collect(Collectors.toSet());
     }

@@ -119,4 +119,19 @@ public class ModelExpressionThreadLocalHolder {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 	}
+
+	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
+			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext params,
+			LensContext<?> lensContext, LensProjectionContext projectionContext, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(lensContext, projectionContext, task, result);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
+		try {
+			exprResultTriple = expression.evaluate(params);
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
+		return exprResultTriple;
+	}
 }

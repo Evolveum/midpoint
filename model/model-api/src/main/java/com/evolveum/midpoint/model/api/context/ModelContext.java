@@ -45,7 +45,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
 	void reportProgress(ProgressInformation progress);
     
-    DeltaSetTriple<? extends EvaluatedAssignment> getEvaluatedAssignmentTriple();
+    DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple();
 
     PrismContext getPrismContext();       // use with care
 

@@ -11,6 +11,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
@@ -121,7 +122,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             }
         });
         iconBox.add(icon);
-        Image img = new Image(ID_PHOTO, getPhotoModel());
+        NonCachingImage img = new NonCachingImage(ID_PHOTO, getPhotoModel());
         img.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible() {
