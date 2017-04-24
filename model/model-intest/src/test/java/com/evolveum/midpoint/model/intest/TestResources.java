@@ -478,7 +478,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
         
-        assertPrismObjectCloneIncrement(4);
+        assertPrismObjectCloneIncrement(2);
         
         assertResourceSchemaFetchIncrement(0);
         assertResourceSchemaParseCountIncrement(0);
@@ -510,7 +510,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
 
-        assertPrismObjectCloneIncrement(5);
+        assertPrismObjectCloneIncrement(4);
         
         assertResourceDummy(resource, true);
         
@@ -548,7 +548,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
 
-        assertPrismObjectCloneIncrement(2);
+        assertPrismObjectCloneIncrement(1);
         
         assertResourceDummy(resource, true);
         
@@ -811,7 +811,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertPrismObjectCloneIncrement(2);
+        assertPrismObjectCloneIncrement(1);
         
         assertResourceDummy(resource, true);
         
@@ -876,7 +876,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertPrismObjectCloneIncrement(2);
+        assertPrismObjectCloneIncrement(1);
         
         assertResourceDummy(resource, true);
         
