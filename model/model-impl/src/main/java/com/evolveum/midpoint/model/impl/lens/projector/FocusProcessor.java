@@ -404,11 +404,11 @@ public class FocusProcessor {
 	private <F extends FocusType> void triggerAssignmentFocusPolicyRules(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
-		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
 			return;
 		}
-		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
+		for (EvaluatedAssignmentImpl<?> evaluatedAssignment: evaluatedAssignmentTriple.getNonNegativeValues()) {
 			Collection<EvaluatedPolicyRule> policyRules = evaluatedAssignment.getFocusPolicyRules();
 			for (EvaluatedPolicyRule policyRule: policyRules) {
 				triggerRule(focusContext, policyRule);

@@ -874,7 +874,7 @@ public class AssignmentProcessor {
 
 		Collection<PrismReferenceValue> shouldBeParentOrgRefs = new ArrayList<>();
 
-		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
 			return;		// could be if "assignments" step is skipped
 		}
@@ -1006,7 +1006,7 @@ public class AssignmentProcessor {
 		Collection<PrismReferenceValue> shouldBeRoleRefs = new ArrayList<>();
 		Collection<PrismReferenceValue> shouldBeDelegatedRefs = new ArrayList<>();
 
-		DeltaSetTriple<EvaluatedAssignmentImpl> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
 			return;	// could be if the "assignments" step is skipped
 		}

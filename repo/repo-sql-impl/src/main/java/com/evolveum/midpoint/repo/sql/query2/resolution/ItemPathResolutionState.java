@@ -151,11 +151,13 @@ public class ItemPathResolutionState implements DebugDumpable {
     public String debugDump(int indent, boolean showParent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("ItemPathResolutionState: Remaining path: ").append(remainingItemPath).append("\n");
+        sb.append("ItemPathResolutionState:\n");
+        DebugUtil.indentDebugDump(sb, indent + 1);
+        sb.append("Remaining path: ").append(remainingItemPath).append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("Last transition: ").append(lastTransition).append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
-        sb.append("HQL data item: ").append(hqlDataInstance.debugDump(indent + 2, showParent));
+        sb.append("HQL data item:\n").append(hqlDataInstance.debugDump(indent + 2, showParent));
         return sb.toString();
     }
 

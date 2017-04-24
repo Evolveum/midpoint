@@ -413,7 +413,7 @@ public class ObjectRetriever {
 
             if (cases) {
 				List<GetContainerableResult> items = rQuery.list();
-				LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+				LOGGER.trace("Found {} items (cases), translating to JAXB.", items.size());
 				Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
 				for (GetContainerableResult item : items) {
 					@SuppressWarnings({ "raw", "unchecked" })
@@ -423,10 +423,11 @@ public class ObjectRetriever {
 			} else {
             	assert workItems;
 				List<GetCertificationWorkItemResult> items = rQuery.list();
-				LOGGER.trace("Found {} items, translating to JAXB.", items.size());
+				LOGGER.trace("Found {} work items, translating to JAXB.", items.size());
 				Map<String,PrismContainerValue<AccessCertificationCaseType>> casesCache = new HashMap<>();
 				Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
 				for (GetCertificationWorkItemResult item : items) {
+					//LOGGER.trace("- {}", item);
 					@SuppressWarnings({ "raw", "unchecked" })
 					C value = (C) caseHelper.updateLoadedCertificationWorkItem(item, casesCache, campaignsCache, options, engine, session, result);
 					list.add(value);
