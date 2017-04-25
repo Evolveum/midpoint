@@ -22,7 +22,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -46,13 +48,11 @@ public class PageSelfProfile extends PageUser {
 		return WebModelServiceUtils.getLoggedInUserOid();
 	}
 
-//
-//	@Override
-//	protected ExecuteChangeOptionsPanel initOptions(final Form mainForm) {
-//		ExecuteChangeOptionsPanel optionsPanel = super.initOptions(mainForm);
-//		optionsPanel.setVisible(false);
-//		return optionsPanel;
-//	}
+
+	@Override
+	protected boolean getOptionsPanelVisibility(){
+		return false;
+	}
 
 
 	@Override
