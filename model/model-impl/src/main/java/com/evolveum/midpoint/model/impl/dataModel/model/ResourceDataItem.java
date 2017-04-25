@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -43,16 +44,22 @@ public class ResourceDataItem extends DataItem {
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private RefinedAttributeDefinition<?> refinedAttributeDefinition;
 
-	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent, @NotNull QName itemName) {
+	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind,
+			@NotNull String intent, RefinedResourceSchema refinedResourceSchema,
+			RefinedObjectClassDefinition refinedDefinition, @NotNull QName itemName) {
 		this.ctx = ctx;
 		this.resourceOid = resourceOid;
 		this.kind = kind;
 		this.intent = intent;
 		this.itemPath = new ItemPath(itemName);
 		this.hasItemDefinition = true;
+		this.refinedResourceSchema = refinedResourceSchema;
+		this.refinedObjectClassDefinition = refinedDefinition;
 	}
 
-	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent, @NotNull ItemPath itemPath) {
+	public ResourceDataItem(@NotNull DataModel ctx, @NotNull String resourceOid, @NotNull ShadowKindType kind,
+			@NotNull String intent, RefinedResourceSchema refinedResourceSchema,
+			RefinedObjectClassDefinition refinedDefinition, @NotNull ItemPath itemPath) {
 		this.ctx = ctx;
 		this.resourceOid = resourceOid;
 		this.kind = kind;
@@ -62,6 +69,8 @@ public class ResourceDataItem extends DataItem {
 			throw new IllegalArgumentException("Wrong itemPath (must end with a named segment): " + itemPath);
 		}
 		this.hasItemDefinition = itemPath.size() == 1;			// TODO
+		this.refinedResourceSchema = refinedResourceSchema;
+		this.refinedObjectClassDefinition = refinedDefinition;
 	}
 
 	@NotNull
@@ -100,14 +109,6 @@ public class ResourceDataItem extends DataItem {
 		return refinedResourceSchema;
 	}
 
-	public void setRefinedResourceSchema(RefinedResourceSchema refinedResourceSchema) {
-		this.refinedResourceSchema = refinedResourceSchema;
-	}
-
-	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
-		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
-	}
-
 	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
 		if (refinedObjectClassDefinition == null) {
 			RefinedResourceSchema schema = getRefinedResourceSchema();
@@ -142,17 +143,17 @@ public class ResourceDataItem extends DataItem {
 				'}';
 	}
 
-	public boolean matches(String resourceOid, ShadowKindType kind, String intent, ItemPath path) {
-		if (!this.resourceOid.equals(resourceOid)) {
-			return false;
-		}
-		if (this.kind != kind) {
-			return false;
-		}
-		if (!ObjectUtils.equals(this.intent, intent)) {
-			return false;
-		}
-		return this.itemPath.equivalent(path);
+	public QName getObjectClassName() {
+		return refinedObjectClassDefinition != null ? refinedObjectClassDefinition.getTypeName() : null;
+	}
+
+	public boolean matches(String resourceOid, ShadowKindType kind, String intent, QName objectClassName,
+			ItemPath path) {
+		return this.resourceOid.equals(resourceOid)
+				&& this.kind == kind
+				&& ObjectUtils.equals(this.intent, intent)
+				&& QNameUtil.match(getObjectClassName(), objectClassName)
+				&& this.itemPath.equivalent(path);
 	}
 
 }

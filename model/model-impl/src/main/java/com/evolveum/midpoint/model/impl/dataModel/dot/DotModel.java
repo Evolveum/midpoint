@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -115,28 +116,35 @@ public class DotModel {
 					if (attrDef.isIgnored()) {
 						continue;
 					}
-					ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(attrDef.getName()));
+					ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), new ItemPath(attrDef.getName()));
 					previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
 				}
 				for (RefinedAssociationDefinition assocDef : def.getAssociationDefinitions()) {
 					if (assocDef.isIgnored()) {
 						continue;
 					}
-					ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(assocDef.getName()));
+					ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(),
+							getObjectClassName(def), new ItemPath(assocDef.getName()));
 					previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
 				}
 				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
-						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)));
+						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def),
+								new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)));
 				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
-						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, DataModelVisualizerImpl.ACTIVATION_EXISTENCE)));
+						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def),
+								new ItemPath(ShadowType.F_ACTIVATION, DataModelVisualizerImpl.ACTIVATION_EXISTENCE)));
 				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
-						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM)));
+						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def),
+								new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM)));
 				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
-						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO)));
+						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def),
+								new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO)));
 				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
-						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)));
+						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def),
+								new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)));
 				previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName,
-						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)));
+						dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def),
+								new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)));
 
 				indent--;
 				sb1.append(indent(indent)).append("}\n");
@@ -198,6 +206,10 @@ public class DotModel {
 		String dot = sb.toString();
 		LOGGER.debug("Resulting DOT:\n{}", dot);
 		return dot;
+	}
+
+	private QName getObjectClassName(RefinedObjectClassDefinition def) {
+		return def != null ? def.getTypeName() : null;
 	}
 
 	private String addResourceItem(Set<DataItem> itemsShown, int indent, StringBuilder sb1, String previousNodeName, ResourceDataItem item) {
