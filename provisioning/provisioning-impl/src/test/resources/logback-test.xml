@@ -38,7 +38,7 @@
     
     <logger name="com.evolveum.icf.dummy.resource" level="TRACE"/>
     
-    <!-- too loud -->
+    <!-- too loud: DEBUG -->
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
     
     <!-- WARNING! See also logging.properties. Apache LDAP API logs too much. Therefore it is limited on JUL level. -->

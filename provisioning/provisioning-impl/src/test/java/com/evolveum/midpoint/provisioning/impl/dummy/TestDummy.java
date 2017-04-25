@@ -102,6 +102,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -149,6 +150,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 
@@ -408,7 +410,14 @@ public class TestDummy extends AbstractDummyTest {
 
 		// THEN
 		display("Test result", testResult);
-		TestUtil.assertSuccess("Test resource failed (result)", testResult);
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+		assertSuccess(connectorResult);
+		assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+		assertSuccess(testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
 				RESOURCE_DUMMY_OID, null, result);
@@ -420,8 +429,7 @@ public class TestDummy extends AbstractDummyTest {
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-		display("Resource XML", resourceXml);
+		IntegrationTestTools.displayXml("Resource XML", resourceRepoAfter);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
 		assertNotNull("No caching metadata", cachingMetadata);
@@ -745,8 +753,8 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDj.class.getName()
 				+ ".test010ResourceAndConnectorCaching");
-		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resource, false, result);
+		ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+				resource, ReadCapabilityType.class, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -796,8 +804,8 @@ public class TestDummy extends AbstractDummyTest {
 		// Now we stick our nose deep inside the provisioning impl. But we need
 		// to make sure that the
 		// configured connector is properly cached
-		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
-				resourceAgain, false, result);
+		ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
+				resourceAgain, ReadCapabilityType.class, false, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
@@ -810,8 +818,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Test connection should also refresh the connector by itself. So check if it has been refreshed
 		
-		ConnectorInstance configuredConnectorInstanceAfterTest = connectorManager.getConfiguredConnectorInstance(
-				resourceAgain, false, result);
+		ConnectorInstance configuredConnectorInstanceAfterTest = resourceManager.getConfiguredConnectorInstance(
+				resourceAgain, ReadCapabilityType.class, false, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
 		assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
 		
@@ -825,8 +833,8 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ ".test011ResourceAndConnectorCachingForceFresh");
-		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resource, false, result);
+		ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+				resource, ReadCapabilityType.class, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -856,8 +864,8 @@ public class TestDummy extends AbstractDummyTest {
 		// Now we stick our nose deep inside the provisioning impl. But we need
 		// to make sure that the configured connector is properly refreshed
 		// forceFresh = true
-		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
-				resourceAgain, true, result);
+		ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
+				resourceAgain, ReadCapabilityType.class, true, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
 		assertFalse("Connector instance was not refreshed", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
@@ -1052,14 +1060,16 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 
 		// WHEN
-		ConnectorOperationalStatus operationalStatus = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, result);
+		List<ConnectorOperationalStatus> operationalStatuses = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, result);
 
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-		display("Connector operational status", operationalStatus);
-		assertNotNull("null operational status", operationalStatus);
+		display("Connector operational status", operationalStatuses);
+		assertNotNull("null operational status", operationalStatuses);
+		assertEquals("Unexpected size of operational status", 1, operationalStatuses.size());
+		ConnectorOperationalStatus operationalStatus = operationalStatuses.get(0);
 		
 		assertEquals("Wrong connectorClassName", DummyConnector.class.getName(), operationalStatus.getConnectorClassName());
 		assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());

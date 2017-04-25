@@ -40,8 +40,8 @@ import org.apache.wicket.Component;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.*;
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createResolve;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 
 /**
@@ -82,8 +82,10 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         try {
             ObjectQuery query = createQuery(first, count, result);
             Collection<SelectorOptions<GetOperationOptions>> options =
-                    Collections.singletonList(
-                            SelectorOptions.create(new ItemPath(F_ASSIGNEE_REF), createResolve()));
+                    GetOperationOptions.resolveItemsNamed(
+                            new ItemPath(F_ASSIGNEE_REF),
+                            new ItemPath(T_PARENT, WfContextType.F_OBJECT_REF),
+                            new ItemPath(T_PARENT, WfContextType.F_TARGET_REF));
             List<WorkItemType> items = getModel().searchContainers(WorkItemType.class, query, options, task, result);
 
             for (WorkItemType item : items) {

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -112,14 +113,17 @@ public class ProvisioningTestUtil {
 	}
 	
 	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
-		ResourceAttribute attribute = ShadowUtil.getAttribute(shadow.asPrismContainer(), attrQname);
+		PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null || attributesContainer.isEmpty()) {
+			return;
+		}
+		PrismProperty attribute = attributesContainer.findProperty(attrQname);
 		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
 	}
 	
 	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		ResourceAttribute attribute = ShadowUtil.getAttribute(shadow.asPrismContainer(), attrQname);
-		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
+		assertNoAttribute(resource, shadow, attrQname);
 	}
 
 }

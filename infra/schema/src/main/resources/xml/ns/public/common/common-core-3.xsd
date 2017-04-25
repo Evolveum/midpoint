@@ -3849,6 +3849,18 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType"/>
+                    <xsd:element name="additionalConnector" type="tns:ConnectorInstanceSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specification of additional connector(s). Additional connectors may add
+                                capabilities to this resource, e.g. scripting capability or capapility for
+                                reading the exported resource content.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:since>3.6</a:since>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="namespace" type="xsd:anyURI" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3972,6 +3984,43 @@
             </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ConnectorInstanceSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Complete specification of a connector instance with configuration and capabilities.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            	<a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" />
+			<xsd:element name="description" type="xsd:string"
+				minOccurs="0" />
+			<xsd:element name="connectorRef" type="c:ObjectReferenceType"
+				minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the connector.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:ConnectorType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="connectorConfiguration" type="tns:ConnectorConfigurationType" />
+			<xsd:element name="capabilities" type="tns:CapabilitiesType"
+				minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Capabilities provided by the connector.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+    </xsd:complexType>
     
     <xsd:complexType name="XmlSchemaType">
         <xsd:annotation>

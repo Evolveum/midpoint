@@ -788,6 +788,8 @@ public class ShadowManager {
 			return;
 		}
 		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
+		ShadowType repoShadowType = repoShadow.asObjectable();
+		
 		ObjectDelta<ShadowType> addDelta = resourceShadow.createAddDelta();
 		ObjectDeltaType addDeltaType = DeltaConvertor.toObjectDeltaType(addDelta);
 		
@@ -796,7 +798,8 @@ public class ShadowManager {
 		pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
 		pendingOperation.setResultStatus(OperationResultStatusType.IN_PROGRESS);
 		pendingOperation.setAsynchronousOperationReference(addResult.getOperationResult().getAsynchronousOperationReference());
-		repoShadow.asObjectable().getPendingOperation().add(pendingOperation);
+		repoShadowType.getPendingOperation().add(pendingOperation);
+		repoShadowType.setExists(false);
 	}
 
 	private void addPendingOperationModify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> pendingModifications, 
@@ -1081,7 +1084,14 @@ public class ShadowManager {
 		ObjectDelta<ShadowType> shadowDelta = oldRepoShadow.createModifyDelta();
 		PrismContainer<Containerable> currentResourceAttributesContainer = currentResourceShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		PrismContainer<Containerable> oldRepoAttributesContainer = oldRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+		ShadowType oldRepoShadowType = oldRepoShadow.asObjectable();
+		ShadowType currentResourceShadowType = currentResourceShadow.asObjectable();
 
+		if (oldRepoShadowType.isExists() != currentResourceShadowType.isExists()) {
+			// Resource object obviously exists when we have got here
+			shadowDelta.addModificationReplaceProperty(ShadowType.F_EXISTS, currentResourceShadowType.isExists());
+		}
+		
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 
 		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
@@ -1140,6 +1150,7 @@ public class ShadowManager {
 				}
 			}
 		}
+		
 		for (Item<?, ?> oldRepoItem: oldRepoAttributesContainer.getValue().getItems()) {
 			if (oldRepoItem instanceof PrismProperty<?>) {
 				PrismProperty<?> oldRepoAttrProperty = (PrismProperty<?>)oldRepoItem;
@@ -1171,7 +1182,7 @@ public class ShadowManager {
 		}
 		
 		if (cachingStrategy == CachingStategyType.NONE) {
-			if (oldRepoShadow.asObjectable().getCachingMetadata() != null) {
+			if (oldRepoShadowType.getCachingMetadata() != null) {
 				shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
 			}
 

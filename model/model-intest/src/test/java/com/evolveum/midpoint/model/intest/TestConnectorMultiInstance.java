@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -404,9 +405,9 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
 	private void assertConnectorInstances(String msg, String resourceOid, int expectedActive, int expectedIdle) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		OperationResult result = new OperationResult(TestConnectorMultiInstance.class.getName() + ".assertConnectorInstances");
-		ConnectorOperationalStatus opStats = modelInteractionService.getConnectorOperationalStatus(resourceOid, result);
+		List<ConnectorOperationalStatus> opStats = modelInteractionService.getConnectorOperationalStatus(resourceOid, result);
         display("connector stats "+msg, opStats);
-        assertConnectorInstances(msg, opStats, expectedActive, expectedIdle);
+        assertConnectorInstances(msg, opStats.get(0), expectedActive, expectedIdle);
 	}
 	
 	private void assertConnectorInstances(String msg, ConnectorOperationalStatus opStats, int expectedActive, int expectedIdle) {

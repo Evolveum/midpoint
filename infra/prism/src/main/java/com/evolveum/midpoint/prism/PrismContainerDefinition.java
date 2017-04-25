@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,8 @@ public interface PrismContainerDefinition<C extends Containerable> extends ItemD
 	PrismContainerDefinition<C> clone();
 
 	PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
+	
+	void replaceDefinition(QName itemName, ItemDefinition newDefinition);
 
 	PrismContainerValue<C> createValue();
 

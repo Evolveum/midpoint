@@ -264,8 +264,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = new OperationResult(TestOpenDj.class.getName()+".test004ResourceAndConnectorCaching");
 		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, null, result);
 		resourceType = resource.asObjectable();
-		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resource, false, result);
+		ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+				resource, ReadCapabilityType.class, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -291,8 +291,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		
 		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
 		// configured connector is properly cached
-		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
-				resourceAgain, false, result);
+		ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
+				resourceAgain, ReadCapabilityType.class, false, result);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 		
 		assertShadows(1);
@@ -2806,12 +2806,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID);
+		OperationResult	testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID);
 		
-		display("Test connection result (expected failure)",operationResult);
-		TestUtil.assertFailure(operationResult);
+		display("Test connection result (expected failure)",testResult);
+		TestUtil.assertFailure(testResult);
 		
-		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
 	}
@@ -2844,12 +2845,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID);
+		OperationResult	testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID);
 		
-		display("Test connection result (expected failure)",operationResult);
-		TestUtil.assertFailure(operationResult);
+		display("Test connection result (expected failure)",testResult);
+		TestUtil.assertFailure(testResult);
 		
-		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
 	}
