@@ -15,11 +15,13 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
 
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -282,7 +284,11 @@ public class PageSelfDashboard extends PageSelf {
                     .item(WorkItemType.F_ASSIGNEE_REF).ref(user.getOid())
                     .desc(F_CREATE_TIMESTAMP)
                     .build();
-            List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, null, task, result);
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    GetOperationOptions.resolveItemsNamed(
+                            new ItemPath(T_PARENT, WfContextType.F_OBJECT_REF),
+                            new ItemPath(T_PARENT, WfContextType.F_TARGET_REF));
+            List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
             for (WorkItemType workItem : workItems) {
                 list.add(new WorkItemDto(workItem));
             }

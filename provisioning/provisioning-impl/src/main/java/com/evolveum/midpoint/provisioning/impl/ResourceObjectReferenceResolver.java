@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectRefere
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
  * @author semancik
@@ -223,7 +224,7 @@ public class ResourceObjectReferenceResolver {
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 		ResourceType resource = ctx.getResource();
-		ConnectorInstance connector = ctx.getConnector(parentResult);
+		ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		
 		try {

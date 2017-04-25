@@ -228,23 +228,14 @@ public class ResourceTypeUtil {
 			// No capability at the level of resource object type, continuing at the resource level
 		}
 
-		if (resource.getCapabilities() == null) {
-			return null;
-		}
-		if (resource.getCapabilities().getConfigured() != null) {
-			T configuredCapability = CapabilityUtil.getCapability(resource.getCapabilities().getConfigured().getAny(), capabilityClass);
-			if (configuredCapability != null) {
-				return configuredCapability;
-			}
-			// No configured capability entry, fallback to native capability
-		}
-		if (resource.getCapabilities().getNative() != null) {
-			T nativeCapability = CapabilityUtil.getCapability(resource.getCapabilities().getNative().getAny(), capabilityClass);
-			if (nativeCapability != null) {
-				return nativeCapability;
+		for (ConnectorInstanceSpecificationType additionalConnector: resource.getAdditionalConnector()) {
+			T connectorCapability = CapabilityUtil.getEffectiveCapability(additionalConnector.getCapabilities(), capabilityClass);
+			if (CapabilityUtil.isCapabilityEnabled(connectorCapability)) {
+				return connectorCapability;
 			}
 		}
-		return null;
+		
+		return CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), capabilityClass);
 	}
 	
 	public static <T extends CapabilityType> boolean hasEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {

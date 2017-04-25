@@ -82,6 +82,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	protected abstract boolean passwordMatches(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C passwordType,
 			T authCtx);
 	protected abstract CredentialPolicyType getEffectiveCredentialPolicy(SecurityPolicyType securityPolicy, T authnCtx) throws SchemaException;
+	protected abstract boolean supportsActivation();
 	
 	@Override
 	public UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx) 
@@ -94,19 +95,54 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		
 		UserType userType = principal.getUser();
 		CredentialsType credentials = userType.getCredentials();
+		CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
+		
+		if (checkCredentials(principal, authnCtx, connEnv)) {
+			
+			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), credentialsPolicy);
+			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
+					authnCtx.getEnteredCredential(), principal.getAuthorities());
+			return token;
+			
+		} else {
+			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
+			
+			throw new BadCredentialsException("web.security.provider.invalid");
+		}
+	}
+	
+	@Override
+	public UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx) 
+			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
+			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException {		
+		
+		checkEnteredCredentials(connEnv, authnCtx);
+		
+		MidPointPrincipal principal = getAndCheckPrincipal(connEnv, authnCtx.getUsername(), false);
+		
+		UserType userType = principal.getUser();
+		CredentialsType credentials = userType.getCredentials();
+		CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
+		
+		if (checkCredentials(principal, authnCtx, connEnv)) {
+			return userType;
+		} else {
+			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
+			
+			throw new BadCredentialsException("web.security.provider.invalid");
+		}
+	}
+	
+	private boolean checkCredentials(MidPointPrincipal principal, T authnCtx, ConnectionEnvironment connEnv) {
+		
+		UserType userType = principal.getUser();
+		CredentialsType credentials = userType.getCredentials();
 		if (credentials == null || getCredential(credentials) == null) {
 			recordAuthenticationFailure(principal, connEnv, "no credentials in user");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
 		}
-//		PasswordType passwordType = credentials.getPassword();
-		SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
-		CredentialPolicyType credentialsPolicy = null;
-		try {
-			credentialsPolicy = getEffectiveCredentialPolicy(securityPolicy, authnCtx);
-		} catch (SchemaException e) {
-			// TODO how to properly hanlde the error????
-			throw new AuthenticationServiceException("Bad config");
-		}
+		
+		CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
 		// Lockout
 		if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
@@ -125,18 +161,20 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		// Password age
 		checkPasswordValidityAndAge(connEnv, principal, getCredential(credentials), credentialsPolicy);
 		
-		if (passwordMatches(connEnv, principal, getCredential(credentials), authnCtx)) {
-			
-			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), credentialsPolicy);
-			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
-					authnCtx.getEnteredCredential(), principal.getAuthorities());
-			return token;
-			
-		} else {
-			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
-			
-			throw new BadCredentialsException("web.security.provider.invalid");
+		return passwordMatches(connEnv, principal, getCredential(credentials), authnCtx);
+	}
+	
+	private CredentialPolicyType getCredentialsPolicy(MidPointPrincipal principal, T authnCtx){
+		SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
+		CredentialPolicyType credentialsPolicy = null;
+		try {
+			credentialsPolicy = getEffectiveCredentialPolicy(securityPolicy, authnCtx);
+		} catch (SchemaException e) {
+			// TODO how to properly hanlde the error????
+			throw new AuthenticationServiceException("Bad config");
 		}
+		
+		return credentialsPolicy;
 	}
 	
 	
@@ -200,7 +238,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	}
 
 	@NotNull
-	private MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername, boolean checkActivation) {
+	private MidPointPrincipal getAndCheckPrincipal(ConnectionEnvironment connEnv, String enteredUsername, boolean supportsActivationCheck) {
 		
 		if (StringUtils.isBlank(enteredUsername)) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "no username");
@@ -224,7 +262,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			throw new UsernameNotFoundException("web.security.provider.invalid");
 		}
 
-		if (checkActivation && !principal.isEnabled()) {
+		if (supportsActivationCheck && !principal.isEnabled()) {
 			recordAuthenticationFailure(principal, connEnv, "user disabled");
 			throw new DisabledException("web.security.provider.disabled");
 		}

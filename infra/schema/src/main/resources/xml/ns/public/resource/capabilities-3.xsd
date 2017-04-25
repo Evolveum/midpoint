@@ -90,6 +90,21 @@
 
 	<!-- Concrete capabilities -->
 
+	<xsd:complexType name="SchemaCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to discover resource schema.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="schema" type="tns:SchemaCapabilityType"/>
+
 	<xsd:complexType name="ActivationCapabilityType">
 		<xsd:annotation>
 			<xsd:documentation>

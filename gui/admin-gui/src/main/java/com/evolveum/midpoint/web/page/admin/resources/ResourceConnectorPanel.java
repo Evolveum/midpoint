@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import java.util.List;
+
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -45,6 +49,8 @@ public class ResourceConnectorPanel extends Panel {
 	private static final String DOT_CLASS = ResourceConnectorPanel.class.getName() + ".";
 	private static final String OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS = DOT_CLASS + "getConnectorOperationalStatus";
 
+	private static final String ID_CONNECTOR_LIST = "connectorList";
+	private static final String ID_CONNECTOR_NAME = "connectorName";
 	private static final String ID_CONNECOTR_CLASS = "connectorClass";
 	private static final String ID_POOL_CONFIG_MIN_SIZE = "poolConfigMinSize";
 	private static final String ID_POOL_CONFIG_MAX_SIZE = "poolConfigMaxSize";
@@ -69,14 +75,14 @@ public class ResourceConnectorPanel extends Panel {
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
 		
-		IModel<ConnectorOperationalStatus> statsModel = new AbstractReadOnlyModel<ConnectorOperationalStatus>() {
+		IModel<List<ConnectorOperationalStatus>> statsModel = new AbstractReadOnlyModel<List<ConnectorOperationalStatus>>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public ConnectorOperationalStatus getObject() {
+			public List<ConnectorOperationalStatus> getObject() {
 				PrismObject<ResourceType> resource = model.getObject();
 				OperationResult result = new OperationResult(OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS);
-				ConnectorOperationalStatus status = null;
+				List<ConnectorOperationalStatus> status = null;
 				try {
 					status = parentPage.getModelInteractionService().getConnectorOperationalStatus(resource.getOid(), result);
 				} catch (SchemaException | ObjectNotFoundException | CommunicationException
@@ -87,16 +93,28 @@ public class ResourceConnectorPanel extends Panel {
 				return status;
 			}
 		};
+		
+		ListView<ConnectorOperationalStatus> listview = new ListView<ConnectorOperationalStatus>(ID_CONNECTOR_LIST, statsModel) {
+			private static final long serialVersionUID = 1L;
 
-		add(createLabel(statsModel, ID_CONNECOTR_CLASS,  ConnectorOperationalStatus.F_CONNECTOR_CLASS_NAME));
-		add(createLabel(statsModel, ID_POOL_CONFIG_MIN_SIZE,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_SIZE));
-		add(createLabel(statsModel, ID_POOL_CONFIG_MAX_SIZE,  ConnectorOperationalStatus.F_POOL_CONFIG_MAX_SIZE));
-		add(createLabel(statsModel, ID_POOL_CONFIG_MIN_IDLE,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_IDLE));
-		add(createLabel(statsModel, ID_POOL_CONFIG_MAX_IDLE,  ConnectorOperationalStatus.F_POOL_CONFIG_MAX_IDLE));
-		add(createLabel(statsModel, ID_POOL_CONFIG_WAIT_TIMEOUT,  ConnectorOperationalStatus.F_POOL_CONFIG_WAIT_TIMEOUT));
-		add(createLabel(statsModel, ID_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME));
-		add(createLabel(statsModel, ID_POOL_STATUS_NUM_IDLE,  ConnectorOperationalStatus.F_POOL_STATUS_NUM_IDLE));
-		add(createLabel(statsModel, ID_POOL_STATUS_NUM_ACTIVE,  ConnectorOperationalStatus.F_POOL_STATUS_NUM_ACTIVE));
+			protected void populateItem(ListItem<ConnectorOperationalStatus> item) {
+		        item.add(new Label("label", item.getModel()));
+		        IModel<ConnectorOperationalStatus> statModel = item.getModel();
+		        item.add(createLabel(statModel, ID_CONNECTOR_NAME,  ConnectorOperationalStatus.F_CONNECTOR_NAME));
+		        item.add(createLabel(statModel, ID_CONNECOTR_CLASS,  ConnectorOperationalStatus.F_CONNECTOR_CLASS_NAME));
+		        item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_SIZE,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_SIZE));
+		        item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_SIZE,  ConnectorOperationalStatus.F_POOL_CONFIG_MAX_SIZE));
+		        item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_IDLE,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_IDLE));
+		        item.add(createLabel(statModel, ID_POOL_CONFIG_MAX_IDLE,  ConnectorOperationalStatus.F_POOL_CONFIG_MAX_IDLE));
+		        item.add(createLabel(statModel, ID_POOL_CONFIG_WAIT_TIMEOUT,  ConnectorOperationalStatus.F_POOL_CONFIG_WAIT_TIMEOUT));
+		        item.add(createLabel(statModel, ID_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME,  ConnectorOperationalStatus.F_POOL_CONFIG_MIN_EVICTABLE_IDLE_TIME));
+		        item.add(createLabel(statModel, ID_POOL_STATUS_NUM_IDLE,  ConnectorOperationalStatus.F_POOL_STATUS_NUM_IDLE));
+		        item.add(createLabel(statModel, ID_POOL_STATUS_NUM_ACTIVE,  ConnectorOperationalStatus.F_POOL_STATUS_NUM_ACTIVE));
+
+		    }
+		};
+		add(listview);
+
 	}
 	
 	private Label createLabel(IModel<ConnectorOperationalStatus> statsModel, String id, String fieldName) {

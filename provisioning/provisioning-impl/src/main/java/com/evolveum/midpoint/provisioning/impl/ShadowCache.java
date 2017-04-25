@@ -211,9 +211,9 @@ public abstract class ShadowCache {
 		repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
 		
 		if (canReturnCached(options, repositoryShadow, resource)) {
-			applyDefinition(repositoryShadow, parentResult);
-			futurizeShadow(repositoryShadow, options);
-			return repositoryShadow;
+			PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
+			applyDefinition(resultShadow, parentResult);
+			return resultShadow;
 		}
 		
 		PrismObject<ShadowType> resourceShadow = null;
@@ -241,7 +241,28 @@ public abstract class ShadowCache {
 			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 					.getAllIdentifiers(repositoryShadow);
 			
-			resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
+			try {
+				
+				resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
+				
+			} catch (ObjectNotFoundException e) {
+				// This may be OK, e.g. for connectors that have running async add operation.
+				if (canReturnCachedAfterNotFoundOnResource(options, repositoryShadow, resource)) {
+					LOGGER.trace("Object not found on reading of {}, but we can return cached shadow", repositoryShadow);
+					parentResult.muteLastSubresultError();
+					parentResult.recordSuccess();
+					repositoryShadow.asObjectable().setExists(false);
+					PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
+					applyDefinition(resultShadow, parentResult);
+					return resultShadow;
+				} else {
+					throw e;
+				}
+			}
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Shadow returned by ResouceObjectConverter:\n{}", resourceShadow.debugDump(1));
+			}
 
 			// Resource shadow may have different auxiliary object classes than
 			// the original repo shadow. Make sure we have the definition that 
@@ -281,7 +302,7 @@ public abstract class ShadowCache {
 				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
 			}
 
-			futurizeShadow(repositoryShadow, options);
+			resultShadow = futurizeShadow(resultShadow, options, resource);
 			parentResult.recordSuccess();
 			return resultShadow;
 
@@ -316,33 +337,90 @@ public abstract class ShadowCache {
 		}
 	}
 
-	private void futurizeShadow(PrismObject<ShadowType> shadow,
-			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException {
+	private PrismObject<ShadowType> futurizeShadow(PrismObject<ShadowType> shadow,
+			Collection<SelectorOptions<GetOperationOptions>> options, ResourceType resource) throws SchemaException {
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
 		if (pit != PointInTimeType.FUTURE) {
-			return;
+			return shadow;
 		}
-		List<PendingOperationType> sortedOperations = sortOperations(shadow.asObjectable().getPendingOperation());
+		PrismObject<ShadowType> resultShadow = shadow;
+		ShadowType resultShadowType = resultShadow.asObjectable();
+		List<PendingOperationType> sortedOperations = sortOperations(resultShadowType.getPendingOperation());
+		boolean resourceReadIsCachingOnly = resourceReadIsCahingOnly(resource);
 		for (PendingOperationType pendingOperation: sortedOperations) {
 			OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
-			if (resultStatus != null && resultStatus != OperationResultStatusType.IN_PROGRESS && resultStatus != OperationResultStatusType.UNKNOWN) {
+			if (resultStatus == OperationResultStatusType.FATAL_ERROR || resultStatus == OperationResultStatusType.NOT_APPLICABLE) {
 				continue;
+			}
+			if (resourceReadIsCachingOnly) {
+				// We are getting the data from our own cache. So we know that all completed operations are already applied in the cache.
+				// Re-applying them will mean additional risk of corrupting the data.
+				if (resultStatus != null && resultStatus != OperationResultStatusType.IN_PROGRESS && resultStatus != OperationResultStatusType.UNKNOWN) {
+					continue;
+				}
+			} else {
+				// We want to apply all the deltas, even those that are already completed. They might not be reflected on the resource yet.
+				// E.g. they may be not be present in the CSV export until the next export cycle is scheduled
 			}
 			ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
 			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+			if (pendingDelta.isAdd()) {
+				if (resultShadowType.isExists() == Boolean.FALSE) {
+					resultShadow = pendingDelta.getObjectToAdd().clone();
+					resultShadowType = resultShadow.asObjectable();
+					resultShadowType.setExists(true);
+					resultShadowType.setName(shadow.asObjectable().getName());
+				}
+			}
 			if (pendingDelta.isModify()) {
-				pendingDelta.applyTo(shadow);
+				pendingDelta.applyTo(resultShadow);
 			}
 			if (pendingDelta.isDelete()) {
-				shadow.asObjectable().setDead(true);
+				resultShadowType.setDead(true);
+				resultShadowType.setExists(false);
 			}
 		}
+		// TODO: check schema, remove non-readable attributes, activation, password, etc.
+//		CredentialsType creds = resultShadowType.getCredentials();
+//		if (creds != null) {
+//			PasswordType passwd = creds.getPassword();
+//			if (passwd != null) {
+//				passwd.setValue(null);
+//			}
+//		}
+		return resultShadow;
 	}
 
-	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+	private boolean resourceReadIsCahingOnly(ResourceType resource) {
 		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
 		Boolean cachingOnly = readCapabilityType.isCachingOnly();
 		if (cachingOnly == Boolean.TRUE) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean canReturnCachedAfterNotFoundOnResource(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+		if (repositoryShadow.asObjectable().getPendingOperation().isEmpty()) {
+			return false;
+		}
+		// Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
+		ReadCapabilityType readCapabilityType = CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), ReadCapabilityType.class);
+		if (readCapabilityType == null) {
+			return false;
+		}
+		if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
+			return false;
+		}
+		Boolean cachingOnly = readCapabilityType.isCachingOnly();
+		if (cachingOnly == Boolean.TRUE) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+		if (resourceReadIsCahingOnly(resource)) {
 			return true;
 		}
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
@@ -734,9 +812,15 @@ public abstract class ShadowCache {
 							ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
 							ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
 							
-							// We do not need to care about add deltas here. The add operation is already applied to
-							// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
-							// model can find unique values while taking pending create operations into consideration.
+							if (pendingDelta.isAdd()) {
+								// We do not need to care about attributes in add deltas here. The add operation is already applied to
+								// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
+								// model can find unique values while taking pending create operations into consideration.
+								
+								PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
+								existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+								shadowDelta.addModification(existsDelta);
+							}
 							
 							if (pendingDelta.isModify()) {
 								for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
@@ -752,6 +836,10 @@ public abstract class ShadowCache {
 									PropertyDelta<Boolean> deadDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_DEAD));
 									deadDelta.setValuesToReplace(new PrismPropertyValue<>(true));
 									shadowDelta.addModification(deadDelta);
+									
+									PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
+									existsDelta.setValuesToReplace(new PrismPropertyValue<>(false));
+									shadowDelta.addModification(existsDelta);
 								}
 							}
 							
@@ -1338,7 +1426,7 @@ public abstract class ShadowCache {
 			if (simulate == null) {
 				// We have native capability
 
-				ConnectorInstance connector = ctx.getConnector(result);
+				ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 				try {
 					ObjectQuery attributeQuery = createAttributeQuery(query);
 					int count;
@@ -2033,6 +2121,9 @@ public abstract class ShadowCache {
 
 		// protected
 		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry);
+		
+		// exists, dead
+		resultShadowType.setExists(resourceShadowType.isExists());
 
 		// Activation
 		ActivationType resultActivationType = resultShadowType.getActivation();

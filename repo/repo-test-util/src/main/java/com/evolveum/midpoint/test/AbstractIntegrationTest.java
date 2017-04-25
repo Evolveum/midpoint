@@ -57,6 +57,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -482,16 +483,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	
-	protected void fillInConnectorRef(PrismObject<ResourceType> resourcePrism, String connectorType, OperationResult result)
+	protected void fillInConnectorRef(PrismObject<ResourceType> resource, String connectorType, OperationResult result)
 			throws SchemaException {
-		ResourceType resource = resourcePrism.asObjectable();
-		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
-		ConnectorType connector = connectorPrism.asObjectable();
-		if (resource.getConnectorRef() == null) {
-			resource.setConnectorRef(new ObjectReferenceType());
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connector = findConnectorByType(connectorType, result);
+		if (resourceType.getConnectorRef() == null) {
+			resourceType.setConnectorRef(new ObjectReferenceType());
 		}
-		resource.getConnectorRef().setOid(connector.getOid());
-		resource.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
+		resourceType.getConnectorRef().setOid(connector.getOid());
+		resourceType.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
+	}
+	
+	protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, String connectorName, String connectorType, OperationResult result)
+			throws SchemaException {
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
+		for (ConnectorInstanceSpecificationType additionalConnector: resourceType.getAdditionalConnector()) {
+			if (connectorName.equals(additionalConnector.getName())) {
+				ObjectReferenceType ref = new ObjectReferenceType().oid(connectorPrism.getOid());
+				additionalConnector.setConnectorRef(ref);
+			}
+		}
 	}
 	
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
@@ -1230,6 +1242,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertShadowDead(PrismObject<ShadowType> shadow) {
 		assertEquals("Shadow not dead: "+shadow, Boolean.TRUE, shadow.asObjectable().isDead());
 	}
+	
+	protected void assertShadowExists(PrismObject<ShadowType> shadow, Boolean expectedValue) {
+		assertEquals("Wrong shadow 'exists': "+shadow, expectedValue, shadow.asObjectable().isExists());
+	}
 
 	protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
 		ActivationType activationType = shadow.asObjectable().getActivation();
@@ -1625,7 +1641,30 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return result.getAsynchronousOperationReference();
 	}
 	
+	protected void assertFailure(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertFailure(result);
+	}
+	
 	protected void fail(String message) {
 		AssertJUnit.fail(message);
+	}
+	
+	protected OperationResult assertSingleConnectorTestResult(OperationResult testResult) {
+		return IntegrationTestTools.assertSingleConnectorTestResult(testResult);
+	}
+	
+	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceSuccess(testResult, operation);
+	}
+
+	public static void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceFailure(testResult, operation);
+	}
+	
+	public static void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
 	}
 }

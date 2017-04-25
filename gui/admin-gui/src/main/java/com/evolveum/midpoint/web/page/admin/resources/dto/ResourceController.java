@@ -37,12 +37,12 @@ public class ResourceController {
         List<OperationResult> subResults = result.getSubresults();
         state.setConConnection(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_CONNECTION,
                 subResults));
-        state.setConfValidation(getStatusFromResultType(ConnectorTestOperation.CONFIGURATION_VALIDATION,
+        state.setConfValidation(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_CONFIGURATION,
                 subResults));
         state.setConInitialization(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_INITIALIZATION,
                 subResults));
-        state.setConSanity(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SANITY, subResults));
-        state.setConSchema(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SCHEMA, subResults));
+        state.setConSanity(getStatusFromResultType(ConnectorTestOperation.RESOURCE_SANITY, subResults));
+        state.setConSchema(getStatusFromResultType(ConnectorTestOperation.RESOURCE_SCHEMA, subResults));
     }
 
     private static OperationResultStatus getStatusFromResultType(ConnectorTestOperation operation,

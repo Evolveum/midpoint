@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 //CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
-@PageDescriptor(url = "/confirm")
+@PageDescriptor(url = SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX)
 public class PageRegistrationConfirmation extends PageRegistrationBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
@@ -87,29 +87,28 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 			return;
 		}
 
-		StringValue userNameValue = params.get(SchemaConstants.REGISTRATION_ID);
+		StringValue userNameValue = params.get(SchemaConstants.USER_ID);
 		Validate.notEmpty(userNameValue.toString());
-		StringValue tokenValue = params.get(SchemaConstants.REGISTRATION_TOKEN);
+		StringValue tokenValue = params.get(SchemaConstants.TOKEN);
 		Validate.notEmpty(tokenValue.toString());
 			
-		UsernamePasswordAuthenticationToken token = authenticateUser(userNameValue.toString(), tokenValue.toString(), result);
-		if (token == null) {
+		UserType userType = checkUserCredentials(userNameValue.toString(), tokenValue.toString(), result);
+		if (userType == null) {
 			initLayout(result);
 			return;
 		}
 		
-		final MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-		result = assignDefaultRoles(principal.getOid());
+		result = assignDefaultRoles(userType.getOid());
 		if (result.getStatus() == OperationResultStatus.FATAL_ERROR) {
 			LOGGER.error("Failed to assign default roles, {}", result.getMessage());
 			initLayout(result);
 			return;
 		}
 		
-		final NonceType nonceClone = principal.getUser().getCredentials().getNonce().clone();
+		final NonceType nonceClone = userType.getCredentials().getNonce().clone();
 		
-		result = removeNonce(principal.getOid(), nonceClone);
-		assignAdditionalRoleIfPresent(principal.getOid(), token, nonceClone, result);
+		result = removeNonce(userType.getOid(), nonceClone);
+		result = assignAdditionalRoleIfPresent(userType.getOid(), nonceClone, result);
 
 		initLayout(result);
 	}
@@ -119,6 +118,26 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
 		try {
 			return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext( username,
+					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
+		} catch (AuthenticationException ex) {
+			getSession()
+					.error(getString(ex.getMessage()));
+			result.recordFatalError("Failed to validate user");
+			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
+			 return null;
+		} catch (Exception ex) {
+			getSession()
+			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
+			return null;
+		}
+	}
+	
+	private UserType checkUserCredentials(String username, String nonce, OperationResult result){
+		ConnectionEnvironment connEnv = new ConnectionEnvironment();
+		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+		try {
+			return getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext( username,
 					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
 		} catch (AuthenticationException ex) {
 			getSession()
@@ -189,37 +208,47 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		});
 	}
 
-	private void assignAdditionalRoleIfPresent(String userOid, UsernamePasswordAuthenticationToken token, NonceType nonceType, OperationResult result){
-		SecurityContextHolder.getContext().setAuthentication(token);
-		List<ItemDelta> userDeltas = new ArrayList<>();
-		if (nonceType.getName() != null) {
+	private OperationResult assignAdditionalRoleIfPresent(String userOid, NonceType nonceType, OperationResult result){
+//		SecurityContextHolder.getContext().setAuthentication(token);
+		return runPrivileged(new Producer<OperationResult>() {
+			
+			@Override
+			public OperationResult run() {
+				List<ItemDelta> userDeltas = new ArrayList<>();
+				if (nonceType.getName() != null) {
 
-			Task task = createSimpleTask(OPERATION_FINISH_REGISTRATION);
+					Task task = createAnonymousTask(OPERATION_FINISH_REGISTRATION);
 
-			ObjectDelta<UserType> assignRoleDelta = null;
+					ObjectDelta<UserType> assignRoleDelta = null;
 
-			try {
-				AssignmentType assignment = new AssignmentType();
-				assignment.setTargetRef(
-						ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
-				getPrismContext().adopt(assignment);
-				userDeltas.add((ItemDelta) ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
-						UserType.class, getPrismContext(), assignment));
+					try {
+						AssignmentType assignment = new AssignmentType();
+						assignment.setTargetRef(
+								ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
+						getPrismContext().adopt(assignment);
+						userDeltas.add((ItemDelta) ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
+								UserType.class, getPrismContext(), assignment));
 
-				assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas,
-						UserType.class, getPrismContext());
-				assignRoleDelta.setPrismContext(getPrismContext());
-			} catch (SchemaException e) {
-				result.recordFatalError("Could not create delta");
-				return;
+						assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas,
+								UserType.class, getPrismContext());
+						assignRoleDelta.setPrismContext(getPrismContext());
+					} catch (SchemaException e) {
+						result.recordFatalError("Could not create delta");
+						return result;
 
+					}
+
+					WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
+					result.computeStatusIfUnknown();
+
+				}
+				
+				return result;
+			
 			}
-
-			WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
-			result.computeStatusIfUnknown();
-
-		}
-		SecurityContextHolder.getContext().setAuthentication(null);
+		});
+		
+//		SecurityContextHolder.getContext().setAuthentication(null);
 	
 	}
 	private void initLayout(final OperationResult result) {
