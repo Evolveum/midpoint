@@ -203,6 +203,12 @@ public abstract class ShadowCache {
 			// return repositoryShadow;
 		}
 		ResourceType resource = ctx.getResource();
+		
+		if (GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
+			PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
+			applyAttributesDefinition(ctx, resultShadow);
+			return resultShadow;
+		}
 
 		if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)) {
 			throw new UnsupportedOperationException("Resource does not support 'read' operation");
@@ -212,7 +218,7 @@ public abstract class ShadowCache {
 		
 		if (canReturnCached(options, repositoryShadow, resource)) {
 			PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
-			applyDefinition(resultShadow, parentResult);
+			applyAttributesDefinition(ctx, resultShadow);
 			return resultShadow;
 		}
 		
@@ -253,7 +259,7 @@ public abstract class ShadowCache {
 					parentResult.recordSuccess();
 					repositoryShadow.asObjectable().setExists(false);
 					PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
-					applyDefinition(resultShadow, parentResult);
+					applyAttributesDefinition(ctx, resultShadow);
 					return resultShadow;
 				} else {
 					throw e;
@@ -367,6 +373,7 @@ public abstract class ShadowCache {
 			if (pendingDelta.isAdd()) {
 				if (resultShadowType.isExists() == Boolean.FALSE) {
 					resultShadow = pendingDelta.getObjectToAdd().clone();
+					resultShadow.setOid(shadow.getOid());
 					resultShadowType = resultShadow.asObjectable();
 					resultShadowType.setExists(true);
 					resultShadowType.setName(shadow.asObjectable().getName());

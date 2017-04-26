@@ -312,6 +312,7 @@ public class ChangeExecutor {
 
 				}
 
+				subResult.computeStatus();
 				if (focusContext != null) {
 					updateLinks(focusContext, projCtx, task, subResult);
 				}
@@ -520,9 +521,29 @@ public class ChangeExecutor {
 			throw new IllegalStateException("Shadow has null OID, this should not happen");
 		}
 
-		if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK
-				|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-				|| projCtx.isDelete() || isEmptyThombstone(projCtx)) {
+		if (linkShouldExist(projCtx, result)) {
+			// Link should exist
+
+						PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+						if (objectCurrent != null) {
+							for (ObjectReferenceType linkRef : objectCurrent.asObjectable().getLinkRef()) {
+								if (projOid.equals(linkRef.getOid())) {
+									// Already linked, nothing to do, only be sure, the
+									// situation is set with the good value
+									LOGGER.trace("Updating situation in already linked shadow.");
+									updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext,
+											projCtx, result);
+									return;
+								}
+							}
+						}
+						// Not linked, need to link
+						linkShadow(focusContext.getOid(), projOid, focusObjectContext, projCtx, task, result);
+						// be sure, that the situation is set correctly
+						LOGGER.trace("Updating situation after shadow was linked.");
+						updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext, projCtx,
+								result);
+		} else {		
 			// Link should NOT exist
 
 			if (!focusContext.isDelete()) {
@@ -563,31 +584,30 @@ public class ChangeExecutor {
 						projOid);
 				updateSituationInShadow(task, null, focusObjectContext, projCtx, result);
 			}
-			// Not linked, that's OK
-
-		} else {
-			// Link should exist
-
-			PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-			if (objectCurrent != null) {
-				for (ObjectReferenceType linkRef : objectCurrent.asObjectable().getLinkRef()) {
-					if (projOid.equals(linkRef.getOid())) {
-						// Already linked, nothing to do, only be sure, the
-						// situation is set with the good value
-						LOGGER.trace("Updating situation in already linked shadow.");
-						updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext,
-								projCtx, result);
-						return;
-					}
-				}
-			}
-			// Not linked, need to link
-			linkShadow(focusContext.getOid(), projOid, focusObjectContext, projCtx, task, result);
-			// be sure, that the situation is set correctly
-			LOGGER.trace("Updating situation after shadow was linked.");
-			updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext, projCtx,
-					result);
+			// Not linked, that's OK			
 		}
+	}
+
+	private boolean linkShouldExist(LensProjectionContext projCtx, OperationResult result) {
+		if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
+			return false;
+		}
+		if (isEmptyThombstone(projCtx)) {
+			return false;
+		}
+		if (projCtx.hasPendingOperations()) {
+			return true;
+		}
+		if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
+				|| projCtx.isDelete()) {
+			if (result.isInProgress()) {
+				// Keep the link until operation is finished
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

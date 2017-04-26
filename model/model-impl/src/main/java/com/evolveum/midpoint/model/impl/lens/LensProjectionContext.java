@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1394,5 +1394,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return null;
 		}
 		return structuralObjectClassDefinition.getVolatility();
+	}
+
+	public boolean hasPendingOperations() {
+		PrismObject<ShadowType> current = getObjectCurrent();
+		if (current == null) {
+			return false;
+		}
+		return !current.asObjectable().getPendingOperation().isEmpty();
 	}
 }

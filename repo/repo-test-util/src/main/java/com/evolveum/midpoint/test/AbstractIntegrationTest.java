@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -1656,15 +1657,90 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return IntegrationTestTools.assertSingleConnectorTestResult(testResult);
 	}
 	
-	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+	protected void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
 		IntegrationTestTools.assertTestResourceSuccess(testResult, operation);
 	}
 
-	public static void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+	protected void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
 		IntegrationTestTools.assertTestResourceFailure(testResult, operation);
 	}
 	
-	public static void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+	protected void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
 		IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
+	}
+	
+	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname, 
+			T... expectedValues) {
+		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
+		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
+	
+	protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, String attrName, 
+			T... expectedValues) {
+		assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
+	}
+	
+	protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, QName attrName, 
+			T... expectedValues) {
+		assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
+	}
+	
+	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName, 
+			T... expectedValues) {
+		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
+		assertAttribute(resource, shadow, attrQname, expectedValues);
+	}
+	
+	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule, 
+			QName attrQname, T... expectedValues) throws SchemaException {
+		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
+		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
+	}
+	
+	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
+		PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+		if (attributesContainer == null || attributesContainer.isEmpty()) {
+			return;
+		}
+		PrismProperty attribute = attributesContainer.findProperty(attrQname);
+		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
+	}
+	
+	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
+		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
+		assertNoAttribute(resource, shadow, attrQname);
+	}
+	
+	protected void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		assertEquals("Wroung number of pending operations in "+shadow, 0, pendingOperations.size());
+	}
+	
+	protected void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertCase");
+		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
+		display("Case", acase);
+		CaseType caseType = acase.asObjectable();
+		assertEquals("Wrong state of "+acase, expectedState ,caseType.getState());
+	}
+	
+	protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		OperationResult result = new OperationResult("closeCase");
+		Collection modifications = new ArrayList<>(1);
+		
+		PrismPropertyDefinition<String> statePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_STATE);
+		PropertyDelta<String> statusDelta = statePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_STATE));
+		statusDelta.addValueToReplace(new PrismPropertyValue<>(SchemaConstants.CASE_STATE_CLOSED));
+		modifications.add(statusDelta);
+		
+		PrismPropertyDefinition<String> outcomePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_OUTCOME);
+		PropertyDelta<String> outcomeDelta = outcomePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_OUTCOME));
+		outcomeDelta.addValueToReplace(new PrismPropertyValue<>(OperationResultStatusType.SUCCESS.value()));
+		modifications.add(outcomeDelta);
+		
+		repositoryService.modifyObject(CaseType.class, caseOid, modifications, null, result);
+		
+		PrismObject<CaseType> caseClosed = repositoryService.getObject(CaseType.class, caseOid, null, result);
+		display("Case closed", caseClosed);
 	}
 }

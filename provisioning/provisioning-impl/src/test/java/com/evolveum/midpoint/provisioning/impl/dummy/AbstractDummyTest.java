@@ -289,19 +289,19 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 	
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+		assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
 	}
 	
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+		assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
 	}
 	
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) throws SchemaException {
-		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), matchingRule, attrName, expectedValues);
+		assertAttribute(resource, shadow.asObjectable(), matchingRule, attrName, expectedValues);
 	}
 
 	protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, String attrName) {
-		ProvisioningTestUtil.assertNoAttribute(resource, shadow.asObjectable(), attrName);
+		assertNoAttribute(resource, shadow.asObjectable(), attrName);
 	}
 	
 	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {

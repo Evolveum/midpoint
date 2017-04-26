@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -822,7 +823,11 @@ public class ContextLoader {
 			ShadowKindType kind = ShadowUtil.getKind(accountType);
 			ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 			intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-			ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent);
+			boolean thombstone = false;
+			if (ShadowUtil.isDead(accountType)) {
+				thombstone = true;
+			}
+			ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent, thombstone);
 			projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
 			
 			if (projectionContext.getOid() == null) {
@@ -1014,6 +1019,7 @@ public class ContextLoader {
 								}
 							}
 						}
+						Validate.notNull(objectOld.getOid());
 						if (InternalsConfig.consistencyChecks) {
 							String resourceOid = projContext.getResourceOid();
 							if (resourceOid != null && !resourceOid.equals(objectOld.asObjectable().getResourceRef().getOid())) {
@@ -1217,6 +1223,7 @@ public class ContextLoader {
 			applyAttributesToGet(projCtx, options);
 			PrismObject<ShadowType> objectCurrent = provisioningService.getObject(ShadowType.class,
 					projCtx.getOid(), options, task, result);
+			Validate.notNull(objectCurrent.getOid());
 			// TODO: use setLoadedObject() instead?
 			projCtx.setObjectCurrent(objectCurrent);
 			ShadowType oldShadow = objectCurrent.asObjectable();

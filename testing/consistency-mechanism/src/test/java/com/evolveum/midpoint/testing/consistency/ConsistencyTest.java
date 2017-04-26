@@ -1377,7 +1377,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		//and then try to get account -> result is that the modifications will be applied to the account
 		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
-		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
 	}
 	
 	@Test
@@ -1406,7 +1406,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// WHEN (restore)
 		//and then try to get account -> result is that the modifications will be applied to the account
 		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
-		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
 		
 		PrismObject<UserType> userAliceAfter = getUser(USER_ALICE_OID);
 		assertPassword(userAliceAfter, "DEADmenTELLnoTALES");
@@ -1457,7 +1457,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			
 		// Do this as a last step so it will not interfere with the results
 		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, result);
-		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
 
 	}
 	
@@ -1589,7 +1589,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_DONALD_OID);
 				
 		ShadowType johnAccountType = checkNormalizedShadowWithAttributes(accountOid, "donald", "donald", "trump", "donald trump", false, task, parentResult);
-		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "employeeType", "manager");
+		assertAttribute(johnAccountType, "employeeType", "manager");
 
 		//stop opendj and try to modify employeeType (weak mapping)
 		openDJController.stop();
@@ -1846,10 +1846,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         assertShadowModel(accountModel, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         ShadowType accountTypeModel = accountModel.asObjectable();
         
-        assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "chuck");
-		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "givenName", "Chuck");
-		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "sn", "Norris");
-		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "cn", "Chuck Norris");
+        assertAttribute(accountTypeModel, "uid", "chuck");
+		assertAttribute(accountTypeModel, "givenName", "Chuck");
+		assertAttribute(accountTypeModel, "sn", "Norris");
+		assertAttribute(accountTypeModel, "cn", "Chuck Norris");
 		
         // TODO: check OpenDJ Account        
 	}
@@ -2166,7 +2166,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_E_OID);
 		
 		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "Jackkk", "e", "e", true, null, result);
-		assertAttribute(eAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(eAccount, "employeeNumber", "emp4321");
 		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(eAccount);
 		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
@@ -2178,8 +2178,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// check if the account was modified during reconciliation process
 		String jackAccountOid = assertUserOneAccountRef(USER_JACK_OID);
 		ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, "jack", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
-		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
-		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(modifiedAccount, "givenName", "Jackkk");
+		assertAttribute(modifiedAccount, "employeeNumber", "emp4321");
 
 		
 		// check if the account was deleted during the reconciliation process
@@ -2199,8 +2199,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		accountOid = assertUserOneAccountRef(USER_JACK2_OID);
 		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
-		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "givenName", "jackNew2a");
-		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "cn", "jackNew2a");
+		assertAttribute(jack2Shadow, "givenName", "jackNew2a");
+		assertAttribute(jack2Shadow, "cn", "jackNew2a");
 
 	}
 	
@@ -2236,7 +2236,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_E_OID);
 		
 		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "Jackkk", "e", "e", true, null, result);
-		assertAttribute(eAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(eAccount, "employeeNumber", "emp4321");
 		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(eAccount);
 		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
@@ -2505,21 +2505,21 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 		
 	private void assertAttributes(ShadowType shadow, String uid, String givenName, String sn, String cn){
-		assertAttribute(shadow, resourceTypeOpenDjrepo, "uid", uid);
+		assertAttribute(shadow, "uid", uid);
 		if (givenName != null) {
-			assertAttribute(shadow, resourceTypeOpenDjrepo, "givenName", givenName);
+			assertAttribute(shadow, "givenName", givenName);
 		}
 		if (sn != null) {
-			assertAttribute(shadow, resourceTypeOpenDjrepo, "sn", sn);
+			assertAttribute(shadow, "sn", sn);
 		}
-		assertAttribute(shadow, resourceTypeOpenDjrepo, "cn", cn);
+		assertAttribute(shadow, "cn", cn);
 	}
 	
 	
 	private void checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeNumber, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
 		ShadowType account = checkPostponedAccountWithAttributes(accountOid, uid, givenName, sn, cn, failedOperation, modify, task, parentResult);
 		display("account shadow (postponed operation)", account);
-		assertAttribute(account, resourceTypeOpenDjrepo, "employeeNumber", employeeNumber);
+		assertAttribute(account, "employeeNumber", employeeNumber);
 	}
 	
 	private ShadowType checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
@@ -2594,7 +2594,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private void checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeType, boolean modify, Task task, OperationResult parentResult) throws Exception{
 		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, null, task, parentResult);
 		assertAttributes(resourceAccount, uid, givenName, sn, cn);
-		assertAttribute(resourceAccount, resourceTypeOpenDjrepo, "employeeType", employeeType);
+		assertAttribute(resourceAccount, "employeeType", employeeType);
 	}
 	
 	private ShadowType checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, boolean modify, Task task, OperationResult parentResult) throws Exception{
@@ -2622,5 +2622,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 	}
 
+	protected <T> void assertAttribute(ShadowType shadowType, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+	}
 
 }

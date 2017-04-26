@@ -129,34 +129,43 @@ public class ActivationProcessor {
     public <F extends FocusType> void processActivationUserCurrent(LensContext<F> context, LensProjectionContext projCtx, 
     		XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-    	String accCtxDesc = projCtx.toHumanReadableString();
+    	String projCtxDesc = projCtx.toHumanReadableString();
     	SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
     	SynchronizationIntent synchronizationIntent = projCtx.getSynchronizationIntent();
     	
     	if (decision == SynchronizationPolicyDecision.BROKEN) {
-    		LOGGER.trace("Broken projection {}, skipping further activation processing", accCtxDesc);
+    		LOGGER.trace("Broken projection {}, skipping further activation processing", projCtxDesc);
     		return;
     	}
     	if (decision != null) {
-    		throw new IllegalStateException("Decision "+decision+" already present for projection "+accCtxDesc);
+    		throw new IllegalStateException("Decision "+decision+" already present for projection "+projCtxDesc);
+    	}
+    	
+    	if (projCtx.isThombstone()) {
+    		// Let's keep thombstones linked until they expire. So we do not have shadows without owners.
+    		// This is also needed for async delete operations.
+    		// TODO: thombsotne expiration
+    		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+    		LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
+    		return;
     	}
     	
     	if (projCtx.isThombstone() || synchronizationIntent == SynchronizationIntent.UNLINK) {
     		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
-    		LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", accCtxDesc, SynchronizationPolicyDecision.UNLINK);
+    		LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
     		return;
     	}
     	
     	if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
     		// TODO: is this OK?
     		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
-    		LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", accCtxDesc, SynchronizationPolicyDecision.DELETE);
+    		LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
     		return;
     	}
     	    	
     	boolean shadowShouldExist = evaluateExistenceMapping(context, projCtx, now, true, task, result);
     	
-    	LOGGER.trace("Evaluated intended existence of projection {} to {}", accCtxDesc, shadowShouldExist);
+    	LOGGER.trace("Evaluated intended existence of projection {} to {}", projCtxDesc, shadowShouldExist);
     	
     	// Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
 
@@ -210,7 +219,7 @@ public class ActivationProcessor {
 	    			decision = SynchronizationPolicyDecision.ADD;
 	    		}
     		} else {
-    			throw new PolicyViolationException("Request to add projection "+accCtxDesc+" but the activation policy decided that it should not exist");
+    			throw new PolicyViolationException("Request to add projection "+projCtxDesc+" but the activation policy decided that it should not exist");
     		}
     		
     	} else if (synchronizationIntent == SynchronizationIntent.KEEP) {
@@ -222,37 +231,37 @@ public class ActivationProcessor {
 	    			decision = SynchronizationPolicyDecision.ADD;
 	    		}
 	    	} else {
-	    		throw new PolicyViolationException("Request to keep projection "+accCtxDesc+" but the activation policy decided that it should not exist");
+	    		throw new PolicyViolationException("Request to keep projection "+projCtxDesc+" but the activation policy decided that it should not exist");
 	    	}
     		
     	} else {
     		throw new IllegalStateException("Unknown sync intent "+synchronizationIntent);
     	}
     	
-    	LOGGER.trace("Evaluated decision for projection {} to {}", accCtxDesc, decision);
+    	LOGGER.trace("Evaluated decision for projection {} to {}", projCtxDesc, decision);
     	
     	projCtx.setSynchronizationPolicyDecision(decision);
     	
         PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
         if (focusNew == null) {
             // This must be a user delete or something similar. No point in proceeding
-            LOGGER.trace("focusNew is null, skipping activation processing of {}", accCtxDesc);
+            LOGGER.trace("focusNew is null, skipping activation processing of {}", projCtxDesc);
             return;
         }
     	
     	if (decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
-    		LOGGER.trace("Decision is {}, skipping activation properties processing for {}", decision, accCtxDesc);
+    		LOGGER.trace("Decision is {}, skipping activation properties processing for {}", decision, projCtxDesc);
     		return;
     	}
     	
     	ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
         if (resourceAccountDefType == null) {
-            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account " + accCtxDesc);
+            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account " + projCtxDesc);
             return;
         }
         ResourceActivationDefinitionType activationType = resourceAccountDefType.getActivation();
         if (activationType == null) {
-            LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", accCtxDesc);
+            LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", projCtxDesc);
             return;
         }
         

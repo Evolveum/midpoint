@@ -616,6 +616,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				} else {
 					message = message + ", " + sub.getMessage();
 				}
+				if (asynchronousOperationReference == null) {
+					asynchronousOperationReference = sub.getAsynchronousOperationReference();
+				}
 			}
             if (sub.getStatus() == OperationResultStatus.WARNING) {
                 hasWarning = true;

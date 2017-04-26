@@ -1113,12 +1113,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
         assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "Black Pearl");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "Black Pearl");
         assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
         assertNull("postalAddress attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "postalAddress"));
 
@@ -1249,7 +1249,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertAttribute(modelShadow, SchemaConstants.ICFS_UID, USER_JACK_DERBY_LOGIN);
         assertAttribute(modelShadow, SchemaConstants.ICFS_NAME, USER_JACK_DERBY_LOGIN);
-        assertAttribute(modelShadow, resourceDerby, "FULL_NAME", "Cpt. Jack Sparrow");
+        assertAttribute(resourceDerby, modelShadow, "FULL_NAME", "Cpt. Jack Sparrow");
 
     }
 
@@ -1737,12 +1737,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
         assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "somewhere");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "somewhere");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
         assertNotNull("The account activation status was not present in shadow", modelShadow.getActivation().getAdministrativeStatus());
@@ -1830,12 +1830,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
         assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "somewhere");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "somewhere");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
         assertNotNull("The account activation status was not present in shadow", modelShadow.getActivation().getAdministrativeStatus());
@@ -3807,10 +3807,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	PrismObject<ShadowType> modelShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), result);
     	
     	assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "angelika");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Angelika");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Marley");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Angelika Marley");
+        assertAttribute(modelShadow, "uid", "angelika");
+        assertAttribute(modelShadow, "givenName", "Angelika");
+        assertAttribute(modelShadow, "sn", "Marley");
+        assertAttribute(modelShadow, "cn", "Angelika Marley");
         
         assertShadowLdapPassword(modelShadow, "piranhaDogs");
 
@@ -4161,6 +4161,18 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		}
 		
 		return value;
+	}
+    
+    protected <T> void assertAttribute(ShadowType shadowType, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
 	}
 
 }

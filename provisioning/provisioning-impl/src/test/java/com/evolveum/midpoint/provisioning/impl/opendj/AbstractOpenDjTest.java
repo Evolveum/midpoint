@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.match.DistinguishedNameMatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
@@ -190,15 +189,15 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	}
 	
 	protected <T> void assertAttribute(ShadowType shadow, String attrName, T... expectedValues) {
-		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+		assertAttribute(resource, shadow, attrName, expectedValues);
 	}
 	
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+		assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
 	}
 
 	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
-		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+		assertAttribute(resource, shadow, attrName, expectedValues);
 	}
 	
 	protected QName getPrimaryIdentifierQName() {
