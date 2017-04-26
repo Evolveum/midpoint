@@ -68,11 +68,12 @@ public class DataModel {
 		}
 	}
 
-	public ResourceDataItem findResourceItem(@NotNull String resourceOid, @Nullable ShadowKindType kind, @Nullable String intent, @NotNull ItemPath path) {
+	public ResourceDataItem findResourceItem(@NotNull String resourceOid, @Nullable ShadowKindType kind, @Nullable String intent,
+			QName objectClassName, @NotNull ItemPath path) {
 		kind = DataModelVisualizerImpl.def(kind);
 		intent = DataModelVisualizerImpl.def(intent);
 		for (ResourceDataItem item : getResourceDataItems()) {
-			if (item.matches(resourceOid, kind, intent, path)) {
+			if (item.matches(resourceOid, kind, intent, objectClassName, path)) {
 				return item;
 			}
 		}

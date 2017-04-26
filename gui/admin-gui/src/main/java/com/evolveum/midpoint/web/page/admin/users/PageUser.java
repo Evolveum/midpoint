@@ -351,7 +351,15 @@ public class PageUser extends PageAdminFocus<UserType> {
                 });
             }
 
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                return PageUser.this.getOptionsPanelVisibility();
+            }
         };
+    }
+
+    protected boolean getOptionsPanelVisibility(){
+        return true;
     }
 
     private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {
