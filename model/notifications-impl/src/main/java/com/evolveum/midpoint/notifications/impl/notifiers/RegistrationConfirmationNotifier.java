@@ -45,7 +45,9 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier {
 	@Override
 	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
 			OperationResult result) {
-		if (!(super.checkApplicability(event, generalNotifierType, result)) || !((ModelEvent) event).hasFocusOfType(UserType.class)) {
+		if (!(super.checkApplicability(event, generalNotifierType, result))
+				|| !(event instanceof ModelEvent)
+				|| !((ModelEvent) event).hasFocusOfType(UserType.class)) {
 			LOGGER.trace(
 					"RegistrationConfirmationNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
 							+ event.getClass());
