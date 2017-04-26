@@ -101,7 +101,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		mainForm = new Form<>(ID_MAIN_FORM, true);
 		add(mainForm);
 		initLayoutTabs(parentPage);
-		initLayoutOptions(parentPage);
+		initLayoutOptions();
 		initLayoutButtons(parentPage);
 	}
 	
@@ -114,7 +114,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
 	protected abstract List<ITab> createTabs(PageAdminObjectDetails<O> parentPage);
 
-	protected void initLayoutOptions(PageAdminObjectDetails<O> parentPage) {
+	protected void initLayoutOptions() {
 		ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
 				executeOptionsModel, true, false);
         optionsPanel.setVisible(getOptionsPanelVisibility());

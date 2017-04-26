@@ -29,14 +29,19 @@ import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author semancik
@@ -47,7 +52,6 @@ public class ProvisioningContext extends StateReporter {
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
 	
 	private ResourceManager resourceManager;
-	private ConnectorManager connectorManager;
 	private OperationResult parentResult;
 	private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
 	
@@ -59,11 +63,10 @@ public class ProvisioningContext extends StateReporter {
 	private RefinedObjectClassDefinition objectClassDefinition;
 
 	private ResourceType resource;
-	private ConnectorInstance connector;
+	private Map<Class<? extends CapabilityType>,ConnectorInstance> connectorMap;
 	private RefinedResourceSchema refinedSchema;
 	
-	public ProvisioningContext(ConnectorManager connectorManager, ResourceManager resourceManager, OperationResult parentResult) {
-		this.connectorManager = connectorManager;
+	public ProvisioningContext(ResourceManager resourceManager, OperationResult parentResult) {
 		this.resourceManager = resourceManager;
 		this.parentResult = parentResult;
 	}
@@ -71,7 +74,7 @@ public class ProvisioningContext extends StateReporter {
 	public void setResourceOid(String resourceOid) {
 		super.setResourceOid(resourceOid);
 		this.resource = null;
-		this.connector = null;
+		this.connectorMap = null;
 		this.refinedSchema = null;
 	}
 	
@@ -190,10 +193,15 @@ public class ProvisioningContext extends StateReporter {
 	public String getChannel() {
 		return getTask()==null?null:getTask().getChannel();
 	}
-
-	public ConnectorInstance getConnector(OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	
+	public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		if (connectorMap == null) {
+			connectorMap = new HashMap<>();
+		}
+		ConnectorInstance connector = connectorMap.get(operationCapabilityClass);
 		if (connector == null) {
-			connector = getConnectorInstance(parentResult);
+			connector = getConnectorInstance(operationCapabilityClass, parentResult);
+			connectorMap.put(operationCapabilityClass, connector);
 		}
 		return connector;
 	}
@@ -240,12 +248,12 @@ public class ProvisioningContext extends StateReporter {
 //	}
 	
 	private ProvisioningContext spawnSameResource() {
-		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
+		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(this.getTask());
 		ctx.setResourceOid(getResourceOid());
 		ctx.resource = this.resource;
 		ctx.updateResourceName();					// TODO eliminate this mess - check if we need StateReporter any more
-		ctx.connector = this.connector;
+		ctx.connectorMap = this.connectorMap;
 		ctx.refinedSchema = this.refinedSchema;
 		return ctx;
 	}
@@ -270,11 +278,11 @@ public class ProvisioningContext extends StateReporter {
 		}
 	}
 
-	private ConnectorInstance getConnectorInstance(OperationResult parentResult)
+	private <T extends CapabilityType> ConnectorInstance getConnectorInstance(Class<T> operationCapabilityClass, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		OperationResult connectorResult = parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
 		try {
-			ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(getResource().asPrismObject(), false, parentResult);
+			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, parentResult);
 			connectorResult.recordSuccess();
 			return connector;
 		} catch (ObjectNotFoundException | SchemaException e){
@@ -288,6 +296,10 @@ public class ProvisioningContext extends StateReporter {
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			throw e;
 		}
+	}
+	
+	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
+		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), operationCapabilityClass);
 	}
 	
 	@Override

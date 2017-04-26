@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -41,6 +42,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 
@@ -204,6 +206,12 @@ public class WorkItemsPanel extends BasePanel {
 
 	IColumn<WorkItemDto, String> createObjectNameColumn(final String headerKey) {
 		return new LinkColumn<WorkItemDto>(createStringResource(headerKey), WorkItemDto.F_OBJECT_NAME) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected IModel<String> createLinkModel(IModel<WorkItemDto> rowModel) {
+				return Model.of(WebModelServiceUtils.resolveReferenceName(rowModel.getObject().getObjectRef(), getPageBase()));
+			}
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
@@ -215,6 +223,11 @@ public class WorkItemsPanel extends BasePanel {
 
 	IColumn<WorkItemDto, String> createTargetNameColumn(final String headerKey) {
 		return new LinkColumn<WorkItemDto>(createStringResource(headerKey), WorkItemDto.F_TARGET_NAME) {
+
+			@Override
+			protected IModel<String> createLinkModel(IModel<WorkItemDto> rowModel) {
+				return Model.of(WebModelServiceUtils.resolveReferenceName(rowModel.getObject().getTargetRef(), getPageBase()));
+			}
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {

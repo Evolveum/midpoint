@@ -21,6 +21,8 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -37,7 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class CapabilityUtil {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
+	public static <T extends CapabilityType> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
 		if (capabilities == null) {
 			return null;
 		}
@@ -271,6 +273,26 @@ public class CapabilityUtil {
 	private static Boolean def(Boolean originalValue, boolean defaultValue) {
 		return originalValue != null ? originalValue : defaultValue;
 	}
+	
+	public static <T extends CapabilityType> T getEffectiveCapability(CapabilitiesType capabilitiesType, Class<T> capabilityClass) {
+		if (capabilitiesType == null) {
+			return null;
+		}
+		if (capabilitiesType.getConfigured() != null) {
+			T configuredCapability = CapabilityUtil.getCapability(capabilitiesType.getConfigured().getAny(), capabilityClass);
+			if (configuredCapability != null) {
+				return configuredCapability;
+			}
+			// No configured capability entry, fallback to native capability
+		}
+		if (capabilitiesType.getNative() != null) {
+			T nativeCapability = CapabilityUtil.getCapability(capabilitiesType.getNative().getAny(), capabilityClass);
+			if (nativeCapability != null) {
+				return nativeCapability;
+			}
+		}
+		return null;
+	}
 
 	public static ActivationStatusCapabilityType getEffectiveActivationStatus(ActivationCapabilityType act) {
 		if (act != null && act.getStatus() != null && !Boolean.FALSE.equals(act.getStatus().isEnabled())) {
@@ -302,5 +324,16 @@ public class CapabilityUtil {
 		} else {
 			return null;
 		}
+	}
+
+	public static <T extends CapabilityType>  boolean hasNativeCapability(CapabilitiesType capabilities, Class<T> capabilityClass) {
+		if (capabilities == null) {
+			return false;
+		}
+		CapabilityCollectionType nativeCaps = capabilities.getNative();
+		if (nativeCaps == null) {
+			return false;
+		}
+		return getCapability(nativeCaps.getAny(), capabilityClass) != null;
 	}
 }

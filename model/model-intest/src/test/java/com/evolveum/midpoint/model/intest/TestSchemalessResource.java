@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,9 +56,10 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
 	 */
 	@Test
     public void test001GetObject() throws Exception {
-        TestUtil.displayTestTile(this, "test001GetObject");
+		final String TEST_NAME = "test001GetObject";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test001GetObject");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
@@ -70,19 +71,23 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
 	
 	@Test
     public void test002TestConnection() throws Exception {
-        TestUtil.displayTestTile(this, "test002TestConnection");
+		final String TEST_NAME = "test002TestConnection";
+		TestUtil.displayTestTile(this, TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + ".test002TestConnection");
+        Task task = createTask(TEST_NAME);
         
         // WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_SCHEMALESS_OID, task);
         
         // THEN
 		display("Test result", testResult);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONFIGURATION_VALIDATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-		assertTestResourceFailure(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+		assertSuccess(connectorResult);
+		assertTestResourceFailure(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+		assertFailure(testResult);
 
 	}
 	

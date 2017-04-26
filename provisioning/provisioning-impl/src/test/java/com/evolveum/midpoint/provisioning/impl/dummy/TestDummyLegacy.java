@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,10 +151,13 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 
 		// THEN
 		display("Test result", testResult);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONFIGURATION_VALIDATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+		assertSuccess(connectorResult);
+		assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
 		assertSuccess(testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
@@ -234,10 +237,13 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 
 		// THEN
 		display("Test result", testResult);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONFIGURATION_VALIDATION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-		assertTestResourceSuccess(testResult, ConnectorTestOperation.CONNECTOR_SCHEMA);
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CAPABILITIES);
+		assertSuccess(connectorResult);
+		assertTestResourceSuccess(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
 		assertSuccess(testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,

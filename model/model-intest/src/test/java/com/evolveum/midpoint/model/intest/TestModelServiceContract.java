@@ -1132,7 +1132,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertShadowFetchOperationCountIncrement(0);
-        assertPrismObjectCloneIncrement(65);
+        assertPrismObjectCloneIncrement(64);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);

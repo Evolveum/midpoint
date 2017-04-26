@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -59,12 +60,6 @@ public class TestDummyNegative extends AbstractDummyTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
 	
 	private static final String ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME = TEST_DIR + "account-elaine-resource-not-found.xml";
-	
-//	@Autowired
-//	TaskManager taskManager;
-	
-//	@Autowired
-//	private ResourceObjectChangeListener syncServiceMock;
 	
 	@Test
 	public void test110GetResourceBrokenSchemaNetwork() throws Exception {
@@ -120,15 +115,35 @@ public class TestDummyNegative extends AbstractDummyTest {
 			dummyResource.setSchemaBreakMode(BreakMode.NONE);
 		}
 	}
-	
+
+	@Test
+	public void test190GetResource() throws Exception {
+		final String TEST_NAME = "test190GetResource";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		dummyResource.setSchemaBreakMode(BreakMode.NONE);
+		syncServiceMock.reset();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+			
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("Resource after", resource);
+		IntegrationTestTools.displayXml("Resource after (XML)", resource);
+		assertHasSchema(resource, "dummy");
+	}
 	
 	@Test
 	public void test200AddAccountNullAttributes() throws Exception {
 		final String TEST_NAME = "test200AddAccountNullAttributes";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
@@ -142,6 +157,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		try {
 			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
 			provisioningService.addObject(account, null, null, task, result);
 			
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
@@ -150,6 +166,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			display("Expected exception", e);
 		}
 		
+		TestUtil.displayThen(TEST_NAME);
 		syncServiceMock.assertNotifyFailureOnly();
 	}
 	

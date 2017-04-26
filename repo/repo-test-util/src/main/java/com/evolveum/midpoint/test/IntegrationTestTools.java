@@ -80,6 +80,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
@@ -106,6 +108,16 @@ public class IntegrationTestTools {
 	private static final String LOG_MESSAGE_PREFIX = "";
 	private static final String OBJECT_LIST_SEPARATOR = "---";
 	private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 500;
+	
+	public static OperationResult assertSingleConnectorTestResult(OperationResult testResult) {
+		List<OperationResult> connectorSubresults = getConnectorSubresults(testResult);
+		assertEquals("Unexpected number of connector tests in test result", 1, connectorSubresults.size());
+		return connectorSubresults.get(0);
+	}
+
+	private static List<OperationResult> getConnectorSubresults(OperationResult testResult) {
+		return testResult.getSubresults().stream().filter(r -> r.getOperation().equals(ConnectorTestOperation.CONNECTOR_TEST.getOperation())).collect(Collectors.toList());
+	}
 
 	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
 		OperationResult opResult = testResult.findSubresult(operation.getOperation());

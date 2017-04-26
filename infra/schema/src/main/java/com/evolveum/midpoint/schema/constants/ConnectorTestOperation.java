@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,30 +27,40 @@ public enum ConnectorTestOperation {
 	TEST_CONNECTION(ConnectorTestOperation.class.getName() + ".testConnection"),
 
 	/**
-	 * Check whether the configuration is valid e.g. well-formed XML, valid with regard to schema, etc.
+	 * Envelope operation for all connector tests.
 	 */
-	CONFIGURATION_VALIDATION(ConnectorTestOperation.class.getName() + ".configurationValidation"),
+	CONNECTOR_TEST(ConnectorTestOperation.class.getName() + ".connector"),
 
 	/**
 	 * Check whether the connector can be initialized.
 	 * E.g. connector classes can be loaded, it can process configuration, etc.
 	 */
-	CONNECTOR_INITIALIZATION(ConnectorTestOperation.class.getName() + ".connectorInitialization"),
+	CONNECTOR_INITIALIZATION(ConnectorTestOperation.class.getName() + ".connector.initialization"),
+
+	/**
+	 * Check whether the configuration is valid e.g. well-formed XML, valid with regard to schema, etc.
+	 */
+	CONNECTOR_CONFIGURATION(ConnectorTestOperation.class.getName() + ".connector.configuration"),
 
 	/**
 	 * Check whether a connection to the resource can be established.
 	 */
-	CONNECTOR_CONNECTION(ConnectorTestOperation.class.getName() + ".connectorConnection"),
+	CONNECTOR_CONNECTION(ConnectorTestOperation.class.getName() + ".connector.connection"),
+	
+	/**
+	 * Check whether a connection to the resource can be established.
+	 */
+	CONNECTOR_CAPABILITIES(ConnectorTestOperation.class.getName() + ".connector.capabilities"),
 
 	/**
 	 * Check whether the connector can fetch and process resource schema.
 	 */
-	CONNECTOR_SCHEMA(ConnectorTestOperation.class.getName() + ".connectorSchema"),
+	RESOURCE_SCHEMA(ConnectorTestOperation.class.getName() + ".resourceSchema"),
 
 	/**
 	 * Check whether the connector can be used to fetch some mandatory objects (e.g. fetch a "root" user).
 	 */
-	CONNECTOR_SANITY(ConnectorTestOperation.class.getName() + ".connectorSanity"),
+	RESOURCE_SANITY(ConnectorTestOperation.class.getName() + ".resourceSanity"),
 
 	EXTRA_TEST(ConnectorTestOperation.class.getName() + ".extraTest");
 

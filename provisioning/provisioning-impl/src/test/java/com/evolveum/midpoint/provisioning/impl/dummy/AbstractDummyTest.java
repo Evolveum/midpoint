@@ -67,6 +67,7 @@ import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTe
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
+import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -97,6 +98,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
  * @author semancik
@@ -168,9 +170,13 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static DummyResource dummyResource;
 	protected static DummyResourceContoller dummyResourceCtl;
 	
-	// Used to make sure that the connector is cached
+	// Testing connector discovery
 	@Autowired(required = true)
 	protected ConnectorManager connectorManager;
+	
+	// Used to make sure that the connector is cached
+	@Autowired(required = true)
+	protected ResourceManager resourceManager;
 	
 	@Autowired(required = true)
 	protected ProvisioningContextFactory provisioningContextFactory;
@@ -497,7 +503,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".rememberConnectorInstance");
-		rememberConnectorInstance(connectorManager.getConfiguredConnectorInstance(resource, false, result));
+		rememberConnectorInstance(resourceManager.getConfiguredConnectorInstance(resource, ReadCapabilityType.class, false, result));
 	}
 	
 	protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -507,16 +513,16 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".rememberConnectorInstance");
-		ConnectorInstance currentConfiguredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resource, false, result);
+		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+				resource, ReadCapabilityType.class, false, result);
 		assertTrue("Connector instance has changed", lastConfiguredConnectorInstance == currentConfiguredConnectorInstance);
 	}
 	
 	protected void assertConnectorInstanceChanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".rememberConnectorInstance");
-		ConnectorInstance currentConfiguredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resource, false, result);
+		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+				resource, ReadCapabilityType.class, false, result);
 		assertTrue("Connector instance has NOT changed", lastConfiguredConnectorInstance != currentConfiguredConnectorInstance);
 		lastConfiguredConnectorInstance = currentConfiguredConnectorInstance;
 	}

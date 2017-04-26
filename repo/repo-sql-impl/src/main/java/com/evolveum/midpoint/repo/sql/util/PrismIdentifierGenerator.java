@@ -11,6 +11,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -116,6 +117,10 @@ public class PrismIdentifierGenerator {
 
         if (ShadowType.class.isAssignableFrom(parent.getCompileTimeClass())) {
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(ShadowType.F_PENDING_OPERATION));
+        }
+        
+        if (ResourceType.class.isAssignableFrom(parent.getCompileTimeClass())) {
+            CollectionUtils.addIgnoreNull(containers, parent.findContainer(ResourceType.F_ADDITIONAL_CONNECTOR));
         }
 
         return containers;

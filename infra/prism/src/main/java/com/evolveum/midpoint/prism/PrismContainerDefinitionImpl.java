@@ -339,11 +339,16 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	@Override
 	public PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
     	PrismContainerDefinitionImpl<C> clone = clone();
+    	clone.replaceDefinition(itemName, newDefinition);
+        return clone;
+    }
+
+	@Override
+	public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
     	ComplexTypeDefinition originalComplexTypeDefinition = getComplexTypeDefinition();
         ComplexTypeDefinition cloneComplexTypeDefinition = originalComplexTypeDefinition.clone();
-        clone.setComplexTypeDefinition(cloneComplexTypeDefinition);
+        setComplexTypeDefinition(cloneComplexTypeDefinition);
 		((ComplexTypeDefinitionImpl) cloneComplexTypeDefinition).replaceDefinition(itemName, newDefinition);
-        return clone;
     }
 
     /**

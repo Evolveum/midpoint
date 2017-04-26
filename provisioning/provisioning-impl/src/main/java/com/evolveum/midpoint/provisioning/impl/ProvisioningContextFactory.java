@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,8 @@ public class ProvisioningContextFactory {
 	@Autowired(required = true)
 	private ResourceManager resourceManager;
 	
-	@Autowired(required = true)
-	private ConnectorManager connectorManager;
-	
 	public ProvisioningContext create(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
+		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(task);
 		ctx.setOriginalShadow(shadow);
 		String resourceOid = ShadowUtil.getResourceOid(shadow.asObjectable());
@@ -56,7 +53,7 @@ public class ProvisioningContextFactory {
 	}
 	
 	public ProvisioningContext create(PrismObject<ShadowType> shadow, Collection<QName> additionalAuxiliaryObjectClassQNames, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
+		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(task);
 		ctx.setOriginalShadow(shadow);
 		ctx.setAdditionalAuxiliaryObjectClassQNames(additionalAuxiliaryObjectClassQNames);
@@ -66,7 +63,7 @@ public class ProvisioningContextFactory {
 	}
 	
 	public ProvisioningContext create(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ProvisioningContext ctx = new ProvisioningContext(connectorManager, resourceManager, parentResult);
+		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(task);
 		ctx.setShadowCoordinates(coords);
 		String resourceOid = coords.getResourceOid();

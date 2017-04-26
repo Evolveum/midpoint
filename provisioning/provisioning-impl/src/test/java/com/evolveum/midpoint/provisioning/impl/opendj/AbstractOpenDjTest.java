@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
+import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -164,7 +165,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 
 	// Used to make sure that the connector is cached
 	@Autowired(required = true)
-	protected ConnectorManager connectorManager;
+	protected ResourceManager resourceManager;
 
 	@Autowired(required = true)
 	protected SynchornizationServiceMock syncServiceMock;

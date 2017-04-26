@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2016-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-	<div class="row">
+	<div class="row" wicket:id="connectorList">
 		<div class="col-md-12">
 			<div class="container-fluid prism-object">
 	    		<div class="row prism-header">
@@ -27,6 +27,15 @@
 	    		<div class="row">
 	        		<div class="container-fluid prism-container">
 						<div class="prism-properties">
+
+	        				<div class="row prism-property">
+    							<div class="col-xs-2 prism-property-label">
+        							<span><wicket:message key="ConnectorOperationalStatus.connectorName">Connector name</wicket:message></span>
+								</div>
+    							<div class="col-md-10 prism-property-value">
+    								<span wicket:id="connectorName"/>
+    							</div>
+    						</div>
 
 	        				<div class="row prism-property">
     							<div class="col-xs-2 prism-property-label">
