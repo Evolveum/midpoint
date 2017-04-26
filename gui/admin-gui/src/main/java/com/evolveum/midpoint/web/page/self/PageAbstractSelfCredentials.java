@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.xml.security.encryption.EncryptedData;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -320,8 +322,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         try {
             MyPasswordsDto dto = model.getObject();
             ProtectedStringType password = dto.getPassword();
-            WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
-
+            if (!password.isEncrypted()) {
+                WebComponentUtil.encryptProtectedString(password, true, getMidpointApplication());
+            }
             final ItemPath valuePath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                     CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
@@ -343,11 +346,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
             result.computeStatus();
         } catch (Exception ex) {
-            MyPasswordsDto dto = model.getObject();
-            ProtectedStringType password = dto.getPassword();
-            if (password != null){
-                password.setEncryptedData(null);
-            }
+            setEncryptedPasswordData(null);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);
             result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);
         } finally {
@@ -355,6 +354,14 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         }
 
         finishChangePassword(result, target);
+    }
+
+    protected void setEncryptedPasswordData(EncryptedDataType data){
+        MyPasswordsDto dto = model.getObject();
+        ProtectedStringType password = dto.getPassword();
+        if (password != null){
+            password.setEncryptedData(data);
+        }
     }
     
     protected abstract boolean isCheckOldPassword();

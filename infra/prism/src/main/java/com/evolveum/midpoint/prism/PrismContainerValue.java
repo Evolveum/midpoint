@@ -17,15 +17,13 @@ package com.evolveum.midpoint.prism;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -1416,11 +1414,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     }
 
     @Override
-    public String debugDump() {
-    	return debugDump(0);
-    }
-    
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         boolean wasIndent = false;
@@ -1444,7 +1437,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         appendOriginDump(sb);
 		List<Item<?,?>> items = getItems();
-        if (items != null) {
+		if (items == null || items.isEmpty()) {
+			DebugUtil.indentDebugDump(sb, indent + 1);
+			sb.append("(no items)");
+		} else {
 	        Iterator<Item<?,?>> i = getItems().iterator();
 	        if (wasIndent && i.hasNext()) {
 	            sb.append("\n");
@@ -1611,5 +1607,29 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 		remainingToOverwrite.forEach(name -> removeItem(new ItemPath(name), Item.class));
+	}
+
+	@Override
+	public PrismContainerValue<?> getRootValue() {
+		return (PrismContainerValue) super.getRootValue();
+	}
+
+	public static <C extends Containerable> List<PrismContainerValue<C>> asPrismContainerValues(List<C> containerables) {
+		return containerables.stream().map(c -> (PrismContainerValue<C>) c.asPrismContainerValue()).collect(Collectors.toList());
+	}
+
+	public static <C extends Containerable> List<C> asContainerables(List<PrismContainerValue<C>> pcvs) {
+		return pcvs.stream().map(c -> c.asContainerable()).collect(Collectors.toList());
+	}
+
+	/**
+	 * Set origin type to all values and subvalues
+	 */
+	public void setOriginTypeRecursive(final OriginType originType) {
+		accept((visitable) -> {
+			if (visitable instanceof PrismValue) {
+				((PrismValue)visitable).setOriginType(originType);
+			}
+		});
 	}
 }

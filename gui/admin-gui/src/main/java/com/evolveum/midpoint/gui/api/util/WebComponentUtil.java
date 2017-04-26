@@ -492,19 +492,6 @@ public final class WebComponentUtil {
 		};
 	}
 
-	public static List<OpResult> getTestConnectionResults(OperationResult result, PageBase component) {
-		List<OpResult> resultsDto = new ArrayList<>();
-		for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
-			for (OperationResult testResult : result.getSubresults()) {
-				if (connectorOperation.getOperation().equals(testResult.getOperation())) {
-					OpResult resultDto = OpResult.getOpResult(component, testResult);
-					resultsDto.add(resultDto);
-				}
-			}
-		}
-		return resultsDto;
-	}
-
 	public static List<String> createTaskCategoryList() {
 		List<String> categories = new ArrayList<>();
 

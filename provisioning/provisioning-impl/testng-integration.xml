@@ -19,15 +19,9 @@
 	<listeners>
 		<listener class-name="com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor"/>
 	</listeners>
-	<test name="provisioning-ucf" parallel="false" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.provisioning.impl.ucf.TestUcfDummy" />
-			<class name="com.evolveum.midpoint.provisioning.impl.ucf.TestUcfDummyMulti" />
-			<class name="com.evolveum.midpoint.provisioning.impl.ucf.TestUcfOpenDj" />
-		</classes>
-	</test>
 	<test name="provisioning-service-opendj" parallel="false" verbose="10">
 		<classes>
+			<class name="com.evolveum.midpoint.provisioning.impl.TestConnectorManager" />
 			<class name="com.evolveum.midpoint.provisioning.impl.TestConnectorDiscovery" />
 			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjNegative" />
 			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj" />
@@ -63,7 +57,13 @@
 	</test>
 	<test name="provisioning-service-csv" parallel="false" verbose="10">
 		<classes>
-			<class name="com.evolveum.midpoint.provisioning.impl.TestCsvFile" />
+			<class name="com.evolveum.midpoint.provisioning.impl.csv.TestCsvUsername" />
+		</classes>
+	</test>
+	<test name="provisioning-service-manual" parallel="false" verbose="10">
+		<classes>
+			<class name="com.evolveum.midpoint.provisioning.impl.manual.TestManual" />
+			<class name="com.evolveum.midpoint.provisioning.impl.manual.TestSemiManual" />
 		</classes>
 	</test>
 </suite>

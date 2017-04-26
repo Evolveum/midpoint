@@ -29,7 +29,7 @@ public class JpaAnyPropertyDefinition extends JpaPropertyDefinition {
 
     // enumerated extension items are not supported
     public JpaAnyPropertyDefinition(Class jpaClass, Class jaxbClass) {
-        super(jpaClass, jaxbClass, false, false, false);
+        super(jpaClass, jaxbClass, false, false, false, false);
     }
 
     @Override

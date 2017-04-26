@@ -119,14 +119,14 @@ public class WorkItemEvent extends WorkflowEvent {
         variables.put(SchemaConstants.C_WORK_ITEM, workItem);
     }
 
-    public WorkItemResultType getWorkItemResult() {
-    	return workItem.getResult();
+    public AbstractWorkItemOutputType getOutput() {
+    	return workItem.getOutput();
 	}
 
 	@Override
-	public String getAnswer() {
-    	WorkItemResultType result = getWorkItemResult();
-		return result != null ? result.getOutcomeAsString() : null;
+	public String getOutcome() {
+    	AbstractWorkItemOutputType output = getOutput();
+		return output != null ? output.getOutcome() : null;
 	}
 
 	@Override

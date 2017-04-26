@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,23 +34,28 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+
 /**
  * @author lazyman
  * @author mederly
  */
-public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDecisionDto> {
+public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWorkItemDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CertCaseDtoProvider.class);
     private static final String DOT_CLASS = CertCaseDtoProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
 
-    String campaignOid;
+    private String campaignOid;
     // case query is stored in super.query
 
     public CertCaseDtoProvider(Component component) {
@@ -61,7 +63,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
     }
 
     @Override
-    public Iterator<CertCaseOrDecisionDto> internalIterator(long first, long count) {
+    public Iterator<CertCaseOrWorkItemDto> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", first, count);
         getAvailableData().clear();
 
@@ -69,12 +71,8 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         OperationResult result = task.getResult();
         try {
             ObjectPaging paging = createPaging(first, count);
-            
-            Collection<SelectorOptions<GetOperationOptions>> resolveNames =
-                    SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
-
+            Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, task, result);
-
             for (AccessCertificationCaseType _case : caseList) {
                 getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
             }
@@ -93,7 +91,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         return getAvailableData().iterator();
     }
 
-    protected void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
+    private void handleNotSuccessOrHandledErrorInIterator(OperationResult result){
         getPage().showResult(result);
         throw new RestartResponseException(PageError.class);
     }
@@ -124,6 +122,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         return count;
     }
 
+    @SuppressWarnings("unused")
     public String getCampaignOid() {
         return campaignOid;
     }
@@ -149,10 +148,13 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrDeci
         }
 
         query.setPaging(paging);
-        SearchingUtils.hackPaging(query);
-
         return getModel().searchContainers(AccessCertificationCaseType.class, query, options, task, result);
     }
 
+	@NotNull
+	@Override
+	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+		return SearchingUtils.createObjectOrderings(sortParam, false);
+	}
 
 }

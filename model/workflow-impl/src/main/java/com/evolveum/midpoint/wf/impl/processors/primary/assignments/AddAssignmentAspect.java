@@ -236,7 +236,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
 
             PcpChildWfTaskCreationInstruction<ItemApprovalSpecificContent> instruction =
                     PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(
-                            getChangeProcessor(), approvalTaskName, approvalRequest.getApprovalSchema(),
+                            getChangeProcessor(), approvalTaskName,
                             approvalRequest.getApprovalSchemaType(),
 							null);
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+<objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<role oid="f52cea12-8a50-4169-a71c-d747b0a4698f" version="1">
+		<name>Drupal:Authenticated user</name>
+		<description>Default role for any logged in user</description>
+		<assignment id="1">
+			<targetRef oid="bedffe37-72a4-48da-b3ea-0362039179b2" type="c:RoleType">
+				<!-- Drupal Metarole for Roles -->
+			</targetRef>
+		</assignment>
+		<!-- ID of your's Drupal role, copy this role and change this identifier if you need more Drupal roles -->
+		<identifier>2</identifier>
+		<requestable>false</requestable>
+		<displayName>Drupal:Authenticated user</displayName>
+		<roleType>drupal</roleType>
+	</role>
+</objects>

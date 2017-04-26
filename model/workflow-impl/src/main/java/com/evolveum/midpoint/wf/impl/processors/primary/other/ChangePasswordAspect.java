@@ -133,8 +133,8 @@ public class ChangePasswordAspect extends BasePrimaryChangeAspect {
         // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
         PcpChildWfTaskCreationInstruction instruction =
                 PcpChildWfTaskCreationInstruction.createItemApprovalInstruction(
-                        getChangeProcessor(), approvalTaskName, approvalRequest.getApprovalSchema(),
-                        approvalRequest.getApprovalSchemaType(), null);
+                        getChangeProcessor(), approvalTaskName,
+						approvalRequest.getApprovalSchemaType(), null);
 
         // set some common task/process attributes
         instruction.prepareCommonAttributes(this, modelContext, requester);

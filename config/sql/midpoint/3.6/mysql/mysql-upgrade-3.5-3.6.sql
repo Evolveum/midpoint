@@ -70,3 +70,97 @@ ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object (oid);
+
+CREATE TABLE m_case (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+ALTER TABLE m_case
+  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+
+ALTER TABLE m_case
+  ADD CONSTRAINT fk_case
+FOREIGN KEY (oid)
+REFERENCES m_object (oid);
+
+ALTER TABLE m_assignment_reference CHANGE containerType targetType INTEGER;
+ALTER TABLE m_reference CHANGE containerType targetType INTEGER;
+
+DROP TABLE m_acc_cert_case_reference;
+
+ALTER TABLE m_acc_cert_case CHANGE currentStageNumber stageNumber INTEGER;
+ALTER TABLE m_acc_cert_case DROP COLUMN currentStageOutcome;
+ALTER TABLE m_acc_cert_case DROP COLUMN overallOutcome;
+ALTER TABLE m_acc_cert_case ADD COLUMN currentStageOutcome VARCHAR(255);
+ALTER TABLE m_acc_cert_case ADD COLUMN outcome VARCHAR(255);
+
+DROP TABLE m_acc_cert_decision;
+
+CREATE TABLE m_acc_cert_wi (
+  id                     INTEGER     NOT NULL,
+  owner_id               INTEGER     NOT NULL,
+  owner_owner_oid        VARCHAR(36) NOT NULL,
+  closeTimestamp         DATETIME(6),
+  outcome                VARCHAR(255),
+  outputChangeTimestamp  DATETIME(6),
+  performerRef_relation  VARCHAR(157),
+  performerRef_targetOid VARCHAR(36),
+  performerRef_type      INTEGER,
+  stageNumber            INTEGER,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_acc_cert_wi_reference (
+  owner_id              INTEGER      NOT NULL,
+  owner_owner_id        INTEGER      NOT NULL,
+  owner_owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation              VARCHAR(157) NOT NULL,
+  targetOid             VARCHAR(36)  NOT NULL,
+  targetType            INTEGER,
+  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
+
+ALTER TABLE m_acc_cert_case DROP FOREIGN KEY fk_acc_cert_case_owner;
+
+ALTER TABLE m_acc_cert_case
+  ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_acc_cert_campaign (oid);
+
+ALTER TABLE m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case (id, owner_oid);
+
+ALTER TABLE m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
+FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
+REFERENCES m_acc_cert_wi (id, owner_id, owner_owner_oid);
+
+ALTER TABLE m_shadow ADD COLUMN pendingOperationCount INTEGER;
+
+CREATE INDEX iShadowKind ON m_shadow (kind);
+
+CREATE INDEX iShadowIntent ON m_shadow (intent);
+
+CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
+
+CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
+
+CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
+
+CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);

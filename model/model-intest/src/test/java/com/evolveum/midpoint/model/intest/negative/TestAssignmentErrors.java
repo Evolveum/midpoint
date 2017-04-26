@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -138,7 +137,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 		assertFalse("Account definition is deprecated", accountDef.isDeprecated());
 		assertFalse("Account definition in auxiliary", accountDef.isAuxiliary());
 
-		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		RefinedAttributeDefinition uidDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_UID);
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
@@ -147,7 +146,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 		assertTrue("No UID read", uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(uidDef));
 
-		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		RefinedAttributeDefinition nameDef = accountDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
@@ -165,7 +164,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 		assertTrue("No fullname read", fullnameDef.canRead());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
-				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));		
+				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));		
 	}
 	
 	/**

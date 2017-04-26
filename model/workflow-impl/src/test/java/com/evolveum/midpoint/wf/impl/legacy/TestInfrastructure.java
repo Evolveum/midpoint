@@ -71,30 +71,6 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
     }
 
     @Test(enabled = true)
-    public void test010SetGetWfApprovedBy() throws Exception {
-
-        Task task = taskManager.createTaskInstance();
-        OperationResult result = new OperationResult("test010SetGetWfApprovedBy");
-
-        task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
-        taskManager.switchToBackground(task, result);
-
-        wfTaskUtil.addApprovedBy(task, SystemObjectsType.USER_ADMINISTRATOR.value());
-        wfTaskUtil.addApprovedBy(task, SystemObjectsType.USER_ADMINISTRATOR.value());
-        wfTaskUtil.addApprovedBy(task, AbstractWfTestLegacy.R1BOSS_OID);
-        wfTaskUtil.addApprovedBy(task, AbstractWfTestLegacy.R2BOSS_OID);
-        task.savePendingModifications(result);
-
-        Task task2 = taskManager.getTask(task.getOid(), result);
-        PrismReference approvers = wfTaskUtil.getApprovedBy(task2);
-
-        assertEquals("Incorrect number of approvers", 3, approvers.getValues().size());
-        assertEquals("Incorrect approvers",
-                new HashSet(Arrays.asList(SystemObjectsType.USER_ADMINISTRATOR.value(), AbstractWfTestLegacy.R1BOSS_OID, AbstractWfTestLegacy.R2BOSS_OID)),
-                new HashSet(Arrays.asList(approvers.getValue(0).getOid(), approvers.getValue(1).getOid(), approvers.getValue(2).getOid())));
-    }
-
-    @Test(enabled = true)
     public void test100SerializeContext() throws Exception {
 
         OperationResult result = new OperationResult("test100SerializeContext");

@@ -26,9 +26,9 @@ import javax.xml.namespace.QName;
  * @author mederly
  */
 public interface S_AtomicFilterEntry {
-    S_AtomicFilterExit all() ;
-    S_AtomicFilterExit none() ;
-    S_AtomicFilterExit undefined() ;
+    S_AtomicFilterExit all();
+    S_AtomicFilterExit none();
+    S_AtomicFilterExit undefined();
     S_ConditionEntry item(QName... names) ;
     S_ConditionEntry item(ItemPath path) ;
     S_ConditionEntry item(ItemPath itemPath, ItemDefinition itemDefinition);
@@ -52,5 +52,5 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit fullText(String... words);
     S_FilterEntryOrEmpty block();
     S_FilterEntryOrEmpty type(Class<? extends Containerable> type) ;
-    S_FilterEntry exists(QName... names) ;
+    S_FilterEntryOrEmpty exists(QName... names) ;
 }

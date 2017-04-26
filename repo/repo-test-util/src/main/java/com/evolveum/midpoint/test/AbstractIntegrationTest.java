@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -68,6 +70,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -105,6 +108,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -121,7 +125,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -177,6 +180,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	@Autowired(required = true)
 	protected PrismContext prismContext;
+	
+	@Autowired(required = true)
+	protected MatchingRuleRegistry matchingRuleRegistry;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -477,16 +483,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	
-	protected void fillInConnectorRef(PrismObject<ResourceType> resourcePrism, String connectorType, OperationResult result)
+	protected void fillInConnectorRef(PrismObject<ResourceType> resource, String connectorType, OperationResult result)
 			throws SchemaException {
-		ResourceType resource = resourcePrism.asObjectable();
-		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
-		ConnectorType connector = connectorPrism.asObjectable();
-		if (resource.getConnectorRef() == null) {
-			resource.setConnectorRef(new ObjectReferenceType());
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connector = findConnectorByType(connectorType, result);
+		if (resourceType.getConnectorRef() == null) {
+			resourceType.setConnectorRef(new ObjectReferenceType());
 		}
-		resource.getConnectorRef().setOid(connector.getOid());
-		resource.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
+		resourceType.getConnectorRef().setOid(connector.getOid());
+		resourceType.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
+	}
+	
+	protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, String connectorName, String connectorType, OperationResult result)
+			throws SchemaException {
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
+		for (ConnectorInstanceSpecificationType additionalConnector: resourceType.getAdditionalConnector()) {
+			if (connectorName.equals(additionalConnector.getName())) {
+				ObjectReferenceType ref = new ObjectReferenceType().oid(connectorPrism.getOid());
+				additionalConnector.setConnectorRef(ref);
+			}
+		}
 	}
 	
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
@@ -665,13 +682,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (oid != null) {
 			assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
 		}
-		ShadowType ResourceObjectShadowType = shadow.asObjectable();
+		ShadowType resourceObjectShadowType = shadow.asObjectable();
 		if (oid != null) {
-			assertEquals("Shadow OID mismatch (jaxb)", oid, ResourceObjectShadowType.getOid());
+			assertEquals("Shadow OID mismatch (jaxb)", oid, resourceObjectShadowType.getOid());
 		}
-		assertEquals("Shadow objectclass", objectClass, ResourceObjectShadowType.getObjectClass());
+		assertEquals("Shadow objectclass", objectClass, resourceObjectShadowType.getObjectClass());
 		assertEquals("Shadow resourceRef OID", resourceType.getOid(), shadow.asObjectable().getResourceRef().getOid());
-		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ResourceObjectShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("Null attributes in shadow for "+username, attributesContainer);
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		
@@ -738,6 +755,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				}
 			}
 		}
+	}
+    
+    protected void assertShadowSecondaryIdentifier(PrismObject<ShadowType> shadow, String expectedIdentifier, ResourceType resourceType, MatchingRule<String> nameMatchingRule) throws SchemaException {
+    	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
+    	ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
+    	ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
+    	PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+		assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+expectedIdentifier, idProp);
+		if (nameMatchingRule == null) {
+			assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, expectedIdentifier, idProp.getRealValue());
+		} else {
+			PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, nameMatchingRule, expectedIdentifier, idProp.getRealValue());
+		}
+    	
+    }
+    
+	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
+		PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
+	}
+
+	protected void assertShadowName(ShadowType shadowType, String expectedName) {
+		assertShadowName(shadowType.asPrismObject(), expectedName);
 	}
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType, QName objectClass) throws ObjectNotFoundException, SchemaException {
@@ -1167,9 +1207,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		if (expectedValue == null && syncTokenProperty == null) {
 			return;
 		}
-		if (!MiscUtil.equals(expectedValue, syncTokenProperty.getRealValue())) {
+		Object syncTokenPropertyValue = syncTokenProperty.getAnyRealValue();
+		if (!MiscUtil.equals(expectedValue, syncTokenPropertyValue)) {
 			AssertJUnit.fail("Wrong sync token, expected: " + expectedValue + (expectedValue==null?"":(", "+expectedValue.getClass().getName())) +
-					", was: "+ syncTokenProperty.getRealValue() + (syncTokenProperty.getRealValue()==null?"":(", "+syncTokenProperty.getRealValue().getClass().getName())));
+					", was: "+ syncTokenPropertyValue + (syncTokenPropertyValue==null?"":(", "+syncTokenPropertyValue.getClass().getName())));
 		}
 	}
 
@@ -1196,6 +1237,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, false, result);
 			AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual);
 		}
+	}
+	
+	protected void assertShadowDead(PrismObject<ShadowType> shadow) {
+		assertEquals("Shadow not dead: "+shadow, Boolean.TRUE, shadow.asObjectable().isDead());
+	}
+	
+	protected void assertShadowExists(PrismObject<ShadowType> shadow, Boolean expectedValue) {
+		assertEquals("Wrong shadow 'exists': "+shadow, expectedValue, shadow.asObjectable().isExists());
 	}
 
 	protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
@@ -1503,5 +1552,119 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected <O extends ObjectType> PrismObject<O> instantiateObject(Class<O> type) throws SchemaException {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
+	}
+	
+	protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest, 
+			XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
+		assertNotNull("No metadata in " + message, metadataType);
+		if (create) {
+			TestUtil.assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
+			if (actorOid != null) {
+				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
+				assertNotNull("No creatorRef in " + message, creatorRef);
+				assertEquals("Wrong creatorRef OID in " + message, actorOid, creatorRef.getOid());
+				if (assertRequest) {
+					TestUtil.assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
+					ObjectReferenceType requestorRef = metadataType.getRequestorRef();
+					assertNotNull("No requestorRef in " + message, requestorRef);
+					assertEquals("Wrong requestorRef OID in " + message, actorOid, requestorRef.getOid());
+				}
+			}
+			assertEquals("Wrong create channel in " + message, channel, metadataType.getCreateChannel());
+		} else {
+			if (actorOid != null) {
+				ObjectReferenceType modifierRef = metadataType.getModifierRef();
+				assertNotNull("No modifierRef in " + message, modifierRef);
+				assertEquals("Wrong modifierRef OID in " + message, actorOid, modifierRef.getOid());
+			}
+			TestUtil.assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
+			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
+		}
+	}
+	
+	protected void assertShadowPasswordMetadata(PrismObject<ShadowType> shadow, boolean passwordCreated,
+			XMLGregorianCalendar startCal, XMLGregorianCalendar endCal, String actorOid, String channel) {
+		CredentialsType creds = shadow.asObjectable().getCredentials();
+		assertNotNull("No credentials in shadow "+shadow, creds);
+		PasswordType password = creds.getPassword();
+		assertNotNull("No password in shadow "+shadow, password);
+		MetadataType metadata = password.getMetadata();
+		assertNotNull("No metadata in shadow "+shadow, metadata);
+		assertMetadata("Password metadata in "+shadow, metadata, passwordCreated, false, startCal, endCal, actorOid, channel);
+	}
+	
+	// Convenience
+	
+	protected <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
+		return prismContext.parseObject(file);
+	}
+	
+	protected void displayTestTile(String testName) {
+		TestUtil.displayTestTile(testName);
+	}
+	
+	protected void displayWhen(String testName) {
+		TestUtil.displayWhen(testName);
+	}
+	
+	protected void displayThen(String testName) {
+		TestUtil.displayThen(testName);
+	}
+	
+	protected Task createTask(String operationName) {
+		if (!operationName.contains(".")) {
+			operationName = this.getClass().getName() + "." + operationName;
+		}
+		Task task = taskManager.createTaskInstance(operationName);
+		return task;
+	}
+	
+	protected void assertSuccess(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertSuccess(result);
+	}
+	
+	protected void assertSuccess(String message, OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertSuccess(message, result);
+	}
+	
+	protected String assertInProgress(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertStatus(result, OperationResultStatus.IN_PROGRESS);
+		return result.getAsynchronousOperationReference();
+	}
+	
+	protected void assertFailure(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertFailure(result);
+	}
+	
+	protected void fail(String message) {
+		AssertJUnit.fail(message);
+	}
+	
+	protected OperationResult assertSingleConnectorTestResult(OperationResult testResult) {
+		return IntegrationTestTools.assertSingleConnectorTestResult(testResult);
+	}
+	
+	public static void assertTestResourceSuccess(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceSuccess(testResult, operation);
+	}
+
+	public static void assertTestResourceFailure(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceFailure(testResult, operation);
+	}
+	
+	public static void assertTestResourceNotApplicable(OperationResult testResult, ConnectorTestOperation operation) {
+		IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
 	}
 }

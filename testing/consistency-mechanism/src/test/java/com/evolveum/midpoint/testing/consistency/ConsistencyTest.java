@@ -80,7 +80,6 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -2437,10 +2436,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertEquals(0, user.asObjectable().getLinkRef().size());
 	}
 	
-	private void assertShadowName(ShadowType shadow, String name){
-		PrismAsserts.assertEqualsPolyString("Wrong shadw name", name, shadow.getName());
-	}
-
 	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 		String uid = null;
@@ -2453,7 +2448,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
                 } else {
                     uid = ((Element) element).getTextContent();
                 }
-            } else if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(JAXBUtil.getElementQName(element)) || getOpenDjSecondaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
+            } else if (SchemaConstants.ICFS_NAME.equals(JAXBUtil.getElementQName(element)) || getOpenDjSecondaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
             	// This is OK
         	} else {
                 hasOthers = true;

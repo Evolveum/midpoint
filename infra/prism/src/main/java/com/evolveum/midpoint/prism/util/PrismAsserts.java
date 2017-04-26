@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.Duration;
@@ -566,9 +568,7 @@ public class PrismAsserts {
 	}
 	
 	private static <T> Visitor createOriginVisitor(final Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
-		return new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
+		return (visitable) -> {
 				if (visitable instanceof PrismValue) {
 					PrismValue pval = (PrismValue)visitable;
 					
@@ -579,8 +579,7 @@ public class PrismAsserts {
 								"; expected "+expectedOriginObject+", was "+pval.getOriginObject();
 					}
 				}
-			}
-		};
+			};
 	}
 	
 	public static void asserHasDelta(String message, Collection<? extends ObjectDelta<? extends Objectable>> deltas, ChangeType expectedChangeType, Class<?> expectedClass) {
@@ -1115,6 +1114,13 @@ public class PrismAsserts {
 			return false;
 		}
 		return a.equals(b);
+	}
+	
+	public static <T> void assertEqualsUnordered(String message, Stream<T> actualStream, T... expectedValues) {
+		List<T> expectedCollection = Arrays.asList(expectedValues);
+		Collection<T> actualCollection = actualStream.collect(Collectors.toList());
+		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection) : message + ": expected "+expectedCollection+
+			"; was "+actualCollection;
 	}
 	
 	public static <T> void assertEqualsCollectionUnordered(String message, Collection<T> actualCollection, T... expectedValues) {

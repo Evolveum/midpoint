@@ -16,15 +16,11 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuditService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -35,7 +31,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -45,9 +40,13 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.*;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 
 /**
  * @author lazyman
@@ -180,24 +179,26 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         };
     }
 
-    protected ObjectPaging createPaging(long offset, long pageSize) {
-        SortParam sortParam = getSort();
-        if (sortParam != null) {
-            OrderDirection order;
-            if (sortParam.isAscending()) {
-                order = OrderDirection.ASCENDING;
-            } else {
-                order = OrderDirection.DESCENDING;
-            }
+	protected ObjectPaging createPaging(long offset, long pageSize) {
+		return ObjectPaging.createPaging(safeLongToInteger(offset), safeLongToInteger(pageSize), createObjectOrderings(getSort()));
+	}
 
-            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(offset), WebComponentUtil.safeLongToInteger(pageSize),
-                    (String) sortParam.getProperty(), SchemaConstantsGenerated.NS_COMMON, order);
-        } else {
-            return ObjectPaging.createPaging(WebComponentUtil.safeLongToInteger(offset), WebComponentUtil.safeLongToInteger(pageSize));
-        }
-    }
+	/**
+	 * Could be overridden in subclasses.
+	 */
+	@NotNull
+	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+		if (sortParam != null && sortParam.getProperty() != null) {
+			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+			return Collections.singletonList(
+					ObjectOrdering.createOrdering(
+							new ItemPath(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
+		} else {
+			return Collections.emptyList();
+		}
+	}
 
-    public void clearCache() {
+	public void clearCache() {
         cache.clear();
         getAvailableData().clear();
     }

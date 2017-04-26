@@ -55,6 +55,10 @@
                                 <td><wicket:message key="PageCertCampaign.stageTime"/></td>
                                 <td><div wicket:id="stageTime"/></td>
                             </tr>
+                            <tr wicket:id="escalationLevelInfoContainer">
+                                <td><wicket:message key="PageCertCampaign.escalationLevel"/></td>
+                                <td><div wicket:id="escalationLevelInfo"/></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -85,11 +89,6 @@
                                 <td><wicket:message key="PageCertCampaign.statistics.reduce" /></td>
                                 <td><span wicket:id="statReduce" /></td>
                                 <td><span wicket:id="statReduceRemedied" /></td>
-                            </tr>
-                            <tr>
-                                <td><wicket:message key="PageCertCampaign.statistics.delegate" /></td>
-                                <td><span wicket:id="statDelegate" /></td>
-                                <td/>
                             </tr>
                             <tr>
                                 <td><wicket:message key="PageCertCampaign.statistics.noDecision" /></td>

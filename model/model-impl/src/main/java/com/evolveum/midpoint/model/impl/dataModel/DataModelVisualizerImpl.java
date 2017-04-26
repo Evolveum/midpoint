@@ -16,7 +16,12 @@
 package com.evolveum.midpoint.model.impl.dataModel;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.impl.dataModel.dot.DotModel;
+import com.evolveum.midpoint.model.impl.dataModel.model.AdHocDataItem;
+import com.evolveum.midpoint.model.impl.dataModel.model.DataItem;
+import com.evolveum.midpoint.model.impl.dataModel.model.ResourceDataItem;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -52,7 +57,7 @@ import java.util.List;
 public class DataModelVisualizerImpl implements DataModelVisualizer {
 
 	private static final Trace LOGGER = TraceManager.getTrace(DataModelVisualizerImpl.class);
-	static final QName ACTIVATION_EXISTENCE = new QName(SchemaConstants.NS_C, "existence");
+	public static final QName ACTIVATION_EXISTENCE = new QName(SchemaConstants.NS_C, "existence");
 
 	@Autowired
 	private ModelService modelService;
@@ -61,12 +66,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	private PrismContext prismContext;
 
     @Override
-	public String visualize(Collection<String> resourceOids, Task task, OperationResult result)
+	public String visualize(Collection<String> resourceOids, Target target, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		LOGGER.debug("Starting data model visualization");
 
-		VisualizationContext ctx = new VisualizationContext(prismContext);
+		DataModel model = new DataModel(prismContext);
 
 		ObjectQuery resourceQuery;
 		if (resourceOids != null) {
@@ -78,31 +83,39 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		}
 		List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, resourceQuery, null, task, result);
 
-		createDataItems(ctx, resources);
-		processResourceMappings(ctx, resources);
+		createDataItems(model, resources);
+		processResourceMappings(model, resources);
 
-		return ctx.exportDot();
-    }
+		return export(model, target);
+	}
+
+	private String export(DataModel model, Target target) {
+		if (target == null || target == Target.DOT) {
+			return new DotModel(model).exportDot();
+		} else {
+			throw new UnsupportedOperationException("Not implemented yet.");
+		}
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-    public String visualize(ResourceType resource, Task task, OperationResult result)
+    public String visualize(ResourceType resource, Target target, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 
 		LOGGER.debug("Starting data model visualization for {}", ObjectTypeUtil.toShortString(resource));
 
-		VisualizationContext ctx = new VisualizationContext(prismContext);
+		DataModel model = new DataModel(prismContext);
 
 		List<PrismObject<ResourceType>> resources = new ArrayList<>();
 		resources.add(resource.clone().asPrismObject());
 
-		createDataItems(ctx, resources);
-		processResourceMappings(ctx, resources);
+		createDataItems(model, resources);
+		processResourceMappings(model, resources);
 
-		return ctx.exportDot();
+		return export(model, target);
     }
 
-	private void processResourceMappings(VisualizationContext ctx, List<PrismObject<ResourceType>> resources) throws SchemaException {
+	private void processResourceMappings(DataModel model, List<PrismObject<ResourceType>> resources) throws SchemaException {
 		for (PrismObject<ResourceType> resource : resources) {
 			LOGGER.debug("Processing {}", ObjectTypeUtil.toShortString(resource));
 			RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
@@ -121,11 +134,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 						continue;
 					}
 					LOGGER.debug("Processing refined attribute definition for {}", attributeDefinition.getName());
-					ResourceDataItem attrItem = ctx.findResourceItem(resource.getOid(), kind, intent, new ItemPath(attributeDefinition.getName()));
+					ResourceDataItem attrItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
+							new ItemPath(attributeDefinition.getName()));
 					if (attributeDefinition.getOutboundMappingType() != null) {
-						processOutboundMapping(ctx, attrItem, attributeDefinition.getOutboundMappingType(), null);
+						processOutboundMapping(model, attrItem, attributeDefinition.getOutboundMappingType(), null);
 					}
-					processInboundMappings(ctx, attrItem, attributeDefinition.getInboundMappingTypes());
+					processInboundMappings(model, attrItem, attributeDefinition.getInboundMappingTypes());
 				}
 				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
 				for (RefinedAssociationDefinition associationDefinition : associationDefinitions) {
@@ -133,9 +147,10 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 						continue;
 					}
 					LOGGER.debug("Processing refined association definition for {}", associationDefinition.getName());
-					ResourceDataItem assocItem = ctx.findResourceItem(resource.getOid(), kind, intent, new ItemPath(associationDefinition.getName()));
+					ResourceDataItem assocItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
+							new ItemPath(associationDefinition.getName()));
 					if (associationDefinition.getOutboundMappingType() != null) {
-						processOutboundMapping(ctx, assocItem, associationDefinition.getOutboundMappingType(), null);
+						processOutboundMapping(model, assocItem, associationDefinition.getOutboundMappingType(), null);
 					}
 //					if (associationDefinition.getAssociationTarget() != null) {
 //						RefinedObjectClassDefinition target = associationDefinition.getAssociationTarget();
@@ -145,50 +160,52 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 				}
 				ResourceActivationDefinitionType actMapping = refinedDefinition.getActivationSchemaHandling();
 				if (actMapping != null) {
-					processBidirectionalMapping(ctx, resource.getOid(), kind, intent, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), actMapping.getAdministrativeStatus());
-					processBidirectionalMapping(ctx, resource.getOid(), kind, intent, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), actMapping.getValidFrom());
-					processBidirectionalMapping(ctx, resource.getOid(), kind, intent, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), actMapping.getValidTo());
-					processBidirectionalMapping(ctx, resource.getOid(), kind, intent, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), actMapping.getLockoutStatus());
-					processBidirectionalMapping(ctx, resource.getOid(), kind, intent, new ItemPath(FocusType.F_ACTIVATION, ACTIVATION_EXISTENCE), actMapping.getExistence());
+					QName objectClassName = getObjectClassName(refinedDefinition);
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), actMapping.getAdministrativeStatus());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), actMapping.getValidFrom());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), actMapping.getValidTo());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS), actMapping.getLockoutStatus());
+					processBidirectionalMapping(model, resource.getOid(), kind, intent, objectClassName, new ItemPath(FocusType.F_ACTIVATION, ACTIVATION_EXISTENCE), actMapping.getExistence());
 				}
 				ResourcePasswordDefinitionType pwdDef = refinedDefinition.getPasswordDefinition();
 				if (pwdDef != null) {
 					final ItemPath pwdPath = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
-					ResourceDataItem resourceDataItem = ctx.findResourceItem(resource.getOid(), kind, intent, pwdPath);
+					ResourceDataItem resourceDataItem = model.findResourceItem(resource.getOid(), kind, intent,
+							getObjectClassName(refinedDefinition), pwdPath);
 					if (resourceDataItem == null) {
 						throw new IllegalStateException("No resource item for " + resource.getOid() + ":" + kind + ":" + intent + ":" + pwdPath);
 					}
 					if (pwdDef.getOutbound() != null) {
 						for (MappingType outbound : pwdDef.getOutbound()) {
-							processOutboundMapping(ctx, resourceDataItem, outbound, pwdPath);
+							processOutboundMapping(model, resourceDataItem, outbound, pwdPath);
 						}
 					}
 					for (MappingType inbound : pwdDef.getInbound()) {
-						processInboundMapping(ctx, resourceDataItem, inbound, pwdPath);
+						processInboundMapping(model, resourceDataItem, inbound, pwdPath);
 					}
 				}
 			}
 		}
 	}
 
-	private void processBidirectionalMapping(VisualizationContext ctx, String oid, ShadowKindType kind, String intent, ItemPath itemPath,
+	private void processBidirectionalMapping(DataModel model, String oid, ShadowKindType kind, String intent, QName objectClassName, ItemPath itemPath,
 			ResourceBidirectionalMappingType mapping) {
 		if (mapping == null) {
 			return;
 		}
-		ResourceDataItem resourceDataItem = ctx.findResourceItem(oid, kind, intent, itemPath);
+		ResourceDataItem resourceDataItem = model.findResourceItem(oid, kind, intent, objectClassName, itemPath);
 		if (resourceDataItem == null) {
-			throw new IllegalStateException("No resource item for " + oid + ":" + kind + ":" + intent + ":" + itemPath);
+			throw new IllegalStateException("No resource item for " + oid + ":" + kind + ":" + intent + ":" + objectClassName + ":" + itemPath);
 		}
 		for (MappingType outbound : mapping.getOutbound()) {
-			processOutboundMapping(ctx, resourceDataItem, outbound, itemPath);
+			processOutboundMapping(model, resourceDataItem, outbound, itemPath);
 		}
 		for (MappingType inbound : mapping.getInbound()) {
-			processInboundMapping(ctx, resourceDataItem, inbound, itemPath);
+			processInboundMapping(model, resourceDataItem, inbound, itemPath);
 		}
 	}
 
-	private void createDataItems(VisualizationContext ctx, List<PrismObject<ResourceType>> resources) throws SchemaException {
+	private void createDataItems(DataModel model, List<PrismObject<ResourceType>> resources) throws SchemaException {
 		LOGGER.debug("createDataItems starting");
 		for (PrismObject<ResourceType> resource : resources) {
 			final ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
@@ -202,7 +219,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 				continue;
 			}
 
-			ctx.registerResource(resource);
+			model.registerResource(resource);
 
 			List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedResourceSchema.getRefinedDefinitions();
 			for (RefinedObjectClassDefinition refinedDefinition : refinedDefinitions) {
@@ -216,12 +233,10 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 						continue;
 					}
 					LOGGER.debug("Registering refined attribute definition for {}", attributeDefinition.getName());
-					ResourceDataItem attrItem = new ResourceDataItem(ctx, resource.getOid(), kind, intent, attributeDefinition.getName());
-					attrItem.setRefinedResourceSchema(refinedResourceSchema);
-					attrItem.setRefinedObjectClassDefinition(refinedDefinition);
+					ResourceDataItem attrItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, attributeDefinition.getName());
 					attrItem.setRefinedAttributeDefinition(attributeDefinition);
 					// TODO check the name
-					ctx.registerDataItem(attrItem);
+					model.registerDataItem(attrItem);
 				}
 				// TODO check attributes not mentioned in schema handling
 				Collection<RefinedAssociationDefinition> associationDefinitions = refinedDefinition.getAssociationDefinitions();
@@ -230,14 +245,15 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 						continue;
 					}
 					LOGGER.debug("Registering refined association definition for {}", associationDefinition.getName());
-					ResourceDataItem assocItem = new ResourceDataItem(ctx, resource.getOid(), kind, intent, associationDefinition.getName());
-					ctx.registerDataItem(assocItem);
+					ResourceDataItem assocItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, associationDefinition.getName());
+					model.registerDataItem(assocItem);
 				}
-				ctx.registerDataItem(new ResourceDataItem(ctx, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)));
-				ctx.registerDataItem(new ResourceDataItem(ctx, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM)));
-				ctx.registerDataItem(new ResourceDataItem(ctx, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO)));
-				ctx.registerDataItem(new ResourceDataItem(ctx, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_ACTIVATION, ACTIVATION_EXISTENCE)));
-				ctx.registerDataItem(new ResourceDataItem(ctx, resource.getOid(), kind, intent, new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_ACTIVATION, ACTIVATION_EXISTENCE)));
+				model.registerDataItem(new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, new ItemPath(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)));
 			}
 		}
 //		createRepoDataItems(UserType.class);
@@ -256,22 +272,22 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		return intent != null ? intent : "default";
 	}
 
-	private void processInboundMappings(VisualizationContext ctx, ResourceDataItem item, List<MappingType> mappings) {
+	private void processInboundMappings(DataModel model, ResourceDataItem item, List<MappingType> mappings) {
 		if (mappings == null) {
 			return;
 		}
 		for (MappingType mapping : mappings) {
-			processInboundMapping(ctx, item, mapping, null);
+			processInboundMapping(model, item, mapping, null);
 		}
 	}
 
-	private void processInboundMapping(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem sourceItem, @NotNull MappingType mapping,
+	private void processInboundMapping(@NotNull DataModel model, @NotNull ResourceDataItem sourceItem, @NotNull MappingType mapping,
 			@Nullable ItemPath defaultTargetItemPath) {
 		LOGGER.debug("Processing inbound mapping: {} for {}", mapping, sourceItem);
 		List<DataItem> sources = new ArrayList<>();
 		for (VariableBindingDefinitionType sourceDecl : mapping.getSource()) {
 			LOGGER.debug(" - src: {}", sourceDecl.getPath());
-			DataItem explicitSourceItem = resolveSourceItem(ctx, sourceItem, mapping, sourceDecl, null);
+			DataItem explicitSourceItem = resolveSourceItem(model, sourceItem, mapping, sourceDecl, null);
 			sources.add(explicitSourceItem);
 		}
 		if (!sources.contains(sourceItem)) {
@@ -281,26 +297,26 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		VariableBindingDefinitionType targetDecl = mapping.getTarget();
 		if (mapping.getTarget() != null) {
 			LOGGER.debug(" - target: {}", targetDecl.getPath());
-			targetItem = resolveTargetItem(ctx, sourceItem, mapping, targetDecl, ExpressionConstants.VAR_FOCUS);
+			targetItem = resolveTargetItem(model, sourceItem, mapping, targetDecl, ExpressionConstants.VAR_FOCUS);
 		} else if (defaultTargetItemPath != null) {
-			targetItem = resolveTargetItem(ctx, sourceItem, mapping, defaultTargetItemPath, ExpressionConstants.VAR_FOCUS);
+			targetItem = resolveTargetItem(model, sourceItem, mapping, defaultTargetItemPath, ExpressionConstants.VAR_FOCUS);
 		}
-		ctx.registerMappingRelation(sources, targetItem, mapping);
+		model.registerMappingRelation(sources, targetItem, mapping);
 	}
 
-	private DataItem resolveSourceItem(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem currentItem,
+	private DataItem resolveSourceItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
 			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType sourceDecl, @Nullable QName defaultVariable) {
 		// todo from the description
-		return resolveSourceItem(ctx, currentItem, mapping, sourceDecl.getPath().getItemPath(), defaultVariable);
+		return resolveSourceItem(model, currentItem, mapping, sourceDecl.getPath().getItemPath(), defaultVariable);
 	}
 
 	// for outbound (but sometimes also inbound) mappings
 	@NotNull
-	private DataItem resolveSourceItem(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem currentItem,
+	private DataItem resolveSourceItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
 			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable QName defaultVariable) {
 		if (!(path.first() instanceof NameItemPathSegment)) {
 			LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
-			return createAdHocDataItem(ctx, path);
+			return createAdHocDataItem(model, path);
 		}
 		QName varName;
 		ItemPath itemPath;
@@ -311,21 +327,21 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		} else {
 			if (defaultVariable == null) {
 				LOGGER.warn("No default variable for mapping source");
-				return createAdHocDataItem(ctx, path);
+				return createAdHocDataItem(model, path);
 			}
 			varName = defaultVariable;
 			itemPath = path;
 		}
 
 		if (QNameUtil.match(ExpressionConstants.VAR_ACCOUNT, varName)) {
-			return resolveResourceItem(ctx, currentItem, itemPath);
+			return resolveResourceItem(model, currentItem, itemPath);
 		} else if (QNameUtil.match(ExpressionConstants.VAR_USER, varName)) {
-			return ctx.resolveRepositoryItem(UserType.class, itemPath);
+			return model.resolveRepositoryItem(UserType.class, itemPath);
 		} else if (QNameUtil.match(ExpressionConstants.VAR_ACTOR, varName)) {
-			return ctx.resolveRepositoryItem(UserType.class, itemPath);			// TODO
+			return model.resolveRepositoryItem(UserType.class, itemPath);			// TODO
 		} else if (QNameUtil.match(ExpressionConstants.VAR_FOCUS, varName)) {
 			Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
-			DataItem item = ctx.resolveRepositoryItem(guessedClass, itemPath);
+			DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);
 			if (item != null) {
 				return item;
 			}
@@ -336,28 +352,28 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		} else {
 			LOGGER.warn("Unsupported variable {} in {}", varName, path);
 		}
-		return createAdHocDataItem(ctx, path);
+		return createAdHocDataItem(model, path);
 	}
 
-	private DataItem createAdHocDataItem(VisualizationContext ctx, ItemPath path) {
+	private DataItem createAdHocDataItem(DataModel model, ItemPath path) {
 		return new AdHocDataItem(path);
 	}
 
 	// currently for inbounds only
 	@NotNull
-	private DataItem resolveTargetItem(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem currentItem,
+	private DataItem resolveTargetItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
 			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType targetDecl, @Nullable QName defaultVariable) {
 		// todo from the description
-		return resolveTargetItem(ctx, currentItem, mapping, targetDecl.getPath().getItemPath(), defaultVariable);
+		return resolveTargetItem(model, currentItem, mapping, targetDecl.getPath().getItemPath(), defaultVariable);
 	}
 
 	// currently for inbounds only
 	@NotNull
-	private DataItem resolveTargetItem(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem currentItem,
+	private DataItem resolveTargetItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
 			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable QName defaultVariable) {
 		if (!(path.first() instanceof NameItemPathSegment)) {
 			LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
-			return createAdHocDataItem(ctx, path);
+			return createAdHocDataItem(model, path);
 		}
 		QName varName;
 		ItemPath itemPath;
@@ -368,21 +384,21 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		} else {
 			if (defaultVariable == null) {
 				LOGGER.warn("No default variable for mapping target");
-				return createAdHocDataItem(ctx, path);
+				return createAdHocDataItem(model, path);
 			}
 			varName = defaultVariable;
 			itemPath = path;
 		}
 
 		if (QNameUtil.match(ExpressionConstants.VAR_ACCOUNT, varName)) {
-			return resolveResourceItem(ctx, currentItem, itemPath);				// does make sense?
+			return resolveResourceItem(model, currentItem, itemPath);				// does make sense?
 		} else if (QNameUtil.match(ExpressionConstants.VAR_USER, varName)) {
-			return ctx.resolveRepositoryItem(UserType.class, itemPath);
+			return model.resolveRepositoryItem(UserType.class, itemPath);
 		} else if (QNameUtil.match(ExpressionConstants.VAR_ACTOR, varName)) {
-			return ctx.resolveRepositoryItem(UserType.class, itemPath);			// TODO
+			return model.resolveRepositoryItem(UserType.class, itemPath);			// TODO
 		} else if (QNameUtil.match(ExpressionConstants.VAR_FOCUS, varName)) {
 			Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
-			DataItem item = ctx.resolveRepositoryItem(guessedClass, itemPath);
+			DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);
 			if (item != null) {
 				return item;
 			}
@@ -393,7 +409,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		} else {
 			LOGGER.warn("Unsupported variable {} in {}", varName, path);
 		}
-		return createAdHocDataItem(ctx, path);
+		return createAdHocDataItem(model, path);
 	}
 
 	private Class<? extends ObjectType> guessFocusClass(@NotNull String resourceOid, @NotNull ShadowKindType kind, @NotNull String intent) {
@@ -406,21 +422,22 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		throw new IllegalStateException();
 	}
 
-	private ResourceDataItem resolveResourceItem(VisualizationContext ctx, ResourceDataItem currentItem, ItemPath path) {
-		return ctx.findResourceItem(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent(), path);
+	private ResourceDataItem resolveResourceItem(DataModel model, ResourceDataItem currentItem, ItemPath path) {
+		return model.findResourceItem(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent(),
+				currentItem.getObjectClassName(), path);
 	}
 
-	private void processOutboundMapping(@NotNull VisualizationContext ctx, @NotNull ResourceDataItem targetItem, @NotNull MappingType mapping,
+	private void processOutboundMapping(@NotNull DataModel model, @NotNull ResourceDataItem targetItem, @NotNull MappingType mapping,
 			@Nullable ItemPath defaultSourceItemPath) {
 		LOGGER.debug("Processing outbound mapping: {} for {}", mapping, targetItem);
 		List<DataItem> sources = new ArrayList<>();
 		for (VariableBindingDefinitionType sourceDecl : mapping.getSource()) {
 			LOGGER.debug(" - src: {}", sourceDecl.getPath());
-			DataItem sourceItem = resolveSourceItem(ctx, targetItem, mapping, sourceDecl, ExpressionConstants.VAR_FOCUS);
+			DataItem sourceItem = resolveSourceItem(model, targetItem, mapping, sourceDecl, ExpressionConstants.VAR_FOCUS);
 			sources.add(sourceItem);
 		}
 		if (defaultSourceItemPath != null) {
-			DataItem defaultSource = resolveSourceItem(ctx, targetItem, mapping, defaultSourceItemPath, ExpressionConstants.VAR_FOCUS);
+			DataItem defaultSource = resolveSourceItem(model, targetItem, mapping, defaultSourceItemPath, ExpressionConstants.VAR_FOCUS);
 			if (!sources.contains(defaultSource)) {
 				sources.add(defaultSource);
 			}
@@ -429,7 +446,12 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 		if (targetDecl != null) {
 			LOGGER.warn(" - ignoring target (mapping is outbound): {}; using {} instead", targetDecl.getPath(), targetItem);
 		}
-		ctx.registerMappingRelation(sources, targetItem, mapping);
+		model.registerMappingRelation(sources, targetItem, mapping);
+	}
+
+	// TODO move to appropriate place
+	private QName getObjectClassName(RefinedObjectClassDefinition def) {
+		return def != null ? def.getTypeName() : null;
 	}
 
 }

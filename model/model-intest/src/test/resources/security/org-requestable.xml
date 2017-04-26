@@ -1,0 +1,11 @@
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     oid="8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2"
+     version="0">
+   <name>Org which is requestable</name>
+   <requestable>true</requestable>
+</org>

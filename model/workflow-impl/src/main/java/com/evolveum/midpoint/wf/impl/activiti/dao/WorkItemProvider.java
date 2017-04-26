@@ -31,7 +31,11 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,7 +46,6 @@ import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.impl.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
@@ -78,17 +81,11 @@ public class WorkItemProvider {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkItemProvider.class);
 
-	@Autowired
-    private ActivitiEngine activitiEngine;
-
-    @Autowired
-    private MiscDataUtil miscDataUtil;
-
-    @Autowired
-    private PrismContext prismContext;
-
-	@Autowired
-	private ProcessInterfaceFinder processInterfaceFinder;
+	@Autowired private ActivitiEngine activitiEngine;
+    @Autowired private MiscDataUtil miscDataUtil;
+    @Autowired private PrismContext prismContext;
+	@Autowired private ProcessInterfaceFinder processInterfaceFinder;
+	@Autowired private TaskManager taskManager;
 
     private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
 
@@ -121,16 +118,16 @@ public class WorkItemProvider {
 	// primitive 'query interpreter'
 	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_REF, F_WORK_ITEM_ID);
+        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_REF, F_EXTERNAL_ID);
 		List<ObjectFilter> remainingClauses = components.getRemainderClauses();
 		if (!remainingClauses.isEmpty()) {
             throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
         }
 
-        final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_WORK_ITEM_ID);
+        final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_EXTERNAL_ID);
         final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
         final ItemPath CANDIDATE_PATH = new ItemPath(F_CANDIDATE_REF);
-        final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_WORK_ITEM_CREATED_TIMESTAMP);
+        final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_CREATE_TIMESTAMP);
 
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
@@ -413,21 +410,22 @@ public class WorkItemProvider {
 			WorkItemType wi = new WorkItemType(prismContext);
 			final Map<String, Object> variables = task.getVariables();
 
-			wi.setWorkItemId(task.getId());
-			wi.setProcessInstanceId(task.getProcessInstanceId());
+			wi.setExternalId(task.getId());
 			wi.setName(task.getName());
-			wi.setWorkItemCreatedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
-			wi.setProcessStartedTimestamp(XmlTypeConverter.createXMLGregorianCalendar(ActivitiUtil.getRequiredVariable(
-					variables, CommonProcessVariableNames.VARIABLE_START_TIME, Date.class, prismContext)));
+			wi.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
 			wi.setDeadline(XmlTypeConverter.createXMLGregorianCalendar(task.getDueDate()));
 
-			String taskOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
-			if (taskOid != null) {
-				wi.setTaskRef(createObjectRef(taskOid, TASK));
-				if (resolveTask) {
-					miscDataUtil.resolveAndStoreObjectReference(wi.getTaskRef(), result);
-				}
+			String taskOid = ActivitiUtil.getRequiredVariable(variables, CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class, null);
+			com.evolveum.midpoint.task.api.Task mpTask = null;
+			try {
+				mpTask = taskManager.getTask(taskOid, result);
+			} catch (ObjectNotFoundException|SchemaException e) {
+				throw new SystemException("Couldn't retrieve owning task for " + wi + ": " + e.getMessage(), e);		// TODO more gentle treatment
 			}
+			if (mpTask.getWorkflowContext() == null) {
+				throw new IllegalStateException("No workflow context in task " + mpTask + " that owns " + wi);
+			}
+			mpTask.getWorkflowContext().getWorkItem().add(wi);
 
 			// assignees
 			wi.getAssigneeRef().addAll(getMidpointAssignees(task));
@@ -449,26 +447,18 @@ public class WorkItemProvider {
 			}
 
 			// other
-			wi.setObjectRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_OBJECT_REF)));
-			wi.setTargetRef(MiscDataUtil.toObjectReferenceType((LightweightObjectRef) variables.get(CommonProcessVariableNames.VARIABLE_TARGET_REF)));
-
 			ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
-			wi.setResult(pmi.extractWorkItemResult(variables));
+			wi.setOutput(pmi.extractWorkItemResult(variables));
 			String completedBy = ActivitiUtil.getVariable(variables, CommonProcessVariableNames.VARIABLE_WORK_ITEM_COMPLETED_BY, String.class, prismContext);
 			if (completedBy != null) {
-				wi.setCompletedByRef(ObjectTypeUtil.createObjectRef(completedBy, ObjectTypes.USER));
+				wi.setPerformerRef(ObjectTypeUtil.createObjectRef(completedBy, ObjectTypes.USER));
 			}
 
 			wi.setStageNumber(pmi.getStageNumber(variables));
-			wi.setStageCount(pmi.getStageCount(variables));
-			wi.setStageName(pmi.getStageName(variables));
-			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
-			wi.setStageName(pmi.getStageName(variables));
-			wi.setStageDisplayName(pmi.getStageDisplayName(variables));
 
-			wi.setEscalationLevelNumber(pmi.getEscalationLevelNumber(variables));
-			wi.setEscalationLevelName(pmi.getEscalationLevelName(variables));
-			wi.setEscalationLevelDisplayName(pmi.getEscalationLevelDisplayName(variables));
+			wi.setEscalationLevel(WfContextUtil.createEscalationLevel(pmi.getEscalationLevelNumber(variables),
+					pmi.getEscalationLevelName(variables),
+					pmi.getEscalationLevelDisplayName(variables)));
 
 			// This is just because 'variables' switches in task query DO NOT fetch all required variables...
 			if (fetchAllVariables) {		// TODO can we do this e.g. in the task completion listener?

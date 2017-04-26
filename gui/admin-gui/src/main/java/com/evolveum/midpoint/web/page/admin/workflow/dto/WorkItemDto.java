@@ -141,13 +141,14 @@ public class WorkItemDto extends Selectable {
 	@Nullable
 	private TaskType getTaskType() {
     	if (taskType == null) {
-			taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+			//taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
+			taskType = WfContextUtil.getTask(workItem);
 		}
 		return taskType;
 	}
 
 	public String getWorkItemId() {
-        return workItem.getWorkItemId();
+        return workItem.getExternalId();
     }
 
     public String getName() {
@@ -155,7 +156,7 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getCreatedFormatted() {
-        return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
+        return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.MEDIUM_MEDIUM_STYLE);
     }
 
     public String getDeadlineFormatted() {
@@ -163,7 +164,7 @@ public class WorkItemDto extends Selectable {
     }
 
 	public String getCreatedFormattedFull() {
-		return WebComponentUtil.getLocalizedDate(workItem.getWorkItemCreatedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		return WebComponentUtil.getLocalizedDate(workItem.getCreateTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
 	}
 
 	public String getDeadlineFormattedFull() {
@@ -171,7 +172,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public Date getCreatedDate() {
-        return XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp());
+        return XmlTypeConverter.toDate(workItem.getCreateTimestamp());
     }
 
 	public Date getDeadlineDate() {
@@ -179,11 +180,11 @@ public class WorkItemDto extends Selectable {
     }
 
     public Date getStartedDate() {
-        return XmlTypeConverter.toDate(workItem.getProcessStartedTimestamp());
+        return XmlTypeConverter.toDate(getWorkflowContext().getStartTimestamp());		// TODO NPE?
     }
 
     public String getStartedFormattedFull() {
-        return WebComponentUtil.getLocalizedDate(workItem.getProcessStartedTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+        return WebComponentUtil.getLocalizedDate(getWorkflowContext().getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
     }
 
     // TODO
@@ -217,19 +218,19 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public String getObjectName() {
-        return WebComponentUtil.getName(workItem.getObjectRef());
+        return WebComponentUtil.getName(WfContextUtil.getObjectRef(workItem));
     }
 
 	public ObjectReferenceType getObjectRef() {
-		return workItem.getObjectRef();
+		return WfContextUtil.getObjectRef(workItem);
 	}
 
 	public ObjectReferenceType getTargetRef() {
-		return workItem.getTargetRef();
+		return WfContextUtil.getTargetRef(workItem);
 	}
 
 	public String getTargetName() {
-        return WebComponentUtil.getName(workItem.getTargetRef());
+        return WebComponentUtil.getName(WfContextUtil.getTargetRef(workItem));
     }
 
     public WfContextType getWorkflowContext() {
@@ -273,11 +274,13 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public QName getTargetType() {
-		return workItem.getTargetRef() != null ? workItem.getTargetRef().getType() : null;
+		ObjectReferenceType targetRef = WfContextUtil.getTargetRef(workItem);
+		return targetRef != null ? targetRef.getType() : null;
 	}
 
 	public QName getObjectType() {
-		return workItem.getObjectRef() != null ? workItem.getObjectRef().getType() : null;
+		ObjectReferenceType objectRef = WfContextUtil.getObjectRef(workItem);
+		return objectRef != null ? objectRef.getType() : null;
 	}
 
 	// all except the current one
@@ -288,7 +291,7 @@ public class WorkItemDto extends Selectable {
 			return rv;
 		}
 		for (WorkItemType workItemType : task.getWorkflowContext().getWorkItem()) {
-			if (workItemType.getWorkItemId() == null || workItemType.getWorkItemId().equals(getWorkItemId())) {
+			if (workItemType.getExternalId() == null || workItemType.getExternalId().equals(getWorkItemId())) {
 				continue;
 			}
 			rv.add(new WorkItemDto(workItemType));
@@ -352,8 +355,8 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public Integer getEscalationLevelNumber() {
-    	return workItem.getEscalationLevelNumber() == null || workItem.getEscalationLevelNumber() == 0 ?
-				null : workItem.getEscalationLevelNumber();
+		int number = WfContextUtil.getEscalationLevelNumber(workItem);
+		return number > 0 ? number : null;
 	}
 
 	public List<InformationType> getAdditionalInformation() {

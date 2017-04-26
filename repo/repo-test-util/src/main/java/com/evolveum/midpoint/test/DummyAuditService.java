@@ -389,6 +389,21 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 			assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
 		}
 	}
+	
+	public void assertFailedProxyLogin(String expectedChannel) {
+		AuditEventRecord firstRecord = records.get(0);
+		assertEquals("Wrong type of first audit record (service authN): "+firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
+		assertEquals("Wrong outcome of first audit record (service authN): "+firstRecord.getOutcome(), OperationResultStatus.SUCCESS, firstRecord.getOutcome());
+		if (expectedChannel != null) {
+			assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
+		}
+		AuditEventRecord secondRecord = records.get(1);
+		assertEquals("Wrong type of second audit record (proxy authN): "+secondRecord.getEventType(), AuditEventType.CREATE_SESSION, secondRecord.getEventType());
+		assertEquals("Wrong outcome of second audit record (proxy authN): "+secondRecord.getOutcome(), OperationResultStatus.FATAL_ERROR, secondRecord.getOutcome());
+		if (expectedChannel != null) {
+			assertEquals("Wrong channel in second audit record (proxy authN)", expectedChannel, secondRecord.getChannel());
+		}
+	}
 
 
 	@Override

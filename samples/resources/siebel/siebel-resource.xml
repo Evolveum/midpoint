@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+   <name>SIEBEL</name>
+   <connectorRef type="c:ConnectorType">
+  	<filter>
+  		<q:equal>
+  			<q:path>c:connectorType</q:path>
+  			<q:value>com.evolveum.polygon.connector.siebel.SiebelConnector</q:value>
+  		</q:equal>
+  	</filter>
+   </connectorRef>
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                           xsi:type="c:ConnectorConfigurationType">
+      <icfc:timeouts>
+         <icfc:create>10000</icfc:create>
+         <icfc:get>20000</icfc:get>
+         <icfc:update>10000</icfc:update>
+         <icfc:delete>10000</icfc:delete>
+         <icfc:schema>10000</icfc:schema>
+      </icfc:timeouts>
+      <icfc:resultsHandlerConfiguration>
+         <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+      </icfc:resultsHandlerConfiguration>
+      <icfc:configurationProperties xmlns:gen298="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector.connector-siebel/com.evolveum.polygon.connector.siebel.SiebelConnector"
+                                    xsi:type="icfc:ConfigurationPropertiesType">
+         <gen298:wsUrl>https://localhost:11403/</gen298:wsUrl>
+         <gen298:username>idm</gen298:username>
+         <gen298:password>
+            <t:clearValue>secret</t:clearValue>
+         </gen298:password>
+         <gen298:maxPageSize>100</gen298:maxPageSize>
+         <gen298:connectTimeout>60000</gen298:connectTimeout>
+         <gen298:receiveTimeout>600000</gen298:receiveTimeout>
+         <gen298:soapLogBasedir></gen298:soapLogBasedir>
+      </icfc:configurationProperties>
+   </connectorConfiguration>
+   <schema>      
+      <definition>
+         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+				        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+				        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+				        <xsd:complexType name="AccountObjectClass">
+					          <xsd:annotation>
+						            <xsd:appinfo>
+							              <ra:resourceObject/>
+							              <ra:identifier>ri:Id</ra:identifier>
+							              <ra:secondaryIdentifier>ri:LoginName</ra:secondaryIdentifier>
+							              <ra:displayNameAttribute>ri:LoginName</ra:displayNameAttribute>
+							              <ra:namingAttribute>ri:LoginName</ra:namingAttribute>
+							              <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+							              <ra:kind>account</ra:kind>
+							              <ra:default>true</ra:default>
+						            </xsd:appinfo>
+					          </xsd:annotation>
+					          <xsd:sequence>
+						            <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="SecondaryPositions"
+                               type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:access>read</a:access>
+									                  <a:displayOrder>120</a:displayOrder>
+									                  <ra:frameworkAttributeName>SecondaryPositions</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="CellPhone" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>130</a:displayOrder>
+									                  <ra:frameworkAttributeName>CellPhone</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="EmployeePrimaryOrganization" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>140</a:displayOrder>
+									                  <ra:frameworkAttributeName>EmployeePrimaryOrganization</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="EmployeeTypeCode" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>150</a:displayOrder>
+									                  <ra:frameworkAttributeName>EmployeeTypeCode</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="Alias" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>160</a:displayOrder>
+									                  <ra:frameworkAttributeName>Alias</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="Phone" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>170</a:displayOrder>
+									                  <ra:frameworkAttributeName>Phone</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="PrimaryPosition" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>180</a:displayOrder>
+									                  <ra:frameworkAttributeName>PrimaryPosition</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element name="FirstName" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>190</a:displayOrder>
+									                  <ra:frameworkAttributeName>FirstName</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="PrimaryResponsibility" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>200</a:displayOrder>
+									                  <ra:frameworkAttributeName>PrimaryResponsibility</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="EMailAddr" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>210</a:displayOrder>
+									                  <ra:frameworkAttributeName>EMailAddr</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="EmployeeSecondaryOrganizations"
+                               type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>220</a:displayOrder>
+									                  <ra:frameworkAttributeName>EmployeeSecondaryOrganizations</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="TimeZoneName" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>230</a:displayOrder>
+									                  <ra:frameworkAttributeName>TimeZoneName</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="SecondaryResponsibilities"
+                               type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>									
+									                  <a:displayOrder>240</a:displayOrder>
+									                  <ra:frameworkAttributeName>SecondaryResponsibilities</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="SalesChannel" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>250</a:displayOrder>
+									                  <ra:frameworkAttributeName>SalesChannel</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element name="LastName" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>260</a:displayOrder>
+									                  <ra:frameworkAttributeName>LastName</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="UserType" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>270</a:displayOrder>
+									                  <ra:frameworkAttributeName>UserType</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element name="LoginName" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>110</a:displayOrder>
+									                  <ra:nativeAttributeName>LoginName</ra:nativeAttributeName>
+									                  <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="Fax" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>280</a:displayOrder>
+									                  <ra:frameworkAttributeName>Fax</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="PersonalTitle" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>290</a:displayOrder>
+									                  <ra:frameworkAttributeName>PersonalTitle</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="PreferredCommunication" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>300</a:displayOrder>
+									                  <ra:frameworkAttributeName>PreferredCommunication</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="JobTitle" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>310</a:displayOrder>
+									                  <ra:frameworkAttributeName>JobTitle</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+						            <xsd:element minOccurs="0" name="Id" type="xsd:string">
+							              <xsd:annotation>
+								                <xsd:appinfo>
+									                  <a:displayOrder>100</a:displayOrder>
+									                  <a:access>read</a:access>
+									                  <ra:nativeAttributeName>Id</ra:nativeAttributeName>
+									                  <ra:frameworkAttributeName>__UID__</ra:frameworkAttributeName>
+								                </xsd:appinfo>
+							              </xsd:annotation>
+						            </xsd:element>
+					          </xsd:sequence>
+				        </xsd:complexType>
+			      </xsd:schema>
+      </definition>
+   </schema>
+   <schemaHandling>
+      <objectType>
+         <kind>account</kind>
+         <default>true</default>
+         <objectClass>ri:AccountObjectClass</objectClass>
+         <attribute>
+            <c:ref>ri:LoginName</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <c:path>$focus/name</c:path>
+               </source>
+               <expression>
+                  <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                          xsi:type="c:ScriptExpressionEvaluatorType">
+                     <code>
+        								basic.uc(name?.getOrig());	
+        							</code>
+                  </script>
+               </expression>
+            </outbound>
+         </attribute>                          
+         <attribute>
+            <c:ref>ri:LastName</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <c:path>$focus/familyName</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:EMailAddr</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <c:path>$focus/emailAddress</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:FirstName</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <c:path>$focus/givenName</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         
+         <activation>
+            <existence>
+               <outbound>
+                  <strength>weak</strength>
+                  <expression>
+                     <variable>
+                        <name>name</name>
+                        <c:path>$focus/name</c:path>
+                     </variable>
+                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                        			focusExists
+                        		</code>
+                     </script>
+                  </expression>
+               </outbound>
+            </existence>
+            <administrativeStatus>
+               <outbound>
+                  <strength>strong</strength>
+                  <expression>
+                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+	                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+	                            	                            	                                                        
+	                            ActivationStatusType.DISABLED;
+							         </code>
+                     </script>
+                  </expression>
+                  <condition>
+                     <variable>
+                        <name>identityEffectiveStatus</name>
+                        <c:path>$focus/activation/effectiveStatus</c:path>
+                     </variable>
+                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                     			import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                     		
+                     			// disabled identity must always have all linked accounts DISABLED (strong)
+                     			identityEffectiveStatus != ActivationStatusType.ENABLED;
+                     		</code>
+                     </script>
+                  </condition>
+               </outbound>
+               <outbound>
+                  <strength>normal</strength>
+                  <expression>
+                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+	                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+	                            	                            	                            
+	                            (legal)?input:ActivationStatusType.DISABLED; // disable instead of delete
+							           </code>
+                     </script>
+                  </expression>
+               </outbound>
+            </administrativeStatus>
+         </activation>
+      </objectType>
+   </schemaHandling>
+   <capabilities>      
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:type="c:CapabilityCollectionType">
+         <cap:addRemoveAttributeValues/>
+         <cap:activation>
+            <cap:status/>
+         </cap:activation>
+         <cap:testConnection/>
+         <cap:create/>
+         <cap:read/>
+         <cap:update/>
+         <cap:script>
+            <cap:host>
+               <cap:type>connector</cap:type>
+            </cap:host>
+         </cap:script>
+      </native>
+      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:type="c:CapabilityCollectionType">
+         <cap:pagedSearch/>
+         <cap:addRemoveAttributeValues>
+            <cap:enabled>false</cap:enabled>
+         </cap:addRemoveAttributeValues>
+         <cap:testConnection>
+            <cap:enabled>true</cap:enabled>
+         </cap:testConnection>
+         <cap:read>
+            <cap:enabled>true</cap:enabled>
+         </cap:read>
+         <cap:script>
+            <cap:enabled>false</cap:enabled>
+         </cap:script>
+         <cap:activation>
+            <cap:status>
+               <cap:enabled>true</cap:enabled>
+            </cap:status>
+         </cap:activation>
+         <cap:create>
+            <cap:enabled>true</cap:enabled>
+         </cap:create>
+         <cap:update>
+            <cap:enabled>true</cap:enabled>
+         </cap:update>
+         <cap:delete>
+            <cap:enabled>false</cap:enabled>
+         </cap:delete>
+      </configured>
+   </capabilities>
+   <projection>
+      <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement>
+      <legalize>false</legalize>
+   </projection>
+   <consistency>
+      <connectorErrorCriticality>
+         <network>false</network>
+         <schema>false</schema>
+      </connectorErrorCriticality>
+   </consistency>
+   <synchronization>
+      <objectSynchronization>
+         <name>Account sync</name>
+         <objectClass>ri:AccountObjectClass</objectClass>
+         <kind>account</kind>
+         <intent>default</intent>
+         <focusType>UserType</focusType>
+         <enabled>true</enabled>
+         <correlation>
+            <q:equal>
+               <q:matching>polyStringNorm</q:matching>
+               <q:path>c:name</q:path>
+               <expression>
+                  <path>$shadow/attributes/LoginName</path>
+               </expression>
+            </q:equal>
+         </correlation>
+         <limitPropagation>true</limitPropagation>
+         <reaction>
+            <situation>linked</situation>
+            <synchronize>false</synchronize>
+         </reaction>
+         <reaction>
+            <situation>deleted</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+            </action>
+         </reaction>
+         <reaction>
+            <situation>unlinked</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+            </action>
+         </reaction>
+         <reaction>
+            <situation>unmatched</situation>
+            <synchronize>true</synchronize>
+         </reaction>
+      </objectSynchronization>
+   </synchronization>
+</resource>

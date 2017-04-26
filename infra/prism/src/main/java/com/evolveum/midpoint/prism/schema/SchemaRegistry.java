@@ -144,8 +144,10 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	<ID extends ItemDefinition> ID selectMoreSpecific(ID def1, ID def2)
 			throws SchemaException;
 
-	QName selectMoreSpecific(QName type1, QName type2)
-			throws SchemaException;
+	// throws SchemaException if not comparable
+	QName selectMoreSpecific(QName type1, QName type2) throws SchemaException;
+
+	boolean areComparable(QName type1, QName type2) throws SchemaException;
 
 	boolean isContainer(QName typeName);
 

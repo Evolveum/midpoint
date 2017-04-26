@@ -49,8 +49,6 @@ import com.evolveum.midpoint.wf.impl.util.SingleItemSerializationSafeContainerIm
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.activiti.engine.TaskService;
-import org.activiti.engine.form.FormProperty;
-import org.activiti.engine.form.TaskFormData;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
@@ -90,26 +88,26 @@ public class WorkItemManager {
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_INTERFACE + "delegateWorkItem";
 
-    public void completeWorkItem(String workItemId, String decision, String comment, ObjectDelta additionalDelta,
+    public void completeWorkItem(String workItemId, String outcome, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParams(new String[] { "workItemId", "decision", "comment", "additionalDelta" },
-				workItemId, decision, comment, additionalDelta);
+				workItemId, outcome, comment, additionalDelta);
 
 		try {
 			final String userDescription = toShortString(securityEnforcer.getPrincipal().getUser());
 			result.addContext("user", userDescription);
 
 			LOGGER.trace("Completing work item {} with decision of {} ['{}'] by {}; cause: {}",
-					workItemId, decision, comment, userDescription, causeInformation);
+					workItemId, outcome, comment, userDescription, causeInformation);
 
 			TaskService taskService = activitiEngine.getTaskService();
 			taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_CAUSE,
 					new SingleItemSerializationSafeContainerImpl<>(causeInformation, prismContext));
 
-			TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
+			//TaskFormData data = activitiEngine.getFormService().getTaskFormData(workItemId);
 
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
 
@@ -118,7 +116,7 @@ public class WorkItemManager {
 			}
 
 			final Map<String, String> propertiesToSubmit = new HashMap<>();
-			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_DECISION, decision);
+			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_OUTCOME, outcome);
 			propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_COMMENT, comment);
 			if (additionalDelta != null) {
 				@SuppressWarnings({ "unchecked", "raw" })
@@ -127,15 +125,6 @@ public class WorkItemManager {
 				String xmlDelta = prismContext.xmlSerializer()
 						.serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
 				propertiesToSubmit.put(CommonProcessVariableNames.FORM_FIELD_ADDITIONAL_DELTA, xmlDelta);
-			}
-
-			// we also fill-in the corresponding 'button' property (if there's one that corresponds to the decision)
-			for (FormProperty formProperty : data.getFormProperties()) {
-				if (formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
-					boolean value = formProperty.getId().equals(CommonProcessVariableNames.FORM_BUTTON_PREFIX + decision);
-					LOGGER.trace("Setting the value of {} to writable property {}", value, formProperty.getId());
-					propertiesToSubmit.put(formProperty.getId(), Boolean.toString(value));
-				}
 			}
 			LOGGER.trace("Submitting {} properties", propertiesToSubmit.size());
 			//formService.submitTaskFormData(workItemId, propertiesToSubmit);
@@ -237,24 +226,23 @@ public class WorkItemManager {
 	// appropriate escalation timed action, and invoke it. We'll solve this when necessary. Until that time, be
 	// aware that escalationLevelName/DisplayName are for internal use only.
 	public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			boolean escalate, String escalationLevelName, String escalationLevelDisplayName,
-			Duration newDuration, WorkItemEventCauseInformationType causeInformation,
+			WorkItemEscalationLevelType escalation, Duration newDuration, WorkItemEventCauseInformationType causeInformation,
 			OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
-		result.addParams( new String[]{ "workItemId", "escalate", "escalationLevelName", "escalationLevelDisplayName"},
-				workItemId, escalate, escalationLevelName, escalationLevelDisplayName);
+		result.addParam("workItemId", workItemId);
+		result.addParam("escalation", escalation);
 		result.addCollectionOfSerializablesAsParam("delegates", delegates);
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));
 
 			ObjectReferenceType initiator =
-					principal.getUser() != null && (causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION) ?
+					causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION ?
 							ObjectTypeUtil.createObjectRef(principal.getUser()) : null;
 
-			LOGGER.trace("Delegating work item {} to {}: escalation={}:{}/{}; cause={}", workItemId, delegates, escalate,
-					escalationLevelName, escalationLevelDisplayName, causeInformation);
+			LOGGER.trace("Delegating work item {} to {}: escalation={}; cause={}", workItemId, delegates,
+					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation);
 
 			WorkItemType workItem = workItemProvider.getWorkItem(workItemId, result);
 			if (!miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE)) {
@@ -263,37 +251,21 @@ public class WorkItemManager {
 
 			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
 
-			WorkItemOperationKindType operationKind = escalate ? ESCALATE : DELEGATE;
+			WorkItemOperationKindType operationKind = escalation != null ? ESCALATE : DELEGATE;
 
-			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(workItem.getTaskRef().getOid(), result);
+			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(WfContextUtil.getTask(workItem).getOid(), result);
 			WorkItemAllocationChangeOperationInfo operationInfoBefore =
 					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesBefore, null);
 			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
 			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfoBefore, sourceInfo, null, wfTask, result);
 
-			List<ObjectReferenceType> newAssignees;
 			if (method == null) {
 				method = WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
 			}
-			switch (method) {
-				case ADD_ASSIGNEES: newAssignees = new ArrayList<>(workItem.getAssigneeRef()); break;
-				case REPLACE_ASSIGNEES: newAssignees = new ArrayList<>(); break;
-				default: throw new UnsupportedOperationException("Delegation method " + method + " is not supported yet.");
-			}
 
+			List<ObjectReferenceType> newAssignees = new ArrayList<>();
 			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-			for (ObjectReferenceType delegate : delegates) {
-				if (delegate.getType() != null && !QNameUtil.match(UserType.COMPLEX_TYPE, delegate.getType())) {
-					throw new IllegalArgumentException("Couldn't use non-user object as a delegate: " + delegate);
-				}
-				if (delegate.getOid() == null) {
-					throw new IllegalArgumentException("Couldn't use no-OID reference as a delegate: " + delegate);
-				}
-				if (!ObjectTypeUtil.containsOid(newAssignees, delegate.getOid())) {
-					newAssignees.add(delegate.clone());
-					delegatedTo.add(delegate.clone());
-				}
-			}
+			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
 
 			// don't change the current assignee, if not necessary
 			TaskService taskService = activitiEngine.getTaskService();
@@ -305,31 +277,21 @@ public class WorkItemManager {
 			}
 
 			Map<String, Object> variables = taskService.getVariables(workItemId);
-			WorkItemDelegationEventType event;
-			int escalationLevel = workItem.getEscalationLevelNumber() != null ? workItem.getEscalationLevelNumber() : 0;
-			if (escalate) {
-				WorkItemEscalationEventType escEvent = new WorkItemEscalationEventType();
-				escEvent.setNewEscalationLevelName(escalationLevelName);
-				escEvent.setNewEscalationLevelDisplayName(escalationLevelDisplayName);
-				escalationLevel = escalationLevel + 1;
-				escEvent.setNewEscalationLevelNumber(escalationLevel);
-				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, escalationLevel);
-				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, escalationLevelName);
-				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, escalationLevelDisplayName);
-				event = escEvent;
-			} else {
-				event = new WorkItemDelegationEventType();
+			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
+			WorkItemEscalationLevelType newEscalation = WfContextUtil.createNewEscalation(escalationLevel, escalation);
+			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalation, assigneesBefore, delegatedTo, method, causeInformation);
+			if (newEscalation != null) {
+				escalationLevel++;
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NUMBER, newEscalation.getNumber());
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_NAME, newEscalation.getName());
+				taskService.setVariableLocal(workItemId, CommonProcessVariableNames.VARIABLE_ESCALATION_LEVEL_DISPLAY_NAME, newEscalation.getDisplayName());
 			}
-			event.getAssigneeBefore().addAll(assigneesBefore);  // already parent-less
-			event.getDelegatedTo().addAll(delegatedTo);
-			event.setDelegationMethod(method);		// not null at this moment
-			event.setCause(causeInformation);
 			ActivitiUtil.fillInWorkItemEvent(event, principal, workItemId, variables, prismContext);
 			MidpointUtil.recordEventInTask(event, null, ActivitiUtil.getTaskOid(variables), result);
 
-			ApprovalLevelType level = WfContextUtil.getCurrentApprovalLevel(wfTask.getWorkflowContext());
+			ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(wfTask.getWorkflowContext());
 			MidpointUtil.createTriggersForTimedActions(workItemId, escalationLevel,
-					XmlTypeConverter.toDate(workItem.getWorkItemCreatedTimestamp()),
+					XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
 					deadline, wfTask, level.getTimedActions(), result);
 
 			WorkItemType workItemAfter = workItemProvider.getWorkItem(workItemId, result);

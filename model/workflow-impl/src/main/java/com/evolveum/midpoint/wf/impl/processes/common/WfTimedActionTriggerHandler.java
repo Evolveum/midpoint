@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -119,23 +120,8 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeNotifications(Duration timeBeforeAction, AbstractWorkItemActionType action, WorkItemType workItem,
 			Task wfTask, OperationResult result) throws SchemaException {
-		WorkItemOperationKindType operationKind;
-		if (action instanceof EscalateWorkItemActionType) {
-			operationKind = WorkItemOperationKindType.ESCALATE;
-		} else if (action instanceof DelegateWorkItemActionType) {
-			operationKind = WorkItemOperationKindType.DELEGATE;
-		} else if (action instanceof CompleteWorkItemActionType) {
-			operationKind = WorkItemOperationKindType.COMPLETE;
-		} else {
-			// shouldn't occur
-			operationKind = null;
-		}
-		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
-		cause.setType(WorkItemEventCauseTypeType.TIMED_ACTION);
-		if (action != null) {
-			cause.setName(action.getName());
-			cause.setDisplayName(action.getDisplayName());
-		}
+		WorkItemOperationKindType operationKind = WfContextUtil.getOperationKind(action);
+		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(action);
 		WorkItemAllocationChangeOperationInfo operationInfo =
 				new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
@@ -161,30 +147,19 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
 			OperationResult result) throws SchemaException, SecurityViolationException {
-		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? completeAction.getOutcome() : WorkItemOutcomeType.REJECT;
-		workItemManager.completeWorkItem(workItem.getWorkItemId(), ApprovalUtils.approvalStringValue(outcome),
-				null, null, createCauseInformation(completeAction), result);
+		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
+		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
+				null, null, WfContextUtil.createCause(completeAction), result);
 	}
 
 	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate,
 			Task wfTask, Task triggerScannerTask, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-		String escalationLevelName;
-		String escalationLevelDisplayName;
-		if (escalate && delegateAction instanceof EscalateWorkItemActionType) {
-			escalationLevelName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelName();
-			escalationLevelDisplayName = ((EscalateWorkItemActionType) delegateAction).getEscalationLevelDisplayName();
-			if (escalationLevelName == null && escalationLevelDisplayName == null) {
-				escalationLevelName = delegateAction.getName();
-				escalationLevelDisplayName = delegateAction.getDisplayName();
-			}
-		} else {
-			escalationLevelName = escalationLevelDisplayName = null;
-		}
+		WorkItemEscalationLevelType escLevel = escalate ? WfContextUtil.createEscalationLevelInformation(delegateAction) : null;
 		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, wfTask, triggerScannerTask, result);
-		workItemManager.delegateWorkItem(workItem.getWorkItemId(), delegates,
-				delegateAction.getDelegationMethod(), escalate, escalationLevelName, escalationLevelDisplayName,
-				delegateAction.getDuration(), createCauseInformation(delegateAction), result);
+		workItemManager.delegateWorkItem(workItem.getExternalId(), delegates,
+				delegateAction.getDelegationMethod(), escLevel,
+				delegateAction.getDuration(), WfContextUtil.createCause(delegateAction), result);
 	}
 
 	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, WorkItemType workItem,
@@ -198,15 +173,15 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", triggerScannerTask, result));
 		}
-		if (!delegateAction.getApproverRelation().isEmpty()) {
-			throw new UnsupportedOperationException("Approver relation in delegate/escalate action is not supported yet.");
-		}
+//		if (!delegateAction.getApproverRelation().isEmpty()) {
+//			throw new UnsupportedOperationException("Approver relation in delegate/escalate action is not supported yet.");
+//		}
 		return rv;
 	}
 
 	private void executeNotificationAction(WorkItemType workItem, @NotNull WorkItemNotificationActionType notificationAction, Task wfTask,
 			OperationResult result) throws SchemaException {
-		WorkItemEventCauseInformationType cause = createCauseInformation(notificationAction);
+		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
 				wfTaskController.notifyWorkItemCustom(assignee, workItem, cause, wfTask, notificationAction, result);
@@ -216,15 +191,5 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 		}
 
 	}
-
-	private WorkItemEventCauseInformationType createCauseInformation(AbstractWorkItemActionType action) {
-		WorkItemEventCauseInformationType cause = new WorkItemEventCauseInformationType();
-		cause.setType(WorkItemEventCauseTypeType.TIMED_ACTION);
-		cause.setName(action.getName());
-		cause.setDisplayName(action.getDisplayName());
-		return cause;
-	}
-
-
 
 }

@@ -78,6 +78,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	
 	private TableId tableId;
 
+	protected List<O> selectedObjects = null;
+
 	private String addutionalBoxCssClasses;
 
 	public Class<? extends O> getType() {
@@ -108,8 +110,23 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		initLayout();
 	}
 
+	public ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect,
+						   PageBase parentPage, List<O> selectedObjectsList) {
+		super(id);
+		this.type = defaultType;
+		this.parentPage = parentPage;
+		this.multiselect = multiselect;
+		this.selectedObjects = selectedObjectsList;
+		initLayout();
+	}
+
 	public boolean isMultiselect() {
 		return multiselect;
+	}
+
+	public int getSelectedObjectsCount(){
+		List<O> selectedList = getSelectedObjects();
+		return selectedList == null ? 0 : selectedList.size();
 	}
 
 	@SuppressWarnings("unchecked")

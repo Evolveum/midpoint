@@ -76,7 +76,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 
 		if (parts.length == 1) {
 			if (RestAuthenticationMethod.SECURITY_QUESTIONS.equals(authenticationType)) {
-				RestServiceUtil.createAbortMessage(requestCtx);
+				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
 				return;
 			}
 		}
@@ -96,7 +96,7 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			}
 			securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
 		} catch (Base64Exception e) {
-			RestServiceUtil.createAbortMessage(requestCtx);
+			RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
 			return;
 
 		}

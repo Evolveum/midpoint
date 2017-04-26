@@ -220,12 +220,6 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                                                 @Override
                                                 public void onClick(AjaxRequestTarget target) {
-                                                    if (privilegesList == null ||
-                                                            privilegesList.size() == 0){
-                                                        warn(getString("AssignmentTablePanel.modal.message.noDelegationWarning"));
-                                                        target.add(getPageBase().getFeedbackPanel());
-                                                        return;
-                                                    }
                                                     List<QName> supportedTypes = new ArrayList<>();
                                                     supportedTypes.add(UserType.COMPLEX_TYPE);
                                                     ObjectFilter filter = InOidFilter.createInOid(getObjectWrapper().getOid());
@@ -297,6 +291,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
                                                     PageUser.this.getObjectWrapper().getObject().asObjectable(),
                                                     SchemaConstants.ORG_DEPUTY, getPageBase(), (UserType) object);
+                                        dto.setPrivilegeLimitationList(privilegesList);
                                         delegationsModel.getObject().add(dto);
                                     } catch (Exception e) {
                                         error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
@@ -304,7 +299,6 @@ public class PageUser extends PageAdminFocus<UserType> {
                                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
                                     }
                                 }
-
                                 reloadAssignmentsPanel(target);
                             }
 
@@ -357,7 +351,15 @@ public class PageUser extends PageAdminFocus<UserType> {
                 });
             }
 
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                return PageUser.this.getOptionsPanelVisibility();
+            }
         };
+    }
+
+    protected boolean getOptionsPanelVisibility(){
+        return true;
     }
 
     private List<AssignmentEditorDto> loadDelegatedByMeAssignments() {

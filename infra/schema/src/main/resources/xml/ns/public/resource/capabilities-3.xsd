@@ -90,6 +90,21 @@
 
 	<!-- Concrete capabilities -->
 
+	<xsd:complexType name="SchemaCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to discover resource schema.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="schema" type="tns:SchemaCapabilityType"/>
+
 	<xsd:complexType name="ActivationCapabilityType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -315,6 +330,30 @@
 	<xsd:element name="liveSync" type="tns:LiveSyncCapabilityType"/>
 	
 	
+	<xsd:complexType name="AbstractWriteCapabilityType" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Base type for all write capabilities.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="manual" type="xsd:boolean" minOccurs="0" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								If set to true then there is NO online connection to the resource.
+								The operations are executed manually by a human operator. The resource
+								provides ability to execute the operations in an asynchronous way. But
+								this asynchronous operation contains a human in the loop.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
 	<xsd:complexType name="CreateCapabilityType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -322,7 +361,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
+			<xsd:extension base="tns:AbstractWriteCapabilityType">
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -337,6 +376,17 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="cachingOnly" type="xsd:boolean" minOccurs="0" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								If set to true then the resource does NOT have native read capability.
+								However, the resource suggests that the native read capability has to be
+								approximated by the use of midPoint caching.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -350,7 +400,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
+			<xsd:extension base="tns:AbstractWriteCapabilityType">
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -364,7 +414,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
+			<xsd:extension base="tns:AbstractWriteCapabilityType">
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

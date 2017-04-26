@@ -28,9 +28,11 @@ import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -216,8 +218,12 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	}
 
 	@Override
-    public S_AtomicFilterExit ref(PrismReferenceValue value) {
-        return ref(value != null ? Collections.singleton(value) : Collections.<PrismReferenceValue>emptyList());
+    public S_AtomicFilterExit ref(PrismReferenceValue... values) {
+        if (values.length == 1 && values[0] == null) {
+        	return ref(Collections.emptyList());
+		} else {
+        	return ref(Arrays.asList(values));
+		}
     }
 
 	@Override
@@ -226,8 +232,12 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	}
 
 	@Override
-    public S_AtomicFilterExit ref(String oid) {
-        return ref(oid != null ? new PrismReferenceValue(oid) : null);
+    public S_AtomicFilterExit ref(String... oids) {
+    	if (oids.length == 1 && oids[0] == null) {
+    		return ref(Collections.emptyList());
+		} else {
+    		return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValue(oid)).collect(Collectors.toList()));
+		}
     }
 
     @Override
@@ -235,7 +245,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
         if (oid != null) {
             return ref(new PrismReferenceValue(oid, targetTypeName));
         } else {
-            return ref((PrismReferenceValue) null);
+            return ref(Collections.emptyList());
         }
     }
 
@@ -244,7 +254,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
         if (propertyDefinition != null) {
             return new R_AtomicFilter(this, EqualFilter.createEqual(itemPath, propertyDefinition, null, owner.getPrismContext()));
         } else if (referenceDefinition != null) {
-            return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, Collections.<PrismReferenceValue>emptyList()));
+            return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, Collections.emptyList()));
         } else {
             throw new IllegalStateException("No definition");
         }

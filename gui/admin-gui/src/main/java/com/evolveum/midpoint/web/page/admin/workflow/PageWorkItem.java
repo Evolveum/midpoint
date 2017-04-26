@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -64,7 +65,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ORIGINAL_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_WORK_ITEM_ID;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_EXTERNAL_ID;
 
 /**
  * @author mederly
@@ -131,7 +132,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemDto workItemDto = null;
         try {
             final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-                    .item(F_WORK_ITEM_ID).eq(taskId)
+                    .item(F_EXTERNAL_ID).eq(taskId)
                     .build();
 			final Collection<SelectorOptions<GetOperationOptions>> options =
 					resolveItemsNamed(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF);
@@ -143,7 +144,8 @@ public class PageWorkItem extends PageAdminWorkItems {
             }
 			final WorkItemType workItem = workItems.get(0);
 
-			final String taskOid = workItem.getTaskRef() != null ? workItem.getTaskRef().getOid() : null;
+			//final String taskOid = workItem.getTaskRef() != null ? workItem.getTaskRef().getOid() : null;
+			final String taskOid = WfContextUtil.getTask(workItem).getOid();
 			TaskType taskType = null;
 			List<TaskType> relatedTasks = new ArrayList<>();
 			if (taskOid != null) {
@@ -317,7 +319,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_RELEASE_WORK_ITEM);
         WorkflowService workflowService = getWorkflowService();
         try {
-            workflowService.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            workflowService.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getExternalId(), result);
         } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
         }

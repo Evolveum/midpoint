@@ -78,7 +78,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     protected AccCertExpressionHelper expressionHelper;
 
     // default implementation, depending only on the expressions provided
-    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         throw new UnsupportedOperationException("Not implemented yet.");
 //        if (CollectionUtils.isEmpty(caseExpressionList)) {
 //            throw new IllegalStateException("Unspecified case expression (and no default one provided) for campaign " + ObjectTypeUtil.toShortString(campaign));
@@ -104,15 +104,15 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         return null;
     }
 
-	@NotNull
-	protected FocusType castToFocus(PrismObject<ObjectType> objectPrism) {
-		ObjectType object = objectPrism.asObjectable();
-		if (!(object instanceof FocusType)) {
-			throw new IllegalStateException(ExclusionCertificationHandler.class.getSimpleName() + " cannot be run against non-focal object: " + ObjectTypeUtil
-					.toShortString(object));
-		}
-		return (FocusType) object;
-	}
+//	@NotNull
+//	protected <F extends FocusType> FocusType castToFocus(PrismObject<F> objectPrism) {
+//		ObjectType object = objectPrism.asObjectable();
+//		if (!(object instanceof FocusType)) {
+//			throw new IllegalStateException(ExclusionCertificationHandler.class.getSimpleName() + " cannot be run against non-focal object: " + ObjectTypeUtil
+//					.toShortString(object));
+//		}
+//		return (FocusType) object;
+//	}
 
 	// TODO move to some helper?
 	protected void revokeAssignmentCase(AccessCertificationAssignmentCaseType assignmentCase,

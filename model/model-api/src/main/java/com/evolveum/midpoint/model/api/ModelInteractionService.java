@@ -226,7 +226,7 @@ public interface ModelInteractionService {
 	@NotNull
 	Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException;
 	
-	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
+	List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	<O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type, 

@@ -66,21 +66,9 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
 	}
 
 	
-//	private void recordNonceAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
-//			NonceType nonceType, NonceCredentialsPolicyType passwordCredentialsPolicy) {
-//		
-//		LoginEventType event = new LoginEventType();
-//		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-//		event.setFrom(connEnv.getRemoteHost());
-//
-//		ActivationType activation = principal.getUser().getActivation();
-//		if (activation != null) {
-//			activation.setLockoutStatus(LockoutStatusType.NORMAL);
-//			activation.setLockoutExpirationTimestamp(null);
-//		}
-//
-//		userProfileService.updateUser(principal);
-//		
-//		recordAuthenticationSuccess(principal, connEnv);
-//	}
+
+	@Override
+	protected boolean supportsActivation() {
+		return false;
+	}
 }

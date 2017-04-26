@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,20 +27,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,8 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestConnectorDiscovery extends AbstractIntegrationTest {
-
-	private static final String LDAP_CONNECTOR_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
 
 	@Autowired
 	private ProvisioningService provisioningService;
@@ -73,28 +67,31 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	 * 
 	 */
 	@Test
-	public void test001Connectors() throws SchemaException {
-		TestUtil.displayTestTile("test001Connectors");
+	public void test001Connectors() throws Exception {
+		final String TEST_NAME = "test001Connectors";
+		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
-				+ ".test001Connectors");
+		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 		
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, null, null, result);
 		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
 		assertFalse("No connector found",connectors.isEmpty());
 		display("Found "+connectors.size()+" discovered connector");
+		
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 		
 		for (PrismObject<ConnectorType> connector : connectors) {
 			ConnectorType conn = connector.asObjectable();
 			display("Found connector " +conn, conn);
-//			if (conn.getConnectorType().equals("org.identityconnectors.ldap.LdapConnector")) {
-//				// This connector is loaded manually, it has no schema
-//				continue;
-//			}
-			ProvisioningTestUtil.assertConnectorSchemaSanity(conn, prismContext);
+			IntegrationTestTools.assertConnectorSchemaSanity(conn, prismContext);
 		}
 		
-		assertEquals("Unexpected number of connectors found", 6, connectors.size());
+		assertEquals("Unexpected number of connectors found", 7, connectors.size());
 	}
 		
 	@Test
@@ -114,7 +111,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 			System.out.println("-----\n");
 		}
 		
-		assertEquals("Unexpected number of connectors found", 6, connectors.size());
+		assertEquals("Unexpected number of connectors found", 7, connectors.size());
 	}
 	
 	@Test
@@ -124,8 +121,8 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ "." + TEST_NAME);
 		
-		PrismObject<ConnectorType> ldapConnector = findConnectorByType(LDAP_CONNECTOR_TYPE, result);
-		assertEquals("Type does not match", LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
+		PrismObject<ConnectorType> ldapConnector = findConnectorByType(IntegrationTestTools.LDAP_CONNECTOR_TYPE, result);
+		assertEquals("Type does not match", IntegrationTestTools.LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
 	}
 	
 	
@@ -136,8 +133,8 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 				+ ".testSearchConnector");
 
 		ObjectQuery query = QueryBuilder.queryFor(ConnectorType.class, prismContext)
-				.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI)
-				.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(LDAP_CONNECTOR_TYPE)
+				.item(SchemaConstants.C_CONNECTOR_FRAMEWORK).eq(SchemaConstants.ICF_FRAMEWORK_URI)
+				.and().item(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE).eq(IntegrationTestTools.LDAP_CONNECTOR_TYPE)
 				.build();
 
 		System.out.println("Query:\n"+query.debugDump());
@@ -146,7 +143,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		
 		assertEquals("Unexpected number of results", 1, connectors.size());
 		PrismObject<ConnectorType> ldapConnector = connectors.get(0);
-		assertEquals("Type does not match", LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
-		assertEquals("Framework does not match", ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI, ldapConnector.asObjectable().getFramework());
+		assertEquals("Type does not match", IntegrationTestTools.LDAP_CONNECTOR_TYPE, ldapConnector.asObjectable().getConnectorType());
+		assertEquals("Framework does not match", SchemaConstants.ICF_FRAMEWORK_URI, ldapConnector.asObjectable().getFramework());
 	}
 }

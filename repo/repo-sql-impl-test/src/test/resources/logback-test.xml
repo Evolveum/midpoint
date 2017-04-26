@@ -28,7 +28,7 @@
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
     <logger name="com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
-    <logger name="com.evolveum.midpoint" level="WARN"/>
+    <logger name="com.evolveum.midpoint" level="INFO"/>
     <!--<logger name="org.hibernate" level="TRACE"/>-->
     <!--<logger name="org.springframework" level="INFO" />-->
 
@@ -41,9 +41,9 @@
     <logger name="com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager" level="TRACE"/>
     <logger name="com.evolveum.midpoint.testing" level="TRACE"/>
 
-    <logger name="com.evolveum.midpoint.repo.sql.query.QueryRegistry" level="OFF"/>
-    <logger name="com.evolveum.midpoint.prism.schema.SchemaRegistry" level="OFF"/>
-    <logger name="com.evolveum.midpoint.prism.schema.SchemaHandler" level="OFF"/>
+    <!--<logger name="com.evolveum.midpoint.repo.sql.query.QueryRegistry" level="INFO"/>-->
+    <!--<logger name="com.evolveum.midpoint.prism.schema.SchemaRegistry" level="INFO"/>-->
+    <!--<logger name="com.evolveum.midpoint.prism.schema.SchemaHandler" level="INFO"/>-->
 
     <logger name="com.evolveum.midpoint.repo.sql.query" level="DEBUG"/>
     <logger name="com.evolveum.midpoint.repo.sql.query.QueryInterpreter" level="TRACE"/>

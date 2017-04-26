@@ -44,26 +44,24 @@ public class ProcessEvent {
      */
     private boolean running;
 
-    private String answer;
-	private String state;
+    private String outcome;
 
 	public ProcessEvent(DelegateExecution execution, ProcessInterfaceFinder processInterfaceFinder) {
 		pid = execution.getProcessInstanceId();
 		running = true;
 		addVariablesFrom(execution.getVariables());
-		computeStateAndAnswer(processInterfaceFinder);
+		computeOutcome(processInterfaceFinder);
 	}
 
-	private void computeStateAndAnswer(ProcessInterfaceFinder processInterfaceFinder) {
+	private void computeOutcome(ProcessInterfaceFinder processInterfaceFinder) {
 		ProcessMidPointInterface pmi = processInterfaceFinder.getProcessInterface(variables);
-		state = pmi.getState(variables);
-		answer = pmi.getAnswer(variables);
+		outcome = pmi.getOutcome(variables);
 	}
 
 	public ProcessEvent(String pid, Map<String, Object> variables, ProcessInterfaceFinder processInterfaceFinder) {
 		this.pid = pid;
 		addVariablesFrom(variables);
-		computeStateAndAnswer(processInterfaceFinder);
+		computeOutcome(processInterfaceFinder);
 	}
 
 	public String getPid() {
@@ -94,20 +92,8 @@ public class ProcessEvent {
         variables.putAll(map);
     }
 
-	public String getAnswer() {
-		return answer;
-	}
-
-	public void setAnswer(String answer) {
-		this.answer = answer;
-	}
-
-	public String getState() {
-		return state;
-	}
-
-	public void setState(String state) {
-		this.state = state;
+	public String getOutcome() {
+		return outcome;
 	}
 
 	@Override

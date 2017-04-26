@@ -23,8 +23,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.provisioning.impl.ConnectorSpec;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -50,18 +52,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -376,11 +387,15 @@ public class ProvisioningUtil {
 		}
 	}
 
-	public static boolean shouldStoreActivationItemInShadow(QName elementName) {	// MID-2585
-		return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
+	public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStategyType cachingStrategy) {	// MID-2585
+		if (cachingStrategy == CachingStategyType.PASSIVE) {
+			return true;
+		} else {
+			return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
 				QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP) ||
 				QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP) ||
 				QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
+		}
 	}
 
 	public static void cleanupShadowActivation(ShadowType repoShadowType) {
@@ -400,6 +415,25 @@ public class ProvisioningUtil {
 		a.setLockoutStatus(null);
 		a.setLockoutExpirationTimestamp(null);
 		a.setValidityChangeTimestamp(null);
+	}
+	
+	public static void cleanupShadowPassword(PasswordType p) {
+		p.setValue(null);
+	}
+	
+	public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, PrismObject<UserType> owner) {
+		MetadataType metadata = p.getMetadata();
+		if (metadata != null) {
+			return;
+		}
+		// Supply some metadata if they are not present. However the
+		// normal thing is that those metadata are provided by model
+		metadata = new MetadataType();
+		metadata.setCreateTimestamp(now);
+		if (owner != null) {
+			metadata.creatorRef(owner.getOid(), null);
+		}
+		p.setMetadata(metadata);
 	}
 
 	public static void checkShadowActivationConsistency(PrismObject<ShadowType> shadow) {
@@ -430,11 +464,14 @@ public class ProvisioningUtil {
 
 	public static CachingStategyType getCachingStrategy(ProvisioningContext ctx)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		CachingPolicyType caching = ctx.getResource().getCaching();
-		if (caching == null) {
-			return CachingStategyType.NONE;
-		}
-		if (caching.getCachingStategy() == null) {
+		ResourceType resource = ctx.getResource();
+		CachingPolicyType caching = resource.getCaching();
+		if (caching == null || caching.getCachingStategy() == null) {
+			ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
+			Boolean cachingOnly = readCapabilityType.isCachingOnly();
+			if (cachingOnly == Boolean.TRUE) {
+				return CachingStategyType.PASSIVE;
+			}
 			return CachingStategyType.NONE;
 		}
 		return caching.getCachingStategy();
@@ -443,4 +480,5 @@ public class ProvisioningUtil {
 	public static boolean shouldDoRepoSearch(GetOperationOptions rootOptions) {
 		return GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isMaxStaleness(rootOptions);
 	}
+
 }

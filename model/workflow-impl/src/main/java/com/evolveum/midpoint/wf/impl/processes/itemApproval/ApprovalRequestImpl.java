@@ -65,11 +65,11 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
 			return schema;
 		} else {
         	schema = new ApprovalSchemaType(prismContext);
-        	ApprovalLevelType level = new ApprovalLevelType(prismContext);
-        	level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approverRef));
-        	level.getApproverExpression().addAll(approverExpression);
-        	level.setAutomaticallyApproved(automaticallyApproved);
-        	schema.getLevel().add(level);
+        	ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType(prismContext);
+        	stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approverRef));
+        	stageDef.getApproverExpression().addAll(approverExpression);
+        	stageDef.setAutomaticallyApproved(automaticallyApproved);
+        	schema.getStage().add(stageDef);
         	return schema;
         }
     }
@@ -94,11 +94,6 @@ public class ApprovalRequestImpl<I extends Serializable> implements ApprovalRequ
 			approvalSchemaType = new ApprovalSchemaType();
 		}
 		return approvalSchemaType;
-	}
-
-	@Override
-	public ApprovalSchema getApprovalSchema() {
-		return new ApprovalSchema(getApprovalSchemaType());
 	}
 
 	@Override

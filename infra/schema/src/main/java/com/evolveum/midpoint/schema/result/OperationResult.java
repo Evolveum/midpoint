@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String CONTEXT_RESOURCE = "resource";
 	
 	public static final String PARAM_OID = "oid";
+	public static final String PARAM_NAME = "name";
 	public static final String PARAM_TYPE = "type";
 	public static final String PARAM_OPTIONS = "options";
 	public static final String PARAM_TASK = "task";
@@ -105,6 +106,15 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
 	private boolean minor = false;
+	
+	/**
+	 * Reference to an asynchronous operation that can be used to retrieve
+	 * the status of the running operation. This may be a task identifier,
+	 * identifier of a ticket in ITSM system or anything else. The exact
+	 * format of this reference depends on the operation which is being
+	 * executed.
+	 */
+	private String asynchronousOperationReference;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
@@ -196,6 +206,21 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		OperationResult subresult = createSubresult(operation);
 		subresult.minor = true;
 		return subresult;
+	}
+	
+	/**
+	 * Reference to an asynchronous operation that can be used to retrieve
+	 * the status of the running operation. This may be a task identifier,
+	 * identifier of a ticket in ITSM system or anything else. The exact
+	 * format of this reference depends on the operation which is being
+	 * executed.
+	 */
+	public String getAsynchronousOperationReference() {
+		return asynchronousOperationReference;
+	}
+
+	public void setAsynchronousOperationReference(String asyncronousOperationReference) {
+		this.asynchronousOperationReference = asyncronousOperationReference;
 	}
 
 	/**
@@ -491,6 +516,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 					message = sub.getMessage();
 				} else {
 					message = message + ": " + sub.getMessage();
+				}
+				if (asynchronousOperationReference == null) {
+					asynchronousOperationReference = sub.getAsynchronousOperationReference();
 				}
 				return;
 			}
@@ -1255,9 +1283,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	private void dumpIndent(StringBuilder sb, int indent, boolean printStackTrace) {
-		for (int i = 0; i < indent; i++) {
-			sb.append(INDENT_STRING);
-		}
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("*op* ");
 		sb.append(operation);
 		sb.append(", st: ");
@@ -1271,12 +1297,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append(" x");
 			sb.append(count);
 		}
+		if (asynchronousOperationReference != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "asyncronousOperationReference", asynchronousOperationReference, indent + 2);
+		}
 		sb.append("\n");
 
 		for (Map.Entry<String, Serializable> entry : getParams().entrySet()) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
+			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[p]");
 			sb.append(entry.getKey());
 			sb.append("=");
@@ -1285,9 +1313,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 
 		for (Map.Entry<String, Serializable> entry : getContext().entrySet()) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
+			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[c]");
 			sb.append(entry.getKey());
 			sb.append("=");
@@ -1296,9 +1322,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		
 		for (Map.Entry<String, Serializable> entry : getReturns().entrySet()) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
+			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[r]");
 			sb.append(entry.getKey());
 			sb.append("=");
@@ -1307,18 +1331,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 
 		for (String line : details) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
+			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[d]");
 			sb.append(line);
 			sb.append("\n");
 		}
 		
 		if (cause != null) {
-			for (int i = 0; i < indent + 2; i++) {
-				sb.append(INDENT_STRING);
-			}
+			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[cause]");
 			sb.append(cause.getClass().getSimpleName());
 			sb.append(":");
@@ -1354,9 +1374,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		if (innerCause == null) {
 			return;
 		}
-		for (int i = 0; i < indent; i++) {
-			sb.append(INDENT_STRING);
-		}
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Caused by ");
 		sb.append(innerCause.getClass().getName());
 		sb.append(": ");
@@ -1368,9 +1386,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
 		for (StackTraceElement aStackTrace : stackTrace) {
-			for (int j = 0; j < indent; j++) {
-				sb.append(INDENT_STRING);
-			}
+			DebugUtil.indentDebugDump(sb, indent);
 			StackTraceElement element = aStackTrace;
 			sb.append(element.toString());
 			sb.append("\n");
@@ -1460,6 +1476,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         clone.summarizePartialErrors = summarizePartialErrors;
         clone.summarizeSuccesses = summarizeSuccesses;
         clone.minor = minor;
+        clone.asynchronousOperationReference = asynchronousOperationReference;
 
         return clone;
     }

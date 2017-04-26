@@ -33,7 +33,6 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareChildOperationTaskHandler;
 import com.evolveum.midpoint.wf.impl.processors.primary.WfPrepareRootOperationTaskHandler;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -331,7 +331,7 @@ public class MiscDataUtil {
 				return true;
 			}
 		}
-		return isAmongCandidates(principal, workItem.getWorkItemId());
+		return isAmongCandidates(principal, workItem.getExternalId());
     }
 
 	public boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid) {
@@ -371,7 +371,7 @@ public class MiscDataUtil {
     }
 
     public boolean isAuthorizedToClaim(WorkItemType workItem) {
-        return isAuthorizedToClaim(workItem.getWorkItemId());
+        return isAuthorizedToClaim(workItem.getExternalId());
     }
 
     public boolean isAuthorizedToClaim(String taskId) {
@@ -505,13 +505,14 @@ public class MiscDataUtil {
 
 		final WfContextType wfc = childTask.getWorkflowContext();
 		if (wfc != null && wfc.getProcessInstanceId() != null) {
-			if (wfc.isApproved() == null) {
+			Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
+			if (isApproved == null) {
 				if (wfc.getEndTimestamp() == null) {
 					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
 				} else {
 					recordChangesCanceled(rv, wfc, prismContext);
 				}
-			} else if (wfc.isApproved()) {
+			} else if (isApproved) {
 				if (rootTask.getModelOperationContext() != null) {
 					// this is "execute after all approvals"
 					if (rootTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
@@ -547,13 +548,14 @@ public class MiscDataUtil {
 			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, result);
 			final WfContextType wfc = subtask.getWorkflowContext();
 			if (wfc != null && wfc.getProcessInstanceId() != null) {
-				if (wfc.isApproved() == null) {
+				Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
+				if (isApproved == null) {
 					if (wfc.getEndTimestamp() == null) {
 						recordChangesWaitingToBeApproved(rv, wfc, prismContext);
 					} else {
 						recordChangesCanceled(rv, wfc, prismContext);
 					}
-				} else if (wfc.isApproved()) {
+				} else if (isApproved) {
 					recordChangesApprovedIfNeeded(rv, subtask, rootTask, prismContext);
 				} else {
 					recordChangesRejected(rv, wfc, prismContext);

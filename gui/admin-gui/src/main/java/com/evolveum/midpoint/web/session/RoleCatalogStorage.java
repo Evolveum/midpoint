@@ -50,7 +50,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private SelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = null;      //the current view type
-    private PrismObject<UserType> targetUser = null;
+    private List<PrismObject<UserType>> targetUserList = new ArrayList<>();
     private PrismObject<UserType> assignmentsUserOwner = null;
     private List<AssignmentConflictDto> conflictsList;
     private String requestDescription = "";
@@ -172,12 +172,12 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.selectedOid = selectedOid;
     }
 
-    public PrismObject<UserType> getTargetUser() {
-        return targetUser;
+    public List<PrismObject<UserType>> getTargetUserList() {
+        return targetUserList;
     }
 
-    public void setTargetUser(PrismObject<UserType> targetUser) {
-        this.targetUser = targetUser;
+    public void setTargetUserList(List<PrismObject<UserType>> targetUserList) {
+        this.targetUserList = targetUserList;
     }
 
     public PrismObject<UserType> getAssignmentsUserOwner() {
@@ -187,4 +187,9 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     public void setAssignmentsUserOwner(PrismObject<UserType> assignmentsUserOwner) {
         this.assignmentsUserOwner = assignmentsUserOwner;
     }
+
+    public boolean isMultiUserRequest(){
+        return getTargetUserList() != null && getTargetUserList().size() > 1;
+    }
+
 }

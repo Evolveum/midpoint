@@ -142,7 +142,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return canAssign(assignment);
+                return isMultiUserRequest() || canAssign(assignment);
             }
         });
         cellContainer.add(inner);
@@ -161,7 +161,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return canAssign(assignment);
+                return isMultiUserRequest() || canAssign(assignment);
             }
         });
         cellContainer.add(detailsLink);
@@ -183,7 +183,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return canAssign(assignment);
+                return isMultiUserRequest() || canAssign(assignment);
             }
         });
         detailsLink.add(detailsLinkIcon);
@@ -199,7 +199,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return canAssign(assignment);
+                return isMultiUserRequest() || canAssign(assignment);
             }
         });
         cellContainer.add(addToCartLink);
@@ -217,7 +217,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isEnabled(){
-                return canAssign(assignment);
+                return isMultiUserRequest() || canAssign(assignment);
             }
         });
         addToCartLink.add(addToCartLinkIcon);
@@ -232,7 +232,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public boolean isVisible(){
-                return assignment.isAlreadyAssigned();
+                return !isMultiUserRequest() && assignment.isAlreadyAssigned();
             }
         });
         cellContainer.add(alreadyAssignedIcon);
@@ -287,7 +287,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     }
 
     private String getBackgroundClass(AssignmentEditorDto dto){
-        if (!canAssign(dto)){
+        if (!isMultiUserRequest() && !canAssign(dto)){
             return GuiStyleConstants.CLASS_DISABLED_OBJECT_ROLE_BG;
         } else if (AssignmentEditorDtoType.ROLE.equals(dto.getType())){
             return GuiStyleConstants.CLASS_OBJECT_ROLE_BG;
@@ -349,5 +349,9 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
             };
         }
         return pageBase;
+    }
+
+    private boolean isMultiUserRequest(){
+        return pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest();
     }
 }

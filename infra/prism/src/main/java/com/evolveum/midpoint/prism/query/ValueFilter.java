@@ -362,8 +362,8 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("VALUE:");
-			sb.append("\n");
 			for (PrismValue val : getValues()) {
+				sb.append("\n");
 				sb.append(DebugUtil.debugDump(val, indent + 2));
 			}
 		}

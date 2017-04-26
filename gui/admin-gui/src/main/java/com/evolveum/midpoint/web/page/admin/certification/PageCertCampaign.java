@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCaseDto;
@@ -49,6 +51,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -57,6 +60,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -103,6 +107,8 @@ public class PageCertCampaign extends PageAdminCertification {
 	private static final String ID_CAMPAIGN_CURRENT_STATE = "campaignCurrentState";
 	private static final String ID_CAMPAIGN_TIME = "campaignTime";
 	private static final String ID_STAGE_TIME = "stageTime";
+	private static final String ID_ESCALATION_LEVEL_INFO_CONTAINER = "escalationLevelInfoContainer";
+	private static final String ID_ESCALATION_LEVEL_INFO = "escalationLevelInfo";
 
 	private static final String ID_BACK_BUTTON = "backButton";
 	private static final String ID_START_CAMPAIGN_BUTTON = "startCampaignButton";
@@ -120,7 +126,7 @@ public class PageCertCampaign extends PageAdminCertification {
 	private static final String ID_OUTCOMES_TABLE = "outcomesTable";
 
 	private LoadableModel<AccessCertificationCasesStatisticsType> statModel;
-	private LoadableModel<CertCampaignDto> campaignModel;
+	private NonEmptyLoadableModel<CertCampaignDto> campaignModel;
 
 	private String campaignOid;
 
@@ -142,7 +148,8 @@ public class PageCertCampaign extends PageAdminCertification {
 				return loadStatistics();
 			}
 		};
-		campaignModel = new LoadableModel<CertCampaignDto>(false) {
+		campaignModel = new NonEmptyLoadableModel<CertCampaignDto>(false) {
+			@NotNull
 			@Override
 			protected CertCampaignDto load() {
 				return loadCampaign();
@@ -170,6 +177,7 @@ public class PageCertCampaign extends PageAdminCertification {
 		return stat;
 	}
 
+	@NotNull
 	private CertCampaignDto loadCampaign() {
 		Task task = createSimpleTask("dummy");  // todo
 		OperationResult result = task.getResult();
@@ -227,6 +235,10 @@ public class PageCertCampaign extends PageAdminCertification {
 				return formatStageDuration(dto.getStageStart(), dto.getStageDeadline(), dto.getStageEnd());
 			}
 		}));
+		WebMarkupContainer escalationLevelInfoContainer = new WebMarkupContainer(ID_ESCALATION_LEVEL_INFO_CONTAINER);
+		mainForm.add(escalationLevelInfoContainer);
+		escalationLevelInfoContainer.add(new Label(ID_ESCALATION_LEVEL_INFO, new PropertyModel<String>(campaignModel, CertCampaignDto.F_ESCALATION_LEVEL_INFO)));
+		escalationLevelInfoContainer.add(new VisibleBehaviour(() -> campaignModel.getObject().getEscalationLevelInfo() != null));
 	}
 
 	// TODO implement seriously
@@ -287,7 +299,7 @@ public class PageCertCampaign extends PageAdminCertification {
 			columns.add(column);
 		}
 
-		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewers"), CertCaseDto.F_REVIEWERS);
+		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewers"), CertCaseDto.F_CURRENT_REVIEWERS);
 		columns.add(column);
 
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedAt"), CertCaseDto.F_REVIEWED_AT);
@@ -361,7 +373,6 @@ public class PageCertCampaign extends PageAdminCertification {
 		mainForm.add(createStatLabel(ID_STAT_REVOKE_REMEDIED, F_MARKED_AS_REVOKE_AND_REMEDIED));
 		mainForm.add(createStatLabel(ID_STAT_REDUCE, F_MARKED_AS_REDUCE));
 		mainForm.add(createStatLabel(ID_STAT_REDUCE_REMEDIED, F_MARKED_AS_REDUCE_AND_REMEDIED));
-		mainForm.add(createStatLabel(ID_STAT_DELEGATE, F_MARKED_AS_DELEGATE));
 		mainForm.add(createStatLabel(ID_STAT_NO_DECISION, F_MARKED_AS_NOT_DECIDE));
 		mainForm.add(createStatLabel(ID_STAT_NO_RESPONSE, F_WITHOUT_RESPONSE));
 	}

@@ -278,16 +278,42 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 				q.setParameter(p.getKey(), null);
 				continue;
 			}
-			if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
-				q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
-			} else if (p.getValue() instanceof AuditEventType) {
-				q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
-			} else if (p.getValue() instanceof AuditEventStage) {
-				q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
-			} else {
-				q.setParameter(p.getKey(), p.getValue());
+			
+			if (List.class.isAssignableFrom(p.getValue().getClass())){
+				q.setParameterList(p.getKey(), convertValues((List)p.getValue()));
+			} else { 
+				q.setParameter(p.getKey(), toRepoType(p.getValue()));
 			}
+//			if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
+//				q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
+//			} else if (p.getValue() instanceof AuditEventType) {
+//				q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
+//			} else if (p.getValue() instanceof AuditEventStage) {
+//				q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
+//			} else {
+//				q.setParameter(p.getKey(), p.getValue());
+//			}
 		}
+	}
+	
+	private List<?> convertValues(List<?> originValues) {
+		List<Object> repoValues = new ArrayList<>();
+		for (Object value : originValues) {
+			repoValues.add(toRepoType(value));
+		}
+		return repoValues;
+	}
+	
+	private Object toRepoType(Object value){
+		if (XMLGregorianCalendar.class.isAssignableFrom(value.getClass())) {
+			return MiscUtil.asDate((XMLGregorianCalendar) value);
+		} else if (value instanceof AuditEventType) {
+			return RAuditEventType.toRepo((AuditEventType) value);
+		} else if (value instanceof AuditEventStage) {
+			return RAuditEventStage.toRepo((AuditEventStage) value);
+		} 
+		
+		return value;
 	}
 
 	private PrismObject resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {

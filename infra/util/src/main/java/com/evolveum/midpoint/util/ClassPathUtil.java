@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,18 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
+ * @author Peter Prochazka
  * @author Radovan Semancik
- * 
  */
 public class ClassPathUtil {
 
@@ -51,13 +54,23 @@ public class ClassPathUtil {
 	}
 	
 	public static Set<Class> listClasses(String packageName) {
-
 		Set<Class> classes = new HashSet<Class>();
-
+		searchClasses(packageName, c -> classes.add(c));
+		return classes;
+	}
+	
+	/**
+	 * This is not entirely reliable method.
+	 * Maybe it would be better to rely on Spring ClassPathScanningCandidateComponentProvider
+	 */
+	public static void searchClasses(String packageName, Consumer<Class> consumer) {
 		String path = packageName.replace('.', '/');
 		Enumeration<URL> resources = null;
-		try {// HACK this is not available use LOGGER
-			resources = LOGGER.getClass().getClassLoader().getResources(path);
+		// HACK this is not available use LOGGER
+		ClassLoader classLoader = LOGGER.getClass().getClassLoader();
+		LOGGER.trace("Classloader: {} : {}", classLoader, classLoader.getClass());
+		try {
+			resources = classLoader.getResources(path);
 		} catch (IOException e) {
 			LOGGER.error("Classloader scaning error for " + path, e);
 		}
@@ -69,15 +82,14 @@ public class ClassPathUtil {
 			// test if it is a directory or JAR
             String protocol = candidateUrl.getProtocol(); 
             if ("file".contentEquals(protocol)) {
-            	classes.addAll(getFromDirectory(candidateUrl, packageName));
+            	getFromDirectory(candidateUrl, packageName, consumer);
             } else if ("jar".contentEquals(protocol) || "zip".contentEquals(protocol)) {
-            	classes.addAll(getFromJar(candidateUrl, packageName));
+            	getFromJar(candidateUrl, packageName, consumer);
             } else {
                 LOGGER.warn("Unsupported protocol for candidate URL {}", candidateUrl);
             }		
         }
 
-		return classes;
 	}
 
 	/**
@@ -229,9 +241,7 @@ public class ClassPathUtil {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	private static Collection<? extends Class> getFromJar(URL srcUrl, String packageName) {
-		@SuppressWarnings("rawtypes")
-		Set<Class> classes = new HashSet<Class>();
+	private static void getFromJar(URL srcUrl, String packageName, Consumer<Class> consumer) {
 		// sample:
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
@@ -254,7 +264,7 @@ public class ClassPathUtil {
 			jarTmp = new File(new URI(srcName));
 		} catch (URISyntaxException ex) {
 			LOGGER.error("Error converting jar " + srcName + " name to URI:", ex);
-			return classes;
+			return;
 		}
 
 		if (!jarTmp.isFile()) {
@@ -266,7 +276,7 @@ public class ClassPathUtil {
 			jar = new JarFile(jarTmp);
 		} catch (IOException ex) {
 			LOGGER.error("Error during open JAR " + srcName, ex);
-			return classes;
+			return;
 		}
 		String path = packageName.replace('.', '/');
 		Enumeration<JarEntry> entries = jar.entries();
@@ -293,7 +303,8 @@ public class ClassPathUtil {
 			try {// to create class
 
 				// Convert name back to package
-				classes.add(Class.forName(name.replace('/', '.').replace(".class", "")));
+				Class clazz = Class.forName(name.replace('/', '.').replace(".class", ""));
+				consumer.accept(clazz);
 			} catch (ClassNotFoundException ex) {
 				LOGGER.error("Error during loading class {} from {}. ", name, jar.getName());
 			}
@@ -303,10 +314,9 @@ public class ClassPathUtil {
 			jar.close();
 		} catch (IOException ex) {
 			LOGGER.error("Error during close JAR {} " + srcName, ex);
-			return classes;
+			return;
 		}
 
-		return classes;
 	}
 
 	/**
@@ -317,10 +327,7 @@ public class ClassPathUtil {
 	 * @return
 	 */
 	@SuppressWarnings("rawtypes")
-	private static Collection<Class> getFromDirectory(URL candidateUrl, String packageName) {
-
-		@SuppressWarnings("rawtypes")
-		Set<Class> classes = new HashSet<Class>();
+	private static void getFromDirectory(URL candidateUrl, String packageName, Consumer<Class> consumer) {
 
 		// Directory preparation
 		File dir = null;
@@ -328,13 +335,13 @@ public class ClassPathUtil {
 			dir = new File(candidateUrl.toURI());
 		} catch (URISyntaxException e) {
 			LOGGER.error("NEVER HAPPEND -- Wrong URI: " + candidateUrl.getPath(), e);
-			return classes;
+			return;
 		}
 
 		// Skip if it is directory
 		if (!dir.isDirectory()) {
 			LOGGER.warn("   Skip: {} is not a directory", candidateUrl.getPath());
-			return classes;
+			return;
 		}
 
 		// List directory
@@ -346,11 +353,11 @@ public class ClassPathUtil {
 			}
 			try {// to create class
 				LOGGER.trace("DIR Candidate: {}", dirList[i]);
-				classes.add(Class.forName(packageName + "." + dirList[i].replace(".class", "")));
+				Class<?> clazz = Class.forName(packageName + "." + dirList[i].replace(".class", ""));
+				consumer.accept(clazz);
 			} catch (ClassNotFoundException e) {
 				LOGGER.error("Error during loading class {} from {}. ", dirList[i], dir.getAbsolutePath());
 			}
 		}
-		return classes;
 	}
 }

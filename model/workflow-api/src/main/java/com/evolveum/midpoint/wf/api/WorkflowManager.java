@@ -97,7 +97,7 @@ public interface WorkflowManager {
 
 	void registerWorkItemListener(WorkItemListener workItemListener);
 
-	List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
+	Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
 	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
@@ -120,4 +120,6 @@ public interface WorkflowManager {
 			throws SchemaException, ObjectNotFoundException;
 
 	void synchronizeWorkflowRequests(OperationResult parentResult);
+
+	void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException;
 }

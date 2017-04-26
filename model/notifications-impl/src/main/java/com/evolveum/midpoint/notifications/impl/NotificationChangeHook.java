@@ -25,7 +25,7 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,10 +33,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -53,23 +51,12 @@ public class NotificationChangeHook implements ChangeHook {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationChangeHook.class);
 
-    public static final String HOOK_URI = "http://midpoint.evolveum.com/wf/notifier-hook-2";
+	private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/notification-hook-3";
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-
-    @Autowired(required = true)
-    private HookRegistry hookRegistry;
-
-    @Autowired(required = true)
-    private NotificationManager notificationManager;
-
-    @Autowired(required = true)
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private HookRegistry hookRegistry;
+    @Autowired private NotificationManager notificationManager;
+    @Autowired private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {

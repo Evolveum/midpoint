@@ -19,7 +19,11 @@
 <xsd:schema targetNamespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:tns="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            elementFormDefault="qualified">
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -125,6 +129,55 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:element name="index" type="tns:IndexType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Item annotation: Specifies type of index that is maintained for this
+                item. The data store maintains this type of index for the item.
+                This annotation may appear several times (maxOccurs=unbounded).
+                This annotation implies indexed=true.
+                WARNING: Presence of this annotation may impose some restriction on the
+                property, usually a length restriction. E.g. database systems usually
+                restrict the length of a datatype that can be efficiently indexed.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+        <xsd:simpleType name="IndexType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of index maintained by the data store.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="equality">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EQUALITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="substring">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUBSTRING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="presence">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRESENCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
     
     <xsd:element name="ignore" type="xsd:boolean">
         <xsd:annotation>

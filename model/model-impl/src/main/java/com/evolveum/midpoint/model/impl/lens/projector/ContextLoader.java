@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -496,7 +497,9 @@ public class ContextLoader {
 			if (shadow == null) {
 				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 				// We need to fetch from provisioning and not repository so the correct definition will be set.
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+				GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
+				rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
 				LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
 				try {
 					shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
@@ -567,25 +570,25 @@ public class ContextLoader {
 			for (PrismReferenceValue refVal : linkRefDelta.getValuesToAdd()) {
 				String oid = refVal.getOid();
 				LensProjectionContext accountContext = null;
-				PrismObject<ShadowType> account = null;
+				PrismObject<ShadowType> shadow = null;
 				boolean isCombinedAdd = false;
 				if (oid == null) {
 					// Adding new account
-					account = refVal.getObject();
-					if (account == null) {
+					shadow = refVal.getObject();
+					if (shadow == null) {
 						throw new SchemaException("Null or empty OID in account reference " + refVal + " in "
 								+ focus);
 					}
-					provisioningService.applyDefinition(account, result);
-					if (consistencyChecks) ShadowUtil.checkConsistence(account, "account from "+linkRefDelta);
+					provisioningService.applyDefinition(shadow, result);
+					if (consistencyChecks) ShadowUtil.checkConsistence(shadow, "account from "+linkRefDelta);
 					// Check for conflicting change
-					accountContext = LensUtil.getProjectionContext(context, account, provisioningService, prismContext, task, result);
+					accountContext = LensUtil.getProjectionContext(context, shadow, provisioningService, prismContext, task, result);
 					if (accountContext != null) {
 						// There is already existing context for the same discriminator. Tolerate this only if
 						// the deltas match. It is an error otherwise.
 						ObjectDelta<ShadowType> primaryDelta = accountContext.getPrimaryDelta();
 						if (primaryDelta == null) {
-							throw new SchemaException("Attempt to add "+account+" to a user that already contains "+
+							throw new SchemaException("Attempt to add "+shadow+" to a user that already contains "+
                                     accountContext.getHumanReadableKind()+" of type '"+
 									accountContext.getResourceShadowDiscriminator().getIntent()+"' on "+accountContext.getResource());
 						}
@@ -593,17 +596,17 @@ public class ContextLoader {
 							throw new SchemaException("Conflicting changes in the context. " +
 									"Add of accountRef in the user delta with embedded object conflicts with explicit delta "+primaryDelta);
 						}
-						if (!account.equals(primaryDelta.getObjectToAdd())) {
+						if (!shadow.equals(primaryDelta.getObjectToAdd())) {
 							throw new SchemaException("Conflicting changes in the context. " +
 									"Add of accountRef in the user delta with embedded object is not adding the same object as explicit delta "+primaryDelta);
 						}
 					} else {
 						// Create account context from embedded object
-						accountContext = createProjectionContext(context, account, task, result);
+						accountContext = createProjectionContext(context, shadow, task, result);
 					}
 					// This is a new account that is to be added. So it should
 					// go to account primary delta
-					ObjectDelta<ShadowType> accountPrimaryDelta = account.createAddDelta();
+					ObjectDelta<ShadowType> accountPrimaryDelta = shadow.createAddDelta();
 					accountContext.setPrimaryDelta(accountPrimaryDelta);
 					accountContext.setFullShadow(true);
 					accountContext.setExists(false);
@@ -615,11 +618,13 @@ public class ContextLoader {
 					try {
 						// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
 						// We need to fetch from provisioning and not repository so the correct definition will be set.
-						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-						account = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+						GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
+						rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
+						Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
+						shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
 						// Create account context from retrieved object
-						accountContext = getOrCreateAccountContext(context, account, task, result);
-						accountContext.setLoadedObject(account);
+						accountContext = getOrCreateAccountContext(context, shadow, task, result);
+						accountContext.setLoadedObject(shadow);
 						accountContext.setExists(true);
 					} catch (ObjectNotFoundException e) {
 						if (refVal.getObject() == null) {
@@ -629,13 +634,13 @@ public class ContextLoader {
 						} else {
 							// New account (with OID)
 							result.muteLastSubresultError();
-							account = refVal.getObject();
-							if (!account.hasCompleteDefinition()) {
-								provisioningService.applyDefinition(account, result);
+							shadow = refVal.getObject();
+							if (!shadow.hasCompleteDefinition()) {
+								provisioningService.applyDefinition(shadow, result);
 							}
 							// Create account context from embedded object
-							accountContext = createProjectionContext(context, account, task, result);
-							ObjectDelta<ShadowType> accountPrimaryDelta = account.createAddDelta();
+							accountContext = createProjectionContext(context, shadow, task, result);
+							ObjectDelta<ShadowType> accountPrimaryDelta = shadow.createAddDelta();
 							accountContext.setPrimaryDelta(accountPrimaryDelta);
 							accountContext.setFullShadow(true);
 							accountContext.setExists(false);
@@ -748,6 +753,7 @@ public class ContextLoader {
 					// We need to fetch from provisioning and not repository so the correct definition will be set.
 					GetOperationOptions option = GetOperationOptions.createNoFetch();
 					option.setDoNotDiscovery(true);
+					option.setPointInTimeType(PointInTimeType.FUTURE);
 					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(option);
 					
 					try {
@@ -826,7 +832,9 @@ public class ContextLoader {
 				// Chances are that the old object is already deleted (e.g. during rename). So let's be
 				// slightly inefficient here and check for existing shadow existence
 				try {
-					Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+					GetOperationOptions rootOpt = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
+					rootOpt.setDoNotDiscovery(true);
+					Collection<SelectorOptions<GetOperationOptions>> opts = SelectorOptions.createCollection(rootOpt);
 					LOGGER.trace("Projection conflict detected, exsting: {}, new {}", projectionContext.getOid(), projection.getOid());
 					PrismObject<ShadowType> existingShadow = provisioningService.getObject(ShadowType.class, projectionContext.getOid(), opts, task, result);
 					// Maybe it is the other way around
@@ -981,7 +989,7 @@ public class ContextLoader {
 					}
 				} else {
 					projContext.setExists(true);
-					GetOperationOptions rootOptions = new GetOperationOptions();
+					GetOperationOptions rootOptions = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
 					if (projContext.isDoReconciliation()) {
 						if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
 							// Avoid discovery loops
@@ -1196,6 +1204,7 @@ public class ContextLoader {
 		}
 		
 		GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
+		getOptions.setPointInTimeType(PointInTimeType.FUTURE);
 		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
 			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops", projCtx);
 			// Avoid discovery loops

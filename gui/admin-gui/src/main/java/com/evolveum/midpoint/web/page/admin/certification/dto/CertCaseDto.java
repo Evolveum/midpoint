@@ -16,24 +16,20 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * DTO for displaying cases as part of certification campaign information.
@@ -43,54 +39,66 @@ import java.util.List;
  *
  * @author mederly
  */
-public class CertCaseDto extends CertCaseOrDecisionDto {
+public class CertCaseDto extends CertCaseOrWorkItemDto {
 
     public static final String F_REMEDIED_AT = "remediedAt";
-    public static final String F_REVIEWERS = "reviewers";
+    public static final String F_CURRENT_REVIEWERS = "currentReviewers";
     public static final String F_REVIEWED_AT = "reviewedAt";
     public static final String F_REVIEWED_BY = "reviewedBy";
     public static final String F_COMMENTS = "comments";
     public static final String F_CURRENT_RESPONSE_STAGE_NUMBER = "currentResponseStageNumber";
 
-    private String allReviewers;
-    private List<String> reviewerNames = new ArrayList<>();
-    private List<String> comments = new ArrayList<>();
+    private final List<String> currentReviewers = new ArrayList<>();
+    private final List<String> reviewedBy = new ArrayList<>();
+    private final List<String> comments = new ArrayList<>();
+    private final String noReviewersLabel;
 
-    public CertCaseDto(AccessCertificationCaseType _case, PageBase page, Task task, OperationResult result) {
+    CertCaseDto(AccessCertificationCaseType _case, PageBase page, Task task, OperationResult result) {
         super(_case, page);
-        for (AccessCertificationDecisionType decision : _case.getDecision()) {
-            if (decision.getResponse() == null && StringUtils.isEmpty(decision.getComment())) {
-                continue;
+        Map<String, String> names = new HashMap<>();
+        for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
+            if (StringUtils.isNotEmpty(WorkItemTypeUtil.getComment(workItem))) {
+                comments.add(WorkItemTypeUtil.getComment(workItem));
             }
-            if (StringUtils.isNotEmpty(decision.getComment())) {
-                comments.add(decision.getComment());
-            }
-            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(decision.getReviewerRef(), page, task, result);
-            if (reviewerObject != null) {
-                reviewerNames.add(WebComponentUtil.getName(reviewerObject));
-            }
+			if (hasResponse(workItem) && workItem.getPerformerRef() != null) {
+				reviewedBy.add(getName(workItem.getPerformerRef(), page, names, task, result));
+			}
+			for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
+				if (workItem.getCloseTimestamp() == null
+						&& java.util.Objects.equals(workItem.getStageNumber(), _case.getStageNumber())) {
+					currentReviewers.add(getName(assigneeRef, page, names, task, result));
+				}
+			}
         }
-        List<String> names = new ArrayList<>();
-        for (ObjectReferenceType reviewerRef : _case.getCurrentReviewerRef()) {
-            // TODO optimize - don't resolve reviewers twice
-            PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(reviewerRef, page, task, result);
-            if (reviewerObject != null) {
-                names.add(WebComponentUtil.getName(reviewerObject));
-            }
-        }
-        if (names.isEmpty()) {
-            allReviewers = page.getString("PageCertCampaign.noReviewers");
-        } else {
-            allReviewers = StringUtils.join(names, ", ");
-        }
+        noReviewersLabel = page.getString("PageCertCampaign.noReviewers");
     }
 
-    public String getReviewers() {
-        return allReviewers;
+	private String getName(ObjectReferenceType ref, PageBase page,
+			Map<String, String> names, Task task, OperationResult result) {
+    	if (ref == null || ref.getOid() == null) {
+    		return null;		// shouldn't occur
+		}
+		return names.computeIfAbsent(ref.getOid(), oid -> {
+			PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(ref, page, task, result);
+			return reviewerObject != null ? WebComponentUtil.getName(reviewerObject) : ref.getOid();
+		});
+	}
+
+	private boolean hasResponse(AccessCertificationWorkItemType workItem) {
+        return workItem.getOutput() != null && (workItem.getOutput().getOutcome() != null || !StringUtils.isEmpty(workItem.getOutput().getComment()));
+    }
+
+    @SuppressWarnings("unused")
+    public String getCurrentReviewers() {
+		if (currentReviewers.isEmpty()) {
+			return noReviewersLabel;
+		} else {
+			return StringUtils.join(currentReviewers, ", ");
+		}
     }
 
     public String getReviewedBy() {
-        return StringUtils.join(reviewerNames, ", ");
+        return StringUtils.join(reviewedBy, ", ");
     }
 
     public String getComments() {
@@ -106,15 +114,16 @@ public class CertCaseDto extends CertCaseOrDecisionDto {
     }
 
     private Date getReviewedTimestamp(AccessCertificationCaseType certCase) {
-        return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getDecision());
+        return CertCampaignTypeUtil.getReviewedTimestamp(certCase.getWorkItem());
     }
 
     public AccessCertificationResponseType getOverallOutcome() {
-        return getCertCase().getOverallOutcome();
+        return OutcomeUtils.fromUri(getCertCase().getOutcome());
     }
 
+	@SuppressWarnings("unused")
     public Integer getCurrentResponseStageNumber() {
-        return getCertCase().getCurrentStageNumber();
+        return getCertCase().getStageNumber();
     }
 
 }

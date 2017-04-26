@@ -56,6 +56,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -837,7 +838,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public Boolean getWorkflowOutcome() {
 		WfContextType wfc = getWorkflowContext();
-		return wfc != null ? wfc.isApproved() : null;
+		return wfc != null ? ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome()) : null;
 	}
 
 	public String getOwnerOid() {

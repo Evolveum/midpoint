@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.util;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -147,6 +144,16 @@ public class QNameUtil {
 		}
 	}
 
+	public static boolean matchUri(String uri1, String uri2) {
+    	if (java.util.Objects.equals(uri1, uri2)) {
+    		return true;
+		} else if (uri1 == null || uri2 == null) {
+    		return false;
+		} else {
+			return match(uriToQName(uri1, true), uriToQName(uri2, true));
+		}
+	}
+
 	public static class QNameInfo {
 		@NotNull public final QName name;
 		public final boolean explicitEmptyNamespace;
@@ -158,6 +165,16 @@ public class QNameUtil {
 
     public static QName uriToQName(String uri, boolean allowUnqualified) {
 		return uriToQNameInfo(uri, allowUnqualified).name;
+	}
+
+	@NotNull
+    public static QName uriToQName(String uri, String defaultNamespace) {
+		QNameInfo info = uriToQNameInfo(uri, true);
+		if (hasNamespace(info.name) || info.explicitEmptyNamespace || StringUtils.isEmpty(defaultNamespace)) {
+			return info.name;
+		} else {
+			return new QName(defaultNamespace, info.name.getLocalPart());
+		}
 	}
 
 	@NotNull
@@ -228,6 +245,15 @@ public class QNameUtil {
 		}
 
 	}
+
+	/**
+	 * Matches QName with a URI representation. The URL may in fact be just the local
+	 * part.
+	 */
+	public static boolean matchWithUri(QName qname, String uri) {
+		return match(qname, uriToQName(uri, true));
+	}
+
 	
 	public static QName resolveNs(QName a, Collection<QName> col){
 		if (col == null) {

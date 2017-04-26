@@ -57,16 +57,18 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		return new ObjectPaging(offset, maxSize);
 	}
 	
-	public static ObjectPaging createPaging(Integer offset, Integer maxSize, QName orderBy, OrderDirection direction){
+	public static ObjectPaging createPaging(Integer offset, Integer maxSize, QName orderBy, OrderDirection direction) {
 		return new ObjectPaging(offset, maxSize, new ItemPath(orderBy), direction);
 	}
 
-	public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction){
+	public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
 		return new ObjectPaging(offset, maxSize, orderBy, direction);
 	}
 	
-	public static ObjectPaging createPaging(Integer offset, Integer maxSize, String orderBy, String namespace, OrderDirection direction){
-		return createPaging(offset, maxSize, new QName(namespace, orderBy), direction);
+	public static ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings) {
+		ObjectPaging paging = new ObjectPaging(offset, maxSize);
+		paging.setOrdering(orderings);
+		return paging;
 	}
 
 	public static ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction) {
@@ -128,7 +130,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	}
 
 	public void setOrdering(Collection<ObjectOrdering> orderings) {
-		this.ordering = new ArrayList<>(orderings);
+		this.ordering = orderings != null ? new ArrayList<>(orderings) : new ArrayList<>();
 	}
 
 	public Integer getOffset() {

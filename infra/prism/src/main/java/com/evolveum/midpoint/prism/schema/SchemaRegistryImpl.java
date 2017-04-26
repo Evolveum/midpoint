@@ -346,10 +346,15 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 			throw new IllegalStateException("Namespace prefix mapper not set");
 		}
 		try {
+			LOGGER.trace("initialize() starting");			// TODO remove (all of these)
 			initResolver();
+			LOGGER.trace("initResolver() done");
 			parsePrismSchemas();
+			LOGGER.trace("parsePrismSchemas() done");
 			parseJavaxSchema();
+			LOGGER.trace("parseJavaxSchema() done");
 			compileCompileTimeClassList();
+			LOGGER.trace("compileCompileTimeClassList() done");
 			initialized = true;
 			
 		} catch (SAXException ex) {
@@ -405,6 +410,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		
 		Element domElement = schemaDescription.getDomElement();
 		boolean isRuntime = schemaDescription.getCompileTimeClassesPackage() == null;
+		long started = System.currentTimeMillis();
 		LOGGER.trace("Parsing schema {}, namespace: {}, isRuntime: {}",
 				schemaDescription.getSourceDescription(), namespace, isRuntime);
 		PrismSchema schema = PrismSchemaImpl.parse(domElement, entityResolver, isRuntime,
@@ -412,8 +418,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		if (StringUtils.isEmpty(namespace)) {
 			namespace = schema.getNamespace();
 		}
-		LOGGER.trace("Parsed schema {}, namespace: {}, isRuntime: {}",
-				schemaDescription.getSourceDescription(), namespace, isRuntime);
+		LOGGER.trace("Parsed schema {}, namespace: {}, isRuntime: {} in {} ms",
+				schemaDescription.getSourceDescription(), namespace, isRuntime, System.currentTimeMillis()-started);
 		schemaDescription.setSchema(schema);
 		detectExtensionSchema(schema);
 	}
@@ -938,43 +944,63 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return resolveUnqualifiedTypeName(typeName);
 	}
 
+//	private class ParentChildPair {
+//		final ComplexTypeDefinition parentDef;
+//		final ItemDefinition childDef;
+//		public ParentChildPair(ComplexTypeDefinition parentDef, ItemDefinition childDef) {
+//			this.parentDef = parentDef;
+//			this.childDef = childDef;
+//		}
+//	}
+
 	// current implementation tries to find all references to the child CTD and select those that are able to resolve path of 'rest'
 	// fails on ambiguity
 	// it's a bit fragile, as adding new references to child CTD in future may break existing code
 	@Override
 	public ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest) {
-		ComplexTypeDefinition parent = null;
+		Map<ComplexTypeDefinition, ItemDefinition> found = new HashMap<>();
 		for (PrismSchema schema : getSchemas()) {
 			if (schema == null) {
 				continue;
 			}
 			for (ComplexTypeDefinition ctd : schema.getComplexTypeDefinitions()) {
 				for (ItemDefinition item : ctd.getDefinitions()) {
-					if (item instanceof PrismContainerDefinition) {
-						PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) item;
-						if (itemPcd.getComplexTypeDefinition() != null) {
-							if (child.getTypeName().equals(itemPcd.getComplexTypeDefinition().getTypeName())) {
-								if (!rest.isEmpty() && ctd.findItemDefinition(rest) == null) {
-									continue;
-								}
-								if (parent != null && !parent.getTypeClass().equals(ctd.getTypeName())) {
-									throw new IllegalStateException("Couldn't find parent definition for " + child.getTypeName() + ": More than one candidate found: "
-											+ parent.getTypeName() + ", " + itemPcd.getTypeName());
-								}
-								parent = ctd;
-							}
+					if (!(item instanceof PrismContainerDefinition)) {
+						continue;
+					}
+					PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) item;
+					if (itemPcd.getComplexTypeDefinition() == null) {
+						continue;
+					}
+					if (child.getTypeName().equals(itemPcd.getComplexTypeDefinition().getTypeName())) {
+						if (!rest.isEmpty() && ctd.findItemDefinition(rest) == null) {
+							continue;
 						}
+						found.put(ctd, itemPcd);
 					}
 				}
 			}
 		}
-		//		ComplexTypeDefinition def = findComplexTypeDefinition(new QName(
-		//				"http://midpoint.evolveum.com/xml/ns/public/common/common-3",
-		//				"ObjectType"));		// FIXME BRUTAL HACK
-		if (parent == null) {
+		if (found.isEmpty()) {
 			throw new IllegalStateException("Couldn't find definition for parent for " + child.getTypeName() + ", path=" + rest);
+		} else if (found.size() > 1) {
+			Map<ComplexTypeDefinition, ItemDefinition> notInherited = found.entrySet().stream()
+					.filter(e -> !e.getValue().isInherited())
+					.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+			if (notInherited.isEmpty()) {
+				throw new IllegalStateException(
+						"Couldn't find parent definition for " + child.getTypeName() + ": More than one candidate found: "
+								+ notInherited);
+			} else if (notInherited.isEmpty()) {
+				throw new IllegalStateException(
+						"Couldn't find parent definition for " + child.getTypeName() + ": More than one candidate found - and all are inherited: "
+								+ found);
+			} else {
+				return notInherited.keySet().iterator().next();
+			}
+		} else {
+			return found.keySet().iterator().next();
 		}
-		return parent;
 	}
 
 	@Override
@@ -1343,6 +1369,17 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 				+ " (" + cls1 + ") and " + type2 + " (" + cls2 + ")");
 	}
 
+	// TODO implement more efficiently
+	@Override
+	public boolean areComparable(QName type1, QName type2) throws SchemaException {
+		try {
+			selectMoreSpecific(type1, type2);
+			return true;
+		} catch (SchemaException e) {
+			return false;
+		}
+	}
+
 	@Override
 	public <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
 			throws SchemaException {
@@ -1375,9 +1412,10 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		if (QNameUtil.match(DOMUtil.XSD_ANYTYPE, subType)) {
 			return false;
 		}
-		Class<?> superClass = determineClassForTypeNotNull(superType);
-		Class<?> subClass = determineClassForTypeNotNull(subType);
-		return superClass.isAssignableFrom(subClass);
+		Class<?> superClass = determineClassForType(superType);
+		Class<?> subClass = determineClassForType(subType);
+		// TODO consider implementing "strict mode" that would throw an exception in the case of nullness
+		return superClass != null && subClass != null && superClass.isAssignableFrom(subClass);
 	}
 
 	@Override

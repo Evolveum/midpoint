@@ -39,6 +39,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestLdapDependency"/>
             <class name="com.evolveum.midpoint.testing.story.TestEntertainment"/>
             <class name="com.evolveum.midpoint.testing.story.TestStrings"/>
+            <class name="com.evolveum.midpoint.testing.story.TestDependencyRename"/>
         </classes>
     </test>
 </suite>

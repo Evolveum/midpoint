@@ -67,7 +67,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     // converts assignments to cases
     @Override
-    public Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<ObjectType> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
         AccessCertificationAssignmentReviewScopeType assignmentScope = null;
         if (campaign.getScopeDefinition() instanceof AccessCertificationAssignmentReviewScopeType) {
@@ -75,7 +75,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         }
         // TODO what if AccessCertificationObjectBasedScopeType?
 
-        FocusType focus = castToFocus(objectPrism);
+        F focus = objectPrism.asObjectable();
 
         List<AccessCertificationCaseType> caseList = new ArrayList<>();
         if (isIncludeAssignments(assignmentScope)) {

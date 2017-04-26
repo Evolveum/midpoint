@@ -15,33 +15,18 @@
  */
 package com.evolveum.midpoint.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Consumer;
-import java.util.Scanner;
-import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * @author semancik
@@ -561,5 +546,26 @@ public class MiscUtil {
 	public static String getFirstNonNullString(Object... values) {
 		Object value = getFirstNonNull(values);
 		return value != null ? value.toString() : null;
+	}
+
+	public static <T> T extractSingleton(Collection<T> collection) {
+		if (collection == null || collection.isEmpty()) {
+			return null;
+		} else if (collection.size() == 1) {
+			return collection.iterator().next();
+		} else {
+			throw new IllegalArgumentException("Expected a collection with at most one item; got the one with " + collection.size() + " items");
+		}
+	}
+
+	public static boolean isCollectionOf(Object object, @NotNull Class<?> memberClass) {
+		return object instanceof Collection
+				&& ((Collection<?>) object).stream().allMatch(member -> member != null && memberClass.isAssignableFrom(member.getClass()));
+	}
+
+	public static <E> Function<Object, Stream<E>> instancesOf(Class<E> cls) {
+		return o -> cls.isInstance(o)
+				? Stream.of(cls.cast(o))
+				: Stream.empty();
 	}
 }

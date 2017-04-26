@@ -29,7 +29,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import org.hibernate.annotations.ForeignKey;
@@ -193,7 +192,6 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         List<AccessCertificationCaseType> cases = jaxb.getCase();
         if (!cases.isEmpty()) {
             for (AccessCertificationCaseType case1 : cases) {
-                case1.setCampaignRef(ObjectTypeUtil.createObjectRef(jaxb));
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(repo, case1, repositoryContext);
                 rCase.setTransient(generatorResult.isTransient(case1.asPrismContainerValue()));     // redundant?
                 repo.getCase().add(rCase);
@@ -202,8 +200,8 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
 
         repo.setOwnerRefCampaign(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
         repo.setHandlerUri(jaxb.getHandlerUri());
-        repo.setStart(jaxb.getStart());
-        repo.setEnd(jaxb.getEnd());
+        repo.setStart(jaxb.getStartTimestamp());
+        repo.setEnd(jaxb.getEndTimestamp());
         repo.setState(RUtil.getRepoEnumValue(jaxb.getState(), RAccessCertificationCampaignState.class));
         repo.setStageNumber(jaxb.getStageNumber());
     }

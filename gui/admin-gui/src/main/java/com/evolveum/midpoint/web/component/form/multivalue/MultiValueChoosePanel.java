@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.component.form.multivalue;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import static java.util.Arrays.asList;
+import static java.util.Optional.ofNullable;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -39,298 +39,281 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
-import java.util.Iterator;
-import java.util.List;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
- *  TODO - not finished, work in progress
- *
- *  [Mederly] When migrating ObjectSelectionPanel to a separate page (instead of panel),
- *  this class was not updated, as it is currently unused. TODO implement it.
- *
- *  @author shood
- * */
-public class MultiValueChoosePanel <T extends ObjectType> extends BasePanel<List<T>>{
+ * 
+ * @param <T> model/chosen object types
+ */
+public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<T>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
 
-    private static final String ID_LABEL = "label";
-    private static final String ID_REPEATER = "repeater";
-    private static final String ID_TEXT_WRAPPER = "textWrapper";
-    private static final String ID_TEXT = "text";
-    private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_ADD = "add";
+	private static final long serialVersionUID = 1L;
+
+	private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
+
+	private static final String ID_SELECTED_ROWS = "selectedRows";
+	private static final String ID_TEXT_WRAPPER = "textWrapper";
+	private static final String ID_TEXT = "text";
+	private static final String ID_FEEDBACK = "feedback";
+	private static final String ID_EDIT = "edit";
     private static final String ID_REMOVE = "remove";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
-    private static final String ID_EDIT = "edit";
+	
 
-    protected static final String MODAL_ID_CHOOSE_PANEL = "showPopup";
+	protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
-    private static final String CLASS_MULTI_VALUE = "multivalue-form";
+	private List<QName> typeQNames;
 
-    public MultiValueChoosePanel(String id, IModel<List<T>> value, IModel<String> label, String labelSize,
-                                 String textSize, boolean required, Class<T> type){
-        super(id, value);
-        setOutputMarkupId(true);
+	private Class<? extends T> defaultType;
 
-        initLayout(label, labelSize, textSize, required, type);
+	private Collection<Class<? extends T>> types;
+	
+	public MultiValueChoosePanel(String id, IModel<List<T>> value, Collection<Class<? extends T>> types) {
+		this(id, value, null, false, types);
+	}
+	
+	public MultiValueChoosePanel(String id, IModel<List<T>> value, Collection<Class<? extends T>> types, boolean multiselect) {
+		this(id, value, null, false, types, multiselect);
+	}
+
+	public MultiValueChoosePanel(String id, IModel<List<T>> chosenValues, List<PrismReferenceValue> filterValues, boolean required,
+			Collection<Class<? extends T>> types) {
+		this(id, chosenValues, filterValues, required, types, true);
+	}
+
+	public MultiValueChoosePanel(String id, IModel<List<T>> chosenValues, List<PrismReferenceValue> filterValues, boolean required,
+			Collection<Class<? extends T>> types, boolean multiselect) {
+
+		super(id, chosenValues);
+		setOutputMarkupPlaceholderTag(true);
+
+		this.types = types;
+		this.defaultType = userOrFirst(types);
+		// initialize typeQNames in onInitialize
+		
+		LOGGER.debug("Init multi value choose panel with model {}", chosenValues);
+		initLayout(chosenValues, filterValues, required, multiselect);
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+
+		// initialize types when component is in page and getPageBase() has meaning
+		this.typeQNames = WebComponentUtil.resolveObjectTypesToQNames(types,
+				getPageBase().getPrismContext());
+		typeQNames.sort((t1, t2) -> t1.getLocalPart().compareTo(t2.getLocalPart()));
+	}
+	
+    private void initLayout(final IModel<List<T>> chosenValues, final List<PrismReferenceValue> filterValues,
+			final boolean required, final boolean multiselect) {
+
+		AjaxLink<String> edit = new AjaxLink<String>(ID_EDIT) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				editValuePerformed(chosenValues.getObject(), filterValues, target, multiselect);
+			}
+		};
+		edit.setOutputMarkupPlaceholderTag(true);
+		add(edit);
+
+		ListView<T> selectedRowsList = new ListView<T>(ID_SELECTED_ROWS, chosenValues) {
+
+			@Override
+			protected void populateItem(ListItem<T> item) {
+				WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+				
+				textWrapper.setOutputMarkupPlaceholderTag(true);
+		
+				TextField<String> text = new TextField<String>(ID_TEXT, createTextModel(item.getModel())); //was value
+				text.add(new AjaxFormComponentUpdatingBehavior("blur") {
+					private static final long serialVersionUID = 1L;
+		
+					@Override
+					protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+					}
+				});
+				text.setRequired(required);
+				text.setEnabled(false);
+				text.setOutputMarkupPlaceholderTag(true);
+				textWrapper.add(text);
+		
+				FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
+				feedback.setOutputMarkupPlaceholderTag(true);
+				textWrapper.add(feedback);
+		
+		        initButtons(item, item);
+		        
+		        item.add(textWrapper);
+			}
+		};
+		selectedRowsList.setReuseItems(true);
+		add(selectedRowsList);
     }
 
-    private void initLayout(final IModel<String> label, final String labelSize, final String textSize,
-                            final boolean required, Class<T> type){
+	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
+		ArrayList<String> oidList = new ArrayList<>();
+		ObjectQuery query = new ObjectQuery();
 
-        Label l = new Label(ID_LABEL, label);
+		if (oidList.isEmpty()) {
+			return null;
+		}
 
-        if(StringUtils.isNotEmpty(labelSize)){
-            l.add(AttributeAppender.prepend("class", labelSize));
-        }
-        add(l);
+		ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
+		query.setFilter(NotFilter.createNot(oidFilter));
 
-        ListView repeater = new ListView<T>(ID_REPEATER, getModel()) {
+		return query;
+	}
 
-            @Override
-            protected void populateItem(final ListItem<T> listItem) {
-                WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
-                textWrapper.add(AttributeAppender.prepend("class", new AbstractReadOnlyModel<String>() {
+	/**
+	 * @return css class for off-setting other values (not first, left to the
+	 *         first there is a label)
+	 */
+	protected String getOffsetClass() {
+		return "col-md-offset-4";
+	}
 
-                    @Override
-                    public String getObject() {
-                        StringBuilder sb = new StringBuilder();
-                        if(StringUtils.isNotEmpty(textSize)){
-                            sb.append(textSize).append(' ');
-                        }
-                        if(listItem.getIndex() > 0 && StringUtils.isNotEmpty(getOffsetClass())){
-                            sb.append(getOffsetClass()).append(' ');
-                            sb.append(CLASS_MULTI_VALUE);
-                        }
-                        return sb.toString();
-                    }
-                }));
-                listItem.add(textWrapper);
+	protected IModel<String> createTextModel(final IModel<T> model) {
+		return new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
 
-                TextField text = new TextField<>(ID_TEXT, createTextModel(listItem.getModel()));
-                text.add(new AjaxFormComponentUpdatingBehavior("blur") {
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
-                });
-                text.setRequired(required);
-                text.setEnabled(false);
-                text.add(AttributeAppender.replace("placeholder", label));
-                text.setLabel(label);
-                textWrapper.add(text);
+			@Override
+			public String getObject() {
 
-                FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
-                textWrapper.add(feedback);
+				return ofNullable(model.getObject())
+					.map(ObjectType::getName)
+					.map(PolyString::getOrig)
+					.orElse(null);
+			}
+		};
+	}
 
-                WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
-                buttonGroup.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+	protected void editValuePerformed(List<T> chosenValues, List<PrismReferenceValue> filterValues, AjaxRequestTarget target, boolean multiselect) {
 
-                    @Override
-                    public String getObject() {
-                        if(listItem.getIndex() > 0 && StringUtils.isNotEmpty(labelSize)){
-                            return CLASS_MULTI_VALUE;
-                        }
+		ObjectBrowserPanel<T> objectBrowserPanel = new ObjectBrowserPanel<T>(
+				getPageBase().getMainPopupBodyId(), defaultType, typeQNames, multiselect, getPageBase(),
+				null, chosenValues) {
 
-                        return null;
-                    }
-                }));
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			protected void addPerformed(AjaxRequestTarget target, QName type, List<T> selected) {
+				getPageBase().hideMainPopup(target);
+				MultiValueChoosePanel.this.addPerformed(target, selected);
+			}
 
-                AjaxLink edit = new AjaxLink(ID_EDIT) {
+			@Override
+			protected void onSelectPerformed(AjaxRequestTarget target, T focus) {
+				super.onSelectPerformed(target, focus);
+				if (!multiselect) {
+					// asList alone is not modifiable, you can't add/remove
+					// elements later
+					selectPerformed(target, new ArrayList<>(asList(focus)));
+				}
+			}
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        editValuePerformed(target);
-                    }
-                };
-                textWrapper.add(edit);
+		};
 
-                listItem.add(buttonGroup);
+		getPageBase().showMainPopup(objectBrowserPanel, target);
 
-                initButtons(buttonGroup, listItem);
-            }
-        };
+	}
 
-        initDialog(type);
-        add(repeater);
+	protected void selectPerformed(AjaxRequestTarget target, List<T> chosenValues) {
+		getModel().setObject(chosenValues);
+		choosePerformedHook(target, chosenValues);
+
+		target.add(MultiValueChoosePanel.this);
+	}
+
+	protected void addPerformed(AjaxRequestTarget target, List<T> addedValues) {
+		List<T> modelList = getModelObject();
+		if(modelList == null) {
+			modelList = new ArrayList<T>();
+		}
+		addedValues.removeAll(modelList); // add values not already in
+		modelList.addAll(addedValues);
+		getModel().setObject(modelList);
+		choosePerformedHook(target, modelList);
+
+		target.add(MultiValueChoosePanel.this);
+	}
+
+    public WebMarkupContainer getTextWrapperComponent(){
+        return (WebMarkupContainer)get(ID_TEXT_WRAPPER);
     }
 
-    protected void initDialog(Class<T> type){
-        throw new UnsupportedOperationException();  // TODO implement this
-//        ModalWindow dialog = new ObjectSelectionPanel(MODAL_ID_CHOOSE_PANEL, type, getPageBase()){
-//
-//            @Override
-//            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
-//                choosePerformed(target, (T)object);
-//            }
-//
-//            @Override
-//            protected ObjectQuery getDataProviderQuery(){
-//                return createChooseQuery();
-//            }
-//        };
-//        add(dialog);
-    }
-
-    protected ObjectQuery createChooseQuery(){
-        return null;
-    }
-
-    /**
-     * @return css class for off-setting other values (not first, left to the first there is a label)
-     */
-    protected String getOffsetClass() {
-        return "col-md-offset-4";
-    }
-
-    protected IModel<String> createTextModel(final IModel<T> model) {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                T obj = model.getObject();
-                return obj != null ? obj.toString() : null;
-            }
-
-            @Override
-            public void setObject(String object) {}
-
-            @Override
-            public void detach() {
-            }
-        };
-    }
-
-    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
-        AjaxLink add = new AjaxLink(ID_ADD) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                addValuePerformed(target);
-            }
-        };
-        add.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isAddButtonVisible(item);
-            }
-        });
-        buttonGroup.add(add);
-
-        AjaxLink remove = new AjaxLink(ID_REMOVE) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                removeValuePerformed(target, item);
-            }
-        };
-        remove.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isRemoveButtonVisible();
-            }
-        });
-        buttonGroup.add(remove);
-    }
-
-    protected boolean isAddButtonVisible(ListItem<T> item) {
-        int size = getModelObject().size();
-        if (size <= 1) {
-            return true;
-        }
-        if (item.getIndex() == size - 1) {
-            return true;
-        }
-
-        return false;
-    }
-
-    protected void editValuePerformed(AjaxRequestTarget target){
-        throw new UnsupportedOperationException();  // TODO implement this
-//        ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
-//        ObjectSelectionPanel dialog = (ObjectSelectionPanel)window;
-//        dialog.updateTablePerformed(target, createChooseQuery());
-//        window.show(target);
-    }
-
-    protected boolean isRemoveButtonVisible() {
-        int size = getModelObject().size();
-        if (size > 0) {
-            return true;
-        }
-
-        return false;
-    }
-
-    protected void addValuePerformed(AjaxRequestTarget target) {
-        List<T> objects = getModelObject();
-        objects.add(createNewEmptyItem());
-
-        target.add(this);
-    }
-
-    protected T createNewEmptyItem() {
-        return null;
-    }
-
-    /*
-     * TODO - this method contains check, if chosen object already is not in selected values array
-     *  This is a temporary solution until we well be able to create "already-chosen" query
-     *
-     */
-    protected void choosePerformed(AjaxRequestTarget target, T object){
-        choosePerformedHook(target, object);
-        ModalWindow window = (ModalWindow)get(MODAL_ID_CHOOSE_PANEL);
-        window.close(target);
-
-        if(isObjectUnique(object)){
-            replaceIfEmpty(object);
+    protected void initButtons(ListItem<T> item, WebMarkupContainer parent) {
+        WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP); {
+	        buttonGroup.setOutputMarkupId(true);
+	
+	        AjaxLink remove = new AjaxLink(ID_REMOVE) {
+	
+	            @Override
+	            public void onClick(AjaxRequestTarget target) {
+	                removeValuePerformed(target, item.getModelObject());
+	            }
+	        };
+	        
+	        remove.add(new VisibleEnableBehaviour() {
+	
+	            @Override
+	            public boolean isVisible() {
+	                return isRemoveButtonVisible();
+	            }
+	        });
+	        buttonGroup.add(remove);
         }
 
-        if(LOGGER.isTraceEnabled()){
-            LOGGER.trace("New object instance has been added to the model.");
-        }
+        parent.add(buttonGroup);
+}
 
-        target.add(this);
-    }
+	private boolean isRemoveButtonVisible() {
+		return true;
+	}
 
-    protected void replaceIfEmpty(Object object){
-        List<T> objects = getModelObject();
-        objects.add((T)object);
-    }
+	private void removeValuePerformed(AjaxRequestTarget target, T value) {
+		
+		LOGGER.debug("Removing value {} from selected list", value);
+		
+		getModelObject().remove(value);
+		removePerformedHook(target, value);
+		target.add(this);
+	}
 
-    protected boolean isObjectUnique(Object object){
+	protected void removePerformedHook(AjaxRequestTarget target, T value) {
+		
+	}
 
-        for(T o: getModelObject()){
-            if(o.equals(object)){
-                return false;
-            }
-        }
-        return true;
-    }
+	/**
+	 * A custom code in form of hook that can be run on event of choosing new
+	 * object with this chooser component
+	 */
+	protected void choosePerformedHook(AjaxRequestTarget target, List<T> selected) {
+	}
 
-    protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item) {
-        List<T> objects = getModelObject();
-        Iterator<T> iterator = objects.iterator();
-        while (iterator.hasNext()) {
-            T object = iterator.next();
-
-            if (object.equals(item.getModelObject())) {
-                iterator.remove();
-                break;
-            }
-        }
-
-        if(objects.size() == 0){
-            objects.add(createNewEmptyItem());
-        }
-
-        target.add(this);
-    }
-
-    /**
-     *  A custom code in form of hook that can be run on event of
-     *  choosing new object with this chooser component
-     * */
-    protected void choosePerformedHook(AjaxRequestTarget target, T object){}
+	private Class<? extends T> userOrFirst(Collection<Class<? extends T>> types) {
+		// ugly hack to select UserType as default if available
+		if(types == null) {
+			return null;
+		}
+		return types.stream()
+				.filter(type -> type == UserType.class)
+				.findFirst().orElse(
+						CollectionUtils.isNotEmpty(types) ? types.iterator().next() : null);
+	}
 }

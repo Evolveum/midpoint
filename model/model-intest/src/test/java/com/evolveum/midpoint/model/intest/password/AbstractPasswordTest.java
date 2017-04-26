@@ -141,7 +141,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
@@ -169,7 +169,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // this happens during test initialization when user-jack.xml is added
         
         // THEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -254,7 +254,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
@@ -287,9 +287,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
@@ -298,27 +300,34 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+        
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-        assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
-        assertShadowLifecycle(accountShadow, false);
+        PrismObject<ShadowType> accountShadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        display("Repo shadow", accountShadowRepo);
+        assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, "jack");
+        // MID-3860
+        assertShadowPasswordMetadata(accountShadowRepo, startCal, endCal, false, true);
+        assertShadowLifecycle(accountShadowRepo, false);
         
         // Check account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
-        assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Jack Sparrow");
-        assertShadowLifecycle(accountModel, false);
+        PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        display("Model shadow", accountShadowModel);
+        assertDummyAccountShadowModel(accountShadowModel, accountJackOid, "jack", "Jack Sparrow");
+        assertShadowPasswordMetadata(accountShadowModel, startCal, endCal, false, true);
+        assertShadowLifecycle(accountShadowModel, false);
         
         // Check account in dummy resource
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         
         assertDummyPasswordConditional(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
 	}
-	
+
 	/**
 	 * This time user has assigned account. Account password should be changed as well.
 	 */
@@ -328,7 +337,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -350,6 +359,21 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserPassword(userJack, USER_PASSWORD_2_CLEAR);
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_2_CLEAR);
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+		
+		// Check shadow
+        PrismObject<ShadowType> accountShadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        display("Repo shadow", accountShadowRepo);
+        assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, "jack");
+        // MID-3860
+        assertShadowPasswordMetadata(accountShadowRepo, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
+        assertShadowLifecycle(accountShadowRepo, false);
+        
+        // Check account
+        PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
+        display("Model shadow", accountShadowModel);
+        assertDummyAccountShadowModel(accountShadowModel, accountJackOid, "jack", "Jack Sparrow");
+        assertShadowPasswordMetadata(accountShadowModel, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
+        assertShadowLifecycle(accountShadowModel, false);
 	}
 	
 	/**
@@ -361,7 +385,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -394,7 +418,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -441,7 +465,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -484,7 +508,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -616,7 +640,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -662,7 +686,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -736,7 +760,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -786,7 +810,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -893,7 +917,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
@@ -1096,7 +1120,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1157,7 +1181,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1205,7 +1229,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1253,7 +1277,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1304,7 +1328,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1351,7 +1375,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1390,7 +1414,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1421,7 +1445,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -1456,7 +1480,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_RAPP_FILE);
@@ -1503,7 +1527,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		// WHEN
@@ -1542,7 +1566,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -1602,7 +1626,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -1662,7 +1686,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -1729,7 +1753,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -1789,7 +1813,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -1833,7 +1857,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -1907,7 +1931,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -1976,7 +2000,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.displayTestTile(this, TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
@@ -2069,6 +2093,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		}
 	}
 	
+	private void assertShadowPasswordMetadata(PrismObject<ShadowType> shadow,
+			XMLGregorianCalendar startCal, XMLGregorianCalendar endCal, boolean clearPasswordAvailable, boolean passwordCreated) {
+		if (!clearPasswordAvailable && getPasswordStorageType() == CredentialsStorageTypeType.HASHING) {
+			return;
+		}
+		assertShadowPasswordMetadata(shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+	}
+	
 	/**
 	 * Let's have a baseline for other 90x tests.
 	 */
@@ -2078,7 +2110,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
@@ -2133,7 +2165,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         try {
@@ -2163,7 +2195,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         clock.overrideDuration("PT15M");

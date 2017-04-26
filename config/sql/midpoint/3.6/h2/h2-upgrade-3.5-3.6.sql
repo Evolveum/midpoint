@@ -59,3 +59,86 @@ ALTER TABLE m_object_text_info
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 
+CREATE TABLE m_case (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+
+ALTER TABLE m_case
+  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+
+ALTER TABLE m_case
+  ADD CONSTRAINT fk_case
+FOREIGN KEY (oid)
+REFERENCES m_object;
+
+ALTER TABLE m_assignment_reference ALTER COLUMN containerType RENAME TO targetType;
+ALTER TABLE m_reference ALTER COLUMN containerType RENAME TO targetType;
+
+DROP TABLE m_acc_cert_case_reference;
+
+ALTER TABLE m_acc_cert_case ALTER COLUMN currentStageNumber RENAME TO stageNumber;
+ALTER TABLE m_acc_cert_case DROP COLUMN currentStageOutcome, overallOutcome;
+ALTER TABLE m_acc_cert_case ADD COLUMN currentStageOutcome VARCHAR(255);
+ALTER TABLE m_acc_cert_case ADD COLUMN outcome VARCHAR(255);
+
+DROP TABLE m_acc_cert_decision;
+
+CREATE TABLE m_acc_cert_wi (
+  id                     INTEGER     NOT NULL,
+  owner_id               INTEGER     NOT NULL,
+  owner_owner_oid        VARCHAR(36) NOT NULL,
+  closeTimestamp         TIMESTAMP,
+  outcome                VARCHAR(255),
+  outputChangeTimestamp  TIMESTAMP,
+  performerRef_relation  VARCHAR(157),
+  performerRef_targetOid VARCHAR(36),
+  performerRef_type      INTEGER,
+  stageNumber            INTEGER,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+);
+
+CREATE TABLE m_acc_cert_wi_reference (
+  owner_id              INTEGER      NOT NULL,
+  owner_owner_id        INTEGER      NOT NULL,
+  owner_owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation              VARCHAR(157) NOT NULL,
+  targetOid             VARCHAR(36)  NOT NULL,
+  targetType            INTEGER,
+  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
+);
+
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
+
+ALTER TABLE m_acc_cert_case DROP CONSTRAINT fk_acc_cert_case_owner;
+
+ALTER TABLE m_acc_cert_case
+  ADD CONSTRAINT fk_acc_cert_case_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_acc_cert_campaign;
+
+ALTER TABLE m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case;
+
+ALTER TABLE m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
+FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
+REFERENCES m_acc_cert_wi;
+
+ALTER TABLE m_shadow ADD pendingOperationCount INTEGER;
+
+CREATE INDEX iShadowKind ON m_shadow (kind);
+
+CREATE INDEX iShadowIntent ON m_shadow (intent);
+
+CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
+
+CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
+
+CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
+
+CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);

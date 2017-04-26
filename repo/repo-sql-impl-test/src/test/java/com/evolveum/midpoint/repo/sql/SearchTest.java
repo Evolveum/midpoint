@@ -707,6 +707,18 @@ public class SearchTest extends BaseSQLRepoTest {
 				distinct, 1);
 	}
 
+	@Test
+	public void testShadowPendingOperation() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+				.exists(ShadowType.F_PENDING_OPERATION)
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, shadows.size());
+	}
+
 	@SuppressWarnings("SameParameterValue")
 	private List<PrismObject<UserType>> assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
 		Collection<SelectorOptions<GetOperationOptions>> options = distinct ?

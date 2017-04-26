@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) 2011-2016 Evolveum, All rights reserved -->
+
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="501becec-90bc-44c6-93c9-0da4e02eb6a3">
+
+    <name>Drupal</name>
+
+    <connectorRef type="ConnectorType" >
+        <filter>
+        	<q:and>
+	            <q:equal>
+	                <q:path>c:connectorType</q:path>
+	                <q:value>com.evolveum.polygon.connector.drupal.DrupalConnector</q:value>
+	            </q:equal>
+	            <q:equal>
+	                <q:path>c:connectorVersion</q:path>
+	                <q:value>1.0.0.2</q:value>
+	            </q:equal>
+	        </q:and>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties
+                xmlns:icfcp="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-drupal/com.evolveum.polygon.connector.drupal.DrupalConnector">
+            <icfcp:ignoreTypeMismatch>true</icfcp:ignoreTypeMismatch>
+            <!-- workaround to Drupal API bug -->
+            <icfcp:handle500asUnknownUidException>true</icfcp:handle500asUnknownUidException>
+            <!-- to ignore test connection -->
+<!--             <icfcp:skipTestConnection>true</icfcp:skipTestConnection> -->
+			<!-- custom fields -->
+            <icfcp:userFields>field_first_name:value</icfcp:userFields>
+            <icfcp:userFields>field_display_name:value</icfcp:userFields>
+            <!-- reference to taxonomy term 'location' - manged by connector -->
+            <icfcp:userFields>field_user_location:tid:location</icfcp:userFields>
+            <!-- reference to taxonomy term 'company_structure' - manged by midPoint -->
+            <icfcp:userFields>field_ref_to_company_structure:tid:company_structure</icfcp:userFields>
+            <!-- fields are required -->
+            <icfcp:requiredFields>field_display_name</icfcp:requiredFields>
+            <icfcp:requiredFields>field_first_name</icfcp:requiredFields>
+			<!-- definiction of taxonomy with his name and ID -->
+            <icfcp:taxonomies>location:4</icfcp:taxonomies>
+            <!-- use only in test envinronment !!! -->
+<!--             <icfcp:trustAllCertificates>true</icfcp:trustAllCertificates> -->
+            <icfcp:pageSize>100</icfcp:pageSize>
+            <!-- disable user deletion on connector level -->
+            <icfcp:userDeleteDisabled>true</icfcp:userDeleteDisabled>
+			<!-- handling location in connector, midPoint don't need to manage them -->
+            <icfcp:createTaxonomyWhenNameNotExists>location</icfcp:createTaxonomyWhenNameNotExists>
+            
+            <!-- speed up workaround for https://jira.evolveum.com/browse/MID-3707 -->
+            <icfcp:dontReadUserDetailsWhenFindAllUsers>true</icfcp:dontReadUserDetailsWhenFindAllUsers>
+            
+            <icfcp:username>admin</icfcp:username>
+            <icfcp:authMethod>BASIC</icfcp:authMethod>
+            <icfcp:password>
+                <clearValue>password</clearValue>
+            </icfcp:password>
+            <!-- configured in Drupal URL postfix -->
+            <icfcp:serviceAddress>https://localhost:4443/rest</icfcp:serviceAddress>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <kind>account</kind>
+            <intent>default</intent>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/name</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:mail</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/emailAddress</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:field_display_name</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/familyName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:field_first_name</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/givenName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+			<!-- is enought to send locality as string, connector if don't find this locality, create them, elsewhere transfer his name to his TID and set it up -->
+            <attribute>
+            	<!-- custom user field with reference to taxonomy location -->
+                <c:ref>ri:field_user_location_transformed</c:ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$user/locality</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <c:ref>ri:roles</c:ref>
+                <displayName>Roles</displayName>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <!-- true = MP only ADD new roles, doesn't remove old 
+                	false = also REMOVE -->
+                <tolerant>true</tolerant>
+            </attribute>
+
+
+            <protected>
+                <icfs:name>admin</icfs:name>
+            </protected>
+            <credentials>
+                <password>
+                    <outbound>
+                    	<!-- if we need to push password also when reconcile, we need strong -->
+                        <strength>normal</strength>
+                    </outbound>
+                </password>
+            </credentials>
+			<!-- see https://wiki.evolveum.com/display/midPoint/Resource+Schema+Handling:+Activation#ResourceSchemaHandling:Activation-DisableonUnassign -->
+			<!-- acount is only disabled, not deleted -->
+			<activation>
+                <existence>
+                    <outbound>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                    	<strength>strong</strength> 
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal &amp;&amp; assigned) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+        
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>company_structure</intent>
+            <displayName>Company structure (Team)</displayName>
+            <objectClass>ri:Customterm_company_structureObjectClass</objectClass>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <matchingRule xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>displayName</c:path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:weight</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <description>Default weight in Drupal - mandatory</description>
+                        <value>0</value>
+                    </expression>
+                </outbound>
+            </attribute>
+           
+            <attribute>
+                <c:ref>ri:parent</c:ref>
+				<tolerant>false</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <c:path>$focus/name</c:path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                import javax.xml.namespace.QName;
+                                import com.evolveum.midpoint.prism.PrismProperty;
+
+                                String ret = '0'; // default root in Drupal
+                                String rootOid = "7ab6654f-81f7-442d-8ab0-f34e147c3fa5";
+
+                                // see com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl
+                                parentOrg = midpoint.getParentOrgByOrgType(focus, null)
+                                log.info("parentOrg = {}", parentOrg)
+                                if (parentOrg!=null &amp;&amp; parentOrg.oid != null &amp;&amp; !rootOid.equals(parentOrg.oid)){
+                                    ret = parentOrg.identifier;
+                                }
+                                log.info("parentOrg return = " + ret)
+                                return ret;
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>icfs:uid</c:ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <c:path>identifier</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+        
+        
+    </schemaHandling>
+
+    <synchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>default</intent>
+            <enabled>true</enabled>
+            <correlation>
+			<q:equal>
+				<q:matching>polyStringNorm</q:matching>
+				<q:path>c:name</q:path>
+				<expression>
+					<description>Matches using Name</description>
+					<path>
+						declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+						$account/attributes/icfs:name
+					</path>
+				</expression>
+			</q:equal>                
+            </correlation>
+            <limitPropagation>true</limitPropagation> <!-- speeeed uppp reconcile -->
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                	<!-- when user from Drupal is not found in midPoint disable/lock it -->
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+        
+        <objectSynchronization>
+            <name>Company Structure (Team) sync</name>
+            <objectClass>ri:Customterm_company_structureObjectClass</objectClass>
+            <kind>entitlement</kind>
+            <intent>company_structure</intent>
+            <focusType>c:OrgType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:and>
+                    <q:equal>
+						<q:matching>polyStringNorm</q:matching>
+                        <q:path>c:displayName</q:path>
+                        <expression>
+                            <c:path>$account/attributes/icfs:name</c:path>
+                        </expression>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>c:orgType</q:path>
+                        <q:value>drupal-company-structure</q:value>
+                    </q:equal>
+                </q:and>
+            </correlation>
+			<reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <!-- dont need it, delete it in drupal -->
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteShadow</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+
+    </synchronization>
+
+</resource>

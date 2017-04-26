@@ -95,8 +95,8 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertNotAssignedRole(userJackOid, roleRole1aOid, task, result);
 
 		WorkItemType workItem = getWorkItem(task, result);
-		workItemId = workItem.getWorkItemId();
-		taskOid = workItem.getTaskRef().getOid();
+		workItemId = workItem.getExternalId();
+		taskOid = WfContextUtil.getTask(workItem).getOid();
 
 		display("work item", workItem);
 		display("task", getObjectViaRepo(TaskType.class, taskOid));
@@ -148,7 +148,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
 		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
-				.taskId(workItem.getWorkItemId())
+				.taskId(workItem.getExternalId())
 				.singleResult();
 		System.out.println("Activiti task: " + activitiTask);
 		assertEquals("Wrong activiti assignee", "UserType:"+userLead1Oid, activitiTask.getAssignee());
@@ -191,7 +191,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
 		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
-				.taskId(workItem.getWorkItemId())
+				.taskId(workItem.getExternalId())
 				.singleResult();
 		System.out.println("Activiti task: " + activitiTask);
 		assertEquals("Wrong activiti assignee", "UserType:"+userLead3Oid, activitiTask.getAssignee());
@@ -228,7 +228,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
 		org.activiti.engine.task.Task activitiTask = activitiEngine.getTaskService().createTaskQuery()
-				.taskId(workItem.getWorkItemId())
+				.taskId(workItem.getExternalId())
 				.singleResult();
 		System.out.println("Activiti task: " + activitiTask);
 		assertEquals("Wrong activiti assignee", null, activitiTask.getAssignee());

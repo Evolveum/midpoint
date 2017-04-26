@@ -88,7 +88,6 @@ public class ItemPathResolutionState implements DebugDumpable {
      *
      * @param itemDefinition Target item definition (used/required only for "any" properties)
      * @param singletonOnly Collections are forbidden
-     * @param prismContext
      * @return destination state - always not null
      */
     public ItemPathResolutionState nextState(ItemDefinition itemDefinition, boolean singletonOnly, PrismContext prismContext) throws QueryException {
@@ -98,18 +97,16 @@ public class ItemPathResolutionState implements DebugDumpable {
         //
         // This is brutal hack, to be thought again.
         if (remainingItemPath.startsWith(ParentPathSegment.class) && hqlDataInstance.getParentItem() != null) {
-            ItemPathResolutionState next = new ItemPathResolutionState(
+            return new ItemPathResolutionState(
                     remainingItemPath.tail(),
                     hqlDataInstance.getParentItem(),
                     itemPathResolver);
-            return next;
 
         }
-        DataSearchResult<JpaDataNodeDefinition> result = hqlDataInstance.getJpaDefinition().nextLinkDefinition(remainingItemPath, itemDefinition,
-				prismContext);
+        DataSearchResult<?> result = hqlDataInstance.getJpaDefinition().nextLinkDefinition(remainingItemPath, itemDefinition, prismContext);
         LOGGER.trace("nextLinkDefinition on '{}' returned '{}'", remainingItemPath, result != null ? result.getLinkDefinition() : "(null)");
         if (result == null) {       // sorry we failed (however, this should be caught before -> so IllegalStateException)
-            throw new IllegalStateException("Couldn't find " + remainingItemPath + " in " + hqlDataInstance.getJpaDefinition());
+            throw new IllegalStateException("Couldn't find '" + remainingItemPath + "' in " + hqlDataInstance.getJpaDefinition());
         }
         JpaLinkDefinition linkDefinition = result.getLinkDefinition();
         String newHqlPath = hqlDataInstance.getHqlPath();
@@ -124,11 +121,17 @@ public class ItemPathResolutionState implements DebugDumpable {
                 newHqlPath += "." + linkDefinition.getJpaName();
             }
         }
-        ItemPathResolutionState next = new ItemPathResolutionState(
+        HqlDataInstance<?> parentDataInstance;
+		if (!remainingItemPath.startsWith(ParentPathSegment.class)) {
+			// TODO what about other special cases? (@, ...)
+			parentDataInstance = hqlDataInstance;
+		} else {
+			parentDataInstance = null;
+		}
+		return new ItemPathResolutionState(
                 result.getRemainder(),
-                new HqlDataInstance(newHqlPath, result.getTargetDefinition(), hqlDataInstance),
+                new HqlDataInstance<>(newHqlPath, result.getTargetDefinition(), parentDataInstance),
                 itemPathResolver);
-        return next;
     }
 
     @Override
@@ -148,11 +151,13 @@ public class ItemPathResolutionState implements DebugDumpable {
     public String debugDump(int indent, boolean showParent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("ItemPathResolutionState: Remaining path: ").append(remainingItemPath).append("\n");
+        sb.append("ItemPathResolutionState:\n");
+        DebugUtil.indentDebugDump(sb, indent + 1);
+        sb.append("Remaining path: ").append(remainingItemPath).append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("Last transition: ").append(lastTransition).append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
-        sb.append("HQL data item: ").append(hqlDataInstance.debugDump(indent + 2, showParent));
+        sb.append("HQL data item:\n").append(hqlDataInstance.debugDump(indent + 2, showParent));
         return sb.toString();
     }
 

@@ -22,10 +22,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.wf.impl.WfConfiguration;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -40,11 +44,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.prism.util.CloneUtil.cloneListMembers;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.objectReferenceListToPrismReferenceValues;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
@@ -198,49 +201,26 @@ public class WfTaskUtil {
         task.setModelOperationContext(null);
     }
 
-    public void addApprovedBy(Task task, ObjectReferenceType referenceType) throws SchemaException {
-        addApprovedBy(task, Collections.singletonList(referenceType));
-    }
-
-    public void addApprovedBy(Task task, Collection<ObjectReferenceType> referenceTypes) throws SchemaException {
-        task.addModification(DeltaBuilder.deltaFor(TaskType.class, prismContext)
-                .item(F_WORKFLOW_CONTEXT, F_APPROVED_BY_REF).add(
-                        cloneListMembers(objectReferenceListToPrismReferenceValues(referenceTypes)))
-                .asItemDelta());
-    }
-
-    public void addApprovedBy(Task task, String oid) throws SchemaException {
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setOid(oid);
-        addApprovedBy(task, objectReferenceType);
-    }
-
-    public PrismReference getApprovedBy(Task task) throws SchemaException {
-        return task.getTaskPrismObject().findReference(new ItemPath(F_WORKFLOW_CONTEXT, F_APPROVED_BY_REF));
-    }
-
-    public List<? extends ObjectReferenceType> getApprovedByFromTaskTree(Task task, OperationResult result) throws SchemaException {
+    public Collection<ObjectReferenceType> getApprovedByFromTaskTree(Task task, OperationResult result) throws SchemaException {
         // we use a OID-keyed map to (1) keep not only the OID, but whole reference, but (2) eliminate uncertainty in comparing references
-        Map<String,PrismReferenceValue> approvers = new HashMap<>();
+        Map<String,ObjectReferenceType> approvers = new HashMap<>();
 
         List<Task> tasks = task.listSubtasksDeeply(result);
         tasks.add(task);
         for (Task aTask : tasks) {
-            PrismReference approvedBy = getApprovedBy(aTask);
-            if (approvedBy != null) {
-                for (PrismReferenceValue referenceValue : approvedBy.getValues()) {
-                    approvers.put(referenceValue.getOid(), referenceValue);
-                }
-            }
+            List<ObjectReferenceType> approvedBy = getApprovedBy(WfContextUtil.getWorkflowContext(aTask.getTaskPrismObject()));
+            approvedBy.forEach(ort -> approvers.put(ort.getOid(), ort));
         }
+        return CloneUtil.cloneCollectionMembers(approvers.values());            // to ensure these are parent-less
+    }
 
-        List<ObjectReferenceType> retval = new ArrayList<>(approvers.size());
-        for (PrismReferenceValue approverRefValue : approvers.values()) {
-            ObjectReferenceType referenceType = new ObjectReferenceType();
-            referenceType.setupReferenceValue(approverRefValue.clone());
-            retval.add(referenceType);
-        }
-        return retval;
+    @NotNull
+    private static List<ObjectReferenceType> getApprovedBy(WfContextType wfc) {
+        return wfc == null ? Collections.emptyList() : wfc.getEvent().stream()
+                .flatMap(MiscUtil.instancesOf(WorkItemCompletionEventType.class))
+                .filter(e -> ApprovalUtils.isApproved(e.getOutput()) && e.getInitiatorRef() != null)
+                .map(e -> e.getInitiatorRef())
+                .collect(Collectors.toList());
     }
 
     // handlers are stored in the list in the order they should be executed; so the last one has to be pushed first

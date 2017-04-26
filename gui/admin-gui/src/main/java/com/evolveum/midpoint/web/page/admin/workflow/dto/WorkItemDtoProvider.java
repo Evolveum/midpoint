@@ -40,8 +40,8 @@ import org.apache.wicket.Component;
 import java.util.*;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.*;
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createResolve;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
 
 /**
@@ -82,8 +82,10 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         try {
             ObjectQuery query = createQuery(first, count, result);
             Collection<SelectorOptions<GetOperationOptions>> options =
-                    Collections.singletonList(
-                            SelectorOptions.create(new ItemPath(F_ASSIGNEE_REF), createResolve()));
+                    GetOperationOptions.resolveItemsNamed(
+                            new ItemPath(F_ASSIGNEE_REF),
+                            new ItemPath(T_PARENT, WfContextType.F_OBJECT_REF),
+                            new ItemPath(T_PARENT, WfContextType.F_TARGET_REF));
             List<WorkItemType> items = getModel().searchContainers(WorkItemType.class, query, options, task, result);
 
             for (WorkItemType item : items) {
@@ -109,7 +111,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     private ObjectQuery createQuery(long first, long count, OperationResult result) throws SchemaException {
         ObjectQuery query = createQuery(result);
-        query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count), F_WORK_ITEM_CREATED_TIMESTAMP, DESCENDING));
+        query.setPaging(ObjectPaging.createPaging(safeLongToInteger(first), safeLongToInteger(count), F_CREATE_TIMESTAMP, DESCENDING));
         return query;
     }
 
@@ -120,7 +122,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 			return q.build();
 		} else if (all || !claimable) {
 			// not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-			return QueryUtils.filterForAssignees(q, currentUserOid(), getRepositoryService(), result).build();
+			return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
         } else {
 			return QueryUtils.filterForGroups(q, currentUserOid(), getRepositoryService(), result).build();
         }

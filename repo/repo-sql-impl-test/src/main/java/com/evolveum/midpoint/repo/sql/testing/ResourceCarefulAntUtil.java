@@ -49,9 +49,6 @@ public class ResourceCarefulAntUtil {
 
 	private static Random rnd = new Random();
 	
-	/**
-	 * @param prismContext
-	 */
 	public static void initAnts(List<CarefulAnt<ResourceType>> ants, final File resourceFile, final PrismContext prismContext) {
 		final PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 		ants.add(new CarefulAnt<ResourceType>() {
@@ -132,6 +129,5 @@ public class ResourceCarefulAntUtil {
     		throw new SchemaException(ex.getMessage(), ex);
     	}
     }
-
 
 }

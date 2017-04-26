@@ -27,7 +27,7 @@ import org.hibernate.type.Type;
  * Hibernate seems to load ManyToOne association targets when doing "merge" or "object load" operation,
  * even though they are declared as LAZY.
  *
- * For recently-added "target" association in REmbeddedReference, RObjectReference and RCertCaseReference
+ * For recently-added "target" association in REmbeddedReference, RObjectReference and RCertCaseWorkItemReference
  * this is very unfortunate, as it leads to fetching the whole RObject instance (the target of the association),
  * which means joining approx. 20 tables - a huge overhead. For example, this adds an extra 50 milliseconds
  * in case of locally-run PostgreSQL database.

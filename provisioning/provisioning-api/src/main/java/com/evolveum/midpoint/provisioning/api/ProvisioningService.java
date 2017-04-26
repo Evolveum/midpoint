@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -403,7 +403,7 @@ public interface ProvisioningService {
 	 */
 	Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
 	
-	ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
+	List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
@@ -432,7 +432,13 @@ public interface ProvisioningService {
 																	   Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	
-	<T extends ShadowType> void finishOperation(PrismObject<T> object, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+	/**
+	 * Makes sure that the shadow is in accord with the reality. If there are any unfinished operations associated with the shadow
+	 * then this method will try to finish them. If there are pending (async) operations then this method will update their status.
+	 * And so on. However, this is NOT reconciliation function that will make sure that the resource object attributes are OK
+	 * with all the policies. This is just a provisioning-level operation.
+	 */
+	void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ObjectAlreadyExistsException, SecurityViolationException;
 

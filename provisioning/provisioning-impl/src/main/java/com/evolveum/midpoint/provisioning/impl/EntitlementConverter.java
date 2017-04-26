@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 /**
  * Class that collects the entitlement-related methods used by ResourceObjectConverter
@@ -286,7 +287,7 @@ class EntitlementConverter {
 			}
 		};
 		
-		ConnectorInstance connector = subjectCtx.getConnector(parentResult);
+		ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, parentResult);
 		try {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Processed entitlement-to-subject association for account {}: query {}",
@@ -505,7 +506,8 @@ class EntitlementConverter {
 				};
 				try {
 					LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
-					subjectCtx.getConnector(parentResult).search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, subjectCtx, parentResult);
+					ConnectorInstance connector = subjectCtx.getConnector(ReadCapabilityType.class, parentResult);
+					connector.search(entitlementOcDef, query, handler, attributesToReturn, null, searchHierarchyConstraints, subjectCtx, parentResult);
 				} catch (TunnelException e) {
 					throw (SchemaException)e.getCause();
 				} catch (GenericFrameworkException e) {

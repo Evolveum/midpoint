@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.schema.processor.*;
 import org.apache.commons.lang.StringUtils;
-import org.identityconnectors.framework.common.objects.Name;
-import org.identityconnectors.framework.common.objects.Uid;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -84,8 +82,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.dummy.TestDummy;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -141,6 +137,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 
 /**
  * Test for provisioning service implementation.
@@ -252,7 +250,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		
 		ObjectClassComplexTypeDefinition inetOrgPersonDefinition = parsedSchema.findObjectClassDefinition(RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
-				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
+				new QName(SchemaConstants.NS_ICF_SCHEMA,"password")));
 		assertNull("The userPassword attribute sneaked into schema", inetOrgPersonDefinition.findAttributeDefinition(
 				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeRepoAfter),"userPassword")));
 		
@@ -266,8 +264,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = new OperationResult(TestOpenDj.class.getName()+".test004ResourceAndConnectorCaching");
 		resource = provisioningService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, null, result);
 		resourceType = resource.asObjectable();
-		ConnectorInstance configuredConnectorInstance = connectorManager.getConfiguredConnectorInstance(
-				resource, false, result);
+		ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+				resource, ReadCapabilityType.class, false, result);
 		assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
 		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 		assertNotNull("No resource schema", resourceSchema);
@@ -293,8 +291,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		
 		// Now we stick our nose deep inside the provisioning impl. But we need to make sure that the
 		// configured connector is properly cached
-		ConnectorInstance configuredConnectorInstanceAgain = connectorManager.getConfiguredConnectorInstance(
-				resourceAgain, false, result);
+		ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
+				resourceAgain, ReadCapabilityType.class, false, result);
 		assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 		
 		assertShadows(1);
@@ -391,7 +389,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", idPrimaryDef.canModify());
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
 		assertEquals("Wrong primary identifier matching rule", UuidMatchingRule.NAME, idPrimaryDef.getMatchingRuleQName());
 
 
@@ -402,7 +400,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", idSecondaryDef.canModify());
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 		assertEquals("Wrong secondary identifier matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
 
 		ResourceAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
@@ -470,7 +468,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals("Wrong createTimestamp matching rule", null, createTimestampDef.getMatchingRuleQName());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
-				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		assertNull("The userPassword attribute sneaked into schema",
 				accountDef.findAttributeDefinition(new QName(accountDef.getTypeName().getNamespaceURI(), "userPassword")));
@@ -498,7 +496,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", posixIdPrimaryDef.canModify());
 		assertTrue("No UID read", posixIdPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
 		ResourceAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
@@ -507,7 +505,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
 		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
 		ObjectClassComplexTypeDefinition normalDef = resourceSchema.findObjectClassDefinition(new QName(RESOURCE_NS, "normalTestingObjectClass"));
 		display("normalTestingObjectClass object class def", normalDef);
@@ -565,7 +563,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", idPrimaryDef.canModify());
 		assertTrue("No UID read", idPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(idPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, idPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, idPrimaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> idSecondaryDef = accountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, idSecondaryDef.getMaxOccurs());
@@ -575,7 +573,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME read", idSecondaryDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(idSecondaryDef));
 		assertEquals("Wrong NAME matching rule", DistinguishedNameMatchingRule.NAME, idSecondaryDef.getMatchingRuleQName());
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, idSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, idSecondaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> cnDef = accountDef.findAttributeDefinition("cn");
 		assertNotNull("No definition for cn", cnDef);
@@ -615,7 +613,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("ds-pwp-account-disabled is NOT ignored", dsDef.isIgnored());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",
-				accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
+				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		RefinedObjectClassDefinition posixAccountDef = refinedSchema.getRefinedDefinition(RESOURCE_OPENDJ_POSIX_ACCOUNT_OBJECTCLASS);
 		assertNotNull("posixAccount definition is missing", posixAccountDef);
@@ -634,7 +632,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertFalse("UID has update", posixIdPrimaryDef.canModify());
 		assertTrue("No UID read", posixIdPrimaryDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getPrimaryIdentifiers().contains(posixIdPrimaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Uid.NAME, posixIdPrimaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_UID_NAME, posixIdPrimaryDef.getFrameworkAttributeName());
 
 		RefinedAttributeDefinition<String> posixIdSecondaryDef = posixAccountDef.findAttributeDefinition(getSecondaryIdentifierQName());
 		assertEquals(1, posixIdSecondaryDef.getMaxOccurs());
@@ -643,7 +641,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertTrue("No NAME update", posixIdSecondaryDef.canModify());
 		assertTrue("No NAME read", posixIdSecondaryDef.canRead());
 		assertTrue("NAME definition not in secondary identifiers", accountDef.getSecondaryIdentifiers().contains(posixIdSecondaryDef));
-		assertEquals("Wrong "+ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", Name.NAME, posixIdSecondaryDef.getFrameworkAttributeName());
+		assertEquals("Wrong "+OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME+" frameworkAttributeName", ProvisioningTestUtil.CONNID_NAME_NAME, posixIdSecondaryDef.getFrameworkAttributeName());
 
 		assertShadows(1);
 	}
@@ -686,9 +684,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
 
 		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);
+		
 		assertNotNull(shadow);
 
 		display(SchemaDebugUtil.prettyPrint(shadow));
@@ -2709,7 +2711,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		try {
 			provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
@@ -2727,7 +2729,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		try {
 			PrismObject<ShadowType> shadow = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class).asPrismObject();
@@ -2746,7 +2748,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);
 		
 		try {
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, parentResult);
@@ -2763,7 +2765,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, true, parentResult);		
+		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, parentResult);		
 		
 		try {
 			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
@@ -2785,7 +2787,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_CREDENTIALS_FILE);
-		fillInConnectorRef(resource, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
+		fillInConnectorRef(resource, IntegrationTestTools.CONNECTOR_LDAP_TYPE, result);
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);
@@ -2804,12 +2806,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID);
+		OperationResult	testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_CREDENTIALS_OID);
 		
-		display("Test connection result (expected failure)",operationResult);
-		TestUtil.assertFailure(operationResult);
+		display("Test connection result (expected failure)",testResult);
+		TestUtil.assertFailure(testResult);
 		
-		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
 	}
@@ -2823,7 +2826,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_BAD_BIND_DN_FILE);
-		fillInConnectorRef(resource, ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, result);
+		fillInConnectorRef(resource, IntegrationTestTools.CONNECTOR_LDAP_TYPE, result);
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(resource, null, null, taskManager.createTaskInstance(), result);
@@ -2842,12 +2845,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// WHEN
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID);
+		OperationResult	testResult = provisioningService.testResource(RESOURCE_OPENDJ_BAD_BIND_DN_OID);
 		
-		display("Test connection result (expected failure)",operationResult);
-		TestUtil.assertFailure(operationResult);
+		display("Test connection result (expected failure)",testResult);
+		TestUtil.assertFailure(testResult);
 		
-		OperationResult initResult = operationResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
 	}

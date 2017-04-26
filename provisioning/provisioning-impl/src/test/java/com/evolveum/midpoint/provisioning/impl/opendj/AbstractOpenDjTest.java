@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,15 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
+import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -162,7 +165,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 
 	// Used to make sure that the connector is cached
 	@Autowired(required = true)
-	protected ConnectorManager connectorManager;
+	protected ResourceManager resourceManager;
 
 	@Autowired(required = true)
 	protected SynchornizationServiceMock syncServiceMock;
@@ -180,7 +183,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(getResourceOpenDjFile(), ProvisioningTestUtil.CONNECTOR_LDAP_TYPE, initResult);
+		resource = addResourceFromFile(getResourceOpenDjFile(), IntegrationTestTools.CONNECTOR_LDAP_TYPE, initResult);
 		repoAddShadowFromFile(ACCOUNT_BAD_FILE, initResult);
 		
 		dnMatchingRule = matchingRuleRegistry.getMatchingRule(DistinguishedNameMatchingRule.NAME, DOMUtil.XSD_STRING);
@@ -199,10 +202,10 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	}
 	
 	protected QName getPrimaryIdentifierQName() {
-		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
+		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
 	}
 
 	protected QName getSecondaryIdentifierQName() {
-		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), ProvisioningTestUtil.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
+		return new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
 	}
 }

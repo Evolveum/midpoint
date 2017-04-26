@@ -48,7 +48,7 @@ public enum TaskDtoExecutionStatusFilter {
             case WAITING: return q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING).and();
             case SUSPENDED_OR_SUSPENDING: return q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.SUSPENDED).and();
             case CLOSED: return q.item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED).and();
-            case NOT_CLOSED: return q.block().not().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.RUNNABLE).endBlock().and();
+            case NOT_CLOSED: return q.block().not().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED).endBlock().and();
             default: throw new SystemException("Unknown value for TaskDtoExecutionStatusFilter: " + this);
         }
     }

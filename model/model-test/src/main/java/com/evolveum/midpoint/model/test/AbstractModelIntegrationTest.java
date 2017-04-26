@@ -1666,11 +1666,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assertObjectRefs(String contextDesc, Collection<ObjectReferenceType> real, String... expected) {
+		assertObjectRefs(contextDesc, true, real, expected);
+	}
+
+	protected void assertObjectRefs(String contextDesc, boolean checkNames, Collection<ObjectReferenceType> real, String... expected) {
 		List<String> refOids = new ArrayList<>();
 		for (ObjectReferenceType ref: real) {
 			refOids.add(ref.getOid());
 			assertNotNull("Missing type in "+ref.getOid()+" in "+contextDesc, ref.getType());
-			assertNotNull("Missing name in "+ref.getOid()+" in "+contextDesc, ref.getTargetName());
+			if (checkNames) {
+				assertNotNull("Missing name in " + ref.getOid() + " in " + contextDesc, ref.getTargetName());
+			}
 		}
 		PrismAsserts.assertSets("Wrong values in "+contextDesc, refOids, expected);
 	}
@@ -3494,10 +3500,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected Task createTask(String operationName) {
-		if (!operationName.contains(".")) {
-			operationName = this.getClass().getName() + "." + operationName;
-		}
-		Task task = taskManager.createTaskInstance(operationName);
+		Task task = super.createTask(operationName);
 		PrismObject<UserType> defaultActor = getDefaultActor();
 		if (defaultActor != null) {
 			task.setOwner(defaultActor);
@@ -3850,34 +3853,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<UserType> defaultActor = getDefaultActor();
 		assertMetadata(assignmentType.toString(), metadataType, true, true, start, end, 
 				defaultActor==null?null:defaultActor.getOid(), DEFAULT_CHANNEL);
-	}
-	
-	protected void assertMetadata(String message, MetadataType metadataType, boolean create, boolean assertRequest, 
-			XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-		assertNotNull("No metadata in " + message, metadataType);
-		if (create) {
-			TestUtil.assertBetween("Wrong create timestamp in " + message, start, end, metadataType.getCreateTimestamp());
-			if (actorOid != null) {
-				ObjectReferenceType creatorRef = metadataType.getCreatorRef();
-				assertNotNull("No creatorRef in " + message, creatorRef);
-				assertEquals("Wrong creatorRef OID in " + message, actorOid, creatorRef.getOid());
-				if (assertRequest) {
-					TestUtil.assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
-					ObjectReferenceType requestorRef = metadataType.getRequestorRef();
-					assertNotNull("No requestorRef in " + message, requestorRef);
-					assertEquals("Wrong requestorRef OID in " + message, actorOid, requestorRef.getOid());
-				}
-			}
-			assertEquals("Wrong create channel in " + message, channel, metadataType.getCreateChannel());
-		} else {
-			if (actorOid != null) {
-				ObjectReferenceType modifierRef = metadataType.getModifierRef();
-				assertNotNull("No modifierRef in " + message, modifierRef);
-				assertEquals("Wrong modifierRef OID in " + message, actorOid, modifierRef.getOid());
-			}
-			TestUtil.assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
-			assertEquals("Wrong modification channel in " + message, channel, metadataType.getModifyChannel());
-		}
 	}
 	
 	protected void assertDummyPassword(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {

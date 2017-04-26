@@ -13,8 +13,8 @@ AS
     SET NOCOUNT ON;
 
     DELETE FROM m_sequence;
-    DELETE FROM m_acc_cert_case_reference;
-    DELETE FROM m_acc_cert_decision;
+    DELETE FROM m_acc_cert_wi_reference;
+    DELETE FROM m_acc_cert_wi;
     DELETE FROM m_acc_cert_case;
     DELETE FROM m_acc_cert_campaign;
     DELETE FROM m_acc_cert_definition;
@@ -72,6 +72,7 @@ AS
     DELETE FROM m_focus;
     DELETE FROM m_security_policy;
     DELETE FROM m_form;
+    DELETE FROM m_case;
     DELETE FROM m_object;
 
     UPDATE hibernate_sequence SET next_val = 1;

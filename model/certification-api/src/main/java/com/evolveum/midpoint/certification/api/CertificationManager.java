@@ -25,10 +25,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -133,22 +130,43 @@ public interface CertificationManager {
      * @return A list of relevant certification cases.
      *
      */
+    @Deprecated
     List<AccessCertificationCaseType> searchDecisionsToReview(ObjectQuery caseQuery, boolean notDecidedOnly,
-                                                              Collection<SelectorOptions<GetOperationOptions>> options,
-                                                              Task task, OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException;
+
+    /**
+     * Returns a set of certification work items for currently logged-in user.
+     * Query argument for cases is the same as in the model.searchContainers(AccessCertificationCaseType...) call.
+     *
+     * @param caseQuery Specification of the cases to retrieve.
+     * @param notDecidedOnly If true, only response==(NO_DECISION or null) should be returned.
+     *                       Although it can be formulated in Query API terms, this would refer to implementation details - so
+     *                       the cleaner way is keep this knowledge inside certification module only.
+     * @param options Options to use (e.g. RESOLVE_NAMES).
+     * @param task Task in context of which all operations will take place.
+     * @param parentResult Result for the operations.
+     * @return A list of relevant certification cases.
+     *
+     */
+    List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
     /**
      * Records a particular decision of a reviewer.
-     *
-     * @param campaignOid OID of the campaign to which the decision belongs.
+     *  @param campaignOid OID of the campaign to which the decision belongs.
      * @param caseId ID of the certification case to which the decision belongs.
-     * @param decision The decision itself.
+     * @param workItemId ID of the work item to which the decision belongs.
+     * @param response The response.
+     * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void recordDecision(String campaignOid, long caseId, AccessCertificationDecisionType decision,
-                        Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException;
+    void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
+            String comment,
+            Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException;
 
     /**
      * Provides statistical information about outcomes of cases in a given campaign.

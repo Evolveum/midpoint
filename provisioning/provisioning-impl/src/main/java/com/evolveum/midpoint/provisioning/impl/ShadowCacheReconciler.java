@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -44,21 +45,22 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 
 @Component
-public class ShadowCacheReconciler extends ShadowCache{
+public class ShadowCacheReconciler extends ShadowCache {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
 
 	@Override
-	public String afterAddOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
+	public String afterAddOnResource(ProvisioningContext ctx, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		
+		PrismObject<ShadowType> shadow = addResult.getReturnValue();
 		cleanShadowInRepository(shadow, parentResult);
 
 		return shadow.getOid();
 	}
 
 	@Override
-	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
+			OperationResult resourceOperationResult, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
 		try {
 			cleanShadowInRepository(shadow, parentResult);

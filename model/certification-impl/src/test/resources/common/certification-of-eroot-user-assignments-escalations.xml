@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<accessCertificationDefinition
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="399e117a-baaa-4e59-b845-21bb838cb7bc">
+    <name>Basic User Assignment Certification (ERoot only) with escalations</name>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+        <searchFilter>
+            <q:org>
+                <q:orgRef>
+                    <q:oid>00000000-8888-6666-0000-300000000000</q:oid>
+                    <q:scope>SUBTREE</q:scope>
+                </q:orgRef>
+            </q:org>
+        </searchFilter>
+        <relation>default</relation>        <!-- the default -->
+    </scopeDefinition>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
+    <stageDefinition>
+        <number>1</number>
+        <duration>P14D</duration>
+        <reviewerSpecification>
+            <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
+        </reviewerSpecification>
+        <timedActions>
+            <time>
+                <value>P1D</value>
+            </time>
+            <actions>
+                <escalate>
+                    <approverRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>   <!-- jack -->
+                    <delegationMethod>addAssignees</delegationMethod>
+                    <escalationLevelName>jack-level</escalationLevelName>
+                </escalate>
+            </actions>
+        </timedActions>
+        <timedActions>
+            <time>
+                <value>P3D</value>
+            </time>
+            <actions>
+                <escalate>
+                    <approverRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType"/>   <!-- elaine -->
+                    <escalationLevelName>elaine-level</escalationLevelName>
+                </escalate>
+            </actions>
+            <escalationLevelFrom>1</escalationLevelFrom>
+            <escalationLevelTo>1</escalationLevelTo>
+        </timedActions>
+    </stageDefinition>
+</accessCertificationDefinition>

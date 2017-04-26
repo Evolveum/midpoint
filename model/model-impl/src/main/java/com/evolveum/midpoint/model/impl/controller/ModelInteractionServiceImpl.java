@@ -411,7 +411,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		
 		try {
 			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(), 
-					AuthorizationPhaseType.REQUEST, RoleType.class, focus, AllFilter.createAll());
+					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll());
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
 			if (filter instanceof NoneFilter) {
@@ -756,10 +756,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public ConnectorOperationalStatus getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
+	public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_CONNECTOR_OPERATIONAL_STATUS);
-		ConnectorOperationalStatus status;
+		List<ConnectorOperationalStatus> status;
 		try {
 			status = provisioning.getConnectorOperationalStatus(resourceOid, result);
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {

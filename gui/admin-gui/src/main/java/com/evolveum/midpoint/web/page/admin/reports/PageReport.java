@@ -137,13 +137,16 @@ public class PageReport extends PageAdminReports {
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageReport.basic")) {
 
-            @Override
+        	private static final long serialVersionUID = 1L;
+
+			@Override
             public WebMarkupContainer getPanel(String panelId) {
                 return new ReportConfigurationPanel(panelId, model);
             }
         });
         tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
 
+        	private static final long serialVersionUID = 1L;
             @Override
             public WebMarkupContainer getPanel(String panelId) {
             	return new JasperReportConfigurationPanel(panelId, model);
@@ -154,6 +157,7 @@ public class PageReport extends PageAdminReports {
         });
         tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplateStyle")) {
 
+        	private static final long serialVersionUID = 1L;
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplateStyle");

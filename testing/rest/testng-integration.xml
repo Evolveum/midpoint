@@ -23,6 +23,8 @@
 			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceJson"/>
 			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceYaml"/>
 			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceJsonSecQ"/>
+			<class name="com.evolveum.midpoint.testing.rest.TestSecurityQuestionChallengeResponse"/>
+			<class name="com.evolveum.midpoint.testing.rest.TestRestServiceProxyAuthentication"/>
 		</classes>
 	</test>
 </suite>

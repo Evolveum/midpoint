@@ -63,5 +63,10 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
 		return SecurityUtil.getEffectivePasswordCredentialsPolicy(securityPolicy);
 	}
 	
+	@Override
+	protected boolean supportsActivation() {
+		return true;
+	}
+	
 
 }

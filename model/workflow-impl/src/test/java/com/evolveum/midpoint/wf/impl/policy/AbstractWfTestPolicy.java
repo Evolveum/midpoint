@@ -27,6 +27,8 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -34,6 +36,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -46,11 +50,12 @@ import com.evolveum.midpoint.wf.impl.WfTestUtil;
 import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.impl.processes.common.LightweightObjectRef;
-import com.evolveum.midpoint.wf.impl.processes.common.WorkflowResult;
+import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
@@ -64,6 +69,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -71,8 +77,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WO
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_OBJECT_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_TARGET_REF;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -97,6 +101,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
 	protected static final File USER_SECURITY_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver.xml");
 	protected static final File USER_SECURITY_APPROVER_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy.xml");
+	protected static final File USER_SECURITY_APPROVER_DEPUTY_LIMITED_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy-limited.xml");
 
 	protected static final File ROLE_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "041-role-approver.xml");
 	protected static final File METAROLE_DEFAULT_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
@@ -135,6 +140,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String userLead10Oid;
 	protected String userSecurityApproverOid;
 	protected String userSecurityApproverDeputyOid;
+	protected String userSecurityApproverDeputyLimitedOid;
 
 	protected String roleApproverOid;
 	protected String metaroleDefaultOid;
@@ -227,6 +233,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		// LEAD10 will be imported later!
 		userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
 		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);
+		userSecurityApproverDeputyLimitedOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_LIMITED_FILE, initTask, initResult);
 
 		userTemplateAssigningRole1aOid = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A, initResult).getOid();
 		userTemplateAssigningRole1aOidAfter = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER, initResult).getOid();
@@ -591,11 +598,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertEquals("Incorrect number of subtasks", expectedSubTaskCount, subtasks.size());
 
 		final Collection<SelectorOptions<GetOperationOptions>> options1 = resolveItemsNamed(
-				F_OBJECT_REF,
-				F_TARGET_REF,
+				new ItemPath(T_PARENT, F_OBJECT_REF),
+				new ItemPath(T_PARENT, F_TARGET_REF),
 				F_ASSIGNEE_REF,
 				F_ORIGINAL_ASSIGNEE_REF,
-				new ItemPath(F_TASK_REF, F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+				new ItemPath(T_PARENT, F_REQUESTER_REF));
 
 		List<WorkItemType> workItems = modelService.searchContainers(WorkItemType.class, null, options1, modelTask, result);
 
@@ -646,9 +653,15 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 				for (ApprovalInstruction approvalInstruction : instructions) {
 					for (WorkItemType workItem : currentWorkItems) {
 						if (approvalInstruction.matches(workItem)) {
-							login(getUser(approvalInstruction.approverOid));
-							workflowManager.completeWorkItem(workItem.getWorkItemId(), approvalInstruction.approval, null,
+							if (approvalInstruction.beforeApproval != null) {
+								approvalInstruction.beforeApproval.run();
+							}
+							login(getUserFromRepo(approvalInstruction.approverOid));
+							workflowManager.completeWorkItem(workItem.getExternalId(), approvalInstruction.approval, null,
 									null, null, result);
+							if (approvalInstruction.afterApproval != null) {
+								approvalInstruction.afterApproval.run();
+							}
 							login(userAdministrator);
 							matched = true;
 							instructions.remove(approvalInstruction);
@@ -768,21 +781,20 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		i = 0;
 		for (WorkItemType workItem : workItems) {
 			display("Work item #" + (i + 1) + ": ", workItem);
-			display("Task ref",
-					workItem.getTaskRef() != null ? workItem.getTaskRef().asReferenceValue().debugDump(0, true) : null);
+			display("Task", WfContextUtil.getTask(workItem));
 			if (objectOid != null) {
-				WfTestUtil.assertRef("object reference", workItem.getObjectRef(), objectOid, true, true);
+				WfTestUtil.assertRef("object reference", WfContextUtil.getObjectRef(workItem), objectOid, true, true);
 			}
 
 			String targetOid = expectedWorkItems.get(i).targetOid;
 			if (targetOid != null) {
-				WfTestUtil.assertRef("target reference", workItem.getTargetRef(), targetOid, true, true);
+				WfTestUtil.assertRef("target reference", WfContextUtil.getTargetRef(workItem), targetOid, true, true);
 			}
 			WfTestUtil
 					.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
 			// name is not known, as it is not stored in activiti (only OID is)
-			WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
-			final TaskType subtaskType = (TaskType) ObjectTypeUtil.getObjectFromReference(workItem.getTaskRef());
+			//WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
+			final TaskType subtaskType = WfContextUtil.getTask(workItem);
 			checkTask(subtaskType, "task in workItem", expectedWorkItems.get(i).task);
 			WfTestUtil
 					.assertRef("requester ref", subtaskType.getWorkflowContext().getRequesterRef(), USER_ADMINISTRATOR_OID, false, true);
@@ -804,8 +816,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 		assertNotNull("Missing process start time in subtask: " + subtaskName, wfc.getStartTimestamp());
 		assertNull("Unexpected process end time in subtask: " + subtaskName, wfc.getEndTimestamp());
-		assertEquals("Wrong 'approved' state", null, wfc.isApproved());
-		assertEquals("Wrong answer", null, wfc.getAnswer());
+		assertEquals("Wrong outcome", null, wfc.getOutcome());
 		//assertEquals("Wrong state", null, wfc.getState());
 	}
 
@@ -866,6 +877,9 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		public List<ApprovalInstruction> getApprovalSequence() {
 			return null;
 		}
+
+		protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+				OperationResult result) throws Exception { }
 	}
 
 	protected <F extends FocusType> void executeTest2(String testName, TestDetails2<F> testDetails2, int expectedSubTaskCount,
@@ -904,6 +918,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 							testDetails2.getObjectOid(),
 							testDetails2.getExpectedTasks(), testDetails2.getExpectedWorkItems());
 				}
+				testDetails2.afterFirstClockworkRun(rootTask, subtasks, workItems, result);
 			}
 
 			@Override
@@ -965,6 +980,16 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		assertNotNull("Object " + object + " was not created", object);
 		objectFromRepo.removeItem(new ItemPath(ObjectType.F_METADATA), Item.class);
 		assertEquals("Object is different from the one that was expected", object, objectFromRepo.asObjectable());
+	}
+
+	protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+		S_AtomicFilterExit q = QueryUtils
+				.filterForAssignees(QueryBuilder.queryFor(WorkItemType.class, prismContext), SecurityUtil.getPrincipal(),
+						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS);
+		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, q.build(), null, task, result);
+		long found = currentWorkItems.stream().filter(wi -> expectedWorkItem == null || expectedWorkItem.matches(wi)).count();
+		assertEquals("Wrong # of matching work items", count, found);
 	}
 
 }
