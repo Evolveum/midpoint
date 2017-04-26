@@ -16,42 +16,34 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccountActivationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordResetNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @Component
-public class PasswordResetNotifier extends ConfirmationNotifier {
-
-	private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
+public class AccountActivationNotifier extends ConfirmationNotifier {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AccountActivationNotifier.class);
 	
 	@Override
 	public void init() {
-		register(PasswordResetNotifierType.class);
+		register(AccountActivationNotifierType.class);
 	}
 	
-	@Override
-	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
-			OperationResult result) {
-		if (!(super.quickCheckApplicability(event, generalNotifierType, result)) || !((ModelEvent) event).hasFocusOfType(UserType.class)) {
-			LOGGER.trace(
-					"PasswordResetNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
-							+ event.getClass());
-			return false;
-		} else {
-			return true;
-		}
-	}
-
 	@Override
 	protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType,
 			OperationResult result) {
@@ -65,32 +57,48 @@ public class PasswordResetNotifier extends ConfirmationNotifier {
 			LOGGER.trace("No user deltas in event, exiting.");
 			return false;
 		}
-		if (SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI.equals(modelEvent.getChannel())) {
-			LOGGER.trace("Found change from reset password channel.");
-			return true;
-		} else {
-			LOGGER.trace("No password reset present in delta. Skip sending notifications.");
+		
+		List<ShadowType> shadows = getShadowsToActivate(modelEvent);
+		
+		if (shadows.isEmpty()) { 
+			LOGGER.trace("No shadows to activate found in model context. Skip sending notifications.");
 			return false;
-		}
+		} 
+		
+		LOGGER.trace("Found shadows to activate: {}. Skip sending notifications.", shadows);
+		return true;
 	}
+	
 	
 	@Override
 	protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
 			Task task, OperationResult result) {
-		return "Password reset";
+		return "Activate your accounts";
+	}
+
+	@Override
+	protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport,
+			Task task, OperationResult result) throws SchemaException {
+		
+		String message = "Your accounts was successully created. To activate your accounts, please click on the link bellow.";
+		
+		String accountsToActivate = "Shadow to be activated: \n";
+		for (ShadowType shadow : getShadowsToActivate((ModelEvent) event)) {
+			accountsToActivate = accountsToActivate + shadow.asPrismObject().debugDump() + "\n";
+		}
+		
+		String body = message + "\n\n" + createConfirmationLink(getUser(event), generalNotifierType, result) + "\n\n" + accountsToActivate;
+		
+		return body;
+	}
+	
+	private List<ShadowType> getShadowsToActivate(ModelEvent modelEvent) {
+		Collection<ModelElementContext> projectionContexts = modelEvent.getProjectionContexts();
+		return getMidpointFunctions().getShadowsToActivate(projectionContexts);
 	}
 	
 	@Override
-    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-		
-		UserType userType = getUser(event);
-		
-      return "Did you request password reset? If yes, click on the link bellow \n" + createConfirmationLink(userType, generalNotifierType, result);
- 	
-    }
-	
-	@Override
 	public String getConfirmationLink(UserType userType) {
-		return getMidpointFunctions().createPasswordResetLink(userType);
+		return getMidpointFunctions().createAccountActivationLink(userType);
 	}
 }

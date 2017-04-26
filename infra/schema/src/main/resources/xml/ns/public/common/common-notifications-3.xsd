@@ -458,7 +458,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-             <xsd:element name="accountActivation" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
+             <xsd:element name="accountActivationNotifier" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO

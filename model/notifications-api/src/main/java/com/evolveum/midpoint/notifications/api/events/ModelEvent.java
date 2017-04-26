@@ -38,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -60,6 +61,10 @@ public class ModelEvent extends BaseEvent {
 
     public ModelElementContext getFocusContext() {
         return modelContext.getFocusContext();
+    }
+    
+    public Collection<ModelElementContext> getProjectionContexts() {
+        return modelContext.getProjectionContexts();
     }
 
     public void setModelContext(ModelContext modelContext) {
