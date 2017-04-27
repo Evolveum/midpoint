@@ -374,6 +374,7 @@ public abstract class SchemaConstants {
 	//GUI constants which are also used in the notificators
 	public static final String REGISTRATION_CONFIRAMTION_PREFIX = "/confirm/registration";
 	public static final String PASSWORD_RESET_CONFIRMATION_PREFIX = "/confirm/reset";
+	public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";
 	
 	public static final String INTENT_DEFAULT = "default";
 

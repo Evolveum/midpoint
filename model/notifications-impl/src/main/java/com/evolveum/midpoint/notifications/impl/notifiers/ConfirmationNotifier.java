@@ -62,9 +62,9 @@ public class ConfirmationNotifier extends GeneralNotifier {
 	@Override
 	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
 			OperationResult result) {
-		if (!(event instanceof ModelEvent) || !((ModelEvent) event).hasFocusOfType(UserType.class)) {
+		if (!(event instanceof ModelEvent)) {
 			LOGGER.trace(
-					"UserPasswordNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
+					"ConfirmationNofitier is not applicable for this kind of event, continuing in the handler chain; event class = "
 							+ event.getClass());
 			return false;
 		} else {
@@ -117,38 +117,6 @@ public class ConfirmationNotifier extends GeneralNotifier {
         return userType;
 	}
 	
-	protected String getNonce(UserType user) {
-		if (user.getCredentials() == null) {
-			return null;
-		}
-		
-		if (user.getCredentials().getNonce() == null) {
-			return null;
-		}
-		
-		if (user.getCredentials().getNonce().getValue() == null) {
-			return null;
-		}
-		
-		try {
-			return midpointFunctions.getPlaintext(user.getCredentials().getNonce().getValue());
-		} catch (EncryptionException e) {
-			return null;
-		}
-	}
-	
-	@Override
-	protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType,
-			ExpressionVariables variables, Task task, OperationResult result) {
-		UserType userType = getUser(event);
-		
-		String body = super.getBodyFromExpression(event, generalNotifierType, variables, task, result);
-		if (body  != null ) {
-			return body + "\n" + createConfirmationLink(userType, generalNotifierType, result);
-		}
-		
-		return body;
-	}
 	
 	@Override
 	protected Trace getLogger() {
