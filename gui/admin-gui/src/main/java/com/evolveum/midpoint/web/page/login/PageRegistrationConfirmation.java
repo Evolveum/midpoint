@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -42,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 //CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
-@PageDescriptor(url = SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX)
+@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX)})
 public class PageRegistrationConfirmation extends PageRegistrationBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);

@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -74,7 +75,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 //"http://localhost:8080/midpoint/confirm/registrationid=" + newUser.getOid()
 //+ "/token=" + userType.getCostCenter() + "/roleId=00000000-0000-0000-0000-000000000008";
-@PageDescriptor(url = "/registration")
+@PageDescriptor(urls = {@Url(mountUrl = "/registration")})
 public class PageSelfRegistration extends PageRegistrationBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);
