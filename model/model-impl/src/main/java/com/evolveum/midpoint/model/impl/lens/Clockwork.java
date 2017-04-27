@@ -112,7 +112,7 @@ import java.util.Map.Entry;
 @Component
 public class Clockwork {
 	
-	public static final int NUMBER_OF_LAST_OPERATIONS_RECORDED = 5;			// TODO make configurable
+	private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
 
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 	
@@ -645,33 +645,49 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> void storeOperationExecution(@NotNull PrismObject<F> object, @NotNull String oid,
-			@NotNull OperationExecutionType operation, boolean deletedOk, OperationResult result)
+			@NotNull OperationExecutionType executionToAdd, boolean deletedOk, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		Integer recordsToKeep;
+		Long deleteBefore;
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		if (systemConfiguration != null && systemConfiguration.asObjectable().getCleanupPolicy() != null
+				&& systemConfiguration.asObjectable().getCleanupPolicy().getObjectResults() != null) {
+			CleanupPolicyType policy = systemConfiguration.asObjectable().getCleanupPolicy().getObjectResults();
+			recordsToKeep = policy.getMaxRecords();
+			if (policy.getMaxAge() != null) {
+				XMLGregorianCalendar limit = XmlTypeConverter.addDuration(
+						XmlTypeConverter.createXMLGregorianCalendar(new Date()), policy.getMaxAge().negate());
+				deleteBefore = XmlTypeConverter.toMillis(limit);
+			} else {
+				deleteBefore = null;
+			}
+		} else {
+			recordsToKeep = DEFAULT_NUMBER_OF_RESULTS_TO_KEEP;
+			deleteBefore = null;
+		}
 		List<OperationExecutionType> executionsToDelete = new ArrayList<>();
 		List<OperationExecutionType> executions = new ArrayList<>(object.asObjectable().getOperationExecution());
-		// delete all executions related to current task
-		String taskOid = operation.getTaskRef() != null ? operation.getTaskRef().getOid() : null;
-		if (taskOid != null) {
-			for (Iterator<OperationExecutionType> iterator = executions.iterator(); iterator.hasNext(); ) {
-				OperationExecutionType execution = iterator.next();
-				if (execution.getTaskRef() != null && taskOid.equals(execution.getTaskRef().getOid())) {
-					executionsToDelete.add(execution.clone());
-					iterator.remove();
-				}
+		// delete all executions related to current task and all old ones
+		String taskOid = executionToAdd.getTaskRef() != null ? executionToAdd.getTaskRef().getOid() : null;
+		for (Iterator<OperationExecutionType> iterator = executions.iterator(); iterator.hasNext(); ) {
+			OperationExecutionType execution = iterator.next();
+			if (taskOid != null && execution.getTaskRef() != null && taskOid.equals(execution.getTaskRef().getOid())
+					|| deleteBefore != null && XmlTypeConverter.toMillis(execution.getTimestamp()) < deleteBefore) {
+				executionsToDelete.add(execution);
+				iterator.remove();
 			}
 		}
-		// delete all old executions
-		if (object.asObjectable().getOperationExecution().size() > NUMBER_OF_LAST_OPERATIONS_RECORDED - 1) {
-			executions.sort(Comparator.nullsFirst(Comparator.comparing(e -> XmlTypeConverter.toDate(e.getTimestamp()))));		// good enough for us
-			executionsToDelete.addAll(CloneUtil.cloneCollectionMembers(
-					executions.subList(0, executions.size() - (NUMBER_OF_LAST_OPERATIONS_RECORDED - 1))));
+		// delete all surplus executions
+		if (recordsToKeep != null && object.asObjectable().getOperationExecution().size() > recordsToKeep - 1) {
+			executions.sort(Comparator.nullsFirst(Comparator.comparing(e -> XmlTypeConverter.toDate(e.getTimestamp()))));
+			executionsToDelete.addAll(executions.subList(0, executions.size() - (recordsToKeep - 1)));
 		}
 		// construct and execute the delta
 		Class<? extends ObjectType> objectClass = object.asObjectable().getClass();
 		List<ItemDelta<?, ?>> deltas = DeltaBuilder.deltaFor(objectClass, prismContext)
 				.item(ObjectType.F_OPERATION_EXECUTION)
-					.add(operation)
-					.delete(PrismContainerValue.toPcvList(executionsToDelete))
+					.add(executionToAdd)
+					.delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(executionsToDelete)))
 				.asItemDeltas();
 		LOGGER.trace("Operation execution delta:\n{}", DebugUtil.debugDumpLazily(deltas));
 		try {
@@ -680,13 +696,13 @@ public class Clockwork {
 			if (!deletedOk) {
 				throw e;
 			} else {
-				LOGGER.trace("Object {} deleted but this was a kind of expected.", oid);
+				LOGGER.trace("Object {} deleted but this was expected.", oid);
 				result.deleteLastSubresultIfError();
 			}
 		}
 	}
 
-	private <F extends ObjectType> void setOperationContext(OperationExecutionType operation,
+	private void setOperationContext(OperationExecutionType operation,
 			OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task) {
 		if (task.isPersistent()) {
 			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject()));

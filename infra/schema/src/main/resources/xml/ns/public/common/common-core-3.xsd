@@ -10371,7 +10371,7 @@
                     <xsd:element name="cleanupPolicy" type="tns:CleanupPoliciesType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                A configuration of cleanup intervals.
+                                A configuration of cleanup intervals and other parameters.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -12827,6 +12827,7 @@
             <xsd:element name="auditRecords" type="tns:CleanupPolicyType" minOccurs="0"/>
             <xsd:element name="closedTasks" type="tns:CleanupPolicyType" minOccurs="0" />
             <xsd:element name="outputReports" type="tns:CleanupPolicyType" minOccurs="0" />
+			<xsd:element name="objectResults" type="tns:CleanupPolicyType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
     
