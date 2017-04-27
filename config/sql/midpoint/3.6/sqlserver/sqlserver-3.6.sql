@@ -550,6 +550,7 @@ CREATE TABLE m_operation_execution (
   taskRef_relation       NVARCHAR(157) COLLATE database_default,
   taskRef_targetOid      NVARCHAR(36) COLLATE database_default,
   taskRef_type           INT,
+  timestampValue         DATETIME2,
   PRIMARY KEY (id, owner_oid)
 );
 

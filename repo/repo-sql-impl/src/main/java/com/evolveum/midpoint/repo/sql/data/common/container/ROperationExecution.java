@@ -39,6 +39,7 @@ import org.hibernate.annotations.Persister;
 import org.jetbrains.annotations.NotNull;
 
 import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Objects;
 
 /**
@@ -68,6 +69,7 @@ public class ROperationExecution implements Container<RObject<?>> {
     private REmbeddedReference initiatorRef;
     private REmbeddedReference taskRef;
     private ROperationResultStatus status;
+    private XMLGregorianCalendar timestamp;
 
     public ROperationExecution() {
         this(null);
@@ -145,7 +147,16 @@ public class ROperationExecution implements Container<RObject<?>> {
 		this.status = status;
 	}
 
-    @Transient
+	@Column(name = "timestampValue")
+	public XMLGregorianCalendar getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(XMLGregorianCalendar timestamp) {
+		this.timestamp = timestamp;
+	}
+
+	@Transient
     @Override
     public Boolean isTransient() {
         return trans;
@@ -168,6 +179,7 @@ public class ROperationExecution implements Container<RObject<?>> {
 				Objects.equals(id, that.id) &&
 				Objects.equals(initiatorRef, that.initiatorRef) &&
 				Objects.equals(taskRef, that.taskRef) &&
+				Objects.equals(timestamp, that.timestamp) &&
 				status == that.status;
 	}
 
@@ -187,6 +199,7 @@ public class ROperationExecution implements Container<RObject<?>> {
 		repo.setTaskRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTaskRef(), repositoryContext.prismContext));
 		repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.prismContext));
 		repo.setStatus(RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+		repo.setTimestamp(jaxb.getTimestamp());
     }
 
 	@Override
@@ -197,6 +210,7 @@ public class ROperationExecution implements Container<RObject<?>> {
 				", initiatorRef=" + initiatorRef +
 				", taskRef=" + taskRef +
 				", status=" + status +
+				", timestamp=" + timestamp +
 				'}';
 	}
 }
