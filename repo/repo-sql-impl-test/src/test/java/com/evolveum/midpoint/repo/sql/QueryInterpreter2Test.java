@@ -3807,6 +3807,73 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void testAdHoc108OperationFatalError() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .item(ObjectType.F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS)
+                            .eq(OperationResultStatusType.FATAL_ERROR)
+                    .build();
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+					+ "  s.oid,\n"
+					+ "  s.fullObject,\n"
+					+ "  s.stringsCount,\n"
+					+ "  s.longsCount,\n"
+					+ "  s.datesCount,\n"
+					+ "  s.referencesCount,\n"
+					+ "  s.polysCount,\n"
+					+ "  s.booleansCount\n"
+					+ "from\n"
+					+ "  RShadow s\n"
+					+ "    left join s.operationExecutions o\n"
+					+ "where\n"
+					+ "  o.status = :status\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc109OperationSuccessForGivenTask() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .block()
+                        .item(OperationExecutionType.F_TASK_REF).ref("oid1")
+                        .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
+					.endBlock()
+                    .build();
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+					+ "  s.oid,\n"
+					+ "  s.fullObject,\n"
+					+ "  s.stringsCount,\n"
+					+ "  s.longsCount,\n"
+					+ "  s.datesCount,\n"
+					+ "  s.referencesCount,\n"
+					+ "  s.polysCount,\n"
+					+ "  s.booleansCount\n"
+					+ "from\n"
+					+ "  RShadow s\n"
+					+ "    left join s.operationExecutions o\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    (\n"
+					+ "      o.taskRef.targetOid = :targetOid and\n"
+					+ "      o.taskRef.relation in (:relation)\n"
+					+ "    ) and\n"
+					+ "    o.status = :status\n"
+					+ "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 
     //    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {

@@ -15332,6 +15332,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 
 </xsd:schema>
