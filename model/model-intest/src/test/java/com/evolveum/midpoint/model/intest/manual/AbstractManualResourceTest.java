@@ -550,7 +550,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
 		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
-		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);		
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowModel, supportsBackingStore());
 		assertShadowPassword(shadowModel);

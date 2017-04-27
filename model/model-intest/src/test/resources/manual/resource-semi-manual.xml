@@ -53,7 +53,7 @@
 		</connectorRef>
 		<connectorConfiguration>
 			<icfc:configurationProperties>
-				<csvconf:filePath>/var/opt/midpoint/resources/semi-manual.csv</csvconf:filePath>
+				<csvconf:filePath>target/semi-manual.csv</csvconf:filePath>
 				<csvconf:encoding>utf-8</csvconf:encoding>
 				<csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
 				<csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
