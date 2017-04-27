@@ -644,9 +644,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
-		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);		
-		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertAttributeFromCache(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertNoAttribute(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME);		
+		assertShadowActivationAdministrativeStatusFromCache(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowProvisioningFuture, true);
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
