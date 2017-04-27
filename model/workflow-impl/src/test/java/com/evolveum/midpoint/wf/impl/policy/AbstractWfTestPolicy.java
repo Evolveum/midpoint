@@ -979,6 +979,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
 		assertNotNull("Object " + object + " was not created", object);
 		objectFromRepo.removeItem(new ItemPath(ObjectType.F_METADATA), Item.class);
+		objectFromRepo.removeItem(new ItemPath(ObjectType.F_OPERATION_EXECUTION), Item.class);
 		assertEquals("Object is different from the one that was expected", object, objectFromRepo.asObjectable());
 	}
 
