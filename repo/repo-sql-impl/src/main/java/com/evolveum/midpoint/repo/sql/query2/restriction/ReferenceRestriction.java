@@ -19,9 +19,11 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
@@ -119,12 +121,23 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
 			Collection<String> oids, QName relation, QName targetType) {
 		String hqlPath = hqlDataInstance.getHqlPath();
 
+		final String TARGET_OID_HQL_PROPERTY, RELATION_HQL_PROPERTY, TARGET_TYPE_HQL_PROPERTY;
+		if (linkDefinition.getTargetDefinition() instanceof JpaAnyReferenceDefinition) {
+			TARGET_OID_HQL_PROPERTY = ROExtReference.F_TARGET_OID;
+			RELATION_HQL_PROPERTY = ROExtReference.F_RELATION;
+			TARGET_TYPE_HQL_PROPERTY = ROExtReference.F_TARGET_TYPE;
+		} else {
+			TARGET_OID_HQL_PROPERTY = RObjectReference.F_TARGET_OID;
+			RELATION_HQL_PROPERTY = RObjectReference.F_RELATION;
+			TARGET_TYPE_HQL_PROPERTY = RObjectReference.F_TARGET_TYPE;
+		}
+
         AndCondition conjunction = hibernateQuery.createAnd();
-        conjunction.add(hibernateQuery.createEqOrInOrNull(getTargetOidPropertyName(), oids));
+        conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
 
 		if (ObjectTypeUtil.isDefaultRelation(relation)) {
 			// Return references without relation or with "member" relation
-			conjunction.add(hibernateQuery.createIn(hqlPath + "." + ObjectReference.F_RELATION,
+			conjunction.add(hibernateQuery.createIn(hqlPath + "." + RELATION_HQL_PROPERTY,
 					Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT))));
 		} else if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
 			// Return all relations => no restriction
@@ -139,20 +152,15 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
 			} else {
 				// non-empty non-standard NS => nothing to add
 			}
-			conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + ObjectReference.F_RELATION, relationsToTest));
+			conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + RELATION_HQL_PROPERTY, relationsToTest));
 		}
 
 		if (targetType != null) {
-			conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TYPE,
+			conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + TARGET_TYPE_HQL_PROPERTY,
 					ClassMapper.getHQLTypeForQName(targetType)));
 		}
         return conjunction;
     }
-
-	@NotNull
-	private String getTargetOidPropertyName() {
-		return hqlDataInstance.getHqlPath() + "." + ObjectReference.F_TARGET_OID;
-	}
 
 	private Condition handleEqInOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {
         if (value == null) {

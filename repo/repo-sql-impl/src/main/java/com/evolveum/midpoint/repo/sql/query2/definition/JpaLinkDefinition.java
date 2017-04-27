@@ -61,7 +61,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         return itemPath;
     }
 
-    public ItemPathSegment getItemPathSegment() {
+    ItemPathSegment getItemPathSegment() {
         if (itemPath.size() != 1) {
             throw new IllegalStateException("Expected single-item path, found '" + itemPath + "' instead.");
         }

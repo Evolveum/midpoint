@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.QueryDefinitionRegistry2;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyPropertyLinkDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyItemLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
@@ -141,8 +141,8 @@ public class ItemPathResolver {
 
     private Condition createJoinCondition(String joinedItemAlias, JpaLinkDefinition joinedItemDefinition, RootHibernateQuery hibernateQuery) throws QueryException {
         Condition condition = null;
-        if (joinedItemDefinition instanceof JpaAnyPropertyLinkDefinition) {
-            JpaAnyPropertyLinkDefinition anyLinkDef = (JpaAnyPropertyLinkDefinition) joinedItemDefinition;
+        if (joinedItemDefinition instanceof JpaAnyItemLinkDefinition) {
+            JpaAnyItemLinkDefinition anyLinkDef = (JpaAnyItemLinkDefinition) joinedItemDefinition;
             AndCondition conjunction = hibernateQuery.createAnd();
             if (anyLinkDef.getOwnerType() != null) {        // null for assignment extensions
                 conjunction.add(hibernateQuery.createEq(joinedItemAlias + ".ownerType", anyLinkDef.getOwnerType()));

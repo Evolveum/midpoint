@@ -2680,6 +2680,40 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test660QueryExtensionRef() throws Exception {
+        Session session = open();
+        try {
+        	ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+					.item(F_EXTENSION, new QName("referenceType")).ref("123")
+					.build();
+			String real = getInterpretedQuery2(session, GenericObjectType.class, query);
+            String expected = "select\n"
+					+ "  g.oid,\n"
+					+ "  g.fullObject,\n"
+					+ "  g.stringsCount,\n"
+					+ "  g.longsCount,\n"
+					+ "  g.datesCount,\n"
+					+ "  g.referencesCount,\n"
+					+ "  g.polysCount,\n"
+					+ "  g.booleansCount\n"
+					+ "from\n"
+					+ "  RGenericObject g\n"
+					+ "    left join g.references r with (\n"
+					+ "       r.ownerType = :ownerType and\n"
+					+ "       r.name = :name\n"
+					+ "    )\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    r.value = :value and\n"
+					+ "    r.relation in (:relation)\n"
+					+ "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test700QueryCertCaseAll() throws Exception {
         Session session = open();
         try {
