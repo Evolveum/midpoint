@@ -466,7 +466,11 @@ public abstract class PrismValue implements IPrismValue {
 	@Nullable
 	abstract public <T> T getRealValue();
 
-	// returns PCV or this
+	// Returns a root of PrismValue tree. For example, if we have a AccessCertificationWorkItemType that has a parent (owner)
+	// of AccessCertificationCaseType, which has a parent of AccessCertificationCampaignType, this method returns the PCV
+	// of AccessCertificationCampaignType.
+	//
+	// Generally, this method returns either "this" (PrismValue) or a PrismContainerValue.
 	public PrismValue getRootValue() {
 		PrismValue current = this;
 		for (;;) {

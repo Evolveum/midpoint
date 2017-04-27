@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+
+<div wicket:id="activationContainer">
+<div class="row">
+        <div class="col-md-offset-2 col-md-8 col-lg-offset-3 col-lg-6">
+            <div class="panel panel-default" style="margin-top: 120px;">
+                <div class="panel-body">
+                    <form class="form-horizontal" wicket:id="mainForm">
+                        <div class="form-group">
+                           <h3 style="text-align: center" wicket:id="username"></h3>
+                           
+                        </div>
+                        <div class="form-group">
+                            <label class="col-md-5 col-lg-5 control-label">
+                                <wicket:message key="PageAccountActivation.provide.password"/>
+                            </label>
+
+                            <div class="col-md-6 col-lg-6">
+                                <input class="form-control input-sm" wicket:id="password" type="password" autocomplete="off"/>
+                            </div>
+                        </div>
+
+						<a class="btn btn-primary pull-right" wicket:id="confirm" ><wicket:message key="PageAccountActivation.button.activate"/></a>
+                    </form>
+					
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+ <div class="col-md-offset-2 col-md-8 col-lg-offset-3 col-lg-6" wicket:id="confirmationContainer">
+    <div class="panel panel-default" style="margin-top: 120px;">
+                <div class="panel-body">
+    
+    		
+	  		<h3 style="text-align: center;"><wicket:message key="PageAccountActivation.activated.shadows"/></h3>
+	  		<ul>
+	  			<li wicket:id="activatedShadows" />
+	  		</ul>
+	  		
+	  		<a class="pull-right" wicket:id="linkToLogin">
+	  			<wicket:message key="PageRegistrationConfirmation.continueToLogin"/>
+	  		</a>
+    		
+        </div>
+        </div>
+        </div>
+        
+        <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
+    <style type="text/css">
+        .content-wrapper, .right-side, .main-footer {
+            margin-left: 0px;
+
+            -moz-transition: none;
+            -webkit-transition: none;
+            -o-transition: color 0 ease-in;
+            transition: none;
+        }
+    </style>
+    
+</wicket:extend>
+</body>
+</html>

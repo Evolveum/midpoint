@@ -2629,13 +2629,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         		new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), prismContext);
         
         final MutableInt count = new MutableInt(0);
-        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-			@Override
-			public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
-				count.increment();
-				display("Found",shadow);
-				return true;
-			}
+        ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
+			count.increment();
+			display("Found",shadow);
+			return true;
 		};
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
 		if (raw) {

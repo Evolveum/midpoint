@@ -746,4 +746,48 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of results found: " + query, expectedCount, count);
     }
 
+	@Test
+	public void testOperationExecutionAny() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.item(ObjectType.F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, cases.size());
+	}
+
+	@Test
+	public void testOperationExecutionWithTask() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.exists(ObjectType.F_OPERATION_EXECUTION)
+					.block()
+						.item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+						.and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
+					.endBlock()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, cases.size());
+	}
+
+	@Test
+	public void testOperationExecutionWithTask2() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.exists(ObjectType.F_OPERATION_EXECUTION)
+					.block()
+						.item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+						.and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+					.endBlock()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find no object", 0, cases.size());
+	}
+
 }

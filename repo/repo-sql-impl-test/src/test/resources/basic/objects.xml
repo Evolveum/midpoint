@@ -1675,8 +1675,20 @@
         </automaticallyApproved>
     </service>
 
-	<case version="1">
+	<case version="1" xsi:type="c:CaseType">
 		<name>case1</name>
+		<operationExecution id="1">
+			<taskRef oid="task-oid-1" type="TaskType" />
+			<initiatorRef oid="user-oid-1" type="UserType" />
+			<status>fatal_error</status>
+		</operationExecution>
+		<operationExecution id="2">
+			<status>warning</status>
+		</operationExecution>
+		<operationExecution id="3">
+			<taskRef oid="task-oid-2" type="TaskType" />
+			<status>success</status>
+		</operationExecution>
 	</case>
 
 </objects>

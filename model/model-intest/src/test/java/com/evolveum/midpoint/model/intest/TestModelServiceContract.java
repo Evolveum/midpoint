@@ -1132,7 +1132,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertShadowFetchOperationCountIncrement(0);
-        assertPrismObjectCloneIncrement(64);
+        assertPrismObjectCloneIncrement(66);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2395,8 +2395,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         value.setExpression(expression);
         radt.setOutbound(value);
         accountConstruction.getAttribute().add(radt);
+
+        PrismObject<UserType> jackBefore = getUserFromRepo(USER_JACK_OID);
+        assertEquals("Wrong # of assignments", 1, jackBefore.asObjectable().getAssignment().size());
+        Long assignmentId = jackBefore.asObjectable().getAssignment().get(0).getId();
         ObjectDelta<UserType> accountAssignmentUserDelta =
-                createReplaceAccountConstructionUserDelta(USER_JACK_OID, 1L, accountConstruction);
+                createReplaceAccountConstructionUserDelta(USER_JACK_OID, assignmentId, accountConstruction);
         deltas.add(accountAssignmentUserDelta);
         
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);

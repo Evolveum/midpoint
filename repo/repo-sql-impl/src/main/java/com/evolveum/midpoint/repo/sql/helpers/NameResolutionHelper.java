@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
@@ -36,7 +35,9 @@ import java.util.stream.Collectors;
 @Component
 public class NameResolutionHelper {
 
-    // TODO keep names between invocations (e.g. when called from searchObjects/searchContainers)
+	private static final int MAX_OIDS_TO_RESOLVE_AT_ONCE = 200;
+
+	// TODO keep names between invocations (e.g. when called from searchObjects/searchContainers)
     public void resolveNamesIfRequested(Session session, PrismContainerValue<?> containerValue, Collection<SelectorOptions<GetOperationOptions>> options) {
     	resolveNamesIfRequested(session, Collections.singletonList(containerValue), options);
 	}
@@ -47,7 +48,7 @@ public class NameResolutionHelper {
 			return;
 		}
 
-		final List<String> oidsToResolve = new ArrayList<>();
+		final Set<String> oidsToResolve = new HashSet<>();
 		Visitor oidExtractor = visitable -> {
 			if (visitable instanceof PrismReferenceValue) {
 				PrismReferenceValue value = (PrismReferenceValue) visitable;
@@ -67,15 +68,26 @@ public class NameResolutionHelper {
 		Set<PrismContainerValue> roots = containerValues.stream().map(pcv -> pcv.getRootValue()).collect(Collectors.toSet());
 		roots.forEach(root -> root.accept(oidExtractor));
 
-		if (!oidsToResolve.isEmpty()) {
-			Query query = session.getNamedQuery("resolveReferences");
-			query.setParameterList("oid", oidsToResolve);
-			query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
+		Map<String, PolyString> oidNameMap = new HashMap<>();
+		List<String> batch = new ArrayList<>();
+		for (Iterator<String> iterator = oidsToResolve.iterator(); iterator.hasNext(); ) {
+			batch.add(iterator.next());
+			if (batch.size() >= MAX_OIDS_TO_RESOLVE_AT_ONCE || !iterator.hasNext()) {
+				Query query = session.getNamedQuery("resolveReferences");
+				query.setParameterList("oid", batch);
+				query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
 
-			@SuppressWarnings({ "unchecked", "raw" })
-			List<Map<String, Object>> results = query.list();
-			final Map<String, PolyString> oidNameMap = consolidateResults(results);
-
+				@SuppressWarnings({ "unchecked", "raw" })
+				List<Map<String, Object>> results = query.list();			// returns oid + name
+				for (Map<String, Object> result : results) {
+					String oid = (String) result.get("0");
+					RPolyString name = (RPolyString) result.get("1");
+					oidNameMap.put(oid, new PolyString(name.getOrig(), name.getNorm()));
+				}
+				batch.clear();
+			}
+		}
+		if (!oidNameMap.isEmpty()) {
 			Visitor nameSetter = visitable -> {
 				if (visitable instanceof PrismReferenceValue) {
 					PrismReferenceValue value = (PrismReferenceValue) visitable;
@@ -87,13 +99,4 @@ public class NameResolutionHelper {
 			roots.forEach(root -> root.accept(nameSetter));
 		}
 	}
-
-	private Map<String, PolyString> consolidateResults(List<Map<String, Object>> results) {
-    	Map<String, PolyString> oidNameMap = new HashMap<>();
-    	for (Map<String, Object> map : results) {
-    		PolyStringType name = RPolyString.copyToJAXB((RPolyString) map.get("1"));
-    		oidNameMap.put((String)map.get("0"), new PolyString(name.getOrig(), name.getNorm()));
-    	}
-    	return oidNameMap;
-    }
 }

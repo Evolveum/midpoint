@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
@@ -31,9 +32,11 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.XPathHolder;
@@ -48,6 +51,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -1278,5 +1282,73 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public WorkflowService getWorkflowService() {
 		return workflowService;
+	}
+	
+	@Override
+	public List<ShadowType> getShadowsToActivate(Collection<ModelElementContext> projectionContexts) {
+		List<ShadowType> shadows = new ArrayList<>();
+		
+		for (ModelElementContext<ShadowType> projectionCtx : projectionContexts) {
+			
+			List<? extends ObjectDeltaOperation> executedShadowDelas = projectionCtx.getExecutedDeltas();
+			for (ObjectDeltaOperation<ShadowType> shadowDelta : executedShadowDelas) {
+				if (shadowDelta.getExecutionResult().getStatus() == OperationResultStatus.SUCCESS && shadowDelta.getObjectDelta().getChangeType() == ChangeType.ADD) {
+					PrismObject<ShadowType> shadow = shadowDelta.getObjectDelta().getObjectToAdd();
+					PrismProperty<String> pLifecycleState = shadow.findProperty(ShadowType.F_LIFECYCLE_STATE);
+					if (pLifecycleState != null && !pLifecycleState.isEmpty() && SchemaConstants.LIFECYCLE_PROPOSED.equals(pLifecycleState.getRealValue())) {
+						shadows.add(shadow.asObjectable());
+					}
+					
+				}
+			}
+		}
+		return shadows;
+	}
+
+	@Override
+	public String createRegistrationConfirmationLink(UserType userType) {
+		return createTokenConfirmationLink(SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX, userType);
+	}
+
+	@Override
+	public String createPasswordResetLink(UserType userType) {
+		return createTokenConfirmationLink(SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX, userType);
+	}
+
+	@Override
+	public String createAccountActivationLink(UserType userType) {
+		return createBaseConfirmationLink(SchemaConstants.ACCOUNT_ACTIVATION_PREFIX, userType.getOid());
+	}
+	
+	private String createBaseConfirmationLink(String prefix, UserType userType) {
+		return prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig(); 
+	}
+	
+	private String createBaseConfirmationLink(String prefix, String oid) {
+		return prefix + "?" + SchemaConstants.USER_ID + "=" + oid; 
+	}
+	
+	private String createTokenConfirmationLink(String prefix, UserType userType) {
+		return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType); 
+	}
+	
+	private String getNonce(UserType user) {
+		if (user.getCredentials() == null) {
+			return null;
+		}
+		
+		if (user.getCredentials().getNonce() == null) {
+			return null;
+		}
+		
+		if (user.getCredentials().getNonce().getValue() == null) {
+			return null;
+		}
+		
+		try {
+			return getPlaintext(user.getCredentials().getNonce().getValue());
+		} catch (EncryptionException e) {
+			return null;
+		}
 	}
 }
