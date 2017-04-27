@@ -117,7 +117,15 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	protected void initLayoutOptions() {
 		ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
 				executeOptionsModel, true, false);
-        optionsPanel.setVisible(getOptionsPanelVisibility());
+        optionsPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return getOptionsPanelVisibility();
+			}
+
+		});
 		mainForm.add(optionsPanel);
 	}
 	

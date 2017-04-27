@@ -18,10 +18,13 @@ package com.evolveum.midpoint.prism.delta.builder;
 
 import com.evolveum.midpoint.prism.PrismValue;
 
+import java.util.Collection;
+
 /**
  * @author mederly
  */
 public interface S_MaybeDelete extends S_ItemEntry {
     S_ItemEntry delete(Object... realValues);
     S_ItemEntry delete(PrismValue... values);
+    S_ItemEntry delete(Collection<? extends PrismValue> values);
 }

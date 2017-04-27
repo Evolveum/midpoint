@@ -83,6 +83,7 @@ public class PrismIdentifierGenerator {
         List<PrismContainer<?>> containers = new ArrayList<>();
         if (ObjectType.class.isAssignableFrom(parent.getCompileTimeClass())) {
             CollectionUtils.addIgnoreNull(containers, parent.findContainer(ObjectType.F_TRIGGER));
+            CollectionUtils.addIgnoreNull(containers, parent.findContainer(ObjectType.F_OPERATION_EXECUTION));
         }
 
         if (LookupTableType.class.isAssignableFrom(parent.getCompileTimeClass())) {
