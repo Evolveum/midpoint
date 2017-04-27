@@ -347,6 +347,20 @@
 	        		</xsd:appinfo>
 	        	</xsd:annotation>
 	        </xsd:element>
+
+			<xsd:element name="operationExecution" type="tns:OperationExecutionType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Description of recent operations executed on this object (or related objects, e.g. shadows
+							in case of a focal object). The number of operations to be kept here is configurable.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
                         
         </xsd:sequence>
                
@@ -2783,7 +2797,12 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 User's result for the operation. e.g. set by recompute status.
+								DEPRECATED. Use ObjectType.operationExecution instead.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.6</a:deprecatedSince>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     
@@ -15247,5 +15266,71 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+
+	<xsd:complexType name="OperationExecutionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about an operation executed on an object.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						When was this information recorded. It is expected that it was when
+						the operation finished (successfully or not).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="operation" type="tns:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						The elementary operation(s) that were part of the execution and their results.
+						However, the content would be reduced e.g. by deletion of modification items and operation
+						result children. The level of reduction could be configurable in the future.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="status" type="tns:OperationResultStatusType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Overall result status of the whole operation.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="initiatorRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						User that initiated the operation. (TODO)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task that was used to initiate the operation (if any). Only the latest result for a given
+						non-zero task OID will be kept for any object.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="channel" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Channel through which the operation was initiated.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 </xsd:schema>

@@ -75,15 +75,15 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -1039,4 +1039,12 @@ public class IntegrationTestTools {
 			// TODO: other elements
 		}
 	}
+
+	public static void clearLog() throws IOException {
+		RandomAccessFile file = new RandomAccessFile("target/test.log", "rw");
+		file.setLength(0);
+		file.close();
+		System.out.println("Log cleared.");
+	}
+
 }
