@@ -252,7 +252,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected DummyAuditService dummyAuditService;
 	
-	protected boolean verbose = true;
+	protected boolean verbose = false;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 			

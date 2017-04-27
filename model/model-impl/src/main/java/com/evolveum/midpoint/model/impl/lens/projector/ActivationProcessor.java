@@ -141,18 +141,22 @@ public class ActivationProcessor {
     		throw new IllegalStateException("Decision "+decision+" already present for projection "+projCtxDesc);
     	}
     	
-    	if (projCtx.isThombstone()) {
-    		// Let's keep thombstones linked until they expire. So we do not have shadows without owners.
-    		// This is also needed for async delete operations.
-    		// TODO: thombstone expiration
-    		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-    		LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
-    		return;
-    	}
-    	
     	if (synchronizationIntent == SynchronizationIntent.UNLINK) {
     		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
     		LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
+    		return;
+    	}
+    	
+    	if (projCtx.isThombstone()) {
+    		if (shouldKeepThombstone(projCtx)) {
+	    		// Let's keep thombstones linked until they expire. So we do not have shadows without owners.
+	    		// This is also needed for async delete operations.
+	    		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+	    		LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
+    		} else {
+    			projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
+    			LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
+    		}
     		return;
     	}
     	
@@ -318,7 +322,19 @@ public class ActivationProcessor {
     	
     }
 
-    public <F extends FocusType> void processActivationMetadata(LensContext<F> context, LensProjectionContext accCtx, 
+    private boolean shouldKeepThombstone(LensProjectionContext projCtx) {
+    	PrismObject<ShadowType> objectCurrent = projCtx.getObjectCurrent();
+    	if (objectCurrent != null) {
+    		ShadowType objectCurrentType = objectCurrent.asObjectable();
+    		if (!objectCurrentType.getPendingOperation().isEmpty()) {
+    			return true;
+    		}
+    	}
+    	// TODO: thombstone expiration
+    	return false;
+	}
+
+	public <F extends FocusType> void processActivationMetadata(LensContext<F> context, LensProjectionContext accCtx, 
     		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	ObjectDelta<ShadowType> projDelta = accCtx.getDelta();
     	if (projDelta == null) {

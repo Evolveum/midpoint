@@ -96,6 +96,8 @@ import java.util.List;
  *
  */
 public abstract class ShadowCache {
+	
+	public static String OP_PROCESS_SYNCHRONIZATION = ShadowCache.class.getName() + ".processSynchronization";
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -379,12 +381,8 @@ public abstract class ShadowCache {
 			shadowDelta.applyTo(repositoryShadow);
 		}
 		
-		LOGGER.info("XXXXXXXX1\n{}", repositoryShadow.debugDumpLazily());
-		
 		PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
 		applyAttributesDefinition(ctx, resultShadow);
-		
-		LOGGER.info("XXXXXXXX2\n{}", resultShadow.debugDumpLazily());
 		
 		return resultShadow;
 	}
@@ -1753,59 +1751,63 @@ public abstract class ShadowCache {
 	}
 
 	@SuppressWarnings("rawtypes")
-	boolean processSynchronization(ProvisioningContext ctx, Change change, OperationResult result)
+	boolean processSynchronization(ProvisioningContext ctx, Change change, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException {
 
-		ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
-				change, ctx.getResource(), ctx.getChannel());
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
-					SchemaDebugUtil.prettyPrint(shadowChangeDescription));
-		}
-		OperationResult notifyChangeResult = new OperationResult(
-				ShadowCache.class.getName() + "notifyChange");
-		notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription);
-
-		try {
-			notifyResourceObjectChangeListeners(shadowChangeDescription, ctx.getTask(), notifyChangeResult);
-			notifyChangeResult.recordSuccess();
-		} catch (RuntimeException ex) {
-			// recordFatalError(LOGGER, notifyChangeResult, "Synchronization
-			// error: " + ex.getMessage(), ex);
-			saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
-			throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
-		}
-
-		notifyChangeResult.computeStatus("Error in notify change operation.");
-
+		OperationResult result = parentResult.createSubresult(OP_PROCESS_SYNCHRONIZATION);
+		
 		boolean successfull = false;
-		if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
-			deleteShadowFromRepo(change, result);
-			successfull = true;
-			// // get updated token from change,
-			// // create property modification from new token
-			// // and replace old token with the new one
-			// PrismProperty<?> newToken = change.getToken();
-			// task.setExtensionProperty(newToken);
-			// processedChanges++;
-
-		} else {
-			successfull = false;
-			saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
+		try {
+			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
+					change, ctx.getResource(), ctx.getChannel());
+	
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
+						SchemaDebugUtil.prettyPrint(shadowChangeDescription));
+			}
+			OperationResult notifyChangeResult = new OperationResult(
+					ShadowCache.class.getName() + "notifyChange");
+			notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription);
+	
+			try {
+				notifyResourceObjectChangeListeners(shadowChangeDescription, ctx.getTask(), notifyChangeResult);
+				notifyChangeResult.recordSuccess();
+			} catch (RuntimeException ex) {
+				// recordFatalError(LOGGER, notifyChangeResult, "Synchronization
+				// error: " + ex.getMessage(), ex);
+				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
+				throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
+			}
+	
+			notifyChangeResult.computeStatus("Error in notify change operation.");
+			
+			if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
+				deleteShadowFromRepoIfNeeded(change, result);
+				successfull = true;
+				// // get updated token from change,
+				// // create property modification from new token
+				// // and replace old token with the new one
+				// PrismProperty<?> newToken = change.getToken();
+				// task.setExtensionProperty(newToken);
+				// processedChanges++;
+	
+			} else {
+				successfull = false;
+				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
+			}
+	
+			if (result.isUnknown()) {
+				result.computeStatus();
+			}
+			
+		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException |
+				CommunicationException | ConfigurationException | RuntimeException | Error e) {
+			result.recordFatalError(e);
+			throw e;
 		}
-
+			
 		return successfull;
-		// }
-		// // also if no changes was detected, update token
-		// if (changes.isEmpty() && tokenProperty != null) {
-		// LOGGER.trace("No changes to synchronize on " +
-		// ObjectTypeUtil.toShortString(resourceType));
-		// task.setExtensionProperty(tokenProperty);
-		// }
-		// task.savePendingModifications(result);
-		// return processedChanges;
 	}
 
 	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change, Task task,
@@ -1899,7 +1901,7 @@ public abstract class ShadowCache {
 		return shadowOid;
 	}
 
-	private void deleteShadowFromRepo(Change change, OperationResult parentResult)
+	private void deleteShadowFromRepoIfNeeded(Change change, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
 				&& change.getOldShadow() != null) {

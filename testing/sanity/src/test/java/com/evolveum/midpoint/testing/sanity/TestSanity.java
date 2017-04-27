@@ -3932,48 +3932,43 @@ public class TestSanity extends AbstractModelIntegrationTest {
     
     @Test
     public void test503NotifyChangeDeleteAccount() throws Exception{
-    		 TestUtil.displayTestTile("test503NotifyChangeDeleteAccount");
-
-    		 OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");	 
-    		 PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-    		 assertNotNull("User with the name angelika must exist.", userAngelika);
-    	    	
-    	    	UserType user = userAngelika.asObjectable();
-    	    	assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
-    	    	
-    	    	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-    	    	String oid = user.getLinkRef().get(0).getOid();
-    	    	
+    	final String TEST_NAME = "test503NotifyChangeDeleteAccount";
+    	TestUtil.displayTestTile(TEST_NAME);
+	 
+		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+		assertNotNull("User with the name angelika must exist.", userAngelika);
+		
+		UserType user = userAngelika.asObjectable();
+		assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+		
+		assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+		String oid = user.getLinkRef().get(0).getOid();
         
     	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setChangeType(ChangeTypeType.DELETE);
     	delta.setObjectType(ShadowType.COMPLEX_TYPE);
-    	
         delta.setOid(oid);
-    		
     	changeDescription.setObjectDelta(delta);
-    	
     	changeDescription.setOldShadowOid(oid);
     	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
     	
+    	// WHEN
     	TaskType task = modelWeb.notifyChange(changeDescription);
+    	
+    	// THEN
     	OperationResult result = OperationResult.createOperationResult(task.getResult());
     	display(result);
-    	assertSuccess(result);
+    	assertTrue(result.isAcceptable());
     	
     	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
+    	display("User after", userAngelikaAfterSync);
     	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
     	
     	UserType userType = userAngelikaAfterSync.asObjectable();
     	assertNotNull("User with the name angelika must have one link ref.", userType.getLinkRef());
     	
     	assertEquals("Expected no account ref in user", 0, userType.getLinkRef().size());
-//    	String oid = userType.getLinkRef().get(0).getOid();
-    	
-//    	UserType userAfterSync = userAngelikaAfterSync.asObjectable();
-    	
-//    	PrismAsserts.assertEqualsPolyString("wrong given name in user angelika", PrismTestUtil.createPolyStringType("newAngelika"), userAfterSync.getGivenName());
     	
     }
     
