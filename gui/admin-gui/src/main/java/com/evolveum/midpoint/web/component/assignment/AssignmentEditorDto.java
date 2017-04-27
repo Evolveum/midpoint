@@ -858,6 +858,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	@Override
+	public AssignmentEditorDto clone(){
+		return new AssignmentEditorDto(UserDtoStatus.ADD, newAssignment, pageBase);
+	}
+
+	@Override
 	public int hashCode() {
 		int result = name != null ? name.hashCode() : 0;
 		result = 31 * result + (altName != null ? altName.hashCode() : 0);

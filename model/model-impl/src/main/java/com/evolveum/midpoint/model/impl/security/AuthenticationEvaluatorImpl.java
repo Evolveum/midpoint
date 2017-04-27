@@ -339,8 +339,14 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	
 	protected boolean decryptAndMatch(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString,
 			String enteredPassword) {
-		String decryptedPassword = getDecryptedValue(connEnv, principal, protectedString);
-		return enteredPassword.equals(decryptedPassword);
+		ProtectedStringType entered = new ProtectedStringType();
+		entered.setClearValue(enteredPassword);
+		try {
+			return protector.compare(entered, protectedString);
+		} catch (SchemaException | EncryptionException e) {
+			recordAuthenticationFailure(principal, connEnv, "error decrypting password: "+e.getMessage());
+			throw new AuthenticationServiceException("web.security.provider.unavailable", e);
+		}
 	}
 	
 	protected String getDecryptedValue(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString) {
