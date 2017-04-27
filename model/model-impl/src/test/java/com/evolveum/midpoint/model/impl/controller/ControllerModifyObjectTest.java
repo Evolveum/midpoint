@@ -26,12 +26,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.model.impl.ModelCrudService;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -42,15 +39,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectTest.class);
-	@Autowired(required = true)
+	//private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectTest.class);
+	@Autowired
 	private ModelCrudService controller;
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repository;
-	@Autowired(required = true)
+	@Autowired
 	private ProvisioningService provisioning;
-	@Autowired(required = true)
+	@Autowired
 	private TaskManager taskManager;
 
 	@BeforeMethod
@@ -65,17 +62,16 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
-		controller.modifyObject(UserType.class, null, new ArrayList<ItemDelta>(), null, taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, null, new ArrayList<>(), null, taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
-		controller.modifyObject(UserType.class, "", new ArrayList<ItemDelta>(), null, taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, "", new ArrayList<>(), null, taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-
-		controller.modifyObject(UserType.class, "1", new ArrayList<ItemDelta>(), null, taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, "1", new ArrayList<>(), null, taskManager.createTaskInstance(), null);
 	}
 }
