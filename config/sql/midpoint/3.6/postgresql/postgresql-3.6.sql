@@ -806,6 +806,8 @@ CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
 CREATE INDEX iAssignmentEffective ON m_assignment (effectiveStatus);
 
+CREATE INDEX iAssignmentOwner ON m_assignment (owner_oid);
+
 CREATE INDEX iTargetRefTargetOid ON m_assignment (targetRef_targetOid);
 
 CREATE INDEX iTenantRefTargetOid ON m_assignment (tenantRef_targetOid);
@@ -911,6 +913,8 @@ CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
 
 CREATE INDEX iDescendantAncestor ON m_org_closure (descendant_oid, ancestor_oid);
 
+CREATE INDEX iReferenceOwnerOid ON m_reference (owner_oid);
+
 CREATE INDEX iReferenceTargetOid ON m_reference (targetOid);
 
 ALTER TABLE m_report
@@ -968,6 +972,8 @@ CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue);
 ALTER TABLE m_user
 ADD CONSTRAINT uc_user_name UNIQUE (name_norm);
 
+CREATE INDEX iEmailAddress ON m_user (emailAddress);
+
 CREATE INDEX iEmployeeNumber ON m_user (employeeNumber);
 
 CREATE INDEX iFullName ON m_user (fullName_orig);
@@ -977,6 +983,10 @@ CREATE INDEX iFamilyName ON m_user (familyName_orig);
 CREATE INDEX iGivenName ON m_user (givenName_orig);
 
 CREATE INDEX iLocality ON m_user (locality_orig);
+
+CREATE INDEX iEmployeeTypeUserOid ON m_user_employee_type (user_oid);
+
+CREATE INDEX iEmployeeType ON m_user_employee_type (employeeType);
 
 ALTER TABLE m_value_policy
 ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm);
