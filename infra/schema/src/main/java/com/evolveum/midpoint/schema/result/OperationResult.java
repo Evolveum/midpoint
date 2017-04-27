@@ -82,6 +82,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String PARAM_TASK = "task";
 	public static final String PARAM_OBJECT = "object";
 	public static final String PARAM_QUERY = "query";
+	public static final String PARAM_PROJECTION = "projection";
 	
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";

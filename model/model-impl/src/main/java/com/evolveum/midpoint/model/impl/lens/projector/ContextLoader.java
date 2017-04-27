@@ -1200,6 +1200,10 @@ public class ContextLoader {
 			// nothing to load yet
 			return;
 		}
+		if (projCtx.isThombstone()) {
+			// loading is futile
+			return;
+		}
 		ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
 		if (discr != null && discr.getOrder() > 0) {
 			// It may be just too early to load the projection

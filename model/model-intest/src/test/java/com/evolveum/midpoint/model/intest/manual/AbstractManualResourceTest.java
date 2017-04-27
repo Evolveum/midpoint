@@ -624,7 +624,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		recomputeUser(userWillOid, task, result);
+		// We need reconcile and not recompute here. We need to fetch the updated case status.
+		reconcileUser(userWillOid, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1974,10 +1975,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		recomputeUser(userWillOid, task, result);
+		// We need reconcile and not recompute here. We need to fetch the updated case status.
+		reconcileUser(userWillOid, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
+		display("result", result);
 		assertSuccess(result);
 		
 		accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -2073,9 +2076,92 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
-	// TODO: check that the linkRef is gone and shadow is gone
+	protected void backingStoreDeleteWill() throws IOException {
+		// Nothing to do here
+	}
 	
-	// TODO: add account instead of assign. check that the shadow gets OK to the manual connector
+	@Test
+	public void test330UpdateBackingStoreAndRecomputeWill() throws Exception {
+		final String TEST_NAME = "test330UpdateBackingStoreAndRecomputeWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		backingStoreDeleteWill();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
+		display("Repo shadow", shadowRepo);
+		assertSinglePendingOperation(shadowRepo, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		assertShadowDead(shadowRepo);
+			
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+				accountWillOid, null, task, result);
+		
+		display("Model shadow", shadowModel);
+		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
+		assertShadowName(shadowModel, USER_WILL_NAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertShadowDead(shadowModel);
+		
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, 
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
+				accountWillOid, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Model shadow (future)", shadowModelFuture);
+		assertShadowName(shadowModelFuture, USER_WILL_NAME);
+		assertShadowDead(shadowModelFuture);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	// TODO: nofetch, nofetch+future
+	
+	/**
+	 * ff 20min, grace period expired, shadow should be gone, linkRef shoud be gone.
+	 */
+	@Test
+	public void test340RecomputeWillAfter25min() throws Exception {
+		final String TEST_NAME = "test340RecomputeWillAfter25min";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clock.overrideDuration("PT20M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(userWillOid);
+		display("User after", userAfter);
+		assertLinks(userAfter, 0);
+		
+		assertNoShadow(accountWillOid);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
 	
 	// TODO: create, close case, then update backing store.
 	

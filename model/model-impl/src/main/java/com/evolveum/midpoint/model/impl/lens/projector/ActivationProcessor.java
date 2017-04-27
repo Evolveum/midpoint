@@ -144,13 +144,13 @@ public class ActivationProcessor {
     	if (projCtx.isThombstone()) {
     		// Let's keep thombstones linked until they expire. So we do not have shadows without owners.
     		// This is also needed for async delete operations.
-    		// TODO: thombsotne expiration
+    		// TODO: thombstone expiration
     		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
     		LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
     		return;
     	}
     	
-    	if (projCtx.isThombstone() || synchronizationIntent == SynchronizationIntent.UNLINK) {
+    	if (synchronizationIntent == SynchronizationIntent.UNLINK) {
     		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
     		LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
     		return;

@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -113,6 +114,11 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		}
 		replaceInCsv(new String[]{USER_WILL_NAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", disabled, password});
 	}
+	
+	@Override
+	protected void backingStoreDeleteWill() throws IOException {
+		deleteInCsv(USER_WILL_NAME);
+	}
 
 	private void appendToCsv(String[] data) throws IOException {
 		String line = formatCsvLine(data) + "\n";
@@ -126,6 +132,19 @@ public class TestSemiManual extends AbstractManualResourceTest {
 			String[] cols = line.split(",");
 			if (cols[0].matches("\""+data[0]+"\"")) {
 				lines.set(i, formatCsvLine(data));
+			}
+		}
+		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines, StandardOpenOption.WRITE);
+	}
+	
+	private void deleteInCsv(String username) throws IOException {
+		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
+		Iterator<String> iterator = lines.iterator();
+		while (iterator.hasNext()) {
+			String line = iterator.next();
+			String[] cols = line.split(",");
+			if (cols[0].matches("\""+username+"\"")) {
+				iterator.remove();
 			}
 		}
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines, StandardOpenOption.WRITE);
