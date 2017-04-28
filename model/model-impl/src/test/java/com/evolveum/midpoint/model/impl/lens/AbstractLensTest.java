@@ -143,9 +143,6 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	protected static final String ORG_BRETHREN_OID = "9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b";
 	protected static final String ORG_BRETHREN_INDUCED_ORGANIZATION = "Pirate Brethren";
 	
-	protected static final File OBJECT_TEMPLATE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "object-template-persona-admin.xml");
-	protected static final String OBJECT_TEMPLATE_PERSONA_ADMIN_OID = "894ea1a8-2c0a-11e7-a950-ff2047b0c053";
-	
 	@Autowired(required = true)
 	protected Projector projector;
 	

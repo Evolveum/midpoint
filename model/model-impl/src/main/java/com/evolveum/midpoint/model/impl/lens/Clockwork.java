@@ -116,7 +116,7 @@ public class Clockwork {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 	
-	@Autowired
+	@Autowired(required=true)
 	private Projector projector;
 	
 	// This is ugly
@@ -124,7 +124,7 @@ public class Clockwork {
 	@Autowired
 	private ContextLoader contextLoader;
 	
-	@Autowired
+	@Autowired(required=true)
 	private ChangeExecutor changeExecutor;
 
     @Autowired(required = false)
@@ -157,6 +157,9 @@ public class Clockwork {
 
     @Autowired
     private ScriptExpressionFactory scriptExpressionFactory;
+    
+    @Autowired(required=true)
+    private PersonaProcessor personaProcessor;
     
     @Autowired
     private PrismContext prismContext;
@@ -579,6 +582,12 @@ public class Clockwork {
 		auditFinalExecution(context, task, result);
 		logFinalReadable(context, task, result);
 		recordOperationExecution(context, task, result);
+		
+		HookOperationMode opmode = personaProcessor.processPersonaChanges(context, task, result);
+		if (opmode == HookOperationMode.BACKGROUND) {
+			return opmode;
+		}
+		
         return triggerReconcileAffected(context, task, result);
 	}
 
@@ -1286,7 +1295,5 @@ public class Clockwork {
 			}
 		}
 	}
-
-		
 
 }

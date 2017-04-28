@@ -136,7 +136,7 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         sb.append("activityType=").append(activityType);
         sb.append(", state=").append(stateType);
         if (resourceShadowDiscriminator != null) {
-            sb.append(", resourceShadowDiscriminator=").append(resourceShadowDiscriminator.toHumanReadableString());
+            sb.append(", resourceShadowDiscriminator=").append(resourceShadowDiscriminator.toHumanReadableDescription());
         }
         if (message != null) {
             sb.append("\n");

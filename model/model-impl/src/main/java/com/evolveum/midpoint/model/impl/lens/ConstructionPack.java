@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import com.evolveum.midpoint.util.DebugUtil;
  * @author semancik
  *
  */
-public class ConstructionPack implements DebugDumpable {
+public class ConstructionPack<T extends AbstractConstruction> implements DebugDumpable {
 	
-	private final Collection<PrismPropertyValue<Construction>> constructions = new ArrayList<>();
+	private final Collection<PrismPropertyValue<T>> constructions = new ArrayList<>();
 	private boolean forceRecon;
 	private boolean hasValidAssignment = false;
 	
@@ -41,11 +41,11 @@ public class ConstructionPack implements DebugDumpable {
 		this.forceRecon = forceRecon;
 	}
 	
-	public Collection<PrismPropertyValue<Construction>> getConstructions() {
+	public Collection<PrismPropertyValue<T>> getConstructions() {
 		return constructions;
 	}
 
-	public void add(PrismPropertyValue<Construction> construction) {
+	public void add(PrismPropertyValue<T> construction) {
 		constructions.add(construction);
 	}
 
@@ -58,7 +58,7 @@ public class ConstructionPack implements DebugDumpable {
 	}
 	
 	public boolean hasStrongConstruction() {
-    	for (PrismPropertyValue<Construction> construction: constructions) {
+    	for (PrismPropertyValue<T> construction: constructions) {
 			if (!construction.getValue().isWeak()) {
 				return true;
 			}

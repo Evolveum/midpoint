@@ -391,18 +391,18 @@ public class DependencyProcessor {
 				if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					// This should not happen, it is checked before projection
 					throw new PolicyViolationException("Unsatisfied strict dependency of "
-							+ projContext.getResourceShadowDiscriminator().toHumanReadableString() +
-							" dependent on " + refRat.toHumanReadableString() + ": No context in dependency check");
+							+ projContext.getResourceShadowDiscriminator().toHumanReadableDescription() +
+							" dependent on " + refRat.toHumanReadableDescription() + ": No context in dependency check");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied lax dependency of account " + 
-							projContext.getResourceShadowDiscriminator().toHumanReadableString() +
-							" dependent on " + refRat.toHumanReadableString() + "; dependency skipped");
+							projContext.getResourceShadowDiscriminator().toHumanReadableDescription() +
+							" dependent on " + refRat.toHumanReadableDescription() + "; dependency skipped");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
 					LOGGER.trace("Unsatisfied relaxed dependency of account "
-							+ projContext.getResourceShadowDiscriminator().toHumanReadableString() +
-							" dependent on " + refRat.toHumanReadableString() + "; dependency skipped");
+							+ projContext.getResourceShadowDiscriminator().toHumanReadableDescription() +
+							" dependent on " + refRat.toHumanReadableDescription() + "; dependency skipped");
 				} else {
 					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
 				}

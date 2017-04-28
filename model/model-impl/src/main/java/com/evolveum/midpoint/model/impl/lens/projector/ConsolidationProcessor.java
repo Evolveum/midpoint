@@ -289,7 +289,7 @@ public class ConsolidationProcessor {
         	ItemDelta<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemDelta = LensUtil.consolidateTripleToDelta(
         			auxiliaryObjectClassItemPath, ivwoTriple, auxiliaryObjectClassPropertyDef,
         			auxiliaryObjectClassAPrioriDelta, projCtx.getObjectNew(), null, null, addUnchangedValues, completeAccount, false, 
-        			discr.toHumanReadableString(), false);
+        			discr.toHumanReadableDescription(), false);
         	PropertyDelta<QName> propDelta = (PropertyDelta)itemDelta;
         	
         	if (LOGGER.isTraceEnabled()) {
@@ -480,7 +480,7 @@ public class ConsolidationProcessor {
 		ItemDelta<V,D> itemDelta = LensUtil.consolidateTripleToDelta(
 				itemPath, (DeltaSetTriple)triple, itemDefinition, existingItemDelta, projCtx.getObjectNew(), 
 				valueMatcher, comparator, addUnchangedValues || forceAddUnchangedValues, completeShadow, isExclusiveStrong,
-				discr.toHumanReadableString(), completeShadow);
+				discr.toHumanReadableDescription(), completeShadow);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());

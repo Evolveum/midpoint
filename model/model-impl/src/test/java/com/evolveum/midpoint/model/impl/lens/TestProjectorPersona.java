@@ -92,13 +92,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestPersona extends AbstractLensTest {
+public class TestProjectorPersona extends AbstractLensTest {
 		
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
-		addObject(OBJECT_TEMPLATE_PERSONA_ADMIN_FILE);
 		addObject(ROLE_PERSONA_ADMIN_FILE);
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);
@@ -110,7 +109,7 @@ public class TestPersona extends AbstractLensTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPersona.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestProjectorPersona.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         

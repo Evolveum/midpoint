@@ -1601,7 +1601,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected void displayTestTile(String testName) {
-		TestUtil.displayTestTile(testName);
+		TestUtil.displayTestTile(this, testName);
 	}
 	
 	protected void displayWhen(String testName) {
