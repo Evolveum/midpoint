@@ -93,37 +93,5 @@ public class ProvisioningTestUtil {
 		String namespace = ResourceTypeUtil.getResourceNamespace(resourceType);
 		return new QName(namespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 	}
-	
-	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName, 
-			T... expectedValues) {
-		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		assertAttribute(resource, shadow, attrQname, expectedValues);
-	}
-	
-	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname, 
-			T... expectedValues) {
-		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
-	}
-	
-	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule, 
-			QName attrQname, T... expectedValues) throws SchemaException {
-		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
-	}
-	
-	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
-		PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null || attributesContainer.isEmpty()) {
-			return;
-		}
-		PrismProperty attribute = attributesContainer.findProperty(attrQname);
-		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
-	}
-	
-	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
-		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		assertNoAttribute(resource, shadow, attrQname);
-	}
 
 }

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -104,9 +105,6 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		final String TEST_NAME = "test002testReconcileScriptsWhenReconciling";
         TestUtil.displayTestTile(this, TEST_NAME);
 
-//		Task task = taskManager.createTaskInstance(TEST_NAME);
-//		OperationResult parentResult = new OperationResult(TEST_NAME);
-
         getDummyResource().getScriptHistory().clear();
 		
 		importObjectFromFile(new File(TASK_RECON_DUMMY_FILENAME));
@@ -148,10 +146,8 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         
         getDummyResource().getScriptHistory().clear();
 		
-//		importObjectFromFile(new File(TASK_RECON_DUMMY_FILENAME));
-//		
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
-//		
+
 		waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false, DEFAULT_TASK_WAIT_TIMEOUT);
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, true);
@@ -168,7 +164,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 			AssertJUnit.fail("Operation in shadow not null, recocniliation failed. ");
 		}
 		
-		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, parentResult);
+		PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
 		AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some probelm in recon occured.", user);
 		
 		
@@ -199,7 +195,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
 		PropertyDelta dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), true);
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 		
 		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
@@ -216,7 +212,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
 		AssertJUnit.assertNotNull(shadow);
 		
-		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, parentResult);
+		PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
 		AssertJUnit.assertNotNull("Owner for account " + shadow + " not found. Some probelm in dry run occured.", user);
 		
 		
@@ -231,27 +227,36 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		
 		PropertyDelta dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 		
 		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
 		
 //		dummyResource.deleteAccount("beforeScript");
-		
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false);
 		
 		waitForTaskNextRunAssertSuccess(TASK_RECON_DUMMY_OID, false);
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		
 		try{
 			PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
+			
+			display("Unexpected shadow", shadow);
 			AssertJUnit.fail("Expected object not found, but haven't got one");
 		} catch (ObjectNotFoundException ex){
 			//this is ok
 		}
 		
-		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, parentResult);
+		PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
+		display("Unexpected owner", user);
 		AssertJUnit.assertNull("Owner for account " + ACCOUNT_BEFORE_SCRIPT_OID + " was found, but it should be not.", user);
 		
 		

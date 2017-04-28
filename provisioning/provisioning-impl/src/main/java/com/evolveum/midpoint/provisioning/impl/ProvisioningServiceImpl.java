@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,15 +107,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	@Autowired(required = true)
 	private ShadowCacheFactory shadowCacheFactory;
+	
 	@Autowired(required = true)
 	private ResourceManager resourceManager;
+	
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
-//	@Autowired(required = true)
-//	private ChangeNotificationDispatcher changeNotificationDispatcher;
+
 	@Autowired(required = true)
 	private ConnectorManager connectorManager;
+	
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
@@ -150,14 +152,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		this.cacheRepositoryService = repositoryService;
 	}
 
-//	@SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
-//		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		// Result type for this operation
@@ -231,49 +232,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDump());
 			}
 		
-			if (GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
-			
-				// We have what we came for here. We have already got it from the repo.
-				// Except if that is a shadow then we want to apply definition before returning it.
-				
-				if (repositoryObject.canRepresent(ShadowType.class)) {
-					try {
-						applyDefinition((PrismObject<ShadowType>)repositoryObject, result);
-					} catch (SchemaException e) {
-						if (GetOperationOptions.isRaw(rootOptions)) {
-							// This is (almost) OK in raw. We want to get whatever is available, even if it violates
-							// the schema
-							String m = "Repository object "+repositoryObject+" violates the schema: " + e.getMessage();
-							ProvisioningUtil.logWarning(LOGGER, result, m + ". Reason: ", e);
-							OperationResult last = result.getLastSubresult();
-							if (last != null) {
-								last.recordWarning(m, e);	// MID-2486 - if raw, we want to display this as a warning only
-							}
-						} else {
-							ProvisioningUtil.recordFatalError(LOGGER, result, "Repository object "+repositoryObject+" violates the schema: " + e.getMessage() + ". Reason: ", e);
-							throw e;
-						}
-					} catch (ObjectNotFoundException e) {
-						if (GetOperationOptions.isRaw(rootOptions)){
-							ProvisioningUtil.logWarning(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
-						} else{
-							ProvisioningUtil.recordFatalError(LOGGER, result, "Resource defined in shadow does not exist:  " + e.getMessage(), e);
-						throw e;
-						}
-					} catch (CommunicationException e) {
-						ProvisioningUtil.recordFatalError(LOGGER, result, "Resource defined is shadow is not available: "+ e.getMessage(), e);
-						throw e;
-					} catch (ConfigurationException e) {
-						ProvisioningUtil.recordFatalError(LOGGER, result, "Could not apply definition to shadow, problem with configuration: "+ e.getMessage(), e);
-						throw e;
-					}
-				}
-				
-				resultingObject = repositoryObject;
-				
-			} else if (repositoryObject.canRepresent(ShadowType.class)) {
-				// TODO: optimization needed: avoid multiple "gets" of the same
-				// object
+			if (repositoryObject.canRepresent(ShadowType.class)) {
 	
 				try {
 	
@@ -1582,6 +1541,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 	
 	private <T extends ObjectType> void validateObject(PrismObject<T> object) {
+		Validate.notNull(object.getOid());
 		if (InternalsConfig.encryptionChecks) {
 			CryptoUtil.checkEncrypted(object);
 		}
