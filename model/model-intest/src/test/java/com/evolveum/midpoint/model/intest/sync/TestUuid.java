@@ -284,7 +284,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 1);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -365,7 +365,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);        
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 1);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
