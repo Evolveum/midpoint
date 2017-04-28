@@ -682,6 +682,23 @@ CREATE TABLE m_object_text_info (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 
+CREATE TABLE m_operation_execution (
+  id                     INTEGER     NOT NULL,
+  owner_oid              VARCHAR(36) NOT NULL,
+  initiatorRef_relation  VARCHAR(157),
+  initiatorRef_targetOid VARCHAR(36),
+  initiatorRef_type      INTEGER,
+  status                 INTEGER,
+  taskRef_relation       VARCHAR(157),
+  taskRef_targetOid      VARCHAR(36),
+  taskRef_type           INTEGER,
+  timestampValue         DATETIME(6),
+  PRIMARY KEY (id, owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
 CREATE TABLE m_org (
   costCenter       VARCHAR(255),
   displayOrder     INTEGER,
@@ -1108,6 +1125,15 @@ CREATE INDEX iExtensionStringDef ON m_object_ext_string (owner_oid, ownerType);
 ALTER TABLE m_object_template
 ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm);
 
+CREATE INDEX iOpExecTaskOid
+  ON m_operation_execution (taskRef_targetOid);
+
+CREATE INDEX iOpExecInitiatorOid
+  ON m_operation_execution (initiatorRef_targetOid);
+
+CREATE INDEX iOpExecStatus
+  ON m_operation_execution (status);
+
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 
@@ -1388,6 +1414,11 @@ REFERENCES m_object (oid);
 
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object (oid);
+
+ALTER TABLE m_operation_execution
+  ADD CONSTRAINT fk_op_exec_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object (oid);
 

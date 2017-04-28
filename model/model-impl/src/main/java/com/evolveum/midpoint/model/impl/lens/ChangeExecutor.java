@@ -108,32 +108,32 @@ public class ChangeExecutor {
 	private static final String OPERATION_UPDATE_SITUATION_ACCOUNT = ChangeExecutor.class.getName()
 			+ ".updateSituationInShadow";
 
-	@Autowired(required = true)
+	@Autowired
 	private transient TaskManager taskManager;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired(required = true)
+	@Autowired
 	private ProvisioningService provisioning;
 
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
 
-	@Autowired(required = true)
+	@Autowired
 	private ExpressionFactory expressionFactory;
 
-	@Autowired(required = true)
+	@Autowired
 	private SecurityEnforcer securityEnforcer;
 
-	@Autowired(required = true)
+	@Autowired
 	private Clock clock;
 
-	@Autowired(required = true)
+	@Autowired
 	private ModelObjectResolver objectResolver;
 	
-	@Autowired(required = true)
+	@Autowired
 	private OperationalDataManager metadataManager;
 
 	@Autowired
@@ -194,8 +194,7 @@ public class ChangeExecutor {
 					executeDelta(focusDelta, focusContext, context, null, null, task, subResult);
 					subResult.computeStatus();
 
-				} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException 
-						| SecurityViolationException | ExpressionEvaluationException e) {
+				} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
 					recordFatalError(subResult, result, null, e);
 					throw e;
 				} catch (ObjectAlreadyExistsException e) {
@@ -204,9 +203,6 @@ public class ChangeExecutor {
 						subResult.recordFatalError(e);
 					}
 					result.computeStatusComposite();
-					throw e;
-				} catch (RuntimeException e) {
-					recordFatalError(subResult, result, null, e);
 					throw e;
 				} finally {
 					context.reportProgress(new ProgressInformation(FOCUS_OPERATION, subResult));

@@ -746,4 +746,100 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of results found: " + query, expectedCount, count);
     }
 
+	@Test
+	public void testOperationExecutionAny() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.item(ObjectType.F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, cases.size());
+	}
+
+	@Test
+	public void testOperationExecutionWithTask() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.exists(ObjectType.F_OPERATION_EXECUTION)
+					.block()
+						.item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+						.and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
+					.endBlock()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find one object", 1, cases.size());
+	}
+
+	@Test
+	public void testOperationExecutionWithTask2() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(CaseType.class, prismContext)
+				.exists(ObjectType.F_OPERATION_EXECUTION)
+					.block()
+						.item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+						.and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+					.endBlock()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find no object", 0, cases.size());
+	}
+
+	@Test
+	public void testExtensionReference() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.item(ObjectType.F_EXTENSION, new QName("referenceType"))
+					.ref("12345678-1234-1234-1234-123456789012")
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find 1 object", 1, cases.size());
+	}
+
+	@Test
+	public void testExtensionReferenceNotMatching() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.item(ObjectType.F_EXTENSION, new QName("referenceType"))
+					.ref("12345678-1234-1234-1234-123456789xxx")
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find no object", 0, cases.size());
+	}
+
+	@Test
+	public void testExtensionReferenceNull() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.item(ObjectType.F_EXTENSION, new QName("referenceType"))
+					.isNull()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find no object", 0, cases.size());
+	}
+
+	@Test
+	public void testExtensionReferenceNonNull() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+				.not().item(ObjectType.F_EXTENSION, new QName("referenceType"))
+					.isNull()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find 1 object", 1, cases.size());
+	}
+
 }

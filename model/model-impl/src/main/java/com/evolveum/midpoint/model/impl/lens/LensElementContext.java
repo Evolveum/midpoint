@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -64,7 +65,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     private transient PrismObject<O> objectCurrent;
 	private PrismObject<O> objectNew;
 	private ObjectDelta<O> primaryDelta;
-	private List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
+	@NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
 	private Class<O> objectTypeClass;
 	private String oid = null;
 	private int iteration;
@@ -287,7 +288,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return SimpleOperationName.MODIFY;
 	}
 	
-    @Override
+    @NotNull
+	@Override
 	public List<LensObjectDeltaOperation<O>> getExecutedDeltas() {
 		return executedDeltas;
 	}

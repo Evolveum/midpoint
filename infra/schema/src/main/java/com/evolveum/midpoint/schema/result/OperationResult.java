@@ -872,6 +872,13 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 	}
 
+	public void deleteLastSubresultIfError() {
+		OperationResult lastSubresult = getLastSubresult();
+		if (lastSubresult != null && lastSubresult.isError()) {
+			removeLastSubresult();
+		}
+	}
+
 	public void recordPartialError(Throwable cause) {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, cause.getMessage(), cause);
 	}

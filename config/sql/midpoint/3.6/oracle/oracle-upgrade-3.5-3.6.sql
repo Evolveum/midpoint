@@ -144,3 +144,31 @@ CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType) INITRA
 CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation) INITRANS 30;
 
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount) INITRANS 30;
+
+CREATE TABLE m_operation_execution (
+  id                     NUMBER(10, 0)     NOT NULL,
+  owner_oid              VARCHAR2(36 CHAR) NOT NULL,
+  initiatorRef_relation  VARCHAR2(157 CHAR),
+  initiatorRef_targetOid VARCHAR2(36 CHAR),
+  initiatorRef_type      NUMBER(10, 0),
+  status                 NUMBER(10, 0),
+  taskRef_relation       VARCHAR2(157 CHAR),
+  taskRef_targetOid      VARCHAR2(36 CHAR),
+  taskRef_type           NUMBER(10, 0),
+  timestampValue         TIMESTAMP,
+  PRIMARY KEY (id, owner_oid)
+) INITRANS 30;
+
+CREATE INDEX iOpExecTaskOid
+  ON m_operation_execution (taskRef_targetOid) INITRANS 30;
+
+CREATE INDEX iOpExecInitiatorOid
+  ON m_operation_execution (initiatorRef_targetOid) INITRANS 30;
+
+CREATE INDEX iOpExecStatus
+  ON m_operation_execution (status) INITRANS 30;
+
+ALTER TABLE m_operation_execution
+  ADD CONSTRAINT fk_op_exec_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;

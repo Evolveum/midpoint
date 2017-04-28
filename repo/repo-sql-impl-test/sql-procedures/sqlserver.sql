@@ -12,6 +12,7 @@ AS
   BEGIN
     SET NOCOUNT ON;
 
+    DELETE FROM m_operation_execution;
     DELETE FROM m_sequence;
     DELETE FROM m_acc_cert_wi_reference;
     DELETE FROM m_acc_cert_wi;
