@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
-	@NotNull private final DeltaSetTriple<Construction<F>> constructions = new DeltaSetTriple<>();
+	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple = new DeltaSetTriple<>();
+	@NotNull private final DeltaSetTriple<PersonaConstructionType> personaConstructionTriple = new DeltaSetTriple<>();
 	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
@@ -116,8 +117,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public DeltaSetTriple<Construction<F>> getConstructions() {
-		return constructions;
+	public DeltaSetTriple<Construction<F>> getConstructionTriple() {
+		return constructionTriple;
 	}
 
 	/**
@@ -130,7 +131,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
 		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
-			Collection<Construction<F>> constructionSet = constructions.getSet(whichSet);
+			Collection<Construction<F>> constructionSet = constructionTriple.getSet(whichSet);
 			if (constructionSet != null) {
 				for (Construction<F> construction : constructionSet) {
 					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, task, result));
@@ -143,23 +144,48 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
-            case ZERO: return getConstructions().getZeroSet();
-            case PLUS: return getConstructions().getPlusSet();
-            case MINUS: return getConstructions().getMinusSet();
+            case ZERO: return getConstructionTriple().getZeroSet();
+            case PLUS: return getConstructionTriple().getPlusSet();
+            case MINUS: return getConstructionTriple().getMinusSet();
             default: throw new IllegalArgumentException("whichSet: " + whichSet);
         }
     }
-
-	public void addConstructionZero(Construction<F> contruction) {
-		constructions.addToZeroSet(contruction);
+	
+	public void addConstruction(Construction<F> contruction, PlusMinusZero whichSet) {
+		switch (whichSet) {
+            case ZERO: 
+            	constructionTriple.addToZeroSet(contruction);
+            	break;
+            case PLUS: 
+            	constructionTriple.addToPlusSet(contruction);
+            	break;
+            case MINUS: 
+            	constructionTriple.addToMinusSet(contruction);
+            	break;
+            default: 
+            	throw new IllegalArgumentException("whichSet: " + whichSet);
+        }
 	}
 	
-	public void addConstructionPlus(Construction<F> contruction) {
-		constructions.addToPlusSet(contruction);
+	@NotNull
+	public DeltaSetTriple<PersonaConstructionType> getPersonaConstructionTriple() {
+		return personaConstructionTriple;
 	}
 	
-	public void addConstructionMinus(Construction<F> contruction) {
-		constructions.addToMinusSet(contruction);
+	public void addPersonaConstruction(PersonaConstructionType personaContruction, PlusMinusZero whichSet) {
+		switch (whichSet) {
+            case ZERO: 
+            	personaConstructionTriple.addToZeroSet(personaContruction);
+            	break;
+            case PLUS: 
+            	personaConstructionTriple.addToPlusSet(personaContruction);
+            	break;
+            case MINUS: 
+            	personaConstructionTriple.addToMinusSet(personaContruction);
+            	break;
+            default: 
+            	throw new IllegalArgumentException("whichSet: " + whichSet);
+        }
 	}
 	
 	@NotNull
@@ -261,7 +287,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
-		for (Construction<F> acctConstr: constructions.getAllValues()) {
+		for (Construction<F> acctConstr: constructionTriple.getAllValues()) {
 			resources.add(acctConstr.getResource(task, result));
 		}
 		return resources;
@@ -269,7 +295,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	// System configuration is used only to provide $configuration script variable (MID-2372)
 	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		for (Construction<F> construction :constructions.getAllValues()) {
+		for (Construction<F> construction :constructionTriple.getAllValues()) {
 			construction.setFocusOdo(focusOdo);
 			construction.setSystemConfiguration(systemConfiguration);
 			LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
@@ -409,9 +435,13 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
         }
-		if (!constructions.isEmpty()) {
+		if (!constructionTriple.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructions, indent+1);
+			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructionTriple, indent+1);
+		}
+		if (!personaConstructionTriple.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "Persona constructions", personaConstructionTriple, indent+1);
 		}
 		if (!roles.isEmpty()) {
 			sb.append("\n");
@@ -469,15 +499,17 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(target=" + target + "; constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
+		return "EvaluatedAssignment(target=" + target + "; constr=" + constructionTriple + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
 				.size()+" rules)";
 	}
 	
 	public String toHumanReadableString() {
 		if (target != null) {
 			return "EvaluatedAssignment(" + target + ")";
-		} else if (constructions != null && !constructions.isEmpty()) {
-			return "EvaluatedAssignment(" + constructions + ")";
+		} else if (constructionTriple != null && !constructionTriple.isEmpty()) {
+			return "EvaluatedAssignment(" + constructionTriple + ")";
+		} else if (personaConstructionTriple != null && !personaConstructionTriple.isEmpty()) {
+			return "EvaluatedAssignment(" + personaConstructionTriple + ")";
 		} else {
 			return toString();
 		}

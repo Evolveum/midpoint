@@ -98,7 +98,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, userJackOid, result);
 		addFocusDeltaToContext(context,
 				(ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)

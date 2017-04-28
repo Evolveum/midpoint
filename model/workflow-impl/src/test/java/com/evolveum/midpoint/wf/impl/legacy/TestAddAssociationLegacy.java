@@ -112,7 +112,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
 
                 UserType jack = context.getFocusContext().getObjectCurrent().asObjectable();
@@ -188,7 +188,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_ELISABETH_OID, result);
 
                 UserType elisabeth = context.getFocusContext().getObjectCurrent().asObjectable();
@@ -247,7 +247,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
         OperationResult result = new OperationResult(TEST_NAME);
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
 
         UserType jack = context.getFocusContext().getObjectCurrent().asObjectable();

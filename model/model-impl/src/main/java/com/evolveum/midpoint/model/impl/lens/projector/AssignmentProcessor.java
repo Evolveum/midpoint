@@ -142,7 +142,8 @@ public class AssignmentProcessor {
      * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
      * Generic method for all projection types (theoretically). 
      */
-    public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
+    @SuppressWarnings("unchecked")
+	public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
@@ -190,7 +191,8 @@ public class AssignmentProcessor {
     /**
      * Processing focus-projection assignments (including roles).
      */
-    private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now, 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now, 
     		Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
@@ -575,7 +577,7 @@ public class AssignmentProcessor {
         final ItemPath CONSTRUCTION_KIND_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND);
         final ItemPath CONSTRUCTION_INTENT_PATH = new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT);
 
-        for (ItemDelta itemDelta : focusDelta.getModifications()) {
+        for (@SuppressWarnings("rawtypes") ItemDelta itemDelta : focusDelta.getModifications()) {
             ItemPath itemPath = itemDelta.getPath().namedSegmentsOnly();
             if (TARGET_REF_PATH.isSubPathOrEquivalent(itemPath)) {
                 throw new SchemaException("It is not allowed to change targetRef in an assignment. Offending path: " + itemPath);
@@ -592,7 +594,7 @@ public class AssignmentProcessor {
 
     private <F extends ObjectType> ObjectType determineSource(LensFocusContext<F> focusContext)
 			throws SchemaException {
-		ObjectDelta delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
+		ObjectDelta<F> delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
 		if (delta != null && !delta.isEmpty()) {
 			return focusContext.getObjectNew().asObjectable();
 		}
@@ -676,7 +678,7 @@ public class AssignmentProcessor {
 	    	if (LOGGER.isTraceEnabled()) {
 	    		LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDump());
 	    	}
-	    	DeltaSetTriple<Construction<F>> constructionTriple = evaluatedAssignment.getConstructions();
+	    	DeltaSetTriple<Construction<F>> constructionTriple = evaluatedAssignment.getConstructionTriple();
 	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getZeroSet(), constructionMapTriple, mode, PlusMinusZero.ZERO, task, result);
 	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getPlusSet(), constructionMapTriple, mode, PlusMinusZero.PLUS, task, result);
 	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getMinusSet(), constructionMapTriple, mode, PlusMinusZero.MINUS, task, result);

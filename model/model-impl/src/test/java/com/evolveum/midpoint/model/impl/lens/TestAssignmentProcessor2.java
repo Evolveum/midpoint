@@ -2414,7 +2414,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	//region ============================================================= helper methods (misc)
 
 	private <F extends FocusType> List<Construction<F>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
-		return evaluatedAssignment.getConstructions().getAllValues().stream()
+		return evaluatedAssignment.getConstructionTriple().getAllValues().stream()
 				.filter(c -> name.equals(c.getDescription()))
 				.collect(Collectors.toList());
 	}

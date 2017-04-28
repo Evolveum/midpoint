@@ -136,10 +136,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment", evaluatedAssignment.debugDump());
-		assertEquals(1, evaluatedAssignment.getConstructions().size());
+		assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
 		display("Evaluated construction", construction);
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		
@@ -178,10 +178,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment", evaluatedAssignment);
-		assertEquals(1, evaluatedAssignment.getConstructions().size());
+		assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		
 		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
@@ -227,10 +227,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment);
-		assertEquals(1,evaluatedAssignment.getConstructions().size());
+		assertEquals(1,evaluatedAssignment.getConstructionTriple().size());
 		PrismAsserts.assertParentConsistency(user);
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
 		Mapping<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping = (Mapping<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
@@ -296,10 +296,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment);
-		assertEquals(1,evaluatedAssignment.getConstructions().size());
+		assertEquals(1,evaluatedAssignment.getConstructionTriple().size());
 		PrismAsserts.assertParentConsistency(user);
 		
-		Construction<UserType> construction = evaluatedAssignment.getConstructions().getZeroSet().iterator().next();
+		Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
 		assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 		assertEquals(1,construction.getAttributeMappings().size());
 		PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping = (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
@@ -374,7 +374,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
-        assertEquals(1, evaluatedAssignment.getConstructions().size());
+        assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         assertConstruction(evaluatedAssignment, ZERO, "title", ZERO);
@@ -424,7 +424,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
-        assertEquals(1, evaluatedAssignment.getConstructions().size());
+        assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         assertConstruction(evaluatedAssignment, ZERO, "title", ZERO);
@@ -473,7 +473,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
-        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Employee", "Engineer");
@@ -527,7 +527,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
-        assertEquals("Wrong number of constructions", 4, evaluatedAssignment.getConstructions().size());
+        assertEquals("Wrong number of constructions", 4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         /*
@@ -603,7 +603,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
-        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Employee");                   // because Employee's job metarole is active even if Manager's is not
@@ -669,7 +669,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         assertNotNull(evaluatedAssignment);
         display("Evaluated assignment",evaluatedAssignment.debugDump());
-        assertEquals(4, evaluatedAssignment.getConstructions().size());
+        assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Employee");                   // because Employee's job metarole is active even if Manager's is not
@@ -812,7 +812,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment.debugDump());
-		assertEquals(2, evaluatedAssignment.getConstructions().size());
+		assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
 		assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Engineer");
@@ -870,7 +870,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment.debugDump());
-		assertEquals(0, evaluatedAssignment.getConstructions().size());
+		assertEquals(0, evaluatedAssignment.getConstructionTriple().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
 		assertNoConstruction(evaluatedAssignment, ZERO, "title");

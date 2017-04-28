@@ -86,7 +86,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
 		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
 
@@ -119,7 +119,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
 		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID,
 				assignment -> assignment.getTargetRef().setRelation(SchemaConstants.ORG_OWNER)
@@ -184,7 +184,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
 		addModificationToContextUnassignRole(context, USER_JACK_OID, ROLE_JUDGE_OID);
 
@@ -221,7 +221,7 @@ public class TestPolicyRules extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_MUTINIER_OID);
 
@@ -260,7 +260,7 @@ public class TestPolicyRules extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID);
 
@@ -304,7 +304,7 @@ public class TestPolicyRules extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_PIRATE_OID,
         		assignment -> {
@@ -354,7 +354,7 @@ public class TestPolicyRules extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CONSTABLE_OID);
 
@@ -415,7 +415,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
 		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_THIEF_OID);
 
@@ -490,7 +490,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
 		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_EMPLOYEE_OID);
 
@@ -535,7 +535,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
 		addModificationToContextAssignRole(context, USER_JACK_OID, ROLE_CORP_ENGINEER_OID);
 

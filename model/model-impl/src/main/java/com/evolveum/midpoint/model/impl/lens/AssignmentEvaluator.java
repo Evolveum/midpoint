@@ -315,15 +315,20 @@ public class AssignmentEvaluator<F extends FocusType> {
 			// It is because we need to collect e.g. assignment policy rules for them.
 			// Also because we could have deltas that disable/enable these assignments.
 			boolean reallyValid = segment.isPathToSourceValid() && isAssignmentValid;
-			if (assignmentType.getConstruction() != null && !loginMode && segment.isMatchingOrder()) {
-				collectConstruction(segment, mode, reallyValid, ctx);
-			}
-			if (assignmentType.getFocusMappings() != null && !loginMode && segment.isMatchingOrder()) {
-				// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
-				// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
-				// (This is currently ignored by downstream processing, but that's another story. Will be fixed soon.)
-				if (isNonNegative(mode)) {
-					evaluateFocusMappings(segment, ctx);
+			if (!loginMode && segment.isMatchingOrder()) {
+				if (assignmentType.getConstruction() != null) {
+					collectConstruction(segment, mode, reallyValid, ctx);
+				}
+				if (assignmentType.getPersonaConstruction() != null) {
+					collectPersonaConstruction(segment, mode, reallyValid, ctx);
+				}
+				if (assignmentType.getFocusMappings() != null) {
+					// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
+					// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
+					// (This is currently ignored by downstream processing, but that's another story. Will be fixed soon.)
+					if (isNonNegative(mode)) {
+						evaluateFocusMappings(segment, ctx);
+					}
 				}
 			}
 			if (assignmentType.getPolicyRule() != null && !loginMode) {
@@ -419,17 +424,23 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (mode == null) {
 			return;				// null mode (i.e. plus + minus) means 'ignore the payload'
 		}
-		switch (mode) {
-			case PLUS:
-				ctx.evalAssignment.addConstructionPlus(construction);
-				break;
-			case ZERO:
-				ctx.evalAssignment.addConstructionZero(construction);
-				break;
-			case MINUS:
-				ctx.evalAssignment.addConstructionMinus(construction);
-				break;
+		ctx.evalAssignment.addConstruction(construction, mode);
+	}
+	
+	private void collectPersonaConstruction(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		assertSourceNotNull(segment.source, ctx.evalAssignment);
+		if (mode == null) {
+			return;				// null mode (i.e. plus + minus) means 'ignore the payload'
 		}
+		
+		// TODO why "assignmentTypeNew" when we retrieve old one in some situations?
+		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
+		PersonaConstructionType constructionType = assignmentTypeNew.getPersonaConstruction();
+		
+		LOGGER.trace("Preparing persona construction '{}' in {}", constructionType.getDescription(), segment.source);
+		
+		ctx.evalAssignment.addPersonaConstruction(constructionType, mode);
 	}
 	
 	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
