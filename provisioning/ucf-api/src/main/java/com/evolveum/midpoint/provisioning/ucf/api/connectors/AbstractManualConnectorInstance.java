@@ -263,8 +263,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	
 	@Override
 	public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
-		// operational status is not supported
-		return null;
+		ConnectorOperationalStatus opstatus = new ConnectorOperationalStatus();
+		opstatus.setConnectorClassName(this.getClass().getName());
+		return opstatus;
 	}
 
 	@Override

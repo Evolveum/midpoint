@@ -1108,8 +1108,10 @@ public class ResourceManager {
 		for (ConnectorSpec connectorSpec: getAllConnectorSpecs(resource)) {
 			ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
 			ConnectorOperationalStatus operationalStatus = connectorInstance.getOperationalStatus();
-			operationalStatus.setConnectorName(connectorSpec.getConnectorName());
-			statuses.add(operationalStatus);
+			if (operationalStatus != null) {
+				operationalStatus.setConnectorName(connectorSpec.getConnectorName());
+				statuses.add(operationalStatus);
+			}
 		}
 		return statuses;
 	}
