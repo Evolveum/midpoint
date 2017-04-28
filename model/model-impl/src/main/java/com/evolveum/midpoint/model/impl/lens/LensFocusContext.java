@@ -90,17 +90,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 	
 	public boolean isDelete() {
-		if (getPrimaryDelta() != null && getPrimaryDelta().isDelete()) {
-			return true;
-		}
-		return false;
+		return getPrimaryDelta() != null && getPrimaryDelta().isDelete();
 	}
 	
 	public boolean isAdd() {
-		if (getPrimaryDelta() != null && getPrimaryDelta().isAdd()) {
-			return true;
-		}
-		return false;
+		return getPrimaryDelta() != null && getPrimaryDelta().isAdd();
 	}
 
 	

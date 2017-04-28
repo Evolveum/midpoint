@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
@@ -80,10 +81,6 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private PageBase pageBase;
 
     private boolean plusIconClicked = false;
-
-    public MultiButtonTable (String id){
-        super(id);
-    }
 
     public MultiButtonTable (String id, long itemsPerRow, IModel<List<AssignmentEditorDto>> model, PageBase pageBase){
         super(id, model);
@@ -306,8 +303,9 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         if (storage.getAssignmentShoppingCart() == null){
             storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
         }
-        assignment.setDefaultRelation();
-        storage.getAssignmentShoppingCart().add(assignment);
+        AssignmentEditorDto dto = assignment.clone();
+        dto.setDefaultRelation();
+        storage.getAssignmentShoppingCart().add(dto);
         AssignmentCatalogPanel parent = MultiButtonTable.this.findParent(AssignmentCatalogPanel.class);
         parent.reloadCartButton(target);
 

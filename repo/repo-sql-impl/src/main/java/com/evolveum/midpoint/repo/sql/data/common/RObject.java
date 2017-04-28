@@ -29,6 +29,8 @@ import com.evolveum.midpoint.repo.sql.data.common.any.ROExtPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtString;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtValue;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.ROperationExecution;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -184,6 +187,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<ROExtBoolean> booleans;
 
     private Set<RObjectTextInfo> textInfoItems;
+
+    private Set<ROperationExecution> operationExecutions;
 
     @Id
     @GeneratedValue(generator = "ObjectOidGenerator")
@@ -571,6 +576,23 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.textInfoItems = textInfoItems;
     }
 
+    @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @JaxbName(localPart = "operationExecution")
+    public Set<ROperationExecution> getOperationExecutions() {
+        if (operationExecutions == null) {
+            operationExecutions = new HashSet<>();
+        }
+        return operationExecutions;
+    }
+
+    public void setOperationExecutions(
+            Set<ROperationExecution> operationExecutions) {
+        this.operationExecutions = operationExecutions;
+    }
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -614,6 +636,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         if (booleansCount != null ? !booleansCount.equals(rObject.booleansCount) : rObject.booleansCount != null)
             return false;
         if (textInfoItems != null ? !textInfoItems.equals(rObject.textInfoItems) : rObject.textInfoItems != null) return false;
+        if (operationExecutions != null ? !operationExecutions.equals(rObject.operationExecutions) : rObject.operationExecutions != null) return false;
 
         return true;
     }
@@ -690,6 +713,11 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
 
         repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
+        for (OperationExecutionType opExec : jaxb.getOperationExecution()) {
+            ROperationExecution rOpExec = new ROperationExecution(repo);
+            ROperationExecution.copyFromJAXB(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
+            repo.getOperationExecutions().add(rOpExec);
+        }
     }
 
     @Deprecated

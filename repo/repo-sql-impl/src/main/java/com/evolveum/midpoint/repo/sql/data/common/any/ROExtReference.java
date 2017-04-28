@@ -40,6 +40,10 @@ import javax.persistence.*;
                 @Index(name = "iExtensionReferenceDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtReference implements ROExtValue {
 
+    public static final String F_TARGET_OID = "value";
+    public static final String F_RELATION = "relation";
+    public static final String F_TARGET_TYPE = "targetType";
+
     //owner entity
     private RObject owner;
     private String ownerOid;

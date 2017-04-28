@@ -658,7 +658,7 @@
 <!--                 <p:location key="work">There</p:location> -->
 <!--                 <p:location key="somewhere">There there over the corner</p:location> -->
 <!--             </p:locations> -->
-            <p:referenceType oid="12345678-1234-1234-1234-123456789012" type="c:UserType" relation="c:ObjectType">
+            <p:referenceType oid="12345678-1234-1234-1234-123456789012" type="c:UserType">
                 <description>this is some description or something like that, which should be also stored in DB</description>
             </p:referenceType>
             <p:polyType>
@@ -1675,8 +1675,20 @@
         </automaticallyApproved>
     </service>
 
-	<case version="1">
+	<case version="1" xsi:type="c:CaseType">
 		<name>case1</name>
+		<operationExecution id="1">
+			<taskRef oid="task-oid-1" type="TaskType" />
+			<initiatorRef oid="user-oid-1" type="UserType" />
+			<status>fatal_error</status>
+		</operationExecution>
+		<operationExecution id="2">
+			<status>warning</status>
+		</operationExecution>
+		<operationExecution id="3">
+			<taskRef oid="task-oid-2" type="TaskType" />
+			<status>success</status>
+		</operationExecution>
 	</case>
 
 </objects>

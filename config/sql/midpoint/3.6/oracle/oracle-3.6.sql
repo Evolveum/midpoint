@@ -543,6 +543,20 @@ CREATE TABLE m_object_text_info (
   PRIMARY KEY (owner_oid, text)
 ) INITRANS 30;
 
+CREATE TABLE m_operation_execution (
+  id                     NUMBER(10, 0)     NOT NULL,
+  owner_oid              VARCHAR2(36 CHAR) NOT NULL,
+  initiatorRef_relation  VARCHAR2(157 CHAR),
+  initiatorRef_targetOid VARCHAR2(36 CHAR),
+  initiatorRef_type      NUMBER(10, 0),
+  status                 NUMBER(10, 0),
+  taskRef_relation       VARCHAR2(157 CHAR),
+  taskRef_targetOid      VARCHAR2(36 CHAR),
+  taskRef_type           NUMBER(10, 0),
+  timestampValue         TIMESTAMP,
+  PRIMARY KEY (id, owner_oid)
+) INITRANS 30;
+
 CREATE TABLE m_org (
   costCenter       VARCHAR2(255 CHAR),
   displayOrder     NUMBER(10, 0),
@@ -908,7 +922,16 @@ CREATE INDEX iExtensionString ON m_object_ext_string (ownerType, eName, stringVa
 CREATE INDEX iExtensionStringDef ON m_object_ext_string (owner_oid, ownerType) INITRANS 30;
 
 ALTER TABLE m_object_template
-ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm) INITRANS 30;
+  ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iOpExecTaskOid
+  ON m_operation_execution (taskRef_targetOid) INITRANS 30;
+
+CREATE INDEX iOpExecInitiatorOid
+  ON m_operation_execution (initiatorRef_targetOid) INITRANS 30;
+
+CREATE INDEX iOpExecStatus
+  ON m_operation_execution (status) INITRANS 30;
 
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm) INITRANS 30;
@@ -1188,6 +1211,11 @@ REFERENCES m_object;
 
 ALTER TABLE m_object_text_info
   ADD CONSTRAINT fk_object_text_info_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object;
+
+ALTER TABLE m_operation_execution
+  ADD CONSTRAINT fk_op_exec_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
 

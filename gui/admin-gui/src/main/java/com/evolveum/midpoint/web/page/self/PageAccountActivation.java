@@ -273,14 +273,20 @@ public class PageAccountActivation extends PageBase {
 		Collection<ObjectDelta<ShadowType>> passwordDeltas = new ArrayList<>(shadowsToActivate.size());
 		for (ShadowType shadow : shadowsToActivate) {
 			ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE, getPrismContext(), passwordValue);
+			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
 			passwordDeltas.add(shadowDelta);
 		}
 		
-		try {
-		SecurityContextHolder.getContext().setAuthentication(token);
-		OperationResult result = new OperationResult(OPERATION_ACTIVATE_SHADOWS);
-		Task task = createSimpleTask(OPERATION_ACTIVATE_SHADOWS);
-		WebModelServiceUtils.save((Collection)passwordDeltas, null, result, task, this);
+		OperationResult result = runPrivileged(new Producer<OperationResult>() {
+			
+			@Override
+			public OperationResult run() {
+				OperationResult result = new OperationResult(OPERATION_ACTIVATE_SHADOWS);
+				Task task = createAnonymousTask(OPERATION_ACTIVATE_SHADOWS);
+				WebModelServiceUtils.save((Collection) passwordDeltas, null, result, task, PageAccountActivation.this);
+				return result;
+			}
+		});
 		
 		result.recomputeStatus();
 		
@@ -292,9 +298,6 @@ public class PageAccountActivation extends PageBase {
 			getSession().success(getString("PageAccountActivation.account.activation.successful"));
 			target.add(getFeedbackPanel());
 			activated = true;
-		}
-		} finally {
-			SecurityContextHolder.getContext().setAuthentication(null);
 		}
 		
 		target.add(PageAccountActivation.this);

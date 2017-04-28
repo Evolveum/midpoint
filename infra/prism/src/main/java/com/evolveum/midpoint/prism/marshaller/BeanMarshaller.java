@@ -287,7 +287,7 @@ public class BeanMarshaller {
 			return true;
 		};
 		try {
-			visit(bean,visitor);
+			visit(bean, visitor);
 		} catch (TunnelException te) {
 			SchemaException e = (SchemaException) te.getCause();
 			throw e;

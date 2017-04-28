@@ -29,7 +29,7 @@ public interface ObjectReference extends Serializable {
 
     String F_RELATION = "relation";
 
-    String F_TYPE = "type";
+    String F_TARGET_TYPE = "type";
 
     String getTargetOid();
 

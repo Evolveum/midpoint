@@ -394,6 +394,8 @@ public class RAnyConverter {
      * This method provides transformation of {@link Element} value to its object form, e.g. <value>1</value> to
      * {@link Integer} number 1. It's based on element definition from schema registry or xsi:type attribute
      * in that element.
+	 *
+	 * Expects only property values (references are handled at other place).
      *
      * @param definition
      * @param value
