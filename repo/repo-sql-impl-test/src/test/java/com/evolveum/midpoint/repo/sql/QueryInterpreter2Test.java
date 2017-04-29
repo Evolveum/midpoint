@@ -2680,6 +2680,40 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test660QueryExtensionRef() throws Exception {
+        Session session = open();
+        try {
+        	ObjectQuery query = QueryBuilder.queryFor(GenericObjectType.class, prismContext)
+					.item(F_EXTENSION, new QName("referenceType")).ref("123")
+					.build();
+			String real = getInterpretedQuery2(session, GenericObjectType.class, query);
+            String expected = "select\n"
+					+ "  g.oid,\n"
+					+ "  g.fullObject,\n"
+					+ "  g.stringsCount,\n"
+					+ "  g.longsCount,\n"
+					+ "  g.datesCount,\n"
+					+ "  g.referencesCount,\n"
+					+ "  g.polysCount,\n"
+					+ "  g.booleansCount\n"
+					+ "from\n"
+					+ "  RGenericObject g\n"
+					+ "    left join g.references r with (\n"
+					+ "       r.ownerType = :ownerType and\n"
+					+ "       r.name = :name\n"
+					+ "    )\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    r.value = :value and\n"
+					+ "    r.relation in (:relation)\n"
+					+ "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test700QueryCertCaseAll() throws Exception {
         Session session = open();
         try {
@@ -3867,6 +3901,41 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					+ "      o.taskRef.relation in (:relation)\n"
 					+ "    ) and\n"
 					+ "    o.status = :status\n"
+					+ "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc110OperationLastFailures() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
+                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .block()
+                        .item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+						.and().item(OperationExecutionType.F_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
+					.endBlock()
+                    .build();
+            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String expected = "select\n"
+					+ "  s.oid,\n"
+					+ "  s.fullObject,\n"
+					+ "  s.stringsCount,\n"
+					+ "  s.longsCount,\n"
+					+ "  s.datesCount,\n"
+					+ "  s.referencesCount,\n"
+					+ "  s.polysCount,\n"
+					+ "  s.booleansCount\n"
+					+ "from\n"
+					+ "  RShadow s\n"
+					+ "    left join s.operationExecutions o\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    o.status = :status and\n"
+					+ "    o.timestamp <= :timestamp\n"
 					+ "  )";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {

@@ -16,10 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -49,21 +48,26 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
             throw new QueryException("Couldn't resolve dynamically defined item path '" + path + "' without proper definition");
         }
 
-        String jpaName;        // longs, strings, ...
-        try {
-            jpaName = RAnyConverter.getAnySetType(itemDefinition, prismContext);
-        } catch (SchemaException e) {
-            throw new QueryException(e.getMessage(), e);
-        }
-
-        RObjectExtensionType ownerType = getOwnerType();
-
         CollectionSpecification collSpec = itemDefinition.isSingleValue() ? null : new CollectionSpecification();
-        JpaAnyPropertyDefinition anyPropDefinition = new JpaAnyPropertyDefinition(Object.class, null);      // TODO
-        JpaLinkDefinition linkDefinition = new JpaAnyPropertyLinkDefinition(itemDefinition.getName(), jpaName, collSpec, ownerType, anyPropDefinition);
-        DataSearchResult result = new DataSearchResult(linkDefinition, ItemPath.EMPTY_PATH);
-        return result;
-    }
+		String jpaName;        // longs, strings, ...
+		JpaDataNodeDefinition jpaNodeDefinition;
+        if (itemDefinition instanceof PrismPropertyDefinition) {
+            try {
+                jpaName = RAnyConverter.getAnySetType(itemDefinition, prismContext);
+            } catch (SchemaException e) {
+                throw new QueryException(e.getMessage(), e);
+            }
+			jpaNodeDefinition = new JpaAnyPropertyDefinition(Object.class, null);      // TODO
+        } else if (itemDefinition instanceof PrismReferenceDefinition) {
+        	jpaName = "references";
+			jpaNodeDefinition = new JpaAnyReferenceDefinition(Object.class, RObject.class);
+        } else {
+            throw new QueryException("Unsupported 'any' item: " + itemDefinition);
+        }
+		JpaLinkDefinition<?> linkDefinition = new JpaAnyItemLinkDefinition(itemDefinition.getName(), jpaName, collSpec, getOwnerType(), jpaNodeDefinition);
+		return new DataSearchResult<>(linkDefinition, ItemPath.EMPTY_PATH);
+
+	}
 
     // assignment extension has no ownerType, but virtual (object extension / shadow attributes) do have
     protected RObjectExtensionType getOwnerType() {

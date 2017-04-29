@@ -26,11 +26,12 @@ import javax.xml.namespace.QName;
  *
  * @author mederly
  */
-public class JpaAnyPropertyLinkDefinition extends JpaLinkDefinition {
+public class JpaAnyItemLinkDefinition extends JpaLinkDefinition<JpaDataNodeDefinition> {
 
     final private RObjectExtensionType ownerType;
 
-    public JpaAnyPropertyLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification, RObjectExtensionType ownerType, JpaDataNodeDefinition targetDefinition) {
+    JpaAnyItemLinkDefinition(QName jaxbName, String jpaName, CollectionSpecification collectionSpecification,
+            RObjectExtensionType ownerType, JpaDataNodeDefinition targetDefinition) {
         super(jaxbName, jpaName, collectionSpecification, false, targetDefinition);
         this.ownerType = ownerType;
     }

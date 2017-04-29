@@ -155,6 +155,7 @@ CREATE TABLE m_operation_execution (
   taskRef_relation       VARCHAR2(157 CHAR),
   taskRef_targetOid      VARCHAR2(36 CHAR),
   taskRef_type           NUMBER(10, 0),
+  timestampValue         TIMESTAMP,
   PRIMARY KEY (id, owner_oid)
 ) INITRANS 30;
 

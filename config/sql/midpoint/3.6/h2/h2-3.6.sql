@@ -550,6 +550,7 @@ CREATE TABLE m_operation_execution (
   taskRef_relation       VARCHAR(157),
   taskRef_targetOid      VARCHAR(36),
   taskRef_type           INTEGER,
+  timestampValue         TIMESTAMP,
   PRIMARY KEY (id, owner_oid)
 );
 

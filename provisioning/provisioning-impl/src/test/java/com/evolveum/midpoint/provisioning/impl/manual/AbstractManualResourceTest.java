@@ -592,6 +592,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertSuccess(result);	
 		
 		display("Provisioning shadow", shadowProvisioning);
+		assertNotNull("no OID", shadowProvisioning.getOid());
 		ShadowType shadowTypeProvisioning = shadowProvisioning.asObjectable();
 		assertShadowName(shadowProvisioning, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
@@ -612,6 +613,43 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowRepo);
 		assertShadowExists(shadowRepo, supportsBackingStore());
+	}
+	
+	@Test
+	public void test109GetAccountWillFutureNoFetch() throws Exception {
+		final String TEST_NAME = "test109GetAccountWillFutureNoFetch";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		GetOperationOptions options = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
+		options.setNoFetch(true);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(options),
+				task, result);
+		
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("Provisioning shadow (future,noFetch)", shadowProvisioningFuture);
+		assertNotNull("no OID", shadowProvisioningFuture.getOid());
+		ShadowType shadowTypeProvisioning = shadowProvisioningFuture.asObjectable();
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
+		assertAttributeFromCache(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		assertNoAttribute(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME);		
+		assertShadowActivationAdministrativeStatusFromCache(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowProvisioningFuture, true);
+		// TODO
+//		assertShadowPassword(shadowProvisioningFuture);
 	}
 	
 	/**
@@ -2019,6 +2057,62 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 	
+	@Test
+	public void test302GetAccountWillFuture() throws Exception {
+		final String TEST_NAME = "test302GetAccountWillFuture";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("Provisioning shadow (future)", shadowProvisioningFuture);
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertShadowDead(shadowProvisioningFuture);
+		assertShadowPassword(shadowProvisioningFuture);		
+	}
+	
+	@Test
+	public void test303GetAccountWillFutureNoFetch() throws Exception {
+		final String TEST_NAME = "test303GetAccountWillFutureNoFetch";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		GetOperationOptions options = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
+		options.setNoFetch(true);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
+				ACCOUNT_WILL_OID, 
+				SelectorOptions.createCollection(options),
+				task, result);
+		
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		display("Provisioning shadow (future,noFetch)", shadowProvisioningFuture);
+		assertNotNull("no OID", shadowProvisioningFuture.getOid());
+		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
+		assertShadowDead(shadowProvisioningFuture);
+		assertNoShadowPassword(shadowProvisioningFuture);		
+	}
+	
 	/**
 	 * Case is closed. The operation is complete.
 	 */
@@ -2229,17 +2323,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		return null;
 	}
 	
-	private void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
-		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		assertEquals("Wroung number of pending operations in "+shadow, 0, pendingOperations.size());
-	}
-
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-		ProvisioningTestUtil.assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+		assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
 	}
 	
 	protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
-		ProvisioningTestUtil.assertNoAttribute(resource, shadow.asObjectable(), attrName);
+		assertNoAttribute(resource, shadow.asObjectable(), attrName);
 	}
 	
 	protected void assertAttributeFromCache(PrismObject<ShadowType> shadow, QName attrQName,
@@ -2281,31 +2370,4 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
 	}
 	
-	private void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult("assertCase");
-		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
-		display("Case", acase);
-		CaseType caseType = acase.asObjectable();
-		assertEquals("Wrong state of "+acase, expectedState ,caseType.getState());
-	}
-	
-	private void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		OperationResult result = new OperationResult("closeCase");
-		Collection modifications = new ArrayList<>(1);
-		
-		PrismPropertyDefinition<String> statePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_STATE);
-		PropertyDelta<String> statusDelta = statePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_STATE));
-		statusDelta.addValueToReplace(new PrismPropertyValue<>(SchemaConstants.CASE_STATE_CLOSED));
-		modifications.add(statusDelta);
-		
-		PrismPropertyDefinition<String> outcomePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_OUTCOME);
-		PropertyDelta<String> outcomeDelta = outcomePropertyDef.createEmptyDelta(new ItemPath(CaseType.F_OUTCOME));
-		outcomeDelta.addValueToReplace(new PrismPropertyValue<>(OperationResultStatusType.SUCCESS.value()));
-		modifications.add(outcomeDelta);
-		
-		repositoryService.modifyObject(CaseType.class, caseOid, modifications, null, result);
-		
-		PrismObject<CaseType> caseClosed = repositoryService.getObject(CaseType.class, caseOid, null, result);
-		display("Case closed", caseClosed);
-	}
 }

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.OidUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -85,6 +86,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	protected String createTicketAdd(PrismObject<? extends ShadowType> object,
 			Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+		LOGGER.info("Creating case to add account\n{}", object.debugDump(1));
 		String description = "Please create account "+object;
 		PrismObject<CaseType> acase = addCase(description, result);
 		return acase.getOid();
@@ -95,6 +97,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+		LOGGER.info("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDump(changes, 1));
 		String description = "Please modify account "+identifiers+": "+changes;
 		PrismObject<CaseType> acase = addCase(description, result);
 		return acase.getOid();
@@ -105,6 +108,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
+		LOGGER.info("Creating case to delete account {}", identifiers);
 		String description = "Please delete account "+identifiers;
 		PrismObject<CaseType> acase;
 		try {
