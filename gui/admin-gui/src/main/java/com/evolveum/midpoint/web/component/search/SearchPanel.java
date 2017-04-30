@@ -185,7 +185,6 @@ public class SearchPanel extends BasePanel<Search> {
                 searchPerformed(target);
             }
         };
-        searchSimple.setMarkupId(ID_SEARCH_SIMPLE);
         searchSimple.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -360,8 +359,8 @@ public class SearchPanel extends BasePanel<Search> {
             public void bind(Component component) {
                 super.bind( component );
 
-                component.add( AttributeModifier.replace( "onkeydown", Model.of("if(event.keyCode == 13) {document.getElementById('"+
-                        ID_SEARCH_SIMPLE +"').click();}") ) );
+                component.add( AttributeModifier.replace( "onkeydown",
+                        Model.of("if(event.keyCode == 13) {$('[about=\"searchSimple\"]').click();}") ) );
             }
         });
         fullTextInput.setOutputMarkupId(true);
