@@ -72,13 +72,16 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     private Class<? extends O> type;
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
-    public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type) {
+   public SelectableBeanObjectDataProvider(Component component, Class<? extends O> type, Set<? extends O> selected ) {
         super(component, true, true);
 
         Validate.notNull(type);
+       if (selected != null) {
+           this.selected = selected;
+       }
         this.type = type;
     }
-    
+
     public void clearSelectedObjects(){
     	selected.clear();
     }
