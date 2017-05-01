@@ -10,10 +10,10 @@ cache:
     - $HOME/.m2
 
 before_install:
-  - wget http://ftp.wayne.edu/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
-  #- wget https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
-  - unzip -qq apache-maven-3.3.9-bin.zip
-  - export M2_HOME=$PWD/apache-maven-3.3.9
+  #- wget http://ftp.wayne.edu/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.zip
+  - wget https://archive.apache.org/dist/maven/maven-3/3.5.0/binaries/apache-maven-3.5.0-bin.zip
+  - unzip -qq apache-maven-3.5.0-bin.zip
+  - export M2_HOME=$PWD/apache-maven-3.5.0
   - export PATH=$M2_HOME/bin:$PATH
   - export MAVEN_OPTS='-Xmx2g'
 
