@@ -15,17 +15,18 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar.
  */
-public class TaskErrorDto implements Serializable{
+public class TaskErrorDto implements Serializable {
     public static final String F_OBJECT_REF_NAME = "objectRefName";
     public static final String F_STATUS = "status";
     public static final String F_MESSAGE = "message";
@@ -35,22 +36,34 @@ public class TaskErrorDto implements Serializable{
     private String message;
     private String taskOid;
 
-    public TaskErrorDto(){
+    public TaskErrorDto() {
     }
 
-    public TaskErrorDto(@NotNull ObjectType object, @NotNull String taskOid){
+    public TaskErrorDto(@NotNull ObjectType object, @NotNull String taskOid) {
         objectRefName = object.getName().getOrig();
 
-        if (object.getOperationExecution() != null) {
-            for (OperationExecutionType execution : object.getOperationExecution()){
-                if (execution.getTaskRef() == null){
-                    continue;
-                }
-                if (taskOid.equals(execution.getTaskRef().getOid())){
-                    status = execution.getStatus();
-                }
+        for (OperationExecutionType execution : object.getOperationExecution()) {
+            if (execution.getTaskRef() == null || !taskOid.equals(execution.getTaskRef().getOid())) {
+                continue;
             }
+            status = execution.getStatus();
+            message = extractMessages(execution);
         }
     }
 
+    private String extractMessages(OperationExecutionType execution) {
+        List<String> messages = new ArrayList<>();
+        for (ObjectDeltaOperationType deltaOperation : execution.getOperation()) {
+            OperationResultType result = deltaOperation.getExecutionResult();
+            if (result == null || result.getMessage() == null) {
+                continue;
+            }
+            OperationResultStatusType status = result.getStatus();
+            if (status != OperationResultStatusType.WARNING && status != OperationResultStatusType.FATAL_ERROR && status != OperationResultStatusType.PARTIAL_ERROR) {
+                continue;
+            }
+            messages.add(result.getMessage());
+        }
+        return StringUtils.join(messages, "; ");
+    }
 }
