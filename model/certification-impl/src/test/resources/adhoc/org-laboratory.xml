@@ -26,7 +26,7 @@
 			</policyConstraints>
 			<policyActions>
 				<certification>
-					<definitionRef oid="540940e9-4ac5-4340-ba85-fd7e8b5e6686" /> <!-- adhoc-certification -->
+					<definitionRef oid="540940e9-4ac5-4340-ba85-fd7e8b5e6686" /> <!-- adhoc-certification-assignment -->
 				</certification>
 			</policyActions>
 		</policyRule>

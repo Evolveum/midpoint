@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -87,7 +88,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
@@ -402,7 +402,7 @@ public class FocusProcessor {
 	// TODO: should we really do this? Focus policy rules (e.g. forbidden modifications) are irrelevant in this situation,
 	// TODO: i.e. if we are assigning the object into some other object [med]
 	private <F extends FocusType> void triggerAssignmentFocusPolicyRules(LensContext<F> context, String activityDescription,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException {
+			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
@@ -439,7 +439,8 @@ public class FocusProcessor {
 		}
 	}
 
-	private <F extends FocusType> void triggerRule(LensFocusContext<F> focusContext, EvaluatedPolicyRule policyRule) throws PolicyViolationException {
+	private <F extends FocusType> void triggerRule(LensFocusContext<F> focusContext, EvaluatedPolicyRule policyRule)
+			throws PolicyViolationException, SchemaException {
 		PolicyConstraintsType policyConstraints = policyRule.getPolicyConstraints();
 		if (policyConstraints == null) {
 			return;
@@ -447,7 +448,7 @@ public class FocusProcessor {
 		for (ModificationPolicyConstraintType modificationConstraintType: policyConstraints.getModification()) {
 			focusContext.addPolicyRule(policyRule);
 			if (modificationConstraintMatches(focusContext, policyRule, modificationConstraintType)) {
-				EvaluatedPolicyRuleTrigger trigger = new EvaluatedPolicyRuleTrigger(PolicyConstraintKindType.MODIFICATION,
+				EvaluatedPolicyRuleTrigger<?> trigger = new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MODIFICATION,
 						modificationConstraintType, "Focus "+focusContext.getHumanReadableName()+" was modified");
 				focusContext.triggerConstraint(policyRule, trigger);
 			}
@@ -455,15 +456,34 @@ public class FocusProcessor {
 	}
 
 	private <F extends FocusType> boolean modificationConstraintMatches(LensFocusContext<F> focusContext, EvaluatedPolicyRule policyRule, 
-			ModificationPolicyConstraintType modificationConstraintType) {
+			ModificationPolicyConstraintType modificationConstraintType) throws SchemaException {
 		if (!operationMatches(focusContext, modificationConstraintType.getOperation())) {
 			LOGGER.trace("Rule {} operation not applicable", policyRule.getName());
 			return false;
 		}
-		// TODO: later: check for modification of individual items
-		return focusContext.hasAnyDelta();
+		if (modificationConstraintType.getItem().isEmpty()) {
+			return focusContext.hasAnyDelta();
+		}
+		ObjectDelta<?> summaryDelta = ObjectDelta.union(focusContext.getPrimaryDelta(), focusContext.getSecondaryDelta());
+		for (ItemPathType path : modificationConstraintType.getItem()) {
+			if (!pathMatches(focusContext.getObjectOld(), summaryDelta, path.getItemPath())) {
+				return false;
+			}
+		}
+		return true;
 	}
-	
+
+	private <F extends FocusType> boolean pathMatches(PrismObject<F> objectOld, ObjectDelta<?> delta, ItemPath path)
+			throws SchemaException {
+		if (delta.isAdd()) {
+			return delta.getObjectToAdd().containsItem(path, false);
+		} else if (delta.isDelete()) {
+			return objectOld != null && objectOld.containsItem(path, false);
+		} else {
+			return delta.findItemDelta(path) != null;
+		}
+	}
+
 	private <F extends FocusType> boolean operationMatches(LensFocusContext<F> focusContext, List<ChangeTypeType> operations) {
 		if (operations.isEmpty()) {
 			return true;
