@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.prism.*;
@@ -10,8 +11,12 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,6 +35,7 @@ import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -56,7 +62,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS = "reviewAssignmentConflicts";
 
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
-    private List<PrismObject<UserType>> userList;
     private OperationResult backgroundTaskOperationResult = null;
     IModel<String> descriptionModel;
 
@@ -65,7 +70,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     public PageAssignmentsList(boolean setConflictsToSession){
-        userList = loadUserList();
         initModels();
         if (setConflictsToSession) {
             getSessionStorage().getRoleCatalog().setConflictsList(getAssignmentConflicts());
@@ -173,37 +177,19 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private void onRequestPerformed(AjaxRequestTarget target) {
-        for (PrismObject<UserType> user : userList) {
             OperationResult result = new OperationResult(OPERATION_REQUEST_ASSIGNMENTS);
-            ObjectDelta<UserType> delta;
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Task operationalTask = createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
+
             try {
-                delta = user.createModifyDelta();
-                deltas.add(delta);
-                PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-                handleAssignmentDeltas(delta, addAssignmentsToUser(user.asObjectable()), def);
-
-                OperationBusinessContextType businessContextType;
-                if (descriptionModel.getObject() != null) {
-                    businessContextType = new OperationBusinessContextType();
-                    businessContextType.setComment(descriptionModel.getObject());
-                } else {
-                    businessContextType = null;
-                }
-                getModelService().executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContextType),
-                        createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
-
-                result.recordSuccess();
-                SessionStorage storage = getSessionStorage();
-                storage.getRoleCatalog().getAssignmentShoppingCart().clear();
-            } catch (Exception e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
-                error("Could not save assignments. Reason: " + e);
+                TaskType task = WebComponentUtil.createSingleRecurenceTask(OPERATION_REQUEST_ASSIGNMENTS, UserType.COMPLEX_TYPE,
+                        getTaskQuery(), prepareDelta(result), TaskCategory.EXECUTE_CHANGES, PageAssignmentsList.this);
+                WebModelServiceUtils.runTask(task, operationalTask, result, PageAssignmentsList.this);
+            } catch (SchemaException e) {
+                result.recordFatalError(result.getOperation(), e);
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Failed to execute operaton " + result.getOperation(), e);
                 target.add(getFeedbackPanel());
-            } finally {
-                result.recomputeStatus();
             }
-
             findBackgroundTaskOperation(result);
             if (backgroundTaskOperationResult != null
                     && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())) {
@@ -212,14 +198,21 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 setResponsePage(PageAssignmentShoppingKart.class);
                 return;
             }
-            showResult(result);
-            if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            if (WebComponentUtil.isSuccessOrHandledError(result)
+                    || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
+                SessionStorage storage = getSessionStorage();
+                if (storage.getRoleCatalog().getAssignmentShoppingCart() != null) {
+                    storage.getRoleCatalog().getAssignmentShoppingCart().clear();
+                }
+                if (storage.getRoleCatalog().getTargetUserList() != null){
+                    storage.getRoleCatalog().getTargetUserList().clear();
+                }
+                setResponsePage(PageAssignmentShoppingKart.class);
+            } else {
+                showResult(result);
                 target.add(getFeedbackPanel());
                 target.add(PageAssignmentsList.this.get(ID_FORM));
-            } else {
-                setResponsePage(PageAssignmentShoppingKart.class);
             }
-        }
     }
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> focusDelta,
@@ -301,32 +294,14 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private List<AssignmentEditorDto> addAssignmentsToUser(UserType user){
-        List<AssignmentConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
-        List<String> assignmentsToRemove = new ArrayList<>();
-        List<String> assignmentsToUnselect = new ArrayList<>();
-        for (AssignmentConflictDto dto : conflicts){
-            if (dto.isRemovedOld()){
-                assignmentsToRemove.add(dto.getExistingAssignmentTargetObj().getOid());
-            } else if (dto.isUnassignedNew()){
-                assignmentsToUnselect.add(dto.getAddedAssignmentTargetObj().getOid());
-            }
-        }
-
-        List<AssignmentType> userAssignments = user.getAssignment();
-        if (userAssignments == null){
-            userAssignments = new ArrayList<>();
-        }
+        List<String> assignmentsToDeselect = getAssignmentsToDeselectList(user);
+        List<AssignmentEditorDto> assignmentsToRemove = getAssignmentsToRemoveList(user);
         List<AssignmentEditorDto> assignmentsList = new ArrayList<>();
-        for (AssignmentType assignment : userAssignments){
-            if (assignment.getTargetRef() != null && assignmentsToRemove.contains(assignment.getTargetRef().getOid())){
-                assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.DELETE, assignment, this));
-            } else {
-                assignmentsList.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, assignment, this));
-            }
-        }
+        assignmentsList.addAll(assignmentsToRemove);
+
         if (assignmentsModel != null && assignmentsModel.getObject() != null) {
             for (AssignmentEditorDto assignmentsToAdd : assignmentsModel.getObject()) {
-                if (!assignmentsToUnselect.contains(assignmentsToAdd.getTargetRef().getOid())) {
+                if (!assignmentsToDeselect.contains(assignmentsToAdd.getTargetRef().getOid())) {
                     assignmentsToAdd.setStatus(UserDtoStatus.ADD);
                     assignmentsList.add(assignmentsToAdd);
                 }
@@ -339,12 +314,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         ModelContext<UserType> modelContext = null;
 
         ObjectDelta<UserType> delta;
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-
         OperationResult result = new OperationResult(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         Task task = createSimpleTask(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         List<AssignmentConflictDto> conflictsList = new ArrayList<>();
-        PrismObject<UserType> user = userList.size() > 0 ? userList.get(0) : loadUserSelf(PageAssignmentsList.this);
+        List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
+        PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
+                usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
         try {
             delta = user.createModifyDelta();
 
@@ -402,19 +377,88 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         return true;
     }
 
-    private List<PrismObject<UserType>> loadUserList() {
-        if (getSessionStorage().getRoleCatalog().getTargetUserList() != null &&
-                getSessionStorage().getRoleCatalog().getTargetUserList().size() > 0){
-            return getSessionStorage().getRoleCatalog().getTargetUserList();
-        } else {
-            List<PrismObject<UserType>> userList = new ArrayList<>();
-            userList.add(loadUserSelf(PageAssignmentsList.this));
-            return userList;
+    private ObjectDelta prepareDelta(OperationResult result){
+        ObjectDelta delta = null;
+        try{
+            delta = ObjectDelta.createModificationAddContainer(UserType.class, "fakeOid",
+                FocusType.F_ASSIGNMENT, getPrismContext(), getAddAssignmentContainerValues(assignmentsModel.getObject()));
+            if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()){
+                List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
+                PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
+                        usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
+                delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT,
+                        getDeleteAssignmentContainerValues(user.asObjectable()));
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to prepare delta for operation " + OPERATION_REQUEST_ASSIGNMENTS, e);
+            result.recordFatalError("Failed to prepare delta for operation " + OPERATION_REQUEST_ASSIGNMENTS, e);
         }
+        return delta;
+
     }
 
-    private Component getRequestButton(){
-        return get(ID_FORM).get(ID_REQUEST_BUTTON);
+    private ObjectQuery getTaskQuery(){
+        List<PrismObject<UserType>> userList = getSessionStorage().getRoleCatalog().getTargetUserList();
+        if (userList == null || userList.size() == 0){
+            userList.add(loadUserSelf(PageAssignmentsList.this));
+        }
+        Set<String> oids = new HashSet<>();
+        for (PrismObject<UserType> user : userList){
+            oids.add(user.getOid());
+        }
+        return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+    }
+
+    private PrismContainerValue[] getAddAssignmentContainerValues(List<AssignmentEditorDto> assignments) throws SchemaException {
+
+        List<PrismContainerValue<AssignmentType>> addContainerValues = new ArrayList<>();
+        for (AssignmentEditorDto assDto : assignments) {
+            if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
+                addContainerValues.add(assDto.getNewValue(getPrismContext()));
+            }
+
+        }
+        return addContainerValues.toArray(new PrismContainerValue[addContainerValues.size()]);
+    }
+
+    private PrismContainerValue[] getDeleteAssignmentContainerValues(UserType user) throws SchemaException {
+        List<PrismContainerValue<AssignmentType>> deleteAssignmentValues = new ArrayList<>();
+        for (AssignmentEditorDto assDto : getAssignmentsToRemoveList(user)) {
+            deleteAssignmentValues.add(assDto.getNewValue(getPrismContext()));
+        }
+        return deleteAssignmentValues.toArray(new PrismContainerValue[deleteAssignmentValues.size()]);
+    }
+
+    private List<AssignmentEditorDto> getAssignmentsToRemoveList(UserType user){
+        List<AssignmentConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
+        List<String> assignmentsToRemoveOids = new ArrayList<>();
+        for (AssignmentConflictDto dto : conflicts){
+            if (dto.isRemovedOld()){
+                assignmentsToRemoveOids.add(dto.getExistingAssignmentTargetObj().getOid());
+            }
+        }
+
+        List<AssignmentEditorDto> assignmentsToDelete = new ArrayList<>();
+        for (AssignmentType assignment : user.getAssignment()){
+            if (assignment.getTargetRef() == null){
+                continue;
+            }
+            if (assignmentsToRemoveOids.contains(assignment.getTargetRef().getOid())){
+                assignmentsToDelete.add(new AssignmentEditorDto(UserDtoStatus.DELETE, assignment, this));
+            }
+        }
+        return assignmentsToDelete;
+    }
+
+    private List<String> getAssignmentsToDeselectList(UserType user){
+        List<AssignmentConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
+        List<String> assignmentsToDeselectOids = new ArrayList<>();
+        for (AssignmentConflictDto dto : conflicts){
+            if (dto.isUnassignedNew()){
+                assignmentsToDeselectOids.add(dto.getExistingAssignmentTargetObj().getOid());
+            }
+        }
+        return assignmentsToDeselectOids;
     }
 
     private TextArea getDescriptionComponent(){
