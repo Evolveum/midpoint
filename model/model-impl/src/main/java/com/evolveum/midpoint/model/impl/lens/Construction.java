@@ -707,11 +707,6 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "Construction", indent);

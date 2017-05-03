@@ -440,7 +440,18 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Preparing persona construction '{}' in {}", constructionType.getDescription(), segment.source);
 		
-		ctx.evalAssignment.addPersonaConstruction(constructionType, mode);
+		PersonaConstruction<F> construction = new PersonaConstruction<>(constructionType, segment.source);
+		// We have to clone here as the path is constantly changing during evaluation
+		construction.setAssignmentPath(ctx.assignmentPath.clone());
+		construction.setFocusOdo(focusOdo);
+		construction.setLensContext(lensContext);
+		construction.setObjectResolver(objectResolver);
+		construction.setPrismContext(prismContext);
+		construction.setOriginType(OriginType.ASSIGNMENTS);
+		construction.setChannel(channel);
+		construction.setValid(isValid);
+		
+		ctx.evalAssignment.addPersonaConstruction(construction, mode);
 	}
 	
 	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx)

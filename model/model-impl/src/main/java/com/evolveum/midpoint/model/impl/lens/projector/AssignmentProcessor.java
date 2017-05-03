@@ -548,11 +548,6 @@ public class AssignmentProcessor {
             }
     	}
     }
-    
-     
-	
-	
-	
 
 	/**
 	 * Simply mark all projections as illegal - except those that are being unliked

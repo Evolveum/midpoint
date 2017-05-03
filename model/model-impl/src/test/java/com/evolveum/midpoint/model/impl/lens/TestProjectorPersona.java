@@ -142,10 +142,10 @@ public class TestProjectorPersona extends AbstractLensTest {
 		assertTrue("Unexpected evaluatedAssignmentTriple minus set", evaluatedAssignmentTriple.getMinusSet().isEmpty());
 		assertNotNull("No evaluatedAssignmentTriple plus set", evaluatedAssignmentTriple.getPlusSet());
 		assertEquals("Wrong size of evaluatedAssignmentTriple plus set", 1, evaluatedAssignmentTriple.getPlusSet().size());
-		EvaluatedAssignmentImpl<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = (EvaluatedAssignmentImpl<UserType>) evaluatedAssignmentTriple.getPlusSet().iterator().next();
 		display("evaluatedAssignment", evaluatedAssignment);
 		assertNotNull("No evaluatedAssignment", evaluatedAssignment);
-		DeltaSetTriple<PersonaConstructionType> personaConstructionTriple = evaluatedAssignment.getPersonaConstructionTriple();
+		DeltaSetTriple<PersonaConstruction<UserType>> personaConstructionTriple = evaluatedAssignment.getPersonaConstructionTriple();
 		display("personaConstructionTriple", personaConstructionTriple);
 		assertNotNull("No personaConstructionTriple", personaConstructionTriple);
 		assertFalse("Empty personaConstructionTriple", personaConstructionTriple.isEmpty());
@@ -153,10 +153,12 @@ public class TestProjectorPersona extends AbstractLensTest {
 		assertTrue("Unexpected personaConstructionTriple minus set", personaConstructionTriple.getMinusSet().isEmpty());
 		assertNotNull("No personaConstructionTriple zero set", personaConstructionTriple.getZeroSet());
 		assertEquals("Wrong size of personaConstructionTriple zero set", 1, personaConstructionTriple.getZeroSet().size());
-		PersonaConstructionType personaConstructionType = personaConstructionTriple.getZeroSet().iterator().next();
+		PersonaConstruction<UserType> personaConstruction = personaConstructionTriple.getZeroSet().iterator().next();
+		assertNotNull("No personaConstruction", personaConstruction);
+		PersonaConstructionType personaConstructionType = personaConstruction.getConstructionType();
 		assertNotNull("No personaConstructionType", personaConstructionType);
 		assertTrue("Wrong type: "+personaConstructionType.getTargetType(), QNameUtil.match(UserType.COMPLEX_TYPE, personaConstructionType.getTargetType()));
-		assertEquals("Wrong subtype", "admin", personaConstructionType.getTargetSubtype());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong subtype", personaConstructionType.getTargetSubtype(), "admin");
 	
 	}
 	

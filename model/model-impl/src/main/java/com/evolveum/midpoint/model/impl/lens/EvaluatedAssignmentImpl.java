@@ -61,7 +61,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple = new DeltaSetTriple<>();
-	@NotNull private final DeltaSetTriple<PersonaConstructionType> personaConstructionTriple = new DeltaSetTriple<>();
+	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple = new DeltaSetTriple<>();
 	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
@@ -168,11 +168,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 	
 	@NotNull
-	public DeltaSetTriple<PersonaConstructionType> getPersonaConstructionTriple() {
+	public DeltaSetTriple<PersonaConstruction<F>> getPersonaConstructionTriple() {
 		return personaConstructionTriple;
 	}
 	
-	public void addPersonaConstruction(PersonaConstructionType personaContruction, PlusMinusZero whichSet) {
+	public void addPersonaConstruction(PersonaConstruction<F> personaContruction, PlusMinusZero whichSet) {
 		switch (whichSet) {
             case ZERO: 
             	personaConstructionTriple.addToZeroSet(personaContruction);

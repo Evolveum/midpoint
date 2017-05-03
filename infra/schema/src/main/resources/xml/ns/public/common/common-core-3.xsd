@@ -9314,7 +9314,7 @@
 			                	</xsd:appinfo>
 			                </xsd:annotation>
 			            </xsd:element>
-			            <xsd:element name="targetSubtype" type="xsd:string" minOccurs="1">
+			            <xsd:element name="targetSubtype" type="xsd:string" minOccurs="1" maxOccurs="unbounded">
 			                <xsd:annotation>
 			                    <xsd:documentation>
 			                        Object subtype of the target persona.
