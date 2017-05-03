@@ -564,13 +564,13 @@ public class MappingEvaluator {
     		iteration = focusOldType.getIteration();
     		iterationToken = focusOldType.getIterationToken();
     	}
-    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, assignmentPathVariables,
+    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, focusOdo.getAnyObject(), assignmentPathVariables,
     			iteration, iterationToken, configuration, now, contextDesc, task, result);
     }
     
-    public <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Mapping<V, D> createFocusMapping(final MappingFactory mappingFactory,
-    		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
-			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
+    public <V extends PrismValue, D extends ItemDefinition, F extends FocusType, T extends FocusType> Mapping<V, D> createFocusMapping(
+    		final MappingFactory mappingFactory, final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
+			ObjectDeltaObject<F> focusOdo, PrismObject<T> defaultTargetObject, AssignmentPathVariables assignmentPathVariables, 
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
@@ -634,11 +634,11 @@ public class MappingEvaluator {
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
 
-		Collection<V> targetValues = computeTargetValues(mappingType.getTarget(), focusOdo, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
+		Collection<V> targetValues = computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
 
 		Mapping.Builder<V,D> mappingBuilder = mappingFactory.<V,D>createMappingBuilder(mappingType, contextDesc)
 				.sourceContext(focusOdo)
-				.targetContext(context.getFocusContext().getObjectDefinition())
+				.targetContext(defaultTargetObject.getDefinition())
 				.variables(variables)
 				.originalTargetValues(targetValues)
 				.originType(OriginType.USER_POLICY)
@@ -673,7 +673,7 @@ public class MappingEvaluator {
 	}
 
     private <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
-			ObjectDeltaObject<F> defaultSource, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
+			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (target == null) {
 			// Is this correct? What about default targets?
@@ -687,7 +687,7 @@ public class MappingEvaluator {
 		}
 		ItemPath path = itemPathType.getItemPath();
 
-		Object object = ExpressionUtil.resolvePath(path, variables, defaultSource, objectResolver, contextDesc, task, result);
+		Object object = ExpressionUtil.resolvePath(path, variables, defaultTargetContext, objectResolver, contextDesc, task, result);
 		if (object == null) {
 			return new ArrayList<>();
 		} else if (object instanceof Item) {

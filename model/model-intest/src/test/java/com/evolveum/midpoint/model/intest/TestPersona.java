@@ -149,7 +149,9 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		display("User after", userAfter);
         assertUserJack(userAfter);
         
-        
+        assertLinks(userAfter, 0);
+        assertPersonaLinks(userAfter, 1);
+        assertLinkedPersona(userAfter, UserType.class, "admin");
 
         assertSteadyResources();
 	}

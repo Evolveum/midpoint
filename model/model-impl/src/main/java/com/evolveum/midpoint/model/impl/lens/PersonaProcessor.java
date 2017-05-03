@@ -19,28 +19,38 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.ObjectTemplateProcessor;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -55,6 +65,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
@@ -75,6 +86,9 @@ public class PersonaProcessor {
     private ConstructionProcessor constructionProcessor;
 	
 	@Autowired(required=true)
+	private ObjectTemplateProcessor objectTemplateProcessor;
+	
+	@Autowired(required=true)
     private ObjectResolver objectResolver;
 	
 	@Autowired(required=true)
@@ -83,6 +97,12 @@ public class PersonaProcessor {
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService repositoryService;
+	
+	@Autowired(required=true)
+	private Clock clock;
+	
+	@Autowired(required=true)
+	private PrismContext prismContext;
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <O extends ObjectType> HookOperationMode processPersonaChanges(LensContext<O> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
@@ -93,6 +113,14 @@ public class PersonaProcessor {
     	}
     	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
     		// We can do this only for FocusType.
+    		return HookOperationMode.FOREGROUND;
+    	}
+    	
+    	if (focusContext.isDelete()) {
+    		// Special case. Simply delete all the existing personas.
+    		// TODO: maybe we need to do this before actual focus delete?
+    		LOGGER.trace("Focus delete -> delete all personas");
+    		// TODO
     		return HookOperationMode.FOREGROUND;
     	}
 		
@@ -223,7 +251,7 @@ public class PersonaProcessor {
 		if (!QNameUtil.match(personaType, key.getType())) {
 			return false;
 		}
-		List<String> objectSubtypes = ModelUtils.determineSubTypes(personaObj);
+		List<String> objectSubtypes = FocusTypeUtil.determineSubTypes(personaObj);
 		for (String keySubtype: key.getSubtypes()) {
 			if (!objectSubtypes.contains(keySubtype)) {
 				return false;
@@ -232,10 +260,43 @@ public class PersonaProcessor {
 		return true;
 	}
 	
-	public <F extends FocusType> void personaAdd(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction, Task task, OperationResult result) {
+	public <F extends FocusType, T extends FocusType> void personaAdd(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LOGGER.info("PERSONA ADD: {} - {}", key, construction);
-		// TODO: exec
-		// TODO: link
+
+		PrismObject<F> focus = context.getFocusContext().getObjectNew();
+		PersonaConstructionType constructionType = construction.getConstructionType();
+		ObjectReferenceType objectMappingRef = constructionType.getObjectMappingRef();
+		ObjectTemplateType objectMappingType = objectResolver.resolve(objectMappingRef, ObjectTemplateType.class, null, "object mapping in persona construction in "+focus, task, result);
+		
+		QName targetType = constructionType.getTargetType();
+		PrismObjectDefinition<T> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetType);
+		PrismObject<T> target = objectDef.instantiate();
+		
+		FocusTypeUtil.setSubtype(target, constructionType.getTargetSubtype());
+		
+		// pretend ADD focusOdo. We need to push all the items through the object template
+		ObjectDeltaObject<F> focusOdo = new ObjectDeltaObject<>(null, focus.createAddDelta(), focus);
+		ObjectDelta<T> targetDelta = target.createAddDelta();
+		
+		String contextDesc = "object mapping "+objectMappingType+ " for persona construction for "+focus;
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		
+		Collection<ItemDelta<?, ?>> itemDeltas = objectTemplateProcessor.processObjectMapping(context, objectMappingType, 
+				focusOdo, target, targetDelta, contextDesc, now, task, result);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("itemDeltas:\n{}", DebugUtil.debugDump(itemDeltas));
+		}
+		
+		for (ItemDelta itemDelta: itemDeltas) {
+			itemDelta.applyTo(target);
+		}
+		
+		LOGGER.trace("Creating persona:\n{}", target.debugDumpLazily());
+		
+		modelService.executeChanges(MiscSchemaUtil.createCollection(targetDelta), null, task, result);
+		
+		link(context, target.asObjectable(), result);
 	}
 	
 	public <F extends FocusType> void personaModify(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction, FocusType existingPersona, Task task, OperationResult result) {

@@ -21,6 +21,20 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Persona admin object mapping</name>
 
+	<item>
+    	<ref>name</ref>
+    	<mapping>
+    		<name>persona-admin-name</name>
+	    	<source>
+	    		<path>name</path>
+	    	</source>
+	    	<expression>
+	    		<script>
+	    			<code>'a-' + name</code>
+	    		</script>
+	    	</expression>
+	    </mapping>
+	</item>
 
 	<item>
     	<ref>givenName</ref>

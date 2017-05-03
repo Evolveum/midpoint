@@ -275,7 +275,8 @@ public class AssignmentProcessor {
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
         ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
 		Collection<ItemDelta<?,?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
-				focusOdo, focusContext.getObjectDefinition(), "focus mappings in assignments of "+focusContext.getHumanReadableName());
+				focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(), 
+				"focus mappings in assignments of "+focusContext.getHumanReadableName());
 		LOGGER.trace("Computed focus deltas: {}", focusDeltas);
 		focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
 		focusContext.recompute();
