@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,18 +246,18 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	}
 	
 	public void checkNoParent() {
-		checkNoParent(zeroSet);
-		checkNoParent(plusSet);
-		checkNoParent(minusSet);
+		checkNoParent(zeroSet, "zero");
+		checkNoParent(plusSet, "plus");
+		checkNoParent(minusSet, "minus");
 	}
 	
-	private void checkNoParent(Collection<V> set) {
+	private void checkNoParent(Collection<V> set, String desc) {
 		if (set == null) {
 			return;
 		}
 		for (V val: set) {
 			if (val.getParent() != null) {
-				throw new IllegalStateException("Value "+val+" in triple set "+this+" has a parrent "+val.getParent()+". This is unexpected");
+				throw new IllegalStateException("Value "+val+" in "+desc+" triple set "+this+" has a parrent "+val.getParent()+". This is unexpected");
 			}
 		}
 	}

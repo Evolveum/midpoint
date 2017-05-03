@@ -151,7 +151,7 @@ public class ObjectTemplateProcessor {
 		Map<ItemPath,ObjectTemplateItemDefinitionType> itemDefinitionsMap = collectItemDefinitionsFromTemplate(objectTemplate, objectTemplate.toString(), task, result);
 
 		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, objectTemplate, phase, 
-				focusOdo, focusOdo.getAnyObject(), outputTripleMap,
+				focusOdo, focusOdo.getNewObject(), outputTripleMap,
 				iteration, iterationToken, now, objectTemplate.toString(), task, result);
 		
 		if (LOGGER.isTraceEnabled()) {
