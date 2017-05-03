@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -800,7 +801,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		});
 	}
 
-	private void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
+	protected void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
 		container.visitChildren(new IVisitor<Component, Object>() {
 			@Override
 			public void component(Component component, IVisit<Object> objectIVisit) {
