@@ -132,7 +132,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 return context;
@@ -258,7 +258,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
                 return context;
@@ -308,7 +308,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
@@ -357,7 +357,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE);
@@ -416,7 +416,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE);
@@ -473,7 +473,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
                 return context;
@@ -531,7 +531,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
@@ -596,7 +596,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 //context.setOptions(ModelExecuteOptions.createNoCrypt());
@@ -645,7 +645,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 //context.setOptions(ModelExecuteOptions.createNoCrypt());
@@ -693,7 +693,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
@@ -748,7 +748,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE10);
                 return context;
@@ -788,7 +788,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
                         (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
@@ -832,7 +832,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
                         (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
@@ -876,7 +876,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
                         (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
@@ -941,7 +941,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
                 modifyAssignmentValidity(context, jack, validFrom, validTo);
@@ -1044,7 +1044,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_DUMMY);
                 return context;
@@ -1092,7 +1092,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
                 modifyAssignmentValidity(context, jack, validFrom, validTo);
@@ -1149,7 +1149,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
                 modifyAssignmentConstruction(context, jack,

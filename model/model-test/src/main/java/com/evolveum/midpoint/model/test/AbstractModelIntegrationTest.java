@@ -445,86 +445,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assert property == null : "Property "+propertyName+" present in "+user+": "+property;
 	}
 
-	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
-		assertLinked(UserType.class, userOid, accountOid);
-	}
-	
-	protected <F extends FocusType> void assertLinked(Class<F> type, String focusOid, String projectionOid) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult("assertLinked");
-		PrismObject<F> user = repositoryService.getObject(type, focusOid, null, result);
-		assertLinked(user, projectionOid);
-	}
-	
-	protected <F extends FocusType> void assertLinked(PrismObject<F> focus, PrismObject<ShadowType> projection) throws ObjectNotFoundException, SchemaException {
-		assertLinked(focus, projection.getOid());
-	}
-	
-	protected <F extends FocusType> void assertLinked(PrismObject<F> focus, String projectionOid) throws ObjectNotFoundException, SchemaException {
-		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
-		assertNotNull("No linkRefs in "+focus, linkRef);
-		boolean found = false; 
-		for (PrismReferenceValue val: linkRef.getValues()) {
-			if (val.getOid().equals(projectionOid)) {
-				found = true;
-			}
-		}
-		assertTrue("Focus " + focus + " is not linked to shadow " + projectionOid, found);
-	}
-	
-	protected void assertNotLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult("assertLinked");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		assertNotLinked(user, accountOid);
-	}
-	
-	protected void assertNotLinked(PrismObject<UserType> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
-		assertNotLinked(user, account.getOid());
-	}
-	
-	protected void assertNotLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
-		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
-		if (linkRef == null) {
-			return;
-		}
-		boolean found = false; 
-		for (PrismReferenceValue val: linkRef.getValues()) {
-			if (val.getOid().equals(accountOid)) {
-				found = true;
-			}
-		}
-		assertFalse("User " + user + " IS linked to account " + accountOid + " but not expecting it", found);
-	}
-	
-	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
-		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
-		if (accountRef == null) {
-			return;
-		}
-		assert accountRef.isEmpty() : "Expected that "+user+" has no linked account but it has "+accountRef.size()+" linked accounts: "
-			+ accountRef.getValues();
-	}
-	
-	protected String assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-		String accountOid = getLinkRefOid(user, resourceOid);
-		assertNotNull("User " + user + " has no account on resource " + resourceOid, accountOid);
-		return accountOid;
-	}
-	
-	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult("assertAccounts");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		assertLinks(user, numAccounts);
-	}
-	
-	protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
-		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
-		if (linkRef == null) {
-			assert expectedNumLinks == 0 : "Expected "+expectedNumLinks+" but "+focus+" has no linkRef";
-			return;
-		}
-		assertEquals("Wrong number of links in " + focus, expectedNumLinks, linkRef.size());
-	}
-	
 	protected void assertAdministrativeStatusEnabled(PrismObject<? extends ObjectType> user) {
 		assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 	}
@@ -1541,7 +1461,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		UserType userJackType = user.asObjectable();
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
 	}
+
+	protected String assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		String accountOid = getLinkRefOid(user, resourceOid);
+		assertNotNull("User " + user + " has no account on resource " + resourceOid, accountOid);
+		return accountOid;
+	}
 	
+	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertAccounts");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		assertLinks(user, numAccounts);
+	}
+
 	protected void assertNoShadow(String shadowOid) throws SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoShadow");
 		// Check is shadow is gone
@@ -4109,5 +4041,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		SearchResultList<PrismObject<UserType>> users = repositoryService
 				.searchObjects(UserType.class, null, null, initResult);
 		display("Users", users);
+	}
+	
+	protected <F extends FocusType, P extends FocusType> PrismObject<P> assertLinkedPersona(PrismObject<F> focus, Class<P> personaClass, String subtype) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertLinkedPersona");
+		for (ObjectReferenceType personaRef: focus.asObjectable().getPersonaRef()) {
+			PrismObject<P> persona = repositoryService.getObject((Class<P>)ObjectTypes.getObjectTypeFromTypeQName(personaRef.getType()).getClassDefinition(),
+					personaRef.getOid(), null, result);
+			if (isTypeAndSubtype(persona, personaClass, subtype)) {
+				return persona;
+			}
+		}
+		fail("No persona "+personaClass.getSimpleName()+"/"+subtype+" in "+focus);
+		return null; // not reached
+	}
+
+	protected <F extends FocusType> boolean isTypeAndSubtype(PrismObject<F> focus, Class<F> expectedType, String subtype) {
+		if (!expectedType.isAssignableFrom(focus.getCompileTimeClass())) {
+			return false;
+		}
+		if (!FocusTypeUtil.hasSubtype(focus, subtype)) {
+			return false;
+		}
+		return true;
 	}
 }

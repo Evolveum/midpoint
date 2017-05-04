@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2017 Evolveum
+  ~ Copyright (c) 2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,22 +14,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-1c1c11cc11c2" 
+<user oid="65e66ea2-30de-11e7-b852-4b46724fcdaa" 
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-    <name>lechuck</name>
-    
-    <assignment>
-    	<targetRef oid="00000000-8888-6666-0000-100000000003">
-    		<!-- ministry of offense -->
-    	</targetRef>
-    </assignment>
-    
-    <personaRef oid="65e66ea2-30de-11e7-b852-4b46724fcdaa"/>
-    
-    <fullName>LeChuck</fullName>
+    <name>charles</name>
+    <description>persona of LeChuck</description>
+        
+    <fullName>Charles L. Charles</fullName>
 </user>

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -108,7 +109,7 @@ public class ModelUtils {
         if (object.getOid() == null){
             subTypes = new ArrayList<>();
         } else {
-            subTypes = determineSubTypes(object);
+            subTypes = FocusTypeUtil.determineSubTypes(object);
         }
 		return determineObjectPolicyConfiguration(object.getCompileTimeClass(), subTypes, systemConfigurationType);
 	}
@@ -159,30 +160,6 @@ public class ModelUtils {
 			return policy;
 		}
 		
-		return null;
-	}
-	
-	public static <O extends ObjectType> List<String> determineSubTypes(PrismObject<O> object) {
-		if (object == null) {
-			return null;
-		}
-		
-		// TODO: get subType (from ObjectType)
-		
-		if (object.canRepresent(UserType.class)) {
-			return (((UserType)object.asObjectable()).getEmployeeType());
-		}
-		if (object.canRepresent(OrgType.class)) {
-			return (((OrgType)object.asObjectable()).getOrgType());
-		}
-		if (object.canRepresent(RoleType.class)) {
-			List<String> roleTypes = new ArrayList<>(1);
-			roleTypes.add((((RoleType)object.asObjectable()).getRoleType()));
-			return roleTypes;
-		}
-		if (object.canRepresent(ServiceType.class)) {
-			return (((ServiceType)object.asObjectable()).getServiceType());
-		}
 		return null;
 	}
 

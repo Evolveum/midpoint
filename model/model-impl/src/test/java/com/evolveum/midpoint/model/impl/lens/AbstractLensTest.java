@@ -135,6 +135,9 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             ROLE_CORP_ENGINEER_FILE,
             ROLE_CORP_MANAGER_FILE
     };
+	
+	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "role-persona-admin.xml");
+	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
     protected static final File ORG_BRETHREN_FILE = new File(TEST_DIR, "org-brethren.xml");
 	protected static final String ORG_BRETHREN_OID = "9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b";

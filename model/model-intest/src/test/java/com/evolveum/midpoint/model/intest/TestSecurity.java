@@ -100,6 +100,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File USER_LECHUCK_FILE = new File(TEST_DIR, "user-lechuck.xml");
 	protected static final String USER_LECHUCK_OID = "c0c010c0-d34d-b33f-f00d-1c1c11cc11c2";
+	protected static final String USER_LECHUCK_USERNAME = "lechuck";
+	
+	// Persona of LeChuck
+	protected static final File USER_CHARLES_FILE = new File(TEST_DIR, "user-charles.xml");
+	protected static final String USER_CHARLES_OID = "65e66ea2-30de-11e7-b852-4b46724fcdaa";
 
 	private static final File USER_MANCOMB_FILE = new File(TEST_DIR, "user-mancomb.xml");
 	private static final String USER_MANCOMB_OID = "00000000-0000-0000-0000-110000000011";
@@ -246,9 +251,29 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE = new File(TEST_DIR,"role-end-user-requestable-abstractroles.xml");
 	protected static final String ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID = "9434bf5b-c088-456f-9286-84a1e5a0223c";
 
+	protected static final File ROLE_SELF_TASK_OWNER_FILE = new File(TEST_DIR, "role-self-task-owner.xml");
+	protected static final String ROLE_SELF_TASK_OWNER_OID = "455edc40-30c6-11e7-937f-df84f38dd402";
+	
+	protected static final File ROLE_PERSONA_MANAGEMENT_FILE = new File(TEST_DIR, "role-persona-management.xml");
+	protected static final String ROLE_PERSONA_MANAGEMENT_OID = "2f0246f8-30df-11e7-b35b-bbb92a001091";
+	
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
+	
+	protected static final File TASK_USELESS_ADMINISTRATOR_FILE = new File(TEST_DIR,"task-useless-administrator.xml");
+	protected static final String TASK_USELESS_ADMINISTRATOR_OID = "daa36dba-30c7-11e7-bd7d-6311953a3ecd";
+	
+	protected static final File TASK_USELESS_JACK_FILE = new File(TEST_DIR,"task-useless-jack.xml");
+	protected static final String TASK_USELESS_JACK_OID = "642d8174-30c8-11e7-b338-c3cf3a6c548a";
+	protected static final String TASK_USELESS_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3";
 
+	private static final String TASK_T1_OID = "a46459b8-30e4-11e7-bd37-7bba86e91983";
+	private static final String TASK_T2_OID = "a4ab296a-30e4-11e7-a3fd-7f34286d17fa";
+	private static final String TASK_T3_OID = "a4cfec28-30e4-11e7-946f-07f8d55b4498";
+	private static final String TASK_T4_OID = "a4ed0312-30e4-11e7-aaff-c3f6264d4bd1";
+	private static final String TASK_T5_OID = "a507e1c8-30e4-11e7-a739-538d921aa79e";
+	private static final String TASK_T6_OID = "a522b610-30e4-11e7-ab1c-6f834b9ae963";
+	
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
 	private static final String LOG_PREFIX_DENY = "SSSSS=- ";
@@ -260,7 +285,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	private static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
-	private static final int NUMBER_OF_ALL_USERS = 10;
+	private static final int NUMBER_OF_ALL_USERS = 11;
+
 	
 	String userRumRogersOid;
 	String userCobbOid;
@@ -319,12 +345,19 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_TASK_OWNER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PERSONA_MANAGEMENT_FILE, initResult);
 
 		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE, initResult);
 
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
+		
+		repoAddObjectFromFile(TASK_USELESS_ADMINISTRATOR_FILE, initResult);
+		repoAddObjectFromFile(TASK_USELESS_JACK_FILE, initResult);
 
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
+		
+		repoAddObjectFromFile(USER_CHARLES_FILE, initResult);
 		
 		PrismObject<UserType> userRum = createUser(USER_RUM_ROGERS_NAME, "Rum Rogers");
 		addObject(userRum, initTask, initResult);
@@ -3103,10 +3136,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         login(USER_JACK_USERNAME);
         
         // WHEN (security context elevated)
-        securityEnforcer.runPrivileged(new Producer<Object>() {
-			
-			@Override
-			public Object run() {
+        securityEnforcer.runPrivileged(() -> {
 				try {
 					
 					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
@@ -3116,8 +3146,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 				}
 				
 				return null;
-			}
-		});
+        	});
         
         // WHEN (security context back to normal)
         assertNoAccess(userJack);
@@ -3135,10 +3164,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         loginAnonymous();
         
         // WHEN (security context elevated)
-        securityEnforcer.runPrivileged(new Producer<Object>() {
-			
-			@Override
-			public Object run() {
+        securityEnforcer.runPrivileged(() -> {
 				try {
 					
 					assertSuperuserAccess(NUMBER_OF_ALL_USERS + 1);
@@ -3148,8 +3174,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 				}
 				
 				return null;
-			}
-		});
+			});
         
         // WHEN (security context back to normal)
         // MID-3221
@@ -3168,16 +3193,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         loginAnonymous();
         
         // WHEN (security context elevated)
-        securityEnforcer.runPrivileged(new Producer<Object>() {
-			
-			@Override
-			public Object run() {
+        securityEnforcer.runPrivileged(() -> {
 				
 				// do nothing.
 			        				
 				return null;
-			}
-		});
+			});
         
         // WHEN (security context back to normal)
         assertNoAccess(userJack);
@@ -3343,7 +3364,134 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertGlobalStateUntouched();
 	}
+    
+    @Test
+    public void test380AutzJackSelfTaskOwner() throws Exception {
+		final String TEST_NAME = "test380AutzJackSelfTaskOwner";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SELF_TASK_OWNER_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetDeny(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        
+        assertGetDeny(TaskType.class, TASK_USELESS_ADMINISTRATOR_OID);
+        assertGetAllow(TaskType.class, TASK_USELESS_JACK_OID);
+        
+        assertSearch(UserType.class, null, 0);
+        assertSearch(ObjectType.class, null, 0);
+        assertSearch(OrgType.class, null, 0);
+        assertSearch(TaskType.class, null, 1);
+        
+        assertTaskAddAllow(TASK_T1_OID, "t1", USER_JACK_OID, TASK_USELESS_HANDLER_URI);
+        assertTaskAddDeny(TASK_T2_OID, "t2", USER_JACK_OID, "nonsense");
+        assertTaskAddDeny(TASK_T3_OID, "t3", USER_ADMINISTRATOR_OID, TASK_USELESS_HANDLER_URI);
+        assertTaskAddDeny(TASK_T4_OID, "t4", USER_LECHUCK_OID, TASK_USELESS_HANDLER_URI);
+        assertTaskAddDeny(TASK_T5_OID, "t5", null, TASK_USELESS_HANDLER_URI);
 
+        assertAddDeny();
+        
+        assertModifyDeny();
+        
+        assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
+	}
+
+    private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
+    	assertAllow("add task "+name, 
+            	(task, result) -> {
+            		addTask(oid, name, ownerOid, handlerUri, task, result);
+    			});
+    }
+    
+    private void assertTaskAddDeny(String oid, String name, String ownerOid, String handlerUri) throws Exception {
+    	assertDeny("add task "+name, 
+            	(task, result) -> {
+            		addTask(oid, name, ownerOid, handlerUri, task, result);
+    			});
+    }
+    
+    private void addTask(String oid, String name, String ownerOid, String handlerUri, Task execTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		PrismObject<TaskType> task = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class).instantiate();
+		task.setOid(oid);
+		TaskType taskType = task.asObjectable();
+		taskType.setName(createPolyStringType(name));
+		if (ownerOid != null) {
+			ObjectReferenceType ownerRef = new ObjectReferenceType();
+			ownerRef.setOid(ownerOid);
+			taskType.setOwnerRef(ownerRef);
+		}
+		taskType.setHandlerUri(handlerUri);
+		modelService.executeChanges(MiscSchemaUtil.createCollection(task.createAddDelta()), null, execTask, result);
+	}
+
+	@Test(enabled=false) // need searchable personaRef
+    public void test400AutzJackPersonaManagement() throws Exception {
+		final String TEST_NAME = "test400AutzJackPersonaManagement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_LECHUCK_OID);
+        assertGetDeny(UserType.class, USER_CHARLES_OID);
+        
+        assertSearch(UserType.class, null, 1);
+        assertSearch(ObjectType.class, null, 0);
+        assertSearch(OrgType.class, null, 0);
+
+        assertAddDeny();
+        
+        assertModifyDeny();
+        
+        assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
+	}
+
+    @Test(enabled=false) // need searchable personaRef
+    public void test402AutzLechuckPersonaManagement() throws Exception {
+		final String TEST_NAME = "test402AutzLechuckPersonaManagement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_LECHUCK_OID);
+        assignRole(USER_LECHUCK_OID, ROLE_PERSONA_MANAGEMENT_OID);
+        login(USER_LECHUCK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetDeny(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetAllow(UserType.class, USER_LECHUCK_OID);
+        assertGetAllow(UserType.class, USER_CHARLES_OID);
+        
+        assertSearch(UserType.class, null, 2);
+        assertSearch(ObjectType.class, null, 0);
+        assertSearch(OrgType.class, null, 0);
+
+        assertAddDeny();
+        
+        assertModifyDeny();
+        
+        assertDeleteDeny();
+        
+        assertGlobalStateUntouched();
+	}
+    
+    // TODO: add new persona, update persona, delete persona
 
 	private void assertSuperuserAccess(int readUserNum) throws Exception {
 		assertReadAllow(readUserNum);
@@ -3353,6 +3501,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 		assertSearch(AccessCertificationCampaignType.class, null, 2);		// 2 campaigns there
 		assertReadCertCasesAllow();
+		assertSearch(TaskType.class, null, 2);
         
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
         assertNotNull("Null role spec "+roleSpec, roleSpec);
@@ -3407,7 +3556,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
 		login(userAdministrator);
-        unassignAllRoles(userOid);
+		if (userOid != null) {
+			unassignAllRoles(userOid);
+		}
         
         Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".cleanupAutzTest");
         OperationResult result = task.getResult();
@@ -3430,6 +3581,13 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, null, task, result);
+        
+        cleanupDelete(TaskType.class, TASK_T1_OID, task, result);
+        cleanupDelete(TaskType.class, TASK_T2_OID, task, result);
+        cleanupDelete(TaskType.class, TASK_T3_OID, task, result);
+        cleanupDelete(TaskType.class, TASK_T4_OID, task, result);
+        cleanupDelete(TaskType.class, TASK_T5_OID, task, result);
+        cleanupDelete(TaskType.class, TASK_T6_OID, task, result);
 	}
 	
 	private void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {

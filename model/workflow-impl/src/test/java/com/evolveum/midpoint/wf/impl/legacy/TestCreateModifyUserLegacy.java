@@ -69,7 +69,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(USER_ELISABETH_FILE)));
                 return context;
             }
@@ -110,7 +110,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
 
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_ELISABETH_OID, result);
                 addFocusModificationToContext(context, REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 return context;
