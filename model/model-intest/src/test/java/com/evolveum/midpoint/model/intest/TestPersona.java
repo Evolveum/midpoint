@@ -114,6 +114,8 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "role-persona-admin.xml");
 	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
+	private static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
+
 	String userJackAdminPersonaOid;
 	
 	@Override
@@ -149,7 +151,6 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
         
-		// Check accountRef
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
         assertUserJack(userAfter);
@@ -160,17 +161,145 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         display("Persona", persona);
         userJackAdminPersonaOid = persona.getOid();
         // Full name is computed by using ordinary user template
-        assertUser(persona, userJackAdminPersonaOid, "a-"+USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
+        assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
 
         assertSteadyResources();
 	}
     
-    // TODO: modify
+    @Test
+    public void test102RecomputeUserJack() throws Exception {
+    	final String TEST_NAME = "test102RecomputeUserJack";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertUserJack11x();
+    }
+
+    @Test
+    public void test103ReconcileUserJack() throws Exception {
+    	final String TEST_NAME = "test103ReconcileUserJack";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_JACK_OID, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertUserJack11x();
+    }
+
+    @Test
+    public void test104RecomputeJackAdminPersona() throws Exception {
+    	final String TEST_NAME = "test104RecomputeJackAdminPersona";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(userJackAdminPersonaOid, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertUserJack11x();
+    }
+    
+    @Test
+    public void test105ReconcileJackAdminPersona() throws Exception {
+    	final String TEST_NAME = "test105ReconcileJackAdminPersona";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(userJackAdminPersonaOid, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertUserJack11x();
+    }
+
+    private void assertUserJack11x() throws Exception {
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+        assertUserJack(userAfter);
+        
+        assertLinks(userAfter, 0);
+        assertPersonaLinks(userAfter, 1);
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        display("Persona", persona);
+        assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
+        assertSubtype(persona, "admin");
+
+        assertSteadyResources();
+	}
+    
+    @Test
+    public void test120ModifyJackGivenName() throws Exception {
+    	final String TEST_NAME = "test120ModifyJackGivenName";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
+        assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+        
+        assertLinks(userAfter, 0);
+        assertPersonaLinks(userAfter, 1);
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        display("Persona", persona);
+        // Full name mapping in ordinary user template is weak, fullname is not changed
+        assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+        assertSubtype(persona, "admin");
+
+        assertSteadyResources();
+	}
     
     // TODO: recompute, reconcile (both user and persona)
     
     // TODO: assign some accouts/roles to user and persona, make sure they are independent
+    
+    // TODO: independent change in the persona
     
     @Test
     public void test199UnassignRolePersonaAdminFromJack() throws Exception {
@@ -189,10 +318,9 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
         
-		// Check accountRef
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
-        assertUserJack(userAfter);
+		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 0);
@@ -201,4 +329,9 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 	}
+    
+    private String toAdminPersonaUsername(String username) {
+		return "a-"+username;
+	}
+
 }
