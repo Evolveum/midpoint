@@ -154,6 +154,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
         assertUserJack(userAfter);
+        assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
@@ -163,6 +164,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // Full name is computed by using ordinary user template
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
+        assertUserPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
@@ -251,6 +253,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
         assertUserJack(userAfter);
+        assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
@@ -258,6 +261,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         display("Persona", persona);
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
+        assertUserPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
@@ -283,6 +287,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+		assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
@@ -291,11 +296,14 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // Full name mapping in ordinary user template is weak, fullname is not changed
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
+        assertUserPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
     
     // TODO: recompute, reconcile (both user and persona)
+    
+    // TODO: change password
     
     // TODO: assign some accouts/roles to user and persona, make sure they are independent
     
@@ -321,6 +329,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+		assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 0);

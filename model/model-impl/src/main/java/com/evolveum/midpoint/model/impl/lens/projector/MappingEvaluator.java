@@ -657,14 +657,11 @@ public class MappingEvaluator {
             return mapping;
         }
 		
-		PrismObject<F> focusNew = focusOdo.getNewObject();
-		if (focusNew != null) {
-			Item<V,D> existingUserItem = (Item<V,D>) focusNew.findItem(itemPath);
-			if (existingUserItem != null && !existingUserItem.isEmpty() 
+		if (defaultTargetObject != null) {
+			Item<V,D> existingTargetItem = (Item<V,D>) defaultTargetObject.findItem(itemPath);
+			if (existingTargetItem != null && !existingTargetItem.isEmpty() 
 					&& mapping.getStrength() == MappingStrengthType.WEAK) {
-				// This valueConstruction only applies if the property does not have a value yet.
-				// ... but it does
-				LOGGER.trace("Mapping {} is weak and focus already has a value {}, skipping.", mapping, existingUserItem);
+				LOGGER.trace("Mapping {} is weak and target already has a value {}, skipping.", mapping, existingTargetItem);
 				return null;
 			}
 		}
