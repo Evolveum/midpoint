@@ -993,23 +993,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// Owner
 							if (objectSpecType.getOwner() != null) {
+								if (objectDefinition == null) {
+									objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+								}
 								if (AbstractRoleType.class.isAssignableFrom(objectType)) {
-									if (objectDefinition == null) {
-										objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
-									}
-									ItemPath ownerRefPath = new ItemPath(AbstractRoleType.F_OWNER_REF);
-									PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
-									S_AtomicFilterExit builder = QueryBuilder.queryFor(AbstractRoleType.class, prismContext)
-											.item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
-									// TODO don't understand this code
-									for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-										if (ObjectTypeUtil.isDefaultRelation(subjectParentOrgRef.getRelation())) {
-											builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
-										}
-									}
-									ObjectFilter objSpecOwnerFilter = builder.buildFilter();
-									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOwnerFilter);
-									LOGGER.trace("  applying owner filter {}", objSpecOwnerFilter);
+									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(AbstractRoleType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+								} else if (TaskType.class.isAssignableFrom(objectType)) {
+									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
 								} else {
 									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
 									continue;
@@ -1184,6 +1174,22 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
 		}
+	}
+	
+	private <T extends ObjectType> ObjectFilter applyOwnerFilterOwnerRef(ItemPath ownerRefPath, ObjectFilter objSpecSecurityFilter, MidPointPrincipal principal, PrismObjectDefinition<T> objectDefinition) {
+		PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
+		S_AtomicFilterExit builder = QueryBuilder.queryFor(AbstractRoleType.class, prismContext)
+				.item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
+		// TODO don't understand this code
+		for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
+			if (ObjectTypeUtil.isDefaultRelation(subjectParentOrgRef.getRelation())) {
+				builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
+			}
+		}
+		ObjectFilter objSpecOwnerFilter = builder.buildFilter();
+		objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecOwnerFilter);
+		LOGGER.trace("  applying owner filter {}", objSpecOwnerFilter);
+		return objSpecSecurityFilter;
 	}
 
 	private void traceFilter(String message, Object forObj, ObjectFilter filter) {

@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="2f0246f8-30df-11e7-b35b-bbb92a001091"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Role Persona Management</name>
+    <authorization>
+    	<name>auth-persona-self-read</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>UserType</type>
+   			<special>self</special>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>auth-persona-owner-read</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>UserType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>auth-persona-assign</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+    	<phase>request</phase>
+    	<target>
+    		<type>RoleType</type>
+    	</target>
+    </authorization>
+    <authorization>
+    	<name>auth-persona-execute</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    	<phase>execution</phase>
+    </authorization>
+</role>
