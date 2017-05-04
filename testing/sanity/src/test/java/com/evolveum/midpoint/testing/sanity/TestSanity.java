@@ -1113,12 +1113,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
         assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "Black Pearl");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "Black Pearl");
         assertNull("carLicense attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "carLicense"));
         assertNull("postalAddress attribute sneaked to LDAP", OpenDJController.getAttributeValue(entry, "postalAddress"));
 
@@ -1249,7 +1249,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertAttribute(modelShadow, SchemaConstants.ICFS_UID, USER_JACK_DERBY_LOGIN);
         assertAttribute(modelShadow, SchemaConstants.ICFS_NAME, USER_JACK_DERBY_LOGIN);
-        assertAttribute(modelShadow, resourceDerby, "FULL_NAME", "Cpt. Jack Sparrow");
+        assertAttribute(resourceDerby, modelShadow, "FULL_NAME", "Cpt. Jack Sparrow");
 
     }
 
@@ -1737,12 +1737,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
         assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "somewhere");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "somewhere");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
         assertNotNull("The account activation status was not present in shadow", modelShadow.getActivation().getAdministrativeStatus());
@@ -1830,12 +1830,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
         assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Jack");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "displayName", "Cpt. Jack Sparrow");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "l", "somewhere");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "uid", "jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "givenName", "Jack");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "sn", "Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "cn", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "displayName", "Cpt. Jack Sparrow");
+        assertAttribute(resourceTypeOpenDjrepo, modelShadow, "l", "somewhere");
 
         assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
         assertNotNull("The account activation status was not present in shadow", modelShadow.getActivation().getAdministrativeStatus());
@@ -3807,10 +3807,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	PrismObject<ShadowType> modelShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), result);
     	
     	assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "uid", "angelika");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "givenName", "Angelika");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "sn", "Marley");
-        assertAttribute(modelShadow, resourceTypeOpenDjrepo, "cn", "Angelika Marley");
+        assertAttribute(modelShadow, "uid", "angelika");
+        assertAttribute(modelShadow, "givenName", "Angelika");
+        assertAttribute(modelShadow, "sn", "Marley");
+        assertAttribute(modelShadow, "cn", "Angelika Marley");
         
         assertShadowLdapPassword(modelShadow, "piranhaDogs");
 
@@ -3932,48 +3932,43 @@ public class TestSanity extends AbstractModelIntegrationTest {
     
     @Test
     public void test503NotifyChangeDeleteAccount() throws Exception{
-    		 TestUtil.displayTestTile("test503NotifyChangeDeleteAccount");
-
-    		 OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");	 
-    		 PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
-    		 assertNotNull("User with the name angelika must exist.", userAngelika);
-    	    	
-    	    	UserType user = userAngelika.asObjectable();
-    	    	assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
-    	    	
-    	    	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
-    	    	String oid = user.getLinkRef().get(0).getOid();
-    	    	
+    	final String TEST_NAME = "test503NotifyChangeDeleteAccount";
+    	TestUtil.displayTestTile(TEST_NAME);
+	 
+		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+		assertNotNull("User with the name angelika must exist.", userAngelika);
+		
+		UserType user = userAngelika.asObjectable();
+		assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+		
+		assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+		String oid = user.getLinkRef().get(0).getOid();
         
     	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setChangeType(ChangeTypeType.DELETE);
     	delta.setObjectType(ShadowType.COMPLEX_TYPE);
-    	
         delta.setOid(oid);
-    		
     	changeDescription.setObjectDelta(delta);
-    	
     	changeDescription.setOldShadowOid(oid);
     	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
     	
+    	// WHEN
     	TaskType task = modelWeb.notifyChange(changeDescription);
+    	
+    	// THEN
     	OperationResult result = OperationResult.createOperationResult(task.getResult());
     	display(result);
-    	assertSuccess(result);
+    	assertTrue(result.isAcceptable());
     	
     	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
+    	display("User after", userAngelikaAfterSync);
     	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
     	
     	UserType userType = userAngelikaAfterSync.asObjectable();
     	assertNotNull("User with the name angelika must have one link ref.", userType.getLinkRef());
     	
     	assertEquals("Expected no account ref in user", 0, userType.getLinkRef().size());
-//    	String oid = userType.getLinkRef().get(0).getOid();
-    	
-//    	UserType userAfterSync = userAngelikaAfterSync.asObjectable();
-    	
-//    	PrismAsserts.assertEqualsPolyString("wrong given name in user angelika", PrismTestUtil.createPolyStringType("newAngelika"), userAfterSync.getGivenName());
     	
     }
     
@@ -4161,6 +4156,18 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		}
 		
 		return value;
+	}
+    
+    protected <T> void assertAttribute(ShadowType shadowType, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
 	}
 
 }

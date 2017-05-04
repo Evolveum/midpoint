@@ -231,9 +231,9 @@
                     <xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specification of items that has to be approved when modified. This policy will
-                                only affect the items specified in this element. If no items are specified then the
-                                policy applies to all items in the objects.
+                                Specification of items that must be modified (all of them) in order for this
+                                constraint be triggered. If no items are specified then any modification will
+                                trigger this constraint.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

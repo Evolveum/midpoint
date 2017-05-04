@@ -42,7 +42,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
 
-	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<O>();
+	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 	
 	transient private SecurityPolicyType securityPolicy;
 	transient private ObjectPolicyConfigurationType objectPolicyConfigurationType;
@@ -126,7 +126,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	@Override
 	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<O>(getObjectOld(), getDelta(), getObjectNew());
+		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew());
 	}
 
 	@Override
@@ -184,7 +184,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		}
 		return false;
 	}
-	
+
 	public boolean hasAnyDelta() {
 		if (getPrimaryDelta() != null && !getPrimaryDelta().isEmpty()) {
 			return true;
@@ -235,11 +235,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	}
     
     public ObjectDelta<O> getWaveExecutableDelta(int wave) throws SchemaException {
-    	if (wave == 0){
-    		if (getFixedPrimaryDelta() != null && getFixedPrimaryDelta().isAdd()){
+    	if (wave == 0) {
+    		if (getFixedPrimaryDelta() != null && getFixedPrimaryDelta().isAdd()) {
     			ObjectDelta delta = getFixedPrimaryDelta();
-    			for (ObjectDelta<O> secondary : getSecondaryDeltas()){
-    				if (secondary != null){
+    			for (ObjectDelta<O> secondary : getSecondaryDeltas()) {
+    				if (secondary != null) {
     					secondary.applyTo(delta.getObjectToAdd());
     				}
     			}

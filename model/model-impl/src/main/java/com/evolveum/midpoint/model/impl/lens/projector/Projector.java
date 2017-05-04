@@ -310,21 +310,30 @@ public class Projector {
     		return;
     	}
 		
+		String projectionDesc = getProjectionDesc(projectionContext);
+		
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_PROJECT_PROJECTION);
+		result.addParam(OperationResult.PARAM_PROJECTION, projectionDesc);
 		
 		try {
 		
 	        context.checkAbortRequested();
 	
+	        
 	    	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 	    			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is "+projectionContext.getSynchronizationPolicyDecision());
 				return;
 	    	}
-	    	String projectionDesc = getProjectionDesc(projectionContext);
+	    	
+	    	if (projectionContext.isThombstone()) {
+	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a thombstone");
+				return;
+	    	}
+
 	    	
 	    	LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
-	
+	    		
 	    	// Some projections may not be loaded at this point, e.g. high-order dependency projections
 	    	contextLoader.makeSureProjectionIsLoaded(context, projectionContext, task, result);
 	    	

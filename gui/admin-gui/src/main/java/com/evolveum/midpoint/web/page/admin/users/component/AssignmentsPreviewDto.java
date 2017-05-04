@@ -38,6 +38,7 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
     public static final String F_TENANT_NAME = "tenantName";
     public static final String F_ORG_REF_NAME = "orgRefName";
     public static final String F_REMARK = "remark";
+    public static final String F_RELATION = "relation";
 
     // target = role, org or resource
     private String targetOid;
@@ -56,6 +57,7 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
     private ObjectReferenceType orgRef;
     // generic
     private String remark;
+    private QName relation;
 
     public String getTargetOid() {
         return targetOid;
@@ -161,6 +163,14 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
         this.targetType = targetType;
     }
 
+    public QName getRelation() {
+        return relation;
+    }
+
+    public void setRelation(QName relation) {
+        this.relation = relation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -176,6 +186,7 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
         if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
         if (tenantName != null ? !tenantName.equals(that.tenantName) : that.tenantName != null) return false;
         if (orgRefName != null ? !orgRefName.equals(that.orgRefName) : that.orgRefName != null) return false;
+        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
         return !(remark != null ? !remark.equals(that.remark) : that.remark != null);
 
     }
@@ -191,6 +202,7 @@ public class AssignmentsPreviewDto extends SelectableBean implements Serializabl
         result = 31 * result + (tenantName != null ? tenantName.hashCode() : 0);
         result = 31 * result + (orgRefName != null ? orgRefName.hashCode() : 0);
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
         return result;
     }
 

@@ -40,10 +40,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -578,15 +575,16 @@ public class Clockwork {
 	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		auditFinalExecution(context, task, result);
 		logFinalReadable(context, task, result);
-		recordOperationExecution(context, task, result);
+		recordOperationExecution(context, null, task, result);
         return triggerReconcileAffected(context, task, result);
 	}
 
-	private <F extends ObjectType> void recordOperationExecution(LensContext<F> context, Task task, OperationResult result)
+	private <F extends ObjectType> void recordOperationExecution(LensContext<F> context, Throwable clockworkException,
+			Task task, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		try {
-			recordFocusOperationExecution(context, now, task, result);
+			recordFocusOperationExecution(context, now, clockworkException, task, result);
 			for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 				recordProjectionOperationExecution(context, projectionContext, now, task, result);
 			}
@@ -597,7 +595,8 @@ public class Clockwork {
 		}
 	}
 
-	private <F extends ObjectType> void recordFocusOperationExecution(LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
+	private <F extends ObjectType> void recordFocusOperationExecution(LensContext<F> context, XMLGregorianCalendar now,
+			Throwable clockworkException, Task task, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null || focusContext.isDelete()) {
@@ -605,7 +604,25 @@ public class Clockwork {
 		}
 		PrismObject<F> objectNew = focusContext.getObjectNew();
 		Validate.notNull(objectNew, "No focus object even if the context is not of 'delete' type");
-		recordOperationExecution(objectNew, false, focusContext.getExecutedDeltas(), now, context.getChannel(), task, result);
+		List<LensObjectDeltaOperation<F>> executedDeltas;
+		if (clockworkException == null) {
+			executedDeltas = focusContext.getExecutedDeltas();
+		} else {
+			executedDeltas = new ArrayList<>(focusContext.getExecutedDeltas());
+			LensObjectDeltaOperation<F> odo = new LensObjectDeltaOperation<>();
+			ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
+			if (primaryDelta != null) {
+				odo.setObjectDelta(primaryDelta);
+			} else {
+				@SuppressWarnings({"unchecked", "raw"})
+				Class<F> fClass = (Class<F>) objectNew.asObjectable().getClass();
+				ObjectDelta<F> fakeDelta = new ObjectDelta<>(fClass, ChangeType.MODIFY, prismContext);
+				odo.setObjectDelta(fakeDelta);
+			}
+			odo.setExecutionResult(result);		// we rely on the fact that 'result' already contains record of the exception
+			executedDeltas.add(odo);
+		}
+		recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(), task, result);
 	}
 
 	private <F extends ObjectType> void recordProjectionOperationExecution(LensContext<F> context,
@@ -833,10 +850,12 @@ public class Clockwork {
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
 	
-	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Exception e, Task task, OperationResult result) throws SchemaException {
+	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Exception e, Task task, OperationResult result)
+			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LOGGER.trace("Processing clockwork exception {}", e.toString());
 		result.recordFatalError(e);
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
+		recordOperationExecution(context, e, task, result);
 		reclaimSequences(context, task, result);
 	}
 

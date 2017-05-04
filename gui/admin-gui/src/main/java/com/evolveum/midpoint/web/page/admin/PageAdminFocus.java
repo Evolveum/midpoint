@@ -979,6 +979,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 						nameFromReference(assignment.getOrgRef(), task, result));
 				dto.setOrgRef(assignment.getOrgRef());
 			}
+			if (assignment.getTargetRef() != null){
+				dto.setRelation(assignment.getTargetRef().getRelation());
+			}
 		}
 		return dto;
 	}

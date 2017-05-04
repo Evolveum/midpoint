@@ -131,6 +131,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	private static final String ROLE_IMMUTABLE_GLOBAL_DESCRIPTION = "Thou shalt not modify this role!";
 	private static final String ROLE_IMMUTABLE_GLOBAL_IDENTIFIER = "GIG001";
 	
+	protected static final File ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_FILE = new File(TEST_DIR, "role-immutable-description-global.xml");
+	protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID = "b7ea1c0c-31d6-445e-8949-9f8f4a665b3b";
+	private static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_DESCRIPTION = "Thou shalt not modify description of this role!";
+	private static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_IDENTIFIER = "GIG001D";
+
 	protected static final File ROLE_NON_ASSIGNABLE_FILE = new File(TEST_DIR, "role-non-assignable.xml");
 	protected static final String ROLE_NON_ASSIGNABLE_OID = "db67d2f0-abd8-11e6-9c30-b35abe3e4e3a";
 	
@@ -3963,10 +3968,95 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_GLOBAL_DESCRIPTION);
         PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_IDENTIFIER, ROLE_IMMUTABLE_GLOBAL_IDENTIFIER);
 	}
+
+	/**
+	 * This should go well. The global immutable role has enforced modification,
+	 * but not addition.
+	 */
+	@Test
+	public void test812AddGlobalImmutableDescriptionRole() throws Exception {
+		final String TEST_NAME = "test812AddGlobalImmutableDescriptionRole";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_FILE);
+		display("Role before", role);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		addObject(role, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID);
+		display("Role after", roleAfter);
+		assertNotNull("No role added", roleAfter);
+	}
+
+	/**
+	 * This should go well again. The constraint is related to modification of description, not identifier.
+	 */
+	@Test
+	public void test814ModifyRoleImmutableDescriptionGlobalIdentifier() throws Exception {
+		final String TEST_NAME = "test814ModifyRoleImmutableDescriptionGlobalIdentifier";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		final String NEW_VALUE = "whatever";
+		modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID, RoleType.F_IDENTIFIER,
+				task, result, NEW_VALUE);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID);
+		display("Role after", roleAfter);
+		assertEquals("Wrong new identifier value", NEW_VALUE, roleAfter.asObjectable().getIdentifier());
+	}
+
+	@Test
+	public void test815ModifyRoleImmutableGlobalDescription() throws Exception {
+		final String TEST_NAME = "test815ModifyRoleImmutableGlobalDescription";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		try {
+			// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID, RoleType.F_DESCRIPTION,
+					task, result, "whatever");
+
+			AssertJUnit.fail("Unexpected success");
+		} catch (PolicyViolationException e) {
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+		}
+
+		PrismObject<RoleType> roleAfter = getObject(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID);
+		PrismAsserts.assertPropertyValue(roleAfter, RoleType.F_DESCRIPTION, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_DESCRIPTION);
+	}
 	
 	@Test
-    public void test806AddNonCreateableRole() throws Exception {
-		final String TEST_NAME = "test806AddNonCreateableRole";
+    public void test826AddNonCreateableRole() throws Exception {
+		final String TEST_NAME = "test826AddNonCreateableRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -3997,8 +4087,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	 * inducement.
 	 */
 	@Test
-    public void test807AddImmutableAssignRole() throws Exception {
-		final String TEST_NAME = "test807AddImmutableAssignRole";
+    public void test827AddImmutableAssignRole() throws Exception {
+		final String TEST_NAME = "test827AddImmutableAssignRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -4030,8 +4120,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	 * metarole itself. Try if we can modify the metarole.
 	 */
 	@Test
-    public void test808ModifyUntouchableMetarole() throws Exception {
-		final String TEST_NAME = "test808ModifyUntouchableMetarole";
+    public void test828ModifyUntouchableMetarole() throws Exception {
+		final String TEST_NAME = "test828ModifyUntouchableMetarole";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -4053,8 +4143,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test810ModifyRoleJudge() throws Exception {
-		final String TEST_NAME = "test810ModifyRoleJudge";
+    public void test830ModifyRoleJudge() throws Exception {
+		final String TEST_NAME = "test830ModifyRoleJudge";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -4076,8 +4166,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test820AssignRoleNonAssignable() throws Exception {
-		final String TEST_NAME = "test820AssignRoleNonAssignable";
+    public void test840AssignRoleNonAssignable() throws Exception {
+		final String TEST_NAME = "test840AssignRoleNonAssignable";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 

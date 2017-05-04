@@ -585,7 +585,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
      * Union works on UNORDERED deltas.
      */
     public static <T extends Objectable> ObjectDelta<T> union(ObjectDelta<T>... deltas) throws SchemaException {
-        List<ObjectDelta<T>> modifyDeltas = new ArrayList<ObjectDelta<T>>(deltas.length);
+        List<ObjectDelta<T>> modifyDeltas = new ArrayList<>(deltas.length);
         ObjectDelta<T> addDelta = null;
         ObjectDelta<T> deleteDelta = null;
         for (ObjectDelta<T> delta : deltas) {
