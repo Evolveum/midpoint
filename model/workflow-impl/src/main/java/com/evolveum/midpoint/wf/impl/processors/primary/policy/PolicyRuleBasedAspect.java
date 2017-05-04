@@ -286,12 +286,11 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 				key = Collections.emptySet();
 			} else {
 				Set<ItemPath> items = getAffectedItems(rule.getTriggers());
-				Set<ItemPath> deltaItems = new HashSet<>(focusDelta.getModifiedItems());
 				Set<ItemPath> affectedItems;
-				if (items.isEmpty()) {
-					affectedItems = deltaItems;        // whole object
+				if (!items.isEmpty()) {
+					affectedItems = items;				// all items in triggered constraints were modified (that's how the constraints work)
 				} else {
-					affectedItems = new HashSet<>(CollectionUtils.intersection(items, deltaItems));
+					affectedItems = new HashSet<>(focusDelta.getModifiedItems());        // whole object
 				}
 				key = affectedItems;
 			}
@@ -301,7 +300,8 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, rule);
 		}
 		// default rule
-		if (approvalActionRules.isEmpty()) {
+		if (approvalActionRules.isEmpty()
+				&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(this, approvalSchemaHelper);
 			if (builder.addPredefined(object, SchemaConstants.ORG_OWNER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found");

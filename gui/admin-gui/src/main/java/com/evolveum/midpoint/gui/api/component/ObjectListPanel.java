@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -299,9 +297,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
-		
+		Set<O> selectedObjectsSet = selectedObjects == null ? null : new HashSet<O>(selectedObjects);
 		SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-				parentPage, type) {
+				parentPage, type, selectedObjectsSet) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

@@ -18,18 +18,18 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentPreviewDialog;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemSelectorType;
@@ -113,11 +113,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         headerRow.add(arrowIcon);
 
         WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
-        if (delegatedToMe){
-            typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
-        } else {
-            typeImage.add(AttributeModifier.append("class", AssignmentEditorDtoType.USER.getIconCssClass()));
-        }
+        typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
         headerRow.add(typeImage);
 
         AjaxLink name = new AjaxLink(ID_NAME) {
@@ -147,9 +143,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
         WebMarkupContainer delegatedToTypeImage = new WebMarkupContainer(ID_DELEGATED_TO_IMAGE);
         if (delegatedToMe){
-            delegatedToTypeImage.add(AttributeModifier.append("class", AssignmentEditorDtoType.USER.getIconCssClass()));
+            delegatedToTypeImage.add(AttributeModifier.append("class",
+                    WebComponentUtil.createDefaultIcon(((PageUser)pageBase).getObjectWrapper().getObject())));
         } else {
-            delegatedToTypeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
+            if (getModelObject().getDelegationOwner() != null) {
+                delegatedToTypeImage.add(AttributeModifier.append("class",
+                    WebComponentUtil.createDefaultIcon(getModelObject().getDelegationOwner().asPrismObject())));
+            }
         }
         headerRow.add(delegatedToTypeImage);
 
@@ -280,7 +280,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         assignmentPrivilegesLabel.setOutputMarkupId(true);
         labelContainer.add(assignmentPrivilegesLabel);
 
-        addOrReplacePrivilegesPanel(assignmentPrivilegesContainer);
+        addPrivilegesPanel(assignmentPrivilegesContainer);
         AjaxButton limitPrivilegesButton = new AjaxButton(ID_LIMIT_PRIVILEGES_BUTTON,
                 pageBase.createStringResource("DelegationEditorPanel.limitPrivilegesButton")) {
             @Override
@@ -303,7 +303,6 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                             protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentsPreviewDto> dtoList){
                                 DelegationEditorPanel.this.getModelObject().setPrivilegeLimitationList(dtoList);
                                 pageBase.hideMainPopup(target);
-                                reloadBodyComponent(target);
                             }
                         };
                 pageBase.showMainPopup(assignmentPreviewDialog, target);
@@ -441,9 +440,11 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         });
         body.add(managementWorkItems);
+
+        addAjaxOnUpdateBehavior(body);
     };
 
-    private void addOrReplacePrivilegesPanel(WebMarkupContainer body){
+    private void addPrivilegesPanel(WebMarkupContainer body){
         privilegesNames = getPrivilegesNamesList();
         ListView<String> privilegesListComponent = new ListView<String>(ID_PRIVILEGES_LIST, privilegesNames){
             private static final long serialVersionUID = 1L;
@@ -463,8 +464,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                 if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())){
                     return true;
                 }
-//                return !allAssignmentPrivilegesSelected();
-                return false;
+               return false;
             }
         });
         body.addOrReplace(privilegesListComponent);
@@ -485,11 +485,6 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             }
         }
         return privilegesNamesList;
-    }
-
-    private void reloadBodyComponent(AjaxRequestTarget target){
-        addOrReplacePrivilegesPanel((WebMarkupContainer) DelegationEditorPanel.this.get(ID_BODY).get(ID_ASSIGNMENT_PRIVILEGES_CONTAINER));
-        target.add(get(ID_BODY));
     }
 
     private String getUserDisplayName(){

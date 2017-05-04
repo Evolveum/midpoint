@@ -204,6 +204,17 @@ public class TaskMainPanel extends Panel {
 						return visibility.computeResultVisible(parentPage);
 					}
 				});
+		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.errors")) {
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return visibility.computeErrorsVisible(parentPage);
+					}
+				});
 		return tabs;
 	}
 

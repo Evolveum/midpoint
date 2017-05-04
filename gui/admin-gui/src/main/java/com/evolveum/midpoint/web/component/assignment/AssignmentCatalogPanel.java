@@ -637,15 +637,14 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private List<UserType> getSelectedObjects(){
-        if ( getRoleCatalogStorage().isMultiUserRequest()) {
-            List<PrismObject<UserType>> selectedUsers =  getRoleCatalogStorage().getTargetUserList();
-            List<UserType> users = new ArrayList<>();
-            for (PrismObject<UserType> user : selectedUsers){
+        List<PrismObject<UserType>> selectedUsers = getRoleCatalogStorage().getTargetUserList();
+        List<UserType> users = new ArrayList<>();
+        if (selectedUsers != null) {
+            for (PrismObject<UserType> user : selectedUsers) {
                 users.add(user.asObjectable());
             }
-            return users;
         }
-        return new ArrayList<>();
+        return users;
     }
 
     private WebMarkupContainer getTargetUserContainer(){

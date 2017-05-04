@@ -724,6 +724,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			ref.setOid(previewDto.getTargetOid());
 			ref.setTargetName(new PolyStringType(previewDto.getTargetName()));
 			ref.setType(previewDto.getTargetType());
+			ref.setRelation(previewDto.getRelation());
 			referencesList.add(ref);
 		}
 		this.privilegeLimitationList = privilegeLimitationList;
