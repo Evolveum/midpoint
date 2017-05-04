@@ -55,4 +55,6 @@
     	</target>
     </mapping>
     
+    <!-- Full name is computed using ordinary user template. -->
+    
 </objectTemplate>

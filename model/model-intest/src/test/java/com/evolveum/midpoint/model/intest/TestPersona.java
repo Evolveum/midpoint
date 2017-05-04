@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -113,6 +114,8 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "role-persona-admin.xml");
 	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
+	String userJackAdminPersonaOid;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -125,6 +128,8 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		addObject(OBJECT_TEMPLATE_PERSONA_ADMIN_FILE);
 		addObject(ROLE_PERSONA_ADMIN_FILE);
 		
+		// Persona full name is computed by using this ordinary user template
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_OID, initResult);
 	}
 
     @Test
@@ -151,9 +156,49 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
-        assertLinkedPersona(userAfter, UserType.class, "admin");
+        PrismObject<UserType> persona = assertLinkedPersona(userAfter, UserType.class, "admin");
+        display("Persona", persona);
+        userJackAdminPersonaOid = persona.getOid();
+        // Full name is computed by using ordinary user template
+        assertUser(persona, userJackAdminPersonaOid, "a-"+USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
+        assertSubtype(persona, "admin");
 
         assertSteadyResources();
 	}
+    
+    // TODO: modify
+    
+    // TODO: recompute, reconcile (both user and persona)
+    
+    // TODO: assign some accouts/roles to user and persona, make sure they are independent
+    
+    @Test
+    public void test199UnassignRolePersonaAdminFromJack() throws Exception {
+    	final String TEST_NAME = "test199UnassignRolePersonaAdminFromJack";
+        displayTestTile(TEST_NAME);
 
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+		// Check accountRef
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+        assertUserJack(userAfter);
+        
+        assertLinks(userAfter, 0);
+        assertPersonaLinks(userAfter, 0);
+        
+        assertNoObject(UserType.class, userJackAdminPersonaOid);
+
+        assertSteadyResources();
+	}
 }

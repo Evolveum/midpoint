@@ -74,6 +74,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -651,6 +652,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			PrismAsserts.assertEqualsPolyString("Wrong " + user + " location", location,
 					userType.getLocality());
 		}
+	}
+	
+	protected <O extends ObjectType> void assertSubtype(PrismObject<O> object, String subtype) {
+		assertTrue("Object "+object+" does not have subtype "+subtype, FocusTypeUtil.hasSubtype(object, subtype));
 	}
 	
 	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) throws SchemaException {
