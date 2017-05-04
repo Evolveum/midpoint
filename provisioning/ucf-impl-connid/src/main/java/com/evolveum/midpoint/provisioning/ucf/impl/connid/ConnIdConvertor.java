@@ -26,6 +26,8 @@ import javax.xml.namespace.QName;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 import org.identityconnectors.framework.common.objects.AttributeValueCompleteness;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -350,6 +352,44 @@ public class ConnIdConvertor {
 
 		try {
 			return AttributeBuilder.build(connIdAttrName, connIdAttributeValues);
+		} catch (IllegalArgumentException e) {
+			throw new SchemaException(e.getMessage(), e);
+		}
+	}
+	
+	AttributeDelta convertToConnIdAttributeDeltaWithAddValues(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+		return convertToConnIdAttributeDelta(mpAttribute, ocDef, true, true);
+	}
+	
+	AttributeDelta convertToConnIdAttributeDeltaWithRemoveValues(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+		return convertToConnIdAttributeDelta(mpAttribute, ocDef, true, false);
+	}
+	
+	AttributeDelta convertToConnIdAttributeDeltaWithReplaceValues(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+		return convertToConnIdAttributeDelta(mpAttribute, ocDef, false, false);
+	}
+	
+	private AttributeDelta convertToConnIdAttributeDelta(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef, boolean isMultivalue, boolean isAdd) throws SchemaException {
+		QName midPointAttrQName = mpAttribute.getElementName();
+		if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
+			throw new SchemaException("ICF UID explicitly specified in attributes");
+		}
+
+		String connIdAttrName = icfNameMapper.convertAttributeNameToIcf(mpAttribute, ocDef);
+
+		Set<Object> connIdAttributeValues = new HashSet<Object>();
+		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
+			connIdAttributeValues.add(ConnIdUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
+		}
+
+		try {
+			if(!isMultivalue){
+				return AttributeDeltaBuilder.build(connIdAttrName, connIdAttributeValues);
+			} else if(isAdd){
+				return AttributeDeltaBuilder.build(connIdAttrName, connIdAttributeValues, null);
+			} else {
+				return AttributeDeltaBuilder.build(connIdAttrName, null, connIdAttributeValues);
+			}
 		} catch (IllegalArgumentException e) {
 			throw new SchemaException(e.getMessage(), e);
 		}
