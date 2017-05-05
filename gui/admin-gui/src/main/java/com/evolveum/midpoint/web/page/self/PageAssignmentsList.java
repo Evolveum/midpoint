@@ -239,7 +239,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             Task operationalTask = createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
 
             try {
-                TaskType task = WebComponentUtil.createSingleRecurrenceTask(OPERATION_REQUEST_ASSIGNMENTS, UserType.COMPLEX_TYPE,
+                TaskType task = WebComponentUtil.createSingleRecurrenceTask(
+                        createStringResource(OPERATION_REQUEST_ASSIGNMENTS).getString(),
+                        UserType.COMPLEX_TYPE,
                         getTaskQuery(), prepareDelta(result), createOptions(), TaskCategory.EXECUTE_CHANGES, PageAssignmentsList.this);
                 WebModelServiceUtils.runTask(task, operationalTask, result, PageAssignmentsList.this);
             } catch (SchemaException e) {
