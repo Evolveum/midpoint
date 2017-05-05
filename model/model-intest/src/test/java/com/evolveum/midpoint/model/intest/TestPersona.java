@@ -272,7 +272,6 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
-        assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
 		
 		// THEN
         displayThen(TEST_NAME);

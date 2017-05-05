@@ -117,6 +117,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	private static final String USER_RUM_ROGERS_NAME = "rum";
 	private static final String USER_COBB_NAME = "cobb";
+	
+	private static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
 
 	protected static final File ROLE_READ_JACKS_CAMPAIGNS_FILE = new File(TEST_DIR, "role-read-jacks-campaigns.xml");
 	protected static final String ROLE_READ_JACKS_CAMPAIGNS_OID = "00000000-0000-0000-0000-00000001aa00";
@@ -3503,12 +3505,23 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertPersonaLinks(userJack, 1);
         String personaJackOid = userJack.asObjectable().getPersonaRef().get(0).getOid();
         
-        assertGetAllow(UserType.class, personaJackOid);
+        PrismObject<UserType> personaJack = assertGetAllow(UserType.class, personaJackOid);
+        assertEquals("Wrong jack persona givenName before change", USER_JACK_GIVEN_NAME, personaJack.asObjectable().getGivenName().getOrig());
         
 //      TODO: MID-3899
 //      assertSearch(UserType.class, null, 2);
 //      assertSearch(ObjectType.class, null, 2);
         assertSearch(OrgType.class, null, 0);
+        
+        assertAllow("modify jack givenName", 
+        		(task,result) -> modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, 
+        				createPolyString(USER_JACK_GIVEN_NAME_NEW)));
+        
+        userJack = assertGetAllow(UserType.class, USER_JACK_OID);
+        assertEquals("Wrong jack givenName after change", USER_JACK_GIVEN_NAME_NEW, userJack.asObjectable().getGivenName().getOrig());
+
+        personaJack = assertGetAllow(UserType.class, personaJackOid);
+        assertEquals("Wrong jack persona givenName after change", USER_JACK_GIVEN_NAME_NEW, personaJack.asObjectable().getGivenName().getOrig());
 
         assertAllow("unassign application role 1 to jack", 
         		(task,result) -> unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result));
@@ -3524,8 +3537,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
     
-    // TODO: add new persona, update persona, delete persona
-
 	private void assertSuperuserAccess(int readUserNum) throws Exception {
 		assertReadAllow(readUserNum);
         assertAddAllow();
@@ -3609,6 +3620,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(userRumRogersOid, UserType.F_TITLE, task, result);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result);
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME));
         
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);

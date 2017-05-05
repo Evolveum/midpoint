@@ -20,6 +20,15 @@
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Role Persona Management</name>
     <authorization>
+    	<name>auth-self-modify-givenName</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<object>
+    		<type>UserType</type>
+   			<special>self</special>
+    	</object>
+    	<item>givenName</item>
+    </authorization>
+    <authorization>
     	<name>auth-persona-self-read</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<object>
