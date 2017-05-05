@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -92,6 +93,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final String ID_LIST = "assignmentList";
 	protected static final String ID_ROW = "assignmentEditor";
 	private PageBase pageBase = null;
+    private boolean isModelChanged = false;
 
 	public AssignmentTablePanel(String id, IModel<String> label,
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
@@ -222,6 +224,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 									super.addPerformed(target, selected);
 									addSelectedAssignablePerformed(target, selected,
 											getPageBase().getMainPopup().getId());
+                                    reloadMainFormButtons(target);
 								}
 
 							};
@@ -249,7 +252,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 										// TODO Auto-generated method stub
 										addSelectedAssignablePerformed(target, (List) selectedOrgs,
 												getPageBase().getMainPopup().getId());
-									}
+                                        reloadMainFormButtons(target);
+                                    }
 								};
 								orgTreePanel.setOutputMarkupId(true);
 								getPageBase().showMainPopup(orgTreePanel, target);
@@ -271,7 +275,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							AssignmentTablePanel.this.deleteAssignmentPerformed(target);
-						}
+                        }
 					});
 			items.add(item);
 		}
@@ -347,7 +351,8 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 				if (modalWindow != null) {
 					modalWindow.close(target);
 					deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
-				}
+                    reloadMainFormButtons(target);
+                }
 			}
 		};
 	}
@@ -564,4 +569,16 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
     protected boolean ignoreMandatoryAttributes(){
 		return false;
 	}
+
+	protected void reloadMainFormButtons(AjaxRequestTarget target){
+        isModelChanged = true;
+        AbstractObjectMainPanel panel = AssignmentTablePanel.this.findParent(AbstractObjectMainPanel.class);
+        if (panel != null){
+            panel.reloadSavePreviewButtons(target);
+        }
+    }
+
+    public boolean isModelChanged() {
+        return isModelChanged;
+    }
 }

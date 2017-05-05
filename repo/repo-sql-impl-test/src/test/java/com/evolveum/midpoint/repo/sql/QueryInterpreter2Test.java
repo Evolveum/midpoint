@@ -3943,6 +3943,37 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void testAdHoc111PersonaRef() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+                    .item(FocusType.F_PERSONA_REF).ref("123456")
+                    .build();
+            String real = getInterpretedQuery2(session, FocusType.class, query);
+            String expected = "select\n"
+					+ "  f.oid,\n"
+					+ "  f.fullObject,\n"
+					+ "  f.stringsCount,\n"
+					+ "  f.longsCount,\n"
+					+ "  f.datesCount,\n"
+					+ "  f.referencesCount,\n"
+					+ "  f.polysCount,\n"
+					+ "  f.booleansCount\n"
+					+ "from\n"
+					+ "  RFocus f\n"
+					+ "    left join f.personaRef p\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    p.targetOid = :targetOid and\n"
+					+ "    p.relation in (:relation)\n"
+					+ "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 
     //    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {

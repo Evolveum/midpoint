@@ -63,6 +63,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -390,7 +391,7 @@ public class ContextLoader {
         if (context.getFocusContext() != null) {
         	PrismObject<F> object = context.getFocusContext().getObjectAny();
             if (context.getFocusContext().getObjectPolicyConfigurationType() == null) {
-                List<String> subTypes = ModelUtils.determineSubTypes(object);
+                List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
 				ObjectPolicyConfigurationType policyConfigurationType =
                         ModelUtils.determineObjectPolicyConfiguration(context.getFocusContext().getObjectTypeClass(), subTypes, 
                         		systemConfigurationType);

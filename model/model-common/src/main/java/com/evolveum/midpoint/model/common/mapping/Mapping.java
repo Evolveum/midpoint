@@ -477,6 +477,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void addToMinusIfNecessary(V originalValue) {
 		if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
 			return;
@@ -486,7 +487,7 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 			outputTriple = new PrismValueDeltaSetTriple<>();
 		}
 		LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
-		outputTriple.addToMinusSet(originalValue);
+		outputTriple.addToMinusSet((V)originalValue.clone());
 	}
 
 	private void checkRangeLegacy(Task task, OperationResult result)

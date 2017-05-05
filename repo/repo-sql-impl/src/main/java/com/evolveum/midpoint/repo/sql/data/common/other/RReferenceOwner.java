@@ -46,5 +46,7 @@ public enum RReferenceOwner {
 
     ROLE_MEMBER,                // 8
 
-    DELEGATED;                // 9
+    DELEGATED,                // 9
+
+    PERSONA                     // 10
 }

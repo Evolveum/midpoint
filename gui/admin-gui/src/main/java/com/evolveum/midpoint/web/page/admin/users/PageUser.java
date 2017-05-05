@@ -213,7 +213,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                                 List<InlineMenuItem> items = new ArrayList<>();
 
                                 InlineMenuItem item;
-                                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL)) {
+                                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DELEGATE_ACTION_URL)) {
                                     item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.addDelegation"),
                                             new InlineMenuItemAction() {
                                                 private static final long serialVersionUID = 1L;
@@ -300,6 +300,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                                     }
                                 }
                                 reloadAssignmentsPanel(target);
+                                reloadMainFormButtons(target);
                             }
 
                         };

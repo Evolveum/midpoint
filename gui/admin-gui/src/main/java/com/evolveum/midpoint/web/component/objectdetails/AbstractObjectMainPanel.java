@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -151,9 +153,25 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			}
 		};
         saveButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
             @Override
-        public boolean isVisible(){
+            public boolean isVisible() {
                 return !getObjectWrapper().isReadonly();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                //in case user isn't allowed to modify focus data but has
+                // e.g. #assign authorization, Save button is disabled on page load.
+                // Save button becomes enabled just if some changes are made
+                // on the Assignments tab (in the use case with #assign authorization)
+                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+                if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
+                        && !def.canModify()){
+                    return areSavePreviewButtonsEnabled();
+                }
+                return true;
             }
         });
 		mainForm.setDefaultButton(saveButton);
@@ -177,9 +195,21 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			}
 		};
         previewButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible(){
                 return AbstractObjectMainPanel.this.isPreviewButtonVisible();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+                if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
+                        && !def.canModify()){
+                    return areSavePreviewButtonsEnabled();
+                }
+                return true;
             }
         });
 		mainForm.add(previewButton);
@@ -215,5 +245,15 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
     protected boolean getOptionsPanelVisibility(){
         return true;
+    }
+
+    public void reloadSavePreviewButtons(AjaxRequestTarget target){
+        target.add(AbstractObjectMainPanel.this.get(ID_MAIN_FORM).get(ID_PREVIEW_CHANGES));
+        target.add(AbstractObjectMainPanel.this.get(ID_MAIN_FORM).get(ID_SAVE));
+
+    }
+
+    protected boolean areSavePreviewButtonsEnabled(){
+        return false;
     }
 }

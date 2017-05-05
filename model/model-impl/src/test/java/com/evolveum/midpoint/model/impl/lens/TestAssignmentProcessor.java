@@ -88,7 +88,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         context.recompute();
 
@@ -113,7 +113,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
@@ -176,7 +176,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         context.recompute();
@@ -218,7 +218,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
@@ -288,7 +288,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
@@ -385,7 +385,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
@@ -471,7 +471,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
 	        repoAddObjectFromFile(USER_LARGO_FILE, result);
 	        
-	        LensContext<UserType> context = createUserAccountContext();
+	        LensContext<UserType> context = createUserLensContext();
 	        fillContextWithUser(context, USER_LARGO_OID, result);
 	        fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, result);
 	        context.recompute();
@@ -515,7 +515,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE_ENGINEER);
         context.recompute();
@@ -580,7 +580,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         AssignmentType assignmentType = getAssignmentType(ASSIGNMENT_ROLE_MANAGER_FILE);
         assignmentType.asPrismContainerValue().setParent(null);
@@ -664,7 +664,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         AssignmentType assignmentType = new AssignmentType(prismContext);
         assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_VISITOR_OID, ObjectTypes.ROLE));
@@ -719,7 +719,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
-		LensContext<UserType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserLensContext();
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		AssignmentType assignmentType = new AssignmentType(prismContext);
 		assignmentType.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_CORP_ENGINEER_OID, ObjectTypes.ROLE));

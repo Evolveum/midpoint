@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,21 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -29,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -72,8 +82,41 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 			} else {
 				return null;
 			}
+		} else if (object.canRepresent(UserType.class)) {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, context.getPrismContext())
+					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
+			List<PrismObject<UserType>> owners = new ArrayList<>(); 
+			try {
+				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), owners, result);
+			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException
+					| SecurityViolationException | SchemaException e) {
+				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+				return null;
+			}
+			if (owners.isEmpty()) {
+				return null;
+			}
+			if (owners.size() > 1) {
+				LOGGER.warn("More than one owner of {}: {}", object, owners);
+			} 				
+			return (PrismObject<FO>) owners.get(0);
 		} else if (object.canRepresent(AbstractRoleType.class)) {
 			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
+			if (ownerRef == null) {
+				return null;
+			}
+			try {
+				ObjectType ownerType = objectResolver.resolve(ownerRef, ObjectType.class, null, "resolving owner of "+object, task, result);
+				if (ownerType == null) {
+					return null;
+				}
+				return (PrismObject<FO>) ownerType.asPrismObject();
+			} catch (ObjectNotFoundException | SchemaException e) {
+				LOGGER.error("Error resolving owner of {}: {}", object, e.getMessage(), e);
+				return null;
+			}
+		} else if (object.canRepresent(TaskType.class)) {
+			ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef == null) {
 				return null;
 			}
@@ -92,8 +135,5 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 			return null;
 		}
 	}
-
-	
-	
 
 }

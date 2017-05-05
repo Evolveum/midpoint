@@ -138,7 +138,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 return context;
@@ -196,7 +196,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         executeTest("test020AddAccountRejected", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILE);
                 return context;
@@ -296,7 +296,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         executeTest("test030AddAccountApproved", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILE);
                 return context;

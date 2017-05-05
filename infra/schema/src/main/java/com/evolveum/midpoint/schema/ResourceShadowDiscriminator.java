@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -41,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * 
  * @author Radovan Semancik
  */
-public class ResourceShadowDiscriminator implements Serializable, DebugDumpable {
+public class ResourceShadowDiscriminator implements Serializable, DebugDumpable, HumanReadableDescribable {
 	private static final long serialVersionUID = 346600684011645741L;
 	
 	private String resourceOid;
@@ -255,10 +256,10 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable 
 	
     @Override
 	public String toString() {
-    	return "Discr("+toHumanReadableString()+")";
+    	return toHumanReadableDescription();
 	}
     
-    public String toHumanReadableString() {
+    public String toHumanReadableDescription() {
     	StringBuilder sb = new StringBuilder("RSD(");
     	sb.append(kind==null?"null":kind.value());
     	sb.append(" (").append(intent).append(")");

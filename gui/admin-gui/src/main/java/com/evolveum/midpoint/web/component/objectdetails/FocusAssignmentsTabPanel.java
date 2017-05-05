@@ -80,5 +80,12 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		assignments.add(panel);
 	}
 
+	public boolean isAssignmentsModelChanged(){
+		return getAssignmentTablePanel().isModelChanged();
+	}
+
+	private AssignmentTablePanel getAssignmentTablePanel(){
+		return (AssignmentTablePanel) get(ID_ASSIGNMENTS).get(ID_ASSIGNMENTS_PANEL);
+	}
 
 }

@@ -15,20 +15,24 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -165,5 +169,70 @@ public class FocusTypeUtil {
 			return null;
 		}
 		return passwd.getValue();
+	}
+	
+	public static <O extends ObjectType> List<String> determineSubTypes(PrismObject<O> object) {
+		if (object == null) {
+			return null;
+		}
+		
+		// TODO: get subType (from ObjectType)
+		
+		if (object.canRepresent(UserType.class)) {
+			return (((UserType)object.asObjectable()).getEmployeeType());
+		}
+		if (object.canRepresent(OrgType.class)) {
+			return (((OrgType)object.asObjectable()).getOrgType());
+		}
+		if (object.canRepresent(RoleType.class)) {
+			List<String> roleTypes = new ArrayList<>(1);
+			roleTypes.add((((RoleType)object.asObjectable()).getRoleType()));
+			return roleTypes;
+		}
+		if (object.canRepresent(ServiceType.class)) {
+			return (((ServiceType)object.asObjectable()).getServiceType());
+		}
+		return null;
+	}
+
+	public static <O extends ObjectType> boolean hasSubtype(PrismObject<O> object, String subtype) {
+		List<String> objectSubtypes = determineSubTypes(object);
+		if (objectSubtypes == null) {
+			return false;
+		}
+		return objectSubtypes.contains(subtype);
+	}
+
+	public static <O extends ObjectType>  void setSubtype(PrismObject<O> object, List<String> subtypes) {
+		
+		// TODO: set subType (from ObjectType)
+		
+		List<String> objSubtypes = null;
+		if (object.canRepresent(UserType.class)) {
+			objSubtypes = (((UserType)object.asObjectable()).getEmployeeType());
+		}
+		if (object.canRepresent(OrgType.class)) {
+			objSubtypes =  (((OrgType)object.asObjectable()).getOrgType());
+		}
+		if (object.canRepresent(RoleType.class)) {
+			if (subtypes == null || subtypes.isEmpty()) {
+				((RoleType)object.asObjectable()).setRoleType(null);
+			} else {
+				((RoleType)object.asObjectable()).setRoleType(subtypes.get(0));
+			}
+			return;
+		}
+		if (object.canRepresent(ServiceType.class)) {
+			objSubtypes =  (((ServiceType)object.asObjectable()).getServiceType());
+		}
+		if (objSubtypes != null) {
+			if (!objSubtypes.isEmpty()) {
+				objSubtypes.clear();
+			}
+			if (subtypes != null) {
+				objSubtypes.addAll(subtypes);
+			}
+		}
+
 	}
 }

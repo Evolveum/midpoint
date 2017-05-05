@@ -38,7 +38,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
@@ -294,12 +296,42 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return null;
 		}
 		PrismObject<F> owner = null;
+		OperationResult result = new OperationResult(UserProfileServiceImpl.class+".resolveOwner");
+		
 		if (object.canRepresent(ShadowType.class)) {
-			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+			owner = repositoryService.searchShadowOwner(object.getOid(), null, result);
+			
+		} else if (object.canRepresent(UserType.class)) {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
+			SearchResultList<PrismObject<UserType>> owners = null;
+			try {
+				owners = repositoryService.searchObjects(UserType.class, query, null, result);
+				if (owners.isEmpty()) {
+					return null;
+				}
+				if (owners.size() > 1) {
+					LOGGER.warn("More than one owner of {}: {}", object, owners);
+				}
+				owner = (PrismObject<F>) owners.get(0);
+			} catch (SchemaException e) {
+				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+			}
+		
 		} else if (object.canRepresent(AbstractRoleType.class)) {
 			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
-				OperationResult result = new OperationResult(UserProfileService.class.getName() + ".resolveOwner");
+				try {
+					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
+							ownerRef.getOid(), null, result);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+				}
+			}
+		
+		} else if (object.canRepresent(TaskType.class)) {
+			ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
+			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
 				try {
 					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
 							ownerRef.getOid(), null, result);
@@ -308,6 +340,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 				}
 			}
 		}
+		
 		if (owner == null) {
 			return null;
 		}

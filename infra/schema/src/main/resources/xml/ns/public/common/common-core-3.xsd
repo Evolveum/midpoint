@@ -2132,7 +2132,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                Set of shadows linked to this focal object.
+                                Set of shadows (projections) linked to this focal object.
                                 E.g. a set of accounts linked to a user. This is the set of
                                 shadows that belongs to the focal object in a sense
                                 that these shadows represents the focal object on the resource.
@@ -2140,11 +2140,39 @@
                                 same physical person, they are "analogous").
                                 </p>
                                 <p>
-                                Links define what the object HAS. The links reflect real state of things (cf. assignment).
+                                Links define what the object HAS. The links reflect real state of things
+                                (cf. assignment).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="personaRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                Set of personas linked to this focal object.
+                                E.g. a set of virtual identities linked to a user. This is the set of
+                                "secondary" focal objects that belongs to this focal object in a sense
+                                that the currect focal object is in control over the linked focal objects.
+                                E.g. this reference can be used to link user object which specified a physical
+                                person with his virtual identities (personas) that specify his identity as an
+                                employee, system administrator, customer, etc.
+                                The deafalt meaning is that the personas are ""analogous", i.e. the represent
+                                different facets of the same physical person. However, this meaning may be 
+                                theoretically overridden by using various relation parameters in this reference. 
+                                </p>
+                                <p>
+                                This reference define what the object HAS. The links reflect real state of 
+                                things (cf. assignment).
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                    			<a:since>3.6</a:since>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3203,10 +3231,24 @@
                 <xsd:element name="construction" type="tns:ConstructionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            TODO
+                            Projection construction. This structure defines how a projection
+                            (e.g. account) should be constructed.
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.construction</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                
+                <xsd:element name="personaConstruction" type="tns:PersonaConstructionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Persona construction. This structure defines how a persona
+                            (e.g. virtual identity) should be constructed.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>AssignmentType.personaConstruction</a:displayName>
+                            <a:since>3.6</a:since>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -9081,86 +9123,18 @@
     <xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
 
     <xsd:element name="approverRef" type="tns:ObjectReferenceType" />
-
-    <xsd:complexType name="ConstructionType">
+    
+    <xsd:complexType name="AbstractConstructionType" abstract="true">
        <xsd:annotation>
+       		<xsd:documentation>
+       			Abstract supertype for constructions.
+       		</xsd:documentation>
 		   <xsd:appinfo>
 			   <a:container/>
 		   </xsd:appinfo>
 	   </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="c:extension" minOccurs="0" maxOccurs="1"/>
-            <xsd:choice>
-                <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Reference to a resource that should host the implied account.
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                    		<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
-                    	</xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Resource that should host the implied resource object.
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                    		<a:objectReference>tns:resourceRef</a:objectReference>
-                    	</xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
-            <xsd:choice>
-                <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Kind of resource object that should be created on the resource.
-
-                            This element is optional. If not specified defaults to account kind.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
-            <xsd:choice>
-                <xsd:element name="intent" type="xsd:string" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Intent of resource object that should be created on the resource.
-
-                            This must point to the a valid definition in
-                            the resource object (in schemaHandling section).
-
-                            This element is optional. If not specified then the definition
-                            marked as default in the resource definition should be used.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
-            <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Resource object attribute values implied by this role.
-                        When the role is assigned the attributes specified
-                        below should be assigned values specified below.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
-               <xsd:annotation>
-                   <xsd:documentation>
-                       The reference to additional type definitions for this object. These auxiliary object
-                       classes will be added to the resource object when the construction is provisioned. 
-                       
-                       The reference should
-                       point to object class definition (complex type definition in resource schema) and
-                       this definition should be marked as auxiliary.
-                   </xsd:documentation>
-               </xsd:annotation>
-           </xsd:element>
            <xsd:element name="strength" type="tns:ConstructionStrengthType" minOccurs="0" maxOccurs="1" default="strong">
                <xsd:annotation>
                    <xsd:documentation>
@@ -9176,6 +9150,95 @@
                </xsd:annotation>
            </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConstructionType">
+       <xsd:annotation>
+       		<xsd:documentation>
+       			Projection construction. This structure defines how a projection
+                (e.g. account) should be constructed.
+       		</xsd:documentation>
+		   <xsd:appinfo>
+			   <a:container/>
+		   </xsd:appinfo>
+	   </xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractConstructionType">
+				<xsd:sequence>
+					 <xsd:element ref="c:extension" minOccurs="0" maxOccurs="1"/>
+					 <xsd:choice>
+					     <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
+					         <xsd:annotation>
+					             <xsd:documentation>
+					                 Reference to a resource that should host the implied account.
+					             </xsd:documentation>
+					             <xsd:appinfo>
+					         		<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+					         	</xsd:appinfo>
+					         </xsd:annotation>
+					     </xsd:element>
+					     <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
+					         <xsd:annotation>
+					             <xsd:documentation>
+					                 Resource that should host the implied resource object.
+					             </xsd:documentation>
+					             <xsd:appinfo>
+					         		<a:objectReference>tns:resourceRef</a:objectReference>
+					         	</xsd:appinfo>
+					         </xsd:annotation>
+					     </xsd:element>
+					 </xsd:choice>
+					 <xsd:choice>
+					     <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
+					         <xsd:annotation>
+					             <xsd:documentation>
+					                 Kind of resource object that should be created on the resource.
+					
+					                 This element is optional. If not specified defaults to account kind.
+					             </xsd:documentation>
+					         </xsd:annotation>
+					     </xsd:element>
+					 </xsd:choice>
+					 <xsd:choice>
+					     <xsd:element name="intent" type="xsd:string" minOccurs="0">
+					         <xsd:annotation>
+					             <xsd:documentation>
+					                 Intent of resource object that should be created on the resource.
+					
+					                 This must point to the a valid definition in
+					                 the resource object (in schemaHandling section).
+					
+					                 This element is optional. If not specified then the definition
+					                 marked as default in the resource definition should be used.
+					             </xsd:documentation>
+					         </xsd:annotation>
+					     </xsd:element>
+					 </xsd:choice>
+					 <xsd:element name="attribute" type="tns:ResourceAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+					     <xsd:annotation>
+					         <xsd:documentation>
+					             Resource object attribute values implied by this role.
+					             When the role is assigned the attributes specified
+					             below should be assigned values specified below.
+					         </xsd:documentation>
+					     </xsd:annotation>
+					 </xsd:element>
+					 <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
+					 <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					            The reference to additional type definitions for this object. These auxiliary object
+					            classes will be added to the resource object when the construction is provisioned. 
+					            
+					            The reference should
+					            point to object class definition (complex type definition in resource schema) and
+					            this definition should be marked as auxiliary.
+					        </xsd:documentation>
+					    </xsd:annotation>
+					</xsd:element>
+			   </xsd:sequence>
+	   		</xsd:extension>
+		</xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="construction" type="tns:ConstructionType"/>
     
@@ -9228,6 +9291,61 @@
              </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="PersonaConstructionType">
+       <xsd:annotation>
+       		<xsd:documentation>
+       			Persona construction. This structure defines how a persona
+                (e.g. virtual identity) should be constructed.
+       		</xsd:documentation>
+		   <xsd:appinfo>
+			   <a:container/>
+			   <a:since>3.6</a:since>
+		   </xsd:appinfo>
+	   </xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractConstructionType">
+				<xsd:sequence>
+			            <xsd:element name="targetType" type="xsd:QName" minOccurs="1">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Object type of the target persona (e.g. UserType).
+			                    </xsd:documentation>
+			                    <xsd:appinfo>
+			                    	<a:since>3.6</a:since>
+			                	</xsd:appinfo>
+			                </xsd:annotation>
+			            </xsd:element>
+			            <xsd:element name="targetSubtype" type="xsd:string" minOccurs="1" maxOccurs="unbounded">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Object subtype of the target persona.
+			                        Constructions with the same type and substype configuraton are
+			                        interpretes as if they describe the same persona.
+			                    </xsd:documentation>
+			                    <xsd:appinfo>
+			                    	<a:since>3.6</a:since>
+			                	</xsd:appinfo>
+			                </xsd:annotation>
+			            </xsd:element>
+			            <xsd:element name="objectMappingRef" type="c:ObjectReferenceType" minOccurs="0">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Reference to the object template that will be used to map values
+			                        from the source object (e.g. physical user) to the persona 
+			                        (e.g. virtual identity user).
+			                        Unlike ordinary object template that has the same object as input and
+			                        output, this object mapping will have one object as an input and the
+			                        other as an output.
+			                    </xsd:documentation>
+			                    <xsd:appinfo>
+			                		<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+			                	</xsd:appinfo>
+			                </xsd:annotation>
+			            </xsd:element>
+			        </xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+    </xsd:complexType>
 
     <xsd:complexType name="ObjectTemplateType">
         <xsd:annotation>

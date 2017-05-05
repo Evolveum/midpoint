@@ -66,6 +66,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	private TaskDtoProvider taskDtoProvider;
+    private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
 	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
 						  LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
@@ -199,7 +200,8 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected WebMarkupContainer createFocusAssignmentsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
+		assignmentsTabPanel = new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
+        return assignmentsTabPanel;
 	}
 
 	protected WebMarkupContainer createRequestAssignmentTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
@@ -304,4 +306,9 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
         }
 	}
 
+	@Override
+    protected boolean areSavePreviewButtonsEnabled(){
+        return assignmentsTabPanel == null ?
+                super.areSavePreviewButtonsEnabled() : assignmentsTabPanel.isAssignmentsModelChanged();
+    }
 }

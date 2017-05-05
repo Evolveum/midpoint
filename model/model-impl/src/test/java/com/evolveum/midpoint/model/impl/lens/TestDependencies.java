@@ -128,7 +128,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         fillContextWithDummyElaineAccount(context, "a", result);
@@ -157,7 +157,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         fillContextWithDummyElaineAccount(context, "a", result);
@@ -188,7 +188,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         fillContextWithDummyElaineAccount(context, "a", result);
@@ -223,7 +223,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "b", result);
         fillContextWithDummyElaineAccount(context, "c", result);
@@ -254,7 +254,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "p", result);
         fillContextWithDummyElaineAccount(context, "r", result);
@@ -288,7 +288,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "r", result);
         fillContextWithDummyElaineAccount(context, "p", result);
@@ -318,7 +318,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         setDelete(accountContext);
@@ -348,7 +348,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         setDelete(accountContext);
@@ -380,7 +380,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         setDelete(accountContext);
@@ -420,7 +420,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "x", result);
         fillContextWithDummyElaineAccount(context, "y", result);

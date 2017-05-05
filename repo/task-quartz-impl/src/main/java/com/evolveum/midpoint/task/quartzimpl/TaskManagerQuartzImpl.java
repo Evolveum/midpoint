@@ -28,7 +28,9 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -1063,6 +1065,33 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw new IllegalArgumentException("Unsupported object type: " + type);
         }
     }
+	
+	@Override
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
+			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+			ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchObjects");
+        result.addParam("objectType", type);
+        result.addParam("query", query);
+        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+
+        SearchResultList<PrismObject<T>> objects;
+        if (TaskType.class.isAssignableFrom(type)) {
+        	objects = (SearchResultList<PrismObject<T>>) (SearchResultList) searchTasks(query, options, result);       // todo replace cast to <List> after change to java7
+        } else if (NodeType.class.isAssignableFrom(type)) {
+        	objects = (SearchResultList<PrismObject<T>>) (SearchResultList) searchNodes(query, options, result);
+        } else {
+            throw new IllegalArgumentException("Unsupported object type: " + type);
+        }
+        
+        for (PrismObject<T> object: objects) {
+        	handler.handle(object, result);
+        }
+        
+        result.computeStatus();
+        return objects.getMetadata();
+	}
 
     @Override
     public <T extends ObjectType> int countObjects(Class<T> type,
