@@ -96,15 +96,27 @@
         <name>Role4</name>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000010">
+    <role oid="00000001-d34d-b33f-f00d-000000000010" xsi:type="RoleType">
         <name>Role R10</name>
-        <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
-        <automaticallyApproved>
-            <description>Assignment of this role is always automatically approved.</description>
-            <script>
-                <code>true</code>
-            </script>
-        </automaticallyApproved>
+        <approvalSchema>
+            <stage>
+                <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
+                <automaticallyCompleted>
+                    <description>Assignment of this role is always automatically approved.</description>
+                    <script>
+                        <code>
+                            com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE
+                        </code>
+                    </script>
+                </automaticallyCompleted>
+            </stage>
+        </approvalSchema>
+        <!--<automaticallyApproved>-->
+            <!--<description>Assignment of this role is always automatically approved.</description>-->
+            <!--<script>-->
+                <!--<code>true</code>-->
+            <!--</script>-->
+        <!--</automaticallyApproved>-->
     </role>
 
 </objects>
