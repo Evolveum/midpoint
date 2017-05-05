@@ -33,7 +33,7 @@
 						<order>1</order>
 					</compositionStrategy>
 					<approvalSchema>
-						<level>
+						<level>	<!-- keeping 'level' to test legacy -->
 							<approverRelation>special-approver</approverRelation>
 							<outcomeIfNoApprovers>skip</outcomeIfNoApprovers>		<!-- so e.g. for role4b no approval process is started -->
 						</level>

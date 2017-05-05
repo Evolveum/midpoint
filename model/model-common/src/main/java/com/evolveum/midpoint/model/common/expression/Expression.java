@@ -32,7 +32,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -44,7 +43,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,7 +64,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	final private PrismContext prismContext;
 	final private ObjectResolver objectResolver;
 	final private SecurityEnforcer securityEnforcer;
-	private List<ExpressionEvaluator<V,D>> evaluators = new ArrayList<ExpressionEvaluator<V,D>>(1);
+	private List<ExpressionEvaluator<V,D>> evaluators = new ArrayList<>(1);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
@@ -133,8 +131,8 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			processedVariables = processInnerVariables(context.getVariables(), context.getContextDescription(),
 					context.getTask(), context.getResult());
 			
-			ExpressionEvaluationContext processedParameters = context.shallowClone();
-			processedParameters.setVariables(processedVariables);
+			ExpressionEvaluationContext contextWithProcessedVariables = context.shallowClone();
+			contextWithProcessedVariables.setVariables(processedVariables);
 			PrismValueDeltaSetTriple<V> outputTriple;
 			
 			ObjectReferenceType runAsRef = null;
@@ -144,7 +142,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 			
 			if (runAsRef == null) {
 				
-				outputTriple = evaluateExpressionEvaluators(context, processedParameters);
+				outputTriple = evaluateExpressionEvaluators(contextWithProcessedVariables);
 				
 			} else {
 				
@@ -157,7 +155,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 					
 					outputTriple = securityEnforcer.runAs(() -> {
 						try {
-							return evaluateExpressionEvaluators(context, processedParameters);
+							return evaluateExpressionEvaluators(contextWithProcessedVariables);
 						} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
 							throw new TunnelException(e);
 						}
@@ -195,11 +193,11 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 	}
 	
 	
-	private PrismValueDeltaSetTriple<V> evaluateExpressionEvaluators(ExpressionEvaluationContext context, ExpressionEvaluationContext processedParameters)
+	private PrismValueDeltaSetTriple<V> evaluateExpressionEvaluators(ExpressionEvaluationContext contextWithProcessedVariables)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		for (ExpressionEvaluator<?,?> evaluator: evaluators) {
-			PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(processedParameters);
+			PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables);
 			if (outputTriple != null) {
 				boolean allowEmptyRealValues = false;
 				if (expressionType != null) {

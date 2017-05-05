@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -83,6 +84,7 @@ public class ExpressionUtil {
 
 	public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
 			PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
+			Function<Object, Object> additionalConvertor,
 			final ItemPath residualPath, final Protector protector, final PrismContext prismContext) {
 		
 		PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
@@ -102,23 +104,19 @@ public class ExpressionUtil {
 		}
 		final Class<?> finalExpectedJavaType = expectedJavaType;
 
-		clonedTriple.accept(new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				if (visitable instanceof PrismPropertyValue<?>) {
-					PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>) visitable;
-					Object realVal = pval.getValue();
-					if (realVal != null) {
-						if (Structured.class.isAssignableFrom(resultTripleValueClass)) {
-							if (residualPath != null && !residualPath.isEmpty()) {
-								realVal = ((Structured) realVal).resolve(residualPath);
-							}
+		clonedTriple.accept((Visitor) visitable -> {
+			if (visitable instanceof PrismPropertyValue<?>) {
+				PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>) visitable;
+				Object realVal = pval.getValue();
+				if (realVal != null) {
+					if (Structured.class.isAssignableFrom(resultTripleValueClass)) {
+						if (residualPath != null && !residualPath.isEmpty()) {
+							realVal = ((Structured) realVal).resolve(residualPath);
 						}
-						if (finalExpectedJavaType != null) {
-							Object convertedVal = convertValue(finalExpectedJavaType, realVal, protector,
-									prismContext);
-							pval.setValue(convertedVal);
-						}
+					}
+					if (finalExpectedJavaType != null) {
+						Object convertedVal = convertValue(finalExpectedJavaType, additionalConvertor, realVal, protector, prismContext);
+						pval.setValue(convertedVal);
 					}
 				}
 			}
@@ -131,7 +129,8 @@ public class ExpressionUtil {
 	 * JavaTypeConverter. This version can also encrypt/decrypt and also handles
 	 * polystrings.
 	 */
-	public static <I, O> O convertValue(Class<O> finalExpectedJavaType, I inputVal, Protector protector,
+	public static <I, O> O convertValue(Class<O> finalExpectedJavaType, Function<Object, Object> additionalConvertor, I inputVal,
+			Protector protector,
 			PrismContext prismContext) {
 		if (inputVal == null) {
 			return null;
@@ -140,7 +139,7 @@ public class ExpressionUtil {
 			return (O) inputVal;
 		}
 
-		Object intermediateVal = inputVal;
+		Object intermediateVal;
 		if (finalExpectedJavaType == ProtectedStringType.class) {
 			String valueToEncrypt;
 			if (inputVal instanceof String) {
@@ -153,23 +152,22 @@ public class ExpressionUtil {
 			} catch (EncryptionException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
-		} else {
-
-			if (inputVal instanceof ProtectedStringType) {
-				String decryptedString;
-				try {
-					intermediateVal = protector.decryptString((ProtectedStringType) inputVal);
-				} catch (EncryptionException e) {
-					throw new SystemException(e.getMessage(), e);
-				}
-
+		} else if (inputVal instanceof ProtectedStringType) {
+			try {
+				intermediateVal = protector.decryptString((ProtectedStringType) inputVal);
+			} catch (EncryptionException e) {
+				throw new SystemException(e.getMessage(), e);
 			}
+		} else {
+			intermediateVal = inputVal;
+		}
+
+		if (additionalConvertor != null) {
+			intermediateVal = additionalConvertor.apply(intermediateVal);
 		}
 
 		O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateVal);
-
 		PrismUtil.recomputeRealValue(convertedVal, prismContext);
-
 		return convertedVal;
 	}
 
@@ -743,9 +741,9 @@ public class ExpressionUtil {
 		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition,
 				shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				parentResult);
-		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(params);
+		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
@@ -761,7 +759,7 @@ public class ExpressionUtil {
 					+ nonNegativeValues.size() + ") in " + shortDesc);
 		}
 
-		return (V) nonNegativeValues.iterator().next();
+		return nonNegativeValues.iterator().next();
 	}
 
 	private static Collection<String> evaluateStringExpression(ExpressionVariables variables,
@@ -775,9 +773,9 @@ public class ExpressionUtil {
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
 				.makeExpression(expressionType, outputDefinition, shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				parentResult);
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
@@ -1000,5 +998,22 @@ public class ExpressionUtil {
 	public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(ExpressionType conditionExpressionType, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		PrismPropertyDefinition<Boolean> conditionOutputDef = new PrismPropertyDefinitionImpl<Boolean>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
 		return expressionFactory.makeExpression(conditionExpressionType, conditionOutputDef, shortDesc, task, result);	
+	}
+
+	public static Function<Object, Object> createRefConvertor(QName defaultType) {
+		return (o) -> {
+			if (o == null || o instanceof ObjectReferenceType) {
+				return o;
+			} else if (o instanceof PrismReferenceValue) {
+				ObjectReferenceType rv = new ObjectReferenceType();
+				rv.setupReferenceValue((PrismReferenceValue) o);
+				return rv;
+			} else if (o instanceof String) {
+				return new ObjectReferenceType().oid((String) o).type(defaultType);
+			} else {
+				//throw new IllegalArgumentException("The value couldn't be converted to an object reference: " + o);
+				return o;		// let someone else complain at this
+			}
+		};
 	}
 }

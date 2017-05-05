@@ -68,10 +68,10 @@
         <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000002">
+    <role oid="00000001-d34d-b33f-f00d-000000000002" xsi:type="RoleType">
         <name>Role2</name>
         <approvalSchema>
-            <level>
+            <stage>
                 <approverRef type="c:UserType">
                     <filter>
                         <q:equal>
@@ -80,19 +80,19 @@
                         </q:equal>
                     </filter>
                 </approverRef>
-            </level>
+            </stage>
         </approvalSchema>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000003">
+    <role oid="00000001-d34d-b33f-f00d-000000000003" xsi:type="RoleType">
         <name>Role3</name>
         <approverExpression>
             <description>Role3 Boss' OID</description>
-            <value>00000000-d34d-b33f-f00d-111111111113</value>
+            <value xsi:type="c:ObjectReferenceType" oid="00000000-d34d-b33f-f00d-111111111113" type="UserType"/>
         </approverExpression>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000004">
+    <role oid="00000001-d34d-b33f-f00d-000000000004" xsi:type="RoleType">
         <name>Role4</name>
     </role>
 

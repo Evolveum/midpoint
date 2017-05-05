@@ -130,7 +130,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 	@Override
 	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
-			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
+			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 //		if (LOGGER.isTraceEnabled()) {
@@ -158,12 +158,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		List<ItemDelta<V, D>> additionalAttributeDeltas = null;
 		PopulateType populateAssignmentType = getExpressionEvaluatorType().getPopulate();
 		if (populateAssignmentType != null) {
-			additionalAttributeDeltas = collectAdditionalAttributes(populateAssignmentType, outputDefinition, variables, params, contextDescription, task, result);
+			additionalAttributeDeltas = collectAdditionalAttributes(populateAssignmentType, outputDefinition, variables, context, contextDescription, task, result);
 		}
 		
 		if (getExpressionEvaluatorType().getOid() != null) {
 			resultValues = new ArrayList<>(1);
-			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, additionalAttributeDeltas, params));
+			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, additionalAttributeDeltas,
+					context));
 		} else {
 		
 			SearchFilterType filterType = getExpressionEvaluatorType().getFilter();
@@ -174,31 +175,34 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("XML query converted to: {}", query.debugDump());
 			}
-			query = ExpressionUtil.evaluateQueryExpressions(query, variables, params.getExpressionFactory(), 
-					prismContext, params.getContextDescription(), task, result);
+			query = ExpressionUtil.evaluateQueryExpressions(query, variables, context.getExpressionFactory(),
+					prismContext, context.getContextDescription(), task, result);
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("Expression in query evaluated to: {}", query.debugDump());
 			}
-			query = extendQuery(query, params);
+			query = extendQuery(query, context);
 			
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("Query after extension: {}", query.debugDump());
 			}
 			
-			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, params, contextDescription, task, params.getResult());
+			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, context, contextDescription, task, context
+					.getResult());
 			
 			if (resultValues.isEmpty()) {
 				ObjectReferenceType defaultTargetRef = getExpressionEvaluatorType().getDefaultTargetRef();
 				if (defaultTargetRef != null) {
-					resultValues.add(createPrismValue(defaultTargetRef.getOid(), targetTypeQName, additionalAttributeDeltas, params));
+					resultValues.add(createPrismValue(defaultTargetRef.getOid(), targetTypeQName, additionalAttributeDeltas,
+							context));
 				}
 			}
 		}
 			
 		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-			String createdObjectOid = createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
-			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, params));
+			String createdObjectOid = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, context
+					.getResult());
+			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
 		}
 		
 		LOGGER.trace("Search expression got {} results for query {}", resultValues==null?"null":resultValues.size(), query);
@@ -462,14 +466,14 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		ExpressionFactory expressionFactory = params.getExpressionFactory();
 		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
 				expressionDesc, task, result);
-		ExpressionEvaluationContext expressionParams = new ExpressionEvaluationContext(null, variables, 
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables,
 				expressionDesc, task, result);
-		expressionParams.setExpressionFactory(expressionFactory);
-		expressionParams.setStringPolicyResolver(params.getStringPolicyResolver());
-		expressionParams.setDefaultTargetContext(params.getDefaultTargetContext());
-		expressionParams.setSkipEvaluationMinus(true);
-		expressionParams.setSkipEvaluationPlus(false);
-		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(expressionParams);
+		context.setExpressionFactory(expressionFactory);
+		context.setStringPolicyResolver(params.getStringPolicyResolver());
+		context.setDefaultTargetContext(params.getDefaultTargetContext());
+		context.setSkipEvaluationMinus(true);
+		context.setSkipEvaluationPlus(false);
+		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context);
 		LOGGER.trace("output triple: {}", outputTriple.debugDump());
 		Collection<IV> pvalues = outputTriple.getNonNegativeValues();
 		

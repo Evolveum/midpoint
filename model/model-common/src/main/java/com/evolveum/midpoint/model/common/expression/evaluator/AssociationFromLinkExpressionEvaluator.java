@@ -74,11 +74,11 @@ public class AssociationFromLinkExpressionEvaluator
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext params) throws SchemaException,
+	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 				            
-		String desc = params.getContextDescription();
-		Object orderOneObject = params.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
+		String desc = context.getContextDescription();
+		Object orderOneObject = context.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
 		if (orderOneObject == null) {
 			throw new ExpressionEvaluationException("No order one object variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
 		}
@@ -90,7 +90,7 @@ public class AssociationFromLinkExpressionEvaluator
 		
 		LOGGER.trace("Evaluating association from link on: {}", thisRole); 
 		
-		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
 		if (rAssocTargetDef == null) {
 			throw new ExpressionEvaluationException("No association target object class definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
 		}		
@@ -107,15 +107,16 @@ public class AssociationFromLinkExpressionEvaluator
 		
 		PrismContainer<ShadowAssociationType> output = outputDefinition.instantiate();
 		
-		QName assocName = params.getMappingQName();
+		QName assocName = context.getMappingQName();
 		String resourceOid = rAssocTargetDef.getResourceType().getOid();
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
 		
 		// Always process the first role (myself) regardless of recursion setting
-		gatherAssociationsFromAbstractRole(thisRole, output, resourceOid, kind, intent, assocName, options, desc, params);
+		gatherAssociationsFromAbstractRole(thisRole, output, resourceOid, kind, intent, assocName, options, desc, context);
 		
 		if (thisRole instanceof OrgType && matchesForRecursion((OrgType)thisRole)) {
-			gatherAssociationsFromAbstractRoleRecurse((OrgType)thisRole, output, resourceOid, kind, intent, assocName, options, desc, params);
+			gatherAssociationsFromAbstractRoleRecurse((OrgType)thisRole, output, resourceOid, kind, intent, assocName, options, desc,
+					context);
 		}
 		
 		return ItemDelta.toDeltaSetTriple(output, null);

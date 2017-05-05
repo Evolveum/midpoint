@@ -77,7 +77,7 @@ public class PrepareForTaskCreation implements JavaDelegate {
 				WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
 				ExpressionVariables variables = evaluator.getDefaultVariables(execution, wfTask, result);
 				additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
-						"additional information expression", Object.class, DOMUtil.XSD_STRING, opTask, result);
+						"additional information expression", Object.class, DOMUtil.XSD_STRING, null, opTask, result);
 			} catch (Throwable t) {
         		throw new SystemException("Couldn't evaluate additional information expression in " + execution, t);
 			}

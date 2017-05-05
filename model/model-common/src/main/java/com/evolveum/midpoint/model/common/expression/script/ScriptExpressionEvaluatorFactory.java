@@ -55,7 +55,7 @@ public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFact
 	 */
 	@Override
 	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																									D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
+			D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
 		
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);
@@ -70,7 +70,7 @@ public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFact
         
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, contextDescription);
         
-        return new ScriptExpressionEvaluator(scriptType, scriptExpression, securityEnforcer);
+        return new ScriptExpressionEvaluator<>(scriptType, scriptExpression, securityEnforcer);
         
 	}
 
