@@ -33,9 +33,9 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -138,7 +138,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                onRequestPerformed(target);
+                if (getSessionStorage().getRoleCatalog().getTargetUserList() == null ||
+                        getSessionStorage().getRoleCatalog().getTargetUserList().size() <= 1) {
+                    onSingleUserRequestPerformed(target);
+                } else {
+                    onMultiUserRequestPerformed(target);
+                }
             }
 
         };
@@ -176,7 +181,56 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     }
 
-    private void onRequestPerformed(AjaxRequestTarget target) {
+    private void onSingleUserRequestPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_REQUEST_ASSIGNMENTS);
+        ObjectDelta<UserType> delta;
+        PrismObject<UserType> user = getTargetUser();
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        try {
+            delta = user.createModifyDelta();
+            deltas.add(delta);
+            PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+            handleAssignmentDeltas(delta, addAssignmentsToUser(user.asObjectable()), def);
+
+            OperationBusinessContextType businessContextType;
+            if (descriptionModel.getObject() != null) {
+                businessContextType = new OperationBusinessContextType();
+                businessContextType.setComment(descriptionModel.getObject());
+            } else {
+                businessContextType = null;
+            }
+            getModelService().executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContextType),
+                    createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
+
+            result.recordSuccess();
+            SessionStorage storage = getSessionStorage();
+            storage.getRoleCatalog().getAssignmentShoppingCart().clear();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+            error("Could not save assignments. Reason: " + e);
+            target.add(getFeedbackPanel());
+        } finally {
+            result.recomputeStatus();
+        }
+
+        findBackgroundTaskOperation(result);
+        if (backgroundTaskOperationResult != null
+                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
+            result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
+            showResult(result);
+            setResponsePage(PageAssignmentShoppingKart.class);
+            return;
+        }
+        showResult(result);
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            target.add(getFeedbackPanel());
+            target.add(PageAssignmentsList.this.get(ID_FORM));
+        } else {
+            setResponsePage(PageAssignmentShoppingKart.class);
+        }
+    }
+
+    private void onMultiUserRequestPerformed(AjaxRequestTarget target) {
             OperationResult result = new OperationResult(OPERATION_REQUEST_ASSIGNMENTS);
             Task operationalTask = createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
 
@@ -317,9 +371,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         OperationResult result = new OperationResult(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         Task task = createSimpleTask(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         List<AssignmentConflictDto> conflictsList = new ArrayList<>();
-        List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
-                usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
+        PrismObject<UserType> user = getTargetUser();
         try {
             delta = user.createModifyDelta();
 
@@ -463,6 +515,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private TextArea getDescriptionComponent(){
         return (TextArea) get(ID_FORM).get(ID_DESCRIPTION);
+    }
+
+    private PrismObject<UserType> getTargetUser(){
+        List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
+        PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
+                usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
+        return user;
     }
 
     @Override
