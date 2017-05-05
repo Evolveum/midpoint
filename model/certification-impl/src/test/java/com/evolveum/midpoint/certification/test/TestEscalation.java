@@ -377,6 +377,35 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertEquals("Wrong # of dummy notifications", 1, messages.size());			// new approver
     }
 
+	@Test
+	public void test130Remediation() throws Exception {
+		final String TEST_NAME = "test130Remediation";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+        clock.resetOverride();
+        clock.overrideDuration("P15D");          // stage ends at P14D
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign after escalation", campaign);
+		assertStateAndStage(campaign, AccessCertificationCampaignStateType.IN_REMEDIATION, 2);
+    }
+
 	protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
         assertEquals("Wrong number of certification cases", 7, caseList.size());
         checkCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator, campaignOid);

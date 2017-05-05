@@ -3431,7 +3431,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		modelService.executeChanges(MiscSchemaUtil.createCollection(task.createAddDelta()), null, execTask, result);
 	}
 
-	@Test(enabled=false) // need searchable personaRef
+	@Test
     public void test400AutzJackPersonaManagement() throws Exception {
 		final String TEST_NAME = "test400AutzJackPersonaManagement";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -3449,7 +3449,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetDeny(UserType.class, USER_CHARLES_OID);
         
         assertSearch(UserType.class, null, 1);
-        assertSearch(ObjectType.class, null, 0);
+        assertSearch(ObjectType.class, null, 1);
         assertSearch(OrgType.class, null, 0);
 
         assertAddDeny();
@@ -3461,7 +3461,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGlobalStateUntouched();
 	}
 
-    @Test(enabled=false) // need searchable personaRef
+    @Test
     public void test402AutzLechuckPersonaManagement() throws Exception {
 		final String TEST_NAME = "test402AutzLechuckPersonaManagement";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -3477,9 +3477,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
         assertGetAllow(UserType.class, USER_CHARLES_OID);
-        
-        assertSearch(UserType.class, null, 2);
-        assertSearch(ObjectType.class, null, 0);
+
+//        TODO: MID-3899
+//        assertSearch(UserType.class, null, 2);
+//        assertSearch(ObjectType.class, null, 2);
         assertSearch(OrgType.class, null, 0);
 
         assertAddDeny();

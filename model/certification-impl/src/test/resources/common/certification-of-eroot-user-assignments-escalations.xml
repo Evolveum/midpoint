@@ -35,7 +35,7 @@
         <relation>default</relation>        <!-- the default -->
     </scopeDefinition>
     <remediationDefinition>
-        <style>automated</style>
+        <style>reportOnly</style>
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
