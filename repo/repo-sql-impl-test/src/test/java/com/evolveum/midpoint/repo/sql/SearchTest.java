@@ -247,6 +247,28 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find no users", 0, users.size());
     }
 
+    @Test
+    public void personaSearchTest() throws Exception {
+        PrismReferenceValue u000 = new PrismReferenceValue("u000", UserType.COMPLEX_TYPE);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_PERSONA_REF).ref(u000)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one user", 1, users.size());
+        assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
+
+		PrismReferenceValue r789 = new PrismReferenceValue("r789", RoleType.COMPLEX_TYPE);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_PERSONA_REF).ref(r789)
+                .build();
+        users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find no users", 0, users.size());
+    }
 
     @Test
     public void assignmentOrgRefSearchTest() throws Exception {
