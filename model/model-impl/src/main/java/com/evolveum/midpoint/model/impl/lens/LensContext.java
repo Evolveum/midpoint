@@ -109,6 +109,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * True if we want to reconcile all accounts in this context.
 	 */
 	private boolean doReconciliationForAllProjections = false;
+	
+	/**
+	 * If set to true then all operations are considered to be
+	 * in execution phase - for the purpose of authorizations and auditing.
+	 * This is used in case that the whole operation (context) is a
+	 * secondary change, e.g. in case that persona is provisioned. 
+	 */
+	private boolean executionPhaseOnly = false;
 
 	/**
 	 * Current wave of computation and execution.
@@ -428,6 +436,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	
 	public boolean isReconcileFocus() {
 		return doReconciliationForAllProjections ||  ModelExecuteOptions.isReconcileFocus(options);
+	}
+
+	public boolean isExecutionPhaseOnly() {
+		return executionPhaseOnly;
+	}
+
+	public void setExecutionPhaseOnly(boolean executionPhaseOnly) {
+		this.executionPhaseOnly = executionPhaseOnly;
 	}
 
 	public DeltaSetTriple<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentTriple() {
@@ -785,6 +801,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		clone.state = this.state;
 		clone.channel = this.channel;
 		clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
+		clone.executionPhaseOnly = this.executionPhaseOnly;
 		clone.focusClass = this.focusClass;
 		clone.isFresh = this.isFresh;
 		clone.prismContext = this.prismContext;
@@ -864,6 +881,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		sb.append("fresh=").append(isFresh);
 		if (systemConfiguration == null) {
 			sb.append(" null-system-configuration");
+		}
+		if (executionPhaseOnly) {
+			sb.append(" execution-phase-only");
 		}
 		sb.append("\n");
 
@@ -1051,6 +1071,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 		lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
 		lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
+		lensContextType.setExecutionPhaseOnly(executionPhaseOnly);
 		lensContextType.setProjectionWave(projectionWave);
 		lensContextType.setExecutionWave(executionWave);
 		lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
@@ -1100,6 +1121,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		lensContext.setDoReconciliationForAllProjections(
 				lensContextType.isDoReconciliationForAllProjections() != null
 						? lensContextType.isDoReconciliationForAllProjections() : false);
+		lensContext.setExecutionPhaseOnly(
+				lensContextType.isExecutionPhaseOnly() != null
+						? lensContextType.isExecutionPhaseOnly() : false);
 		lensContext.setProjectionWave(
 				lensContextType.getProjectionWave() != null ? lensContextType.getProjectionWave() : 0);
 		lensContext.setExecutionWave(

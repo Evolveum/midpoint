@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class OutcomeUtils {
 
 	public static String toUri(AccessCertificationResponseType response) {
-    	if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
+    	if (response == null) {
     		return null;
 		}
 		switch (response) {

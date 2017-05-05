@@ -100,6 +100,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="executionPhaseOnly" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true then all operations are considered to be
+						in execution phase - for the purpose of authorizations and auditing.
+						This is used in case that the whole operation (context) is a
+						secondary change, e.g. in case that persona is provisioned. 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="projectionWave" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

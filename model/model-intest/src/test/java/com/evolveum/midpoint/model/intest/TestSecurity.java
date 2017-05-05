@@ -117,6 +117,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	private static final String USER_RUM_ROGERS_NAME = "rum";
 	private static final String USER_COBB_NAME = "cobb";
+	
+	private static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
 
 	protected static final File ROLE_READ_JACKS_CAMPAIGNS_FILE = new File(TEST_DIR, "role-read-jacks-campaigns.xml");
 	protected static final String ROLE_READ_JACKS_CAMPAIGNS_OID = "00000000-0000-0000-0000-00000001aa00";
@@ -347,14 +349,16 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_TASK_OWNER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PERSONA_MANAGEMENT_FILE, initResult);
-
 		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PERSONA_ADMIN_FILE, initResult);
 
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		
 		repoAddObjectFromFile(TASK_USELESS_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(TASK_USELESS_JACK_FILE, initResult);
 
+		repoAddObjectFromFile(OBJECT_TEMPLATE_PERSONA_ADMIN_FILE, initResult);
+		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
 		repoAddObjectFromFile(USER_CHARLES_FILE, initResult);
@@ -2997,12 +3001,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ROLE_OWNER_ASSIGN_OID);
         
-        assertAllow("assign application role 1 to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-			}
-		});
+        assertAllow("assign application role 1 to jack", 
+        		(task,result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -3015,12 +3015,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			}
 		});
 
-        assertAllow("unassign application role 1 from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-			}
-		});
+        assertAllow("unassign application role 1 from jack", 
+        		(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
@@ -3453,11 +3449,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertSearch(OrgType.class, null, 0);
 
         assertAddDeny();
-        
         assertModifyDeny();
-        
         assertDeleteDeny();
-        
         assertGlobalStateUntouched();
 	}
 
@@ -3484,16 +3477,66 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertSearch(OrgType.class, null, 0);
 
         assertAddDeny();
-        
         assertModifyDeny();
-        
         assertDeleteDeny();
-        
         assertGlobalStateUntouched();
 	}
     
-    // TODO: add new persona, update persona, delete persona
+    @Test
+    public void test410AutzJackPersonaAdmin() throws Exception {
+		final String TEST_NAME = "test410AutzJackAddPersonaAdmin";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
 
+        assertAllow("assign application role 1 to jack", 
+        		(task,result) -> assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result));
+        
+        PrismObject<UserType> userJack = assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_LECHUCK_OID);
+        assertGetDeny(UserType.class, USER_CHARLES_OID);
+        
+        assertPersonaLinks(userJack, 1);
+        String personaJackOid = userJack.asObjectable().getPersonaRef().get(0).getOid();
+        
+        PrismObject<UserType> personaJack = assertGetAllow(UserType.class, personaJackOid);
+        assertEquals("Wrong jack persona givenName before change", USER_JACK_GIVEN_NAME, personaJack.asObjectable().getGivenName().getOrig());
+        
+//      TODO: MID-3899
+//      assertSearch(UserType.class, null, 2);
+//      assertSearch(ObjectType.class, null, 2);
+        assertSearch(OrgType.class, null, 0);
+        
+        assertAllow("modify jack givenName", 
+        		(task,result) -> modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, 
+        				createPolyString(USER_JACK_GIVEN_NAME_NEW)));
+        
+        userJack = assertGetAllow(UserType.class, USER_JACK_OID);
+        assertEquals("Wrong jack givenName after change", USER_JACK_GIVEN_NAME_NEW, userJack.asObjectable().getGivenName().getOrig());
+
+        personaJack = assertGetAllow(UserType.class, personaJackOid);
+        assertEquals("Wrong jack persona givenName after change", USER_JACK_GIVEN_NAME_NEW, personaJack.asObjectable().getGivenName().getOrig());
+
+        assertAllow("unassign application role 1 to jack", 
+        		(task,result) -> unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result));
+        
+        userJack = assertGetAllow(UserType.class, USER_JACK_OID);
+        assertPersonaLinks(userJack, 0);
+        
+        assertNoObject(UserType.class, personaJackOid);
+        
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        assertGlobalStateUntouched();
+	}
+    
 	private void assertSuperuserAccess(int readUserNum) throws Exception {
 		assertReadAllow(readUserNum);
         assertAddAllow();
@@ -3577,6 +3620,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(userRumRogersOid, UserType.F_TITLE, task, result);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result);
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME));
         
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
@@ -3719,11 +3763,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		}
 	}
 	
-	private <O extends ObjectType> void assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		assertGetAllow(type, oid, null);
+	private <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return assertGetAllow(type, oid, null);
 	}
 	
-	private <O extends ObjectType> void assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertGetAllow");
         OperationResult result = task.getResult();
         logAttempt("get", type, oid, null);
@@ -3731,7 +3775,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		logAllow("get", type, oid, null);
-		// TODO: check audit
+		return object;
 	}
 	
 	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {

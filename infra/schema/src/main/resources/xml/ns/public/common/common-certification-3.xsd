@@ -1130,6 +1130,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="revokeOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What (final) outcomes cause actual remediation (e.g. deletion of an assignment) if automated remediation is configured?
+                        The default is "revoke". But more can be specified here, e.g. noResponse.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

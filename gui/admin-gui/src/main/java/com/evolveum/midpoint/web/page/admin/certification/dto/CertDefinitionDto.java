@@ -70,6 +70,7 @@ public class CertDefinitionDto implements Serializable {
     private final DefinitionScopeDto definitionScopeDto;
     @NotNull private final List<StageDefinitionDto> stageDefinition;
     private AccessCertificationRemediationStyleType remediationStyle;
+    private List<AccessCertificationResponseType> revokeOn;
     private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
     //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
     private ObjectViewDto owner;
@@ -88,8 +89,10 @@ public class CertDefinitionDto implements Serializable {
         }
         if (definition.getRemediationDefinition() != null) {
             remediationStyle = definition.getRemediationDefinition().getStyle();
+            revokeOn = new ArrayList<>(definition.getRemediationDefinition().getRevokeOn());
         } else {
             remediationStyle = AccessCertificationRemediationStyleType.AUTOMATED;           // TODO consider the default...
+            revokeOn = new ArrayList<>();
         }
         if (definition.getReviewStrategy() != null) {
             outcomeStrategy = definition.getReviewStrategy().getOutcomeStrategy();
@@ -156,6 +159,7 @@ public class CertDefinitionDto implements Serializable {
         if (remediationStyle != null) {
             AccessCertificationRemediationDefinitionType remDef = new AccessCertificationRemediationDefinitionType(prismContext);
             remDef.setStyle(remediationStyle);
+            remDef.getRevokeOn().addAll(revokeOn);
             definition.setRemediationDefinition(remDef);
         } else {
             definition.setRemediationDefinition(null);
