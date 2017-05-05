@@ -16,6 +16,7 @@
 <role oid="2f0246f8-30df-11e7-b35b-bbb92a001091"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Role Persona Management</name>
     <authorization>
@@ -43,6 +44,12 @@
     	<phase>request</phase>
     	<target>
     		<type>RoleType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>roleType</q:path>
+    				<q:value>personaRole</q:value>
+    			</q:equal>
+    		</filter>
     	</target>
     </authorization>
     <authorization>

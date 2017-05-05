@@ -25,5 +25,6 @@
     		<objectMappingRef oid="894ea1a8-2c0a-11e7-a950-ff2047b0c053"/>
     	</personaConstruction>
     </inducement>
+    <roleType>personaRole</roleType>
     <requestable>true</requestable>
 </role>
