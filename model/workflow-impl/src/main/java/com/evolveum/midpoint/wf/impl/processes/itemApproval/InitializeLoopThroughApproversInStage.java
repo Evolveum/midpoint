@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -91,7 +92,7 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
 				}
                 List<String> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), expressionVariables,
 						"automatic completion expression", String.class,
-						SchemaConstants.APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE, opTask, opResult);
+						DOMUtil.XSD_STRING, opTask, opResult);
 				LOGGER.trace("Pre-completed = {} for stage {}", outcomes, stageDef);
 				Set<String> distinctOutcomes = new HashSet<>(outcomes);
 				if (distinctOutcomes.size() > 1) {
