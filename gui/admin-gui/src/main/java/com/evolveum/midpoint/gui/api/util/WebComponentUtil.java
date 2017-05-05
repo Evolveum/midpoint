@@ -33,8 +33,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -322,9 +322,8 @@ public final class WebComponentUtil {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
 	}
 	
-
-	public static TaskType createSingleRecurenceTask(String taskName, QName applicableType, ObjectQuery query,
-			ObjectDelta delta, String category, PageBase pageBase) throws SchemaException {
+	public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
+			ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
 
 		TaskType task = new TaskType();
 
@@ -361,6 +360,11 @@ public final class WebComponentUtil {
 			path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
 			PrismProperty objectDelta = prismTask.findOrCreateProperty(path);
 			objectDelta.setRealValue(DeltaConvertor.toObjectDeltaType(delta));
+		}
+
+		if (options != null) {
+			prismTask.findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS))
+					.setRealValue(options.toModelExecutionOptionsType());
 		}
 
 		return task;
