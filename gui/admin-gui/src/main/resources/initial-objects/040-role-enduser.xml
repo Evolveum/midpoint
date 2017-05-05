@@ -174,5 +174,38 @@
         </object>
         <item>workflowContext</item>
     </authorization>
+    <authorization>
+    	<name>self-owned-task-read</name>
+    	<description>
+    		Authorization that allows to see all tasks owned by a currently logged-in user.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+        </object>
+    </authorization>
+    <authorization>
+    	<name>self-owned-task-add-execute-changes</name>
+    	<description>
+    		Authorization to create a new 'execute changes' task owned by a currently logged-in user.
+    		This is needed to execute asynchronous operations from the GUI.
+    	</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>TaskType</type>
+            <filter>
+    			<q:equal>
+    				<q:path>handlerUri</q:path>
+    				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
+    			</q:equal>
+    		</filter>
+    		<owner>
+    			<special>self</special>
+    		</owner>
+        </object>
+    </authorization>
     <roleType>system</roleType>
 </role>
