@@ -84,9 +84,8 @@ public class ValueSetDefinition {
 		if (additionalVariableName != null) {
 			variables.addVariableDefinition(additionalVariableName, value);
 		}
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, 
-				shortDesc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(params);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context);
 		if (outputTriple == null) {
 			return false;
 		}

@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -9,7 +8,6 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
@@ -54,9 +52,6 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeTaskHandle
 	@Autowired
 	private PrismContext prismContext;
 
-//    @Autowired
-//    private ContextFactory contextFactory;
-    
     @Autowired
     private ModelService model;
     
@@ -97,28 +92,27 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeTaskHandle
         return handler;
 	}
 
-	private void executeChange(PrismObject<FocusType> focalObject, Task coordinatorTask, Task task, OperationResult result) throws SchemaException,
+	private <T extends ObjectType> void executeChange(PrismObject<T> focalObject, Task coordinatorTask, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing object {}", focalObject);
 
-		ObjectDelta delta = createDeltaFromTask(coordinatorTask);
+		ObjectDelta<T> delta = createDeltaFromTask(coordinatorTask);
+		if (delta == null) {
+			throw new IllegalStateException("No delta in the task");
+		}
+
 		delta.setOid(focalObject.getOid());
 		if (focalObject.getCompileTimeClass() != null) {
 			delta.setObjectTypeClass(focalObject.getCompileTimeClass());
 		}
 		prismContext.adopt(delta);
 		
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(delta);
-		
-		model.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
-		
-		
+		model.executeChanges(Collections.singletonList(delta), getExecuteOptionsFromTask(task), task, result);
 		LOGGER.trace("Execute changes {} for object {}: {}", delta, focalObject, result.getStatus());
 	}
 	
-	private ObjectDelta createDeltaFromTask(Task task) throws SchemaException{
+	private <T extends ObjectType> ObjectDelta<T> createDeltaFromTask(Task task) throws SchemaException {
 		PrismProperty<ObjectDeltaType> objectDeltaType = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
         if (objectDeltaType != null && objectDeltaType.getRealValue() != null) {
         	return DeltaConvertor.createObjectDelta(objectDeltaType.getRealValue(), prismContext);

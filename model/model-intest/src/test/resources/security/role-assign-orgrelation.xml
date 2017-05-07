@@ -1,0 +1,97 @@
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="5856eb42-319f-11e7-8e26-a7c6d1a855fc"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" 
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<name>Assign orgRelation</name>
+	<description>Assign requestable roles, constrained by orgRelation (both object and target)</description>
+	<authorization>
+		<name>read-users</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+		<object>
+			<type>UserType</type>
+		</object>
+	</authorization>
+	<authorization>
+		<name>read-roles</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+		<object>
+			<type>RoleType</type>
+		</object>
+	</authorization>
+	<authorization>
+		<name>read-orgs</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+		<object>
+			<type>OrgType</type>
+		</object>
+	</authorization>
+	<authorization>
+		<name>assign-requestable-roles-enduser-and-manager</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+		<phase>request</phase>
+		<object>
+			<special>self</special>
+		</object>
+		<item>assignment/targetRef</item>
+		<item>assignment/activation/validFrom</item>
+		<item>assignment/activation/validTo</item>
+		<target>
+			<type>RoleType</type>
+			<filter>
+				<q:equal>
+					<q:path>requestable</q:path>
+					<q:value>true</q:value>
+				</q:equal>
+			</filter>
+			<orgRelation>
+				<subjectRelation>org:default</subjectRelation>
+				<scope>allDescendants</scope>
+			</orgRelation>
+		</target>
+	</authorization>
+	<authorization>
+		<name>assign-requestable-roles-enduser-and-manager</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+		<phase>request</phase>
+		<object>
+			<orgRelation>
+				<subjectRelation>org:default</subjectRelation>
+				<scope>allDescendants</scope>
+			</orgRelation>
+		</object>
+		<item>assignment/targetRef</item>
+		<item>assignment/activation/validFrom</item>
+		<item>assignment/activation/validTo</item>
+		<target>
+			<type>RoleType</type>
+			<filter>
+				<q:equal>
+					<q:path>requestable</q:path>
+					<q:value>true</q:value>
+				</q:equal>
+			</filter>
+			<orgRelation>
+				<subjectRelation>org:default</subjectRelation>
+				<scope>allDescendants</scope>
+			</orgRelation>
+		</target>
+	</authorization>
+</role>

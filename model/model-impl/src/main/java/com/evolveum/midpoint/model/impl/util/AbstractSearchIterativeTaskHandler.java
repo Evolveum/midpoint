@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -502,6 +504,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             return new ObjectQuery();
         }
     }
+
+    protected ModelExecuteOptions getExecuteOptionsFromTask(Task task) {
+		PrismProperty<ModelExecuteOptionsType> property = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+		return property != null ? ModelExecuteOptions.fromModelExecutionOptionsType(property.getRealValue()) : null;
+	}
 
     protected QueryType getObjectQueryTypeFromTask(Task task) {
         PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);

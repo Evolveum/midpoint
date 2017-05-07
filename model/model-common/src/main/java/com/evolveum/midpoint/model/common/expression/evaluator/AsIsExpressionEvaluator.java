@@ -49,30 +49,30 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
         
 		Source<V,D> source;
-    	if (params.getSources().isEmpty()) {
-    		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+params.getContextDescription());
+    	if (context.getSources().isEmpty()) {
+    		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+ context.getContextDescription());
     	}
-    	if (params.getSources().size() > 1) {
-    		Source<V,D> defaultSource = (Source<V,D>) params.getDefaultSource();
+    	if (context.getSources().size() > 1) {
+    		Source<V,D> defaultSource = (Source<V,D>) context.getDefaultSource();
     		if (defaultSource != null) {
     			source = defaultSource;
     		} else {
-    			throw new ExpressionEvaluationException("asIs evaluator cannot work with more than one source ("+params.getSources().size()
-    				+" sources specified) without specification of a default source, in "+params.getContextDescription());
+    			throw new ExpressionEvaluationException("asIs evaluator cannot work with more than one source ("+ context.getSources().size()
+    				+" sources specified) without specification of a default source, in "+ context.getContextDescription());
     		}
     	} else {
-    		source = (Source<V,D>) params.getSources().iterator().next();
+    		source = (Source<V,D>) context.getSources().iterator().next();
     	}
         PrismValueDeltaSetTriple<V> sourceTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
         
         if (sourceTriple == null) {
         	return null;
         }
-        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, source.getResidualPath(), 
+        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, context.getAdditionalConvertor(), source.getResidualPath(),
         		protector, prismContext);
     }
 

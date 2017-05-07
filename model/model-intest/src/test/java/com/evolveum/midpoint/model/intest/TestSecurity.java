@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -196,6 +197,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_ASSIGN_REQUESTABLE_ROLES_FILE = new File(TEST_DIR, "role-assign-requestable-roles.xml");
 	protected static final String ROLE_ASSIGN_REQUESTABLE_ROLES_OID = "00000000-0000-0000-0000-00000000ad0c";
 	
+	protected static final File ROLE_ASSIGN_ORGRELATION_FILE = new File(TEST_DIR, "role-assign-orgrelation.xml");
+	protected static final String ROLE_ASSIGN_ORGRELATION_OID = "5856eb42-319f-11e7-8e26-a7c6d1a855fc";
+	
 	protected static final File ROLE_DELEGATOR_FILE = new File(TEST_DIR, "role-delegator.xml");
 	protected static final String ROLE_DELEGATOR_OID = "00000000-0000-0000-0000-00000000d001";
 	
@@ -225,6 +229,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 
 	protected static final File ROLE_BUSINESS_2_FILE = new File(TEST_DIR, "role-business-2.xml");
 	protected static final String ROLE_BUSINESS_2_OID = "00000000-0000-0000-0000-00000000aab2";
+	
+	protected static final File ROLE_BUSINESS_3_FILE = new File(TEST_DIR, "role-business-3.xml");
+	protected static final String ROLE_BUSINESS_3_OID = "00000000-0000-0000-0000-00000000aab3";
 
 	protected static final File ROLE_CONDITIONAL_FILE = new File(TEST_DIR, "role-conditional.xml");
 	protected static final String ROLE_CONDITIONAL_OID = "00000000-0000-0000-0000-00000000aac1";
@@ -326,6 +333,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_ASSIGN_NON_APPLICATION_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ANY_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_REQUESTABLE_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_ASSIGN_ORGRELATION_FILE, initResult);
 		repoAddObjectFromFile(ROLE_DELEGATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, initResult);
 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, initResult);
@@ -335,6 +343,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, initResult);
 		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, initResult);
 		repoAddObjectFromFile(ROLE_BUSINESS_2_FILE, initResult);
+		repoAddObjectFromFile(ROLE_BUSINESS_3_FILE, initResult);
 		
 		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, RoleType.class, initResult);
@@ -360,6 +369,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(OBJECT_TEMPLATE_PERSONA_ADMIN_FILE, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
+		assignOrg(RoleType.class, ROLE_BUSINESS_3_OID, ORG_MINISTRY_OF_RUM_OID, initTask, initResult);
 		
 		repoAddObjectFromFile(USER_CHARLES_FILE, initResult);
 		
@@ -953,7 +963,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
         
         assertSearch(UserType.class, null, 0);
-        assertSearch(RoleType.class, null, 4);
+        assertSearch(RoleType.class, null, 5);
         
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -966,6 +976,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetAllow(RoleType.class, ROLE_APPLICATION_2_OID);
         assertGetAllow(RoleType.class, ROLE_BUSINESS_1_OID);
         assertGetAllow(RoleType.class, ROLE_BUSINESS_2_OID);
+        assertGetAllow(RoleType.class, ROLE_BUSINESS_3_OID);
         
         assertGlobalStateUntouched();
 	}
@@ -1767,20 +1778,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny(ACCOUNT_GUYBRUSH_DUMMY_FILE);
         
         // Linked to jack
-        assertDeny("add jack's account to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
-			}
-		});
+        assertDeny("add jack's account to jack",   
+        		(task, result) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result));
         
         // Linked to other user
-        assertDeny("add jack's account to gyubrush", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				modifyUserAddAccount(USER_GUYBRUSH_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
-			}
-		});
+        assertDeny("add jack's account to gyubrush",   
+        		(task, result) -> modifyUserAddAccount(USER_GUYBRUSH_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result));
         
         assertDeleteDeny(ShadowType.class, accountOid);
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
@@ -1839,24 +1842,17 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAddDeny(ACCOUNT_GUYBRUSH_DUMMY_FILE);
         
         // Linked to jack
-        assertAllow("add jack's account to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
-			}
-		});
+        assertAllow("add jack's account to jack",   
+        		(task, result) -> modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result));
+
         user = getUser(USER_JACK_OID);
         display("Jack after red account link", user);
         String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
         assertNotNull("Strange, red account not linked to jack", accountRedOid);
         
         // Linked to other user
-        assertDeny("add gyubrush's account", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				modifyUserAddAccount(USER_LARGO_OID, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
-			}
-		});
+        assertDeny("add gyubrush's account",   
+        		(task, result) -> modifyUserAddAccount(USER_LARGO_OID, ACCOUNT_HERMAN_DUMMY_FILE, task, result));
         
         assertDeleteAllow(ShadowType.class, accountRedOid);
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
@@ -2074,12 +2070,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 
-		assertAllow("add user angelica", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				addObject(USER_ANGELICA_FILE, task, result);
-			}
-		});
+		assertAllow("add user angelica",   
+        		(task, result) -> addObject(USER_ANGELICA_FILE, task, result));
 
         // THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -2127,12 +2119,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_APPLICATION_1_OID);
 
-        assertDeny("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
-			}
-		});
+        assertDeny("assign business role to jack",   
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
 
         assertAllow("unassign application role from jack", 
         		(task, result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
@@ -2183,12 +2171,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_APPLICATION_1_OID);
 
-        assertAllow("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
-			}
-		});
+        assertAllow("assign business role to jack",   
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
 
         assertAllow("unassign application role from jack",
         		(task, result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result)
@@ -2288,30 +2272,18 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_NON_APPLICATION_ROLES_OID);
         
-        assertAllow("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
-			}
-		});
+        assertAllow("assign business role to jack",   
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-			}
-		});
+        assertDeny("assign application role to jack",   
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
 
-        assertAllow("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack",   
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
@@ -2347,30 +2319,18 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
-        assertAllow("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
-			}
-		});
+        assertAllow("assign business role to jack", 
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
-			}
-		});
+        assertDeny("assign application role to jack", 
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
-        assertAllow("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack", 
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
@@ -2403,12 +2363,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(user, 2);
 		assertAssignedRole(user, ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID);
 
-		assertAllow("assign requestable org to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result);
-			}
-		});
+		assertAllow("assign requestable org to jack",   
+        		(task, result) -> assignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result));
+
 		user = getUser(USER_JACK_OID);
 		assertAssignments(user, OrgType.class,1);
 
@@ -2420,12 +2377,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		query.addFilter(spec.getFilter());
 		assertSearch(AbstractRoleType.class, query, 6); // set to 6 with requestable org
 
-		assertAllow("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result);
-			}
-		});
+		assertAllow("unassign business role from jack",   
+        		(task, result) -> unassignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result));
+
 		user = getUser(USER_JACK_OID);
 		assertAssignments(user, OrgType.class,0);
 
@@ -2459,30 +2413,18 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
-        assertAllow("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
-			}
-		});
+        assertAllow("assign business role to jack", 
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
-			}
-		});
+        assertDeny("assign application role to jack", 
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
-        assertAllow("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack", 
+        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2524,77 +2466,49 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
-        assertAllow("assign business role to jack (no param)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result);
-			}
-		});
+        assertAllow("assign business role to jack (no param)", 
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
         
-        assertAllow("assign business role to jack (org MoR)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
-			}
-		});
+        assertAllow("assign business role to jack (org MoR)", 
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 4);
         display("user after (expected 4 assignments)", user);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertAllow("assign business role to jack (org Scumm)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result);
-			}
-		});
+        assertAllow("assign business role to jack (org Scumm)", 
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 5);
         display("user after (expected 5 assignments)", user);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertAllow("unassign business role from jack (org Scumm)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack (org Scumm)", 
+        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 4);
         display("user after (expected 4 assignments)", user);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
         
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
-			}
-		});
+        assertDeny("assign application role to jack", 
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
-        assertAllow("unassign business role from jack (no param)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack (no param)", 
+        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
         
         user = getUser(USER_JACK_OID);
         display("user after (expected 3 assignments)", user);
         assertAssignments(user, 3);
         
-        assertAllow("unassign business role from jack (org MoR)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack (org MoR)", 
+        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2634,20 +2548,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
-        assertAllow("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
-			}
-		});
+        assertAllow("assign business role to jack", 
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
+        assertDeny("assign application role to jack", 
+        	(task, result) ->  {
 				Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 				ContainerDelta<AssignmentType> assignmentDelta1 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 				PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
@@ -2663,15 +2572,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 				ObjectDelta<UserType> userDelta = userDelta1;
 				Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 				modelService.executeChanges(deltas, null, task, result);
-			}
-		});
+			});
 
-        assertAllow("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack", 
+        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2711,12 +2615,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
-        assertAllow("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
-			}
-		});
+        assertAllow("assign business role to jack", 
+        	(task, result) ->
+				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -2729,12 +2630,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			}
 		});
 
-        assertAllow("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
-			}
-		});
+        assertAllow("unassign business role from jack",
+        	(task, result) ->
+				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2785,31 +2683,19 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         user = getUser(USER_JACK_OID);
         
         // MID-3136
-        assertAllow("assign business role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
-			}
-		});
+        assertAllow("assign business role to jack",   
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
         
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
-			}
-		});
+        assertDeny("assign application role to jack",   
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
         // End-user role has authorization to assign, but not to unassign
-        assertDeny("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
-			}
-		});
+        assertDeny("unassign business role from jack",   
+        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 3 assignments)", user);
@@ -2842,24 +2728,16 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         user = getUser(USER_JACK_OID);
         
         // MID-3136
-        assertAllow("assign business role to jack (no param)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result);
-			}
-		});
+        assertAllow("assign business role to jack (no param)", 
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
         
         // MID-3136
-        assertAllow("assign business role to jack (org governor)", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
-			}
-		});
+        assertAllow("assign business role to jack (org governor)",  
+        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 4);
@@ -2873,12 +2751,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		});
 
         // End-user role has authorization to assign, but not to unassign
-        assertDeny("unassign business role from jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result);
-			}
-		});
+        assertDeny("unassign business role from jack",  
+        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 4 assignments)", user);
@@ -2924,12 +2798,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         
-        assertAllow("modify jack's familyName", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, new ItemPath(UserType.F_FAMILY_NAME), task, result, PrismTestUtil.createPolyString("changed"));
-			}
-		});
+        assertAllow("modify jack's familyName", 
+        		(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, new ItemPath(UserType.F_FAMILY_NAME), task, result, PrismTestUtil.createPolyString("changed")));
         
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
@@ -2964,12 +2834,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         
-        assertAllow("modify jack's familyName", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, new ItemPath(UserType.F_FAMILY_NAME), task, result, PrismTestUtil.createPolyString("changed"));
-			}
-		});
+        assertAllow("modify jack's familyName",
+			(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, new ItemPath(UserType.F_FAMILY_NAME), task, result, PrismTestUtil.createPolyString("changed")));
         
         user = getUser(USER_JACK_OID);
         assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
@@ -3103,6 +2969,43 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 //        assertFilter(subfilter, RefFilter.class);
 //        assertEquals(1, ((RefFilter)subfilter).getValues().size());
 //        assertEquals("Wrong OID in ref filter", USER_JACK_OID, ((RefFilter)subfilter).getValues().get(0).getOid());
+        
+        assertGlobalStateUntouched();
+	}
+	
+	@Test
+    public void test295AutzJackAssignOrgRelation() throws Exception {
+		final String TEST_NAME = "test295AutzJackAssignOrgRelation";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_ORGRELATION_OID);
+        assignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        RoleSelectionSpecification specJack = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+        display("Spec (jack)", specJack);
+        assertRoleTypes(specJack);
+        
+        Task task = taskManager.createTaskInstance();
+        SearchResultList<PrismObject<AbstractRoleType>> assignableRolesJack = 
+        		modelService.searchObjects(AbstractRoleType.class, ObjectQuery.createObjectQuery(specJack.getFilter()), null, task, task.getResult());
+        display("Assignable roles", assignableRolesJack);
+        assertObjectOids("Wrong assignable roles (jack)", assignableRolesJack, ROLE_BUSINESS_3_OID);
+        
+        RoleSelectionSpecification specRum = getAssignableRoleSpecification(getUser(userRumRogersOid));
+        display("Spec (rum)", specRum);
+        assertRoleTypes(specRum);
+        
+        SearchResultList<PrismObject<AbstractRoleType>> assignableRolesRum = 
+        		modelService.searchObjects(AbstractRoleType.class, ObjectQuery.createObjectQuery(specRum.getFilter()), null, task, task.getResult());
+        display("Assignable roles", assignableRolesRum);
+        assertObjectOids("Wrong assignable roles (rum)", assignableRolesRum, ROLE_BUSINESS_3_OID);
         
         assertGlobalStateUntouched();
 	}

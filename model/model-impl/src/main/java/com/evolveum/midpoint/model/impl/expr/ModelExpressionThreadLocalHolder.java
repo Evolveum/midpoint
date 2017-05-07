@@ -99,36 +99,36 @@ public class ModelExpressionThreadLocalHolder {
 	
 	// TODO move to better place
 	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
-			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext params, Task task, OperationResult result)
+			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext context, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {
-			return expression.evaluate(params);
+			return expression.evaluate(context);
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 	}
 
 	public static PrismValueDeltaSetTriple<PrismReferenceValue> evaluateRefExpressionInContext(Expression<PrismReferenceValue,
-			PrismReferenceDefinition> expression, ExpressionEvaluationContext params, Task task, OperationResult result)
+			PrismReferenceDefinition> expression, ExpressionEvaluationContext context, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {
-			return expression.evaluate(params);
+			return expression.evaluate(context);
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 	}
 
 	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
-			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext params,
+			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext context,
 			LensContext<?> lensContext, LensProjectionContext projectionContext, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(lensContext, projectionContext, task, result);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple;
 		try {
-			exprResultTriple = expression.evaluate(params);
+			exprResultTriple = expression.evaluate(context);
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}

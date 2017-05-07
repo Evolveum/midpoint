@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="00000001-d34d-b33f-f00d-00000000001a">
-	<name>Role1a</name>
-	<inducement>
-		<targetRef oid="00000001-d34d-b33f-f00d-00000000010a" type="RoleType" />
-	</inducement>
-	<approverRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType"/>		<!-- lead1 -->
+<role oid="00000000-0000-0000-0000-00000000aab3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Business Role Three</name>
+    <requestable>true</requestable>
+    <roleType>business</roleType>
 </role>

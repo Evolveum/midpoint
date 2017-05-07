@@ -29,6 +29,8 @@ public class ExecuteChangesHandlerPanel extends QueryBasedHandlerPanel<ExecuteCh
 
 	private static final String ID_CHANGE_CONTAINER = "changeContainer";
 	private static final String ID_CHANGE = "change";
+	private static final String ID_OPTIONS_CONTAINER = "optionsContainer";
+	private static final String ID_OPTIONS = "options";
 
 	public ExecuteChangesHandlerPanel(String id, IModel<ExecuteChangesHandlerDto> model) {
 		super(id, model);
@@ -42,6 +44,12 @@ public class ExecuteChangesHandlerPanel extends QueryBasedHandlerPanel<ExecuteCh
 		change.setEnabled(false);
 		changeContainer.add(change);
 		add(changeContainer);
+
+		WebMarkupContainer optionsContainer = new WebMarkupContainer(ID_OPTIONS_CONTAINER);
+		TextArea options = new TextArea<>(ID_OPTIONS, new PropertyModel<>(getModel(), ExecuteChangesHandlerDto.F_OPTIONS));
+		options.setEnabled(false);
+		optionsContainer.add(options);
+		add(optionsContainer);
 	}
 
 }

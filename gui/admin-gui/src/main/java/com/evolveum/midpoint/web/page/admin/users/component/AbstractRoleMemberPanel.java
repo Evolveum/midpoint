@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -378,13 +380,16 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		OperationResult parentResult = operationalTask.getResult();
 
 		try {
-			TaskType task = WebComponentUtil.createSingleRecurenceTask(parentResult.getOperation(), type,
-					memberQuery, delta, category, getPageBase());
+			ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
+					? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
+					: null;
+			TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
+					memberQuery, delta, options, category, getPageBase());
 			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
 			LoggingUtils.logUnexpectedException(LOGGER,
-					"Failed to execute operaton " + parentResult.getOperation(), e);
+					"Failed to execute operation " + parentResult.getOperation(), e);
 			target.add(getPageBase().getFeedbackPanel());
 		}
 

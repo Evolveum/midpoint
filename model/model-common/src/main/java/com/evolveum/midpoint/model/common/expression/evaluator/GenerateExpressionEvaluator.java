@@ -95,7 +95,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 * com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params)
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		StringPolicyType stringPolicyType = null;
@@ -105,7 +105,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		if (generateEvaluatorValuePolicyRef != null) {
 			if (generateEvaluatorType.getValuePolicyRef() != null) {
 	        	ValuePolicyType valuePolicyType = objectResolver.resolve(generateEvaluatorValuePolicyRef, ValuePolicyType.class,
-	        			null, "resolving value policy reference in generateExpressionEvaluator", params.getTask(), params.getResult());
+	        			null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), context.getResult());
 	        	stringPolicyType = valuePolicyType.getStringPolicy();
 	        }
 			
@@ -117,7 +117,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		// resolved each time, the cached policy would be used and so bad values
 		// would be generated
 		if (stringPolicyType == null) {
-			StringPolicyResolver stringPolicyResolver = params.getStringPolicyResolver();
+			StringPolicyResolver stringPolicyResolver = context.getStringPolicyResolver();
 			if (stringPolicyResolver != null) {
 				stringPolicyType = stringPolicyResolver.resolve();
 			}
@@ -133,21 +133,21 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		GenerateExpressionEvaluatorModeType mode = generateEvaluatorType.getMode();
 		if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
 
-			PrismObject<? extends ObjectType> object = getObject(params);
+			PrismObject<? extends ObjectType> object = getObject(context);
 
 			// TODO: generate value based on stringPolicyType (if not null)
 			if (stringPolicyType != null) {
 				if (isNotEmptyMinLength(stringPolicyType)) {
 					stringValue = valuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, object,
-							params.getContextDescription(), params.getTask(), params.getResult());
+							context.getContextDescription(), context.getTask(), context.getResult());
 				} else {
 					stringValue = valuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, object,
-							params.getContextDescription(), params.getTask(), params.getResult());
+							context.getContextDescription(), context.getTask(), context.getResult());
 				}
-				params.getResult().computeStatus();
-				if (params.getResult().isError()) {
+				context.getResult().computeStatus();
+				if (context.getResult().isError()) {
 					throw new ExpressionEvaluationException("Failed to generate value according to policy: "
-							+ stringPolicyType.getDescription() + ". " + params.getResult().getMessage());
+							+ stringPolicyType.getDescription() + ". " + context.getResult().getMessage());
 				}
 			}
 

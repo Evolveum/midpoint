@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.common.expression;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -47,6 +48,7 @@ public class ExpressionEvaluationContext {
 	private String contextDescription;
 	private Task task;
 	private OperationResult result;
+	private Function<Object, Object> additionalConvertor;
 	
 	public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, String contextDescription, Task task,
@@ -162,7 +164,15 @@ public class ExpressionEvaluationContext {
 	public void setResult(OperationResult result) {
 		this.result = result;
 	}
-	
+
+	public Function<Object, Object> getAdditionalConvertor() {
+		return additionalConvertor;
+	}
+
+	public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
+		this.additionalConvertor = additionalConvertor;
+	}
+
 	public ExpressionEvaluationContext shallowClone() {
 		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task, result);
 		clone.skipEvaluationMinus = this.skipEvaluationMinus;
@@ -172,6 +182,7 @@ public class ExpressionEvaluationContext {
 		clone.defaultSource = this.defaultSource;
 		clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;
 		clone.mappingQName = this.mappingQName;
+		clone.additionalConvertor = this.additionalConvertor;
 		return clone;
 	}
 

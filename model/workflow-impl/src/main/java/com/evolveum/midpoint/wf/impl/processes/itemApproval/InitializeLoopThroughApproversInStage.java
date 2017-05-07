@@ -20,7 +20,6 @@ import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -92,7 +91,7 @@ public class InitializeLoopThroughApproversInStage implements JavaDelegate {
 				}
                 List<String> outcomes = evaluationHelper.evaluateExpression(stageDef.getAutomaticallyCompleted(), expressionVariables,
 						"automatic completion expression", String.class,
-						DOMUtil.XSD_STRING, opTask, opResult);
+						DOMUtil.XSD_STRING, WfExpressionEvaluationHelper.createOutcomeConvertor(), opTask, opResult);
 				LOGGER.trace("Pre-completed = {} for stage {}", outcomes, stageDef);
 				Set<String> distinctOutcomes = new HashSet<>(outcomes);
 				if (distinctOutcomes.size() > 1) {
