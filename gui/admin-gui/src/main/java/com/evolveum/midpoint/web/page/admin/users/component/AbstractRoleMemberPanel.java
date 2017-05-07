@@ -427,7 +427,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		}
 	}
 
-	private List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
+	protected List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
 		List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
 		IColumn<SelectableBean<ObjectType>, String> column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
