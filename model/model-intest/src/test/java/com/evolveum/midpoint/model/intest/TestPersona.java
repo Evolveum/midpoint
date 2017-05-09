@@ -107,12 +107,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestPersona extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/persona");
-	
-	protected static final File OBJECT_TEMPLATE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "object-template-persona-admin.xml");
-	protected static final String OBJECT_TEMPLATE_PERSONA_ADMIN_OID = "894ea1a8-2c0a-11e7-a950-ff2047b0c053";
-	
-	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "role-persona-admin.xml");
-	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
 	private static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
 
@@ -278,7 +272,6 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
-        assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
 		
 		// THEN
         displayThen(TEST_NAME);

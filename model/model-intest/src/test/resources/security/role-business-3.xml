@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2017 Evolveum
+  ~ Copyright (c) 2015 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,17 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="16813ae6-2c0a-11e7-91fc-8333c244329e"
+<role oid="00000000-0000-0000-0000-00000000aab3"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Persona: admin</name>
-    <inducement>
-    	<personaConstruction>
-    		<targetType>UserType</targetType>
-    		<targetSubtype>admin</targetSubtype>
-    		<objectMappingRef oid="894ea1a8-2c0a-11e7-a950-ff2047b0c053"/>
-    	</personaConstruction>
-    </inducement>
+    <name>Business Role Three</name>
     <requestable>true</requestable>
+    <roleType>business</roleType>
 </role>

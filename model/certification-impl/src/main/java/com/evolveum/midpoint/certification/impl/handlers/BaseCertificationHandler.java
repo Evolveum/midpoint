@@ -121,15 +121,9 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
 		String objectOid = assignmentCase.getObjectRef().getOid();
-		Long assignmentId = assignmentCase.getAssignment().getId();
-		if (assignmentId == null) {
-			throw new IllegalStateException("No ID for an assignment to remove: " + assignmentCase.getAssignment());
-		}
 		Class<? extends Objectable> clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
-		cval.setId(assignmentId);
+		PrismContainerValue<AssignmentType> cval = assignmentCase.getAssignment().asPrismContainerValue().clone();
 
-		// quick "solution" - deleting without checking the assignment ID
 		ContainerDelta assignmentDelta;
 		if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
 			assignmentDelta = ContainerDelta.createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz, prismContext, cval);
@@ -144,6 +138,6 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 		LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",
 				assignmentCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),
 				Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? "inducement":"assignment",
-				assignmentId, objectOid);
+				cval.getId(), objectOid);
 	}
 }

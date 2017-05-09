@@ -96,7 +96,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME = COMMON_DIR + "/user-template-org-assignment.xml";
     protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_OID = "10000000-0000-0000-0000-000000000444";
-
+    
+    protected static final File OBJECT_TEMPLATE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "object-template-persona-admin.xml");
+	protected static final String OBJECT_TEMPLATE_PERSONA_ADMIN_OID = "894ea1a8-2c0a-11e7-a950-ff2047b0c053";
+	
     protected static final String CONNECTOR_LDAP_FILENAME = COMMON_DIR + "/connector-ldap.xml";
 	
 	protected static final String CONNECTOR_DBTABLE_FILENAME = COMMON_DIR + "/connector-dbtable.xml";
@@ -255,6 +258,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final File ROLE_DRINKER_FILE = new File(COMMON_DIR, "role-drinker.xml");
 	protected static final String ROLE_DRINKER_OID = "0abbde4c-ab3f-11e6-910d-d7dabf5f09f0";
+	
+	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "role-persona-admin.xml");
+	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";

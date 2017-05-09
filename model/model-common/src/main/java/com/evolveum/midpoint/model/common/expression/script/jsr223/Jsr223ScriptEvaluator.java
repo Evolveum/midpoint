@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -76,14 +77,16 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		}
 		this.prismContext = prismContext;
 		this.protector = protector;
-		this.scriptCache = new ConcurrentHashMap<String, CompiledScript>();
+		this.scriptCache = new ConcurrentHashMap<>();
 	}
 	
 	@Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-													  ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType,
-													  ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-													  String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
+			ExpressionVariables variables, ItemDefinition outputDefinition,
+			Function<Object, Object> additionalConvertor,
+			ScriptExpressionReturnTypeType suggestedReturnType,
+			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 		
 		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, task, result);
@@ -133,7 +136,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		// PrismProperty?
 		if (evalRawResult instanceof Collection) {
 			for (Object evalRawResultElement : (Collection)evalRawResult) {
-				T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, contextDescription);
+				T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResultElement, contextDescription);
 				if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
 					pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
 				}
@@ -141,7 +144,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		} else if (evalRawResult instanceof PrismProperty<?>) {
 			pvals.addAll((Collection<? extends V>) PrismPropertyValue.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
-			T evalResult = convertScalarResult(javaReturnType, evalRawResult, contextDescription);
+			T evalResult = convertScalarResult(javaReturnType, additionalConvertor, evalRawResult, contextDescription);
 			if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
 				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, outputDefinition, contextDescription, prismContext));
 			}
@@ -196,9 +199,9 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		return compiledScript;
 	}
 
-	private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
+	private <T> T convertScalarResult(Class<T> expectedType, Function<Object, Object> additionalConvertor, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
 		try {
-			T convertedValue = ExpressionUtil.convertValue(expectedType, rawValue, protector, prismContext);
+			T convertedValue = ExpressionUtil.convertValue(expectedType, additionalConvertor, rawValue, protector, prismContext);
 			return convertedValue;
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);

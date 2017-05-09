@@ -86,10 +86,10 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
 
                         role = midpoint.resolveReference(certificationCase.objectRef)
                         if (role.oid != '00000000-d34d-b33f-f00d-000000000001') {
-                            role.ownerRef?.clone()
+                            role.ownerRef?.oid
                         } else {
                             // hack: elaine's ownership of CEO role is defined by assignment[owner], not by ownerRef
-                            ObjectTypeUtil.createObjectRef('c0c010c0-d34d-b33f-f00d-11111111111e', ObjectTypes.USER)
+                            'c0c010c0-d34d-b33f-f00d-11111111111e'
                         }
                     </code>
                 </script>

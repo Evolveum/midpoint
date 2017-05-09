@@ -55,10 +55,7 @@ public class PrismUtil {
 		if (realValue instanceof PolyString && prismContext != null) {
 			PolyString polyStringVal = (PolyString)realValue;
 			// Always recompute. Recompute is cheap operation and this avoids a lot of bugs
-			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
-			if (polyStringNormalizer != null) {
-				polyStringVal.recompute(polyStringNormalizer);
-			}
+			polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
 		}
 	}
 	

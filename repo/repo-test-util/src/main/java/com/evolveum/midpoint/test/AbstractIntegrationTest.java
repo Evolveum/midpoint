@@ -1831,4 +1831,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		assertEquals("Wrong number of persona links in " + focus, expectedNumLinks, linkRef.size());
 	}
+	
+    protected <O extends ObjectType> void assertObjectOids(String message, Collection<PrismObject<O>> objects, String... oids) {
+    	List<String> objectOids = objects.stream().map( o -> o.getOid()).collect(Collectors.toList());
+    	PrismAsserts.assertEqualsCollectionUnordered(message, objectOids, oids);
+    }
 }

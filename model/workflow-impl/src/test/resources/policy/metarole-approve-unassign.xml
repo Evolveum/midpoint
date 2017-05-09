@@ -32,10 +32,10 @@
 						<order>1</order>
 					</compositionStrategy>
 					<approvalSchema>
-						<level>
+						<stage>
 							<approverRelation>approver</approverRelation>
 							<outcomeIfNoApprovers>skip</outcomeIfNoApprovers>		<!-- so e.g. for role4b no approval process is started -->
-						</level>
+						</stage>
 					</approvalSchema>
 				</approval>
 			</policyActions>

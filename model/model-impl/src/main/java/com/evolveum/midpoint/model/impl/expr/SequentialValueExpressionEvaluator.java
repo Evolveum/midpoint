@@ -58,9 +58,9 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-        long counter = getSequenceCounter(sequentialValueEvaluatorType.getSequenceRef().getOid(), repositoryService, params.getResult());
+        long counter = getSequenceCounter(sequentialValueEvaluatorType.getSequenceRef().getOid(), repositoryService, context.getResult());
 		
 		Object value = ExpressionUtil.convertToOutputValue(counter, outputDefinition, protector);
                 

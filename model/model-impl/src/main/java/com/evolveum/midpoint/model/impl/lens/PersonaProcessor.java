@@ -91,12 +91,15 @@ public class PersonaProcessor {
 	@Autowired(required=true)
     private ObjectResolver objectResolver;
 	
-	@Autowired(required=true)
-	private ModelService modelService;
-	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService repositoryService;
+	
+	@Autowired(required = true)
+	private ContextFactory contextFactory;
+	
+	@Autowired(required = true)
+	private Clockwork clockwork;
 	
 	@Autowired(required=true)
 	private Clock clock;
@@ -295,7 +298,7 @@ public class PersonaProcessor {
 		
 		LOGGER.trace("Creating persona:\n{}", target.debugDumpLazily());
 		
-		modelService.executeChanges(MiscSchemaUtil.createCollection(targetDelta), null, task, result);
+		executePersonaDelta(targetDelta, task, result);
 		
 		link(context, target.asObjectable(), result);
 	}
@@ -325,14 +328,15 @@ public class PersonaProcessor {
 			targetDelta.addModification(itemDelta);
 		}
 		
-		modelService.executeChanges(MiscSchemaUtil.createCollection(targetDelta), null, task, result);
+		executePersonaDelta(targetDelta, task, result);
 	}
 	
 	public <F extends FocusType> void personaDelete(LensContext<F> context, PersonaKey key, FocusType existingPersona, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {		
 		PrismObject<F> focus = context.getFocusContext().getObjectOld();
 		LOGGER.debug("Deleting persona {} for {}: ", key, focus, existingPersona);
-		ObjectDelta<? extends FocusType> delta = existingPersona.asPrismObject().createDeleteDelta();		
-		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+		ObjectDelta<? extends FocusType> targetDelta = existingPersona.asPrismObject().createDeleteDelta();
+
+		executePersonaDelta(targetDelta, task, result);
 		
 		unlink(context, existingPersona, result);
 	}
@@ -355,6 +359,15 @@ public class PersonaProcessor {
 		delta.addModificationDeleteReference(FocusType.F_PERSONA_REF, refValue);
 		
 		repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
+	}
+	
+	private <O extends ObjectType> void executePersonaDelta(ObjectDelta<O> delta, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, null, task, result);
+		// Persona changes are all "secondary" changes, trigerred by roles and policies. We do not want to authorize
+		// them as REQUEST. Assignment of the persona role was REQUEST. Changes in persona itself is all EXECUTION.
+		context.setExecutionPhaseOnly(true);
+		clockwork.run(context, task, result);
 	}
 
 	class PersonaKey implements HumanReadableDescribable {

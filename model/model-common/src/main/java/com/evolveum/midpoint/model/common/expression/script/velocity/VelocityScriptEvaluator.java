@@ -40,6 +40,7 @@ import org.apache.velocity.app.Velocity;
 import javax.xml.namespace.QName;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Expression evaluator that is using Apache Velocity engine.
@@ -64,9 +65,11 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 	
 	@Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-													  ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType,
-													  ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-													  String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
+			ExpressionVariables variables, ItemDefinition outputDefinition,
+			Function<Object, Object> additionalConvertor,
+			ScriptExpressionReturnTypeType suggestedReturnType,
+			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 		
 		VelocityContext context = createVelocityContext(variables, objectResolver, functions, contextDescription, task, result);
@@ -109,7 +112,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
         
 		T evalResult;
 		try {
-			evalResult = ExpressionUtil.convertValue(javaReturnType, resultWriter.toString(), protector, prismContext);
+			evalResult = ExpressionUtil.convertValue(javaReturnType, additionalConvertor, resultWriter.toString(), protector, prismContext);
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);
 		}

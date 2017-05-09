@@ -63,7 +63,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 		@Override
 		protected ExecuteChangeOptionsDto load() {
-			return new ExecuteChangeOptionsDto();
+			return ExecuteChangeOptionsDto.createFromSystemConfiguration();
 		}
 	};
 

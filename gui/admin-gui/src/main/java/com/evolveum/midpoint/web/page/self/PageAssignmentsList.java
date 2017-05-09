@@ -29,18 +29,18 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -138,7 +138,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-                onRequestPerformed(target);
+                if (getSessionStorage().getRoleCatalog().getTargetUserList() == null ||
+                        getSessionStorage().getRoleCatalog().getTargetUserList().size() <= 1) {
+                    onSingleUserRequestPerformed(target);
+                } else {
+                    onMultiUserRequestPerformed(target);
+                }
             }
 
         };
@@ -176,13 +181,68 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     }
 
-    private void onRequestPerformed(AjaxRequestTarget target) {
+    private void onSingleUserRequestPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_REQUEST_ASSIGNMENTS);
+        ObjectDelta<UserType> delta;
+        try {
+            PrismObject<UserType> user = getTargetUser();
+            delta = user.createModifyDelta();
+            PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+            handleAssignmentDeltas(delta, addAssignmentsToUser(user.asObjectable()), def);
+
+            getModelService().executeChanges(Collections.singletonList(delta), createOptions(), createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
+
+            result.recordSuccess();
+            SessionStorage storage = getSessionStorage();
+            storage.getRoleCatalog().getAssignmentShoppingCart().clear();
+        } catch (Exception e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+            error("Could not save assignments. Reason: " + e);
+            target.add(getFeedbackPanel());
+        } finally {
+            result.recomputeStatus();
+        }
+
+        findBackgroundTaskOperation(result);
+        if (backgroundTaskOperationResult != null
+                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
+            result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
+            showResult(result);
+            setResponsePage(PageAssignmentShoppingKart.class);
+            return;
+        }
+        showResult(result);
+        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
+            target.add(getFeedbackPanel());
+            target.add(PageAssignmentsList.this.get(ID_FORM));
+        } else {
+            setResponsePage(PageAssignmentShoppingKart.class);
+        }
+    }
+
+    @NotNull
+    private ModelExecuteOptions createOptions() {
+        OperationBusinessContextType businessContextType;
+        if (descriptionModel.getObject() != null) {
+            businessContextType = new OperationBusinessContextType();
+            businessContextType.setComment(descriptionModel.getObject());
+        } else {
+            businessContextType = null;
+        }
+        ModelExecuteOptions options = ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions();
+        options.setRequestBusinessContext(businessContextType);
+        return options;
+    }
+
+    private void onMultiUserRequestPerformed(AjaxRequestTarget target) {
             OperationResult result = new OperationResult(OPERATION_REQUEST_ASSIGNMENTS);
             Task operationalTask = createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
 
             try {
-                TaskType task = WebComponentUtil.createSingleRecurenceTask(OPERATION_REQUEST_ASSIGNMENTS, UserType.COMPLEX_TYPE,
-                        getTaskQuery(), prepareDelta(result), TaskCategory.EXECUTE_CHANGES, PageAssignmentsList.this);
+                TaskType task = WebComponentUtil.createSingleRecurrenceTask(
+                        createStringResource(OPERATION_REQUEST_ASSIGNMENTS).getString(),
+                        UserType.COMPLEX_TYPE,
+                        getTaskQuery(), prepareDelta(result), createOptions(), TaskCategory.EXECUTE_CHANGES, PageAssignmentsList.this);
                 WebModelServiceUtils.runTask(task, operationalTask, result, PageAssignmentsList.this);
             } catch (SchemaException e) {
                 result.recordFatalError(result.getOperation(), e);
@@ -317,10 +377,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         OperationResult result = new OperationResult(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         Task task = createSimpleTask(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         List<AssignmentConflictDto> conflictsList = new ArrayList<>();
-        List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
-                usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
         try {
+            PrismObject<UserType> user = getTargetUser();
             delta = user.createModifyDelta();
 
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -377,12 +435,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         return true;
     }
 
-    private ObjectDelta prepareDelta(OperationResult result){
+    private ObjectDelta prepareDelta(OperationResult result) {
         ObjectDelta delta = null;
         try{
             delta = ObjectDelta.createModificationAddContainer(UserType.class, "fakeOid",
                 FocusType.F_ASSIGNMENT, getPrismContext(), getAddAssignmentContainerValues(assignmentsModel.getObject()));
-            if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()){
+            if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
                 List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
                 PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
                         usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
@@ -414,7 +472,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         List<PrismContainerValue<AssignmentType>> addContainerValues = new ArrayList<>();
         for (AssignmentEditorDto assDto : assignments) {
             if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
-                addContainerValues.add(assDto.getNewValue(getPrismContext()));
+                addContainerValues.add(assDto.getNewValue(getPrismContext()).clone());      // clone is to eliminate "Attempt to reset value parent ..." exceptions (in some cases)
             }
 
         }
@@ -463,6 +521,14 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private TextArea getDescriptionComponent(){
         return (TextArea) get(ID_FORM).get(ID_DESCRIPTION);
+    }
+
+    private PrismObject<UserType> getTargetUser() throws SchemaException {
+        List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
+        PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
+                usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
+        getPrismContext().adopt(user);
+        return user;
     }
 
     @Override

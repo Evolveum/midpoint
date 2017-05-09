@@ -66,13 +66,13 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 
 		ItemDeltaItem<?,?> resolveContext = null;
 		
-		if (params.getSources() != null && params.getSources().size() == 1) {
-			Source<?,?> source = params.getSources().iterator().next();
+		if (context.getSources() != null && context.getSources().size() == 1) {
+			Source<?,?> source = context.getSources().iterator().next();
 			if (path.isEmpty()) {
 				PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) source.toDeltaSetTriple();
 				return outputTriple.clone();
@@ -80,20 +80,20 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 			resolveContext = source;
 		}
 		        
-        Map<QName, Object> variablesAndSources = ExpressionUtil.compileVariablesAndSources(params);
+        Map<QName, Object> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
 
         ItemPath resolvePath = path;
         ItemPathSegment first = path.first();
-        if (first instanceof NameItemPathSegment && ((NameItemPathSegment)first).isVariable()) {
+        if (first instanceof NameItemPathSegment && first.isVariable()) {
 			QName variableName = ((NameItemPathSegment)first).getName();
-			Object variableValue = null;
+			Object variableValue;
         	if (variablesAndSources.containsKey(variableName)) {
         		variableValue = variablesAndSources.get(variableName);
         	} else if (QNameUtil.matchAny(variableName, variablesAndSources.keySet())){
 				QName fullVariableName = QNameUtil.resolveNs(variableName, variablesAndSources.keySet());
 				variableValue = variablesAndSources.get(fullVariableName);
 			} else {
-				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+params.getContextDescription());
+				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+ context.getContextDescription());
 			}
         	
         	if (variableValue == null) {
@@ -101,11 +101,11 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     		}
     		if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?,?>) {
         		resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver, 
-        				"path expression in "+params.getContextDescription(), params.getResult());
+        				"path expression in "+ context.getContextDescription(), context.getResult());
     		} else if (variableValue instanceof PrismPropertyValue<?>){
     			PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
     			outputTriple.addToZeroSet((V) variableValue);
-    			return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, protector, prismContext);
+    			return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, context.getAdditionalConvertor(), null, protector, prismContext);
     		} else {
     			throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");
     		}
@@ -122,7 +122,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         		resolveContext = resolveContext.findIdi(resolvePath.head());
         		resolvePath = resolvePath.tail();
         		if (resolveContext == null) {
-        			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+params.getContextDescription());
+        			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+ context.getContextDescription());
         		}
         	} else if (resolveContext.isStructuredProperty()) {
         		// The output path does not really matter. The delta will be converted to triple anyway
@@ -133,7 +133,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         	} else if (resolveContext.isNull()){
         		break;
         	} else {
-        		throw new ExpressionEvaluationException("Cannot resolve path "+resolvePath+" on "+resolveContext+" in "+params.getContextDescription());
+        		throw new ExpressionEvaluationException("Cannot resolve path "+resolvePath+" on "+resolveContext+" in "+ context.getContextDescription());
         	}
         }
                 
@@ -144,7 +144,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         	return null;
         }
         
-        return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, protector, prismContext);
+        return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, context.getAdditionalConvertor(), null, protector, prismContext);
     }
 
 	/* (non-Javadoc)

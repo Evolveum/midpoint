@@ -128,7 +128,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private Clockwork clockwork;
 
 	@Autowired(required = true)
-	PrismContext prismContext;
+	private PrismContext prismContext;
 
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
@@ -174,16 +174,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private UserProfileService userProfileService;
 
 	@Autowired(required = true)
-	Projector projector;
+	private Projector projector;
 
 	@Autowired(required = true)
-	Protector protector;
+	private Protector protector;
 
 	@Autowired(required = true)
-	ModelDiagController modelDiagController;
+	private ModelDiagController modelDiagController;
 
 	@Autowired(required = true)
-	ContextFactory contextFactory;
+	private ContextFactory contextFactory;
 
 	@Autowired(required = true)
 	private SchemaTransformer schemaTransformer;

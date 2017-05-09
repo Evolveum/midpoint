@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import java.io.Serializable;
 
@@ -36,6 +38,19 @@ public class ExecuteChangeOptionsDto implements Serializable {
     private boolean reconcileAffected;
     private boolean executeAfterAllApprovals = true;
     private boolean keepDisplayingResults;
+
+    public ExecuteChangeOptionsDto() {
+    }
+
+    public static ExecuteChangeOptionsDto createFromSystemConfiguration() {
+        return new ExecuteChangeOptionsDto(MidPointApplication.get().getSystemConfigurationIfAvailable());
+    }
+
+    private ExecuteChangeOptionsDto(SystemConfigurationType config) {
+        if (config != null && config.getRoleManagement() != null && config.getRoleManagement().isDefaultExecuteAfterAllApprovals() != null) {
+            executeAfterAllApprovals = config.getRoleManagement().isDefaultExecuteAfterAllApprovals();
+        }
+    }
 
     public boolean isForce() {
         return force;
