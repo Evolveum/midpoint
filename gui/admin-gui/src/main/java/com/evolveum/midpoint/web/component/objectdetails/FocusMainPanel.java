@@ -123,6 +123,9 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 		for (ObjectFormType objectFormType : objectFormTypes) {
 			final FormSpecificationType formSpecificationType = objectFormType.getFormSpecification();
+			if (formSpecificationType == null){
+				continue;
+			}
 			String title = formSpecificationType.getTitle();
 			if (title == null) {
 				title = "pageAdminFocus.extended";
