@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -496,18 +497,8 @@ public class QueryConvertor {
 	
 	private static ExpressionWrapper parseExpression(MapXNode xmap, PrismContext prismContext) throws SchemaException {
 		Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
-
 				ELEMENT_VALUE, ELEMENT_MATCHING, ELEMENT_PATH);
-		if (expressionEntry != null) {
-			RootXNode expressionRoot = new RootXNode(expressionEntry);
-			PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
-			ExpressionWrapper expressionWrapper = new ExpressionWrapper();
-			expressionWrapper.setExpression(expressionPropertyValue.getValue());
-			return expressionWrapper;
-		}
-
-		return null;
-
+		return PrismUtil.parseExpression(expressionEntry, prismContext);
 	}
 
 	private static <C extends Containerable> SubstringFilter parseSubstringFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext)
@@ -841,8 +832,7 @@ public class QueryConvertor {
 		
 		ExpressionWrapper xexpression = filter.getExpression();
 		if (xexpression != null) {
-			//map.merge(xexpression);
-            //TODO serialize expression
+			map.merge(PrismUtil.serializeExpression(xexpression));
 		}
 		
 		return map;

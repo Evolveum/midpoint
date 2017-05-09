@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import org.apache.commons.lang.StringUtils;

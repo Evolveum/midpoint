@@ -51,6 +51,7 @@ public class TestConstants {
 	public static final String RESOURCE_FILE_BASENAME = "resource-opendj";
 	public static final String RESOURCE_FILE_SIMPLE_BASENAME = "resource-opendj-simple";
 	public static final File RESOURCE_FILE = new File(TestConstants.COMMON_DIR, "xml/ns/resource-opendj.xml");
+	public static final String RESOURCE_FILE_EXPRESSION_BASENAME = "resource-expression";
 	public static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	public static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 

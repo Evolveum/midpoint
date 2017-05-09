@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism.query;
+package com.evolveum.midpoint.prism;
+
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author mederly
@@ -30,4 +32,11 @@ public class ExpressionWrapper {
     public void setExpression(Object expression) {
         this.expression = expression;
     }
+
+	@Override
+	public String toString() {
+		return expression==null?"ExpressionWrapper(null)":PrettyPrinter.prettyPrint(expression);
+	}
+    
+    
 }
