@@ -244,7 +244,15 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	}
 
     protected boolean getOptionsPanelVisibility(){
-        return true;
+        if (getObjectWrapper().isReadonly()){
+			return false;
+		}
+		PrismContainerDefinition def = getObjectWrapper().getDefinition();
+		if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
+				&& !def.canModify()){
+			return false;
+		}
+		return true;
     }
 
     public void reloadSavePreviewButtons(AjaxRequestTarget target){
