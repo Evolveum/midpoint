@@ -110,7 +110,8 @@ public class AuditLogViewerPanel extends BasePanel {
     private static final String ID_EVENT_STAGE = "eventStage";
     private static final String ID_OUTCOME = "outcomeField";
     private static final String ID_CHANGED_ITEM = "changedItem";
-    private static final String ID_VALUE_REF_TARGET_NAME_FIELD = "valueRefTargetNameField";
+    private static final String ID_VALUE_REF_TARGET_NAMES_FIELD = "valueRefTargetNamesField";
+	private static final String ID_VALUE_REF_TARGET_NAMES = "valueRefTargetNames";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -122,6 +123,8 @@ public class AuditLogViewerPanel extends BasePanel {
     public static final String TARGET_OWNER_FIELD_VISIBILITY = "targetOwnerField";
     public static final String TARGET_COLUMN_VISIBILITY = "targetColumn";
     public static final String TARGET_OWNER_COLUMN_VISIBILITY = "targetOwnerColumn";
+	public static final String VALUE_REF_TARGET_NAME_LABEL_VISIBILITY = "valueRefTargetNameLabel";
+	public static final String VALUE_REF_TARGET_NAME_FIELD_VISIBILITY = "valueRefTargetNameField";
     public static final String EVENT_STAGE_COLUMN_VISIBILITY = "eventStageColumn";
     public static final String EVENT_STAGE_LABEL_VISIBILITY = "eventStageLabel";
     public static final String EVENT_STAGE_FIELD_VISIBILITY = "eventStageField";
@@ -346,13 +349,16 @@ public class AuditLogViewerPanel extends BasePanel {
             }
         };
         
-        PropertyModel<String> valueRefTargetNameModel = new PropertyModel<String>(auditSearchDto,
-                AuditSearchDto.F_VALUE_REF_TARGET_NAME);
-        TextPanel<String> valueRefTargetNamePanel = new TextPanel<String>(ID_VALUE_REF_TARGET_NAME_FIELD, valueRefTargetNameModel);
-        valueRefTargetNamePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        valueRefTargetNamePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        valueRefTargetNamePanel.setOutputMarkupId(true);
-        parametersPanel.add(valueRefTargetNamePanel);
+        WebMarkupContainer valueRefTargetNameContainer = new WebMarkupContainer(ID_VALUE_REF_TARGET_NAMES);
+        valueRefTargetNameContainer.add(visibilityByKey(visibilityMap, TARGET_NAME_LABEL_VISIBILITY));
+        parametersPanel.add(valueRefTargetNameContainer);
+
+        MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new ConvertingMultiValueChoosePanel<String, ObjectType>(
+        		ID_VALUE_REF_TARGET_NAMES_FIELD, allowedClassesAll, stringTransformer, 
+        		new PropertyModel<List<String>>(auditSearchDto, AuditSearchDto.F_VALUE_REF_TARGET_NAME));
+        chooseValueRefTargetNamePanel.setOutputMarkupId(true);
+        chooseValueRefTargetNamePanel.add(visibilityByKey(visibilityMap, VALUE_REF_TARGET_NAME_FIELD_VISIBILITY));
+        valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
 
         ajaxButton.setOutputMarkupId(true);
         parametersPanel.add(ajaxButton);
@@ -363,6 +369,11 @@ public class AuditLogViewerPanel extends BasePanel {
     		(Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
         		ObjectTypeUtil.createObjectRef(o);
 
+	// Serializable as it becomes part of panel which is serialized
+    private Function<ObjectType, String> stringTransformer = 
+    		(Function<ObjectType, String> & Serializable) (ObjectType o) ->
+        		o.getName().getOrig();
+        		
 	private VisibleEnableBehaviour visibilityByKey(Map<String, Boolean> visibilityMap2, String visibilityKey) {
 		return new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
@@ -409,7 +420,7 @@ public class AuditLogViewerPanel extends BasePanel {
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());
                 parameters.put("outcome", search.getOutcome());
-                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAME_KEY, search.getValueRefTargetName());
+                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY, search.getvalueRefTargetNames());
                 return parameters;
             }
 

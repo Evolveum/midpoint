@@ -1,11 +1,13 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -25,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * Created by honchar.
  */
 public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEventRecordType> {
-	public  static final String VALUE_REF_TARGET_NAME_KEY = "valueRefTargetName";
+	public  static final String VALUE_REF_TARGET_NAMES_KEY = "valueRefTargetNames";
 	private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
 	private IModel<List<AuditEventRecordType>> model;
 
@@ -215,10 +217,10 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		} else {
             parameters.remove("taskIdentifier");
 		}
-		if (valueRefTargetIsNotEmpty(parameters.get(VALUE_REF_TARGET_NAME_KEY))) {
-			query += "(rv.targetName.orig = :valueRefTargetName) and ";
+		if (valueRefTargetIsNotEmpty(parameters.get(VALUE_REF_TARGET_NAMES_KEY))) {
+			query += "(rv.targetName.orig in ( :valueRefTargetNames )) and ";
 		} else {
-            parameters.remove(VALUE_REF_TARGET_NAME_KEY);
+            parameters.remove(VALUE_REF_TARGET_NAMES_KEY);
 		}
 
 		query = query.substring(0, query.length()-5); // remove trailing " and "
@@ -229,14 +231,16 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	}
 
 	private boolean constraintsValueRef(Map<String, Object> parameters2) {
-		return valueRefTargetIsNotEmpty(parameters2.get(VALUE_REF_TARGET_NAME_KEY));
+		return valueRefTargetIsNotEmpty(parameters2.get(VALUE_REF_TARGET_NAMES_KEY));
 	}
 
-	private boolean valueRefTargetIsNotEmpty(Object valueRefTargetNameParam) {
-		if(valueRefTargetNameParam instanceof String) {
-			return StringUtils.isNotBlank((String)valueRefTargetNameParam);
+	private boolean valueRefTargetIsNotEmpty(Object valueRefTargetNamesParam) {
+		if(valueRefTargetNamesParam instanceof String) {
+			return StringUtils.isNotBlank((String)valueRefTargetNamesParam);
+		} else if(valueRefTargetNamesParam instanceof Collection){
+			return CollectionUtils.isNotEmpty((Collection)valueRefTargetNamesParam);
 		} else {
-			return valueRefTargetNameParam != null;
+			return valueRefTargetNamesParam != null;
 		}
 	}
 
