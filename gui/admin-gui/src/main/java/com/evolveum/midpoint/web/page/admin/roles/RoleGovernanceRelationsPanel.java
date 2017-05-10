@@ -5,12 +5,15 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -21,6 +24,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -133,7 +137,13 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     private String getRelationValue(FocusType focusObject){
         String relations = "";
         for (AssignmentType assignment : focusObject.getAssignment()){
-            if (assignment.getTargetRef().getOid().equals(getModelObject().getOid())){
+            String targetObjectOid = assignment.getTargetRef() != null ?
+                    assignment.getTargetRef().getOid() :
+                    (assignment.getTarget() != null ? assignment.getTarget().getOid() : "");
+            if (StringUtils.isEmpty(targetObjectOid)){
+                continue;
+            }
+            if (targetObjectOid.equals(getModelObject().getOid())){
                 RelationTypes relation = RelationTypes.getRelationType(assignment.getTargetRef().getRelation());
                 if (!relations.contains(relation.getHeaderLabel())){
                     relations = relations.length() > 0 ? relations + ", " : relations + "";
@@ -143,4 +153,10 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         }
         return relations;
     }
+
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
+        return SelectorOptions
+                .createCollection(GetOperationOptions.createDistinct());
     }
+}
