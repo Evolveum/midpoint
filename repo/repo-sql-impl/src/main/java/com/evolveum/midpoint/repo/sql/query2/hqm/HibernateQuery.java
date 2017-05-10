@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Query in HQL that is being created.
@@ -79,9 +80,12 @@ public abstract class HibernateQuery {
 
     private List<Ordering> orderingList = new ArrayList<>();
 
-    public HibernateQuery(JpaEntityDefinition primaryEntityDef) {
-        Validate.notNull(primaryEntityDef, "primaryEntityDef");
+    public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
         primaryEntity = createItemSpecification(primaryEntityDef);
+    }
+
+    protected HibernateQuery(EntityReference primaryEntity) {
+        this.primaryEntity = primaryEntity;
     }
 
     public List<ProjectionElement> getProjectionElements() {
@@ -90,6 +94,12 @@ public abstract class HibernateQuery {
 
     public void addProjectionElement(ProjectionElement element) {
         projectionElements.add(element);
+    }
+
+    public void addProjectionElementsFor(List<String> items) {
+        for (String item : items) {
+            addProjectionElement(new GenericProjectionElement(item));
+        }
     }
 
     public EntityReference getPrimaryEntity() {

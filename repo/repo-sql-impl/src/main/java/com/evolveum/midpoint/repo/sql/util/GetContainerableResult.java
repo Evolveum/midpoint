@@ -1,8 +1,8 @@
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.apache.commons.lang.Validate;
 import org.hibernate.transform.BasicTransformerAdapter;
 import org.hibernate.transform.ResultTransformer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
@@ -13,24 +13,20 @@ import java.io.Serializable;
 public class GetContainerableResult implements Serializable {
 
     public static final ResultTransformer RESULT_TRANSFORMER = new BasicTransformerAdapter() {
-
         @Override
         public Object transformTuple(Object[] tuple, String[] aliases) {
-            return new GetContainerableResult(tuple);
+            return new GetContainerableResult(tuple);       // ownerOid, id, fullObject
         }
     };
 
-    private byte[] fullObject;
-    private String ownerOid;
+    private final String ownerOid;
+    private final byte[] fullObject;
 
-    public GetContainerableResult(Object[] values) {
-        this((byte[]) values[0], (String) values[1]);
+    private GetContainerableResult(Object[] values) {
+        this((String) values[0], (byte[]) values[2]);
     }
 
-    public GetContainerableResult(byte[] fullObject, String ownerOid) {
-
-        Validate.notNull(fullObject, "Full object xml must not be null.");
-
+    private GetContainerableResult(@NotNull String ownerOid, @NotNull byte[] fullObject) {
         this.fullObject = fullObject;
         this.ownerOid = ownerOid;
     }

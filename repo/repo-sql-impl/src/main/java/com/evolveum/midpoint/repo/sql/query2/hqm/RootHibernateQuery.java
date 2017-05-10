@@ -56,6 +56,14 @@ public class RootHibernateQuery extends HibernateQuery {
         super(primaryEntityDef);
     }
 
+    private RootHibernateQuery(EntityReference primaryEntity) {
+        super(primaryEntity);
+    }
+
+    public RootHibernateQuery createWrapperQuery() {
+        return new RootHibernateQuery(getPrimaryEntity());
+    }
+
     public String addParameter(String prefix, Object value, Type type) {
         String name = findFreeName(prefix);
         parameters.put(name, new QueryParameterValue(value, type));
@@ -66,7 +74,16 @@ public class RootHibernateQuery extends HibernateQuery {
         return addParameter(prefix, value, null);
     }
 
-	public Map<String, QueryParameterValue> getParameters() {
+    public void addParametersFrom(Map<String, QueryParameterValue> newParameters) {
+        for (Map.Entry<String, QueryParameterValue> entry : newParameters.entrySet()) {
+            if (parameters.containsKey(entry.getKey())) {
+                throw new IllegalArgumentException("Parameter " + entry.getKey() + " already exists.");
+            }
+            parameters.put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public Map<String, QueryParameterValue> getParameters() {
 		return parameters;
 	}
 

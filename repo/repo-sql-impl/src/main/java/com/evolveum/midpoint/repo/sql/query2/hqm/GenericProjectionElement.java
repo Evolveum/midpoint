@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,25 +16,23 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 /**
  * @author mederly
  */
-public abstract class ProjectionElement {
+public class GenericProjectionElement extends ProjectionElement {
 
-    public static void dumpToHql(StringBuilder sb, List<ProjectionElement> projectionElements, int indent) {
-        boolean first = true;
-        for (ProjectionElement element : projectionElements) {
-            if (first) {
-                first = false;
-            } else {
-                sb.append(",\n");
-            }
-            HibernateQuery.indent(sb, indent);
-            element.dumpToHql(sb);
-        }
+    private String text;
+
+    public GenericProjectionElement(String text) {
+        this.text = text;
     }
 
-    protected abstract void dumpToHql(StringBuilder sb);
+    protected void dumpToHql(StringBuilder sb) {
+        sb.append(text);
+    }
 }
