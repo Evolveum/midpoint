@@ -50,8 +50,8 @@ public class PageSelfProfile extends PageUser {
 
 
 	@Override
-	protected boolean getOptionsPanelVisibility(){
-		return false;
+	protected boolean isSelfProfile(){
+		return true;
 	}
 
 
