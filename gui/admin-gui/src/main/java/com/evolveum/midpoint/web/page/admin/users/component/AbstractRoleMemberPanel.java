@@ -1,11 +1,14 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import org.apache.wicket.RestartResponseException;
@@ -119,7 +122,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		form.add(memberContainer);
 
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
-				ID_MEMBER_TABLE, ObjectType.class, tableId, null, getPageBase()) {
+				ID_MEMBER_TABLE, ObjectType.class, tableId, getSearchOptions(), getPageBase()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -526,5 +529,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		} else {
 			return object.getDescription();
 		}
+	}
+
+	protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
+		return null;
 	}
 }
