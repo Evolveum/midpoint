@@ -107,7 +107,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void iterateSet() throws Exception {
         OperationResult result = new OperationResult("search set");
 
-        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        final List<PrismObject> objects = new ArrayList<>();
 
         ResultHandler handler = (object, parentResult) -> {
 			objects.add(object);
@@ -667,8 +667,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
 		OperationResult result = new OperationResult("fullTextSearch");
 
-		Collection<SelectorOptions<GetOperationOptions>> distinct =
-				SelectorOptions.createCollection(GetOperationOptions.createDistinct());
+		Collection<SelectorOptions<GetOperationOptions>> distinct = distinct();
 
 		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
 						.fullText("atestuserX00003")
@@ -727,6 +726,17 @@ public class SearchTest extends BaseSQLRepoTest {
 						.fullText("sollicitudin")
 						.build(),
 				distinct, 1);
+
+		assertUsersFoundBySearch(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("sollicitudin")
+						.asc(UserType.F_FULL_NAME)
+						.maxSize(100)
+						.build(),
+				distinct, 1);
+	}
+
+	private Collection<SelectorOptions<GetOperationOptions>> distinct() {
+		return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
 	}
 
 	@Test
@@ -743,8 +753,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
 	@SuppressWarnings("SameParameterValue")
 	private List<PrismObject<UserType>> assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
-		Collection<SelectorOptions<GetOperationOptions>> options = distinct ?
-				SelectorOptions.createCollection(GetOperationOptions.createDistinct()) : null;
+		Collection<SelectorOptions<GetOperationOptions>> options = distinct ? distinct() : null;
 		assertObjectsFoundByCount(query, options, expectedCount);
     	return assertUsersFoundBySearch(query, options, expectedCount);
 	}
