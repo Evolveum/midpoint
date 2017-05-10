@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,13 +58,22 @@ public abstract class HibernateQuery {
      */
     private List<Condition> conditions = new ArrayList<>();
 
-    class Ordering {
-        String byProperty;
-        OrderDirection direction;
+    public class Ordering {
+        @NotNull private final String byProperty;
+        private final OrderDirection direction;
 
-        public Ordering(String byProperty, OrderDirection direction) {
+        Ordering(@NotNull String byProperty, OrderDirection direction) {
             this.byProperty = byProperty;
             this.direction = direction;
+        }
+
+        @NotNull
+        public String getByProperty() {
+            return byProperty;
+        }
+
+        public OrderDirection getDirection() {
+            return direction;
         }
     }
 
@@ -201,6 +211,10 @@ public abstract class HibernateQuery {
 
     public void addOrdering(String propertyPath, OrderDirection direction) {
         orderingList.add(new Ordering(propertyPath, direction));
+    }
+
+    public List<Ordering> getOrderingList() {
+        return orderingList;
     }
 
     public abstract RootHibernateQuery getRootQuery();

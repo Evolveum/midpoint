@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.*;
+import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.ProjectionElement;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -160,6 +161,12 @@ public class QueryInterpreter2 {
             } else {
             	throw new QueryException("Unsupported type: " + context.getType());
 			}
+			if (distinct) {
+                // SQL requires this
+                for (HibernateQuery.Ordering ordering : hibernateQuery.getOrderingList()) {
+                    hibernateQuery.addProjectionElement(new ProjectionElement(ordering.getByProperty()));
+                }
+            }
         }
 
         return hibernateQuery;
