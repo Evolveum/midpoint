@@ -110,6 +110,7 @@ public class AuditLogViewerPanel extends BasePanel {
     private static final String ID_EVENT_STAGE = "eventStage";
     private static final String ID_OUTCOME = "outcomeField";
     private static final String ID_CHANGED_ITEM = "changedItem";
+    private static final String ID_VALUE_REF_TARGET_NAME_FIELD = "valueRefTargetNameField";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -344,6 +345,15 @@ public class AuditLogViewerPanel extends BasePanel {
                 target.add(getFeedbackPanel());
             }
         };
+        
+        PropertyModel<String> valueRefTargetNameModel = new PropertyModel<String>(auditSearchDto,
+                AuditSearchDto.F_VALUE_REF_TARGET_NAME);
+        TextPanel<String> valueRefTargetNamePanel = new TextPanel<String>(ID_VALUE_REF_TARGET_NAME_FIELD, valueRefTargetNameModel);
+        valueRefTargetNamePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        valueRefTargetNamePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        valueRefTargetNamePanel.setOutputMarkupId(true);
+        parametersPanel.add(valueRefTargetNamePanel);
+
         ajaxButton.setOutputMarkupId(true);
         parametersPanel.add(ajaxButton);
     }
@@ -399,6 +409,7 @@ public class AuditLogViewerPanel extends BasePanel {
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());
                 parameters.put("outcome", search.getOutcome());
+                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAME_KEY, search.getValueRefTargetName());
                 return parameters;
             }
 
