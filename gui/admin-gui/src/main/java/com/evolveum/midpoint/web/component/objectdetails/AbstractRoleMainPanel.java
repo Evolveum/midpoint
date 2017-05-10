@@ -96,7 +96,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 				return Integer.toString(inducementsModel.getObject() == null ? 0 : inducementsModel.getObject().size());
 			}
 		});
-		
+
+		authorization = new FocusTabVisibleBehavior(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL);
 		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
 
 			private static final long serialVersionUID = 1L;
@@ -108,7 +110,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public boolean isVisible() {
-				return getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+				return super.isVisible() &&
+						getObjectWrapper().getStatus() != ContainerStatus.ADDING;
 			}
 		});
 		
