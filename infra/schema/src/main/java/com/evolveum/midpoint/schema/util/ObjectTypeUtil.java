@@ -637,4 +637,8 @@ public class ObjectTypeUtil {
 				.filter(c -> QNameUtil.match(c.getRelation(), relation))		// intentionally not using default/null equivalence here
 				.findFirst().orElse(null);
 	}
+
+	public static <T extends Objectable> T asObjectable(PrismObject<T> prismObject) {
+    	return prismObject != null ? prismObject.asObjectable() : null;
+	}
 }

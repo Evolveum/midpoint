@@ -17,6 +17,7 @@ package com.evolveum.midpoint.security.impl;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -64,68 +65,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.security.api.UserProfileService;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author Radovan Semancik
@@ -138,14 +77,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private static final boolean FILTER_TRACE_ENABLED = false;
 	
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 	
-	@Autowired(required = true)
+	@Autowired
 	private MatchingRuleRegistry matchingRuleRegistry;
 	
-	@Autowired(required = true)
+	@Autowired
 	private PrismContext prismContext;
 	
 	private UserProfileService userProfileService = null;
@@ -218,7 +157,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		boolean allow = false;
 		LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, object={}, delta={}, target={}",
-				new Object[]{midPointPrincipal, operationUrl, phase, object, delta, target});
+				midPointPrincipal, operationUrl, phase, object, delta, target);
 		final Collection<ItemPath> allowedItems = new ArrayList<>();
 		Collection<Authorization> authorities = getAuthorities(midPointPrincipal);
 		if (authorities != null) {
@@ -321,7 +260,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("AUTZ result: principal={}, operation={}: {}", new Object[]{midPointPrincipal, operationUrl, allow});
+			LOGGER.trace("AUTZ result: principal={}, operation={}: {}", midPointPrincipal, operationUrl, allow);
 		}
 		return allow;
 	}
@@ -341,24 +280,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 	
 	private Visitor createItemVisitor(final Collection<ItemPath> allowedItems, final MutableBoolean itemDecision) {
-		return new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				if (visitable instanceof Item) {
-					
-					// TODO: problem with empty containers such as
-					// orderConstraint in assignment. Skip all 
-					// empty items ... for now.
-					if (((Item)visitable).isEmpty()) {
-						return;
-					}
-					
-					ItemPath itemPath = ((Item)visitable).getPath();
-					if (itemPath != null && !itemPath.isEmpty()) {
-						if (!isInList(itemPath, allowedItems)) {
-							LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
-							itemDecision.setValue(false);
-						}
+		return visitable -> {
+			if (visitable instanceof Item) {
+
+				// TODO: problem with empty containers such as
+				// orderConstraint in assignment. Skip all
+				// empty items ... for now.
+				if (((Item)visitable).isEmpty()) {
+					return;
+				}
+
+				ItemPath itemPath = ((Item)visitable).getPath();
+				if (itemPath != null && !itemPath.isEmpty()) {
+					if (!isInList(itemPath, allowedItems)) {
+						LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
+						itemDecision.setValue(false);
 					}
 				}
 			}
@@ -494,7 +430,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
 				if (special == SpecialObjectSpecificationType.SELF) {
-					String principalOid = principal.getOid();
+					String principalOid = principal != null ? principal.getOid() : null;
 					if (principalOid == null) {
 						// This is a rare case. It should not normally happen. But it may happen in tests
 						// or during initial import. Therefore we are not going to die here. Just ignore it.
@@ -504,7 +440,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							return true;
 						} else {
 							LOGGER.trace("  {}: 'self' authorization not applicable for {}, principal OID: {}, {} OID {}",
-									new Object[]{autzHumanReadableDesc, desc, principalOid, desc, object.getOid()});
+									autzHumanReadableDesc, desc, principalOid, desc, object.getOid());
 						}
 					}
 				} else {
@@ -522,14 +458,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
 				if (matchesOrgRelation(object, subjectParentOrgRef, specOrgRelation, autzHumanReadableDesc, desc)) {
 					LOGGER.trace("  org {} applicable for {}, object OID {} because subject org {} matches",
-							new Object[]{autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid()});
+							autzHumanReadableDesc, desc, object.getOid(), subjectParentOrgRef.getOid());
 					match = true;
 					break;
 				}
 			}
 			if (!match) {
 				LOGGER.trace("  org {} not applicable for {}, object OID {} because none of the subject orgs matches",
-						new Object[]{autzHumanReadableDesc, desc, object.getOid()});
+						autzHumanReadableDesc, desc, object.getOid());
 				return false;
 			}			
 		}
@@ -886,8 +822,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
 			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
-		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, objectType={}: orig filter {}", 
-				new Object[]{principal, objectType, origFilter});
+		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, objectType={}: orig filter {}",
+				principal, objectType, origFilter);
 		if (origFilter == null) {
 			origFilter = AllFilter.createAll();
 		}
@@ -904,8 +840,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					false, objectType, object, origFilter);
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
-		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", 
-				new Object[]{principal, objectType, finalFilter});
+		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", principal, objectType, finalFilter);
 		if (finalFilter instanceof AllFilter) {
 			// compatibility
 			return null;
@@ -1161,16 +1096,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		if (securityFilterDeny == null) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow:\n{}", 
-					new Object[]{getUsername(principal), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump()});
+				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow:\n{}",
+						getUsername(principal), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump());
 			}
 			traceFilter("origWithAllowFilter", null, origWithAllowFilter);
 			return origWithAllowFilter;
 		} else {
 			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses):\n{}", 
-					new Object[]{getUsername(principal), operationUrl, secFilter==null?"null":secFilter.debugDump()});
+				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses):\n{}",
+						getUsername(principal), operationUrl, secFilter==null?"null":secFilter.debugDump());
 			}
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
@@ -1318,11 +1253,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (origPrincipal instanceof MidPointPrincipal) {
 						MidPointPrincipal newMidPointPrincipal = ((MidPointPrincipal)origPrincipal).clone();
 						newMidPointPrincipal.getAuthorities().add(privilegedAuthorization);
+						newPrincipal = newMidPointPrincipal;
 					}
 				}
 			}
 			
-			Collection newAuthorities = new ArrayList<>(); 
+			Collection<GrantedAuthority> newAuthorities = new ArrayList<>();
 			newAuthorities.addAll(origAuthentication.getAuthorities());
 			newAuthorities.add(privilegedAuthorization);
 			PreAuthenticatedAuthenticationToken newAuthorization = new PreAuthenticatedAuthenticationToken(newPrincipal, null, newAuthorities);
