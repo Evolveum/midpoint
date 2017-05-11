@@ -167,7 +167,7 @@ public class ObjectRetriever {
 		if (!lockForUpdate) {
 			Query query = session.getNamedQuery("get.object");
 			query.setString("oid", oid);
-			query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+			query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 			query.setLockOptions(lockOptions);
 
 			fullObject = (GetObjectResult) query.uniqueResult();
@@ -230,7 +230,7 @@ public class ObjectRetriever {
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
             Query query = session.getNamedQuery("searchShadowOwner.getOwner");
             query.setString("oid", shadowOid);
-            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
             List<GetObjectResult> focuses = query.list();
             LOGGER.trace("Found {} focuses, transforming data to JAXB types.", focuses != null ? focuses.size() : 0);
@@ -268,7 +268,7 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
             query.setString("oid", accountOid);
-            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
             List<GetObjectResult> users = query.list();
             LOGGER.trace("Found {} users, transforming data to JAXB types.", users != null ? users.size() : 0);
@@ -569,7 +569,7 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listResourceObjectShadows");
             query.setString("oid", resourceOid);
-            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
             List<GetObjectResult> shadows = query.list();
             LOGGER.debug("Query returned {} shadows, transforming to JAXB types.", shadows != null ? shadows.size() : 0);
