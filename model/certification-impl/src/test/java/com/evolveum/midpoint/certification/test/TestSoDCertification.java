@@ -216,7 +216,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
         assertEquals("Wrong number of certification cases", 5, caseList.size());
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);

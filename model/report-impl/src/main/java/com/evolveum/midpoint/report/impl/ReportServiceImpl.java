@@ -146,7 +146,7 @@ public class ReportServiceImpl implements ReportService {
 	public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
 			ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException {
+			ConfigurationException, ExpressionEvaluationException {
 		// List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
 
 		// GetOperationOptions options = GetOperationOptions.createRaw();
@@ -177,7 +177,7 @@ public class ReportServiceImpl implements ReportService {
 			results = model.searchObjects(clazz, queryForSearch, options, task, parentResult);
 			return results;
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| CommunicationException | ConfigurationException e) {
+				| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			// TODO Auto-generated catch block
 			throw e;
 		}

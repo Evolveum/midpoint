@@ -252,7 +252,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         abstract boolean immediate();
         abstract boolean checkObjectOnSubtasks();
         boolean approvedAutomatically() { return false; }
-        LensContext createModelContext(OperationResult result) throws Exception { return null; }
+        LensContext createModelContext(Task task, OperationResult result) throws Exception { return null; }
         void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
         void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception { }
@@ -261,7 +261,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         boolean removeAssignmentsBeforeTest() { return true; }
     }
 
-    protected boolean decideOnRoleApproval(String executionId) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+    protected boolean decideOnRoleApproval(String executionId) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         LightweightObjectRef targetRef = (LightweightObjectRef) activitiEngine.getRuntimeService().getVariable(executionId, CommonProcessVariableNames.VARIABLE_TARGET_REF);
         assertNotNull("targetRef not found", targetRef);
         String roleOid = targetRef.getOid();
@@ -297,7 +297,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             removeAllAssignments(oid, result);
         }
 
-        LensContext<UserType> context = (LensContext<UserType>) testDetails.createModelContext(result);
+        LensContext<UserType> context = (LensContext<UserType>) testDetails.createModelContext(modelTask, result);
 
         display("Input context", context);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -126,12 +125,12 @@ public class WfTaskUtil {
         return task.getModelOperationContext() != null;
     }
 
-    public ModelContext getModelContext(Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    public ModelContext getModelContext(Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         LensContextType modelContextType = task.getModelOperationContext();
         if (modelContextType == null) {
             return null;
         }
-        return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, result);
+        return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, task, result);
     }
 
     public void storeModelContext(Task task, ModelContext context) throws SchemaException {

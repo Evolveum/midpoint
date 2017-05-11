@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(USER_ELISABETH_FILE)));
                 return context;
@@ -109,7 +109,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_ELISABETH_OID, result);
                 addFocusModificationToContext(context, REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1);
