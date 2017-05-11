@@ -166,6 +166,18 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="executeOptions" type="c:ModelExecuteOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="workerThreads" type="xsd:int">
         <xsd:annotation>
             <xsd:documentation>

@@ -164,6 +164,7 @@
         <roleMembershipRef oid="r123" type="c:RoleType"/>
         <roleMembershipRef oid="r456" type="c:RoleType"/>
         <delegatedRef oid="r789" type="c:RoleType"/>
+        <personaRef oid="u000" type="c:UserType"/>
 
         <fullName>
             <t:orig>Test UserX00003</t:orig>

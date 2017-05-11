@@ -107,12 +107,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestPersona extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/persona");
-	
-	protected static final File OBJECT_TEMPLATE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "object-template-persona-admin.xml");
-	protected static final String OBJECT_TEMPLATE_PERSONA_ADMIN_OID = "894ea1a8-2c0a-11e7-a950-ff2047b0c053";
-	
-	protected static final File ROLE_PERSONA_ADMIN_FILE = new File(TEST_DIR, "role-persona-admin.xml");
-	protected static final String ROLE_PERSONA_ADMIN_OID = "16813ae6-2c0a-11e7-91fc-8333c244329e";
 
 	private static final String USER_JACK_GIVEN_NAME_NEW = "Jackie";
 
@@ -154,6 +148,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
         assertUserJack(userAfter);
+        assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
@@ -163,6 +158,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // Full name is computed by using ordinary user template
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
+        assertUserPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
@@ -251,6 +247,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
         assertUserJack(userAfter);
+        assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
@@ -258,6 +255,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         display("Persona", persona);
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
+        assertUserPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
@@ -274,7 +272,6 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
-        assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
 		
 		// THEN
         displayThen(TEST_NAME);
@@ -283,6 +280,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+		assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 1);
@@ -291,11 +289,14 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
         // Full name mapping in ordinary user template is weak, fullname is not changed
         assertUser(persona, userJackAdminPersonaOid, toAdminPersonaUsername(USER_JACK_USERNAME), USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
         assertSubtype(persona, "admin");
+        assertUserPassword(persona, USER_JACK_PASSWORD);
 
         assertSteadyResources();
 	}
     
     // TODO: recompute, reconcile (both user and persona)
+    
+    // TODO: change password
     
     // TODO: assign some accouts/roles to user and persona, make sure they are independent
     
@@ -321,6 +322,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, USER_JACK_GIVEN_NAME_NEW, USER_JACK_FAMILY_NAME);
+		assertUserPassword(userAfter, USER_JACK_PASSWORD);
         
         assertLinks(userAfter, 0);
         assertPersonaLinks(userAfter, 0);

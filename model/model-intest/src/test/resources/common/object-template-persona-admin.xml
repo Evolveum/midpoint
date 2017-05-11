@@ -57,4 +57,15 @@
     
     <!-- Full name is computed using ordinary user template. -->
     
+    <mapping>
+    	<name>persona-admin-password</name>
+    	<strength>weak</strength>
+    	<source>
+    		<path>credentials/password/value</path>
+    	</source>
+    	<target>
+    		<path>credentials/password/value</path>
+    	</target>
+    </mapping>
+        
 </objectTemplate>

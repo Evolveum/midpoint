@@ -465,6 +465,9 @@ public class FocusProcessor {
 			return focusContext.hasAnyDelta();
 		}
 		ObjectDelta<?> summaryDelta = ObjectDelta.union(focusContext.getPrimaryDelta(), focusContext.getSecondaryDelta());
+		if (summaryDelta == null) {
+			return false;
+		}
 		for (ItemPathType path : modificationConstraintType.getItem()) {
 			if (!pathMatches(focusContext.getObjectOld(), summaryDelta, path.getItemPath())) {
 				return false;

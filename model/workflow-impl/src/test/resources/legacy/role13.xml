@@ -26,7 +26,7 @@
 
     <name>Role13</name>
     <approvalSchema>
-        <level>
+        <stage>
             <approverExpression>
                 <script>
                     <code>
@@ -36,7 +36,7 @@
             </approverExpression>
             <evaluationStrategy>firstDecides</evaluationStrategy>
             <outcomeIfNoApprovers>approve</outcomeIfNoApprovers>
-        </level>
+        </stage>
     </approvalSchema>
 
 </role>

@@ -94,6 +94,10 @@ public class AccCertCaseOperationsHelper {
 			throw new ObjectNotFoundException("Work item " + workItemId + " was not found in campaign " + toShortString(campaign) + ", case " + caseId);
 		}
 
+		if (response == AccessCertificationResponseType.NO_RESPONSE) {
+			response = null;
+		}
+
 		ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityEnforcer.getPrincipal().getUser());
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ItemPath workItemPath = new ItemPath(F_CASE, caseId, F_WORK_ITEM, workItemId);

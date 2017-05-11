@@ -61,6 +61,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     private Set<RObjectReference<RShadow>> linkRef;
     private Set<RObjectReference<RAbstractRole>> roleMembershipRef;
     private Set<RObjectReference<RFocus>> delegatedRef;
+    private Set<RObjectReference<RFocus>> personaRef;
     private Set<RAssignment> assignments;
     private RActivation activation;
     private Set<String> policySituation;
@@ -99,6 +100,17 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             delegatedRef = new HashSet<>();
         }
         return delegatedRef;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "= 10")
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference<RFocus>> getPersonaRef() {
+        if (personaRef == null) {
+            personaRef = new HashSet<>();
+        }
+        return personaRef;
     }
 
     @Transient
@@ -171,6 +183,10 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         this.delegatedRef = delegatedRef;
     }
 
+    public void setPersonaRef(Set<RObjectReference<RFocus>> personaRef) {
+        this.personaRef = personaRef;
+    }
+
     public void setActivation(RActivation activation) {
         this.activation = activation;
     }
@@ -213,6 +229,9 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
 
         repo.getDelegatedRef().addAll(
                 RUtil.safeListReferenceToSet(jaxb.getDelegatedRef(), repositoryContext.prismContext, repo, RReferenceOwner.DELEGATED));
+
+        repo.getPersonaRef().addAll(
+                RUtil.safeListReferenceToSet(jaxb.getPersonaRef(), repositoryContext.prismContext, repo, RReferenceOwner.PERSONA));
 
         repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 

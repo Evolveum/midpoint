@@ -107,7 +107,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void iterateSet() throws Exception {
         OperationResult result = new OperationResult("search set");
 
-        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        final List<PrismObject> objects = new ArrayList<>();
 
         ResultHandler handler = (object, parentResult) -> {
 			objects.add(object);
@@ -247,6 +247,28 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find no users", 0, users.size());
     }
 
+    @Test
+    public void personaSearchTest() throws Exception {
+        PrismReferenceValue u000 = new PrismReferenceValue("u000", UserType.COMPLEX_TYPE);
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_PERSONA_REF).ref(u000)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one user", 1, users.size());
+        assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
+
+		PrismReferenceValue r789 = new PrismReferenceValue("r789", RoleType.COMPLEX_TYPE);
+        query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_PERSONA_REF).ref(r789)
+                .build();
+        users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find no users", 0, users.size());
+    }
 
     @Test
     public void assignmentOrgRefSearchTest() throws Exception {
@@ -645,8 +667,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
 		OperationResult result = new OperationResult("fullTextSearch");
 
-		Collection<SelectorOptions<GetOperationOptions>> distinct =
-				SelectorOptions.createCollection(GetOperationOptions.createDistinct());
+		Collection<SelectorOptions<GetOperationOptions>> distinct = distinct();
 
 		assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
 						.fullText("atestuserX00003")
@@ -705,6 +726,17 @@ public class SearchTest extends BaseSQLRepoTest {
 						.fullText("sollicitudin")
 						.build(),
 				distinct, 1);
+
+		assertUsersFoundBySearch(QueryBuilder.queryFor(UserType.class, prismContext)
+						.fullText("sollicitudin")
+						.asc(UserType.F_FULL_NAME)
+						.maxSize(100)
+						.build(),
+				distinct, 1);
+	}
+
+	private Collection<SelectorOptions<GetOperationOptions>> distinct() {
+		return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
 	}
 
 	@Test
@@ -721,8 +753,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
 	@SuppressWarnings("SameParameterValue")
 	private List<PrismObject<UserType>> assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
-		Collection<SelectorOptions<GetOperationOptions>> options = distinct ?
-				SelectorOptions.createCollection(GetOperationOptions.createDistinct()) : null;
+		Collection<SelectorOptions<GetOperationOptions>> options = distinct ? distinct() : null;
 		assertObjectsFoundByCount(query, options, expectedCount);
     	return assertUsersFoundBySearch(query, options, expectedCount);
 	}

@@ -30,25 +30,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Radovan Semancik
  */
 public interface ScriptEvaluator {
 	
-	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType, ExpressionVariables variables,
-													  ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, ObjectResolver objectResolver,
-													  Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result)
+	<T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType, ExpressionVariables variables,
+			ItemDefinition outputDefinition, Function<Object, Object> additionalConvertor,
+			ScriptExpressionReturnTypeType suggestedReturnType, ObjectResolver objectResolver,
+			Collection<FunctionLibrary> functions, String contextDescription, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException;
 
     /**
      * Returns human readable name of the language that this evaluator supports
      */
-    public String getLanguageName();
+	String getLanguageName();
 
 	/**
 	 * Returns URL of the language that this evaluator can handle
 	 */
-	public String getLanguageUrl();
+	String getLanguageUrl();
 
 }

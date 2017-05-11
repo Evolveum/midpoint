@@ -1005,15 +1005,15 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = 
 				ExpressionUtil.createCondition(conditionExpressionType, expressionFactory, 
 				"condition in "+getMappingContextDescription(), task, result);
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"condition in "+getMappingContextDescription(), task, result);
-		params.setStringPolicyResolver(stringPolicyResolver);
-		params.setExpressionFactory(expressionFactory);
-		params.setDefaultSource(defaultSource);
-		params.setDefaultTargetContext(getTargetContext());
-		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
-		params.setMappingQName(mappingQName);
-		conditionOutputTriple = expression.evaluate(params);
+		context.setStringPolicyResolver(stringPolicyResolver);
+		context.setExpressionFactory(expressionFactory);
+		context.setDefaultSource(defaultSource);
+		context.setDefaultTargetContext(getTargetContext());
+		context.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
+		context.setMappingQName(mappingQName);
+		conditionOutputTriple = expression.evaluate(context);
 	}
 
 	
@@ -1024,17 +1024,17 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		}
 		expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
 				"expression in "+getMappingContextDescription(), task, result);
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"expression in "+getMappingContextDescription(), task, result);
-		params.setDefaultSource(defaultSource);
-		params.setSkipEvaluationMinus(!conditionResultOld);
-		params.setSkipEvaluationPlus(!conditionResultNew);
-		params.setStringPolicyResolver(stringPolicyResolver);
-		params.setExpressionFactory(expressionFactory);
-		params.setDefaultTargetContext(getTargetContext());
-		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
-		params.setMappingQName(mappingQName);
-		outputTriple = expression.evaluate(params);
+		context.setDefaultSource(defaultSource);
+		context.setSkipEvaluationMinus(!conditionResultOld);
+		context.setSkipEvaluationPlus(!conditionResultNew);
+		context.setStringPolicyResolver(stringPolicyResolver);
+		context.setExpressionFactory(expressionFactory);
+		context.setDefaultTargetContext(getTargetContext());
+		context.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
+		context.setMappingQName(mappingQName);
+		outputTriple = expression.evaluate(context);
 
 		if (outputTriple == null) {
 			

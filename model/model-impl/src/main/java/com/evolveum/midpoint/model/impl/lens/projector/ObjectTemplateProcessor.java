@@ -387,7 +387,7 @@ public class ObjectTemplateProcessor {
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
 		
-		LOGGER.trace("Collecting triples from {}, focusOdo:\n{}", objectTemplateType, focusOdo.debugDumpLazily());
+		LOGGER.trace("Collecting triples from {}", objectTemplateType);
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -48,6 +49,7 @@ public class ScriptExpression {
     private ScriptExpressionEvaluatorType scriptType;
     private ScriptEvaluator evaluator;
     private ItemDefinition outputDefinition;
+	private Function<Object, Object> additionalConvertor;
     private ObjectResolver objectResolver;
     private Collection<FunctionLibrary> functions;
 
@@ -83,8 +85,16 @@ public class ScriptExpression {
 		this.functions = functions;
 	}
 
+	public Function<Object, Object> getAdditionalConvertor() {
+		return additionalConvertor;
+	}
+
+	public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
+		this.additionalConvertor = additionalConvertor;
+	}
+
 	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
-												   boolean useNew, String contextDescription, Task task, OperationResult result)
+			boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
@@ -93,7 +103,7 @@ public class ScriptExpression {
 		try {
 			context.setupThreadLocal();
 			
-			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, task, result);
+			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, additionalConvertor, suggestedReturnType, objectResolver, functions, contextDescription, task, result);
 			
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;

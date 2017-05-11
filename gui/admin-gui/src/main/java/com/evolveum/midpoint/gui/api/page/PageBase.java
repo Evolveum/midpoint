@@ -1532,27 +1532,41 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		});
 		submenu.add(edit);
-		MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageClass) {
-			private static final long serialVersionUID = 1L;
+			MenuItem newMenu = new MenuItem(createStringResource(newKey), newPageClass, null, new VisibleEnableBehaviour() {
+				private static final long serialVersionUID = 1L;
 
-			@Override
-			protected boolean isMenuActive() {
-				if (!PageBase.this.getPage().getClass().equals(newPageClass)) {
-					return false;
+				@Override
+				public boolean isVisible() {
+					try {
+                        return getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_ACTION_URL,
+							AuthorizationPhaseType.REQUEST, (new OrgType(getPrismContext())).asPrismObject(),
+							null, null, null);
+					} catch (SchemaException ex){
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
+					}
+					return true;
 				}
+			}) {
+				private static final long serialVersionUID = 1L;
 
-				if (PageBase.this.getPage() instanceof PageAdminFocus) {
-					PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
-					return !page.isEditingFocus();
-				} else if (PageBase.this.getPage() instanceof PageResourceWizard) {
-					PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
-					return page.isNewResource();
-				} else {
-					return false;
+				@Override
+				protected boolean isMenuActive() {
+					if (!PageBase.this.getPage().getClass().equals(newPageClass)) {
+						return false;
+					}
+
+					if (PageBase.this.getPage() instanceof PageAdminFocus) {
+						PageAdminFocus page = (PageAdminFocus) PageBase.this.getPage();
+						return !page.isEditingFocus();
+					} else if (PageBase.this.getPage() instanceof PageResourceWizard) {
+						PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
+						return page.isNewResource();
+					} else {
+						return false;
+					}
 				}
-			}
-		};
-		submenu.add(newMenu);
+			};
+			submenu.add(newMenu);
 	}
 
 	private void createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,

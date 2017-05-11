@@ -263,7 +263,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 	}
 
 	public ObjectDelta<O> createDelta(ChangeType changeType) {
-		ObjectDelta<O> delta = new ObjectDelta<O>(getCompileTimeClass(), changeType, getPrismContext());
+		ObjectDelta<O> delta = new ObjectDelta<>(getCompileTimeClass(), changeType, getPrismContext());
 		delta.setOid(getOid());
 		return delta;
 	}

@@ -21,13 +21,7 @@ import java.util.List;
 /**
  * @author mederly
  */
-public class ProjectionElement {
-
-    private String text;
-
-    public ProjectionElement(String text) {
-        this.text = text;
-    }
+public abstract class ProjectionElement {
 
     public static void dumpToHql(StringBuilder sb, List<ProjectionElement> projectionElements, int indent) {
         boolean first = true;
@@ -42,7 +36,5 @@ public class ProjectionElement {
         }
     }
 
-    private void dumpToHql(StringBuilder sb) {
-        sb.append(text);
-    }
+    protected abstract void dumpToHql(StringBuilder sb);
 }

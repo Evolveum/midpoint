@@ -35,7 +35,7 @@
         <relation>default</relation>        <!-- the default -->
     </scopeDefinition>
     <remediationDefinition>
-        <style>automated</style>
+        <style>reportOnly</style>
     </remediationDefinition>
     <stageDefinition>
         <number>1</number>
@@ -61,7 +61,11 @@
             </time>
             <actions>
                 <escalate>
-                    <approverRef oid="c0c010c0-d34d-b33f-f00d-11111111111e" type="UserType"/>   <!-- elaine -->
+                    <approverExpression>
+                        <script>
+                            <code>'c0c010c0-d34d-b33f-f00d-11111111111e'</code>     <!-- elaine; testing value convertors -->
+                        </script>
+                    </approverExpression>
                     <escalationLevelName>elaine-level</escalationLevelName>
                 </escalate>
             </actions>

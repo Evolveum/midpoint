@@ -26,7 +26,7 @@
 
     <name>Role11</name>
     <approvalSchema>
-        <level>
+        <stage>
             <approverRef type="c:UserType">
                 <filter>
                     <q:equal>
@@ -36,13 +36,14 @@
                 </filter>
             </approverRef>
             <evaluationStrategy>firstDecides</evaluationStrategy>
-            <automaticallyApproved>
+            <automaticallyCompleted>
                 <description>Assignment of this role is always automatically approved.</description>
                 <script>
-                    <code>true</code>
+                    <!-- This will be automatically converted to URI. Don't use this form in your code. This is here only because of testing. -->
+                    <code>com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE</code>
                 </script>
-            </automaticallyApproved>
-        </level>
+            </automaticallyCompleted>
+        </stage>
     </approvalSchema>
 
 </role>

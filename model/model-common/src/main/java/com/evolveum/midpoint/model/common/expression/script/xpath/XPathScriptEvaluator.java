@@ -51,6 +51,7 @@ import javax.xml.xpath.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Radovan Semancik
@@ -69,9 +70,11 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 
     @Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-                                                      ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType,
-                                                      ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-                                                      String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
+			ExpressionVariables variables, ItemDefinition outputDefinition,
+			Function<Object, Object> additionalConvertor,
+			ScriptExpressionReturnTypeType suggestedReturnType,
+			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 
     	String codeString = expressionType.getCode();

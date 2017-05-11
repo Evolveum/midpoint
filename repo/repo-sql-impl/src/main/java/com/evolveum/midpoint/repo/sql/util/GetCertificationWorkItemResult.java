@@ -21,18 +21,36 @@ import org.hibernate.transform.ResultTransformer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author mederly
  */
 public class GetCertificationWorkItemResult implements Serializable {
 
-    public static final ResultTransformer RESULT_TRANSFORMER = new BasicTransformerAdapter() {
-        @Override
-        public Object transformTuple(Object[] tuple, String[] aliases) {
-            return new GetCertificationWorkItemResult((String) tuple[0], (Integer) tuple[1], (Integer) tuple[2]);
-        }
-    };
+    public static final ResultStyle RESULT_STYLE = new ResultStyle() {
+		@Override
+		public ResultTransformer getResultTransformer() {
+			return new BasicTransformerAdapter() {
+				@Override
+				public Object transformTuple(Object[] tuple, String[] aliases) {
+					return new GetCertificationWorkItemResult((String) tuple[0], (Integer) tuple[1], (Integer) tuple[2]);
+				}
+			};
+		}
+
+		@Override
+		public List<String> getIdentifiers(String rootAlias) {
+			return Arrays.asList(rootAlias + ".ownerOwnerOid", rootAlias + ".ownerId", rootAlias + ".id");
+		}
+
+		@Override
+		public List<String> getContentAttributes(String basePath) {
+			return Collections.emptyList();
+		}
+	};
 
     @NotNull private final String campaignOid;
 	@NotNull private final Integer caseId;

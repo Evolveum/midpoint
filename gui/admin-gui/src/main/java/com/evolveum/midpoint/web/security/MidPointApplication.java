@@ -33,14 +33,18 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.RuntimeConfigurationType;
@@ -50,6 +54,7 @@ import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
@@ -200,6 +205,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 	transient MatchingRuleRegistry matchingRuleRegistry;
     @Autowired
     transient SecurityEnforcer securityEnforcer;
+    @Autowired
+    transient SystemObjectCache systemObjectCache;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 
@@ -392,7 +399,22 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 		return matchingRuleRegistry;
 	}
 
-	private static class ResourceFileFilter implements FilenameFilter {
+    public SystemConfigurationType getSystemConfiguration() throws SchemaException {
+        PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
+        return config != null ? config.asObjectable() : null;
+    }
+
+    public SystemConfigurationType getSystemConfigurationIfAvailable() {
+        try {
+            PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
+            return config != null ? config.asObjectable() : null;
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve system configuration", e);
+            return null;
+        }
+    }
+
+    private static class ResourceFileFilter implements FilenameFilter {
 
         @Override
         public boolean accept(File parent, String name) {
@@ -402,5 +424,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
             return false;
         }
+    }
+
+    public static MidPointApplication get() {
+        return (MidPointApplication) WebApplication.get();
     }
 }

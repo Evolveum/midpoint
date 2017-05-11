@@ -6,6 +6,9 @@ import org.hibernate.transform.ResultTransformer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -15,11 +18,38 @@ public class GetObjectResult implements Serializable {
     public static final Class[] EXT_COUNT_CLASSES = new Class[]{ROExtString.class, ROExtLong.class, ROExtDate.class,
             ROExtReference.class, ROExtPolyString.class, ROExtBoolean.class};
 
-    public static final ResultTransformer RESULT_TRANSFORMER = new BasicTransformerAdapter() {
+    public static final ResultStyle RESULT_STYLE = new ResultStyle() {
+        @Override
+        public ResultTransformer getResultTransformer() {
+            return new BasicTransformerAdapter() {
+                @Override
+                public Object transformTuple(Object[] tuple, String[] aliases) {
+                    return new GetObjectResult((String) tuple[0], (byte[]) tuple[1],
+                            tuple.length > 2 ? (Short) tuple[2] : null,
+                            tuple.length > 3 ? (Short) tuple[3] : null,
+                            tuple.length > 4 ? (Short) tuple[4] : null,
+                            tuple.length > 5 ? (Short) tuple[5] : null,
+                            tuple.length > 6 ? (Short) tuple[6] : null,
+                            tuple.length > 7 ? (Short) tuple[7] : null);
+                }
+            };
+        }
 
         @Override
-        public Object transformTuple(Object[] tuple, String[] aliases) {
-            return new GetObjectResult(tuple);
+        public List<String> getIdentifiers(String rootAlias) {
+            return Collections.singletonList(rootAlias + ".oid");
+        }
+
+        @Override
+        public List<String> getContentAttributes(String rootAlias) {
+            return Arrays.asList(
+                    rootAlias + ".fullObject",
+                    rootAlias + ".stringsCount",
+                    rootAlias + ".longsCount",
+                    rootAlias + ".datesCount",
+                    rootAlias + ".referencesCount",
+                    rootAlias + ".polysCount",
+                    rootAlias + ".booleansCount");
         }
     };
 
@@ -32,16 +62,6 @@ public class GetObjectResult implements Serializable {
     private Short referencesCount;
     private Short polysCount;
     private Short booleansCount;
-
-    public GetObjectResult(Object[] values) {
-        this((String) values[0], (byte[]) values[1],
-                values.length > 2 ? (Short) values[2] : null,
-                values.length > 3 ? (Short) values[3] : null,
-                values.length > 4 ? (Short) values[4] : null,
-                values.length > 5 ? (Short) values[5] : null,
-                values.length > 6 ? (Short) values[6] : null,
-                values.length > 7 ? (Short) values[7] : null);
-    }
 
     public GetObjectResult(@NotNull String oid, @NotNull byte[] fullObject, Short stringsCount, Short longsCount, Short datesCount,
                            Short referencesCount, Short polysCount, Short booleansCount) {

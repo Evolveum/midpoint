@@ -75,7 +75,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 
 			@Override
 			public boolean isVisible() {
-				return getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+				return super.isVisible() && getObjectWrapper().getStatus() != ContainerStatus.ADDING;
 			}
 		});
 

@@ -29,7 +29,9 @@ import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,6 +60,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -65,6 +68,8 @@ import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.ASCENDING;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
+import static com.evolveum.midpoint.schema.GetOperationOptions.*;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
@@ -216,7 +221,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     "where\n" +
                     "  o.norm = :norm";
 
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             assertEqualsIgnoreWhitespace(expected, real);
 
@@ -483,7 +488,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              */
 
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class,
-					getQuery(new File(TEST_DIR, "query-and-generic.xml"), GenericObjectType.class), false);
+					getQuery(new File(TEST_DIR, "query-and-generic.xml"), GenericObjectType.class), false, null);
 			String real = realQuery.getQuery().getQueryString();
 
             String expected = "select\n" +
@@ -513,7 +518,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .and().item(F_EXTENSION, new QName("longType")).eq(335)
                     .build();
 
-			RQuery realQuery = getInterpretedQuery2Whole(session, GenericObjectType.class, query, false);
+			RQuery realQuery = getInterpretedQuery2Whole(session, GenericObjectType.class, query, false, null);
 			RootHibernateQuery source = ((RQueryImpl) realQuery).getQuerySource();
 			String real = ((RQueryImpl) realQuery).getQuery().getQueryString();
 
@@ -565,7 +570,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         Session session = open();
         try {
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ShadowType.class,
-                    getQuery(new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"), ShadowType.class), false);
+                    getQuery(new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"), ShadowType.class), false,
+                    null);
             String expected = "select\n" +
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
                     "from\n" +
@@ -607,7 +613,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
              *   [If we used AND instead of OR, this SHOULD BE left join r.strings s1, left join r.strings s2]
              */
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ShadowType.class,
-                    getQuery(new File(TEST_DIR, "query-or-composite.xml"), ShadowType.class), false);
+                    getQuery(new File(TEST_DIR, "query-or-composite.xml"), ShadowType.class), false, null);
 
             String expected = "select\n" +
                     "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
@@ -1375,7 +1381,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query, true);
             String expected = "select\n" +
-                    "  count(*)\n" +
+                    "  count(u.oid)\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -1399,7 +1405,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, true);
             String expected = "select\n" +
-                    "  count(*)\n" +
+                    "  count(o.oid)\n" +
                     "from\n" +
                     "  RObject o\n";     // ordering does not make sense here
             assertEqualsIgnoreWhitespace(expected, real);
@@ -1422,7 +1428,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, TaskType.class, query, true);
             String expected = "select\n" +
-                    "  count(*)\n" +
+                    "  count(t.oid)\n" +
                     "from\n" +
                     "  RTask t\n" +
                     "where\n" +
@@ -1468,7 +1474,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "where\n" +
@@ -2211,7 +2217,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //                    UserType.class, prismContext, "some weapon name");
 //            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
 
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ObjectType.class, query, false);
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ObjectType.class, query, false, null);
             String expected = "select\n" +
                     "  o.oid, o.fullObject,\n" +
                     "  o.stringsCount,\n" +
@@ -2554,7 +2560,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             objectQuery.setUseNewQueryInterpreter(true);
 
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class, objectQuery, false);
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class, objectQuery, false,
+                    null);
             String expected = "select\n" +
                     "  g.oid, g.fullObject,\n" +
                     "  g.stringsCount,\n" +
@@ -2719,7 +2726,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, (ObjectQuery) null, false);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n";
             assertEqualsIgnoreWhitespace(expected, real);
@@ -2776,7 +2783,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "where\n" +
@@ -2851,7 +2858,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "where\n" +
@@ -2877,8 +2884,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n"
-                    + "  a.fullObject,\n"
-                    + "  a.ownerOid\n"
+                    + "  a.ownerOid, a.id, a.fullObject\n"
                     + "from\n"
                     + "  RAccessCertificationCase a\n"
                     + "    left join a.workItems w\n"
@@ -2969,7 +2975,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.owner o\n" +
@@ -3001,7 +3007,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected =
                     "select\n" +
-                            "  a.fullObject, a.ownerOid\n" +
+                            "  a.ownerOid, a.id, a.fullObject\n" +
                             "from\n" +
                             "  RAccessCertificationCase a\n" +
                             "    left join a.workItems w\n" +
@@ -3043,7 +3049,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
             String expected =
                     "select\n" +
-                            "  a.fullObject, a.ownerOid\n" +
+                            "  a.ownerOid, a.id, a.fullObject\n" +
                             "from\n" +
                             "  RAccessCertificationCase a\n" +
                             "    left join a.workItems w\n" +
@@ -3120,7 +3126,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
 
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.workItems w\n" +
@@ -3267,7 +3273,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.owner o\n" +
@@ -3330,7 +3336,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.owner o\n" +
@@ -3358,7 +3364,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
-                    "  a.fullObject, a.ownerOid\n" +
+                    "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
                     "    left join a.targetRef.target t\n" +
@@ -3469,8 +3475,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n"
-					+ "  a.fullObject,\n"
-					+ "  a.ownerOid\n"
+					+ "  a.ownerOid, a.id, a.fullObject\n"
 					+ "from\n"
 					+ "  RAccessCertificationCase a\n"
 					+ "    left join a.workItems w\n"
@@ -3515,8 +3520,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
             String expected = "select\n"
-					+ "  a.fullObject,\n"
-					+ "  a.ownerOid\n"
+					+ "  a.ownerOid, a.id, a.fullObject\n"
 					+ "from\n"
 					+ "  RAccessCertificationCase a\n"
 					+ "    left join a.workItems w\n"
@@ -3943,6 +3947,157 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void testAdHoc111PersonaRef() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
+                    .item(FocusType.F_PERSONA_REF).ref("123456")
+                    .build();
+            String real = getInterpretedQuery2(session, FocusType.class, query);
+            String expected = "select\n"
+					+ "  f.oid,\n"
+					+ "  f.fullObject,\n"
+					+ "  f.stringsCount,\n"
+					+ "  f.longsCount,\n"
+					+ "  f.datesCount,\n"
+					+ "  f.referencesCount,\n"
+					+ "  f.polysCount,\n"
+					+ "  f.booleansCount\n"
+					+ "from\n"
+					+ "  RFocus f\n"
+					+ "    left join f.personaRef p\n"
+					+ "where\n"
+					+ "  (\n"
+					+ "    p.targetOid = :targetOid and\n"
+					+ "    p.relation in (:relation)\n"
+					+ "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc112DistinctAndOrderBy() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .asc(UserType.F_NAME)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
+            String expected;
+            SqlRepositoryConfiguration config = getConfiguration();
+            if (config.isUsingOracle() || config.isUsingSQLServer()) {
+                expected = "select\n"
+                        + "  u.oid,\n"
+                        + "  u.fullObject,\n"
+                        + "  u.stringsCount,\n"
+                        + "  u.longsCount,\n"
+                        + "  u.datesCount,\n"
+                        + "  u.referencesCount,\n"
+                        + "  u.polysCount,\n"
+                        + "  u.booleansCount\n"
+                        + "from\n"
+                        + "  RUser u\n"
+                        + "where\n"
+                        + "  u.oid in ("
+                        + "    select distinct\n"
+                        + "      u.oid\n"
+                        + "    from\n"
+                        + "      RUser u)\n"
+                        + "order by u.name.orig asc";
+            } else {
+                expected = "select distinct\n"
+                        + "  u.oid,\n"
+                        + "  u.fullObject,\n"
+                        + "  u.stringsCount,\n"
+                        + "  u.longsCount,\n"
+                        + "  u.datesCount,\n"
+                        + "  u.referencesCount,\n"
+                        + "  u.polysCount,\n"
+                        + "  u.booleansCount,\n"
+                        + "  u.name.orig\n"
+                        + "from\n"
+                        + "  RUser u\n"
+                        + "order by u.name.orig asc\n";
+            }
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void testAdHoc113DistinctUserWithAssignment() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                    .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("123456")
+                    .asc(UserType.F_NAME)
+                    .build();
+            String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
+            String expected;
+            SqlRepositoryConfiguration config = getConfiguration();
+            if (config.isUsingOracle() || config.isUsingSQLServer()) {
+                expected = "select\n"
+                        + "  u.oid,\n"
+                        + "  u.fullObject,\n"
+                        + "  u.stringsCount,\n"
+                        + "  u.longsCount,\n"
+                        + "  u.datesCount,\n"
+                        + "  u.referencesCount,\n"
+                        + "  u.polysCount,\n"
+                        + "  u.booleansCount\n"
+                        + "from\n"
+                        + "  RUser u\n"
+                        + "where\n"
+                        + "  u.oid in (\n"
+                        + "    select distinct\n"
+                        + "      u.oid\n"
+                        + "    from\n"
+                        + "      RUser u\n"
+                        + "        left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
+                        + "    where\n"
+                        + "      (\n"
+                        + "        a.targetRef.targetOid = :targetOid and\n"
+                        + "        a.targetRef.relation in (:relation)\n"
+                        + "      ))\n"
+                        + "order by u.name.orig asc";
+            } else {
+                expected = "select distinct\n"
+                        + "  u.oid,\n"
+                        + "  u.fullObject,\n"
+                        + "  u.stringsCount,\n"
+                        + "  u.longsCount,\n"
+                        + "  u.datesCount,\n"
+                        + "  u.referencesCount,\n"
+                        + "  u.polysCount,\n"
+                        + "  u.booleansCount,\n"
+                        + "  u.name.orig\n"
+                        + "from\n"
+                        + "  RUser u\n"
+                        + "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
+                        + "where\n"
+                        + "  (\n"
+                        + "    a.targetRef.targetOid = :targetOid and\n"
+                        + "    a.targetRef.relation in (:relation)\n"
+                        + "  )\n"
+                        + "order by u.name.orig asc\n";
+            }
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> distinct() {
+        return createCollection(createDistinct());
+    }
+
+    private SqlRepositoryConfiguration getConfiguration() {
+        return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+    }
 
     //    @Test
 //    public void test930OrganizationEqualsCostCenter() throws Exception {
@@ -4004,22 +4159,26 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 
     protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
-                                                                   boolean interpretCount) throws Exception {
+            boolean interpretCount) throws Exception {
+        return getInterpretedQuery2(session, type, query, interpretCount, null);
+    }
 
-		RQuery rQuery = getInterpretedQuery2Whole(session, type, query, interpretCount);
-
+    protected <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
+            boolean interpretCount, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
+		RQuery rQuery = getInterpretedQuery2Whole(session, type, query, interpretCount, options);
         return ((RQueryImpl) rQuery).getQuery().getQueryString();
     }
 
 	@NotNull
-	private <T extends Containerable> RQuery getInterpretedQuery2Whole(Session session, Class<T> type, ObjectQuery query, boolean interpretCount)
+	private <T extends Containerable> RQuery getInterpretedQuery2Whole(Session session, Class<T> type, ObjectQuery query,
+            boolean interpretCount, Collection<SelectorOptions<GetOperationOptions>> options)
 			throws QueryException {
 		if (query != null) {
 			LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 		}
 
 		QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), prismContext);
-		RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
+		RQuery rQuery = engine.interpret(query, type, options, interpretCount, session);
 		//just test if DB will handle it or throws some exception
 		if (interpretCount) {
 			rQuery.uniqueResult();

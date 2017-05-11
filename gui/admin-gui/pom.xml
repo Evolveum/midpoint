@@ -541,6 +541,11 @@
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
         </dependency>
+        
+        <dependency>
+        	<groupId>org.apache.commons</groupId>
+        	<artifactId>commons-collections4</artifactId>
+        </dependency>
 
  		<dependency>
 	        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.

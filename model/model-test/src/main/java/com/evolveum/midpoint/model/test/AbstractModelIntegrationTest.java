@@ -884,6 +884,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignOrg(userOid, orgOid, null, task, result);
 	}
 	
+	protected <F extends FocusType> void assignOrg(Class<F> focusType, String focusOid, String orgOid, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		assignOrg(focusType, focusOid, orgOid, null, task, result);
+	}
+	
 	protected void assignOrg(String userOid, String orgOid, QName relation) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
@@ -900,6 +907,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, true, result);
+	}
+	
+	protected <F extends FocusType> void assignOrg(Class<F> focusType, String focusOid, String orgOid, QName relation, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(focusType, focusOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, true, result);
 	}
 
 	protected void unassignOrg(String userOid, String orgOid, Task task, OperationResult result)
@@ -945,11 +959,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task,
 			Consumer<AssignmentType> modificationBlock, boolean add, OperationResult result) 
-			throws ObjectNotFoundException,
-			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, relation, modificationBlock, add);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyFocusAssignment(UserType.class, userOid, roleOid, refType, relation, task, modificationBlock, add, result);
+	}
+	
+	protected <F extends FocusType> void modifyFocusAssignment(Class<F> focusClass, String focusOid, String roleOid, QName refType, QName relation, Task task,
+			Consumer<AssignmentType> modificationBlock, boolean add, OperationResult result) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> focusDelta = createAssignmentFocusDelta(focusClass, focusOid, roleOid, refType, relation, modificationBlock, add);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
 		modelService.executeChanges(deltas, null, task, result);		
 	}
 	

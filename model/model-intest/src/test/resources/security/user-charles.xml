@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2017 Evolveum
   ~
@@ -13,17 +14,15 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="16813ae6-2c0a-11e7-91fc-8333c244329e"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Persona: admin</name>
-    <inducement>
-    	<personaConstruction>
-    		<targetType>UserType</targetType>
-    		<targetSubtype>admin</targetSubtype>
-    		<objectMappingRef oid="894ea1a8-2c0a-11e7-a950-ff2047b0c053"/>
-    	</personaConstruction>
-    </inducement>
-    <requestable>true</requestable>
-</role>
+<user oid="65e66ea2-30de-11e7-b852-4b46724fcdaa" 
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>charles</name>
+    <description>persona of LeChuck</description>
+        
+    <fullName>Charles L. Charles</fullName>
+</user>

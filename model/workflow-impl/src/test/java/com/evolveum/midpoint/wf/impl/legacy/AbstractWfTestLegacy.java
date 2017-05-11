@@ -175,7 +175,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 //        could be done also like this
 //        RoleType role2 = repositoryService.getObject(RoleType.class, ROLE_R2_OID, null, initResult).asObjectable();
 
-        ObjectReferenceType approver = role2.getApprovalSchema().getLevel().get(0).getApproverRef().get(0);
+        ObjectReferenceType approver = role2.getApprovalSchema().getStage().get(0).getApproverRef().get(0);
         assertEquals("Wrong OID of Role2's approver", R2BOSS_OID, approver.getOid());
 
         importObjectFromFile(GROUP_TESTERS_FILE, initResult);

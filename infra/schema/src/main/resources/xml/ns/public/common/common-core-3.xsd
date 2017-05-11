@@ -11587,6 +11587,16 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="defaultExecuteAfterAllApprovals" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Default value for "Execute after all approvals" flag.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -14538,6 +14548,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="authorization" type="tns:FormAuthorizationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Setting that influence how authorizations are used to display
+		    			and evaluate the form. E.g. this can influence which form fields
+		    			should be displayed as read-only or read-write or not displayed
+		    			at all.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="formItems" type="tns:FormItemsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -14546,6 +14566,29 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="FormAuthorizationType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Setting that influence how authorizations are used to display
+    			and evaluate the form. E.g. this can influence which form fields
+    			should be displayed as read-only or read-write or not displayed
+    			at all.
+    		</xsd:documentation>
+    	</xsd:annotation>
+		<xsd:sequence>
+		    <xsd:element name="phase" type="tns:AuthorizationPhaseType" minOccurs="0">
+		    	<xsd:annotation>
+		    		<xsd:documentation>
+		    			Authorization phase for which the form should be evaluated.
+		    			If not specified then the phase which is naturally appropriate
+		    			for the place where the form is displayed is used. This
+		    			usually means "request" phase.
+		    		</xsd:documentation>
+		    	</xsd:annotation>
+		    </xsd:element>
+		</xsd:sequence>
     </xsd:complexType>
 
 	<xsd:complexType name="FormItemsType">

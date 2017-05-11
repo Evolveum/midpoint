@@ -128,7 +128,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private Clockwork clockwork;
 
 	@Autowired(required = true)
-	PrismContext prismContext;
+	private PrismContext prismContext;
 
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
@@ -174,16 +174,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private UserProfileService userProfileService;
 
 	@Autowired(required = true)
-	Projector projector;
+	private Projector projector;
 
 	@Autowired(required = true)
-	Protector protector;
+	private Protector protector;
 
 	@Autowired(required = true)
-	ModelDiagController modelDiagController;
+	private ModelDiagController modelDiagController;
 
 	@Autowired(required = true)
-	ContextFactory contextFactory;
+	private ContextFactory contextFactory;
 
 	@Autowired(required = true)
 	private SchemaTransformer schemaTransformer;
@@ -1151,7 +1151,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 switch (searchProvider) {
                     case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, false, result); break;		// TODO move strictSequential flag to model API in some form
                     case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, task, result); break;
-                    case TASK_MANAGER: throw new UnsupportedOperationException("searchObjectsIterative in task manager is currently not supported");
+                    case TASK_MANAGER: metadata = taskManager.searchObjectsIterative(type, query, options, internalHandler, result); break;
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
 				result.computeStatusIfUnknown();

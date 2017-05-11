@@ -82,22 +82,21 @@ public class ObjectWrapperFactory {
     }
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
-                                                                    String description,
-                                                                    PrismObject<O> object,
-                                                                    ContainerStatus status) {
-        return createObjectWrapper(displayName, description, object, status, false);
+            String description, PrismObject<O> object, ContainerStatus status) {
+        return createObjectWrapper(displayName, description, object, status, false, AuthorizationPhaseType.REQUEST);
     }
 
-    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
-                                                                    String description,
-                                                                    PrismObject<O> object,
-                                                                    ContainerStatus status,
-                                                                    boolean delayContainerCreation) {
+    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
+            PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation,
+            AuthorizationPhaseType authorizationPhase) {
+        if (authorizationPhase == null) {
+            authorizationPhase = AuthorizationPhaseType.REQUEST;
+        }
         try {
             OperationResult result = new OperationResult(CREATE_OBJECT_WRAPPER);
 
             PrismObjectDefinition<O> objectDefinitionForEditing = modelServiceLocator.getModelInteractionService()
-                    .getEditObjectDefinition(object, AuthorizationPhaseType.REQUEST, result);
+                    .getEditObjectDefinition(object, authorizationPhase, result);
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Edit definition for {}:\n{}", object, objectDefinitionForEditing.debugDump(1));
             }
@@ -107,7 +106,7 @@ public class ObjectWrapperFactory {
                 PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
                 Validate.notNull(resource, "No resource object in the resourceRef");
                 objectClassDefinitionForEditing = modelServiceLocator.getModelInteractionService().getEditObjectClassDefinition(
-                        (PrismObject<ShadowType>) object, resource, AuthorizationPhaseType.REQUEST);
+                        (PrismObject<ShadowType>) object, resource, authorizationPhase);
             }
 
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,

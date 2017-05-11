@@ -283,7 +283,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
     protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
-			boolean useNew, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
+			boolean useNew, ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
 	private Object getRealContent(Item<?,?> item, ItemPath residualPath) {
@@ -308,7 +308,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<?,?>> sourceTriples,
 			final ExpressionVariables variables, final boolean skipEvaluationMinus, final boolean skipEvaluationPlus, 
-			final Boolean includeNulls, final ExpressionEvaluationContext params, final String contextDescription, 
+			final Boolean includeNulls, final ExpressionEvaluationContext evaluationContext, final String contextDescription,
 			final Task task, final OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
@@ -325,94 +325,91 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
 		
-		Processor<Collection<? extends PrismValue>> processor = new Processor<Collection<? extends PrismValue>>() {
-			@Override
-			public void process(Collection<? extends PrismValue> pvalues) {
-				if (includeNulls != null && !includeNulls && MiscUtil.isAllNull(pvalues)) {
-					// The case that all the sources are null. There is no point executing the expression.
-					return;
+		Processor<Collection<? extends PrismValue>> processor = pvalues -> {
+			if (includeNulls != null && !includeNulls && MiscUtil.isAllNull(pvalues)) {
+				// The case that all the sources are null. There is no point executing the expression.
+				return;
+			}
+			Map<QName, Object> sourceVariables = new HashMap<>();
+			Iterator<SourceTriple<PrismValue,?>> sourceTriplesIterator = (Iterator)sourceTriples.iterator();
+			boolean hasMinus = false;
+			boolean hasZero = false;
+			boolean hasPlus = false;
+			for (PrismValue pval: pvalues) {
+				SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
+				QName name = sourceTriple.getName();
+				sourceVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()));
+				// Note: a value may be both in plus and minus sets, e.g. in case that the value is replaced
+				// with the same value. We pretend that this is the same as ADD case.
+				// TODO: maybe we will need better handling in the future. Maybe we would need
+				// to execute the script twice?
+				if (sourceTriple.presentInPlusSet(pval)) {
+					hasPlus = true;
+				} else if (sourceTriple.presentInZeroSet(pval)) {
+					hasZero = true;
+				} else if (sourceTriple.presentInMinusSet(pval)) {
+					hasMinus = true;
 				}
-				Map<QName, Object> sourceVariables = new HashMap<>();
-				Iterator<SourceTriple<PrismValue,?>> sourceTriplesIterator = (Iterator)sourceTriples.iterator();
-				boolean hasMinus = false;
-				boolean hasZero = false;
-				boolean hasPlus = false;
-				for (PrismValue pval: pvalues) {
-					SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
-					QName name = sourceTriple.getName();
-					sourceVariables.put(name, getRealContent(pval, sourceTriple.getResidualPath()));
-					// Note: a value may be both in plus and minus sets, e.g. in case that the value is replaced
-					// with the same value. We pretend that this is the same as ADD case.
-					// TODO: maybe we will need better handling in the future. Maybe we would need
-					// to execute the script twice?
-					if (sourceTriple.presentInPlusSet(pval)) {
-						hasPlus = true;
-					} else if (sourceTriple.presentInZeroSet(pval)) {
-						hasZero = true;
-					} else if (sourceTriple.presentInMinusSet(pval)) {
-						hasMinus = true;
-					}
-				}
-				if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(pvalues)) {
-					throw new IllegalStateException("Internal error! The impossible has happened! pvalues="+pvalues+"; source triples: "+sourceTriples+"; in "+contextDescription);
-				}
-				if (hasPlus && hasMinus) {
-					// The combination of values that are both in plus and minus. Evaluating this combination
-					// does not make sense. Just skip it.
-					// Note: There will NOT be a single value that is in both plus and minus (e.g. "replace with itself" case).
-					// That case is handled by the elseif branches above. This case strictly applies to
-					// combination of different values from the plus and minus sets.
-					return;
-				}
-				
-				if (hasPlus && skipEvaluationPlus) {
-					// The results will end up in the plus set, therefore we can skip it
-					return;
-				} else if (hasMinus && skipEvaluationMinus) {
-					// The results will end up in the minus set, therefore we can skip it
-					return;
-				}
-				
-				ExpressionVariables scriptVariables = new ExpressionVariables();
-				scriptVariables.addVariableDefinitions(sourceVariables);
-				PlusMinusZero valueDestination = null;
-				boolean useNew = false;
-				if (hasPlus) {
-					// Pluses and zeroes: Result goes to plus set, use NEW values for variables
-					scriptVariables.addVariableDefinitionsNew(variables);
-					valueDestination = PlusMinusZero.PLUS;
-					useNew = true;
-				} else if (hasMinus) {
-					// Minuses and zeroes: Result goes to minus set, use OLD values for variables
-					scriptVariables.addVariableDefinitionsOld(variables);
-					valueDestination = PlusMinusZero.MINUS;
-				} else {
-					// All zeros: Result goes to zero set, use NEW values for variables
-					scriptVariables.addVariableDefinitionsNew(variables);
-					valueDestination = PlusMinusZero.ZERO;
-					useNew = true;
-				}
-				
-				List<V> scriptResults;
-				try {
-					scriptResults = (List<V>) transformSingleValue(scriptVariables, valueDestination, useNew, params, 
-							contextDescription, task, result);
-				} catch (ExpressionEvaluationException e) {
-					throw new TunnelException(new ExpressionEvaluationException(e.getMessage()+
-							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
-				} catch (ObjectNotFoundException e) {
-					throw new TunnelException(new ObjectNotFoundException(e.getMessage()+
-							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
-				} catch (SchemaException e) {
-					throw new TunnelException(new SchemaException(e.getMessage()+
-							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
-				} catch (RuntimeException e) {
-					throw new TunnelException(new RuntimeException(e.getMessage()+
-							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
-				}
-				
-				outputTriple.addAllToSet(valueDestination, scriptResults);
-			}			
+			}
+			if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(pvalues)) {
+				throw new IllegalStateException("Internal error! The impossible has happened! pvalues="+pvalues+"; source triples: "+sourceTriples+"; in "+contextDescription);
+			}
+			if (hasPlus && hasMinus) {
+				// The combination of values that are both in plus and minus. Evaluating this combination
+				// does not make sense. Just skip it.
+				// Note: There will NOT be a single value that is in both plus and minus (e.g. "replace with itself" case).
+				// That case is handled by the elseif branches above. This case strictly applies to
+				// combination of different values from the plus and minus sets.
+				return;
+			}
+
+			if (hasPlus && skipEvaluationPlus) {
+				// The results will end up in the plus set, therefore we can skip it
+				return;
+			} else if (hasMinus && skipEvaluationMinus) {
+				// The results will end up in the minus set, therefore we can skip it
+				return;
+			}
+
+			ExpressionVariables scriptVariables = new ExpressionVariables();
+			scriptVariables.addVariableDefinitions(sourceVariables);
+			PlusMinusZero valueDestination = null;
+			boolean useNew = false;
+			if (hasPlus) {
+				// Pluses and zeroes: Result goes to plus set, use NEW values for variables
+				scriptVariables.addVariableDefinitionsNew(variables);
+				valueDestination = PlusMinusZero.PLUS;
+				useNew = true;
+			} else if (hasMinus) {
+				// Minuses and zeroes: Result goes to minus set, use OLD values for variables
+				scriptVariables.addVariableDefinitionsOld(variables);
+				valueDestination = PlusMinusZero.MINUS;
+			} else {
+				// All zeros: Result goes to zero set, use NEW values for variables
+				scriptVariables.addVariableDefinitionsNew(variables);
+				valueDestination = PlusMinusZero.ZERO;
+				useNew = true;
+			}
+
+			List<V> scriptResults;
+			try {
+				scriptResults = transformSingleValue(scriptVariables, valueDestination, useNew, evaluationContext,
+						contextDescription, task, result);
+			} catch (ExpressionEvaluationException e) {
+				throw new TunnelException(new ExpressionEvaluationException(e.getMessage()+
+						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+			} catch (ObjectNotFoundException e) {
+				throw new TunnelException(new ObjectNotFoundException(e.getMessage()+
+						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+			} catch (SchemaException e) {
+				throw new TunnelException(new SchemaException(e.getMessage()+
+						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+			} catch (RuntimeException e) {
+				throw new TunnelException(new RuntimeException(e.getMessage()+
+						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+			}
+
+			outputTriple.addAllToSet(valueDestination, scriptResults);
 		};
 		try {
 			MiscUtil.carthesian((Collection)valueCollections, (Processor)processor);
