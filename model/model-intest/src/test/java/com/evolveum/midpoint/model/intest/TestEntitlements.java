@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1259,7 +1259,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 	private void dumpUserAndAccounts(PrismObject<UserType> user, Task task, OperationResult result)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		display("user", user);
 		for (ObjectReferenceType linkRef : user.asObjectable().getLinkRef()) {
 			PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, linkRef.getOid(), null, task, result);

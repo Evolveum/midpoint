@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Validator;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -983,7 +984,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		AssertJUnit.fail("Row with key '"+key+"' was not found in lookup table");
 	}
 
-	private PrismObject<LookupTableType> getLookupTableAll(String oid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private PrismObject<LookupTableType> getLookupTableAll(String oid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
     	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
     			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 		return modelService.getObject(LookupTableType.class, oid, options, task, result);
@@ -1257,7 +1258,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, result);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1291,7 +1292,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, result);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1325,7 +1326,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, result);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(discr, AuthorizationPhaseType.REQUEST, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1354,7 +1355,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(null, AuthorizationPhaseType.REQUEST, result);
+		PrismObjectDefinition<ShadowType> editDef = modelInteractionService.getEditShadowDefinition(null, AuthorizationPhaseType.REQUEST, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

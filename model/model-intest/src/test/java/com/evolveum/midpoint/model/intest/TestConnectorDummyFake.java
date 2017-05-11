@@ -602,7 +602,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         assertResourceAccounts(resourceDummyFake, numFakeAccounts);
 	}
 	
-	private void assertResourceAccounts(PrismObject<ResourceType> resource, int numAccounts) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private void assertResourceAccounts(PrismObject<ResourceType> resource, int numAccounts) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestConnectorDummyFake.class.getName() + ".assertResourceAccounts");
         OperationResult result = task.getResult();
         
