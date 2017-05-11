@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialPolicyEvaluator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -121,7 +122,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		String psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, null, TEST_NAME, task, result);
+		String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, null, TEST_NAME, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -136,7 +137,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 		}
 		LOGGER.info("Negative testing: passwordGeneratorComplexTest");
 		try {
-			valuePolicyProcessor.generate(pp.getStringPolicy(), 10, null, TEST_NAME, task, result);
+			valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, null, TEST_NAME, task, result);
 			assertNotReached();
 		} catch (ExpressionEvaluationException e) {
 			result.computeStatus();
@@ -176,7 +177,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		String psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
+		String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -200,7 +201,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		String psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
+		String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -226,7 +227,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		String psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
+		String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -250,7 +251,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 		String psswd;
 		// generate minimal size passwd
 		for (int i = 0; i < 100; i++) {
-			psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
+			psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, true, null, TEST_NAME, task, result);
 			LOGGER.info("Generated password:" + psswd);
 			result.computeStatus();
 			if (!result.isSuccess()) {
@@ -264,7 +265,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 		LOGGER.info("-------------------------");
 		// Generate up to possible
 		for (int i = 0; i < 100; i++) {
-			psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, false, null, TEST_NAME, task, result);
+			psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, false, null, TEST_NAME, task, result);
 			LOGGER.info("Generated password:" + psswd);
 			result.computeStatus();
 			if (!result.isSuccess()) {
@@ -339,7 +340,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 			Task task = createTask(TEST_NAME+":"+i);
 			OperationResult result = task.getResult();
 		
-			String psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, true, user, TEST_NAME, task, result);
+			String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, true, user, TEST_NAME, task, result);
 			display("Generated password ("+i+")", psswd);
 			
 			result.computeStatus();
@@ -373,7 +374,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 			Task task = createTask(TEST_NAME+":"+i);
 			OperationResult result = task.getResult();
 		
-			String psswd = valuePolicyProcessor.generate(pp.getStringPolicy(), 10, true, user, TEST_NAME, task, result);
+			String psswd = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp.getStringPolicy(), 10, true, user, TEST_NAME, task, result);
 			display("Generated password ("+i+")", psswd);
 			
 			result.computeStatus();

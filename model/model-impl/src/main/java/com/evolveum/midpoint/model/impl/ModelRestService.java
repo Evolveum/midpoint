@@ -69,6 +69,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -126,6 +128,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
@@ -188,6 +191,9 @@ public class ModelRestService {
 	
 	@Autowired
 	private TaskManager taskManager;
+	
+	@Autowired
+	private Protector protector;
 
 	@Autowired
 	private ResourceValidator resourceValidator;
@@ -315,7 +321,7 @@ public class ModelRestService {
 				stringPolicy = policy != null ? policy.asObjectable().getStringPolicy() : null;
 			}
 		}
-		String newValue = policyProcessor.generate(stringPolicy, 10, object, "generating value for" + targetProperty, task, result);
+		String newValue = policyProcessor.generate(targetProperty, stringPolicy, 10, object, "generating value for" + targetProperty, task, result);
 		policyItemDefinition.setValue(newValue);
 	}
 	
@@ -394,18 +400,21 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		String valueToValidate = null;
 		
 		List<String> valuesToValidate = new ArrayList<>();
-
+		PolicyItemTargetType target = policyItemDefinition.getTarget();
+		ItemPath path = null;
+		if (target != null) {
+			path = target.getPath().getItemPath();
+		}
 		if (rawValue != null) {
 			valueToValidate = rawValue.getParsedRealValue(String.class);
 			valuesToValidate.add(valueToValidate);
 		} else {
-			PolicyItemTargetType target = policyItemDefinition.getTarget();
 			if (target == null || target.getPath() == null) {
 				LOGGER.error("Target item path must be defined");
 				parentResult.recordFatalError("Target item path must be defined");
 				throw new SchemaException("Target item path must be defined");
 			}
-			ItemPath path = target.getPath().getItemPath();
+			path = target.getPath().getItemPath();
 
 			PrismProperty<T> property = object.findProperty(path);
 			if (property == null || property.isEmpty()) {
@@ -417,7 +426,8 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 			PrismPropertyDefinition<T> itemToValidateDefinition = property.getDefinition();
 			QName definitionName = itemToValidateDefinition.getTypeName();
 			if (!QNameUtil.qNameToUri(definitionName).equals(QNameUtil.qNameToUri(DOMUtil.XSD_STRING))
-					&& !QNameUtil.qNameToUri(definitionName).equals(QNameUtil.qNameToUri(PolyStringType.COMPLEX_TYPE))) {
+					&& !QNameUtil.qNameToUri(definitionName).equals(QNameUtil.qNameToUri(PolyStringType.COMPLEX_TYPE)) 
+					&& !QNameUtil.qNameToUri(definitionName).equals(QNameUtil.qNameToUri(ProtectedStringType.COMPLEX_TYPE))) {
 				LOGGER.error("Trying to validate string policy on the property of type {} failed. Unsupported type.",
 						itemToValidateDefinition);
 				parentResult.recordFatalError("Trying to validate string policy on the property of type "
@@ -430,6 +440,11 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 				if (definitionName.equals(PolyStringType.COMPLEX_TYPE)) {
 					valueToValidate = ((PolyString) property.getRealValue()).getOrig();
 
+				} else if (definitionName.equals(ProtectedStringType.COMPLEX_TYPE)){
+					ProtectedStringType protectedString = ((ProtectedStringType) property.getRealValue());
+					valueToValidate = getClearValue(protectedString);
+					
+					
 				} else {
 					valueToValidate = (String) property.getRealValue();
 				}
@@ -437,6 +452,10 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 			} else {
 				if (definitionName.equals(DOMUtil.XSD_STRING)) {
 					valuesToValidate.addAll(property.getRealValues(String.class));
+				} else if (definitionName.equals(ProtectedStringType.COMPLEX_TYPE)) {
+					for (ProtectedStringType protectedString : property.getRealValues(ProtectedStringType.class)) {
+						valuesToValidate.add(getClearValue(protectedString));
+					}
 				} else {
 					for (PolyString val : property.getRealValues(PolyString.class)) {
 						valuesToValidate.add(val.getOrig());
@@ -448,8 +467,9 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		
 		for (String newValue : valuesToValidate) {
 			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
+			if (path != null ) result.addParam("path", path);
 			result.addParam("valueToValidate", newValue);
-			if (!policyProcessor.validateValue(newValue, stringPolicy, object, "validate value for " + object + " value " + valueToValidate, task, result)) {
+			if (!policyProcessor.validateValue(newValue, stringPolicy, object, "validate value " + path!= null ? "for " + path : "" + " for " + object + " value " + valueToValidate, task, result)) {
 				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
 				LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
 			}
@@ -460,6 +480,24 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		return parentResult.isAcceptable();
 		
 	}
+
+private String getClearValue(ProtectedStringType protectedString) throws SchemaException, PolicyViolationException {
+		try {
+			if (protectedString.isEncrypted()) {
+
+				return protector.decryptString(protectedString);
+
+			} else if (protectedString.getClearValue() != null) {
+				return protector.decryptString(protectedString);
+			} else if (protectedString.isHashed()) {
+				throw new SchemaException("Cannot validate value of hashed password");
+			}
+		} catch (EncryptionException e) {
+			throw new PolicyViolationException(e.getMessage(), e);
+		}
+	return null;
+
+}
 	
 
 	@GET

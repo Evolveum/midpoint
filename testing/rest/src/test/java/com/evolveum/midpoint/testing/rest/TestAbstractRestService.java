@@ -84,6 +84,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT = "policy-validate-explicit";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
+	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD = "policy-validate-implicit-password";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI = "policy-validate-implicit-multi";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT = "policy-validate-implicit-multi-conflict";
 
@@ -993,6 +994,38 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 	
+		
+	}
+	
+	@Test
+	public void test515validateValueImplicitPassword() throws Exception {
+		final String TEST_NAME = "test515validateValueImplicitPassword";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
+		
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_PASSWORD));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+	
+		if (response.getStatus() == 400) {
+			OperationResultType result = response.readEntity(OperationResultType.class);
+			LOGGER.info("####RESULT");
+			LOGGER.info(OperationResult.createOperationResult(result).debugDump());
+		}
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		
 		
 	}
 	
