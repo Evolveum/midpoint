@@ -136,6 +136,9 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 
     private String getRelationValue(FocusType focusObject){
         String relations = "";
+        if (focusObject == null){
+            return "";
+        }
         for (AssignmentType assignment : focusObject.getAssignment()){
             String targetObjectOid = assignment.getTargetRef() != null ?
                     assignment.getTargetRef().getOid() :

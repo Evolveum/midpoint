@@ -322,7 +322,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		}
 		Query query = session.getNamedQuery("get.object");
 		query.setParameter("oid", oid);
-		query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+		query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 		GetObjectResult object = (GetObjectResult) query.uniqueResult();
 
 		PrismObject result;

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.sql.query2.restriction.*;
 import com.evolveum.midpoint.repo.sql.util.GetCertificationWorkItemResult;
 import com.evolveum.midpoint.repo.sql.util.GetContainerableResult;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
+import com.evolveum.midpoint.repo.sql.util.ResultStyle;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import org.hibernate.Session;
-import org.hibernate.transform.ResultTransformer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -114,11 +114,13 @@ public class QueryInterpreter2 {
 
         InterpretationContext context = new InterpretationContext(this, type, prismContext, session);
 		interpretQueryFilter(context, query);
+		String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
+		ResultStyle resultStyle = getResultStyle(context);
 
 		if (countingObjects) {
 			interpretPagingAndSorting(context, query, true);
         	RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-			hibernateQuery.addProjectionElement(new CountProjectionElement(getIdentifiers(context), distinct));
+			hibernateQuery.addProjectionElement(new CountProjectionElement(resultStyle.getIdentifiers(rootAlias), distinct));
 			return hibernateQuery;
         }
 
@@ -134,74 +136,42 @@ public class QueryInterpreter2 {
 		boolean distinctBlobCapable = !repoConfiguration.isUsingOracle() && !repoConfiguration.isUsingSQLServer();
 		RootHibernateQuery hibernateQuery = context.getHibernateQuery();
 		hibernateQuery.setDistinct(distinct);
-		hibernateQuery.addProjectionElementsFor(getIdentifiers(context));
+		hibernateQuery.addProjectionElementsFor(resultStyle.getIdentifiers(rootAlias));
 		if (distinct && !distinctBlobCapable) {
 			String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
 			InterpretationContext wrapperContext = new InterpretationContext(this, type, prismContext, session);
 			interpretPagingAndSorting(wrapperContext, query, false);
 			RootHibernateQuery wrapperQuery = wrapperContext.getHibernateQuery();
-			wrapperQuery.addProjectionElementsFor(getIdentifiers(context));
-			wrapperQuery.addProjectionElementsFor(getContentAttributes(context));
-			wrapperQuery.setResultTransformer(getResultTransformer(context));
+			String wrappedRootAlias = wrapperQuery.getPrimaryEntityAlias();
+			wrapperQuery.setResultTransformer(resultStyle.getResultTransformer());
+			wrapperQuery.addProjectionElementsFor(resultStyle.getIdentifiers(wrappedRootAlias));
+			wrapperQuery.addProjectionElementsFor(resultStyle.getContentAttributes(wrappedRootAlias));
 			wrapperQuery.getConditions().add(
 						wrapperQuery.createIn(wrapperQuery.getPrimaryEntityAlias() + ".oid", subqueryText));
 			wrapperQuery.addParametersFrom(hibernateQuery.getParameters());
 			return wrapperQuery;
 		} else {
 			interpretPagingAndSorting(context, query, false);
-			hibernateQuery.addProjectionElementsFor(getContentAttributes(context));
+			hibernateQuery.setResultTransformer(resultStyle.getResultTransformer());
+			hibernateQuery.addProjectionElementsFor(resultStyle.getContentAttributes(rootAlias));
 			if (distinct) {
 				hibernateQuery.addProjectionElementsFor(getOrderingAttributes(context));        // SQL requires this
 			}
-			hibernateQuery.setResultTransformer(getResultTransformer(context));
 			return hibernateQuery;
 		}
     }
-
-    private List<String> getIdentifiers(InterpretationContext context) throws QueryException {
-		String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
-		if (context.isObject()) {
-			return Collections.singletonList(rootAlias + ".oid");
-		} else if (AccessCertificationCaseType.class.equals(context.getType())) {
-			return Arrays.asList(rootAlias + ".ownerOid", rootAlias + ".id");
-		} else if (AccessCertificationWorkItemType.class.equals(context.getType())) {
-			return Arrays.asList(rootAlias + ".ownerOwnerOid", rootAlias + ".ownerId", rootAlias + ".id");
-		} else {
-			throw new QueryException("Unsupported type: " + context.getType());
-		}
-	}
-
-    private List<String> getContentAttributes(InterpretationContext context) throws QueryException {
-		String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
-		if (context.isObject()) {
-			return Arrays.asList(
-					rootAlias + ".fullObject",
-					rootAlias + ".stringsCount",
-					rootAlias + ".longsCount",
-					rootAlias + ".datesCount",
-					rootAlias + ".referencesCount",
-					rootAlias + ".polysCount",
-					rootAlias + ".booleansCount");
-		} else if (AccessCertificationCaseType.class.equals(context.getType())) {
-			return Collections.singletonList(rootAlias + ".fullObject");
-		} else if (AccessCertificationWorkItemType.class.equals(context.getType())) {
-			return Collections.emptyList();
-		} else {
-			throw new QueryException("Unsupported type: " + context.getType());
-		}
-	}
 
 	private List<String> getOrderingAttributes(InterpretationContext context) {
 		return context.getHibernateQuery().getOrderingList().stream().map(o -> o.getByProperty()).collect(Collectors.toList());
 	}
 
-	private ResultTransformer getResultTransformer(InterpretationContext context) throws QueryException {
+	private ResultStyle getResultStyle(InterpretationContext context) throws QueryException {
 		if (context.isObject()) {
-			return GetObjectResult.RESULT_TRANSFORMER;
+			return GetObjectResult.RESULT_STYLE;
 		} else if (AccessCertificationCaseType.class.equals(context.getType())) {
-			return GetContainerableResult.RESULT_TRANSFORMER;
+			return GetContainerableResult.RESULT_STYLE;
 		} else if (AccessCertificationWorkItemType.class.equals(context.getType())) {
-			return GetCertificationWorkItemResult.RESULT_TRANSFORMER;
+			return GetCertificationWorkItemResult.RESULT_STYLE;
 		} else {
 			throw new QueryException("Unsupported type: " + context.getType());
 		}
@@ -216,8 +186,7 @@ public class QueryInterpreter2 {
 
     public Condition interpretFilter(InterpretationContext context, ObjectFilter filter, Restriction parent) throws QueryException {
         Restriction restriction = findAndCreateRestriction(filter, context, parent);
-        Condition condition = restriction.interpret();
-        return condition;
+		return restriction.interpret();
     }
 
     private <T extends ObjectFilter> Restriction findAndCreateRestriction(@NotNull T filter,
@@ -326,7 +295,7 @@ public class QueryInterpreter2 {
         }
     }
 
-    protected void updatePagingAndSortingByOid(RootHibernateQuery hibernateQuery, ObjectPagingAfterOid paging) {
+    private void updatePagingAndSortingByOid(RootHibernateQuery hibernateQuery, ObjectPagingAfterOid paging) {
         String rootAlias = hibernateQuery.getPrimaryEntityAlias();
         if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
             throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPagingAfterOid");
@@ -337,13 +306,10 @@ public class QueryInterpreter2 {
         }
     }
 
-    public <T extends Containerable> void updatePagingAndSorting(InterpretationContext context,
-                                                                 ObjectPaging paging) throws QueryException {
-
-        if (paging == null) {
+    private void updatePagingAndSorting(InterpretationContext context, ObjectPaging paging) throws QueryException {
+		if (paging == null) {
             return;
         }
-
         RootHibernateQuery hibernateQuery = context.getHibernateQuery();
         if (paging.getOffset() != null) {
             hibernateQuery.setFirstResult(paging.getOffset());

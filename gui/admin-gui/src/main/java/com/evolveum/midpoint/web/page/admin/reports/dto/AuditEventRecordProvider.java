@@ -1,11 +1,14 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
@@ -24,13 +27,14 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
  * Created by honchar.
  */
 public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEventRecordType> {
+	public  static final String VALUE_REF_TARGET_NAMES_KEY = "valueRefTargetNames";
 	private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
 	private IModel<List<AuditEventRecordType>> model;
 
 	private String auditEventQuery;
 	private Map<String, Object> parameters = new HashMap<>();
 
-	private static final String AUDIT_RECORDS_QUERY_CORE = "from RAuditEventRecord as aer where 1=1 and ";
+	private static final String AUDIT_RECORDS_QUERY_CORE = "from RAuditEventRecord as aer left outer join aer.referenceValues as rv where 1=1 and ";
 	private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) ";
 	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
 	private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
@@ -142,11 +146,12 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	private String generateFullQuery(String query, boolean orderBy, boolean isCount){
 		parameters = getParameters();
+		String valueRefFrom = constraintsValueRef(parameters) ? " left outer join aer.referenceValues as rv " : "";
 		if (parameters.get("changedItem") != null) {
 			if (isCount) {
-				query = "select count(*) from RAuditEventRecord as aer right join aer.changedItems as item where 1=1 and ";
+				query = "select count(*) from RAuditEventRecord as aer right join aer.changedItems as item " + valueRefFrom + " where 1=1 and ";
 			} else {
-				query = "from RAuditEventRecord as aer right join aer.changedItems as item where 1=1 and ";
+				query = "from RAuditEventRecord as aer right join aer.changedItems as item " + valueRefFrom + " where 1=1 and ";
 			}
 //			query += "INNER JOIN aer.changedItems as item on item.record_id = aer.id WHERE 1=1 and  "
 //					+ "(item.changedItemPath = :changedItem) and ";
@@ -212,12 +217,31 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		} else {
             parameters.remove("taskIdentifier");
 		}
-		
+		if (valueRefTargetIsNotEmpty(parameters.get(VALUE_REF_TARGET_NAMES_KEY))) {
+			query += "(rv.targetName.orig in ( :valueRefTargetNames )) and ";
+		} else {
+            parameters.remove(VALUE_REF_TARGET_NAMES_KEY);
+		}
+
 		query = query.substring(0, query.length()-5); // remove trailing " and "
 		if (orderBy){
 			query +=  AUDIT_RECORDS_ORDER_BY;
 		}
 		return query;
+	}
+
+	private boolean constraintsValueRef(Map<String, Object> parameters2) {
+		return valueRefTargetIsNotEmpty(parameters2.get(VALUE_REF_TARGET_NAMES_KEY));
+	}
+
+	private boolean valueRefTargetIsNotEmpty(Object valueRefTargetNamesParam) {
+		if(valueRefTargetNamesParam instanceof String) {
+			return StringUtils.isNotBlank((String)valueRefTargetNamesParam);
+		} else if(valueRefTargetNamesParam instanceof Collection){
+			return CollectionUtils.isNotEmpty((Collection)valueRefTargetNamesParam);
+		} else {
+			return valueRefTargetNamesParam != null;
+		}
 	}
 
 	public Map<String, Object> getParameters() {
