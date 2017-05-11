@@ -14553,7 +14553,7 @@
                     <xsd:documentation>
                         Setting that influence how authorizations are used to display
 		    			and evaluate the form. E.g. this can influence which form fields
-		    			should be displayed as raed-only or read-write or not displayed
+		    			should be displayed as read-only or read-write or not displayed
 		    			at all.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -14573,7 +14573,7 @@
     		<xsd:documentation>
     			Setting that influence how authorizations are used to display
     			and evaluate the form. E.g. this can influence which form fields
-    			should be displayed as raed-only or read-write or not displayed
+    			should be displayed as read-only or read-write or not displayed
     			at all.
     		</xsd:documentation>
     	</xsd:annotation>

@@ -15,20 +15,6 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
@@ -37,17 +23,24 @@ import com.evolveum.midpoint.prism.ItemDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.util.FormTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemDisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.midpoint.schema.util.FormTypeUtil;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
-public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>>{
+import java.util.List;
+
+public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -65,7 +58,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		initLayout(groupName, formItems, mainForm);
 	}
 	
-	public DynamicFieldGroupPanel(String id, IModel<ObjectWrapper<O>> objectWrapper, FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
+	public DynamicFieldGroupPanel(String id, IModel<ObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
 		super(id, objectWrapper);
 		setParent(parentPage);
 		String groupName = "Basic";
@@ -102,7 +95,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 					containerPanel.setOutputMarkupId(true);
 					itemView.add(containerPanel);
 			} else {
-				PrismPropertyPanel propertyPanel = new PrismPropertyPanel(itemView.newChildId(),
+				PrismPropertyPanel<?> propertyPanel = new PrismPropertyPanel<>(itemView.newChildId(),
 						Model.of(itemWrapper), mainForm, getPageBase());
 				propertyPanel.setOutputMarkupId(true);
 				propertyPanel.add(AttributeModifier.append("class", ((i % 2) == 0) ? "" : "stripe"));
