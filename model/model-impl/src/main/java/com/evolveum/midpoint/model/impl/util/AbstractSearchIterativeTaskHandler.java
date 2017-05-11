@@ -322,6 +322,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			logErrorAndSetResult(runResult, resultHandler, "Security violation", e,
 					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
+		} catch (ExpressionEvaluationException e) {
+			logErrorAndSetResult(runResult, resultHandler, "Expression error", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
 		}
 
         // TODO: check last handler status
@@ -434,6 +438,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
 		} catch (SecurityViolationException ex) {
+			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+            opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return null;
+		} catch (ExpressionEvaluationException ex) {
 			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);

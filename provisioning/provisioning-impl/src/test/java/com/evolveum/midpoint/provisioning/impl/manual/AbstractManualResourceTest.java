@@ -216,7 +216,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		final String TEST_NAME = "test003Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		
 		// Check that there is a schema, but no capabilities before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, getResourceOid(),
@@ -231,7 +232,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		}
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(getResourceOid());
+		OperationResult testResult = provisioningService.testResource(getResourceOid(), task);
 
 		// THEN
 		display("Test result", testResult);
@@ -1591,7 +1592,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		
 		// Get repo shadow here. Make sure refresh works with this as well.
 		PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		provisioningService.applyDefinition(shadowBefore, result);
+		provisioningService.applyDefinition(shadowBefore, task, result);
 		display("Shadow before", shadowBefore);
 		
 		accountWillSecondCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();

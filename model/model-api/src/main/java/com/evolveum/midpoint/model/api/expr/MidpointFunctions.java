@@ -144,12 +144,12 @@ public interface MidpointFunctions {
 	<T extends ObjectType> T resolveReference(ObjectReferenceType reference)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException;
+            SecurityViolationException, ExpressionEvaluationException;
 
 	<T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
             throws SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException;
+            SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -189,7 +189,7 @@ public interface MidpointFunctions {
 	 *             state
 	 */
 	<T extends ObjectType> T getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -227,7 +227,7 @@ public interface MidpointFunctions {
 	 *             state
 	 */
 	<T extends ObjectType> T getObject(Class<T> type, String oid)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -561,7 +561,7 @@ public interface MidpointFunctions {
 	 */
 	<T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -606,7 +606,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -644,7 +644,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -680,7 +680,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, ResultHandler<T> handler) 
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -714,7 +714,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> T searchObjectByName(Class<T> type, String name) throws SecurityViolationException, 
-					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -748,7 +748,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) throws SecurityViolationException, 
-					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -782,7 +782,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) throws SecurityViolationException, 
-					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -818,7 +818,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) 
-            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -852,7 +852,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query) 
-    		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+    		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -888,10 +888,10 @@ public interface MidpointFunctions {
 
     Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
-    Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+    Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
     Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ExpressionEvaluationException,
 			ConfigurationException;
 
     Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
@@ -1001,7 +1001,7 @@ public interface MidpointFunctions {
 
 	Task getCurrentTask();
 
-	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
     
@@ -1011,17 +1011,17 @@ public interface MidpointFunctions {
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
     /**
      * Returns aggregated delta that is to be executed on a given resource.
@@ -1047,11 +1047,11 @@ public interface MidpointFunctions {
 
 	List<UserType> getMembers(String orgOid)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-			ObjectNotFoundException;
+			ObjectNotFoundException, ExpressionEvaluationException;
 
 	List<ObjectReferenceType> getMembersAsReferences(String orgOid)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-			ObjectNotFoundException;
+			ObjectNotFoundException, ExpressionEvaluationException;
 	
 	/**
 	 * Default function used to compute projection lifecycle. It is provided here so it can be explicitly

@@ -578,7 +578,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	@Override
 	public String exportDataModel(Collection<String> resourceOids,
 			DataModelVisualizer.Target target, Task task, OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(EXPORT_DATA_MODEL);
 		try {
 			String rv = dataModelVisualizer.visualize(resourceOids, DataModelVisualizer.Target.DOT, task, result);

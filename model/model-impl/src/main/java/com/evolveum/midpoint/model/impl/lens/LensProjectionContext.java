@@ -54,6 +54,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.Cloner;
@@ -1319,7 +1320,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
     }
 
-    public static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType, LensContext lensContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    public static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
         String objectTypeClassString = projectionContextType.getObjectTypeClass();
         if (StringUtils.isEmpty(objectTypeClassString)) {
@@ -1329,7 +1330,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
         LensProjectionContext projectionContext = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 
-        projectionContext.retrieveFromLensElementContextType(projectionContextType, result);
+        projectionContext.retrieveFromLensElementContextType(projectionContextType, task, result);
         if (projectionContextType.getSyncDelta() != null) {
 			projectionContext.syncDelta = DeltaConvertor.createObjectDelta(projectionContextType.getSyncDelta(), lensContext.getPrismContext());
         } else {
@@ -1338,7 +1339,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		ObjectDeltaType secondaryDeltaType = projectionContextType.getSecondaryDelta();
 		projectionContext.secondaryDelta = secondaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
 		ObjectType object = projectionContextType.getObjectNew() != null ? projectionContextType.getObjectNew() : projectionContextType.getObjectOld();
-		projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, result);
+		projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
 
 		projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
         projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;

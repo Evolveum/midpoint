@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -90,7 +91,7 @@ public class ResourceObjectReferenceResolver {
 	PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference, 
 			QName objectClass, final String desc, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
-					SecurityViolationException {
+					SecurityViolationException, ExpressionEvaluationException {
 		if (resourceObjectReference == null) {
 			return null;
 		}
@@ -150,7 +151,7 @@ public class ResourceObjectReferenceResolver {
 	Collection<? extends ResourceAttribute<?>> resolvePrimaryIdentifier(ProvisioningContext ctx,
 			Collection<? extends ResourceAttribute<?>> identifiers, final String desc, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
-					SecurityViolationException {
+					SecurityViolationException, ExpressionEvaluationException {
 		if (identifiers == null) {
 			return null;
 		}
@@ -184,7 +185,7 @@ public class ResourceObjectReferenceResolver {
 	private ResourceObjectIdentification resolvePrimaryIdentifiers(ProvisioningContext ctx,
 			ResourceObjectIdentification identification, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
-					SecurityViolationException {
+					SecurityViolationException, ExpressionEvaluationException {
 		if (identification == null) {
 			return identification;
 		}
@@ -222,7 +223,7 @@ public class ResourceObjectReferenceResolver {
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			AttributesToReturn attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
+			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceType resource = ctx.getResource();
 		ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
@@ -255,6 +256,9 @@ public class ResourceObjectReferenceResolver {
 					+ e.getMessage(), e);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (ExpressionEvaluationException ex) {
+			parentResult.recordFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
 			throw ex;
 		} catch (ConfigurationException e) {
 			parentResult.recordFatalError(e);

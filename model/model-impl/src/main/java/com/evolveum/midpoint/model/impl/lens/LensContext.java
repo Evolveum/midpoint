@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -1090,8 +1091,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	@SuppressWarnings({"unchecked", "raw"})
 	public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext,
-			ProvisioningService provisioningService, OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+			ProvisioningService provisioningService, Task task, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
 		OperationResult result = parentResult.createSubresult(DOT_CLASS + "fromLensContextType");
 
@@ -1113,10 +1114,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
 		lensContext.setChannel(lensContextType.getChannel());
 		lensContext.setFocusContext(LensFocusContext
-				.fromLensFocusContextType(lensContextType.getFocusContext(), lensContext, result));
+				.fromLensFocusContextType(lensContextType.getFocusContext(), lensContext, task, result));
 		for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {
 			lensContext.addProjectionContext(LensProjectionContext
-					.fromLensProjectionContextType(lensProjectionContextType, lensContext, result));
+					.fromLensProjectionContextType(lensProjectionContextType, lensContext, task, result));
 		}
 		lensContext.setDoReconciliationForAllProjections(
 				lensContextType.isDoReconciliationForAllProjections() != null
@@ -1146,7 +1147,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation
 					.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
 			if (objectDeltaOperation.getObjectDelta() != null) {
-				lensContext.fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), result);
+				lensContext.fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), task, result);
 			}
 			lensContext.rottenExecutedDeltas.add(objectDeltaOperation);
 		}
@@ -1157,12 +1158,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return lensContext;
 	}
 
-	protected void fixProvisioningTypeInDelta(ObjectDelta delta, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	protected void fixProvisioningTypeInDelta(ObjectDelta delta, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (delta != null && delta.getObjectTypeClass() != null
 				&& (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
 						|| ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
-			getProvisioningService().applyDefinition(delta, result);
+			getProvisioningService().applyDefinition(delta, task, result);
 		}
 	}
 

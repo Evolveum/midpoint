@@ -308,7 +308,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		final String TEST_NAME = "test020Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
@@ -331,7 +332,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		IntegrationTestTools.assertNoSchema("Found schema before test connection. Bad test setup?", resourceTypeBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID);
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
 
 		// THEN
 		display("Test result", testResult);
@@ -819,13 +820,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDj.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
 
 		// WHEN
-		provisioningService.applyDefinition(account, result);
+		provisioningService.applyDefinition(account, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -845,15 +846,15 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDj.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(getAccountWillFile());
 
 		ObjectDelta<ShadowType> delta = account.createAddDelta();
 
 		// WHEN
-		provisioningService.applyDefinition(delta, result);
+		provisioningService.applyDefinition(delta, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -872,8 +873,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDj.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
 		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
@@ -883,7 +884,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		resource.setOid(RESOURCE_DUMMY_NONEXISTENT_OID);
 
 		// WHEN
-		provisioningService.applyDefinition(resource, result);
+		provisioningService.applyDefinition(resource, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -902,8 +903,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDj.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
 		// Transplant connector OID. The freshly-parsed resource does have only the fake one.
@@ -914,7 +915,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		resource.setOid(RESOURCE_DUMMY_NONEXISTENT_OID);
 
 		// WHEN
-		provisioningService.applyDefinition(delta, result);
+		provisioningService.applyDefinition(delta, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -933,7 +934,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		TestUtil.displayTestTile(this, TEST_NAME);
 		
 		// GIVEN
-		Task task = taskManager.createTaskInstance();
+		Task task = createTask(TEST_NAME);
 		OperationResult testResult = new OperationResult(AbstractBasicDummyTest.class + "." + TEST_NAME);
 		
 		// WHEN
@@ -986,11 +987,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		final String TEST_NAME = "test090ConnectorStatsAfterSomeUse";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(AbstractBasicDummyTest.class.getName() + "."  + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
-		List<ConnectorOperationalStatus> operationalStatuses = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, result);
+		List<ConnectorOperationalStatus> operationalStatuses = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1224,11 +1225,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 	@Test
 	public void test105ApplyDefinitionModifyDelta() throws Exception {
-		TestUtil.displayTestTile("test105ApplyDefinitionModifyDelta");
+		final String TEST_NAME = "test105ApplyDefinitionModifyDelta";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDj.class.getName()
-				+ ".test105ApplyDefinitionModifyDelta");
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(new File(FILENAME_MODIFY_ACCOUNT),
                 ObjectModificationType.COMPLEX_TYPE);
@@ -1236,7 +1238,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 				ShadowType.class, prismContext);
 
 		// WHEN
-		provisioningService.applyDefinition(accountDelta, result);
+		provisioningService.applyDefinition(accountDelta, task, result);
 
 		// THEN
 		result.computeStatus();

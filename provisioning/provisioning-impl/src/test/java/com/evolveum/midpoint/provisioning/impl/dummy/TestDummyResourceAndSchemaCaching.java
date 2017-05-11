@@ -54,6 +54,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -532,7 +533,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		return uselessStringDelta;
 	}
 		
-	private void assertConnectorConfigChanged() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void assertConnectorConfigChanged() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".assertConnectorConfigChanged");
 		OperationResult result = task.getResult();
@@ -585,7 +586,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertConnectorInstanceChanged(resourceProvisioning);
 	}
 	
-	private String addAccount(String filename) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException {
+	private String addAccount(String filename) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".addAccount");
 		OperationResult result = task.getResult();
@@ -596,7 +597,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		return oid;
 	}
 	
-	private PrismObject<ShadowType> getAccount(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+	private PrismObject<ShadowType> getAccount(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".getAccount");
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, oid, null, null, result);

@@ -97,6 +97,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -443,11 +444,12 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 	@Test
 	public void test105ApplyDefinitionModifyDelta() throws Exception {
-		TestUtil.displayTestTile("test105ApplyDefinitionModifyDelta");
+		final String TEST_NAME = "test105ApplyDefinitionModifyDelta";
+		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDj.class.getName()
-				+ ".test105ApplyDefinitionModifyDelta");
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(new File(FILENAME_MODIFY_ACCOUNT),
                 ObjectModificationType.COMPLEX_TYPE);
@@ -455,7 +457,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 				ShadowType.class, prismContext);
 
 		// WHEN
-		provisioningService.applyDefinition(accountDelta, result);
+		provisioningService.applyDefinition(accountDelta, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -3622,15 +3624,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 		final String TEST_NAME = "test300AccountRename";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		syncServiceMock.reset();
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
 				ACCOUNT_MORGAN_OID, SchemaTestConstants.ICFS_NAME_PATH, prismContext, "cptmorgan");
-		provisioningService.applyDefinition(delta, result);
+		provisioningService.applyDefinition(delta, task, result);
 		display("ObjectDelta", delta);
 		delta.checkConsistence();
 		
@@ -3677,15 +3678,15 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	@Test
-	public void test501GetProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException, SecurityViolationException {
-		TestUtil.displayTestTile("test501GetProtectedAccount");
+	public void test501GetProtectedAccountShadow() throws Exception {
+		final String TEST_NAME = "test501GetProtectedAccountShadow";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test501GetProtectedAccount");
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		// WHEN
-		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, result);
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
 
 		assertEquals(""+account+" is not protected", Boolean.TRUE, account.asObjectable().isProtectedObject());
 		checkConsistency(account);
@@ -3705,8 +3706,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		final String TEST_NAME = "test502ModifyProtectedAccountShadowAttributes";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
@@ -3777,8 +3777,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		final String TEST_NAME = "test509DeleteProtectedAccountShadow";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
@@ -3841,8 +3840,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 		return shadow;
 	}
 	
-	protected void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException {
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+	protected void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 		
@@ -3868,8 +3867,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 
-	private void testAddAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+	private void testAddAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 		

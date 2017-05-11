@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -573,26 +575,26 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
     }
 
-	public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+	public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
         ObjectType objectTypeOld = lensElementContextType.getObjectOld();
         this.objectOld = objectTypeOld != null ? (PrismObject) objectTypeOld.asPrismObject() : null;
-        fixProvisioningTypeInObject(this.objectOld, result);
+        fixProvisioningTypeInObject(this.objectOld, task, result);
 
         ObjectType objectTypeNew = lensElementContextType.getObjectNew();
         this.objectNew = objectTypeNew != null ? (PrismObject) objectTypeNew.asPrismObject() : null;
-        fixProvisioningTypeInObject(this.objectNew, result);
+        fixProvisioningTypeInObject(this.objectNew, task, result);
 
         ObjectType object = objectTypeNew != null ? objectTypeNew : objectTypeOld;
 
         ObjectDeltaType primaryDeltaType = lensElementContextType.getPrimaryDelta();
         this.primaryDelta = primaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(primaryDeltaType, lensContext.getPrismContext()) : null;
-        fixProvisioningTypeInDelta(this.primaryDelta, object, result);
+        fixProvisioningTypeInDelta(this.primaryDelta, object, task, result);
 
         for (LensObjectDeltaOperationType eDeltaOperationType : lensElementContextType.getExecutedDeltas()) {
             LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
             if (objectDeltaOperation.getObjectDelta() != null) {
-                fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), object, result);
+                fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), object, task, result);
             }
             this.executedDeltas.add(objectDeltaOperation);
         }
@@ -606,15 +608,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         // note: objectTypeClass is already converted (used in the constructor)
     }
 
-	protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (delta != null && delta.getObjectTypeClass() != null && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass()) || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
-            lensContext.getProvisioningService().applyDefinition(delta, object, result);
+            lensContext.getProvisioningService().applyDefinition(delta, object, task, result);
         }
     }
 
-    private void fixProvisioningTypeInObject(PrismObject<O> object, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+    private void fixProvisioningTypeInObject(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (object != null && object.getCompileTimeClass() != null && (ShadowType.class.isAssignableFrom(object.getCompileTimeClass()) || ResourceType.class.isAssignableFrom(object.getCompileTimeClass()))) {
-            lensContext.getProvisioningService().applyDefinition(object, result);
+            lensContext.getProvisioningService().applyDefinition(object, task, result);
         }
     }
 

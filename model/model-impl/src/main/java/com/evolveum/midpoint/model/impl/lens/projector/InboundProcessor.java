@@ -340,7 +340,7 @@ public class InboundProcessor {
 		try {
 			contextLoader.loadFullShadow(context, projContext, task, result);
 			accountCurrent = projContext.getObjectCurrent();
-		} catch (ObjectNotFoundException |SecurityViolationException |CommunicationException |ConfigurationException e) {
+		} catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projContext.getOid(), e.getMessage());
 			projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 		}

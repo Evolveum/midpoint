@@ -257,7 +257,7 @@ public class ModelRestService {
 
 	}
 	
-	private <O extends ObjectType> PrismObject<ValuePolicyType> resolvePolicy(PrismObject<O> object, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> PrismObject<ValuePolicyType> resolvePolicy(PrismObject<O> object, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 	
 		PrismObject<ValuePolicyType> valuePolicy = null;
 		

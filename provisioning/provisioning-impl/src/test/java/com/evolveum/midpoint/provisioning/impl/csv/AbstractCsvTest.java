@@ -171,8 +171,8 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 		final String TEST_NAME = "test003Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(AbstractCsvTest.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, getResourceOid(),
 				null, result).asObjectable();
@@ -186,7 +186,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(getResourceOid());
+		OperationResult testResult = provisioningService.testResource(getResourceOid(), task);
 
 		// THEN
 		display("Test result", testResult);
@@ -217,14 +217,15 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	}
 	
 	@Test
-	public void test004Configuration() throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		TestUtil.displayTestTile("test004Configuration");
+	public void test004Configuration() throws Exception {
+		final String TEST_NAME = "test004Configuration";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(AbstractCsvTest.class.getName()
-				+ ".test004Configuration");
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		// WHEN
-		resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
+		resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, task, result);
 		resourceType = resource.asObjectable();
 
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);

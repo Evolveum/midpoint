@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -55,7 +56,7 @@ public class AccessChecker {
 	private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
 	public void checkAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult) 
-			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_NAME);
 		ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
 

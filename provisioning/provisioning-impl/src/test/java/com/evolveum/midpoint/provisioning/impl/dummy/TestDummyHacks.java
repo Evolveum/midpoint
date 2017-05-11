@@ -137,8 +137,8 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		final String TEST_NAME = "test003Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummyHacks.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
 				null, result).asObjectable();
@@ -152,7 +152,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID);
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
 
 		// THEN
 		display("Test result", testResult);

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -55,7 +56,7 @@ public class ConstructionProcessor {
 	DeltaMapTriple<K, ConstructionPack<T>> processConstructions(LensContext<F> context, 
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
 			Function<EvaluatedAssignmentImpl<F>,DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T,K> keyGenerator, ComplexConstructionConsumer<K,T> consumer,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
 		// We will be collecting the evaluated account constructions into these three maps. 
         // It forms a kind of delta set triple for the account constructions.
@@ -198,7 +199,7 @@ public class ConstructionProcessor {
     		DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple,
     		Function<EvaluatedAssignmentImpl<F>,DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T,K> keyGenerator,
     		Task task, OperationResult result) 
-    				throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    				throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
 		collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getZeroSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.ZERO, task, result);
 		collectToConstructionMapFromEvaluatedAssignments(context, evaluatedAssignmentTriple.getPlusSet(), constructionMapTriple, constructionTripleExtractor, keyGenerator, PlusMinusZero.PLUS, task, result);
@@ -208,7 +209,7 @@ public class ConstructionProcessor {
 	private <F extends FocusType, K, T extends AbstractConstruction> void collectToConstructionMapFromEvaluatedAssignments(LensContext<F> context,
     		Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
     		DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple, Function<EvaluatedAssignmentImpl<F>,DeltaSetTriple<T>> constructionTripleExtractor, FailableLensFunction<T,K> keyGenerator, PlusMinusZero mode, Task task,
-    		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignments) {
 	    	if (LOGGER.isTraceEnabled()) {
 	    		LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDump());
@@ -226,7 +227,7 @@ public class ConstructionProcessor {
 					  DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple,
 					  FailableLensFunction<T,K> keyGenerator, 
 					  PlusMinusZero mode1, PlusMinusZero mode2,
-					  Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+					  Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 	    	
         for (T construction : evaluatedConstructions) {
         	

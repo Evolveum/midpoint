@@ -94,6 +94,17 @@
 			<version>3.6-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<!-- NOT CORRECT. TODO: FIX IT
+			     Provisioning depends on expression evaluation engine.
+			     This was implemented as one of the last features of 3.6,
+			     there was no time to isolate expression evaluation.
+			     It has to be cleaned up in 3.7.
+			-->
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>model-common</artifactId>
+			<version>3.6-SNAPSHOT</version>
+		</dependency>
 		
 		<dependency>
 			<groupId>commons-lang</groupId>

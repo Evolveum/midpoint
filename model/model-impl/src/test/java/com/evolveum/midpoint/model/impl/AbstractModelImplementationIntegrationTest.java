@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,25 +111,25 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		focusContext.setPrimaryDelta(userDelta);
 	}
 
-	protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, String accountOid, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, String accountOid, Task task, OperationResult result) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         PrismObject<ShadowType> account = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(account, result);
-        return fillContextWithAccount(context, account, result);
+        provisioningService.applyDefinition(account, task, result);
+        return fillContextWithAccount(context, account, task, result);
 	}
 
-	protected LensProjectionContext fillContextWithAccountFromFile(LensContext<UserType> context, File file, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException {
+	protected LensProjectionContext fillContextWithAccountFromFile(LensContext<UserType> context, File file, Task task, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
-		provisioningService.applyDefinition(account, result);
-		return fillContextWithAccount(context, account, result);
+		provisioningService.applyDefinition(account, task, result);
+		return fillContextWithAccount(context, account, task, result);
 	}
 
-    protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, PrismObject<ShadowType> account, OperationResult result) throws SchemaException,
-		ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, PrismObject<ShadowType> account, Task task, OperationResult result) throws SchemaException,
+		ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
-        ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result).asObjectable();
+        ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, 
         		ShadowKindType.ACCOUNT, ShadowUtil.getIntent(accountType));
