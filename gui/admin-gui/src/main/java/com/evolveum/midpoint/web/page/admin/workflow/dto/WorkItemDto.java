@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
@@ -364,6 +365,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	// Expects that we deal with primary changes of the focus (i.e. not of projections)
+	// Beware: returns the full object; regardless of the security settings
 	public ObjectType getFocus(PageBase pageBase) {
     	if (focus != null) {
     		return focus;
@@ -375,9 +377,8 @@ public class WorkItemDto extends Selectable {
 		}
 		ObjectDeltaType delta = state.getDeltasToProcess().getFocusPrimaryDelta();
 		if (delta.getChangeType() == ChangeTypeType.ADD) {
-			focus = (ObjectType) delta.getObjectToAdd();
-		} else if (delta.getChangeType() != ChangeTypeType.MODIFY) {
-		} else {
+			focus = CloneUtil.clone((ObjectType) delta.getObjectToAdd());
+		} else if (delta.getChangeType() == ChangeTypeType.MODIFY) {
 			String oid = delta.getOid();
 			if (oid == null) {
 				throw new IllegalStateException("No OID in object modify delta: " + delta);
@@ -388,7 +389,8 @@ public class WorkItemDto extends Selectable {
 			Class<? extends ObjectType> clazz = ObjectTypes.getObjectTypeFromTypeQName(delta.getObjectType())
 					.getClassDefinition();
 			Task task = pageBase.createSimpleTask("getObject");
-			PrismObject<?> object = WebModelServiceUtils.loadObject(clazz, oid, pageBase, task, task.getResult());
+			PrismObject<?> object = pageBase.getSecurityEnforcer().runPrivileged(() ->
+					WebModelServiceUtils.loadObject(clazz, oid, pageBase, task, task.getResult()));
 			if (object != null) {
 				focus = (ObjectType) object.asObjectable();
 				try {
@@ -399,6 +401,8 @@ public class WorkItemDto extends Selectable {
 				}
 				focus = (ObjectType) object.asObjectable();
 			}
+		} else {
+			// DELETE case: nothing to do here
 		}
 		return focus;
 	}
