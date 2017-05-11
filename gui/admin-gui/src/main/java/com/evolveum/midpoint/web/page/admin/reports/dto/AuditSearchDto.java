@@ -24,9 +24,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -61,7 +64,12 @@ public class AuditSearchDto implements Serializable {
 	private AuditEventStageType eventStage;
 	private OperationResultStatusType outcome;
 	private ItemPathDto changedItem;
-	private List<String> valueRefTargetNames;
+	private List<ObjectType> valueRefTargetNames;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AuditSearchDto.class);
+	public AuditSearchDto() {
+		LOGGER.info("New clean AuditSearchDto created");
+	}
 	
 	public XMLGregorianCalendar getFrom() {
 		return from;
@@ -155,12 +163,12 @@ public class AuditSearchDto implements Serializable {
 		this.changedItem = changedItem;
 	}
 
-	public List<String> getvalueRefTargetNames() {
+	public List<ObjectType> getvalueRefTargetNames() {
 		return valueRefTargetNames;
 	}
 
-	public void setvalueRefTargetNames(List<String> valueRefTargetNames) {
+	public void setvalueRefTargetNames(List<ObjectType> valueRefTargetNames) {
+		LOGGER.info("Set value refs : " + valueRefTargetNames);
 		this.valueRefTargetNames = valueRefTargetNames;
 	}
-
 }

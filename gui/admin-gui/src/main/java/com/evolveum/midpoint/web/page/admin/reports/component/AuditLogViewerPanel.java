@@ -84,6 +84,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -353,9 +355,11 @@ public class AuditLogViewerPanel extends BasePanel {
         valueRefTargetNameContainer.add(visibilityByKey(visibilityMap, TARGET_NAME_LABEL_VISIBILITY));
         parametersPanel.add(valueRefTargetNameContainer);
 
-        MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new ConvertingMultiValueChoosePanel<String, ObjectType>(
-        		ID_VALUE_REF_TARGET_NAMES_FIELD, allowedClassesAll, stringTransformer, 
-        		new PropertyModel<List<String>>(auditSearchDto, AuditSearchDto.F_VALUE_REF_TARGET_NAME));
+        LOGGER.info("Creating new Multivalue panel for value reference.");
+        MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new MultiValueChoosePanel<ObjectType>(
+        		ID_VALUE_REF_TARGET_NAMES_FIELD,
+        		new PropertyModel<List<ObjectType>>(auditSearchDto, AuditSearchDto.F_VALUE_REF_TARGET_NAME),
+        		allowedClassesAll);
         chooseValueRefTargetNamePanel.setOutputMarkupId(true);
         chooseValueRefTargetNamePanel.add(visibilityByKey(visibilityMap, VALUE_REF_TARGET_NAME_FIELD_VISIBILITY));
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
@@ -420,7 +424,13 @@ public class AuditLogViewerPanel extends BasePanel {
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());
                 parameters.put("outcome", search.getOutcome());
-                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY, search.getvalueRefTargetNames());
+                if(isNotEmpty(search.getvalueRefTargetNames())) {
+	                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY, 
+	                		search.getvalueRefTargetNames().stream()
+	                		.map(ObjectType::getName)
+	                		.map(PolyStringType::getOrig)
+	                		.collect(toList()));
+                }
                 return parameters;
             }
 
