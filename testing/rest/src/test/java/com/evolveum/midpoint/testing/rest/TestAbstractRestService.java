@@ -81,6 +81,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	public static final String POLICY_ITEM_DEFINITION_GENERATE = "policy-generate"; 	
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_BAD_PATH = "policy-generate-bad-path"; 
 	public static final String POLICY_ITEM_DEFINITION_GENERATE_EXECUTE = "policy-generate-execute";
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_PASSWORD_EXECUTE = "policy-generate-password-execute";
+	public static final String POLICY_ITEM_DEFINITION_GENERATE_HONORIFIC_PREFIX_EXECUTE = "policy-generate-honorific-prefix-execute";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT = "policy-validate-explicit";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
 	public static final String POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE = "policy-validate-implicit-single";
@@ -868,6 +870,69 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		assertNotNull("EmployeeNumber must not be null", user.getEmployeeNumber());
 	}
 	
+	
+	@Test
+	public void test505generatePasswordExecute() throws Exception {
+		final String TEST_NAME = "test505generatePasswordExecute";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
+		
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_PASSWORD_EXECUTE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		
+		
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		//UserType user = loadObject(UserType.class, USER_DARTHADDER_OID);
+		//TODO assert changed items
+	}
+	
+	@Test
+	public void test506generateHonorificPrefixNameExecute() throws Exception {
+		final String TEST_NAME = "test506generateHonorificPrefixNameExecute";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
+		
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_HONORIFIC_PREFIX_EXECUTE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+
+		if (response.getStatus() == 500) {
+			OperationResultType result = response.readEntity(OperationResultType.class);
+			LOGGER.info("####RESULT");
+			LOGGER.info(OperationResult.createOperationResult(result).debugDump());
+		}
+		
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+				
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		//UserType user = loadObject(UserType.class, USER_DARTHADDER_OID);
+		//TODO assert changed items
+	}
+	
 	@Test
 	public void test510validateValueExplicit() throws Exception {
 		final String TEST_NAME = "test510validateValueExplicit";
@@ -1013,11 +1078,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 	
-		if (response.getStatus() == 400) {
-			OperationResultType result = response.readEntity(OperationResultType.class);
-			LOGGER.info("####RESULT");
-			LOGGER.info(OperationResult.createOperationResult(result).debugDump());
-		}
 		
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 		

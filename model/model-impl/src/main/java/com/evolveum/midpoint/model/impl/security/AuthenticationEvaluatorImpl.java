@@ -332,11 +332,11 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	}
 	
 	
-	protected boolean matchDecryptedValue(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, String decryptedValue,
-			String enteredPassword){
-		return enteredPassword.equals(decryptedValue);
-	}
-	
+//	protected boolean matchDecryptedValue(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, String decryptedValue,
+//			String enteredPassword){
+//		return enteredPassword.equals(decryptedValue);
+//	}
+//	
 	protected boolean decryptAndMatch(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString,
 			String enteredPassword) {
 		ProtectedStringType entered = new ProtectedStringType();

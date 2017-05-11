@@ -240,7 +240,20 @@ public class ModelRestService {
 				
 				if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
 					executeImmediatelly = true;
-					PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(policyItemDefinition.getTarget().getPath().getItemPath(), object.getDefinition(), policyItemDefinition.getValue());
+					ItemPath path = policyItemDefinition.getTarget().getPath().getItemPath();
+					PrismProperty item = object.findOrCreateProperty(path);
+					Object value = policyItemDefinition.getValue();
+					if (item.getDefinition() != null) {
+						if (item.getDefinition().getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+							ProtectedStringType pst = new ProtectedStringType();
+							pst.setClearValue((String) policyItemDefinition.getValue()); 
+							value = pst;
+						} else if (item.getDefinition().getTypeName().equals(PolyStringType.COMPLEX_TYPE)) {
+							PolyString polyString = new PolyString((String) policyItemDefinition.getValue());
+							value = polyString;
+						}
+					}
+					PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
 					propertyDeltas.add(propertyDelta);
 				}
 
