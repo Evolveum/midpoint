@@ -3,6 +3,8 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,9 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by honchar.
@@ -321,9 +321,10 @@ public class AuditLogViewerPanel extends BasePanel {
         List<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
 
-        MultiValueChoosePanel<ObjectType> chooseTargetPanel = new ConvertingMultiValueChoosePanel<ObjectReferenceType, ObjectType>(
-        		ID_TARGET_NAME_FIELD, allowedClassesAll, objectReferenceTransformer, 
-        		new PropertyModel<List<ObjectReferenceType>>(auditSearchDto, "targetNames"));
+        MultiValueChoosePanel<ObjectType> chooseTargetPanel = new MultiValueChoosePanel<ObjectType>(
+        		ID_TARGET_NAME_FIELD, 
+        		new PropertyModel<List<ObjectType>>(auditSearchDto, AuditSearchDto.F_TARGET_NAMES_OBJECTS),
+        		allowedClassesAll);
         chooseTargetPanel.setOutputMarkupId(true);
         chooseTargetPanel.add(visibilityByKey(visibilityMap, TARGET_NAME_FIELD_VISIBILITY));
         targetName.add(chooseTargetPanel);
@@ -353,9 +354,10 @@ public class AuditLogViewerPanel extends BasePanel {
         valueRefTargetNameContainer.add(visibilityByKey(visibilityMap, TARGET_NAME_LABEL_VISIBILITY));
         parametersPanel.add(valueRefTargetNameContainer);
 
-        MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new ConvertingMultiValueChoosePanel<String, ObjectType>(
-        		ID_VALUE_REF_TARGET_NAMES_FIELD, allowedClassesAll, stringTransformer, 
-        		new PropertyModel<List<String>>(auditSearchDto, AuditSearchDto.F_VALUE_REF_TARGET_NAME));
+        MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new MultiValueChoosePanel<ObjectType>(
+        		ID_VALUE_REF_TARGET_NAMES_FIELD,
+        		new PropertyModel<List<ObjectType>>(auditSearchDto, AuditSearchDto.F_VALUE_REF_TARGET_NAME),
+        		allowedClassesAll);
         chooseValueRefTargetNamePanel.setOutputMarkupId(true);
         chooseValueRefTargetNamePanel.add(visibilityByKey(visibilityMap, VALUE_REF_TARGET_NAME_FIELD_VISIBILITY));
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
@@ -408,10 +410,19 @@ public class AuditLogViewerPanel extends BasePanel {
                 if (search.getTargetOwnerName() != null) {
                     parameters.put("targetOwnerName", search.getTargetOwnerName().getOid());
                 }
+                List<String> targetOids = new ArrayList<>();
+                if (isNotEmpty(search.getTargetNamesObjects())) {
+                    targetOids.addAll(search.getTargetNamesObjects().stream()
+                    		.map(ObjectType::getOid)
+                    		.collect(toList()));
+                }
                 if (isNotEmpty(search.getTargetNames())) {
-                    parameters.put("targetNames", search.getTargetNames().stream()
+                    targetOids.addAll(search.getTargetNames().stream()
                     		.map(ObjectReferenceType::getOid)
                     		.collect(toList()));
+                }
+                if( ! targetOids.isEmpty()) {
+    				parameters.put("targetNames", targetOids);
                 }
                 if (search.getChangedItem().toItemPath() != null) {
                 	ItemPath itemPath = search.getChangedItem().toItemPath();
@@ -420,7 +431,13 @@ public class AuditLogViewerPanel extends BasePanel {
                 parameters.put("eventType", search.getEventType());
                 parameters.put("eventStage", search.getEventStage());
                 parameters.put("outcome", search.getOutcome());
-                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY, search.getvalueRefTargetNames());
+                if(isNotEmpty(search.getvalueRefTargetNames())) {
+	                parameters.put(AuditEventRecordProvider.VALUE_REF_TARGET_NAMES_KEY, 
+	                		search.getvalueRefTargetNames().stream()
+	                		.map(ObjectType::getName)
+	                		.map(PolyStringType::getOrig)
+	                		.collect(toList()));
+                }
                 return parameters;
             }
 
