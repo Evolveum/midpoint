@@ -62,7 +62,7 @@ public class TestDummyExpression extends AbstractBasicDummyTest {
 				break;
 				
 			case "uselessString":
-				assertEquals("Wrong value for "+confProp, null, val);
+				assertEquals("Wrong value for "+confProp, "Shiver me timbers!", val);
 				assertExpression(confProp, "value");
 				break;
 

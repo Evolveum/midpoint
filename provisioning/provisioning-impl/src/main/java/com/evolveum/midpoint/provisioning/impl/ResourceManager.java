@@ -682,7 +682,7 @@ public class ResourceManager {
 			connectorTestResult.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());
 			connectorTestResult.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
 			
-			testConnectionConnector(connectorSpec, capabilityMap, connectorTestResult);
+			testConnectionConnector(connectorSpec, capabilityMap, task, connectorTestResult);
 			
 			connectorTestResult.computeStatus();
 		}
@@ -776,7 +776,7 @@ public class ResourceManager {
 
 	}
 	
-	public void testConnectionConnector(ConnectorSpec connectorSpec, Map<String,Collection<Object>> capabilityMap, OperationResult parentResult) {
+	public void testConnectionConnector(ConnectorSpec connectorSpec, Map<String,Collection<Object>> capabilityMap, Task task, OperationResult parentResult) {
 
 		// === test INITIALIZATION ===
 
@@ -824,7 +824,11 @@ public class ResourceManager {
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CONFIGURATION.getOperation());
 
 		try {
-			connector.configure(connectorSpec.getConnectorConfiguration().getValue(), configResult);
+			PrismObject<ResourceType> resource = connectorSpec.getResource();
+			PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
+			applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, configResult);
+			PrismContainerValue<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration().getValue();
+			connector.configure(connectorConfiguration, configResult);
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
@@ -841,6 +845,14 @@ public class ResourceManager {
 		} catch (ConfigurationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			configResult.recordFatalError("Configuration error", e);
+			return;
+		} catch (ObjectNotFoundException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			configResult.recordFatalError("Object not found", e);
+			return;
+		} catch (ExpressionEvaluationException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			configResult.recordFatalError("Expression error", e);
 			return;
 		} catch (RuntimeException | Error e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
@@ -1264,7 +1276,8 @@ public class ResourceManager {
 	}
 
 	private ConnectorSpec getDefaultConnectorSpec(PrismObject<ResourceType> resource) {
-		return new ConnectorSpec(resource, null, ResourceTypeUtil.getConnectorOid(resource), resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION));
+		PrismContainer<ConnectorConfigurationType> connectorConfiguration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		return new ConnectorSpec(resource, null, ResourceTypeUtil.getConnectorOid(resource), connectorConfiguration);
 	}
 	
 
