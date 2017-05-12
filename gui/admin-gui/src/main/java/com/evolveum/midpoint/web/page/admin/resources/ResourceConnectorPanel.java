@@ -29,8 +29,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -81,12 +83,13 @@ public class ResourceConnectorPanel extends Panel {
 			@Override
 			public List<ConnectorOperationalStatus> getObject() {
 				PrismObject<ResourceType> resource = model.getObject();
-				OperationResult result = new OperationResult(OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS);
+				Task task = parentPage.createSimpleTask(OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS);
+				OperationResult result = task.getResult();
 				List<ConnectorOperationalStatus> status = null;
 				try {
-					status = parentPage.getModelInteractionService().getConnectorOperationalStatus(resource.getOid(), result);
+					status = parentPage.getModelInteractionService().getConnectorOperationalStatus(resource.getOid(), task, result);
 				} catch (SchemaException | ObjectNotFoundException | CommunicationException
-						| ConfigurationException e) {
+						| ConfigurationException | ExpressionEvaluationException e) {
 					LOGGER.error("Error getting connector status for {}: {}", resource, e.getMessage(), e);
 					parentPage.showResult(result);
 				}

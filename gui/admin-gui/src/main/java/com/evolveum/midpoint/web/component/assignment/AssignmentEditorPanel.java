@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -1146,7 +1147,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private <O extends ObjectType> PrismObject<O> getTargetObject(AssignmentEditorDto dto)
 			throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismContainerValue<AssignmentType> assignment = dto.getOldValue();
 
 		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);

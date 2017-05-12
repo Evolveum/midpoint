@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -124,6 +125,11 @@ public class TestUniversity extends AbstractStoryTest {
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 
+	@Override
+	protected String getTopOrgOid() {
+		return ORG_TOP_OID;
+	}
+	
 	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServerRI();
@@ -281,13 +287,13 @@ public class TestUniversity extends AbstractStoryTest {
 	private void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
+		assertAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
 	}
 
 	private void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertNoAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"));
+		assertNoAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
 	}
 
 
@@ -510,7 +516,7 @@ public class TestUniversity extends AbstractStoryTest {
 //        assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN, membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));    // ...it seems to get lowercased during the reconciliation
 //    }
 
-	private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = getOrg(orgName);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "functional");
 		assertAssignedRole(org, ROLE_META_ORG_OID);
@@ -537,18 +543,5 @@ public class TestUniversity extends AbstractStoryTest {
 
 		return org;
 	}
-
-	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-		assertNotNull("The org "+orgName+" is missing!", org);
-		display("Org "+orgName, org);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
-		return org;
-	}
-
-	private void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		display("Org tree", dumpOrgTree(ORG_TOP_OID));
-	}
-
 	
 }

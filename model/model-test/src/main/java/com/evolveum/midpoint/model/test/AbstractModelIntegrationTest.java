@@ -4084,4 +4084,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return true;
 	}
+	
+	protected PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
+		assertNotNull("The org "+orgName+" is missing!", org);
+		display("Org "+orgName, org);
+		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
+		return org;
+	}
+	
+	protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		display("Org tree", dumpOrgTree(getTopOrgOid()));
+	}
+	
+	protected String getTopOrgOid() {
+		return null;
+	}
 }

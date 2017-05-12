@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -121,7 +122,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public void prepareDeltaVisualization(String sceneNameKey, PrismContext prismContext,
-			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException {
+			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		TaskType task = getTaskType();
 		if (task == null || task.getWorkflowContext() == null) {
 			return;

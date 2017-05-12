@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,7 +216,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
             config = pageBase.getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-                | CommunicationException | ConfigurationException e) {
+                | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
             return null;
         }

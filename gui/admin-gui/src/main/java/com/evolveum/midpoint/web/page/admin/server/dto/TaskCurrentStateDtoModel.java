@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -83,7 +84,7 @@ public class TaskCurrentStateDtoModel extends AbstractReadOnlyModel<TaskCurrentS
             TaskDto taskDto = new TaskDto(task.asObjectable(), page.getModelService(), page.getTaskService(),
                     page.getModelInteractionService(), taskManager, page.getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, page);
             taskModel.setObject(taskDto);
-        } catch (CommunicationException|ObjectNotFoundException|SchemaException|SecurityViolationException|ConfigurationException|RuntimeException e) {
+        } catch (CommunicationException|ObjectNotFoundException|SchemaException|SecurityViolationException|ConfigurationException|ExpressionEvaluationException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, taskModel.getObject());
         }
     }

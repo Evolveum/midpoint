@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -495,7 +495,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		assertSubOrgs(orgVysneVlkodlakyOid, 0);
 	}
 	
-	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException  {
+	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException  {
 		// nothing to do by default
 	}
 
@@ -557,7 +557,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		return user;
 	}
 
-	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = getOrg(orgName);
 		display("org", org);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, ORG_TYPE_FUNCTIONAL);
@@ -579,7 +579,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		return org;
 	}
 
-	protected PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
 		assertNotNull("The org "+orgName+" is missing!", org);
 		display("Org "+orgName, org);
@@ -587,7 +587,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		return org;
 	}
 
-	protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		display("Org tree", dumpOrgTree(ORG_TOP_OID));
 	}
 	
@@ -600,16 +600,16 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	protected void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
+		assertAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
 	}
 
 	protected void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertNoAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"));
+		assertNoAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
 	}
 	
-	protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		final Task task = createTask("reconcileAllUsers");
 		OperationResult result = task.getResult();
 		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
@@ -630,7 +630,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
 	}
 	
-	protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		final Task task = createTask("reconcileAllOrgs");
 		OperationResult result = task.getResult();
 		ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {

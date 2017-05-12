@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,8 +122,7 @@ public class PageResources extends PageAdminResources {
 				Search dto = storage.getSearch();
 
 				if (dto == null) {
-					dto = SearchFactory.createSearch(ResourceType.class, getPrismContext(),
-							getModelInteractionService());
+					dto = SearchFactory.createSearch(ResourceType.class, PageResources.this);
 				}
 
 				return dto;
@@ -141,7 +140,7 @@ public class PageResources extends PageAdminResources {
         if (storage == null) {
             storage = getSessionStorage().initPageStorage(SessionStorage.KEY_RESOURCES);
         }
-        Search search = SearchFactory.createSearch(ResourceType.class, getPrismContext(), getModelInteractionService());
+        Search search = SearchFactory.createSearch(ResourceType.class, this);
 		if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
 			search.setFullText(text);
 		} else if (search.getItems() != null && search.getItems().size() > 0){

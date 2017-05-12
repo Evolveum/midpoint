@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -114,7 +115,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					final TaskType taskType = loadTaskTypeChecked(taskOid, operationTask, result);
 					currentTaskDto = prepareTaskDto(taskType, operationTask, result);
 					return currentTaskDto;
-				} catch (SchemaException|ObjectNotFoundException e) {
+				} catch (SchemaException|ObjectNotFoundException|ExpressionEvaluationException e) {
 					throw new SystemException("Couldn't prepare task DTO: " + e.getMessage(), e);
 				}
 			}
@@ -181,7 +182,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskType;
 	}
 
-	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private TaskDto prepareTaskDto(TaskType task, Task operationTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		TaskDto taskDto = new TaskDto(task, getModelService(), getTaskService(), getModelInteractionService(),
 				getTaskManager(), getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), operationTask, result, this);
 		return taskDto;
@@ -300,7 +301,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			currentTaskDto = newTaskDto;
 			taskDtoModel.setObject(newTaskDto);
 			objectWrapperModel.setObject(newWrapper);
-		} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
+		} catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException|RuntimeException|Error e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, oldTaskDto);
 		}
 	}

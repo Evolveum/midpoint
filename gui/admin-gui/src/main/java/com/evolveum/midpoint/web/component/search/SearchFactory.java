@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -120,28 +122,27 @@ public class SearchFactory {
     }
 
     public static <T extends ObjectType> Search createSearchForShadow(
-            ResourceShadowDiscriminator discriminator, PrismContext ctx, ModelInteractionService modelInteractionService) {
-        return createSearch(ShadowType.class, discriminator, ctx, modelInteractionService, true);
+            ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
+        return createSearch(ShadowType.class, discriminator, modelServiceLocator, true);
     }
 
-    public static <T extends ObjectType> Search createSearch(Class<T> type, PrismContext ctx,
-                                                             ModelInteractionService modelInteractionService) {
-        return createSearch(type, null, ctx, modelInteractionService, true);
+    public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
+        return createSearch(type, null, modelServiceLocator, true);
     }
 
     public static <T extends ObjectType> Search createSearch(
-            Class<T> type, ResourceShadowDiscriminator discriminator, PrismContext ctx,
-            ModelInteractionService modelInteractionService, boolean useDefsFromSuperclass) {
+            Class<T> type, ResourceShadowDiscriminator discriminator,
+            ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
 
-        PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, ctx, modelInteractionService);
+        PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, modelServiceLocator);
 
         Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
-        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelInteractionService, type);
+        boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type);
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
-                getDefaultSearchType(modelInteractionService, type));
+                getDefaultSearchType(modelServiceLocator, type));
 
-        SchemaRegistry registry = ctx.getSchemaRegistry();
+        SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
         PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
 
@@ -154,25 +155,26 @@ public class SearchFactory {
     }
 
     private static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
-            Class<T> type, ResourceShadowDiscriminator discriminator, PrismContext ctx,
-            ModelInteractionService modelInteractionService) {
+            Class<T> type, ResourceShadowDiscriminator discriminator,
+            ModelServiceLocator modelServiceLocator) {
 
         try {
             if (Modifier.isAbstract(type.getModifiers())) {
-                SchemaRegistry registry = ctx.getSchemaRegistry();
+                SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
                 return registry.findObjectDefinitionByCompileTimeClass(type);
             }
 
-            OperationResult result = new OperationResult(LOAD_OBJECT_DEFINITION);
+            Task task = modelServiceLocator.createSimpleTask(LOAD_OBJECT_DEFINITION);
+            OperationResult result = task.getResult();
 
-            PrismObject empty = ctx.createObject(type);
+            PrismObject empty = modelServiceLocator.getPrismContext().createObject(type);
 
             if (ShadowType.class.equals(type)) {
-                return modelInteractionService.getEditShadowDefinition(discriminator,
-                        AuthorizationPhaseType.REQUEST, result);
+                return modelServiceLocator.getModelInteractionService().getEditShadowDefinition(discriminator,
+                        AuthorizationPhaseType.REQUEST, task, result);
             } else {
-                return modelInteractionService.getEditObjectDefinition(
-                        empty, AuthorizationPhaseType.REQUEST, result);
+                return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
+                        empty, AuthorizationPhaseType.REQUEST, task, result);
             }
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
             throw new SystemException(ex);
@@ -207,20 +209,20 @@ public class SearchFactory {
         return map;
     }
 
-    private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelInteractionService modelInteractionService, Class<T> type) {
+    private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
         try {
-            return FullTextSearchConfigurationUtil.isEnabledFor(modelInteractionService.getSystemConfiguration(result)
+            return FullTextSearchConfigurationUtil.isEnabledFor(modelServiceLocator.getModelInteractionService().getSystemConfiguration(result)
                     .getFullTextSearch(), type);
         } catch (SchemaException | ObjectNotFoundException ex) {
                 throw new SystemException(ex);
         }
     }
 
-    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType (ModelInteractionService modelInteractionService, Class<T> type) {
+    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType (ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
-            AdminGuiConfigurationType guiConfig = modelInteractionService.getAdminGuiConfiguration(null, result);
+            AdminGuiConfigurationType guiConfig = modelServiceLocator.getModelInteractionService().getAdminGuiConfiguration(null, result);
             if (guiConfig != null){
                 GuiObjectListsType objectLists = guiConfig.getObjectLists();
                 if (objectLists != null && objectLists.getObjectList() != null){

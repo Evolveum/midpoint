@@ -115,6 +115,11 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	private PrismObject<ResourceType> resourceOpenDj;
 
 	
+	@Override
+	protected String getTopOrgOid() {
+		return ORG_TOP_OID;
+	}
+	
 	private File getTestDir() {
 		return TEST_DIR;
 	}
@@ -462,7 +467,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		return org;
 	}
 
-	private void assertLdapObjectsFunctionalOrg(PrismObject<OrgType> org) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	private void assertLdapObjectsFunctionalOrg(PrismObject<OrgType> org) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		String orgName =  org.getName().toString();
 		display("assert org", org.getName());
 		
@@ -479,7 +484,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 	}
 	
 	
-	private void assertLdapObject(PrismObject<OrgType> org, ShadowKindType kind, String intent) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	private void assertLdapObject(PrismObject<OrgType> org, ShadowKindType kind, String intent) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		String orgName =  org.getName().toString();
 		display("assert org", orgName);
 		
@@ -508,21 +513,7 @@ public  class TestLdapDependency extends AbstractStoryTest {
 		if (kind.equals(ShadowKindType.GENERIC)){
 			openDJController.assertObjectClass(objEntry, "organizationalUnit");
 		}
-		
-		
 
-	}
-
-	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-		assertNotNull("The org "+orgName+" is missing!", org);
-		display("Org "+orgName, org);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
-		return org;
-	}
-
-	private void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		display("Org tree", dumpOrgTree(ORG_TOP_OID));
 	}
 	
 	private void dumpLdap() throws DirectoryException {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -322,8 +322,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             private static final long serialVersionUID = 1L;
             @Override
             public Search load() {
-                Search search = SearchFactory.createSearch(AbstractRoleType.class, pageBase.getPrismContext(),
-                        pageBase.getModelInteractionService());
+                Search search = SearchFactory.createSearch(AbstractRoleType.class, pageBase);
                 return search;
             }
         };

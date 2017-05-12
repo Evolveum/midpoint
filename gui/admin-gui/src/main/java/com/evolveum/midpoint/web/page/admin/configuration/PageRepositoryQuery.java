@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -384,7 +384,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 				target.add(getFeedbackPanel());
 				return;
 			}
-			Search search = SearchFactory.createSearch(request.getType(), getPrismContext(), getModelInteractionService());
+			Search search = SearchFactory.createSearch(request.getType(), this);
 			search.setAdvancedQuery(filterAsString);
 			search.setShowAdvanced(true);
 			if (!search.isAdvancedQueryValid(getPrismContext())) {

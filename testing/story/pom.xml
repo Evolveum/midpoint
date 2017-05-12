@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -83,6 +83,11 @@
 			<version>3.6-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>audit-api</artifactId>
+			<version>3.6-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
 			<version>3.6-SNAPSHOT</version>
@@ -101,6 +106,7 @@
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>workflow-impl</artifactId>
 			<version>3.6-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
@@ -111,6 +117,7 @@
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>notifications-impl</artifactId>
 			<version>3.6-SNAPSHOT</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
@@ -174,6 +181,14 @@
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+		</dependency>
 
 		<!-- TEST dependency -->
 		<dependency>
@@ -201,7 +216,7 @@
 		</dependency>
 		<dependency>
             <groupId>com.evolveum.polygon</groupId>
-            <artifactId>connector-csvfile</artifactId>
+            <artifactId>connector-csv</artifactId>
             <scope>test</scope>
         </dependency>
 		<dependency>

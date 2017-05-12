@@ -105,6 +105,7 @@ import com.evolveum.midpoint.test.util.Lsof;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -384,7 +385,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		final String TEST_NAME = "test010Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 		
-		OperationResult	testResult = provisioningService.testResource(getResourceOid());
+		Task task = createTask(TEST_NAME);
+		
+		OperationResult	testResult = provisioningService.testResource(getResourceOid(), task);
 		
 		display("Test connection result",testResult);
 		TestUtil.assertSuccess("Test connection failed",testResult);
@@ -491,11 +494,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		return query;
 	}
 	
-	protected SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return doSearch(TEST_NAME, query, null, expectedSize, task, result);
 	}
 	
-	protected SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, GetOperationOptions rootOptions, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, GetOperationOptions rootOptions, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>(expectedSize);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
@@ -994,7 +997,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		}
 	}
 	
-	protected void assertLdapConnectorInstances(int expectedConnectorInstancesShortcut, int expectedConnectorInstancesNoShortcut) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	protected void assertLdapConnectorInstances(int expectedConnectorInstancesShortcut, int expectedConnectorInstancesNoShortcut) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (isUsingGroupShortcutAttribute()) {
 			assertLdapConnectorInstances(expectedConnectorInstancesShortcut);
 		} else {
@@ -1002,15 +1005,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		}
 	}
 
-	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		OperationResult result = new OperationResult(AbstractLdapTest.class.getName() + ".assertLdapConnectorInstances");
-		ConnectorOperationalStatus stats = provisioningService.getConnectorOperationalStatus(getResourceOid(), result);
+	protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask(AbstractLdapTest.class.getName() + ".assertLdapConnectorInstances");
+		OperationResult result = task.getResult();
+		List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(getResourceOid(), task, result);
 		display("Resource connector stats", stats);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 				
+		assertEquals("unexpected number of stats", 1, stats.size());
+		ConnectorOperationalStatus stat = stats.get(0);
+		
 		assertEquals("Unexpected number of LDAP connector instances", expectedConnectorInstances, 
-				stats.getPoolStatusNumIdle() + stats.getPoolStatusNumActive());
+				stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive());
 		
 		if (!isAssertOpenFiles()) {
 			return;

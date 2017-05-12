@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,8 +103,7 @@ public class PageConnectorHosts extends PageAdminResources {
 
 			@Override
 			protected Search load() {
-				return SearchFactory.createSearch(ConnectorHostType.class, getPrismContext(),
-						getModelInteractionService());
+				return SearchFactory.createSearch(ConnectorHostType.class, PageConnectorHosts.this);
 			}
 		};
 

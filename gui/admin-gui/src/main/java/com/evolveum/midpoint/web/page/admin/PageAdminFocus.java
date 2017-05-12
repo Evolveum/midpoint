@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1005,7 +1006,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			prismObject = getModelService().getObject(clazz, oid,
 					SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-				| CommunicationException | ConfigurationException | RuntimeException e) {
+				| CommunicationException | ConfigurationException | ExpressionEvaluationException 
+				| RuntimeException | Error e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve name for {}: {}", e,
 					clazz.getSimpleName(), oid);
 			return "Couldn't retrieve name for " + oid;
