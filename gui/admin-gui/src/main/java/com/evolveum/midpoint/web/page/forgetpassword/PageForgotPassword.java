@@ -213,21 +213,13 @@ public class PageForgotPassword extends PageRegistrationBase {
 		});
 
 		DynamicFormPanel<UserType> searchAttributesForm = runPrivileged(
-				new Producer<DynamicFormPanel<UserType>>() {
-
-					@Override
-					public DynamicFormPanel<UserType> run() {
-						ObjectReferenceType formRef = getResetPasswordPolicy().getFormRef();
-
-						if (formRef == null) {
-							return null;
-						}
-
-						DynamicFormPanel<UserType> dynamicFormPanel = new DynamicFormPanel<UserType>(
-								ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE, formRef.getOid(), mainForm, true,
-								PageForgotPassword.this);
-						return dynamicFormPanel;
+				() -> {
+					ObjectReferenceType formRef = getResetPasswordPolicy().getFormRef();
+					if (formRef == null) {
+						return null;
 					}
+					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
+							formRef.getOid(), mainForm, true, this);
 				});
 
 		if (searchAttributesForm != null) {

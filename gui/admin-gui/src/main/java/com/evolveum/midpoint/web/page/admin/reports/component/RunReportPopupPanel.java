@@ -114,6 +114,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     private static final Integer AUTO_COMPLETE_BOX_SIZE = 10;
     
+    private static final String ID_VALUE_LIST = "valueList";
     private static final String ID_ADD_BUTTON = "add";
     private static final String ID_REMOVE_BUTTON = "remove";
     
@@ -176,7 +177,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         StringResourceModel paramDisplay = PageBase.createStringResourceStatic(RunReportPopupPanel.this, "runReportPopupContent.param.name." + paramValue, new Object[]{});
 
         paramPanel.add(new Label("name", paramDisplay)); // use display name rather than property name
-        
+
         String paramClass = new PropertyModel<String>(parameterModel, "nestedTypeAsString").getObject();
         if (StringUtils.isBlank(paramClass)) {
         	paramClass = new PropertyModel<String>(parameterModel, "typeAsString").getObject();
@@ -184,7 +185,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         paramClass = (paramClass == null) ? "" : paramClass.substring(paramClass.lastIndexOf(".") + 1);
         paramPanel.add(new Label("type", paramClass));
         
-        ListView<JasperReportValueDto> listView = new ListView<JasperReportValueDto>("valueList", new PropertyModel<>(parameterModel, "value")) {
+        ListView<JasperReportValueDto> listView = new ListView<JasperReportValueDto>(ID_VALUE_LIST, new PropertyModel<>(parameterModel, "value")) {
 
     		private static final long serialVersionUID = 1L;
 
@@ -216,7 +217,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
 		@Override
         public void onClick(AjaxRequestTarget target) {
-            addValue(param, target);
+            addValue(paramValueMarkup, param, target);
         }
     };
     addButton.add(new VisibleEnableBehaviour() {
@@ -234,7 +235,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         @Override
         public void onClick(AjaxRequestTarget target) {
-            removeValue(param, valueModel.getObject(), target);
+            removeValue(paramValueMarkup, param, valueModel.getObject(), target);
         }
 
 		
@@ -293,10 +294,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     }
     
     
-    private void addValue(JasperReportParameterDto valueModel, AjaxRequestTarget target) {
+    private void addValue(WebMarkupContainer paramValueMarkup, JasperReportParameterDto valueModel, AjaxRequestTarget target) {
     	valueModel.addValue();
-    	ListView paramTable = getParametersView();
-    	target.add(paramTable.getParent());
+    	//reload just current parameter container panel
+    	target.add(paramValueMarkup.findParent(ListView.class).findParent(WebMarkupContainer.class));
     }
     
     private ListView getParametersView(){
@@ -313,11 +314,11 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 		}
     }
     
-       private void removeValue(JasperReportParameterDto valueModel,
+       private void removeValue(WebMarkupContainer paramValueMarkup, JasperReportParameterDto valueModel,
 			JasperReportValueDto object, AjaxRequestTarget target) {
     	valueModel.removeValue(object);
-    	ListView paramTable = getParametersView();
-    	target.add(paramTable.getParent());
+           //reload just current parameter container panel
+           target.add(paramValueMarkup.findParent(ListView.class).findParent(WebMarkupContainer.class));
 		
 	}
        

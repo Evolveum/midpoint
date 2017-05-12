@@ -827,7 +827,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Override
 	public <O extends ObjectType> String generateValue(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
 			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		return valuePolicyGenerator.generate(policy, defaultLength, generateMinimalSize, object, shortDesc, task, parentResult);
+		return valuePolicyGenerator.generate(null, policy, defaultLength, generateMinimalSize, object, shortDesc, task, parentResult);
 	}
 
 }

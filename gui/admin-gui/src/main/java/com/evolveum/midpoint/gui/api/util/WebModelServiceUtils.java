@@ -209,15 +209,22 @@ public class WebModelServiceUtils {
 
 	@Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-                                                                   PageBase page, Task task, OperationResult result) {
+			PageBase page, Task task, OperationResult result) {
         return loadObject(type, oid, null, page, task, result);
     }
 
-    @Nullable
+	@Nullable
 	public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
-                                                                    Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                    PageBase page, Task task, OperationResult result) {
-        LOGGER.debug("Loading {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			PageBase page, Task task, OperationResult result) {
+    	return loadObject(type, oid, options, true, page, task, result);
+	}
+
+	@Nullable
+	public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
+			Collection<SelectorOptions<GetOperationOptions>> options, boolean allowNotFound,
+			PageBase page, Task task, OperationResult result) {
+        LOGGER.debug("Loading {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
         if (result != null) {
@@ -227,17 +234,16 @@ public class WebModelServiceUtils {
         }
         PrismObject<T> object = null;
         try {
-        	if (options == null){
+        	if (options == null) {
         		options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
         	} else {
         		GetOperationOptions getOpts = SelectorOptions.findRootOptions(options);
-        		if (getOpts == null){
-        			options.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createResolveNames()));
+        		if (getOpts == null) {
+        			options.add(new SelectorOptions<>(GetOperationOptions.createResolveNames()));
         		} else {
         			getOpts.setResolveNames(Boolean.TRUE);
         		}
         	}
-//        	.createResolveNames();
             object = page.getModelService().getObject(type, oid, options, task, subResult);
         } catch (AuthorizationException e) {
         	// Not authorized to access the object. This is probably caused by a reference that
@@ -248,18 +254,23 @@ public class WebModelServiceUtils {
                     task.getOwner() != null ? task.getOwner().getName() : null, type.getSimpleName(), oid);
         	return null;
         } catch (ObjectNotFoundException e) {
-        	// Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
-			subResult.recordHandledError(e);
-			LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
-			return null;
+        	if (allowNotFound) {
+				// Object does not exist. It was deleted in the meanwhile, or not created yet. This could happen quite often.
+				subResult.recordHandledError(e);
+				LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
+				return null;
+			} else {
+				subResult.recordFatalError("WebModelUtils.couldntLoadObject", e);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", e);
+			}
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
         } finally {
             subResult.computeStatus();
         }
-
-        if (result == null && WebComponentUtil.showResultInPage(subResult)) {
+		// TODO reconsider this part: until recently, the condition was always 'false'
+        if (WebComponentUtil.showResultInPage(subResult)) {
             page.showResult(subResult);
         }
 

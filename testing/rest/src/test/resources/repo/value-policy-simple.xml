@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<valuePolicy oid="81818181-76e0-0000-8888-3d4f02d3fffb" xsi:type="c:ValuePolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<name>Policy Simple</name>
+	<description>Complex Password policy requires at least one lowercase letter, at least one uppercase letter, at least one digit
+and at least on special character in the password. The password must start
+with a lowercase letter and must be at least 6 characters long.</description>
+	<lifetime>
+		<expiration>999</expiration>
+		<warnBeforeExpiration>9</warnBeforeExpiration>
+		<lockAfterExpiration>0</lockAfterExpiration>
+		<minPasswordAge>0</minPasswordAge>
+		<passwordHistoryLength>0</passwordHistoryLength>
+	</lifetime>
+	<stringPolicy>
+		<description>String validation policy</description>
+		<limitations>
+			<minLength>4</minLength>
+			<maxLength>32</maxLength>
+			<minUniqueChars>3</minUniqueChars>
+			<!-- not implemented yet
+			 <checkAgainstDictionary>true</checkAgainstDictionary>
+			 -->
+			<checkPattern />
+			<limit>
+				<description>Lowercase alphanumeric characters</description>
+				
+				<mustBeFirst>false</mustBeFirst>
+				<characterClass>
+					<value>abcdefghijklmnopqrstuvwxyz</value>
+				</characterClass>
+			</limit>
+			<limit>
+				<description>Uppercase alphanumeric characters</description>
+				
+				<characterClass>
+					<value>ABCDEFGHIJKLMNOPQRSTUVWXYZ</value>
+				</characterClass>
+			</limit>
+			<limit>
+				<description>Numeric characters</description>
+				
+				<characterClass>
+					<value>1234567890</value>
+				</characterClass>
+			</limit>
+			<limit>
+				<description>Special characters</description>
+				<mustBeFirst>false</mustBeFirst>
+				<characterClass>
+					<value> !"#$%&amp;'()*+,-.:;&lt;&gt;?@[]^_`{|}~</value>
+				</characterClass>
+			</limit>
+		</limitations>
+	</stringPolicy>
+</valuePolicy>

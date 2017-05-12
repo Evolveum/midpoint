@@ -131,6 +131,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		//
 		String stringValue = null;
 		GenerateExpressionEvaluatorModeType mode = generateEvaluatorType.getMode();
+		Item<V, D> output = outputDefinition.instantiate();
 		if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
 
 			PrismObject<? extends ObjectType> object = getObject(context);
@@ -138,10 +139,10 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			// TODO: generate value based on stringPolicyType (if not null)
 			if (stringPolicyType != null) {
 				if (isNotEmptyMinLength(stringPolicyType)) {
-					stringValue = valuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, object,
+					stringValue = valuePolicyGenerator.generate(output.getPath(), stringPolicyType, DEFAULT_LENGTH, true, object,
 							context.getContextDescription(), context.getTask(), context.getResult());
 				} else {
-					stringValue = valuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, object,
+					stringValue = valuePolicyGenerator.generate(output.getPath(), stringPolicyType, DEFAULT_LENGTH, false, object,
 							context.getContextDescription(), context.getTask(), context.getResult());
 				}
 				context.getResult().computeStatus();
@@ -167,7 +168,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 		Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
 
-		Item<V, D> output = outputDefinition.instantiate();
+		
 		if (output instanceof PrismProperty) {
 			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
 			((PrismProperty<Object>) output).add(pValue);

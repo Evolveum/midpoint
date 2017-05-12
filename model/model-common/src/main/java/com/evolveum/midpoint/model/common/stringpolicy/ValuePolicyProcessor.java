@@ -49,8 +49,10 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -81,6 +83,8 @@ public class ValuePolicyProcessor {
 	private static final String OPERATION_STRING_POLICY_VALIDATION = DOT_CLASS + "stringPolicyValidation";
 	private static final int DEFAULT_MAX_ATTEMPTS = 10;
 	
+	private ItemPath path;
+	
 	@Autowired
 	private ExpressionFactory expressionFactory;
 
@@ -91,14 +95,25 @@ public class ValuePolicyProcessor {
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
 	}
-
-	public <O extends ObjectType> String generate(StringPolicyType policy, int defaultLength, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		return generate(policy, defaultLength, false, object, shortDesc, task, result);
+	
+	public void setPath(ItemPath path) {
+		this.path = path;
+	}
+	
+	public ItemPath getPath() {
+		if (path == null) {
+			return SchemaConstants.PATH_PASSWORD_VALUE;
+		}
+		return path;
 	}
 
-	public <O extends ObjectType>  String generate(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
+	public <O extends ObjectType> String generate(ItemPath path, StringPolicyType policy, int defaultLength, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+		return generate(path, policy, defaultLength, false, object, shortDesc, task, result);
+	}
+
+	public <O extends ObjectType>  String generate(ItemPath path, StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
 			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		
+		setPath(path);
 		OperationResult result = parentResult.createSubresult(OP_GENERATE);
 		
 		int maxAttempts = DEFAULT_MAX_ATTEMPTS;
@@ -141,7 +156,7 @@ public class ValuePolicyProcessor {
 	public <O extends ObjectType> boolean validateValue(String newValue, ValuePolicyType pp, 
 			PrismObject<O> object, StringBuilder message, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-		Validate.notNull(pp, "Password policy must not be null.");
+		Validate.notNull(pp, "Value policy must not be null.");
 
 		OperationResult result = parentResult.createSubresult(OPERATION_STRING_POLICY_VALIDATION);
 		result.addParam("policyName", pp.getName());
@@ -344,7 +359,7 @@ public class ValuePolicyProcessor {
 		}
 		if (limitations.getMinLength() > password.length()) {
 			String msg = "Required minimal size (" + limitations.getMinLength()
-					+ ") of password is not met (password length: " + password.length() + ")";
+					+ ") is not met (actual length: " + password.length() + ")";
 			result.addSubresult(new OperationResult("Check global minimal length",
 					OperationResultStatus.FATAL_ERROR, msg));
 			message.append(msg);
@@ -358,7 +373,7 @@ public class ValuePolicyProcessor {
 		if (limitations.getMaxLength() != null) {
 			if (limitations.getMaxLength() < password.length()) {
 				String msg = "Required maximal size (" + limitations.getMaxLength()
-						+ ") of password was exceeded (password length: " + password.length() + ").";
+						+ ") was exceeded (actual length: " + password.length() + ").";
 				result.addSubresult(new OperationResult("Check global maximal length",
 						OperationResultStatus.FATAL_ERROR, msg));
 				message.append(msg);
@@ -379,8 +394,8 @@ public class ValuePolicyProcessor {
 			}
 		}
 		if (invalidCharacters.length() > 0) {
-			String msg = "Characters [ " + invalidCharacters + " ] are not allowed in password";
-			result.addSubresult(new OperationResult("Check if password does not contain invalid characters",
+			String msg = "Characters [ " + invalidCharacters + " ] are not allowed in value";
+			result.addSubresult(new OperationResult("Check if value does not contain invalid characters",
 					OperationResultStatus.FATAL_ERROR, msg));
 			message.append(msg);
 			message.append("\n");
@@ -502,12 +517,12 @@ public class ValuePolicyProcessor {
 			// If no intersection was found then raise error
 			if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
 				result.recordFatalError(
-						"No intersection for required first character sets in password policy:"
+						"No intersection for required first character sets in value policy:"
 								+ policy.getDescription());
 				// Log error
 				if (LOGGER.isErrorEnabled()) {
 					LOGGER.error(
-							"Unable to generate password: No intersection for required first character sets in password policy: ["
+							"Unable to generate value for " + getPath() + ": No intersection for required first character sets in value policy: ["
 									+ policy.getDescription()
 									+ "] following character limitation and sets are used:");
 					for (StringLimitType l : mustBeFirst.keySet()) {
@@ -524,7 +539,7 @@ public class ValuePolicyProcessor {
 					StrBuilder tmp = new StrBuilder();
 					tmp.appendSeparator(", ");
 					tmp.appendAll(intersectionCharacters);
-					LOGGER.trace("Generate first character intersection items [" + tmp + "] into password.");
+					LOGGER.trace("Generate first character intersection items [" + tmp + "] into " + getPath() + ".");
 				}
 				// Generate random char into password from intersection
 				password.append(intersectionCharacters.get(RAND.nextInt(intersectionCharacters.size())));
@@ -571,7 +586,7 @@ public class ValuePolicyProcessor {
 		// test if maximum is not exceeded
 		if (password.length() > maxLen) {
 			result.recordFatalError(
-					"Unable to meet minimal criteria and not exceed maximxal size of password.");
+					"Unable to meet minimal criteria and not exceed maximxal size of " + getPath() + ".");
 			return null;
 		}
 
@@ -637,10 +652,10 @@ public class ValuePolicyProcessor {
 
 		if (password.length() < minLen) {
 			result.recordFatalError(
-					"Unable to generate password and meet minimal size of password. Password lenght: "
+					"Unable to generate value for " + getPath() + " and meet minimal size of " + getPath() + ". Actual lenght: "
 							+ password.length() + ", required: " + minLen);
 			LOGGER.trace(
-					"Unable to generate password and meet minimal size of password. Password lenght: {}, required: {}",
+					"Unable to generate value for " + getPath() + " and meet minimal size of " + getPath() + ". Actual lenght: {}, required: {}",
 					password.length(), minLen);
 			return null;
 		}

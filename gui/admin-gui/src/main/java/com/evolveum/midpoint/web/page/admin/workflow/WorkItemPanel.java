@@ -18,12 +18,9 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -60,7 +57,7 @@ import java.util.List;
  */
 public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(WorkItemPanel.class);
+    //private static final Trace LOGGER = TraceManager.getTrace(WorkItemPanel.class);
 
     private static final String ID_PRIMARY_INFO_COLUMN = "primaryInfoColumn";
     private static final String ID_ADDITIONAL_INFO_COLUMN = "additionalInfoColumn";
@@ -216,11 +213,10 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			String formOid = level.getFormRef().getOid();
 			ObjectType focus = dto.getFocus(pageBase);
 			if (focus == null) {
-				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME
+				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME (this should not occur anyway)
 			}
-			DynamicFormPanel<UserType> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
-					(PrismObject<UserType>) focus.asPrismObject(),
-					formOid, mainForm, false, pageBase);
+			DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
+					focus.asPrismObject(), formOid, mainForm, false, pageBase);
 			add(customForm);
 		} else {
 			add(new Label(ID_CUSTOM_FORM));
@@ -229,7 +225,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }
 
-	public ObjectDelta getDeltaFromForm() throws SchemaException {
+	ObjectDelta getDeltaFromForm() throws SchemaException {
 		Component formPanel = get(ID_CUSTOM_FORM);
 		if (formPanel instanceof DynamicFormPanel) {
 			return ((DynamicFormPanel) formPanel).getObjectDelta();
