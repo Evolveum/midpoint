@@ -18,13 +18,13 @@ package com.evolveum.midpoint.model.common.expression;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
+import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
+import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
@@ -76,8 +76,8 @@ public class ExpressionTestUtil {
 
     	// script
     	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
-        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext, protector));
-        functions.add(ExpressionUtil.createLogFunctionLibrary(prismContext));
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
+        functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
         ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, protector);
         scriptExpressionFactory.setFunctions(functions);
         XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);

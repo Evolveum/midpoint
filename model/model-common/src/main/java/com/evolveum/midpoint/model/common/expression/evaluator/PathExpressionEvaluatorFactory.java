@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.task.api.Task;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -75,15 +75,9 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 		
 		Object evaluatorElementObject = evaluatorElement.getValue();
 		 if (!(evaluatorElementObject instanceof ItemPathType)) {
-	            throw new IllegalArgumentException("Path expression cannot handle elements of type " 
-	            		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
-	        }
-//        if (!(evaluatorElementObject instanceof Element)) {
-//            throw new IllegalArgumentException("Path expression cannot handle elements of type " 
-//            		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
-//        }
-        
-//        XPathHolder xpath = new XPathHolder((Element)evaluatorElementObject);
+		        throw new IllegalArgumentException("Path expression cannot handle elements of type " 
+		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
+		}
         ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
         
         return new PathExpressionEvaluator<>(path, objectResolver, outputDefinition, protector, prismContext);
