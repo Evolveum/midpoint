@@ -23,14 +23,11 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -1085,7 +1082,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 				operationOutput.setOutputs(outputs);
 				SingleScriptOutputType output = new SingleScriptOutputType();
 				output.setTextOutput(executionResult.getConsoleOutput());
-				output.setXmlData(ModelWebService.prepareXmlData(executionResult.getDataOutput()));
+				output.setDataOutput(ModelWebService.prepareXmlData(executionResult.getDataOutput()));
 				outputs.getOutput().add(output);
 
 				builder = Response.ok();

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.scripting.expressions.FilterContentEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.helpers.JaxbHelper;
@@ -57,6 +58,7 @@ public class ScriptingExpressionEvaluator {
     @Autowired private TaskManager taskManager;
     @Autowired private SearchEvaluator searchEvaluator;
     @Autowired private SelectEvaluator selectEvaluator;
+    @Autowired private FilterContentEvaluator filterContentEvaluator;
     @Autowired private JaxbHelper jaxbHelper;
     @Autowired private PrismContext prismContext;
 
@@ -180,6 +182,8 @@ public class ScriptingExpressionEvaluator {
             output = executeSequence((ExpressionSequenceType) value, input, context, globalResult);
         } else if (value instanceof SelectExpressionType) {
             output = selectEvaluator.evaluate((SelectExpressionType) value, input, context, globalResult);
+        } else if (value instanceof FilterContentExpressionType) {
+            output = filterContentEvaluator.evaluate((FilterContentExpressionType) value, input, context, globalResult);
         } else if (value instanceof SearchExpressionType) {
             output = searchEvaluator.evaluate((SearchExpressionType) value, input, context, globalResult);
         } else if (value instanceof ActionExpressionType) {

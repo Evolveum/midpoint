@@ -262,7 +262,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
                 output.setTextOutput(executionResult.getConsoleOutput());
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
-                    output.setXmlData(prepareXmlData(executionResult.getDataOutput()));
+                    output.setDataOutput(prepareXmlData(executionResult.getDataOutput()));
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
                     PipelineDataType jaxbOutput = prepareXmlData(executionResult.getDataOutput());

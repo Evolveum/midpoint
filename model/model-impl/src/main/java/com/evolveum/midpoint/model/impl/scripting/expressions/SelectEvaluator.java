@@ -21,16 +21,13 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author mederly
@@ -39,44 +36,18 @@ import java.util.stream.Collectors;
 public class SelectEvaluator extends BaseExpressionEvaluator {
 
     public PipelineData evaluate(SelectExpressionType selectExpression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        if (selectExpression.getPath() != null) {
-            return executeSubItemSelection(input, selectExpression.getPath().getItemPath());
-        }
-        List<ItemPath> keep = convert(selectExpression.getKeep());
-        List<ItemPath> remove = convert(selectExpression.getRemove());
-        if (keep.isEmpty() && remove.isEmpty()) {
-            return input;       // nothing to do here
-        }
-        for (PipelineItem pipelineItem : input.getData()) {
-            PrismValue value = pipelineItem.getValue();
-            if (!(value instanceof PrismContainerValue)) {
-                throw new ScriptExecutionException(
-                        "In 'select' commands in keep/remove mode, we can act only on prism container values, not on " + value);
-            }
-            PrismContainerValue<?> pcv = (PrismContainerValue) value;
-            if (!keep.isEmpty()) {
-                pcv.keepPaths(keep);
-            } else {
-                pcv.removePaths(remove);
-            }
-        }
-        return input;
-    }
-
-    private List<ItemPath> convert(List<ItemPathType> paths) {
-        return paths.stream().map(p -> p.getItemPath()).collect(Collectors.toList());
-    }
-
-    private PipelineData executeSubItemSelection(PipelineData input, ItemPath path)
-            throws ScriptExecutionException {
-        PipelineData output = PipelineData.createEmpty();
-        for (PipelineItem item : input.getData()) {
+		if (selectExpression.getPath() == null) {
+        	return input;
+		}
+		ItemPath path = selectExpression.getPath().getItemPath();
+		PipelineData output = PipelineData.createEmpty();
+		for (PipelineItem item : input.getData()) {
 			Object o = item.getValue().find(path);
 			if (o != null) {
 				if (o instanceof Item) {
 					List<? extends PrismValue> values = ((Item<? extends PrismValue, ?>) o).getValues();
-					values.forEach((v) -> output.addValue(v,
-							item.getResult().clone()));        // clone to avoid aggregating subresults into unrelated results
+					values.forEach((v) ->
+							output.addValue(v, item.getResult().clone()));        // clone to avoid aggregating subresults into unrelated results
 				} else {
 					throw new ScriptExecutionException(
 							"In 'select' commands, only property/container/reference selection is supported for now. Select on '"
@@ -84,7 +55,6 @@ public class SelectEvaluator extends BaseExpressionEvaluator {
 				}
 			}
 		}
-        return output;
-    }
-
+		return output;
+	}
 }

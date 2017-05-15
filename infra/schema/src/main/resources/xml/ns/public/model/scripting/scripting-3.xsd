@@ -300,7 +300,7 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ScriptingExpressionType">
-                <xsd:choice>
+                <xsd:sequence>
                     <xsd:element name="path" type="t:ItemPathType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -308,6 +308,27 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="select" type="tns:SelectExpressionType" substitutionGroup="tns:scriptingExpression" >
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:heterogeneousListItem/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="FilterContentExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Keeps/removes selected items from the input value.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ScriptingExpressionType">
+				<xsd:choice>
                     <xsd:element name="keep" type="t:ItemPathType" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -326,7 +347,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="select" type="tns:SelectExpressionType" substitutionGroup="tns:scriptingExpression" >
+    <xsd:element name="filterContent" type="tns:FilterContentExpressionType" substitutionGroup="tns:scriptingExpression" >
 		<xsd:annotation>
 			<xsd:appinfo>
 				<a:heterogeneousListItem/>

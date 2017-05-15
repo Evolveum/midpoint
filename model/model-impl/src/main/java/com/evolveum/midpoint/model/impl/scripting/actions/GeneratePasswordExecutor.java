@@ -27,13 +27,15 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -74,13 +76,8 @@ public class GeneratePasswordExecutor extends BaseActionExecutor {
                 try {
                     LOGGER.trace("Generating password for {}", userObject);
                     // TODO unify with ModelRestService.generateValue
-                    CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(userObject, context.getTask(), result);
-                    if (policy == null || policy.getPassword() == null || policy.getPassword().getPasswordPolicyRef() == null) {
-                        throw new ObjectNotFoundException("No applicable password policy found");
-                    }
-                    ValuePolicyType valuePolicy = modelService.getObject(ValuePolicyType.class,
-                            policy.getPassword().getPasswordPolicyRef().getOid(), null, context.getTask(), result).asObjectable();
-                    String newClearValue = policyProcessor.generate(valuePolicy.getStringPolicy(), 10, userObject,
+                    ValuePolicyType valuePolicy = getPasswordPolicy(context, result, userObject);
+                    String newClearValue = policyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, valuePolicy.getStringPolicy(), 10, userObject,
                             "generating value for password", context.getTask(), result);
                     ProtectedStringType newValue = new ProtectedStringType();
                     newValue.setClearValue(newClearValue);
@@ -102,5 +99,28 @@ public class GeneratePasswordExecutor extends BaseActionExecutor {
             operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
         return input;
+    }
+
+    @NotNull
+    private ValuePolicyType getPasswordPolicy(ExecutionContext context, OperationResult result, PrismObject<UserType> userObject)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(userObject, context.getTask(), result);
+        if (policy != null && policy.getPassword() != null && policy.getPassword().getPasswordPolicyRef() != null) {
+            return resolvePolicyRef(policy.getPassword().getPasswordPolicyRef().getOid(), context, result);
+        }
+        SystemConfigurationType systemConfiguration = modelInteraction.getSystemConfiguration(result);
+        if (systemConfiguration.getGlobalPasswordPolicyRef() != null
+                && systemConfiguration.getGlobalPasswordPolicyRef().getOid() != null) {
+            return resolvePolicyRef(systemConfiguration.getGlobalPasswordPolicyRef().getOid(), context, result);
+        }
+        throw new ObjectNotFoundException("No applicable password policy found");
+    }
+
+    @NotNull
+    private ValuePolicyType resolvePolicyRef(String oid, ExecutionContext context, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return modelService.getObject(ValuePolicyType.class,
+                oid, null, context.getTask(), result).asObjectable();
     }
 }

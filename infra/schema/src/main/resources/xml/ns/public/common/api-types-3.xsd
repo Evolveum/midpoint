@@ -399,7 +399,7 @@
     <xsd:complexType name="SingleScriptOutputType">
         <xsd:sequence>
             <xsd:choice>
-                <xsd:element name="xmlData" type="s:PipelineDataType" />
+                <xsd:element name="dataOutput" type="s:PipelineDataType" />
                 <xsd:element name="mslData" type="xsd:string" />
             </xsd:choice>
             <xsd:element name="textOutput" type="xsd:string" minOccurs="0" />
