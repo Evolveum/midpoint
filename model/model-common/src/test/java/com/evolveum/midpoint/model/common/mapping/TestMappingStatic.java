@@ -109,4 +109,17 @@ public class TestMappingStatic {
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }
     
+    @Test
+    public void testConstFoo() throws Exception {
+        // WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
+    			"mapping-const-foo.xml",
+    			"testValue",
+    			"costCenter");				// target
+    	
+        // THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "foobar");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
 }

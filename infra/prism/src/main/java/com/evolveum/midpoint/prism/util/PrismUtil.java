@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.marshaller.PrismUnmarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -259,13 +260,36 @@ public class PrismUtil {
 		}
 		RootXNode expressionRoot = new RootXNode(expressionEntry);
 		PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
-		ExpressionWrapper expressionWrapper = new ExpressionWrapper();
-		expressionWrapper.setExpression(expressionPropertyValue.getValue());
+		ExpressionWrapper expressionWrapper = new ExpressionWrapper(expressionEntry.getKey(), expressionPropertyValue.getValue());
 		return expressionWrapper;
 	}
 	
-	public static MapXNode serializeExpression(ExpressionWrapper expression) {
-		// TODO
-		return new MapXNode();
+	public static MapXNode serializeExpression(ExpressionWrapper expressionWrapper, BeanMarshaller beanMarshaller) throws SchemaException {
+		MapXNode xmap = new MapXNode();
+		Object expressionObject = expressionWrapper.getExpression();
+		if (expressionObject == null) {
+			return xmap;
+		}
+		XNode expressionXnode = beanMarshaller.marshall(expressionObject);
+		if (expressionXnode == null) {
+			return xmap;
+		}
+		xmap.put(expressionWrapper.getElementName(), expressionXnode);
+		return xmap;
+	}
+	
+	// TODO: Unify the two serializeExpression() methods
+	public static MapXNode serializeExpression(ExpressionWrapper expressionWrapper, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
+		MapXNode xmap = new MapXNode();
+		Object expressionObject = expressionWrapper.getExpression();
+		if (expressionObject == null) {
+			return xmap;
+		}
+		RootXNode xroot = xnodeSerializer.serializeAnyData(expressionObject, expressionWrapper.getElementName());
+		if (xroot == null) {
+			return xmap;
+		}
+		xmap.merge(expressionWrapper.getElementName(), xroot.getSubnode());
+		return xmap;
 	}
 }

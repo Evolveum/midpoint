@@ -216,7 +216,12 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		// THEN
 		System.out.println("Parsed resource:");
 		System.out.println(resource.debugDump());
+		
+		assertResourceExpression(resource, prismContext, true);
 
+	}
+	
+	private void assertResourceExpression(PrismObject<ResourceType> resource, PrismContext prismContext, boolean checkExpressions) throws SchemaException {
 		resource.checkConsistence();
 		
 		AssertJUnit.assertEquals("Wrong oid (prism)", TestConstants.RESOURCE_OID, resource.getOid());
@@ -244,23 +249,93 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		List<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
 
-		PrismProperty<String> hostProp = findProp(ldapConfigPropItems, "host");
-		assertRaw(hostProp);
-		hostProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","host"), DOMUtil.XSD_STRING, prismContext));
-		assertNotRaw(hostProp);
-		assertExpression(hostProp, "const");
-		
-		PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
-		assertRaw(baseContextsProp);
-		baseContextsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING, prismContext));
-		assertNotRaw(baseContextsProp);
-		assertExpression(baseContextsProp, "script");
+		if (checkExpressions) {
+			PrismProperty<String> hostProp = findProp(ldapConfigPropItems, "host");
+			assertRaw(hostProp);
+			hostProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","host"), DOMUtil.XSD_STRING, prismContext));
+			assertNotRaw(hostProp);
+			assertExpression(hostProp, "const");
+			
+			PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
+			assertRaw(baseContextsProp);
+			baseContextsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING, prismContext));
+			assertNotRaw(baseContextsProp);
+			assertExpression(baseContextsProp, "script");
+		}
 		
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 		assertNull("Schema sneaked in", schemaContainer);
 
 		PrismContainer<?> schemaHandlingContainer = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
 		assertNull("SchemaHandling sneaked in", schemaHandlingContainer);
+
+	}
+	
+	@Test
+	public void testParseResourceExpressionRoundtrip() throws Exception {
+		displayTestTitle("testParseResourceExpressionRoundtrip");
+
+		// GIVEN
+		PrismContext prismContext = getPrismContext();
+
+		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(TestConstants.RESOURCE_FILE_EXPRESSION_BASENAME));
+
+		System.out.println("Parsed resource:");
+		System.out.println(resource.debugDump());
+
+		assertResourceExpression(resource, prismContext, false);
+
+		// SERIALIZE (1)
+
+		String serializedResource = prismContext.serializerFor(language).serialize(resource);
+
+		System.out.println("\nserialized resource (1):");
+		System.out.println(serializedResource);
+
+        // hack ... to make sure there's no "<clazz>" element there
+        assertFalse("<clazz> element is present in the serialized form!", serializedResource.contains("<clazz>"));
+
+        // RE-PARSE (1)
+
+		PrismObject<ResourceType> reparsedResource = prismContext.parseObject(serializedResource);
+
+		System.out.println("Re-parsed resource (1):");
+		System.out.println(reparsedResource.debugDump());
+
+		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
+		assertResourceExpression(reparsedResource, prismContext, true);
+
+		ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
+		System.out.println("Delta:");
+		System.out.println(objectDelta.debugDump());
+		assertTrue("Delta is not empty", objectDelta.isEmpty());
+
+		PrismAsserts.assertEquivalent("Resource re-parsed equivalence", resource, reparsedResource);
+		
+		// SERIALIZE (2)
+		// Do roundtrip again, this time after the expressions were checked and definitions applied.
+		
+		assertResourceExpression(resource, prismContext, true);
+		System.out.println("\nResource (2):");
+		System.out.println(resource.debugDump());
+		
+		serializedResource = prismContext.serializerFor(language).serialize(resource);
+
+		System.out.println("\nserialized resource (2):");
+		System.out.println(serializedResource);
+
+        // hack ... to make sure there's no "<clazz>" element there
+        assertFalse("<clazz> element is present in the serialized form!", serializedResource.contains("<clazz>"));
+
+        // RE-PARSE (2)
+
+		reparsedResource = prismContext.parseObject(serializedResource);
+
+		System.out.println("Re-parsed resource (2):");
+		System.out.println(reparsedResource.debugDump());
+
+		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
+		assertResourceExpression(reparsedResource, prismContext, true);
 
 	}
 	

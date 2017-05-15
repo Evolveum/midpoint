@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.*;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -75,10 +76,10 @@ public class TestExpression {
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
 		ProtectorImpl protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-    	expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null);
+		expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, null);
 	}
 
-    @Test
+	@Test
     public void testIterationCondition() throws Exception {
     	final String TEST_NAME = "testIterationCondition";
     	TestUtil.displayTestTile(TEST_NAME);

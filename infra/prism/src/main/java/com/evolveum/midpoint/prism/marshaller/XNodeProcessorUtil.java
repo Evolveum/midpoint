@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.prism.marshaller;
 
+import java.lang.reflect.Field;
+
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ParsingContext;
@@ -140,4 +143,13 @@ public class XNodeProcessorUtil {
         }
 	}
 
+	public static <T> Field findXmlValueField(Class<T> beanClass) {
+		for (Field field: beanClass.getDeclaredFields()) {
+			XmlValue xmlValue = field.getAnnotation(XmlValue.class);
+			if (xmlValue != null) {
+				return field;
+			}
+		}
+		return null;
+	}
 }
