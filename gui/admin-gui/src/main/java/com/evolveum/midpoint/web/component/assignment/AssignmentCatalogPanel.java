@@ -653,11 +653,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         return new IModel<String>() {
             @Override
             public String getObject() {
-                List<PrismObject<UserType>> targetUsersList =  getRoleCatalogStorage().getTargetUserList();
-                if (targetUsersList == null ||
-                        targetUsersList.size() == 0){
+                if (getRoleCatalogStorage().isSelfRequest()){
                     return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
                 }
+                List<PrismObject<UserType>> targetUsersList =  getRoleCatalogStorage().getTargetUserList();
                 if (targetUsersList.size() == 1){
                     return createStringResource("AssignmentCatalogPanel.requestFor").getString() +
                             " " + targetUsersList.get(0).getName().getOrig();
@@ -694,11 +693,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private PrismObject<UserType> getTargetUser(){
-        List<PrismObject<UserType>> targetUserList =  getRoleCatalogStorage().getTargetUserList();
-        if (targetUserList == null || targetUserList.size() == 0){
+        if (getRoleCatalogStorage().isSelfRequest()){
             return pageBase.loadUserSelf(pageBase);
         }
-        return targetUserList.get(0);
+        return getRoleCatalogStorage().getTargetUserList().get(0);
     }
 
     private AssignmentConstraintsType getAssignmentConstraints() {
