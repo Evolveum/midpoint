@@ -3036,6 +3036,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         login(USER_JACK_USERNAME);
         
+        // precondition
+        assertNoAccess(userJack);
+        
         // WHEN (security context elevated)
         securityEnforcer.runPrivileged(() -> {
 				try {
@@ -3064,6 +3067,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         loginAnonymous();
         
+        // precondition
+        assertNoAccess(userJack);
+        
         // WHEN (security context elevated)
         securityEnforcer.runPrivileged(() -> {
 				try {
@@ -3078,8 +3084,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			});
         
         // WHEN (security context back to normal)
-        // MID-3221
-        //assertNoAccess(userJack);
+        assertNoAccess(userJack);
         
         assertGlobalStateUntouched();
 	}
@@ -3901,6 +3906,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			logDeny("delete", type, oid, null);
 			result.computeStatus();
 			TestUtil.assertFailure(result);
+		} catch (ObjectNotFoundException e) {
+			// MID-3221
+			// still consider OK ... for now
+			logError("delete", type, oid, null);
+			result.computeStatus();
+			TestUtil.assertFailure(result);
 		}
 	}
 	
@@ -4091,6 +4102,16 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	private <O extends ObjectType> void logAllow(String action) {
 		String msg = LOG_PREFIX_ALLOW+"Allowed "+action;
+		System.out.println(msg);
+		LOGGER.info(msg);
+	}
+	
+	private <O extends ObjectType> void logError(String action, Class<O> type, String oid, ItemPath itemPath, Throwable e) {
+		logError(action, type, oid+" prop "+itemPath, e);
+	}
+	
+	private <O extends ObjectType> void logError(String action, Class<O> type, String desc, Throwable e) {
+		String msg = LOG_PREFIX_DENY+"Error "+action+" of "+type.getSimpleName()+":"+desc + "("+e+")";
 		System.out.println(msg);
 		LOGGER.info(msg);
 	}
