@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -133,5 +135,22 @@ public class OperationsHelper {
         if (context.getTask() != null) {
             context.getTask().setProgress(context.getTask().getProgress() + 1);
         }
+    }
+
+    public OperationResult createActionResult(PipelineItem item, ActionExecutor executor, ExecutionContext context,
+            OperationResult globalResult) {
+        OperationResult result = new OperationResult(executor.getClass().getName() + "." + "execute");
+        result.addParam("value", String.valueOf(item.getValue()));
+        item.getResult().addSubresult(result);
+        return result;
+    }
+
+    public void trimAndCloneResult(OperationResult result, OperationResult globalResult,
+            ExecutionContext context) {
+        result.computeStatusIfUnknown();
+        // TODO make this configurable
+        result.getSubresults().forEach(s -> s.setMinor(true));
+        result.cleanupResult();
+        globalResult.addSubresult(result.clone());
     }
 }

@@ -19,7 +19,7 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <s:expression xsi:type="s:SearchExpressionType">
+    <s:search>
         <s:type>c:UserType</s:type>
         <s:searchFilter>
             <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -27,8 +27,8 @@
                 <value>jack</value>
             </equal>
         </s:searchFilter>
-    </s:expression>
-    <s:expression xsi:type="s:ActionExpressionType">
+    </s:search>
+    <s:action>
         <s:type>modify</s:type>
         <s:parameter>
             <s:name>delta</s:name>
@@ -40,5 +40,5 @@
                 </t:itemDelta>
             </c:value>
         </s:parameter>
-    </s:expression>
+    </s:action>
 </s:pipeline>

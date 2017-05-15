@@ -365,7 +365,7 @@
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-			<xsd:element name="dataOutput" type="s:ItemListType" minOccurs="0">
+			<xsd:element name="dataOutput" type="s:PipelineDataType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Data output of the execution of the script.
@@ -399,7 +399,7 @@
     <xsd:complexType name="SingleScriptOutputType">
         <xsd:sequence>
             <xsd:choice>
-                <xsd:element name="xmlData" type="s:ItemListType" />
+                <xsd:element name="xmlData" type="s:PipelineDataType" />
                 <xsd:element name="mslData" type="xsd:string" />
             </xsd:choice>
             <xsd:element name="textOutput" type="xsd:string" minOccurs="0" />

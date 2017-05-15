@@ -34,5 +34,5 @@ public interface ActionExecutor {
      * @param context
      * @param parentResult
      */
-    Data execute(ActionExpressionType command, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException;
+    PipelineData execute(ActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException;
 }

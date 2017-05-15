@@ -17,10 +17,9 @@
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
@@ -69,17 +68,17 @@ public class ExpressionHelper {
 		}
 	}
 
-	public String getArgumentAsString(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context,
+	public String getArgumentAsString(List<ActionParameterValueType> arguments, String argumentName, PipelineData input, ExecutionContext context,
 			String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
 		ActionParameterValueType parameterValue = getArgument(arguments, argumentName, false, false, contextName);
 		if (parameterValue != null) {
 			if (parameterValue.getScriptingExpression() != null) {
-				Data data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getScriptingExpression(), input, context, parentResult);
+				PipelineData data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getScriptingExpression(), input, context, parentResult);
 				if (data != null) {
 					return data.getDataAsSingleString();
 				}
 			} else if (parameterValue.getValue() != null) {
-				Data data = scriptingExpressionEvaluator.evaluateConstantStringExpression((RawType) parameterValue.getValue(), context, parentResult);
+				PipelineData data = scriptingExpressionEvaluator.evaluateConstantStringExpression((RawType) parameterValue.getValue(), context, parentResult);
 				if (data != null) {
 					return data.getDataAsSingleString();
 				}
@@ -90,7 +89,7 @@ public class ExpressionHelper {
 		return defaultValue;
 	}
 
-	public Boolean getArgumentAsBoolean(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context,
+	public Boolean getArgumentAsBoolean(List<ActionParameterValueType> arguments, String argumentName, PipelineData input, ExecutionContext context,
 			Boolean defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
 		String stringValue = getArgumentAsString(arguments, argumentName, input, context, null, contextName, parentResult);
 		if (stringValue == null) {
@@ -104,7 +103,7 @@ public class ExpressionHelper {
 		}
 	}
 
-	public Data evaluateParameter(ActionParameterValueType parameter, @Nullable Class<?> expectedClass, Data input, ExecutionContext context, OperationResult result)
+	public PipelineData evaluateParameter(ActionParameterValueType parameter, @Nullable Class<?> expectedClass, PipelineData input, ExecutionContext context, OperationResult result)
 			throws ScriptExecutionException {
 		Validate.notNull(parameter, "parameter");
 		if (parameter.getScriptingExpression() != null) {
@@ -117,16 +116,16 @@ public class ExpressionHelper {
 	}
 
 	public <T> T getSingleArgumentValue(List<ActionParameterValueType> arguments, String parameterName, boolean required,
-			boolean requiredNonNull, String context, Data input, ExecutionContext executionContext, Class<T> clazz, OperationResult result) throws ScriptExecutionException {
+			boolean requiredNonNull, String context, PipelineData input, ExecutionContext executionContext, Class<T> clazz, OperationResult result) throws ScriptExecutionException {
 		ActionParameterValueType paramValue = getArgument(arguments, parameterName, required, requiredNonNull, context);
 		if (paramValue == null) {
 			return null;
 		}
-		Data paramData = evaluateParameter(paramValue, clazz, input, executionContext, result);
+		PipelineData paramData = evaluateParameter(paramValue, clazz, input, executionContext, result);
 		if (paramData.getData().size() != 1) {
 			throw new ScriptExecutionException("Exactly one item was expected in '" + parameterName + "' parameter. Got " + paramData.getData().size());
 		}
-		PrismValue prismValue = paramData.getData().get(0);
+		PrismValue prismValue = paramData.getData().get(0).getValue();
 		if (prismValue == null) {
 			if (requiredNonNull) {
 				throw new ScriptExecutionException("A non-null value was expected in '" + parameterName + "' parameter");

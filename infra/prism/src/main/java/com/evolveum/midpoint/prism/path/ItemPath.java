@@ -356,10 +356,10 @@ public class ItemPath implements Serializable, Cloneable {
 			i++;
 		}
 		if (i < thisNormalized.size()) {
-			return CompareResult.SUPERPATH;
+			return CompareResult.SUPERPATH;				// "this" is longer than "other"
 		}
 		if (i < otherNormalized.size()) {
-			return CompareResult.SUBPATH;
+			return CompareResult.SUBPATH;				// "this" is shorter than "other"
 		}
 		return CompareResult.EQUIVALENT;
 	}
@@ -377,6 +377,16 @@ public class ItemPath implements Serializable, Cloneable {
         for (ItemPath path : paths) {
             CompareResult r = pathToBeFound.compareComplex(path);
             if (r == CompareResult.SUBPATH || r == CompareResult.EQUIVALENT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsSubpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
+        for (ItemPath path : paths) {
+            CompareResult r = pathToBeFound.compareComplex(path);
+            if (r == CompareResult.SUBPATH) {
                 return true;
             }
         }

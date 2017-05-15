@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -50,7 +50,7 @@ public class LogExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
 
         String levelAsString = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_LEVEL, input, context, LEVEL_INFO, NAME, parentResult);
         String message = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_MESSAGE, input, context, "Current data: ", NAME, parentResult);

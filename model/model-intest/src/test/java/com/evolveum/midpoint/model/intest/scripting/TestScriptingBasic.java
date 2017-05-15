@@ -16,24 +16,28 @@
 package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -41,6 +45,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.testng.collections.Sets;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -48,8 +54,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -82,6 +88,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File NOTIFICATION_ABOUT_JACK_FILE = new File(TEST_DIR, "notification-about-jack.xml");
     private static final File NOTIFICATION_ABOUT_JACK_TYPE2_FILE = new File(TEST_DIR, "notification-about-jack-type2.xml");
 	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
+	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -91,6 +98,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 			throws Exception {
 		super.initSystem(initTask, initResult);
 		InternalMonitor.reset();
+
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
 	}
@@ -109,6 +117,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(sequence, result);
 
         // THEN
+        dumpOutput(output, result);
         assertNoOutputData(output);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -128,6 +137,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(pipeline, result);
 
         // THEN
+        dumpOutput(output, result);
         assertNoOutputData(output);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -150,6 +160,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(logAction.getAnyValue().getValue(), result);
 
         // THEN
+        dumpOutput(output, result);
         assertNoOutputData(output);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -171,13 +182,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_FILE);
 
         // WHEN
-        Data output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result).getFinalOutput();
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getData());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(2, output.getData().size());
+        assertEquals(2, output.getFinalOutput().getData().size());
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
     }
 
@@ -191,13 +202,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_RESOURCES_FILE);
 
         // WHEN
-        Data output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result).getFinalOutput();
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getData());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(13, output.getData().size());
+        assertEquals(13, output.getFinalOutput().getData().size());
     }
 
     @Test
@@ -210,10 +221,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_ROLES_FILE);
 
         // WHEN
-        Data output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result).getFinalOutput();
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getData());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         //assertEquals(9, output.getData().size());
@@ -229,14 +240,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_SHADOWS_FILE);
 
         // WHEN
-        Data output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result).getFinalOutput();
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getData());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(5, output.getData().size());
-        assertAttributesFetched(output.getData());
+        assertEquals(5, output.getFinalOutput().getData().size());
+        assertAttributesFetched(output.getFinalOutput().getData());
     }
 
     @Test
@@ -249,14 +260,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_SHADOWS_NOFETCH_FILE);
 
         // WHEN
-        Data output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result).getFinalOutput();
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getData());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(5, output.getData().size());
-        assertAttributesNotFetched(output.getData());
+        assertEquals(5, output.getFinalOutput().getData().size());
+        assertAttributesNotFetched(output.getFinalOutput().getData());
     }
 
     @Test
@@ -269,14 +280,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_FILE);
 
         // WHEN
-        Data output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result).getFinalOutput();
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getData());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(4, output.getData().size());
-        assertAttributesFetched(output.getData());
+        assertEquals(4, output.getFinalOutput().getData().size());
+        assertAttributesFetched(output.getFinalOutput().getData());
     }
 
     @Test
@@ -289,14 +300,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE);
 
         // WHEN
-        Data output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result).getFinalOutput();
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getData());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(4, output.getData().size());
-        assertAttributesNotFetched(output.getData());
+        assertEquals(4, output.getFinalOutput().getData().size());
+        assertAttributesNotFetched(output.getFinalOutput().getData());
     }
 
     @Test
@@ -312,15 +323,15 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         assertEquals("Disabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertAdministrativeStatusDisabled(searchObjectByName(UserType.class, "jack"));
     }
 
-    @Test
+	@Test
     public void test310EnableJack() throws Exception {
     	final String TEST_NAME = "test310EnableJack";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -333,8 +344,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals("Enabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
@@ -354,8 +365,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals("Deleted user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\nAdded user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
@@ -375,9 +386,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
-        IntegrationTestTools.display(result);
+        dumpOutput(output, result);
+		assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
@@ -397,9 +407,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
-        IntegrationTestTools.display(result);
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
@@ -419,9 +428,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
-        IntegrationTestTools.display(result);
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
@@ -440,14 +448,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
-        IntegrationTestTools.display(result);
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         //assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        IntegrationTestTools.display("jack after assignments creation", jack);
+        display("jack after assignments creation", jack);
         assertAssignedAccount(jack, "10000000-0000-0000-0000-000000000104");
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-55555555cccc");
     }
@@ -469,10 +476,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         task.refresh(result);
 
         // THEN
-        IntegrationTestTools.display(task.getResult());
+        display(task.getResult());
         TestUtil.assertSuccess(task.getResult());
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        IntegrationTestTools.display("jack after assignment creation", jack);
+        display("jack after assignment creation", jack);
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-555555556677");
     }
 
@@ -496,10 +503,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         task.refresh(result);
 
         // THEN
-        IntegrationTestTools.display(task.getResult());
+        display(task.getResult());
         TestUtil.assertSuccess(task.getResult());
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        IntegrationTestTools.display("jack after disable script", jack);
+        display("jack after disable script", jack);
         assertAdministrativeStatusDisabled(jack);
     }
 
@@ -522,9 +529,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getFinalOutput());
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
-        IntegrationTestTools.display(result);
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals(1, output.getFinalOutput().getData().size());
@@ -553,11 +558,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getFinalOutput());
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        dumpOutput(output, result);
         ResourceType dummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), result).asObjectable();
-        IntegrationTestTools.display("dummy resource after test connection", dummy.asPrismObject());
-        IntegrationTestTools.display(result);
+        display("dummy resource after test connection", dummy.asPrismObject());
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals(1, output.getFinalOutput().getData().size());
@@ -578,14 +581,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getFinalOutput());
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(0, output.getFinalOutput().getData().size());
+		assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         assertEquals("Produced 1 event(s)\n", output.getConsoleOutput());
 
-        IntegrationTestTools.display("Dummy transport", dummyTransport);
+        display("Dummy transport", dummyTransport);
         checkDummyTransportMessages("Custom", 1);
         Message m = dummyTransport.getMessages("dummy:Custom").get(0);
         assertEquals("Wrong message body", "jack/" + USER_JACK_OID, m.getBody());
@@ -606,14 +608,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
         // THEN
-        IntegrationTestTools.display("output", output.getFinalOutput());
-        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        dumpOutput(output, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals(0, output.getFinalOutput().getData().size());
+		assertOutputData(output, 1, OperationResultStatus.SUCCESS);
         assertEquals("Produced 1 event(s)\n", output.getConsoleOutput());
 
-        IntegrationTestTools.display("Dummy transport", dummyTransport);
+        display("Dummy transport", dummyTransport);
         checkDummyTransportMessages("Custom", 1);
         Message m = dummyTransport.getMessages("dummy:Custom").get(0);
         assertEquals("Wrong message body", "1", m.getBody());
@@ -621,7 +622,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         checkDummyTransportMessages("CustomType2", 1);
         m = dummyTransport.getMessages("dummy:CustomType2").get(0);
-        assertEquals("Wrong message body", "[POV:user:c0c010c0-d34d-b33f-f00d-111111111111(jack)]", m.getBody());
+        assertEquals("Wrong message body", "POV:user:c0c010c0-d34d-b33f-f00d-111111111111(jack)", m.getBody());
         assertEquals("Wrong message subject", "Failure notification of type 2", m.getSubject());
     }
 
@@ -638,43 +639,103 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
 
 		// THEN
+        dumpOutput(output, result);
+        result.computeStatus();
 		TestUtil.assertSuccess(result);
-		Data data = output.getFinalOutput();
+		PipelineData data = output.getFinalOutput();
 		assertEquals("Unexpected # of items in output", 5, data.getData().size());
 		Set<String> realOids = new HashSet<>();
-		for (PrismValue value : data.getData()) {
+        for (PipelineItem item : data.getData()) {
+            PrismValue value = item.getValue();
 			PrismObject<UserType> user = ((PrismObjectValue<UserType>) value).asPrismObject();
 			assertEquals("Description not set", "Test", user.asObjectable().getDescription());
 			realOids.add(user.getOid());
+			assertSuccess(item.getResult());
 		}
 		assertEquals("Unexpected OIDs in output",
 				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
 				realOids);
-		IntegrationTestTools.display("stdout", output.getConsoleOutput());
-		IntegrationTestTools.display(result);
-		result.computeStatus();
 	}
 
+    @Test
+	public void test510GeneratePasswords() throws Exception {
+		final String TEST_NAME = "test510GeneratePasswords";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+		PrismProperty<ScriptingExpressionType> expression = parseAnyData(GENERATE_PASSWORDS_FILE);
+
+		addObject(PASSWORD_POLICY_GLOBAL_FILE);
+
+		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(SecurityPolicyType.class, prismContext)
+				.item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD,
+						PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF)
+				.add(new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
+				.asItemDeltas();
+		modifySystemObjectInRepo(SecurityPolicyType.class, SECURITY_POLICY_OID, itemDeltas, result);
+
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
+
+		// THEN
+        dumpOutput(output, result);
+        result.computeStatus();
+		TestUtil.assertSuccess(result);
+		PipelineData data = output.getFinalOutput();
+		assertEquals("Unexpected # of items in output", 5, data.getData().size());
+		Set<String> realOids = new HashSet<>();
+        for (PipelineItem item : data.getData()) {
+            PrismValue value = item.getValue();
+			UserType user = ((PrismObjectValue<UserType>) value).asObjectable();
+            ProtectedStringType passwordValue = user.getCredentials().getPassword().getValue();
+            assertNotNull("clearValue for password not set", passwordValue.getClearValue());
+            realOids.add(user.getOid());
+		}
+		assertEquals("Unexpected OIDs in output",
+				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
+				realOids);
+	}
 
 	private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
 
-    // the following tests are a bit crude but for now it should be OK
+	private void assertOutputData(ExecutionContext output, int size, OperationResultStatus status) {
+		assertEquals("Wrong # of output items", size, output.getFinalOutput().getData().size());
+		for (PipelineItem item : output.getFinalOutput().getData()) {
+			assertEquals("Wrong op result status", status, item.getResult().getStatus());
+		}
+	}
 
-    private void assertAttributesNotFetched(List<PrismValue> data) {
-        for (PrismValue value : data) {
+	// the following tests are a bit crude but for now it should be OK
+
+    private void assertAttributesNotFetched(List<PipelineItem> data) {
+        for (PipelineItem item : data) {
+            PrismValue value = item.getValue();
             if (((PrismObjectValue<ShadowType>) value).asObjectable().getAttributes().getAny().size() > 2) {
                 throw new AssertionError("There are some unexpected attributes present in " + value.debugDump());
             }
         }
     }
 
-    private void assertAttributesFetched(List<PrismValue> data) {
-        for (PrismValue value : data) {
+    private void assertAttributesFetched(List<PipelineItem> data) {
+        for (PipelineItem item : data) {
+            PrismValue value = item.getValue();
             if (((PrismObjectValue<ShadowType>) value).asObjectable().getAttributes().getAny().size() <= 2) {
                 throw new AssertionError("There are no attributes present in " + value.debugDump());
             }
+        }
+    }
+
+    private void dumpOutput(ExecutionContext output, OperationResult result) throws JAXBException, SchemaException {
+        display("output", output.getFinalOutput());
+        display("stdout", output.getConsoleOutput());
+        display(result);
+        if (output.getFinalOutput() != null) {
+            PipelineDataType bean = ModelWebService.prepareXmlData(output.getFinalOutput().getData());
+            display("output in XML", prismContext.xmlSerializer().root(new QName("output")).serializeRealValue(bean));
         }
     }
 

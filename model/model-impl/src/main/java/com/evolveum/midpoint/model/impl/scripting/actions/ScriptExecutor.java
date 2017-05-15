@@ -22,8 +22,9 @@ import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,12 +67,12 @@ public class ScriptExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
 		ScriptExpressionEvaluatorType script = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_SCRIPT, true, true,
-				NAME, input, context, ScriptExpressionEvaluatorType.class, result);
+				NAME, input, context, ScriptExpressionEvaluatorType.class, globalResult);
 		String outputItem = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OUTPUT_ITEM, false, false,
-				NAME, input, context, String.class, result);
+				NAME, input, context, String.class, globalResult);
 
 		ItemDefinition<?> outputDefinition = getItemDefinition(outputItem);
 
@@ -81,8 +83,11 @@ public class ScriptExecutor extends BaseActionExecutor {
 			throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
 		}
 
-		Data output = Data.createEmpty();
-        for (PrismValue value: input.getData()) {
+		PipelineData output = PipelineData.createEmpty();
+		for (PipelineItem item: input.getData()) {
+			PrismValue value = item.getValue();
+			OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
+
 			context.checkTaskStop();
 			String valueDescription;
         	long started;
@@ -97,7 +102,9 @@ public class ScriptExecutor extends BaseActionExecutor {
 			try {
 				Object outObject = executeScript(scriptExpression, value, context, result);
 				if (outObject != null) {
-					addToData(outObject, output);
+					addToData(outObject, item.getResult(), output);
+				} else {
+					output.add(item);
 				}
 				if (value instanceof PrismObjectValue) {
 					operationsHelper.recordEnd(context, asObjectType(value), started, null);
@@ -110,16 +117,15 @@ public class ScriptExecutor extends BaseActionExecutor {
 			}
 			context.println((exception != null ? "Attempted to execute " : "Executed ")
 					+ "script on " + valueDescription + exceptionSuffix(exception));
+			operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
         return output;
     }
 
-	private void addToData(Object outObject, Data output) throws SchemaException {
-		if (outObject == null) {
-			// nothing to do
-		} else if (outObject instanceof Collection) {
+	private void addToData(@NotNull Object outObject, @NotNull OperationResult result, PipelineData output) throws SchemaException {
+		if (outObject instanceof Collection) {
 			for (Object o : (Collection) outObject) {
-				addToData(o, output);
+				addToData(o, result, output);
 			}
 		} else {
 			PrismValue value;
@@ -132,7 +138,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 			} else {
 				value = new PrismPropertyValue<>(outObject, prismContext);
 			}
-			output.addValue(value);
+			output.add(new PipelineItem(value, result));
 		}
 	}
 
