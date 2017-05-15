@@ -53,6 +53,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -125,12 +126,10 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		// DO nothing. This test is meaningless in non-unique environment
 	}
 
-	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, SchemaViolationException, ConflictException {
+	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		PrismObject<ShadowType> account = prismContext.parseObject(file);
@@ -188,9 +187,9 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		return icfUid;
 	}
 	
-	private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".searchFettucini");
+	private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask(TestDummy.class.getName() + ".searchFettucini");
+		OperationResult result = task.getResult();
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass"))
@@ -198,7 +197,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 				.build();
 
 		// WHEN
-		List<PrismObject<ShadowType>> shadows = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		List<PrismObject<ShadowType>> shadows = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 		assertEquals("Wrong number of Fettucinis found", expectedNumberOfFettucinis, shadows.size());
 	}
 

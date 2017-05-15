@@ -1912,8 +1912,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny(UserType.class, USER_JACK_OID, PASSWORD_PATH, passwordPs);
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, PASSWORD_PATH, passwordPs);
 
-        OperationResult result = new OperationResult(TEST_NAME);
-		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, result);
+        Task task = taskManager.createTaskInstance(TEST_NAME);
+        OperationResult result = task.getResult();
+		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
 		assertItemFlags(rDef, PASSWORD_PATH, true, false, false);
         
 //        // Linked to jack
@@ -1994,8 +1995,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyAllow(UserType.class, USER_JACK_OID, PASSWORD_PATH, passwordPs);
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, PASSWORD_PATH, passwordPs);
 
-        OperationResult result = new OperationResult(TEST_NAME);
-		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, result);
+        Task task = taskManager.createTaskInstance(TEST_NAME);
+        OperationResult result = task.getResult();
+		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
 		assertItemFlags(rDef, PASSWORD_PATH, true, false, false);
         
         assertGlobalStateUntouched();
@@ -3556,12 +3558,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		}
 	}
 	
-	private void assertVisibleUsers(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void assertVisibleUsers(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertSearch(UserType.class, null, expectedNumAllUsers);
 
 	}
 	
-	private void assertReadDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void assertReadDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertReadDeny(0);
 	}
 
@@ -3577,7 +3579,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
     }
 
-	private void assertReadDeny(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void assertReadDeny(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
@@ -3590,11 +3592,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
 	}
 
-	private void assertReadAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void assertReadAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertReadAllow(NUMBER_OF_ALL_USERS);
 	}
 	
-	private void assertReadAllow(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private void assertReadAllow(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
@@ -3647,11 +3649,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertDeleteAllow(UserType.class, USER_LECHUCK_OID, ModelExecuteOptions.createRaw());
 	}
 	
-	private <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	private <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		assertGetDeny(type, oid, null);
 	}
 	
-	private <O extends ObjectType> void assertGetDeny(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	private <O extends ObjectType> void assertGetDeny(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertGetDeny");
         OperationResult result = task.getResult();
 		try {
@@ -3666,11 +3668,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		}
 	}
 	
-	private <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return assertGetAllow(type, oid, null);
 	}
 	
-	private <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertGetAllow");
         OperationResult result = task.getResult();
         logAttempt("get", type, oid, null);
@@ -3681,7 +3683,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		return object;
 	}
 	
-	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertSearch(type, query, null, expectedResults);
 	}
 
@@ -3690,7 +3692,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     }
 	
 	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, 
-			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertSearchObjects");
         OperationResult result = task.getResult();
 		try {

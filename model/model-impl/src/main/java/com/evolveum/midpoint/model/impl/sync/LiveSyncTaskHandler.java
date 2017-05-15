@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -143,6 +144,11 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
 	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 	            return runResult;
+			} catch (ExpressionEvaluationException ex) {
+				LOGGER.error("Live Sync: Error getting resource {}: {}", new Object[]{resourceOid, ex.getMessage(), ex});
+	            opResult.recordFatalError("Error getting resource " + resourceOid+": "+ex.getMessage(), ex);
+	            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+	            return runResult;
 			}
 
         if (resource == null) {
@@ -239,6 +245,12 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		} catch (SecurityViolationException ex) {
 			LOGGER.error("Recompute: Security violation: {}",ex.getMessage(),ex);
 			opResult.recordFatalError("Security violation: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (ExpressionEvaluationException ex) {
+			LOGGER.error("Recompute: Expression error: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Expression error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;

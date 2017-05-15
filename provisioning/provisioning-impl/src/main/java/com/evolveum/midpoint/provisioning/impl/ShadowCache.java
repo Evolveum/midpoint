@@ -164,7 +164,7 @@ public abstract class ShadowCache {
 	public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, SchemaException,
-					ConfigurationException, SecurityViolationException {
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(oid, "Object id must not be null.");
 
@@ -201,7 +201,7 @@ public abstract class ShadowCache {
 			ctx.assertDefinition();
 			applyAttributesDefinition(ctx, repositoryShadow);
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException
-				| ConfigurationException e) {
+				| ConfigurationException | ExpressionEvaluationException e) {
 			throw e;
 		}
 		
@@ -354,7 +354,8 @@ public abstract class ShadowCache {
 	}
 
 	private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
-			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) 
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceType resource = ctx.getResource();
 		ShadowType repositoryShadowType = repositoryShadow.asObjectable();
 		
@@ -537,13 +538,13 @@ public abstract class ShadowCache {
 	
 	public abstract String afterAddOnResource(ProvisioningContext ctx, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException,
-					ObjectNotFoundException, ConfigurationException, CommunicationException;
+					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
 	public String addShadow(PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
 			ResourceType resource, ProvisioningOperationOptions options, Task task,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 					ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
-					ConfigurationException, SecurityViolationException {
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notNull(shadow, "Object to add must not be null.");
 
 		InternalMonitor.recordShadowChangeOperation();
@@ -614,7 +615,7 @@ public abstract class ShadowCache {
 	private ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
 			PrismObject<ShadowType> shadowType, ObjectDelta delta, OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, CommunicationException,
-					ConfigurationException {
+					ConfigurationException, ExpressionEvaluationException {
 		ResourceOperationDescription operationDescription = new ResourceOperationDescription();
 		operationDescription.setCurrentShadow(shadowType);
 		operationDescription.setResource(ctx.getResource().asPrismObject());
@@ -629,7 +630,7 @@ public abstract class ShadowCache {
 	public abstract void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
 			Collection<? extends ItemDelta> modifications, OperationResult resourceOperationResult, OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, ConfigurationException,
-					CommunicationException;
+					CommunicationException, ExpressionEvaluationException;
 
 	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow,
 			ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications)
@@ -639,7 +640,7 @@ public abstract class ShadowCache {
 			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException {
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(repoShadow, "Object to modify must not be null.");
 		Validate.notNull(oid, "OID must not be null.");
@@ -725,7 +726,7 @@ public abstract class ShadowCache {
 	public void deleteShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options,
 			OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException {
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(shadow, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -799,7 +800,7 @@ public abstract class ShadowCache {
 				AvailabilityStatusType.UP, parentResult);
 	}
 
-	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ShadowType shadowType = repoShadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
 		if (pendingOperations.isEmpty()) {
@@ -947,7 +948,7 @@ public abstract class ShadowCache {
 		return repoShadow;
 	}
 	
-	private boolean expirePendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ObjectDelta<ShadowType> shadowDelta, XMLGregorianCalendar now, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	private boolean expirePendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ObjectDelta<ShadowType> shadowDelta, XMLGregorianCalendar now, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ShadowType shadowType = repoShadow.asObjectable();
 
 		Duration gracePeriod = null;
@@ -996,7 +997,7 @@ public abstract class ShadowCache {
 
 	public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType shadowTypeWhenNoOid,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-					CommunicationException, ConfigurationException {
+					CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> shadow = null;
 		ResourceShadowDiscriminator discriminator = null;
 		if (delta.isAdd()) {
@@ -1035,7 +1036,7 @@ public abstract class ShadowCache {
 	}
 
 	public void applyDefinition(PrismObject<ShadowType> shadow, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
 		ctx.assertDefinition();
 		ctx = applyAttributesDefinition(ctx, shadow);
@@ -1043,14 +1044,14 @@ public abstract class ShadowCache {
 	}
 
 	public void setProtectedShadow(PrismObject<ShadowType> shadow, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
 		ctx.assertDefinition();
 		ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry);
 	}
 
 	public void applyDefinition(final ObjectQuery query, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
 		ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
 		ctx.assertDefinition();
@@ -1058,7 +1059,7 @@ public abstract class ShadowCache {
 	}
 
 	private void applyDefinition(final ProvisioningContext ctx, final ObjectQuery query)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (query == null) {
 			return;
 		}
@@ -1095,13 +1096,13 @@ public abstract class ShadowCache {
 		}
 	}
 
-	protected ResourceType getResource(ResourceShadowDiscriminator coords, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	protected ResourceType getResource(ResourceShadowDiscriminator coords, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		String resourceOid = coords.getResourceOid();
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("No resource OID in " + coords);
 		}
-		return resourceManager.getResource(resourceOid, null, parentResult).asObjectable();
+		return resourceManager.getResource(resourceOid, null, task, parentResult).asObjectable();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -1109,7 +1110,7 @@ public abstract class ShadowCache {
 			PrismObject<ShadowType> shadow, FailedOperation op, Collection<? extends ItemDelta> modifications,
 			boolean doDiscovery, boolean compensate, OperationResult parentResult) throws SchemaException,
 					GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
+					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		if (parentResult.isUnknown()) {
 			parentResult.computeStatus();
@@ -1192,7 +1193,7 @@ public abstract class ShadowCache {
 			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
 			final boolean readFromRepository, Task task, final OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
-					ConfigurationException, SecurityViolationException {
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
@@ -1206,7 +1207,7 @@ public abstract class ShadowCache {
 			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
 			final boolean readFromRepository, final OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
-					ConfigurationException, SecurityViolationException {
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		applyDefinition(ctx, query);
 
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -1263,7 +1264,7 @@ public abstract class ShadowCache {
 					LOGGER.error("Configuration error: {}", e.getMessage(), e);
 					return false;
 				} catch (ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
-						| SecurityViolationException | GenericConnectorException e) {
+						| SecurityViolationException | GenericConnectorException | ExpressionEvaluationException e) {
 					parentResult.recordFatalError(e.getMessage(), e);
 					LOGGER.error("{}", e.getMessage(), e);
 					return false;
@@ -1381,7 +1382,7 @@ public abstract class ShadowCache {
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			final ShadowHandler<ShadowType> shadowHandler, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException {
+					CommunicationException, ExpressionEvaluationException {
 
 		com.evolveum.midpoint.schema.ResultHandler<ShadowType> repoHandler = new com.evolveum.midpoint.schema.ResultHandler<ShadowType>() {
 			@Override
@@ -1398,7 +1399,7 @@ public abstract class ShadowCache {
 					parentResult.recordFatalError(e);
 					throw e;
 				} catch (SchemaException | ConfigurationException | ObjectNotFoundException
-						| CommunicationException e) {
+						| CommunicationException | ExpressionEvaluationException e) {
 					parentResult.recordFatalError(e);
 					throw new SystemException(e);
 				}
@@ -1411,7 +1412,7 @@ public abstract class ShadowCache {
 	private PrismObject<ShadowType> lookupOrCreateShadowInRepository(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException, SecurityViolationException, GenericConnectorException {
+					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 		PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowInRepository(ctx, resourceShadow,
 				parentResult);
 
@@ -1436,7 +1437,7 @@ public abstract class ShadowCache {
 	private PrismObject<ShadowType> createShadowInRepository(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException, SecurityViolationException, GenericConnectorException {
+					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 
 		PrismObject<ShadowType> repoShadow;
 		PrismObject<ShadowType> conflictingShadow = shadowManager.lookupConflictingShadowBySecondaryIdentifiers(ctx,
@@ -1500,7 +1501,7 @@ public abstract class ShadowCache {
 
 	public Integer countObjects(ObjectQuery query, Task task, final OperationResult result)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, null, result);
@@ -1623,7 +1624,7 @@ public abstract class ShadowCache {
 	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
 			Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
 					GenericFrameworkException, SchemaException, ConfigurationException,
-					SecurityViolationException, ObjectAlreadyExistsException {
+					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
 		InternalMonitor.recordShadowOtherOperation();
 
@@ -1729,23 +1730,9 @@ public abstract class ShadowCache {
 			task.savePendingModifications(parentResult);
 			return processedChanges;
 
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (CommunicationException ex) {
-			parentResult.recordFatalError("Communication error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Generic error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			parentResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Object not found error: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			parentResult.recordFatalError("Already exists error: " + ex.getMessage(), ex);
+		} catch (SchemaException | CommunicationException | GenericFrameworkException | ConfigurationException | 
+				ObjectNotFoundException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error ex) {
+			parentResult.recordFatalError(ex);
 			throw ex;
 		}
 	}
@@ -1753,7 +1740,7 @@ public abstract class ShadowCache {
 	@SuppressWarnings("rawtypes")
 	boolean processSynchronization(ProvisioningContext ctx, Change change, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
 		OperationResult result = parentResult.createSubresult(OP_PROCESS_SYNCHRONIZATION);
 		
@@ -1802,7 +1789,7 @@ public abstract class ShadowCache {
 			}
 			
 		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException |
-				CommunicationException | ConfigurationException | RuntimeException | Error e) {
+				CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -1924,7 +1911,7 @@ public abstract class ShadowCache {
 	void processChange(ProvisioningContext ctx, Change change, PrismObject<ShadowType> oldShadow,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ObjectNotFoundException,
-					GenericConnectorException, ObjectAlreadyExistsException {
+					GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
 		if (oldShadow == null) {
 			oldShadow = shadowManager.findOrAddShadowFromChange(ctx, change, parentResult);
@@ -1974,7 +1961,7 @@ public abstract class ShadowCache {
 
 	public PrismProperty<?> fetchCurrentToken(ResourceShadowDiscriminator shadowCoordinates,
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-					SchemaException, ConfigurationException {
+					SchemaException, ConfigurationException, ExpressionEvaluationException {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		InternalMonitor.recordShadowOtherOperation();
@@ -1985,7 +1972,7 @@ public abstract class ShadowCache {
 		PrismProperty<?> lastToken = null;
 		try {
 			lastToken = resouceObjectConverter.fetchCurrentToken(ctx, parentResult);
-		} catch (CommunicationException | ConfigurationException e) {
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException e) {
 			parentResult.recordFatalError(e.getMessage(), e);
 			throw e;
 		}
@@ -1996,7 +1983,7 @@ public abstract class ShadowCache {
 	}
 
 	private void applyAttributesDefinition(ProvisioningContext ctx, ObjectDelta<ShadowType> delta)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		if (delta.isAdd()) {
 			applyAttributesDefinition(ctx, delta.getObjectToAdd());
 		} else if (delta.isModify()) {
@@ -2021,7 +2008,7 @@ public abstract class ShadowCache {
 
 	// value should be a value of attributes container
 	private void applyAttributeDefinition(ProvisioningContext ctx, PrismValue value)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		if (!(value instanceof PrismContainerValue)) {
 			return; // should never occur
 		}
@@ -2052,11 +2039,9 @@ public abstract class ShadowCache {
 	private <V extends PrismValue, D extends ItemDefinition> void applyAttributeDefinition(
 			ProvisioningContext ctx, ObjectDelta<ShadowType> delta, ItemDelta<V, D> itemDelta)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException {
-		if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) { // just
-																						// to
-																						// be
-																						// sure
+					CommunicationException, ExpressionEvaluationException {
+		if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) { 
+			// just to be sure
 			return;
 		}
 		D itemDef = itemDelta.getDefinition();
@@ -2083,7 +2068,7 @@ public abstract class ShadowCache {
 
 	private ProvisioningContext applyAttributesDefinition(ProvisioningContext ctx,
 			PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
-					ObjectNotFoundException, CommunicationException {
+					ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		ProvisioningContext subctx = ctx.spawn(shadow);
 		RefinedObjectClassDefinition objectClassDefinition = subctx.getObjectClassDefinition();
 
@@ -2134,7 +2119,7 @@ public abstract class ShadowCache {
 	 */
 	private ProvisioningContext reapplyDefinitions(ProvisioningContext ctx,
 			PrismObject<ShadowType> rawResourceShadow) throws SchemaException, ConfigurationException,
-					ObjectNotFoundException, CommunicationException {
+					ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		ShadowType rawResourceShadowType = rawResourceShadow.asObjectable();
 		QName objectClassQName = rawResourceShadowType.getObjectClass();
 		List<QName> auxiliaryObjectClassQNames = rawResourceShadowType.getAuxiliaryObjectClass();
@@ -2160,7 +2145,7 @@ public abstract class ShadowCache {
 			PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow,
 			OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
-					CommunicationException, SecurityViolationException, GenericConnectorException {
+					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException {
 
 		PrismObject<ShadowType> resultShadow = repoShadow.clone();
 
@@ -2380,21 +2365,19 @@ public abstract class ShadowCache {
 	 */
 	private void preprocessEntitlements(final ProvisioningContext ctx, final PrismObject<ShadowType> shadow,
 			final OperationResult result) throws SchemaException, ObjectNotFoundException,
-					ConfigurationException, CommunicationException {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				try {
-					preprocessEntitlement(ctx, (PrismContainerValue<ShadowAssociationType>) visitable,
-							shadow.toString(), result);
-				} catch (SchemaException | ObjectNotFoundException | ConfigurationException
-						| CommunicationException e) {
-					throw new TunnelException(e);
-				}
-			}
-		};
+					ConfigurationException, CommunicationException, ExpressionEvaluationException {
 		try {
-			shadow.accept(visitor, new ItemPath(new NameItemPathSegment(ShadowType.F_ASSOCIATION),
+			shadow.accept(
+					(visitable) -> {
+						try {
+							preprocessEntitlement(ctx, (PrismContainerValue<ShadowAssociationType>) visitable,
+									shadow.toString(), result);
+						} catch (SchemaException | ObjectNotFoundException | ConfigurationException
+								| CommunicationException | ExpressionEvaluationException e) {
+							throw new TunnelException(e);
+						}
+					},
+					new ItemPath(new NameItemPathSegment(ShadowType.F_ASSOCIATION),
 					IdItemPathSegment.WILDCARD), false);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
@@ -2406,6 +2389,8 @@ public abstract class ShadowCache {
 				throw (ConfigurationException) cause;
 			} else if (cause instanceof CommunicationException) {
 				throw (CommunicationException) cause;
+			} else if (cause instanceof ExpressionEvaluationException) {
+				throw (ExpressionEvaluationException) cause;
 			} else {
 				throw new SystemException("Unexpected exception " + cause, cause);
 			}
@@ -2419,22 +2404,19 @@ public abstract class ShadowCache {
 	private void preprocessEntitlements(final ProvisioningContext ctx,
 			Collection<? extends ItemDelta> modifications, final String desc, final OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ConfigurationException,
-					CommunicationException {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				try {
-					preprocessEntitlement(ctx, (PrismContainerValue<ShadowAssociationType>) visitable, desc,
-							result);
-				} catch (SchemaException | ObjectNotFoundException | ConfigurationException
-						| CommunicationException e) {
-					throw new TunnelException(e);
-				}
-			}
-		};
+					CommunicationException, ExpressionEvaluationException {
 		try {
-			ItemDelta.accept(modifications, visitor, new ItemPath(
-					new NameItemPathSegment(ShadowType.F_ASSOCIATION), IdItemPathSegment.WILDCARD), false);
+			ItemDelta.accept(modifications, 
+					(visitable) -> {
+						try {
+							preprocessEntitlement(ctx, (PrismContainerValue<ShadowAssociationType>) visitable, desc,
+									result);
+						} catch (SchemaException | ObjectNotFoundException | ConfigurationException
+								| CommunicationException | ExpressionEvaluationException e) {
+							throw new TunnelException(e);
+						}						
+					}, 
+					new ItemPath(new NameItemPathSegment(ShadowType.F_ASSOCIATION), IdItemPathSegment.WILDCARD), false);
 		} catch (TunnelException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof SchemaException) {
@@ -2445,6 +2427,8 @@ public abstract class ShadowCache {
 				throw (ConfigurationException) cause;
 			} else if (cause instanceof CommunicationException) {
 				throw (CommunicationException) cause;
+			} else if (cause instanceof ExpressionEvaluationException) {
+				throw (ExpressionEvaluationException) cause;
 			} else {
 				throw new SystemException("Unexpected exception " + cause, cause);
 			}
@@ -2454,7 +2438,7 @@ public abstract class ShadowCache {
 	private void preprocessEntitlement(ProvisioningContext ctx,
 			PrismContainerValue<ShadowAssociationType> association, String desc, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ConfigurationException,
-					CommunicationException {
+					CommunicationException, ExpressionEvaluationException {
 		PrismContainer<Containerable> identifiersContainer = association
 				.findContainer(ShadowAssociationType.F_IDENTIFIERS);
 		if (identifiersContainer != null && !identifiersContainer.isEmpty()) {

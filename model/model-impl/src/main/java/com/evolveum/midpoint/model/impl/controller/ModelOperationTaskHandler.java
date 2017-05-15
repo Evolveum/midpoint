@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -91,15 +92,13 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		} else {
             LensContext context = null;
             try {
-                context = LensContext.fromLensContextType(contextType, prismContext, provisioningService, result);
+                context = LensContext.fromLensContextType(contextType, prismContext, provisioningService, task, result);
             } catch (SchemaException e) {
                 throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
-            } catch (ObjectNotFoundException e) {
+            } catch (ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException e) {
                 throw new SystemException("Cannot recover model context from task " + task, e);
             } catch (CommunicationException e) {
                 throw new SystemException("Cannot recover model context from task " + task, e);     // todo wait and retry
-            } catch (ConfigurationException e) {
-                throw new SystemException("Cannot recover model context from task " + task, e);
             }
 
             if (LOGGER.isTraceEnabled()) {

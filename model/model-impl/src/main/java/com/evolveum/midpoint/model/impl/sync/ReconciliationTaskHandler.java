@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,6 +209,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (SecurityViolationException ex) {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
 			return runResult;
+			
+		} catch (ExpressionEvaluationException ex) {
+			processErrorPartial(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, null, coordinatorTask, opResult);
+			return runResult;
 		}
 		
 		if (objectclassDef == null) {
@@ -300,6 +304,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			return runResult;
 		} catch (SecurityViolationException ex) {
 			processErrorFinal(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
+			return runResult;
+		} catch (ExpressionEvaluationException ex) {
+			processErrorFinal(runResult, "Expression error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, coordinatorTask, opResult);
 			return runResult;
         }
 		
@@ -447,7 +454,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
     // returns false in case of execution interruption
 	private boolean performResourceReconciliation(PrismObject<ResourceType> resource, ObjectClassComplexTypeDefinition objectclassDef, ReconciliationTaskResult reconResult, Task coordinatorTask, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 
         boolean interrupted;
 
@@ -494,22 +501,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			reconResult.setResourceReconCount(handler.getProgress());
 			reconResult.setResourceReconErrors(handler.getErrors());
 			
-		} catch (ConfigurationException e) {
-			opResult.recordFatalError(e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			opResult.recordFatalError(e);
-			throw e;
-		} catch (SchemaException e) {
-			opResult.recordFatalError(e);
-			throw e;
-		} catch (CommunicationException e) {
-			opResult.recordFatalError(e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			opResult.recordFatalError(e);
-			throw e;
-		} catch (RuntimeException e) {
+		} catch (ConfigurationException | SecurityViolationException | SchemaException | CommunicationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error e) {
 			opResult.recordFatalError(e);
 			throw e;
 		}
@@ -610,13 +602,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			if (opResult.isUnknown()) {
 				opResult.setStatus(OperationResultStatus.HANDLED_ERROR);
 			}
-		} catch (CommunicationException e) {
-			processShadowReconError(e, shadow, opResult);
-		} catch (SchemaException e) {
-			processShadowReconError(e, shadow, opResult);
-		} catch (ConfigurationException e) {
-			processShadowReconError(e, shadow, opResult);
-		} catch (SecurityViolationException e) {
+		} catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			processShadowReconError(e, shadow, opResult);
 		}
 		
@@ -627,7 +613,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void reactShadowGone(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, 
 			Task task, OperationResult result) {
 		try {
-			provisioningService.applyDefinition(shadow, result);
+			provisioningService.applyDefinition(shadow, task, result);
 			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
 			change.setResource(resource);
@@ -638,13 +624,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			change.setCurrentShadow(shadow);
             Utils.clearRequestee(task);
 			changeNotificationDispatcher.notifyChange(change, task, result);
-		} catch (SchemaException e) {
-			processShadowReconError(e, shadow, result);
-		} catch (ObjectNotFoundException e) {
-			processShadowReconError(e, shadow, result);
-		} catch (CommunicationException e) {
-			processShadowReconError(e, shadow, result);
-		} catch (ConfigurationException e) {
+		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			processShadowReconError(e, shadow, result);
 		}
 	}

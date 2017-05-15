@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -216,7 +216,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
@@ -252,7 +252,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, result);
 			resolve(object, options, task, result);
 
-		} catch (SchemaException e) {
+		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} catch (ObjectNotFoundException e) {
@@ -261,18 +261,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			} else {
 				ModelUtils.recordFatalError(result, e);
 			}
-			throw e;
-		} catch (CommunicationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ConfigurationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (RuntimeException e) {
-			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
@@ -409,7 +397,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		// Make sure everything is encrypted as needed before logging anything.
 		// But before that we need to make sure that we have proper definition, otherwise we
 		// might miss some encryptable data in dynamic schemas
-		applyDefinitions(deltas, options, result);
+		applyDefinitions(deltas, options, task, result);
 		Utils.encrypt(deltas, protector, options, result);
 
 		if (LOGGER.isTraceEnabled()) {
@@ -442,7 +430,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						// MID-2486
 						if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
 							try {
-								provisioning.applyDefinition(delta, result1);
+								provisioning.applyDefinition(delta, task, result1);
 							} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
 								// we can tolerate this - if there's a real problem with definition, repo call below will fail
 								LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
@@ -746,7 +734,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	private void applyDefinitions(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		for(ObjectDelta<? extends ObjectType> delta: deltas) {
 			Class<? extends ObjectType> type = delta.getObjectTypeClass();
 			if (delta.hasCompleteDefinition()) {
@@ -754,32 +742,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type)) {
 				try {
-					provisioning.applyDefinition(delta, result);
-				} catch (SchemaException e) {
-					if (ModelExecuteOptions.isRaw(options)) {
-						ModelUtils.recordPartialError(result, e);
-						// just go on, this is raw, we need to continue even without complete schema
-					} else {
-						ModelUtils.recordFatalError(result, e);
-						throw e;
-					}
-				} catch (ObjectNotFoundException e) {
-					if (ModelExecuteOptions.isRaw(options)) {
-						ModelUtils.recordPartialError(result, e);
-						// just go on, this is raw, we need to continue even without complete schema
-					} else {
-						ModelUtils.recordFatalError(result, e);
-						throw e;
-					}
-				} catch (CommunicationException e) {
-					if (ModelExecuteOptions.isRaw(options)) {
-						ModelUtils.recordPartialError(result, e);
-						// just go on, this is raw, we need to continue even without complete schema
-					} else {
-						ModelUtils.recordFatalError(result, e);
-						throw e;
-					}
-				} catch (ConfigurationException e) {
+					provisioning.applyDefinition(delta, task, result);
+				} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					if (ModelExecuteOptions.isRaw(options)) {
 						ModelUtils.recordPartialError(result, e);
 						// just go on, this is raw, we need to continue even without complete schema
@@ -800,7 +764,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -879,7 +843,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
 			for (PrismObject<T> object : list) {
 				if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
-					provisioning.applyDefinition(object, result);
+					provisioning.applyDefinition(object, task, result);
 				}
 			}
 		}
@@ -1097,7 +1061,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
 			final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> options,
-            final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -1156,22 +1120,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 }
 				result.computeStatusIfUnknown();
 				result.cleanupResult();
-			} catch (CommunicationException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (ConfigurationException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (ObjectNotFoundException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (SchemaException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (SecurityViolationException e) {
-				processSearchException(e, rootOptions, searchProvider, result);
-				throw e;
-			} catch (RuntimeException e) {
+			} catch (CommunicationException | ConfigurationException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} finally {
@@ -1186,7 +1135,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return metadata;
 	}
 
-	private void processSearchException(Exception e, GetOperationOptions rootOptions,
+	private void processSearchException(Throwable e, GetOperationOptions rootOptions,
 			ObjectTypes.ObjectManager searchProvider, OperationResult result) {
 		String message;
         switch (searchProvider) {
@@ -1204,7 +1153,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException, ExpressionEvaluationException {
 
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
 		result.addParams(new String[] { "query", "paging"},
@@ -1231,22 +1180,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 case TASK_MANAGER: count = taskManager.countObjects(type, query, parentResult); break;
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);
             }
-		} catch (ConfigurationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (SchemaException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (ObjectNotFoundException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (CommunicationException e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} catch (RuntimeException e) {
+		} catch (ConfigurationException | SecurityViolationException | SchemaException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
 		} finally {
@@ -1379,7 +1313,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
@@ -1404,19 +1338,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 				list = provisioning.listResourceObjects(resourceOid, objectClass, paging, task, result);
 
-			} catch (SchemaException ex) {
-				ModelUtils.recordFatalError(result, ex);
-				throw ex;
-			} catch (CommunicationException ex) {
-				ModelUtils.recordFatalError(result, ex);
-				throw ex;
-			} catch (ConfigurationException ex) {
-				ModelUtils.recordFatalError(result, ex);
-				throw ex;
-			} catch (SecurityViolationException ex) {
-				ModelUtils.recordFatalError(result, ex);
-				throw ex;
-			} catch (ObjectNotFoundException ex) {
+			} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | Error ex) {
 				ModelUtils.recordFatalError(result, ex);
 				throw ex;
 			}
@@ -1446,7 +1368,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		OperationResult testResult = null;
 		try {
-			testResult = provisioning.testResource(resourceOid);
+			testResult = provisioning.testResource(resourceOid, task);
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[] { resourceOid,
 					ex.getMessage(), ex });
@@ -1480,7 +1402,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	// Note: The result is in the task. No need to pass it explicitly
 	@Override
 	public void importFromResource(String resourceOid, QName objectClass, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -1525,19 +1447,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			
 			result.cleanupResult();
 		
-		} catch (ObjectNotFoundException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (CommunicationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
+		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
@@ -1549,7 +1459,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public void importFromResource(String shadowOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-			ConfigurationException, SecurityViolationException {
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notNull(shadowOid, "Shadow OID must not be null.");
 		Validate.notNull(task, "Task must not be null.");
 		RepositoryCache.enter();
@@ -1573,19 +1483,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			
 			result.cleanupResult();
 		
-		} catch (ObjectNotFoundException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (CommunicationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
+		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException| RuntimeException | Error ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
@@ -1706,7 +1604,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
 			@NotNull List<ItemPath> ignoreItems, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException {
+			ConfigurationException, ExpressionEvaluationException {
 		Validate.notNull(provided, "Object must not be null or empty.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1765,7 +1663,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, Task task,
 			OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 
 		if (readOptions == null) {
 			readOptions = new ArrayList<>();

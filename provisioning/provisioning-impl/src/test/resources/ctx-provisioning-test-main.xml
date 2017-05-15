@@ -45,5 +45,6 @@
     <import resource="classpath*:ctx-repository-test.xml"/>
     <import resource="classpath:ctx-repo-cache.xml"/>
     <import resource="classpath:ctx-configuration-test.xml"/>
+    <import resource="classpath:ctx-expression-test.xml"/>
 
 </beans>

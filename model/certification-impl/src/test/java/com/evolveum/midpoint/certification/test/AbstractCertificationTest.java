@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -406,7 +406,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response,
 			String comment, String reviewerOid, Task task, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException {
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 		Authentication originalAuthentication = null;
 		String realReviewerOid;
 		if (reviewerOid != null) {
@@ -542,7 +542,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
 	}
 
-	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getObject");
 		OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> options =
@@ -598,7 +598,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		}
     }
 
-	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
 		assertPercentComplete(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
 	}

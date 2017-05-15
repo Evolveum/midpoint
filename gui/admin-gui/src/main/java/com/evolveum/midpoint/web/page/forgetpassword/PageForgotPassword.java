@@ -402,7 +402,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 				try {
 					users = getModelService().searchObjects(UserType.class, query, null, task, result);
 				} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-						| CommunicationException | ConfigurationException e) {
+						| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					LoggingUtils.logException(LOGGER, "failed to search user", e);
 					return null;
 				}

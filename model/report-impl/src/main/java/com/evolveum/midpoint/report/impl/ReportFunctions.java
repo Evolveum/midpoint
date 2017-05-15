@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -111,7 +112,7 @@ public class ReportFunctions {
         try {
             obj = model.getObject(type, oid, SelectorOptions.createCollection(GetOperationOptions.createResolveNames()), task, parentResult);
             return obj.asObjectable();
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             // TODO Auto-generated catch block
             LOGGER.error("Could not get object with oid " + oid + ". Reason: " + e.getMessage());
 
@@ -133,7 +134,7 @@ public class ReportFunctions {
             try {
                 PrismObject<O> obj = model.getObject(type, ref.getOid(), SelectorOptions.createCollection(GetOperationOptions.createResolveNames()), task, parentResult);
                 objects.add(obj);
-            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 // TODO Auto-generated catch block
                 LOGGER.error("Could not get object with oid " + ref.getOid() + ". Reason: " + e.getMessage());
 
@@ -215,7 +216,7 @@ public class ReportFunctions {
             try {
                 PrismObject<O> obj = model.getObject(type, oid, null, task, task.getResult());
                 resolvedAssignments.add(obj);
-            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 LOGGER.error("Could not get object with oid " + oid + ". Reason: " + e.getMessage());
 
             }
@@ -271,7 +272,7 @@ public class ReportFunctions {
             for (PrismObject<T> po : list) {
                 ret.add(po.asObjectable());
             }
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.error("Could not search objects of type: " + type + " with query " + query + ". Reason: " + e.getMessage());
         }
         return ret;
@@ -309,7 +310,7 @@ public class ReportFunctions {
      * TODO query parameters, customizable sorting
      * definitions and campaigns counts are expected to be low, so we can afford to go through all of them here
      */
-    public Collection<PrismObject<AccessCertificationDefinitionForReportType>> searchCertificationDefinitions() throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+    public Collection<PrismObject<AccessCertificationDefinitionForReportType>> searchCertificationDefinitions() throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();
@@ -410,7 +411,7 @@ public class ReportFunctions {
 //        return PrismContainerValue.toPcvList(decisions);
 //    }
 
-    public List<PrismObject<AccessCertificationCampaignType>> getCertificationCampaigns(Boolean alsoClosedCampaigns) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+    public List<PrismObject<AccessCertificationCampaignType>> getCertificationCampaigns(Boolean alsoClosedCampaigns) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Task task = taskManager.createTaskInstance();
 
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)

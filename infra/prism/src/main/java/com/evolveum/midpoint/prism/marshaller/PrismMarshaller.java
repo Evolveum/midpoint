@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.marshaller;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -388,6 +389,12 @@ public class PrismMarshaller {
     //region Serializing properties - specific functionality
     private <T> XNode serializePropertyValue(@NotNull PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, QName typeNameIfNoDefinition) throws SchemaException {
         @Nullable QName typeName = definition != null ? definition.getTypeName() : typeNameIfNoDefinition;
+        ExpressionWrapper expression = value.getExpression();
+        if (expression != null) {
+        	// Store expression, not the value. In this case the value (if any) is 
+        	// a transient product of the expression evaluation.
+        	return createExpressionXNode(expression);
+        }
         T realValue = value.getValue();
         if (realValue instanceof PolyString) {
             return serializePolyString((PolyString) realValue);
@@ -408,7 +415,7 @@ public class PrismMarshaller {
         }
     }
 
-    private XNode serializePolyString(PolyString realValue) {
+	private XNode serializePolyString(PolyString realValue) {
         PrimitiveXNode<PolyString> xprim = new PrimitiveXNode<>();
         xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
         return xprim;
@@ -444,6 +451,11 @@ public class PrismMarshaller {
         xprim.setValue(val, type);
         return xprim;
     }
+    
+    @NotNull
+    private XNode createExpressionXNode(@NotNull ExpressionWrapper expression) {
+		return PrismUtil.serializeExpression(expression);
+	}
 
 	@NotNull
 	private SchemaRegistry getSchemaRegistry() {

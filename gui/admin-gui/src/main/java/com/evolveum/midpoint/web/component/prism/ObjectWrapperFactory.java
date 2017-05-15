@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -93,10 +94,11 @@ public class ObjectWrapperFactory {
             authorizationPhase = AuthorizationPhaseType.REQUEST;
         }
         try {
-            OperationResult result = new OperationResult(CREATE_OBJECT_WRAPPER);
+        	Task task = modelServiceLocator.createSimpleTask(CREATE_OBJECT_WRAPPER);
+            OperationResult result = task.getResult();
 
             PrismObjectDefinition<O> objectDefinitionForEditing = modelServiceLocator.getModelInteractionService()
-                    .getEditObjectDefinition(object, authorizationPhase, result);
+                    .getEditObjectDefinition(object, authorizationPhase, task, result);
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Edit definition for {}:\n{}", object, objectDefinitionForEditing.debugDump(1));
             }

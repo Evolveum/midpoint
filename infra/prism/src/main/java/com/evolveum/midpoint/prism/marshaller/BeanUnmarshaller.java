@@ -163,6 +163,16 @@ public class BeanUnmarshaller {
 				throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
 			}
 		} else {
+			
+			if (beanClass.getPackage().getName().equals("java.lang")) {
+				// We obviously have primitive data type, but we have are asked to unmarshall from map xnode
+				// TODO: more robust implementation
+				// TODO: look for "value" subnode with primitive value and try that.
+				// This is most likely attempt to parse primitive value with dynamic expression.
+				// Therefore just ignore entire map content.
+				return null;
+			}
+			
 			@SuppressWarnings("unchecked")
 			MapUnmarshaller<T> unmarshaller = specialMapUnmarshallers.get(beanClass);
 			if (xnode instanceof MapXNode && unmarshaller != null) {		// TODO: what about special unmarshaller + hetero list?

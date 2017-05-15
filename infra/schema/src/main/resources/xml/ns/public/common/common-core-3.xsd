@@ -6684,6 +6684,8 @@
 
     <xsd:element name="asIs" type="tns:AsIsExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
+	<xsd:element name="const" type="xsd:string" substitutionGroup="tns:expressionEvaluator"/>
+
     <xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>

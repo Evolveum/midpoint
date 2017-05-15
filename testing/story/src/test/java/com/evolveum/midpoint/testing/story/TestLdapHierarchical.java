@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 	}
 	
 	@Override
-	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
 		if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
 			Entry groupEntry = openDJController.searchSingle("cn="+orgName);
@@ -116,7 +116,7 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 		return org;
 	}
 	
-	private String getOuDn(PrismObject<OrgType> org) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private String getOuDn(PrismObject<OrgType> org) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			sb.append("ou=");
@@ -137,7 +137,7 @@ public class TestLdapHierarchical extends AbstractLdapHierarchyTest {
 	}
 
 	@Override
-	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		reconcileAllOrgs();
 		reconcileAllUsers();
 	}

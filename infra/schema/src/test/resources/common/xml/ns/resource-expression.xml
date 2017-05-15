@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Resource definition that is using expressions. -->
+
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:my="http://myself.me/schemas/whatever"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:mr="http://midpoint.evolveum.com/xml/ns/public/common/matching-rule-3">
+
+    <name>Resource with expressions</name>
+
+    <connectorRef type="ConnectorType">
+		<filter>
+            <q:equal>
+            	<q:path xmlns:x="http://x/">extension/x:extConnType</q:path>
+                <q:value>
+                    org.identityconnectors.ldap.LdapConnector
+                </q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <!-- Resource configuration section -->
+    <connectorConfiguration
+            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <!-- Configuration specific for the LDAP connector -->
+        <icfc:configurationProperties>
+
+            <icfcldap:port>389</icfcldap:port>
+            <icfcldap:host>
+            	<expression>
+            		<const>ldapHostname</const>
+            	</expression>
+            </icfcldap:host>
+            <icfcldap:baseContexts>
+            	<expression>
+            		<script>
+            			<code>'dc='+basic.const('orgname')+',dc=com'</code>
+            		</script>
+            	</expression>
+            </icfcldap:baseContexts>
+            <icfcldap:principal>cn=directory manager</icfcldap:principal>
+            <icfcldap:credentials>
+                <t:clearValue>secret</t:clearValue>
+            </icfcldap:credentials>
+            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+            <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+</resource>

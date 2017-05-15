@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<OrgType> context = createLensContext(OrgType.class);
                 addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(TEST1_FILE)));
                 return context;
@@ -123,7 +123,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<OrgType> context = createLensContext(OrgType.class);
                 addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(TEST1_FILE)));
                 return context;

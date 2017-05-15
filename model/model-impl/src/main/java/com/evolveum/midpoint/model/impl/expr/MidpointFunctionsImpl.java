@@ -406,24 +406,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     
     @Override
 	public ShadowType getLinkedShadow(FocusType focus, ResourceType resource) throws SchemaException,
-			SecurityViolationException, CommunicationException, ConfigurationException {
+			SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return getLinkedShadow(focus, resource.getOid());
 	}
 
     @Override
 	public ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly) throws SchemaException,
-			SecurityViolationException, CommunicationException, ConfigurationException {
+			SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return getLinkedShadow(focus, resource.getOid(), repositoryObjectOnly);
 	}
 
     
     @Override
-	public ShadowType getLinkedShadow(FocusType focus, String resourceOid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	public ShadowType getLinkedShadow(FocusType focus, String resourceOid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
     	return getLinkedShadow(focus, resourceOid, false);
     }
     
 	@Override
-	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (focus == null) {
 			return null;
 		}
@@ -457,12 +457,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
     
 	@Override
-	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return getLinkedShadow(focus, resourceOid, kind, intent, false);
 	}
 	
     @Override
-	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	public ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		List<ObjectReferenceType> linkRefs = focus.getLinkRef();
 		for (ObjectReferenceType linkRef: linkRefs) {
 			ShadowType shadowType;
@@ -502,18 +502,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	return projectionContext.isFullShadow();
     }
 
-	public <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
     	return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
     
-    public <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
     }
     
-    public <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
 		return countAccounts(resourceType, attributeQName, attributeValue, getCurrentTask(), result);
@@ -521,7 +521,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     
     private <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue, Task task, OperationResult result)
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
-    		SecurityViolationException {
+    		SecurityViolationException, ExpressionEvaluationException {
     	RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
@@ -533,7 +533,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return modelObjectResolver.countObjects(ShadowType.class, query, null, task, result);
     }
 
-    public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniquePropertyValue");
         ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
@@ -542,16 +542,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private <T> boolean isUniquePropertyValue(final ObjectType objectType, ItemPath propertyPath, T propertyValue, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, ExpressionEvaluationException {
 		List<? extends ObjectType> conflictingObjects = getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, null, false, task, result);
         return conflictingObjects.isEmpty();
     }
 
-    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         return getObjectsInConflictOnPropertyValue(objectType, propertyPathString, propertyValue, DefaultMatchingRule.NAME.getLocalPart(), getAllConflicting);
     }
 
-    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, String matchingRuleName, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, String matchingRuleName, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".getObjectsInConflictOnPropertyValue");
         ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
@@ -561,7 +561,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     private <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(final O objectType, ItemPath propertyPath, T propertyValue, QName matchingRule, final boolean getAllConflicting, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, ExpressionEvaluationException {
         Validate.notNull(objectType, "Null object");
         Validate.notNull(propertyPath, "Null property path");
         Validate.notNull(propertyValue, "Null property value");
@@ -606,7 +606,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return conflictingObjects;
     }
 
-    public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	Validate.notEmpty(attributeName,"Empty attribute name");
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniqueAccountValue");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
@@ -616,7 +616,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private <T> boolean isUniqueAccountValue(ResourceType resourceType, final ShadowType shadowType,
     		QName attributeName, T attributeValue, Task task, OperationResult result)
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
-    		SecurityViolationException {
+    		SecurityViolationException, ExpressionEvaluationException {
     	Validate.notNull(resourceType, "Null resource");
     	Validate.notNull(shadowType, "Null shadow");
     	Validate.notNull(attributeName, "Null attribute name");
@@ -702,8 +702,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     // functions working with ModelContext
 
     @Override
-    public ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-        return LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
+    public ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, getCurrentTask(), getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
     }
 
     public LensContextType wrapModelContext(LensContext<?> lensContext) throws SchemaException {
@@ -746,7 +746,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T extends ObjectType> T resolveReference(ObjectReferenceType reference)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, ExpressionEvaluationException {
         if (reference == null) {
             return null;
         }
@@ -763,7 +763,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
             throws SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException {
+            SecurityViolationException, ExpressionEvaluationException {
         try {
             return resolveReference(reference);
         } catch (ObjectNotFoundException e) {
@@ -776,13 +776,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			Collection<SelectorOptions<GetOperationOptions>> options)
 			throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		return modelService.getObject(type, oid, options, getCurrentTask(), getCurrentResult()).asObjectable();
 	}
 
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid) throws ObjectNotFoundException, SchemaException,
-			CommunicationException, ConfigurationException, SecurityViolationException {
+			CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		PrismObject<T> prismObject = modelService.getObject(type, oid, null, getCurrentTask(), getCurrentResult());
 		return prismObject.asObjectable();
 	}
@@ -922,7 +922,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			Collection<SelectorOptions<GetOperationOptions>> options)
 			throws SchemaException, ObjectNotFoundException,
 			SecurityViolationException, CommunicationException,
-			ConfigurationException {
+			ConfigurationException, ExpressionEvaluationException {
 		return MiscSchemaUtil.toObjectableList(
 				modelService.searchObjects(type, query, options, getCurrentTask(), getCurrentResult()));
 	}
@@ -931,7 +931,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public <T extends ObjectType> List<T> searchObjects(
 			Class<T> type, ObjectQuery query) throws SchemaException,
 			ObjectNotFoundException, SecurityViolationException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return MiscSchemaUtil.toObjectableList(
 				modelService.searchObjects(type, query, null, getCurrentTask(), getCurrentResult()));
 	}
@@ -942,7 +942,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			Collection<SelectorOptions<GetOperationOptions>> options)
 			throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		modelService.searchObjectsIterative(type, query, handler, options, getCurrentTask(), getCurrentResult());
 	}
 
@@ -951,13 +951,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ObjectQuery query, ResultHandler<T> handler)
 			throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		modelService.searchObjectsIterative(type, query, handler, null, getCurrentTask(), getCurrentResult());
 	}
 	
 	@Override
 	public <T extends ObjectType> T searchObjectByName(Class<T> type, String name) 
-				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
@@ -971,7 +971,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	
 	@Override
 	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) 
-				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
@@ -985,7 +985,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	
 	@Override
 	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) 
-				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
@@ -1003,7 +1003,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			Collection<SelectorOptions<GetOperationOptions>> options)
 			throws SchemaException, ObjectNotFoundException,
 			SecurityViolationException, ConfigurationException,
-			CommunicationException {
+			CommunicationException, ExpressionEvaluationException {
 		return modelService.countObjects(type, query, options, getCurrentTask(), getCurrentResult());
 	}
 
@@ -1011,7 +1011,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public <T extends ObjectType> int countObjects(Class<T> type,
 			ObjectQuery query) throws SchemaException, ObjectNotFoundException,
 			SecurityViolationException, ConfigurationException,
-			CommunicationException {
+			CommunicationException, ExpressionEvaluationException {
 		return modelService.countObjects(type, query, null, getCurrentTask(), getCurrentResult());
 	}
 
@@ -1119,7 +1119,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException {
+			ConfigurationException, ExpressionEvaluationException {
 		return orgStructFunctions.getManagersOidsExceptUser(userRefList, false);
 	}
 
@@ -1225,7 +1225,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public List<ObjectReferenceType> getMembersAsReferences(String orgOid) throws SchemaException, SecurityViolationException,
-			CommunicationException, ConfigurationException, ObjectNotFoundException {
+			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		return getMembers(orgOid).stream()
 				.map(obj -> ObjectTypeUtil.createObjectRef(obj))
 				.collect(Collectors.toList());
@@ -1233,7 +1233,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public List<UserType> getMembers(String orgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
 				.isDirectChildOf(orgOid)
 				.build();

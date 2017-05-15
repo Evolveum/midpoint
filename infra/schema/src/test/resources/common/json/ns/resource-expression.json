@@ -1,0 +1,45 @@
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "resource" : {
+    "oid" : "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
+    "name" : "Resource with expressions",
+    "connectorRef" : {
+      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+      "filter" : {
+        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+        "equal" : {
+          "path" : "declare namespace x='http://x/'; extension/x:extConnType",
+          "value" : "org.identityconnectors.ldap.LdapConnector"
+        }
+      }
+    },
+    "connectorConfiguration" : {
+      "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
+      "configurationProperties" : {
+        "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector",
+        "port" : "389",
+        "host" : {
+        	"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+        	"expression" : {
+        		"const" : "ldapHostname"
+        	}
+        },
+        "baseContexts" : {
+        	"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+        	"expression" : {
+        		"script" : {
+        			"code" : "'dc='+basic.const('orgname')+',dc=com'"
+        		}
+        	}
+        },
+        "principal" : "cn=directory manager",
+        "credentials" : {
+          "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+          "clearValue" : "secret"
+        },
+        "vlvSortAttribute" : "uid",
+        "accountOperationalAttributes" : "ds-pwp-account-disabled"
+      }
+    }
+  }
+}

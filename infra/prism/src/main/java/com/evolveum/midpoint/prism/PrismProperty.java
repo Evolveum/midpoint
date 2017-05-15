@@ -519,6 +519,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 					if (value.isRaw()) {
 						sb.append(formatRawValueForDump(value.getRawElement()));
 						sb.append(" (raw)");
+					} else if (value.getExpression() != null) {
+						sb.append(" (expression)");
 					} else {
 						T realValue = value.getValue();
 						if (realValue instanceof DebugDumpable) {
@@ -546,6 +548,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 					if (value.isRaw()) {
 						sb.append(formatRawValueForDump(value.getRawElement()));
 						sb.append(" (raw)");
+					} else if (value.getExpression() != null) {
+						sb.append(" (expression)");
 					} else {
 						if (DebugUtil.isDetailedDebugDump()) {
 							sb.append(PrettyPrinter.prettyPrint(value));

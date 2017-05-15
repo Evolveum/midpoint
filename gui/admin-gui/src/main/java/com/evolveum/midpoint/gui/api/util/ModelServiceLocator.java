@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@ package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
- * Interface that allows location of ModelService and ModelInteractionService.
+ * Interface that allows location of model and model-like services, 
+ * such as ModelService and ModelInteractionService.
  * Used by GUI components that need to interact with the midPoint IDM model,
  * especially for loading data.
  * Usually implemented by PageBase and similar "central" GUI classes.
@@ -31,5 +34,9 @@ public interface ModelServiceLocator {
 	ModelService getModelService();
 	
 	ModelInteractionService getModelInteractionService();
+	
+	Task createSimpleTask(String operationName);
+	
+	PrismContext getPrismContext();
 
 }

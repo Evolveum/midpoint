@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,21 +146,12 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
                 rootWfTask.commitChanges(result);
             }
 
-        } catch (SchemaException e) {
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | ExpressionEvaluationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks due to schema exception", e);
-            status = TaskRunResultStatus.PERMANENT_ERROR;
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
-            status = TaskRunResultStatus.PERMANENT_ERROR;
-        } catch (ObjectAlreadyExistsException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.PERMANENT_ERROR;
         } catch (CommunicationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.TEMPORARY_ERROR;
-        } catch (ConfigurationException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
-            status = TaskRunResultStatus.PERMANENT_ERROR;
         }
 
         TaskRunResult runResult = new TaskRunResult();

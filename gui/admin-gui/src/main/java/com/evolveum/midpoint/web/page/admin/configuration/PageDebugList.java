@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2016 Evolveum
+/* Copyright (c) 2010-2017 Evolveum
  *
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -504,8 +504,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	private void setupSearchDto(DebugSearchDto dto) {
 		ObjectTypes type = dto.getType();
-		Search search = SearchFactory.createSearch(type.getClassDefinition(), getPrismContext(),
-				getModelInteractionService());
+		Search search = SearchFactory.createSearch(type.getClassDefinition(), this);
 		dto.setSearch(search);
 	}
 

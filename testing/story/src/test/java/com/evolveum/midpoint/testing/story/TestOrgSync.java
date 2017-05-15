@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.testing.story;
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -230,6 +231,11 @@ public class TestOrgSync extends AbstractStoryTest {
 
 	private String roleCanibalismOid;
 
+	@Override
+	protected String getTopOrgOid() {
+		return ORG_TOP_OID;
+	}
+	
 	@Override
 	protected void startResources() throws Exception {
 		openDJController.startCleanServer();
@@ -1225,7 +1231,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
 	private PrismObject<OrgType> getAndAssertReplicatedOrg(String orgName)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-			CommunicationException, ConfigurationException, DirectoryException {
+			CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = getOrg(orgName);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "replicated");
 		assertAssignedRole(org, ROLE_META_REPLICATED_ORG_OID);
@@ -1243,17 +1249,8 @@ public class TestOrgSync extends AbstractStoryTest {
 		return org;
 	}
 
-	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException,
-			SecurityViolationException, CommunicationException, ConfigurationException {
-		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-		assertNotNull("The org " + orgName + " is missing!", org);
-		display("Org " + orgName, org);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
-		return org;
-	}
-
 	private void assertBasicRoleAndResources(PrismObject<UserType> user) throws ObjectNotFoundException,
-			SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+			SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		assertAssignedRole(user, ROLE_BASIC_OID);
 		PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
@@ -1263,7 +1260,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
 	private String assertResponsibility(PrismObject<UserType> user, String respName)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-			CommunicationException, ConfigurationException, DirectoryException {
+			CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		String respRoleName = "R_" + respName;
 		PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
 		assertNotNull("No role for responsibility " + respName);
@@ -1291,7 +1288,7 @@ public class TestOrgSync extends AbstractStoryTest {
 
 	private String assertNoResponsibility(PrismObject<UserType> user, String respName)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-			CommunicationException, ConfigurationException, DirectoryException {
+			CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		String respRoleName = "R_" + respName;
 		PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
 		assertNotNull("No role for responsibility " + respName);
@@ -1317,10 +1314,4 @@ public class TestOrgSync extends AbstractStoryTest {
 
 		return respRole.getOid();
 	}
-
-	private void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-			CommunicationException, ConfigurationException {
-		display("Org tree", dumpOrgTree(ORG_TOP_OID));
-	}
-
 }

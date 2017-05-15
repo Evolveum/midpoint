@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.gui.api.component.delta;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -17,6 +32,7 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -79,7 +95,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 		final SceneDto sceneDto;
 		try {
 			sceneDto = loadSceneForDelta();
-		} catch (SchemaException e) {
+		} catch (SchemaException | ExpressionEvaluationException e) {
 			OperationResult result = new OperationResult(ObjectDeltaOperationPanel.class.getName() + ".loadSceneForDelta");
 			result.recordFatalError("Couldn't fetch or visualize the delta: " + e.getMessage(), e);
 			parentPage.showResult(result);
@@ -135,7 +151,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 		
 	}
 
-	private SceneDto loadSceneForDelta() throws SchemaException {
+	private SceneDto loadSceneForDelta() throws SchemaException, ExpressionEvaluationException {
 		Scene scene;
 
 		ObjectDelta<? extends ObjectType> delta;
@@ -151,7 +167,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 			scene = parentPage.getModelInteractionService().visualizeDelta(delta,
 					parentPage.createSimpleTask(ID_PARAMETERS_DELTA),
 					new OperationResult(ID_PARAMETERS_DELTA));
-		} catch (SchemaException e) {
+		} catch (SchemaException | ExpressionEvaluationException e) {
 			LoggingUtils.logException(LOGGER, "SchemaException while visualizing delta:\n{}",
 					e, DebugUtil.debugDump(delta));
 			throw e;

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -89,7 +90,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 			try {
 				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), owners, result);
 			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException
-					| SecurityViolationException | SchemaException e) {
+					| SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
 				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
 				return null;
 			}

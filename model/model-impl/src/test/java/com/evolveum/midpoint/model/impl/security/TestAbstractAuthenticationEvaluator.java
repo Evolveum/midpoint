@@ -1121,7 +1121,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 		assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
 	}
 	
-	private void loginJackGoodPasswordExpectSuccess(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private void loginJackGoodPasswordExpectSuccess(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		display("now", clock.currentTimeXMLGregorianCalendar());
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -1141,7 +1141,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 		assertLastSuccessfulLogin(userAfter, startTs, endTs);
 	}
 	
-	private void loginJackGoodPasswordExpectDenied(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private void loginJackGoodPasswordExpectDenied(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		display("now", clock.currentTimeXMLGregorianCalendar());
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();

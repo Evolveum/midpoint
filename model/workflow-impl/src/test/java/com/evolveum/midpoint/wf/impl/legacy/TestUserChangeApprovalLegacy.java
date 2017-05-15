@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
@@ -257,7 +257,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
@@ -307,7 +307,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
@@ -356,7 +356,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
@@ -415,7 +415,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
@@ -472,7 +472,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
@@ -530,7 +530,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
@@ -595,7 +595,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
@@ -644,7 +644,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
@@ -692,7 +692,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
@@ -747,7 +747,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE10);
@@ -787,7 +787,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
@@ -831,7 +831,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
@@ -875,7 +875,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
@@ -940,7 +940,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
@@ -1043,7 +1043,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_DUMMY);
@@ -1091,7 +1091,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
@@ -1148,7 +1148,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();

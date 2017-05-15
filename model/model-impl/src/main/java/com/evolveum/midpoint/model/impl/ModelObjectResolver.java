@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -152,7 +153,7 @@ public class ModelObjectResolver implements ObjectResolver {
 	}
 	
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
-			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;
@@ -195,25 +196,10 @@ public class ModelObjectResolver implements ObjectResolver {
                     hook.invoke(object, options, task, result);
                 }
             }
-		} catch (SystemException ex) {
+		} catch (SystemException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
 			result.recordFatalError(ex);
 			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (CommunicationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (SchemaException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ConfigurationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (RuntimeException ex) {
+		} catch (RuntimeException | Error ex) {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
 					oid, clazz);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
@@ -224,8 +210,9 @@ public class ModelObjectResolver implements ObjectResolver {
 		return objectType;
 	}
 	
+	@Override
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			provisioning.searchObjectsIterative(type, query, options, handler, (Task) task, parentResult);
 		} else {
@@ -233,7 +220,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 	}
 	
-	public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			return provisioning.countObjects(type, query, options, task, parentResult);
 		} else {

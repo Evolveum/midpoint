@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -106,7 +107,7 @@ public class ReconciliationProcessor {
 	<F extends ObjectType> void processReconciliation(LensContext<F> context,
 													  LensProjectionContext projectionContext, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return;
@@ -121,7 +122,7 @@ public class ReconciliationProcessor {
 	private <F extends ObjectType> void processReconciliationFocus(LensContext<F> context,
 			LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 
 		OperationResult subResult = result.createMinorSubresult(PROCESS_RECONCILIATION);
 
@@ -543,7 +544,7 @@ public class ReconciliationProcessor {
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations,
 			RefinedObjectClassDefinition accountDefinition, Task task, OperationResult result)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
@@ -781,7 +782,7 @@ public class ReconciliationProcessor {
 			Collection<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> shouldBeCValues,
 			ValueMatcher valueMatcher, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-			ObjectNotFoundException {
+			ObjectNotFoundException, ExpressionEvaluationException {
 
 		boolean evaluatePatterns = !assocDef.getTolerantValuePattern().isEmpty() || !assocDef.getIntolerantValuePattern().isEmpty();
 		MatchingRule<Object> matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
@@ -841,7 +842,7 @@ public class ReconciliationProcessor {
 	private ResourceAttribute<String> getTargetNamingIdentifier(
 			PrismContainerValue<ShadowAssociationType> associationValue, Task task, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
-			ConfigurationException {
+			ConfigurationException, ExpressionEvaluationException {
 		return getIdentifiersForAssociationTarget(associationValue, task, result).getNamingAttribute();
 	}
 
@@ -849,7 +850,7 @@ public class ReconciliationProcessor {
 	private ResourceAttributeContainer getIdentifiersForAssociationTarget(PrismContainerValue<ShadowAssociationType> isCValue,
 			Task task, OperationResult result) throws CommunicationException,
 			SchemaException, ConfigurationException,
-			SecurityViolationException, ObjectNotFoundException {
+			SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
 		ResourceAttributeContainer identifiersContainer =
 				ShadowUtil.getAttributesContainer(isCValue, ShadowAssociationType.F_IDENTIFIERS);
 		if (identifiersContainer != null) {

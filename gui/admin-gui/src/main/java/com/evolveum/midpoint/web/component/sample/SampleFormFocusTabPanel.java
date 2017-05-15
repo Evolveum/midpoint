@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -86,7 +87,8 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
         List<PrismObject<RoleType>> availableRoles;
         try {
             availableRoles = pageBase.getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | 
+        		ConfigurationException | ExpressionEvaluationException e) {
             task.getResult().recordFatalError(e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load roles", e);
             availableRoles = new ArrayList<>();

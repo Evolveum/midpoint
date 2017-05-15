@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.common.expression;
+package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,10 +24,6 @@ import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
-import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
-import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -297,32 +293,6 @@ public class ExpressionUtil {
 		return originalValue;
 	}
 
-	public static Map<String,Object> prepareScriptVariables(ExpressionVariables variables, ObjectResolver objectResolver,
-			Collection<FunctionLibrary> functions,
-			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
-		Map<String,Object> scriptVariables = new HashMap<>();
-		// Functions
-		if (functions != null) {
-			for (FunctionLibrary funcLib: functions) {
-				scriptVariables.put(funcLib.getVariableName(), funcLib.getGenericFunctions());
-			}
-		}
-		// Variables
-		if (variables != null) {
-			for (Entry<QName, Object> variableEntry: variables.entrySet()) {
-				if (variableEntry.getKey() == null) {
-					// This is the "root" node. We have no use for it in JSR223, just skip it
-					continue;
-				}
-				String variableName = variableEntry.getKey().getLocalPart();
-				Object variableValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, objectResolver, contextDescription, prismContext, task, result);
-				scriptVariables.put(variableName, variableValue);
-			}
-		}
-		return scriptVariables;
-	}
-
-
 	private static PrismObject<?> resolveReference(ObjectReferenceType ref, ObjectResolver objectResolver,
 			String varDesc, String contextDescription, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException {
@@ -425,26 +395,6 @@ public class ExpressionUtil {
 			throw new IllegalArgumentException("Unexpected object " + object + " " + object.getClass());
 		}
 
-	}
-
-	public static FunctionLibrary createBasicFunctionLibrary(PrismContext prismContext, Protector protector) {
-		FunctionLibrary lib = new FunctionLibrary();
-		lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_BASIC_VARIABLE_NAME);
-		lib.setNamespace(MidPointConstants.NS_FUNC_BASIC);
-		BasicExpressionFunctions func = new BasicExpressionFunctions(prismContext, protector);
-		lib.setGenericFunctions(func);
-		BasicExpressionFunctionsXPath funcXPath = new BasicExpressionFunctionsXPath(func);
-		lib.setXmlFunctions(funcXPath);
-		return lib;
-	}
-
-	public static FunctionLibrary createLogFunctionLibrary(PrismContext prismContext) {
-		FunctionLibrary lib = new FunctionLibrary();
-		lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_LOG_VARIABLE_NAME);
-		lib.setNamespace(MidPointConstants.NS_FUNC_LOG);
-		LogExpressionFunctions func = new LogExpressionFunctions(prismContext);
-		lib.setGenericFunctions(func);
-		return lib;
 	}
 
 	public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables,

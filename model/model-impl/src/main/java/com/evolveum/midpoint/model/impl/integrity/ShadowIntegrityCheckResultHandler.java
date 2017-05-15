@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -437,8 +437,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         try {
-            provisioningService.applyDefinition(shadow, result);
-        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException e) {
+            provisioningService.applyDefinition(shadow, workerTask, result);
+        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
             checkResult.recordError(Statistics.OTHER_FAILURE, new SystemException("Couldn't apply definition to shadow from repo", e));
             return;
         }
@@ -525,7 +525,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                     SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
                     task, result);
             return fullShadow;
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException e) {
+        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
             checkResult.recordError(Statistics.CANNOT_FETCH_RESOURCE_OBJECT, new SystemException("The resource object couldn't be fetched", e));
             return null;
         }

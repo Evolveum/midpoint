@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public class PrismUnmarshaller {
 
@@ -370,7 +372,14 @@ public class PrismUnmarshaller {
                 return null;
             }
             if (realValue == null) {
-                return null;
+            	// Be careful here. Expression element can be legal sub-element of complex properties.
+            	// Therefore parse expression only if there is no legal value.
+            	ExpressionWrapper expression = PrismUtil.parseExpression(node, prismContext);
+            	if (expression != null) {
+            		PrismPropertyValue<T> ppv = new PrismPropertyValue<>(null, prismContext, null, null, expression);
+            		return ppv;
+            		
+            	}
             }
             PrismPropertyValue<T> ppv = new PrismPropertyValue<>(realValue);
             ppv.setPrismContext(prismContext);

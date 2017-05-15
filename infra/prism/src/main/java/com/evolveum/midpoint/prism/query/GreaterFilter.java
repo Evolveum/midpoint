@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 

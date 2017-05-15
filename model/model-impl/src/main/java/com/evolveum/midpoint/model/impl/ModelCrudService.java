@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,84 +113,84 @@ public class ModelCrudService {
 
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return modelService.getObject(clazz, oid, options, task, parentResult);
 	}	
 
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		return modelService.searchObjects(type, query, options, task, parentResult);
 	}
 	
-	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException{
+	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException{
 		
 		String oldShadowOid = changeDescription.getOldShadowOid();
 		ResourceEventDescription eventDescription = new ResourceEventDescription();
 		
-			PrismObject<ShadowType> oldShadow = null;
-			LOGGER.trace("resolving old object");
-			if (!StringUtils.isEmpty(oldShadowOid)){
-				oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
-				eventDescription.setOldShadow(oldShadow);
-				LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
-			} else{
-				LOGGER.trace("Old shadow null");
-			}
+		PrismObject<ShadowType> oldShadow = null;
+		LOGGER.trace("resolving old object");
+		if (!StringUtils.isEmpty(oldShadowOid)){
+			oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
+			eventDescription.setOldShadow(oldShadow);
+			LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
+		} else{
+			LOGGER.trace("Old shadow null");
+		}
 			
-				PrismObject<ShadowType> currentShadow = null;
-				ShadowType currentShadowType = changeDescription.getCurrentShadow();
-				LOGGER.trace("resolving current shadow");
-				if (currentShadowType != null){
-					prismContext.adopt(currentShadowType);
-					currentShadow = currentShadowType.asPrismObject();
-					LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
-				}
-				
-				eventDescription.setCurrentShadow(currentShadow);
-				
-				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
-				ObjectDelta delta = null;
-				
-				PrismObject<ShadowType> shadowToAdd = null;
-				if (deltaType != null){
-				
-					delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
-					
-					if (delta.getChangeType() == ChangeType.ADD) {
+		PrismObject<ShadowType> currentShadow = null;
+		ShadowType currentShadowType = changeDescription.getCurrentShadow();
+		LOGGER.trace("resolving current shadow");
+		if (currentShadowType != null){
+			prismContext.adopt(currentShadowType);
+			currentShadow = currentShadowType.asPrismObject();
+			LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
+		}
+		
+		eventDescription.setCurrentShadow(currentShadow);
+		
+		ObjectDeltaType deltaType = changeDescription.getObjectDelta();
+		ObjectDelta delta = null;
+		
+		PrismObject<ShadowType> shadowToAdd = null;
+		if (deltaType != null){
+		
+			delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
+			
+			if (delta.getChangeType() == ChangeType.ADD) {
 //						LOGGER.trace("determined ADD change ");
-						if (deltaType.getObjectToAdd() == null){
-							LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
-							throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
+				if (deltaType.getObjectToAdd() == null){
+					LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
+					throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
 //							return handleTaskResult(task);
-						}
-						Object objToAdd = deltaType.getObjectToAdd();
-						if (!(objToAdd instanceof ShadowType)){
-							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-							throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-//							return handleTaskResult(task);
-						}
-						prismContext.adopt((ShadowType)objToAdd);
-						
-						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
-						delta.setObjectToAdd(shadowToAdd);
-					} else {
-						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
-						delta.getModifications().addAll(modifications);
-					} 
 				}
-				Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-				deltas.add(delta);
-				Utils.encrypt(deltas, protector, null, parentResult);
-				eventDescription.setDelta(delta);
-					
-				eventDescription.setSourceChannel(changeDescription.getChannel());
+				Object objToAdd = deltaType.getObjectToAdd();
+				if (!(objToAdd instanceof ShadowType)){
+					LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+					throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+//							return handleTaskResult(task);
+				}
+				prismContext.adopt((ShadowType)objToAdd);
+				
+				shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
+				LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
+				delta.setObjectToAdd(shadowToAdd);
+			} else {
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+				delta.getModifications().addAll(modifications);
+			} 
+		}
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		deltas.add(delta);
+		Utils.encrypt(deltas, protector, null, parentResult);
+		eventDescription.setDelta(delta);
 			
-					dispatcher.notifyEvent(eventDescription, task, parentResult);
-					parentResult.computeStatus();
-					task.setResult(parentResult);
+		eventDescription.setSourceChannel(changeDescription.getChannel());
+	
+		dispatcher.notifyEvent(eventDescription, task, parentResult);
+		parentResult.computeStatus();
+		task.setResult(parentResult);
 	}
 	
 
@@ -479,12 +479,12 @@ public class ModelCrudService {
 
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass,
 			ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return modelService.listResourceObjects(resourceOid, objectClass, paging, task, parentResult);
 	}
 
 	public void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		modelService.importFromResource(resourceOid, objectClass, task, parentResult);
 	}
 

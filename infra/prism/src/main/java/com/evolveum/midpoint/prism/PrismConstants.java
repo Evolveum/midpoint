@@ -122,4 +122,6 @@ public class PrismConstants {
     
     public static final boolean EQUALS_DEFAULT_IGNORE_METADATA = true;
     public static final boolean EQUALS_DEFAULT_IS_LITERAL = false;
+    
+    public static final String EXPRESSION_LOCAL_PART = "expression";
 }
