@@ -17,12 +17,12 @@
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -55,7 +55,7 @@ public class NotifyExecutor extends BaseActionExecutor {
     private static final String PARAM_SUBTYPE = "subtype";
     private static final String PARAM_HANDLER = "handler";
     private static final String PARAM_STATUS = "status";
-    private static final String PARAM_OPEARATION = "operation";
+    private static final String PARAM_OPERATION = "operation";
     private static final String PARAM_FOR_WHOLE_INPUT = "forWholeInput";
 
     @PostConstruct
@@ -64,16 +64,16 @@ public class NotifyExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        String subtype = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_SUBTYPE, input, context, null, PARAM_SUBTYPE, result);
+        String subtype = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_SUBTYPE, input, context, null, PARAM_SUBTYPE, globalResult);
         EventHandlerType handler = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_HANDLER, false, false,
-                PARAM_HANDLER, input, context, EventHandlerType.class, result);
+                PARAM_HANDLER, input, context, EventHandlerType.class, globalResult);
         EventStatusType status = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_STATUS, false, false,
-                PARAM_STATUS, input, context, EventStatusType.class, result);
-        EventOperationType operation = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OPEARATION, false, false,
-                PARAM_OPEARATION, input, context, EventOperationType.class, result);
-        boolean forWholeInput = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_SUBTYPE, result);
+                PARAM_STATUS, input, context, EventStatusType.class, globalResult);
+        EventOperationType operation = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OPERATION, false, false,
+                PARAM_OPERATION, input, context, EventOperationType.class, globalResult);
+        boolean forWholeInput = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_SUBTYPE, globalResult);
 
         if (status == null) {
             status = EventStatusType.SUCCESS;
@@ -89,17 +89,20 @@ public class NotifyExecutor extends BaseActionExecutor {
         int eventCount = 0;
         if (forWholeInput) {
             Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, input.getData(), operation, status, context.getChannel());
-            notificationManager.processEvent(event, context.getTask(), result);
+            notificationManager.processEvent(event, context.getTask(), globalResult);
             eventCount++;
         } else {
-            for (PrismValue value : input.getData()) {
+            for (PipelineItem item: input.getData()) {
+                PrismValue value = item.getValue();
+                OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
                 context.checkTaskStop();
                 Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, value, operation, status, context.getChannel());
                 notificationManager.processEvent(event, context.getTask(), result);
                 eventCount++;
+                operationsHelper.trimAndCloneResult(result, globalResult, context);
             }
         }
         context.println("Produced " + eventCount + " event(s)");
-        return Data.createEmpty();
+        return input;
     }
 }

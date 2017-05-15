@@ -6683,8 +6683,20 @@
     </xsd:complexType>
 
     <xsd:element name="asIs" type="tns:AsIsExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	
+	<!-- Here we use complexType to create a Java class named ConstExpressionEvaluatorType -->
+    <xsd:complexType name="ConstExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string" />
+        </xsd:simpleContent>
+    </xsd:complexType>
 
-	<xsd:element name="const" type="xsd:string" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="const" type="tns:ConstExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
     <xsd:complexType name="GenerateExpressionEvaluatorType">
         <xsd:annotation>

@@ -1632,4 +1632,39 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		});
 	}
+
+	// TODO optimize a bit + test thoroughly
+	public void keepPaths(List<ItemPath> keep) {
+		if (items != null) {
+			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
+				Item<?, ?> item = iterator.next();
+				if (!ItemPath.containsSubpathOrEquivalent(keep, item.getPath())) {
+					iterator.remove();
+				} else {
+					if (item instanceof PrismContainer) {
+						((PrismContainer<?>) item).getValues().forEach(v -> v.keepPaths(keep));
+					} else {
+						// TODO some additional checks here (e.g. when trying to keep 'name/xyz' - this is illegal)
+					}
+				}
+			}
+		}
+	}
+
+	// TODO optimize a bit + test thoroughly
+	public void removePaths(List<ItemPath> remove) {
+		if (items != null) {
+			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
+				Item<?, ?> item = iterator.next();
+				if (ItemPath.containsEquivalent(remove, item.getPath())) {
+					iterator.remove();
+				} else if (ItemPath.containsSubpath(remove, item.getPath())) {
+					if (item instanceof PrismContainer) {
+						((PrismContainer<?>) item).getValues().forEach(v -> v.removePaths(remove));
+					}
+				}
+			}
+		}
+	}
+
 }

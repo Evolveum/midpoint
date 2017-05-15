@@ -16,9 +16,10 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,17 +62,17 @@ public class AssignExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        boolean raw = getParamRaw(expression, input, context, result);
-        boolean dryRun = getParamDryRun(expression, input, context, result);
+        boolean raw = getParamRaw(expression, input, context, globalResult);
+        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
 
         ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
         ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
 
         Collection<ObjectReferenceType> resources;
         if (resourceParameterValue != null) {
-            Data data = expressionHelper.evaluateParameter(resourceParameterValue, null, input, context, result);
+            PipelineData data = expressionHelper.evaluateParameter(resourceParameterValue, null, input, context, globalResult);
             resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE);
         } else {
             resources = null;
@@ -79,7 +80,7 @@ public class AssignExecutor extends BaseActionExecutor {
 
         Collection<ObjectReferenceType> roles;
         if (roleParameterValue != null) {
-            Data data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, result);
+            PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
             roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE);
         } else {
             roles = null;
@@ -89,7 +90,9 @@ public class AssignExecutor extends BaseActionExecutor {
             throw new ScriptExecutionException("Nothing to assign: neither resource nor role specified");
         }
 
-        for (PrismValue value : input.getData()) {
+        for (PipelineItem item : input.getData()) {
+            PrismValue value = item.getValue();
+            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof FocusType) {
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
@@ -108,8 +111,9 @@ public class AssignExecutor extends BaseActionExecutor {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Item is not a PrismObject of FocusType"), NAME, value, context);
             }
+            operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
-        return Data.createEmpty();
+        return input;           // TODO updated objects?
     }
 
     private ObjectDelta createDelta(ObjectType objectType, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles) throws ScriptExecutionException {

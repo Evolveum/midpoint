@@ -3744,6 +3744,34 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 		}
 	}
 
+	@Test   // the same as test142QueryUserAccountRefNull, but keeping because of test structure
+	public void testAdHoc103NullRefMulti() throws Exception {
+		Session session = open();
+		try {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_LINK_REF).isNull()
+					.build();
+			String real = getInterpretedQuery2(session, UserType.class, query);
+			String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject,\n"
+                    + "  u.stringsCount,\n"
+                    + "  u.longsCount,\n"
+                    + "  u.datesCount,\n"
+                    + "  u.referencesCount,\n"
+                    + "  u.polysCount,\n"
+                    + "  u.booleansCount\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.linkRef l\n"
+                    + "where\n"
+                    + "  l is null\n";
+			assertEqualsIgnoreWhitespace(expected, real);
+		} finally {
+			close(session);
+		}
+	}
+
 	@Test
 	public void testAdHoc104NullEqSingle() throws Exception {
 		Session session = open();
@@ -3770,7 +3798,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 		}
 	}
 
-	@Test(enabled = false)
+	@Test
 	public void testAdHoc105NullEqMulti() throws Exception {
 		Session session = open();
 		try {
@@ -3778,12 +3806,24 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					.item(UserType.F_EMPLOYEE_TYPE).isNull()
 					.build();
 			String real = getInterpretedQuery2(session, UserType.class, query);
-			String expected = "";
+			String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject,\n"
+                    + "  u.stringsCount,\n"
+                    + "  u.longsCount,\n"
+                    + "  u.datesCount,\n"
+                    + "  u.referencesCount,\n"
+                    + "  u.polysCount,\n"
+                    + "  u.booleansCount\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "    left join u.employeeType e\n"
+                    + "where\n"
+                    + "  e is null";
 			assertEqualsIgnoreWhitespace(expected, real);
 		} finally {
 			close(session);
 		}
-
 	}
 
 	@Test

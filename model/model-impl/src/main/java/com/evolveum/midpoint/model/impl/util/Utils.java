@@ -480,12 +480,12 @@ public final class Utils {
     	if (task.getExtension() == null) {
     		return null;
     	}
-    	LOGGER.info("Task:\n{}",task.debugDump(1));
+    	//LOGGER.info("Task:\n{}",task.debugDump(1));
     	PrismProperty<ModelExecuteOptionsType> item = task.getExtensionProperty(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
-		LOGGER.info("Item:\n{}",item.debugDump(1));
+		//LOGGER.info("Item:\n{}",item.debugDump(1));
 		if (item.getValues().size() > 1) {
 			throw new SchemaException("Unexpected number of values for option 'modelExecuteOptions'.");
 		}
@@ -493,9 +493,9 @@ public final class Utils {
 		if (modelExecuteOptionsType == null) {
 			return null;
 		}
-		LOGGER.info("modelExecuteOptionsType: {}",modelExecuteOptionsType);
+		//LOGGER.info("modelExecuteOptionsType: {}",modelExecuteOptionsType);
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
-		LOGGER.info("modelExecuteOptions: {}",modelExecuteOptions);
+		//LOGGER.info("modelExecuteOptions: {}",modelExecuteOptions);
 		return modelExecuteOptions;
     }
 

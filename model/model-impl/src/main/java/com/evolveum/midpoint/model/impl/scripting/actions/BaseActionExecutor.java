@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
@@ -68,11 +68,11 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 	protected SecurityEnforcer securityEnforcer;
 
     // todo move to some helper?
-    protected boolean getParamRaw(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    protected boolean getParamRaw(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         return expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_RAW, input, context, false, PARAM_RAW, result);
     }
 
-    protected boolean getParamDryRun(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    protected boolean getParamDryRun(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         return expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_DRY_RUN, input, context, false, PARAM_DRY_RUN, result);
     }
 

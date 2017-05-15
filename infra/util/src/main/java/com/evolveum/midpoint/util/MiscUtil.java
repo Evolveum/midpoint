@@ -568,4 +568,10 @@ public class MiscUtil {
 				? Stream.of(cls.cast(o))
 				: Stream.empty();
 	}
+
+	// CollectionUtils does not provide this
+	// @pre: !list.isEmpty()
+	public static <T> T last(List<T> list) {
+		return list.get(list.size() - 1);
+	}
 }

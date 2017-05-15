@@ -17,7 +17,8 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -40,10 +41,10 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineDataType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -261,10 +262,10 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
                 output.setTextOutput(executionResult.getConsoleOutput());
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
-                    output.setXmlData(prepareXmlData(executionResult.getDataOutput()));
+                    output.setDataOutput(prepareXmlData(executionResult.getDataOutput()));
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
-                    ItemListType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
+                    PipelineDataType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
                     output.setMslData(prismContext.xmlSerializer().serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE));
                 }
             }
@@ -278,17 +279,18 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return response;
     }
 
-    private ItemListType prepareXmlData(List<PrismValue> output) throws JAXBException, SchemaException {
-        ItemListType itemListType = new ItemListType();
+    public static PipelineDataType prepareXmlData(List<PipelineItem> output) throws JAXBException, SchemaException {
+        PipelineDataType rv = new PipelineDataType();
         if (output != null) {
-            for (PrismValue value: output) {
-				RawType rawType = new RawType(prismContext.xnodeSerializer().root(SchemaConstants.C_VALUE).serialize(value), prismContext);
-                itemListType.getItem().add(rawType);
+            for (PipelineItem item: output) {
+				PipelineItemType itemType = new PipelineItemType();
+				itemType.setValue(item.getValue().getRealValue());        				// TODO - ok?
+				itemType.setResult(item.getResult().createOperationResultType());
+				rv.getItem().add(itemType);
             }
         }
-        return itemListType;
+        return rv;
     }
-
 
 	private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
 		result.recordSuccess();

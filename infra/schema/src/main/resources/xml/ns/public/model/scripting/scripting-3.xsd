@@ -73,18 +73,6 @@
         </xsd:annotation>
     </xsd:import>
 
-    <!--<xsd:complexType name="ScriptingExpressionType">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:documentation>-->
-                <!--General wrapping element (TEMPORARY).-->
-            <!--</xsd:documentation>-->
-        <!--</xsd:annotation>-->
-        <!--<xsd:sequence>-->
-            <!--<xsd:element ref="tns:expression"/>-->
-        <!--</xsd:sequence>-->
-    <!--</xsd:complexType>-->
-    <!--<xsd:element name="expression" type="tns:ScriptingExpressionType" />-->
-
     <xsd:complexType name="ScriptingExpressionEvaluationOptionsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -181,7 +169,38 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:complexType name="SearchExpressionType">
+    <!--<xsd:complexType name="ConstantValueExpressionType">-->
+        <!--<xsd:annotation>-->
+            <!--<xsd:documentation>-->
+                <!--TODO-->
+            <!--</xsd:documentation>-->
+            <!--<xsd:appinfo>-->
+                <!--<a:since>3.6</a:since>-->
+            <!--</xsd:appinfo>-->
+        <!--</xsd:annotation>-->
+        <!--<xsd:complexContent>-->
+            <!--<xsd:extension base="tns:ScriptingExpressionType">-->
+                <!--<xsd:sequence>-->
+                    <!--<xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">-->
+                        <!--<xsd:annotation>-->
+                            <!--<xsd:documentation>-->
+                                <!--TODO-->
+                            <!--</xsd:documentation>-->
+                        <!--</xsd:annotation>-->
+                    <!--</xsd:element>-->
+                <!--</xsd:sequence>-->
+            <!--</xsd:extension>-->
+        <!--</xsd:complexContent>-->
+    <!--</xsd:complexType>-->
+    <!--<xsd:element name="constantValue" type="tns:ConstantValueExpressionType" substitutionGroup="tns:scriptingExpression" >-->
+        <!--<xsd:annotation>-->
+            <!--<xsd:appinfo>-->
+                <!--<a:heterogeneousListItem/>-->
+            <!--</xsd:appinfo>-->
+        <!--</xsd:annotation>-->
+    <!--</xsd:element>-->
+
+    <xsd:complexType name="SearchExpressionType">
         <xsd:annotation>
             <xsd:documentation>
                 Queries the model for objects of a given type, optionally fulfilling given condition.
@@ -200,7 +219,7 @@
                     <xsd:element name="variable" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Variable to hold found instances.
+                                Variable to hold found instances. Not yet supported.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -294,6 +313,41 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="select" type="tns:SelectExpressionType" substitutionGroup="tns:scriptingExpression" >
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:heterogeneousListItem/>
+			</xsd:appinfo>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="FilterContentExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Keeps/removes selected items from the input value.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ScriptingExpressionType">
+				<xsd:choice>
+                    <xsd:element name="keep" type="t:ItemPathType" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Path to the data item(s) that should be kept.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="remove" type="t:ItemPathType" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Path to the data item(s) that should be removed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="filterContent" type="tns:FilterContentExpressionType" substitutionGroup="tns:scriptingExpression" >
 		<xsd:annotation>
 			<xsd:appinfo>
 				<a:heterogeneousListItem/>
@@ -410,18 +464,47 @@
     <xsd:complexType name="ExecuteScriptType">
         <xsd:sequence>
             <xsd:element ref="tns:scriptingExpression"/>
-            <xsd:element name="input" type="tns:ItemListType" minOccurs="0"/>
+            <xsd:element name="input" type="tns:ValueListType" minOccurs="0"/>
             <xsd:element name="options" type="tns:ScriptingExpressionEvaluationOptionsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ItemListType">
+    <xsd:complexType name="ValueListType">
         <xsd:sequence>
-            <xsd:element name="item" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:rawType/>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PipelineDataType">
+        <xsd:sequence>
+            <xsd:element name="item" type="tns:PipelineItemType" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PipelineItemType">
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:anyType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:rawType/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="result" type="c:OperationResultType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

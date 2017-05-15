@@ -17,8 +17,9 @@
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectValue;
@@ -40,8 +41,7 @@ public class AddExecutor extends BaseActionExecutor {
 
     private static final String NAME = "add";
 
-    @Autowired
-    private OperationsHelper operationsHelper;
+    @Autowired private OperationsHelper operationsHelper;
 
     @PostConstruct
     public void init() {
@@ -49,14 +49,17 @@ public class AddExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        boolean raw = getParamRaw(expression, input, context, result);
-        boolean dryRun = getParamDryRun(expression, input, context, result);
+        boolean raw = getParamRaw(expression, input, context, globalResult);
+        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
 
-        for (PrismValue value : input.getData()) {
+        for (PipelineItem item : input.getData()) {
+            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
+            PrismValue value = item.getValue();
             if (value instanceof PrismObjectValue) {
+                @SuppressWarnings({ "unchecked", "raw" })
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
@@ -73,8 +76,9 @@ public class AddExecutor extends BaseActionExecutor {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
+            operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
-        return Data.createEmpty();            // todo return oid(s) in the future
+        return input;
     }
 
 	private ObjectDelta createAddDelta(ObjectType objectType) {

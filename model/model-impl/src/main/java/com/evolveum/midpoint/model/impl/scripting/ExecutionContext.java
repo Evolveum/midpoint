@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -40,8 +41,8 @@ public class ExecutionContext {
     private final Task task;
     private final ScriptingExpressionEvaluationOptionsType options;
     private final StringBuilder consoleOutput = new StringBuilder();
-    private final Map<String, Data> variables = new HashMap<>();
-    private Data finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
+    private final Map<String, PipelineData> variables = new HashMap<>();
+    private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
 
     public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task) {
         this.task = task;
@@ -60,15 +61,11 @@ public class ExecutionContext {
     	return options != null && Boolean.TRUE.equals(options.isContinueOnAnyError());
 	}
 
-	public Data getVariable(String variableName) {
+	public PipelineData getVariable(String variableName) {
         return variables.get(variableName);
     }
 
-    public void setVariable(String variableName, Item item) {
-        variables.put(variableName, Data.create(item));
-    }
-
-    public void setVariable(String variableName, Data value) {
+    public void setVariable(String variableName, PipelineData value) {
         variables.put(variableName, value);
     }
 
@@ -83,16 +80,16 @@ public class ExecutionContext {
         }
     }
 
-    public Data getFinalOutput() {
+    public PipelineData getFinalOutput() {
         return finalOutput;
     }
 
-    public void setFinalOutput(Data finalOutput) {
+    public void setFinalOutput(PipelineData finalOutput) {
         this.finalOutput = finalOutput;
     }
 
     public ScriptExecutionResult toExecutionResult() {
-        List<PrismValue> items = null;
+        List<PipelineItem> items = null;
         if (getFinalOutput() != null) {
             items = getFinalOutput().getData();
         }
@@ -112,6 +109,12 @@ public class ExecutionContext {
         if (!canRun()) {
             // TODO do this is a nicer way
             throw new SystemException("Stopping execution of a script because the task is stopping: " + task);
+        }
+    }
+
+    public void computeResults() {
+        if (finalOutput != null) {
+            finalOutput.getData().forEach(i -> i.computeResult());
         }
     }
 }

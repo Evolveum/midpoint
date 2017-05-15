@@ -16,17 +16,18 @@
 
 package com.evolveum.midpoint.model.impl.scripting.expressions;
 
-import com.evolveum.midpoint.model.impl.scripting.Data;
-import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @author mederly
@@ -34,26 +35,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class SelectEvaluator extends BaseExpressionEvaluator {
 
-    public Data evaluate(SelectExpressionType selectExpression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        Data output = Data.createEmpty();
-
-        ItemPathType itemPathType = selectExpression.getPath();
-        if (itemPathType == null) {
-            return input;           // no path specified => select returns original data
-        }
-        ItemPath path = itemPathType.getItemPath();
-
-        for (PrismValue value : input.getData()) {
-            Object o = value.find(path);
-            if (o != null) {
-                if (o instanceof Item) {
-                    output.addItem((Item) o);
-                } else {
-                    throw new ScriptExecutionException("In 'select' commands, only property/container/reference selection is supported for now. Select on '" + path + "' returned this instead: " + o);
-                }
-            }
-        }
-        return output;
-    }
-
+    public PipelineData evaluate(SelectExpressionType selectExpression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+		if (selectExpression.getPath() == null) {
+        	return input;
+		}
+		ItemPath path = selectExpression.getPath().getItemPath();
+		PipelineData output = PipelineData.createEmpty();
+		for (PipelineItem item : input.getData()) {
+			Object o = item.getValue().find(path);
+			if (o != null) {
+				if (o instanceof Item) {
+					List<? extends PrismValue> values = ((Item<? extends PrismValue, ?>) o).getValues();
+					values.forEach((v) ->
+							output.addValue(v, item.getResult().clone()));        // clone to avoid aggregating subresults into unrelated results
+				} else {
+					throw new ScriptExecutionException(
+							"In 'select' commands, only property/container/reference selection is supported for now. Select on '"
+									+ path + "' returned this instead: " + o);
+				}
+			}
+		}
+		return output;
+	}
 }

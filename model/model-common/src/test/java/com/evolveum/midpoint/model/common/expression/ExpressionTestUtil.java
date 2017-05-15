@@ -18,9 +18,14 @@ package com.evolveum.midpoint.model.common.expression;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration.Configuration;
+
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
+import com.evolveum.midpoint.model.common.ConstantsManager;
+import com.evolveum.midpoint.model.common.expression.evaluator.ConstExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -46,7 +51,6 @@ public class ExpressionTestUtil {
 		ProtectorImpl protector = new ProtectorImpl();
         protector.setKeyStorePath(MidPointTestConstants.KEYSTORE_PATH);
         protector.setKeyStorePassword(MidPointTestConstants.KEYSTORE_PASSWORD);
-        //protector.setPrismContext(prismContext);
         protector.init();
         return protector;
 	}
@@ -63,6 +67,11 @@ public class ExpressionTestUtil {
     	// value
     	LiteralExpressionEvaluatorFactory valueFactory = new LiteralExpressionEvaluatorFactory(prismContext);
     	expressionFactory.addEvaluatorFactory(valueFactory);
+    	
+		// const
+    	ConstantsManager constManager = new ConstantsManager(createConfiguration());
+    	ConstExpressionEvaluatorFactory constFactory = new ConstExpressionEvaluatorFactory(protector, constManager, prismContext);
+    	expressionFactory.addEvaluatorFactory(constFactory);
     	
     	// path
     	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, resolver, protector);
@@ -88,6 +97,12 @@ public class ExpressionTestUtil {
         expressionFactory.addEvaluatorFactory(scriptExpressionEvaluatorFactory);
         
         return expressionFactory;
+	}
+	
+	private static Configuration createConfiguration() {
+    	BaseConfiguration config = new BaseConfiguration();
+    	config.addProperty("foo", "foobar");
+		return config;
 	}
 
 }

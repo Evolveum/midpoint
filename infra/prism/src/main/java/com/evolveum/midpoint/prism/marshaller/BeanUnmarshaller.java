@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.*;
@@ -157,10 +158,8 @@ public class BeanUnmarshaller {
 			PrimitiveUnmarshaller<T> unmarshaller = specialPrimitiveUnmarshallers.get(beanClass);
 			if (unmarshaller != null) {
 				return unmarshaller.unmarshal(prim, beanClass, pc);
-			} else if (prim.isEmpty()) {
-				return instantiate(beanClass);		// Special case. Just return empty object
 			} else {
-				throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
+				return unmarshallPrimitive(prim, beanClass, pc);
 			}
 		} else {
 			
@@ -180,6 +179,44 @@ public class BeanUnmarshaller {
 			}
 			return unmarshalFromMapOrHeteroList(xnode, beanClass, pc);
 		}
+	}
+
+	/**
+	 * For cases when XSD complex type has a simple content. In that case the resulting class has @XmlValue annotation.
+	 */
+	private <T> T unmarshallPrimitive(PrimitiveXNode<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
+		if (prim.isEmpty()) {
+			return instantiate(beanClass);		// Special case. Just return empty object
+		} 
+		
+		Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
+		
+		if (valueField == null) {
+			throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
+		}
+		
+		T instance = instantiate(beanClass);
+		
+		if (!valueField.isAccessible()) {
+			valueField.setAccessible(true);
+		}
+		
+		T value;
+		if (prim.isParsed()) {
+			value = prim.getValue();	
+		} else {
+			Class<?> fieldType = valueField.getType();
+			QName xsdType = XsdTypeMapper.toXsdType(fieldType);
+			value = prim.getParsedValue(xsdType, (Class<T>) fieldType);
+		}
+		
+		try {
+			valueField.set(instance, value);
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new SchemaException("Cannot set primitive value to field " + valueField.getName() + " of bean " + beanClass + ": "+e.getMessage(), e);
+		}
+		
+		return instance;
 	}
 
 	boolean canProcess(QName typeName) {

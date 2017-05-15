@@ -16,16 +16,14 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -40,15 +38,17 @@ import java.util.*;
  *
  * @author mederly
  */
-public class Data implements DebugDumpable {
+public class PipelineData implements DebugDumpable {
 
-    private final List<PrismValue> data = new ArrayList<>();			// all items are not null
+    private static final String ITEM_OPERATION_NAME = ScriptingExpressionEvaluator.class.getName() + ".process";
+
+    private final List<PipelineItem> data = new ArrayList<>();			// all items are not null
 
     // we want clients to use explicit constructors
-    private Data() {
+    private PipelineData() {
     }
 
-    public List<PrismValue> getData() {
+    public List<PipelineItem> getData() {
         return data;
     }
 
@@ -62,39 +62,46 @@ public class Data implements DebugDumpable {
         return DebugUtil.debugDump(data, indent);
     }
 
-    public static Data create(Item data) {
-        Data d = createEmpty();
-        d.addItem(data);
+    public static PipelineData create(PrismValue value) {
+        PipelineData d = createEmpty();
+        d.add(new PipelineItem(value, newOperationResult()));
         return d;
     }
 
-    public static Data createEmpty() {
-        return new Data();
+    private static OperationResult newOperationResult() {
+        return new OperationResult(ITEM_OPERATION_NAME);
     }
 
-    public void addAllFrom(Data otherData) {
+    public void add(@NotNull PipelineItem pipelineItem) {
+        data.add(pipelineItem);
+    }
+
+    public static PipelineData createEmpty() {
+        return new PipelineData();
+    }
+
+    public void addAllFrom(PipelineData otherData) {
         if (otherData != null) {
             data.addAll(otherData.getData());
         }
     }
 
-    @Deprecated
-    public void addItem(@NotNull Item<?,?> item) {
-        data.addAll(item.getValues());
-    }
-
     public void addValue(PrismValue value) {
-        data.add(value);
+		addValue(value, null);
     }
 
-    public void addValues(List<PrismValue> values) {
-        data.addAll(values);
+    public void addValue(PrismValue value, OperationResult result) {
+		data.add(new PipelineItem(value, result != null ? result : newOperationResult()));
+    }
+
+    public void addValues(@NotNull List<? extends PrismValue> values, OperationResult result) {
+        values.forEach((v) -> addValue(v, result));
     }
 
     public String getDataAsSingleString() throws ScriptExecutionException {
         if (!data.isEmpty()) {
             if (data.size() == 1) {
-                return (String) ((PrismPropertyValue) data.get(0)).getRealValue();       // todo implement some diagnostics when this would fail
+                return (String) ((PrismPropertyValue) data.get(0).getValue()).getRealValue();       // todo implement some diagnostics when this would fail
             } else {
                 throw new ScriptExecutionException("Multiple values where just one is expected");
             }
@@ -103,8 +110,8 @@ public class Data implements DebugDumpable {
         }
     }
 
-    public static Data createItem(PrismValue value, PrismContext prismContext) throws SchemaException {
-        Data data = createEmpty();
+    static PipelineData createItem(PrismValue value) throws SchemaException {
+        PipelineData data = createEmpty();
         if (value != null) {
             data.addValue(value);
         }
@@ -156,7 +163,8 @@ public class Data implements DebugDumpable {
 
     public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType) throws ScriptExecutionException {
         Collection<ObjectReferenceType> retval = new ArrayList<>(data.size());
-        for (PrismValue value : data) {
+        for (PipelineItem item : data) {
+        	PrismValue value = item.getValue();
             if (value instanceof PrismObjectValue) {
                 PrismObjectValue objectValue = (PrismObjectValue) value;
                 ObjectReferenceType ref = new ObjectReferenceType();

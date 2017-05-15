@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 import java.lang.reflect.*;
 import java.util.*;
@@ -115,11 +116,36 @@ public class BeanMarshaller {
 		ComplexTypeDefinition ctd = getSchemaRegistry()
 				.findTypeDefinitionByCompileTimeClass(beanClass, ComplexTypeDefinition.class);
 
+		Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
+		if (valueField != null) {
+			return marshallBeanToPrimitive(bean, ctx, valueField);
+		}
+		
 		if (ctd != null && ctd.isListMarker()) {
 			return marshalHeterogeneousList(bean, ctx);
 		} else {
 			return marshalXmlTypeToMap(bean, ctx);
 		}
+	}
+
+	/**
+	 * For cases when XSD complex type has a simple content. In that case the resulting class has @XmlValue annotation. 
+	 */
+	private <T> PrimitiveXNode<T> marshallBeanToPrimitive(Object bean, SerializationContext ctx, Field valueField) throws SchemaException {
+		if (!valueField.isAccessible()) {
+			valueField.setAccessible(true);
+		}
+		T value;
+		try {
+			value = (T) valueField.get(bean);
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new SchemaException("Cannot get primitive value from field " + valueField.getName() + " of bean " + bean + ": "+e.getMessage(), e);
+		}
+		PrimitiveXNode<T> xnode = new PrimitiveXNode<>(value);
+		Class<?> fieldType = valueField.getType();
+		QName xsdType = XsdTypeMapper.toXsdType(fieldType);
+		xnode.setTypeQName(xsdType);
+		return xnode;
 	}
 
 	private XNode marshalHeterogeneousList(Object bean, SerializationContext ctx) throws SchemaException {

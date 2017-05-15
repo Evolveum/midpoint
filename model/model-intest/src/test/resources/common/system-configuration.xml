@@ -157,7 +157,7 @@
                 <bodyExpression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-                        <code>$event.object</code>
+                        <code>$event.object.get(0).value</code>
                     </script>
                 </bodyExpression>
                 <transport>dummy:CustomType2</transport>

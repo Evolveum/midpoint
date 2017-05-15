@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
@@ -23,19 +25,26 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  */
 public class ExpressionWrapper {
 
+	private QName elementName;
     private Object expression;
 
-    public Object getExpression() {
-        return expression;
-    }
+    public ExpressionWrapper(QName elementName, Object expression) {
+		super();
+		this.elementName = elementName;
+		this.expression = expression;
+	}
 
-    public void setExpression(Object expression) {
-        this.expression = expression;
+	public QName getElementName() {
+		return elementName;
+	}
+
+	public Object getExpression() {
+        return expression;
     }
 
 	@Override
 	public String toString() {
-		return expression==null?"ExpressionWrapper(null)":PrettyPrinter.prettyPrint(expression);
+		return "ExpressionWrapper(" + PrettyPrinter.prettyPrint(elementName) + ":" + PrettyPrinter.prettyPrint(expression);
 	}
     
     

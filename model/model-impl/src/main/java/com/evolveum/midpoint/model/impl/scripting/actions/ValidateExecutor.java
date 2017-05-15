@@ -20,8 +20,9 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,11 +55,13 @@ public class ValidateExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        Data output = Data.createEmpty();
+        PipelineData output = PipelineData.createEmpty();
 
-        for (PrismValue value : input.getData()) {
+        for (PipelineItem item: input.getData()) {
+            PrismValue value = item.getValue();
+            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
@@ -72,17 +75,19 @@ public class ValidateExecutor extends BaseActionExecutor {
 
                     context.println("Validated " + resourceTypePrismObject + ": " + validationResult.getIssues().size() + " issue(s)");
                     operationsHelper.recordEnd(context, resourceType, started, null);
-                    output.addItem(pc);
+                    output.add(new PipelineItem(pc.getValue(), item.getResult()));
                 } catch (SchemaException|RuntimeException e) {
                     operationsHelper.recordEnd(context, resourceType, started, e);
                     context.println("Error validation " + resourceTypePrismObject + ": " + e.getMessage());
                     //noinspection ThrowableNotThrown
                     processActionException(e, NAME, value, context);
+                    output.add(item);
                 }
             } else {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
             }
+            operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
         return output;
     }

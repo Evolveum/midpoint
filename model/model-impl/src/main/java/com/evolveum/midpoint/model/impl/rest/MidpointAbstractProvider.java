@@ -87,7 +87,7 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			WebApplicationException {
 
 		// TODO implement in the standard serializer; also change root name
-		QName fakeQName = new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
 		String xml;
 		
 		PrismSerializer<String> serializer = getSerializer();

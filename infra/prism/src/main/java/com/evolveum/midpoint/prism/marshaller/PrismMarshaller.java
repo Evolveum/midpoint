@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -42,6 +44,8 @@ import java.util.Collection;
  *
  */
 public class PrismMarshaller {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(PrismMarshaller.class);
 	
 	@NotNull private final BeanMarshaller beanMarshaller;
 
@@ -453,8 +457,8 @@ public class PrismMarshaller {
     }
     
     @NotNull
-    private XNode createExpressionXNode(@NotNull ExpressionWrapper expression) {
-		return PrismUtil.serializeExpression(expression);
+    private XNode createExpressionXNode(@NotNull ExpressionWrapper expression) throws SchemaException {
+		return PrismUtil.serializeExpression(expression, beanMarshaller);
 	}
 
 	@NotNull
