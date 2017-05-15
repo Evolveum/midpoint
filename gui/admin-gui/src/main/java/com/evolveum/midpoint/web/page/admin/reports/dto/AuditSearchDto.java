@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -43,6 +44,7 @@ public class AuditSearchDto implements Serializable {
 	public static final String F_CHANNEL = "channel";
 	public static final String F_HOST_IDENTIFIER = "hostIdentifier";
 	public static final String F_TARGET_NAME = "targetName";
+	public static final String F_TARGET_NAMES_OBJECTS = "targetNamesObjects";
 	public static final String F_TARGET_OWNER_NAME = "targetOwnerName";    
 	public static final String F_EVENT_TYPE = "eventType";
 	public static final String F_EVENT_STAGE = "eventStage";
@@ -56,12 +58,16 @@ public class AuditSearchDto implements Serializable {
 	private QName channel;
 	private String hostIdentifier;
 	private List<ObjectReferenceType> targetNames = new ArrayList<>();
+	private List<ObjectType> targetNamesObjects = new ArrayList<>();
 	private ObjectReferenceType targetOwnerName;
 	private AuditEventTypeType eventType;
 	private AuditEventStageType eventStage;
 	private OperationResultStatusType outcome;
 	private ItemPathDto changedItem;
-	private List<String> valueRefTargetNames;
+	private List<ObjectType> valueRefTargetNames;
+	
+	public AuditSearchDto() {
+	}
 	
 	public XMLGregorianCalendar getFrom() {
 		return from;
@@ -155,12 +161,19 @@ public class AuditSearchDto implements Serializable {
 		this.changedItem = changedItem;
 	}
 
-	public List<String> getvalueRefTargetNames() {
+	public List<ObjectType> getvalueRefTargetNames() {
 		return valueRefTargetNames;
 	}
 
-	public void setvalueRefTargetNames(List<String> valueRefTargetNames) {
+	public void setvalueRefTargetNames(List<ObjectType> valueRefTargetNames) {
 		this.valueRefTargetNames = valueRefTargetNames;
 	}
 
+	public List<ObjectType> getTargetNamesObjects() {
+		return targetNamesObjects;
+	}
+
+	public void setTargetNamesObjects(List<ObjectType> targetNamesObjects) {
+		this.targetNamesObjects = targetNamesObjects;
+	}
 }
