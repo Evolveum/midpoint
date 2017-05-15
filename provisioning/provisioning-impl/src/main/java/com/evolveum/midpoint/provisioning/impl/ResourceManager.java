@@ -569,6 +569,34 @@ public class ResourceManager {
 			if (configurationContainer != null) {
 				configurationContainerDefinition.adoptElementDefinitionFrom(configurationContainer.getDefinition());
 				configurationContainer.applyDefinition(configurationContainerDefinition, true);
+				
+				try {
+					configurationContainer.accept(visitable -> {
+						if ((visitable instanceof PrismProperty<?>)) {
+							try {
+								evaluateExpression((PrismProperty<?>)visitable, resource, task, result);
+							} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+								throw new TunnelException(e);
+							}
+						}
+					});
+				} catch (TunnelException te) {
+					Throwable e = te.getCause();
+					if (e instanceof SchemaException) {
+						throw (SchemaException)e;
+					} else if (e instanceof ObjectNotFoundException) {
+						throw (ObjectNotFoundException)e;
+					} else if (e instanceof ExpressionEvaluationException) {
+						throw (ExpressionEvaluationException)e;
+					} else if (e instanceof RuntimeException) {
+						throw (RuntimeException)e;
+					} else if (e instanceof Error) {
+						throw (Error)e;
+					} else {
+						throw new SystemException(e);
+					}
+				}
+				
 			} else {
 				configurationContainerDefinition.adoptElementDefinitionFrom(
 						resourceDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
@@ -583,32 +611,6 @@ public class ResourceManager {
 				resourceDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
 			}
 			
-			try {
-				configurationContainer.accept(visitable -> {
-					if ((visitable instanceof PrismProperty<?>)) {
-						try {
-							evaluateExpression((PrismProperty<?>)visitable, resource, task, result);
-						} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
-							throw new TunnelException(e);
-						}
-					}
-				});
-			} catch (TunnelException te) {
-				Throwable e = te.getCause();
-				if (e instanceof SchemaException) {
-					throw (SchemaException)e;
-				} else if (e instanceof ObjectNotFoundException) {
-					throw (ObjectNotFoundException)e;
-				} else if (e instanceof ExpressionEvaluationException) {
-					throw (ExpressionEvaluationException)e;
-				} else if (e instanceof RuntimeException) {
-					throw (RuntimeException)e;
-				} else if (e instanceof Error) {
-					throw (Error)e;
-				} else {
-					throw new SystemException(e);
-				}
-			}
 	}
 
 	private <T> void evaluateExpression(PrismProperty<T> configurationProperty, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
