@@ -188,6 +188,10 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.assignmentsUserOwner = assignmentsUserOwner;
     }
 
+    public boolean isSelfRequest(){
+        return getTargetUserList() == null || getTargetUserList().size() == 0;
+    }
+
     public boolean isMultiUserRequest(){
         return getTargetUserList() != null && getTargetUserList().size() > 1;
     }
