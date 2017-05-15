@@ -219,6 +219,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="auditEventRecord" type="tns:AuditEventRecordType" />
 
     <xsd:complexType name="AuditEventRecordItemType">
         <xsd:annotation>
