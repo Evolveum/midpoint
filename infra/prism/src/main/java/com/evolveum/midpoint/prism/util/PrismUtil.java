@@ -23,6 +23,9 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -233,5 +236,36 @@ public class PrismUtil {
 				return serializeQuietly(prismContext, object);
 			}
 		};
+	}
+	
+	public static ExpressionWrapper parseExpression(XNode node, PrismContext prismContext) throws SchemaException {
+		if (!(node instanceof MapXNode)) {
+			return null;
+		}
+		if (((MapXNode)node).isEmpty()) {
+			return null;
+		}
+		for (Entry<QName, XNode> entry: ((MapXNode)node).entrySet()) {
+			if (PrismConstants.EXPRESSION_LOCAL_PART.equals(entry.getKey().getLocalPart())) {
+				return parseExpression(entry, prismContext);
+			}
+		}
+		return null;
+	}
+	
+	public static ExpressionWrapper parseExpression(Entry<QName, XNode> expressionEntry, PrismContext prismContext) throws SchemaException {
+		if (expressionEntry == null) {
+			return null;
+		}
+		RootXNode expressionRoot = new RootXNode(expressionEntry);
+		PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
+		ExpressionWrapper expressionWrapper = new ExpressionWrapper();
+		expressionWrapper.setExpression(expressionPropertyValue.getValue());
+		return expressionWrapper;
+	}
+	
+	public static MapXNode serializeExpression(ExpressionWrapper expression) {
+		// TODO
+		return new MapXNode();
 	}
 }

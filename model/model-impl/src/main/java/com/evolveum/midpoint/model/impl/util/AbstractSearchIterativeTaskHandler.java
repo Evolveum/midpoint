@@ -15,11 +15,11 @@
  */
 package com.evolveum.midpoint.model.impl.util;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -322,6 +322,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 			logErrorAndSetResult(runResult, resultHandler, "Security violation", e,
 					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
+		} catch (ExpressionEvaluationException e) {
+			logErrorAndSetResult(runResult, resultHandler, "Expression error", e,
+					OperationResultStatus.FATAL_ERROR, TaskRunResultStatus.PERMANENT_ERROR);
+            return runResult;
 		}
 
         // TODO: check last handler status
@@ -434,6 +438,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
 		} catch (SecurityViolationException ex) {
+			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+            opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return null;
+		} catch (ExpressionEvaluationException ex) {
 			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);

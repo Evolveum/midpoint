@@ -1,0 +1,38 @@
+{
+  "resource" : {
+    "oid" : "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
+    "name" : "Resource with expressions",
+    "connectorRef" : {
+      "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+      "filter" : {
+        "equal" : {
+          "path" : "extension/extConnType",
+          "value" : "org.identityconnectors.ldap.LdapConnector"
+        }
+      }
+    },
+    "connectorConfiguration" : {
+      "configurationProperties" : {
+        "port" : "389",
+        "host" : {
+        	"expression" : {
+        		"const" : "ldapHostname"
+        	}
+        },
+        "baseContexts" : {
+        	"expression" : {
+        		"script" : {
+        			"code" : "'dc='+basic.const('orgname')+',dc=com'"
+        		}
+        	}
+        },
+        "principal" : "cn=directory manager",
+        "credentials" : {
+          "clearValue" : "secret"
+        },
+        "vlvSortAttribute" : "uid",
+        "accountOperationalAttributes" : "ds-pwp-account-disabled"
+      }
+    }
+  }
+}

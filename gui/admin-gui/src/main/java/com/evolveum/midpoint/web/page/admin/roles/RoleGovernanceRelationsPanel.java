@@ -1,13 +1,18 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -31,6 +36,20 @@ import java.util.List;
  * Created by honchar.
  */
 public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
+
+    private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(RoleGovernanceRelationsPanel.class);
+    private static final String DOT_CLASS = RoleGovernanceRelationsPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_APPROVER_RELATION_OBJECTS = DOT_CLASS + "loadApproverRelationObjects";
+    private static final String OPERATION_LOAD_OWNER_RELATION_OBJECTS = DOT_CLASS + "loadOwnerRelationObjects";
+    private static final String OPERATION_LOAD_MANAGER_RELATION_OBJECTS = DOT_CLASS + "loadManagerRelationObjects";
+
+    private LoadableModel<List<String>> approverRelationObjects;
+    private LoadableModel<List<String>> ownerRelationObjects;
+    private LoadableModel<List<String>> managerRelationObjects;
+
+    private boolean areModelsInitialized = false;
 
     public RoleGovernanceRelationsPanel(String id, IModel<RoleType> model, List<RelationTypes> relations, PageBase pageBase) {
         super(id, model, relations, pageBase);
@@ -135,26 +154,26 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     }
 
     private String getRelationValue(FocusType focusObject){
-        String relations = "";
+        StringBuilder relations = new StringBuilder();
         if (focusObject == null){
             return "";
         }
-        for (AssignmentType assignment : focusObject.getAssignment()){
-            String targetObjectOid = assignment.getTargetRef() != null ?
-                    assignment.getTargetRef().getOid() :
-                    (assignment.getTarget() != null ? assignment.getTarget().getOid() : "");
-            if (StringUtils.isEmpty(targetObjectOid)){
-                continue;
-            }
-            if (targetObjectOid.equals(getModelObject().getOid())){
-                RelationTypes relation = RelationTypes.getRelationType(assignment.getTargetRef().getRelation());
-                if (!relations.contains(relation.getHeaderLabel())){
-                    relations = relations.length() > 0 ? relations + ", " : relations + "";
-                    relations +=  relation.getHeaderLabel();
-                }
-            }
+        if (!areModelsInitialized) {
+            initLoadableModels();
+            areModelsInitialized = true;
         }
-        return relations;
+        if (approverRelationObjects.getObject().contains(focusObject.getOid())){
+            relations.append(createStringResource("RelationTypes.APPROVER").getString());
+        }
+        if (ownerRelationObjects.getObject().contains(focusObject.getOid())){
+            relations.append(relations.length() > 0 ? ", " : "");
+            relations.append(createStringResource("RelationTypes.OWNER").getString());
+        }
+        if (managerRelationObjects.getObject().contains(focusObject.getOid())){
+            relations.append(relations.length() > 0 ? ", " : "");
+            relations.append(createStringResource("RelationTypes.MANAGER").getString());
+        }
+        return relations.toString();
     }
 
     @Override
@@ -162,4 +181,78 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return SelectorOptions
                 .createCollection(GetOperationOptions.createDistinct());
     }
+
+    private void initLoadableModels(){
+        approverRelationObjects = new LoadableModel<List<String>>(false) {
+            @Override
+            protected List<String> load() {
+                OperationResult result = new OperationResult(OPERATION_LOAD_APPROVER_RELATION_OBJECTS);
+
+                PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
+                rv.setRelation(RelationTypes.APPROVER.getRelation());
+
+                ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
+                        .item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(rv).build();
+
+                List<PrismObject<FocusType>> approverRelationObjects =
+                        WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
+                return getObjectOidsList(approverRelationObjects);
+            }
+        };
+
+        ownerRelationObjects = new LoadableModel<List<String>>(false) {
+            @Override
+            protected List<String> load() {
+                OperationResult result = new OperationResult(OPERATION_LOAD_OWNER_RELATION_OBJECTS);
+
+                PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
+                rv.setRelation(RelationTypes.OWNER.getRelation());
+
+                ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
+                        .item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(rv).build();
+
+                List<PrismObject<FocusType>> ownerRelationObjects =
+                        WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
+                return getObjectOidsList(ownerRelationObjects);
+            }
+        };
+
+        managerRelationObjects = new LoadableModel<List<String>>(false) {
+            @Override
+            protected List<String> load() {
+                OperationResult result = new OperationResult(OPERATION_LOAD_MANAGER_RELATION_OBJECTS);
+
+                PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
+                rv.setRelation(RelationTypes.MANAGER.getRelation());
+
+                ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
+                        .item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                        .ref(rv).build();
+
+                List<PrismObject<FocusType>> managerRelationObjects =
+                        WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
+                return getObjectOidsList(managerRelationObjects);
+            }
+        };
+    }
+
+    private List<String> getObjectOidsList(List<PrismObject<FocusType>> objectList){
+        List<String> oidsList = new ArrayList<>();
+        if (objectList == null){
+            return oidsList;
+        }
+        for (PrismObject<FocusType> object : objectList){
+            if (object == null){
+                continue;
+            }
+            if (!oidsList.contains(object.getOid())){
+                oidsList.add(object.getOid());
+            }
+        }
+        return oidsList;
+    }
+
+
 }

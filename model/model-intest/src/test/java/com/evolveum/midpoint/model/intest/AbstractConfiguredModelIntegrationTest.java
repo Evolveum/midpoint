@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -613,7 +614,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     	return prismContext.getSchemaRegistry().findSchemaByNamespace(NS_PIRACY);
     }
     
-    protected void assertLastRecomputeTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+    protected void assertLastRecomputeTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<TaskType> task = getTask(taskOid);
 		display("Task", task);
         PrismContainer<?> taskExtension = task.getExtension();
@@ -630,7 +631,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	}
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	protected void clearUserOrgAndRoleRefs(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected void clearUserOrgAndRoleRefs(String userOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
     	OperationResult result = new OperationResult("clearUserOrgAndRoleRefs");
     	Collection modifications = new ArrayList<>();
     	ReferenceDelta parentOrgRefDelta = ReferenceDelta.createModificationReplace(

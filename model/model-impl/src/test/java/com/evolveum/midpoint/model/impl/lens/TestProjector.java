@@ -64,6 +64,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -124,7 +125,7 @@ public class TestProjector extends AbstractLensTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         
         // User deltas
         ObjectDelta<UserType> userDeltaPrimary = createModifyUserReplaceDelta(USER_ELAINE_OID, UserType.F_FULL_NAME, 
@@ -371,7 +372,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Tortuga"));
         context.recompute();
 
@@ -423,7 +424,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Hector Barbossa"));
         context.recompute();
 
@@ -475,7 +476,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context,
         		new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
         		ActivationStatusType.DISABLED);
@@ -541,7 +542,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE);
         context.recompute();
 
@@ -595,7 +596,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "Water");
         context.recompute();
@@ -635,7 +636,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceAccountAttribute(context, ACCOUNT_HBARBOSSA_DUMMY_OID, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "I'm disinclined to acquiesce to your request.");
         context.recompute();
@@ -697,7 +698,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         // Do not fill user to context. Projector should figure that out.
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextDeleteAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID);
         context.recompute();
 
@@ -734,7 +735,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
 		addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID, 
 				OrgType.COMPLEX_TYPE, null, null, true));
         context.recompute();
@@ -787,7 +788,7 @@ public class TestProjector extends AbstractLensTest {
         addAssignmentDelta.applyTo(focus);
 		fillContextWithFocus(context, focus);
 		
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
 		
         addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID, 
 				OrgType.COMPLEX_TYPE, null, null, false));
@@ -830,7 +831,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
-        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
 		addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ROLE_MUTINIER_OID, 
 				RoleType.COMPLEX_TYPE, null, null, true));
         context.recompute();
@@ -928,7 +929,7 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         fillContextWithEmtptyAddUserDelta(context, result);
-        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();
 
@@ -986,7 +987,7 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         fillContextWithEmtptyAddUserDelta(context, result);
-        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();
 
@@ -1031,7 +1032,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-        fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, result);
+        fillContextWithAccount(context, ACCOUNT_SHADOW_GUYBRUSH_OID, task, result);
         addSyncModificationToContextReplaceAccountAttribute(context, ACCOUNT_SHADOW_GUYBRUSH_OID, "ship", "Black Pearl");
         context.recompute();
 
@@ -1084,7 +1085,7 @@ public class TestProjector extends AbstractLensTest {
         // GIVEN
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
-        fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILE, result);
+        fillContextWithAccountFromFile(context, ACCOUNT_GUYBRUSH_DUMMY_FILE, task, result);
         LensProjectionContext guybrushAccountContext = context.findProjectionContextByOid(ACCOUNT_SHADOW_GUYBRUSH_OID);
         guybrushAccountContext.setFullShadow(true);
         guybrushAccountContext.setDoReconciliation(true);
@@ -1212,7 +1213,7 @@ public class TestProjector extends AbstractLensTest {
 				PrismTestUtil.createPolyString("Largo LaGrande"));        // MID-2149
 	}
 	
-	private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private void assertNoJackShadow() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> jackAccount = findAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceObject());
         assertNull("Found jack's shadow!", jackAccount);
 	}

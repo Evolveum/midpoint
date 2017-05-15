@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.velocity;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -128,7 +129,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 									   Collection<FunctionLibrary> functions,
 									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		VelocityContext context = new VelocityContext();
-		Map<String,Object> scriptVariables = ExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription,
+		Map<String,Object> scriptVariables = ScriptExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription,
 				prismContext, task, result);
 		for (Map.Entry<String,Object> scriptVariable : scriptVariables.entrySet()) {
 			context.put(scriptVariable.getKey(), scriptVariable.getValue());

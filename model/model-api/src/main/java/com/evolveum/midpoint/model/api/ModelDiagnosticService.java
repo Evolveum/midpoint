@@ -114,11 +114,11 @@ public interface ModelDiagnosticService {
 	 */
 	String exportDataModel(Collection<String> resourceOids, DataModelVisualizer.Target target,
 			Task task, OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 
 	String exportDataModel(ResourceType resource, DataModelVisualizer.Target target, Task task,
 			OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 
 	// EXPERIMENTAL
 

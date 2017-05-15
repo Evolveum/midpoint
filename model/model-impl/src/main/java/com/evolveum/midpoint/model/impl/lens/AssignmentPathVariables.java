@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;

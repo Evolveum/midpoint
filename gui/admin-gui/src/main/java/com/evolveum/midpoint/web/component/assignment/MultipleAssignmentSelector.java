@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,8 +112,7 @@ public class MultipleAssignmentSelector<F extends FocusType, H extends FocusType
 
             @Override
             public Search load() {
-                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase().getPrismContext(),
-                        getPageBase().getModelInteractionService());
+                Search search =  SearchFactory.createSearch(RoleType.class, getPageBase());
                 return search;
             }
         };

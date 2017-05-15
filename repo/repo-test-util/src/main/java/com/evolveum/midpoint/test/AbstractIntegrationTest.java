@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -111,6 +112,7 @@ import org.testng.annotations.BeforeMethod;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -1836,4 +1838,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     	List<String> objectOids = objects.stream().map( o -> o.getOid()).collect(Collectors.toList());
     	PrismAsserts.assertEqualsCollectionUnordered(message, objectOids, oids);
     }
+    
+    protected <T> void assertExpression(PrismProperty<T> prop, String evaluatorName) {
+		PrismPropertyValue<T> pval = prop.getValue();
+		ExpressionWrapper expressionWrapper = pval.getExpression();
+		assertNotNull("No expression wrapper in "+prop, expressionWrapper);
+		Object expressionObj = expressionWrapper.getExpression();
+		assertNotNull("No expression in "+prop, expressionObj);
+		assertTrue("Wrong expression type: " +expressionObj.getClass(), expressionObj instanceof ExpressionType);
+		ExpressionType expressionType = (ExpressionType)expressionObj;
+		JAXBElement<?> evaluatorElement = expressionType.getExpressionEvaluator().iterator().next();
+		assertEquals("Wrong expression evaluator name", evaluatorName, evaluatorElement.getName().getLocalPart());
+	}
 }

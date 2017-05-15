@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;

@@ -42,6 +42,7 @@ import com.evolveum.midpoint.util.FailableRunnable;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -403,9 +404,10 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         assertEquals("Connector static val mismatch", expectedVal, connectorStaticVal);
 	}
 
-	private void assertConnectorInstances(String msg, String resourceOid, int expectedActive, int expectedIdle) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		OperationResult result = new OperationResult(TestConnectorMultiInstance.class.getName() + ".assertConnectorInstances");
-		List<ConnectorOperationalStatus> opStats = modelInteractionService.getConnectorOperationalStatus(resourceOid, result);
+	private void assertConnectorInstances(String msg, String resourceOid, int expectedActive, int expectedIdle) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = taskManager.createTaskInstance(TestConnectorMultiInstance.class.getName() + ".assertConnectorInstances");
+        OperationResult result = task.getResult();
+		List<ConnectorOperationalStatus> opStats = modelInteractionService.getConnectorOperationalStatus(resourceOid, task, result);
         display("connector stats "+msg, opStats);
         assertConnectorInstances(msg, opStats.get(0), expectedActive, expectedIdle);
 	}

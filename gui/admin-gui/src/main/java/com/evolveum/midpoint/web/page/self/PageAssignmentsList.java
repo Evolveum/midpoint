@@ -442,8 +442,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 FocusType.F_ASSIGNMENT, getPrismContext(), getAddAssignmentContainerValues(assignmentsModel.getObject()));
             if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
                 List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
-                PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
-                        usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
+                PrismObject<UserType> user = getSessionStorage().getRoleCatalog().isSelfRequest() ?
+                        loadUserSelf(PageAssignmentsList.this) : usersList.get(0);
                 delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT,
                         getDeleteAssignmentContainerValues(user.asObjectable()));
             }
@@ -457,7 +457,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private ObjectQuery getTaskQuery(){
         List<PrismObject<UserType>> userList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        if (userList == null || userList.size() == 0){
+        if (getSessionStorage().getRoleCatalog().isSelfRequest()){
+            userList = new ArrayList<>();
             userList.add(loadUserSelf(PageAssignmentsList.this));
         }
         Set<String> oids = new HashSet<>();
@@ -525,8 +526,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
     private PrismObject<UserType> getTargetUser() throws SchemaException {
         List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        PrismObject<UserType> user = usersList != null && usersList.size() > 0 ?
-                usersList.get(0) : loadUserSelf(PageAssignmentsList.this);
+        PrismObject<UserType> user = getSessionStorage().getRoleCatalog().isSelfRequest() ?
+                loadUserSelf(PageAssignmentsList.this) : usersList.get(0);
         getPrismContext().adopt(user);
         return user;
     }

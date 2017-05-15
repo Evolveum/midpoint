@@ -222,12 +222,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
     @Override
-    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
-        return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, result);
+    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+        return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, task, result);
     }
     
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
 		OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition().deepClone(true);
 		
@@ -269,8 +269,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
 				PrismObject<ResourceType> resource;
 				try {
-					resource = provisioning.getObject(ResourceType.class, resourceOid, options, null, result);			// TODO include task here
-				} catch (CommunicationException | SecurityViolationException e) {
+					resource = provisioning.getObject(ResourceType.class, resourceOid, options, task, result);
+				} catch (CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
 					throw new ConfigurationException(e.getMessage(), e);
 				}
 				RefinedObjectClassDefinition refinedObjectClassDefinition = getEditObjectClassDefinition(shadow, resource, phase);
@@ -286,7 +286,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 	
 	@Override
-	public PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
+	public PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException {
 		// HACK hack hack
 		// Make a dummy shadow instance here and evaluate the schema for that. It is not 100% correct. But good enough for now.
 		// TODO: refactor when we add better support for multi-tenancy
@@ -302,7 +302,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			shadowType.setObjectClass(discr.getObjectClass());
 		}
 		
-		return getEditObjectDefinition(shadow, phase, parentResult); 
+		return getEditObjectDefinition(shadow, phase, task, parentResult); 
 	}
 
     @Override
@@ -745,24 +745,24 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException {
+	public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		return visualizer.visualizeDeltas(deltas, task, result);
 	}
 
 	@Override
 	@NotNull
-	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException {
+	public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		return visualizer.visualizeDelta(delta, task, result);
 	}
 
 	@Override
-	public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+	public List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_CONNECTOR_OPERATIONAL_STATUS);
 		List<ConnectorOperationalStatus> status;
 		try {
-			status = provisioning.getConnectorOperationalStatus(resourceOid, result);
-		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+			status = provisioning.getConnectorOperationalStatus(resourceOid, task, result);
+		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -827,7 +827,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Override
 	public <O extends ObjectType> String generateValue(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
 			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		return valuePolicyGenerator.generate(policy, defaultLength, generateMinimalSize, object, shortDesc, task, parentResult);
+		return valuePolicyGenerator.generate(null, policy, defaultLength, generateMinimalSize, object, shortDesc, task, parentResult);
 	}
 
 }

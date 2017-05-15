@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,26 +60,29 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition or getting a value with explicit type).
     private XNode rawElement;
+    
+    @Nullable private ExpressionWrapper expression;
 
     public PrismPropertyValue(T value) {
         this(value, null, null);
     }
 
     public PrismPropertyValue(T value, PrismContext prismContext) {
-        this(value, prismContext, null, null);
+        this(value, prismContext, null, null, null);
     }
 
     public PrismPropertyValue(T value, OriginType type, Objectable source) {
-		this(value, null, type, source);
+		this(value, null, type, source, null);
 	}
 
-    public PrismPropertyValue(T value, PrismContext prismContext, OriginType type, Objectable source) {
+    public PrismPropertyValue(T value, PrismContext prismContext, OriginType type, Objectable source, ExpressionWrapper expression) {
     	super(type, source);
         if (value instanceof PrismPropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
                     "value object to another property value.");
         }
         this.value = value;
+        this.expression = expression;
         checkValue();
     }
 
@@ -170,11 +173,25 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return rawElement != null;
 	}
 
+	@Nullable
+	public ExpressionWrapper getExpression() {
+		return expression;
+	}
+
+	public void setExpression(@Nullable ExpressionWrapper expression) {
+		this.expression = expression;
+	}
+	
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) definition;
 		if (propertyDefinition != null && !propertyDefinition.isAnyType() && rawElement != null) {
 			value = (T) parseRawElementToNewRealValue(this, propertyDefinition);
+			if (value ==  null) {
+				// Be careful here. Expression element can be legal sub-element of complex properties.
+            	// Therefore parse expression only if there is no legal value.
+				expression = PrismUtil.parseExpression(rawElement, prismContext);
+			}
 			rawElement = null;
 		}
 	}
@@ -235,6 +252,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 			// Cannot really check raw values
 			return;
 		}
+		if (expression != null) {
+			return;
+		}
 		if (value == null) {
             // can be used not because of prism forms in gui (will be fixed later [lazyman]
             // throw new IllegalArgumentException("Null value in "+this);
@@ -274,8 +294,8 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     	if (prohibitRaw && rawElement != null) {
     		throw new IllegalStateException("Raw element in property value "+this+" ("+myPath+" in "+rootItem+")");
     	}
-    	if (value == null && rawElement == null) {
-			throw new IllegalStateException("Neither value nor raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
+    	if (value == null && rawElement == null && expression == null) {
+			throw new IllegalStateException("Neither value, expression nor raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
 		}
     	if (value != null && rawElement != null) {
 			throw new IllegalStateException("Both value and raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
@@ -592,6 +612,13 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 				}
 				debugDumpValue(sb, indent, value, prismContext);
         	}
+        } else if (expression != null) {
+        	if (!wasIndent) {
+            	DebugUtil.indentDebugDump(sb, indent);
+			}
+        	sb.append("expression: ");
+        	// TODO: nicer output
+        	sb.append(expression);
         } else {
         	if (!wasIndent) {
             	DebugUtil.indentDebugDump(sb, indent);
@@ -640,10 +667,17 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	        builder.append(", raw element: ");
 	        builder.append(PrettyPrinter.prettyPrint(getRawElement()));
         }
+        if (getExpression() != null) {
+        	builder.append(", expression: ");
+	        builder.append(getExpression());
+        }
 	}
 
 	@Override
 	public String toHumanReadableString() {
+		if (value == null && expression != null) {
+			return ("expression("+expression+")");
+		}
 		return PrettyPrinter.prettyPrint(value);
 	}
 

@@ -239,7 +239,7 @@ public class PageSecurityQuestions extends PageBase {
 					config = getPageBase().getModelService().getObject(SystemConfigurationType.class,
 								SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
 				} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-						| CommunicationException | ConfigurationException e) {
+						| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
 					return null;
 				}
@@ -249,7 +249,7 @@ public class PageSecurityQuestions extends PageBase {
 							return getModelService().getObject(SecurityPolicyType.class,
 							        config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, result);
 						} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-								| CommunicationException | ConfigurationException e) {
+								| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 							LOGGER.error("Error getting global security policy: {}", e.getMessage(), e);
 							return null;
 						}
@@ -364,7 +364,7 @@ public class PageSecurityQuestions extends PageBase {
 					return getModelService().getObject(UserType.class, userOid, options, task,
 							subResult);
 				} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-						| CommunicationException | ConfigurationException e) {
+						| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					LOGGER.error("Error getting user {}: {}", userOid, e.getMessage(), e);
 					// Just log the error, but do not display it. We are still in unprivileged part of the web
 					// we do not want to provide any information to the attacker.

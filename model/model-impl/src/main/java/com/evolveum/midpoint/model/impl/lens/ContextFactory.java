@@ -38,6 +38,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -62,7 +63,7 @@ public class ContextFactory {
 	Protector protector;
 	
 	public <F extends ObjectType> LensContext<F> createContext(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ObjectDelta<F> focusDelta = null;
 		Collection<ObjectDelta<ShadowType>> projectionDeltas = new ArrayList<ObjectDelta<ShadowType>>(deltas.size());
 		ObjectDelta<? extends ObjectType> confDelta = null;
@@ -137,7 +138,7 @@ public class ContextFactory {
 				// We are little bit more liberal regarding projection deltas. 
 				// If the deltas represent shadows we tolerate missing attribute definitions.
 				// We try to add the definitions by calling provisioning
-				provisioningService.applyDefinition(projectionDelta, result);
+				provisioningService.applyDefinition(projectionDelta, task, result);
 						
 				if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
 					ShadowDiscriminatorObjectDelta<ShadowType> shadowDelta = (ShadowDiscriminatorObjectDelta<ShadowType>)projectionDelta;
@@ -161,7 +162,7 @@ public class ContextFactory {
 	
 	
 	public <F extends ObjectType, O extends ObjectType> LensContext<F> createRecomputeContext(
-    		PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+    		PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Class<O> typeClass = object.getCompileTimeClass();
 		LensContext<F> context;
 		if (isFocalClass(typeClass)) {
@@ -189,8 +190,8 @@ public class ContextFactory {
     }
 	
 	public <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
-    		PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
-		provisioningService.applyDefinition(shadow, result);
+    		PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		provisioningService.applyDefinition(shadow, task, result);
     	LensContext<F> syncContext = new LensContext<F>(null,
 				prismContext, provisioningService);
     	LensProjectionContext projectionContext = syncContext.createProjectionContext();

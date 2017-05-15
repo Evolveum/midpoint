@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -1102,7 +1103,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
     }
 
-    private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
 		assertNotNull("The org "+orgName+" is missing!", org);
 		display("Org "+orgName, org);
@@ -1110,7 +1111,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		return org;
 	}
 	
-	private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = assertOnDemandOrgExists(orgName);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_DESCRIPTION, "Created on demand from user "+user.asObjectable().getName());
 		assertAssignedOrg(user, org.getOid());

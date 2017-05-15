@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -97,7 +98,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 		initDummy("z", initTask, initResult); // depends on X (circular)
 	}
 	
-	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, SchemaViolationException, ConflictException {
+	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		String resourceOid = getDummyOid(name);
 		DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
 		resourceCtl.extendSchemaPirate();
@@ -130,8 +131,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
-        fillContextWithDummyElaineAccount(context, "a", result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
+        fillContextWithDummyElaineAccount(context, "a", task, result);
         
         context.recompute();
         display("Context before", context);        
@@ -159,9 +160,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
-        fillContextWithDummyElaineAccount(context, "a", result);
-        fillContextWithDummyElaineAccount(context, "b", result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
+        fillContextWithDummyElaineAccount(context, "a", task, result);
+        fillContextWithDummyElaineAccount(context, "b", task, result);
         
         context.recompute();
         display("Context before", context);        
@@ -190,11 +191,11 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
-        fillContextWithDummyElaineAccount(context, "a", result);
-        fillContextWithDummyElaineAccount(context, "b", result);
-        fillContextWithDummyElaineAccount(context, "c", result);
-        fillContextWithDummyElaineAccount(context, "d", result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
+        fillContextWithDummyElaineAccount(context, "a", task, result);
+        fillContextWithDummyElaineAccount(context, "b", task, result);
+        fillContextWithDummyElaineAccount(context, "c", task, result);
+        fillContextWithDummyElaineAccount(context, "d", task, result);
         
         context.recompute();
         display("Context before", context);        
@@ -225,8 +226,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        fillContextWithDummyElaineAccount(context, "b", result);
-        fillContextWithDummyElaineAccount(context, "c", result);
+        fillContextWithDummyElaineAccount(context, "b", task, result);
+        fillContextWithDummyElaineAccount(context, "c", task, result);
         
         context.recompute();
         display("Context before", context);        
@@ -256,8 +257,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
-        fillContextWithDummyElaineAccount(context, "p", result);
-        fillContextWithDummyElaineAccount(context, "r", result);
+        fillContextWithDummyElaineAccount(context, "p", task, result);
+        fillContextWithDummyElaineAccount(context, "r", task, result);
         
         context.recompute();
         display("Context before", context);        
@@ -290,8 +291,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
-        fillContextWithDummyElaineAccount(context, "r", result);
-        fillContextWithDummyElaineAccount(context, "p", result);
+        fillContextWithDummyElaineAccount(context, "r", task, result);
+        fillContextWithDummyElaineAccount(context, "p", task, result);
         
         context.recompute();
         display("Context before", context);        
@@ -320,9 +321,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         setDelete(accountContext);
-        setDelete(fillContextWithDummyElaineAccount(context, "a", result));
+        setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
         
         context.recompute();
         display("Context before", context);        
@@ -350,10 +351,10 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         setDelete(accountContext);
-        setDelete(fillContextWithDummyElaineAccount(context, "a", result));
-        setDelete(fillContextWithDummyElaineAccount(context, "b", result));
+        setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
+        setDelete(fillContextWithDummyElaineAccount(context, "b", task, result));
         
         context.recompute();
         display("Context before", context);        
@@ -382,12 +383,12 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, task, result);
         setDelete(accountContext);
-        setDelete(fillContextWithDummyElaineAccount(context, "a", result));
-        setDelete(fillContextWithDummyElaineAccount(context, "b", result));
-        setDelete(fillContextWithDummyElaineAccount(context, "c", result));
-        setDelete(fillContextWithDummyElaineAccount(context, "d", result));
+        setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
+        setDelete(fillContextWithDummyElaineAccount(context, "b", task, result));
+        setDelete(fillContextWithDummyElaineAccount(context, "c", task, result));
+        setDelete(fillContextWithDummyElaineAccount(context, "d", task, result));
         
         context.recompute();
         display("Context before", context);        
@@ -422,9 +423,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
-        fillContextWithDummyElaineAccount(context, "x", result);
-        fillContextWithDummyElaineAccount(context, "y", result);
-        fillContextWithDummyElaineAccount(context, "z", result);
+        fillContextWithDummyElaineAccount(context, "x", task, result);
+        fillContextWithDummyElaineAccount(context, "y", task, result);
+        fillContextWithDummyElaineAccount(context, "z", task, result);
         
         context.recompute();
         display("Context before", context);        
@@ -443,15 +444,15 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	}
 	
 	private LensProjectionContext fillContextWithDummyElaineAccount(
-			LensContext<UserType> context, String dummyName, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException {
+			LensContext<UserType> context, String dummyName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
 		String resourceOid = getDummyOid(dummyName);
 		String accountOid = getDummuAccountOid(dummyName,"e");
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_ELAINE_TEMPLATE_FILE);
 		ShadowType accountType = account.asObjectable();
 		accountType.setOid(accountOid);
 		accountType.getResourceRef().setOid(resourceOid);
-        provisioningService.applyDefinition(account, result);
-        return fillContextWithAccount(context, account, result);
+        provisioningService.applyDefinition(account, task, result);
+        return fillContextWithAccount(context, account, task, result);
 	}
 	
 	private void assertWave(LensContext<UserType> context,

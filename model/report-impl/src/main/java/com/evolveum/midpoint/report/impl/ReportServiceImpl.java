@@ -33,10 +33,10 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -146,7 +146,7 @@ public class ReportServiceImpl implements ReportService {
 	public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
 			ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException {
+			ConfigurationException, ExpressionEvaluationException {
 		// List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
 
 		// GetOperationOptions options = GetOperationOptions.createRaw();
@@ -177,7 +177,7 @@ public class ReportServiceImpl implements ReportService {
 			results = model.searchObjects(clazz, queryForSearch, options, task, parentResult);
 			return results;
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| CommunicationException | ConfigurationException e) {
+				| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			// TODO Auto-generated catch block
 			throw e;
 		}

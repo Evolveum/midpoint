@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,14 +92,10 @@ public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
             if (modelContext == null) {
                 throw new IllegalStateException("There's no model context in the task; job = " + wfTask);
             }
-        } catch (SchemaException e) {
-            return reportException("Couldn't retrieve model context from job " + wfTask, task, result, e);
-        } catch (ObjectNotFoundException e) {
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException  e) {
             return reportException("Couldn't retrieve model context from job " + wfTask, task, result, e);
         } catch (CommunicationException e) {
             return reportException("Couldn't retrieve model context from job " + wfTask, task, result, TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR, e);
-        } catch (ConfigurationException e) {
-            return reportException("Couldn't retrieve model context from job " + wfTask, task, result, e);
         }
 
         String oid = ((LensContext) modelContext).getFocusContext().getOid();

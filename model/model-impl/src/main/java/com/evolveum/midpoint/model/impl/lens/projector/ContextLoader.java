@@ -109,7 +109,7 @@ public class ContextLoader {
 	public <F extends ObjectType> void load(LensContext<F> context, String activityDescription, 
 			Task task, OperationResult result) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
-			SecurityViolationException, PolicyViolationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         context.checkAbortRequested();
 
@@ -223,10 +223,10 @@ public class ContextLoader {
 	
 	
 	/**
-	 * Make sure that the projection context is loaded as approppriate.
+	 * Make sure that the projection context is loaded as approppriate. 
 	 */
 	public <F extends ObjectType> void makeSureProjectionIsLoaded(LensContext<F> context,
-																  LensProjectionContext projectionContext, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+																  LensProjectionContext projectionContext, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		preprocessProjectionContext(context, projectionContext, task, result);
 		finishLoadOfProjectionContext(context, projectionContext, task, result);
 	}
@@ -237,7 +237,7 @@ public class ContextLoader {
 	 */
 	private <F extends ObjectType> void preprocessProjectionContext(LensContext<F> context,
 																	LensProjectionContext projectionContext, Task task, OperationResult result)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (!ShadowType.class.isAssignableFrom(projectionContext.getObjectTypeClass())) {
 			return;
 		}
@@ -438,7 +438,7 @@ public class ContextLoader {
 
 
 	private <F extends FocusType> void loadLinkRefs(LensContext<F> context, Task task, OperationResult result) throws ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
@@ -467,11 +467,11 @@ public class ContextLoader {
 	}
 
 	/**
-	 * Does not overwrite existing account contexts, just adds new ones.
+	 * Does not overwrite existing account contexts, just adds new ones. 
 	 */
 	private <F extends FocusType> void loadLinkRefsFromFocus(LensContext<F> context, PrismObject<F> focus,
 			Task task, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
 			return;
@@ -516,7 +516,7 @@ public class ContextLoader {
 				}
 			} else {
 				// Make sure it has a proper definition. This may come from outside of the model.
-				provisioningService.applyDefinition(shadow, result);
+				provisioningService.applyDefinition(shadow, task, result);
 			}
 			LensProjectionContext accountContext = getOrCreateAccountContext(context, shadow, task, result);
 			accountContext.setFresh(true);
@@ -536,7 +536,7 @@ public class ContextLoader {
 	private <F extends FocusType> void loadLinkRefsFromDelta(LensContext<F> context, PrismObject<F> focus,
 			ObjectDelta<F> focusPrimaryDelta, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException, PolicyViolationException {
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		if (focusPrimaryDelta == null) {
 			return;
 		}
@@ -581,7 +581,7 @@ public class ContextLoader {
 						throw new SchemaException("Null or empty OID in account reference " + refVal + " in "
 								+ focus);
 					}
-					provisioningService.applyDefinition(shadow, result);
+					provisioningService.applyDefinition(shadow, task, result);
 					if (consistencyChecks) ShadowUtil.checkConsistence(shadow, "account from "+linkRefDelta);
 					// Check for conflicting change
 					accountContext = LensUtil.getProjectionContext(context, shadow, provisioningService, prismContext, task, result);
@@ -638,7 +638,7 @@ public class ContextLoader {
 							result.muteLastSubresultError();
 							shadow = refVal.getObject();
 							if (!shadow.hasCompleteDefinition()) {
-								provisioningService.applyDefinition(shadow, result);
+								provisioningService.applyDefinition(shadow, task, result);
 							}
 							// Create account context from embedded object
 							accountContext = createProjectionContext(context, shadow, task, result);
@@ -724,7 +724,7 @@ public class ContextLoader {
 
 	private <F extends ObjectType> void loadProjectionContextsSync(LensContext<F> context, Task task, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		for (LensProjectionContext projCtx : context.getProjectionContexts()) {
 			if (projCtx.isFresh() && projCtx.getObjectCurrent() != null) {
 				// already loaded
@@ -810,7 +810,7 @@ public class ContextLoader {
 	
 	private <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
 			PrismObject<ShadowType> projection, Task task, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		ShadowType accountType = projection.asObjectable();
 		String resourceOid = ShadowUtil.getResourceOid(accountType);
 		if (resourceOid == null) {
@@ -897,7 +897,7 @@ public class ContextLoader {
 
 	private <F extends FocusType> LensProjectionContext createProjectionContext(LensContext<F> context,
 																				PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ShadowType shadowType = account.asObjectable();
 		String resourceOid = ShadowUtil.getResourceOid(shadowType);
 		if (resourceOid == null) {
@@ -955,7 +955,7 @@ public class ContextLoader {
 	private <F extends ObjectType> void finishLoadOfProjectionContext(LensContext<F> context, 
 			LensProjectionContext projContext, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		
 		String projectionHumanReadableName = projContext.getHumanReadableName();
 
@@ -1192,7 +1192,7 @@ public class ContextLoader {
 	}
 	
 	public <F extends ObjectType> void loadFullShadow(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (projCtx.isFullShadow()) {
 			// already loaded
 			return;
@@ -1280,7 +1280,7 @@ public class ContextLoader {
 									if (ShadowUtil.matches(newLinkRepoShadow, projCtx.getResourceShadowDiscriminator())) {
 										LOGGER.trace("Found new matching link: {}, updating projection context", newLinkRepoShadow);
 										LOGGER.trace("Applying definition from provisioning first.");		// MID-3317
-										provisioningService.applyDefinition(newLinkRepoShadow, result);
+										provisioningService.applyDefinition(newLinkRepoShadow, task, result);
 										projCtx.setObjectCurrent(newLinkRepoShadow);
 										projCtx.setOid(newLinkRepoShadow.getOid());
 										projCtx.recompute();

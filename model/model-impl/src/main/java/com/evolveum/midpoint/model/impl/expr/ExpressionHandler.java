@@ -15,10 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;

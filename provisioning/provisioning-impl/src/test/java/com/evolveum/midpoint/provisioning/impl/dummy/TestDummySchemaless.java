@@ -184,7 +184,8 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		final String TEST_NAME = "test003ConnectionSchemaless";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
 				.asObjectable();
@@ -198,7 +199,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_NO_SCHEMA_OID);
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_NO_SCHEMA_OID, task);
 
 		// THEN
 		display("Test result", testResult);
@@ -265,7 +266,8 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		final String TEST_NAME = "test103ConnectionStaticSchema";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		// Check that there a schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, 
@@ -276,7 +278,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_STATIC_SCHEMA_OID);
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_STATIC_SCHEMA_OID, task);
 
 		// THEN
 		display("Test result", testResult);

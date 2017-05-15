@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -203,6 +202,103 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
 	}
 
+	@Test
+	public void testParseResourceFileExpression() throws Exception {
+		final String TEST_NAME = "testParseResourceFileExpression";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = getPrismContext();
+
+		// WHEN
+		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(TestConstants.RESOURCE_FILE_EXPRESSION_BASENAME));
+
+		// THEN
+		System.out.println("Parsed resource:");
+		System.out.println(resource.debugDump());
+
+		resource.checkConsistence();
+		
+		AssertJUnit.assertEquals("Wrong oid (prism)", TestConstants.RESOURCE_OID, resource.getOid());
+		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
+		assertNotNull("No resource definition", resourceDefinition);
+		PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "resource"),
+				ResourceType.COMPLEX_TYPE, ResourceType.class);
+		assertEquals("Wrong class in resource", ResourceType.class, resource.getCompileTimeClass());
+		ResourceType resourceType = resource.asObjectable();
+		assertNotNull("asObjectable resulted in null", resourceType);
+
+		assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Resource with expressions"));
+
+        PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
+		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
+		List<Item<?,?>> configItems = configContainerValue.getItems();
+		assertEquals("Wrong number of config items", 1, configItems.size());
+
+		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
+		assertNotNull("No icfcldap:configurationProperties container", ldapConfigPropertiesContainer);
+		PrismContainerDefinition<?> ldapConfigPropertiesContainerDef = ldapConfigPropertiesContainer.getDefinition();
+		assertNotNull("No icfcldap:configurationProperties container definition", ldapConfigPropertiesContainerDef);
+		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
+		List<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
+		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
+
+		PrismProperty<String> hostProp = findProp(ldapConfigPropItems, "host");
+		assertRaw(hostProp);
+		hostProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","host"), DOMUtil.XSD_STRING, prismContext));
+		assertNotRaw(hostProp);
+		assertExpression(hostProp, "const");
+		
+		PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
+		assertRaw(baseContextsProp);
+		baseContextsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING, prismContext));
+		assertNotRaw(baseContextsProp);
+		assertExpression(baseContextsProp, "script");
+		
+		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
+		assertNull("Schema sneaked in", schemaContainer);
+
+		PrismContainer<?> schemaHandlingContainer = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
+		assertNull("SchemaHandling sneaked in", schemaHandlingContainer);
+
+	}
+	
+	private void assertRaw(PrismProperty<String> prop) {
+		assertTrue("Prop "+prop+" no raw", prop.isRaw());
+	}
+	
+	private void assertNotRaw(PrismProperty<String> prop) {
+		assertFalse("Prop "+prop+" raw (unexpected)", prop.isRaw());
+	}
+
+	private PrismProperty<String> findProp(List<Item<?, ?>> items, String local) {
+		for (Item<?, ?> item: items) {
+			if (local.equals(item.getElementName().getLocalPart())) {
+				return (PrismProperty<String>) item;
+			}
+		}
+		fail("No item "+local);
+		return null; // not reached
+	}
+
+	private void assertExpression(PrismProperty<String> prop, String evaluatorName) {
+		System.out.println("Prop:");
+		System.out.println(prop.debugDump(1));
+		PrismPropertyValue<String> pval = prop.getValue();
+		ExpressionWrapper expressionWrapper = pval.getExpression();
+		assertNotNull("No expression wrapper in "+prop, expressionWrapper);
+		Object expressionObj = expressionWrapper.getExpression();
+		assertNotNull("No expression in "+prop, expressionObj);
+		System.out.println("- Expression: "+expressionObj);
+		if (namespaces) {
+			assertTrue("Wrong expression type ("+language+","+(namespaces?"ns":"no-ns") + ") : " +expressionObj.getClass(), expressionObj instanceof ExpressionType);
+			ExpressionType expressionType = (ExpressionType)expressionObj;
+			JAXBElement<?> evaluatorElement = expressionType.getExpressionEvaluator().iterator().next();
+			assertEquals("Wrong expression evaluator name", evaluatorName, evaluatorElement.getName().getLocalPart());
+		}
+	}
+	
 	@Override
 	protected void assertPrismContainerValueLocal(PrismContainerValue<ResourceType> value) throws SchemaException {
 		//assertResource(object.asContainerable().asPrismObject(), true, true);

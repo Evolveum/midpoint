@@ -117,7 +117,8 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		final String TEST_NAME = "test003Connection";
 		TestUtil.displayTestTile(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()+"."+TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		ResourceType resourceTypeBefore = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result).asObjectable();
 		display("Resource before testResource (repository)", resourceTypeBefore);
 		assertNotNull("No connector ref",resourceTypeBefore.getConnectorRef());
@@ -131,7 +132,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		AssertJUnit.assertNull("Found schema element before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 		
 		// WHEN
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
+		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID, task);
 		
 		display("Test connection result (expected failure)",operationResult);
 		TestUtil.assertFailure(operationResult);

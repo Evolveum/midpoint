@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,11 +136,14 @@ public class TestDBTable extends AbstractIntegrationTest {
 	}
 	
 	@Test
-	public void test001Connection() throws ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile("test001Connection");
-		OperationResult result = new OperationResult(TestDBTable.class.getName()+".test001Connection");
+	public void test001Connection() throws Exception {
+		final String TEST_NAME = "test001Connection";
+		TestUtil.displayTestTile(TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID);
+		// WHEN
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DERBY_OID, task);
 		
 		display("Test result",testResult);
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);

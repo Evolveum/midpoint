@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -73,8 +76,12 @@ public class TestResourceExecutor extends BaseActionExecutor {
                 }
                 result.addSubresult(testResult);
                 context.println("Tested " + resourceTypePrismObject + ": " + testResult.getStatus() + exceptionSuffix(exception));
-                PrismObjectValue<ResourceType> resourceValue = operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), false, context, result).getValue();
-                output.add(new PipelineItem(resourceValue, item.getResult()));
+                try {
+					PrismObjectValue<ResourceType> resourceValue = operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), false, context, result).getValue();
+					output.add(new PipelineItem(resourceValue, item.getResult()));
+				} catch (ExpressionEvaluationException e) {
+					throw new ScriptExecutionException("Error getting resource "+resourceTypePrismObject.getOid()+": "+e.getMessage(), e);
+				}
             } else {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);

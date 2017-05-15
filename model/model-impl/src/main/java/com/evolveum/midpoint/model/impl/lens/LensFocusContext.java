@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -407,7 +408,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
     }
 
-    public static LensFocusContext fromLensFocusContextType(LensFocusContextType focusContextType, LensContext lensContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    public static LensFocusContext fromLensFocusContextType(LensFocusContextType focusContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
         String objectTypeClassString = focusContextType.getObjectTypeClass();
         if (StringUtils.isEmpty(objectTypeClassString)) {
@@ -420,7 +421,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             throw new SystemException("Couldn't instantiate LensFocusContext because object type class couldn't be found", e);
         }
 
-        lensFocusContext.retrieveFromLensElementContextType(focusContextType, result);
+        lensFocusContext.retrieveFromLensElementContextType(focusContextType, task, result);
         lensFocusContext.secondaryDeltas = ObjectDeltaWaves.fromObjectDeltaWavesType(focusContextType.getSecondaryDeltas(), lensContext.getPrismContext());
 
         // fixing provisioning type in delta (however, this is not usually needed, unless primary object is shadow or resource
@@ -435,7 +436,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         for (Object o : lensFocusContext.secondaryDeltas) {
             ObjectDelta<? extends ObjectType> delta = (ObjectDelta<? extends ObjectType>) o;
             if (delta != null) {
-                lensFocusContext.fixProvisioningTypeInDelta(delta, object, result);
+                lensFocusContext.fixProvisioningTypeInDelta(delta, object, task, result);
             }
         }
 

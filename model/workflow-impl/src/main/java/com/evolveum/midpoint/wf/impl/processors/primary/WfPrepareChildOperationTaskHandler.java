@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,7 +114,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 wfTask.storeModelContext(modelContext);
             }
             task.savePendingModifications(result);
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | RuntimeException e) {
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare child model context", e);
             status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
         } catch (CommunicationException e) {

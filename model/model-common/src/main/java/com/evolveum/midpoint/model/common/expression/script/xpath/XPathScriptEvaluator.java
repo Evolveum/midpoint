@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.xpath;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -28,6 +26,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,7 +155,7 @@ public interface ModelService {
 	 */
 	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, 
-			CommunicationException, ConfigurationException;
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -399,7 +399,7 @@ public interface ModelService {
 	@Deprecated
 	List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, 
-			ConfigurationException, SecurityViolationException;
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -451,7 +451,7 @@ public interface ModelService {
 	 */
 	<T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * Search for "sub-object" structures, i.e. containers.
@@ -514,7 +514,8 @@ public interface ModelService {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) 
+					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -555,7 +556,7 @@ public interface ModelService {
 	 */
 	<T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) 
-            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -595,7 +596,7 @@ public interface ModelService {
 	 * TODO: Better description
 	 */
 	void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException; 
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException; 
 	
 	/**
 	 * <p>
@@ -604,7 +605,7 @@ public interface ModelService {
 	 * TODO: Better description 
 	 */
 	void importFromResource(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * Import objects from file.
@@ -681,7 +682,7 @@ public interface ModelService {
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
 			@NotNull List<ItemPath> ignoreItemPaths, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException;
+			ConfigurationException, ExpressionEvaluationException;
 	
 	/**
 	 * Merge two objects into one.

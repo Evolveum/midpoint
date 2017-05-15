@@ -245,6 +245,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
 		result.addParam("configuration", configuration);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configuration.debugDump(1));
+		}
 
 		try {
 			// Get default configuration for the connector. This is important,
@@ -274,7 +278,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Configuring connector {}", connectorType);
+				LOGGER.trace("Configuring connector {}, transformed configuration:", connectorType);
 				for (String propName : apiConfig.getConfigurationProperties().getPropertyNames()) {
 					LOGGER.trace("P: {} = {}", propName,
 							apiConfig.getConfigurationProperties().getProperty(propName).getValue());

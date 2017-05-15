@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -322,8 +322,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             private static final long serialVersionUID = 1L;
             @Override
             public Search load() {
-                Search search = SearchFactory.createSearch(AbstractRoleType.class, pageBase.getPrismContext(),
-                        pageBase.getModelInteractionService());
+                Search search = SearchFactory.createSearch(AbstractRoleType.class, pageBase);
                 return search;
             }
         };
@@ -654,11 +653,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         return new IModel<String>() {
             @Override
             public String getObject() {
-                List<PrismObject<UserType>> targetUsersList =  getRoleCatalogStorage().getTargetUserList();
-                if (targetUsersList == null ||
-                        targetUsersList.size() == 0){
+                if (getRoleCatalogStorage().isSelfRequest()){
                     return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
                 }
+                List<PrismObject<UserType>> targetUsersList =  getRoleCatalogStorage().getTargetUserList();
                 if (targetUsersList.size() == 1){
                     return createStringResource("AssignmentCatalogPanel.requestFor").getString() +
                             " " + targetUsersList.get(0).getName().getOrig();
@@ -695,11 +693,10 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private PrismObject<UserType> getTargetUser(){
-        List<PrismObject<UserType>> targetUserList =  getRoleCatalogStorage().getTargetUserList();
-        if (targetUserList == null || targetUserList.size() == 0){
+        if (getRoleCatalogStorage().isSelfRequest()){
             return pageBase.loadUserSelf(pageBase);
         }
-        return targetUserList.get(0);
+        return getRoleCatalogStorage().getTargetUserList().get(0);
     }
 
     private AssignmentConstraintsType getAssignmentConstraints() {

@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.caching.AbstractCache;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -125,7 +126,7 @@ public class ConstraintsChecker {
 
 	private ConstraintsCheckingResult constraintsCheckingResult;
 
-	public ConstraintsCheckingResult check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public ConstraintsCheckingResult check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		constraintsCheckingResult = new ConstraintsCheckingResult();
 		constraintsCheckingResult.setSatisfiesConstraints(true);
@@ -159,7 +160,7 @@ public class ConstraintsChecker {
 	}
 	
 	private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
-											 ResourceType resourceType, String oid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+											 ResourceType resourceType, String oid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		List<PrismPropertyValue<?>> identifierValues = identifier.getValues();
 		if (identifierValues.isEmpty()) {
@@ -181,7 +182,7 @@ public class ConstraintsChecker {
 		return unique;
 	}
 
-	private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
 		if (Cache.isOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues())) {
 			return true;

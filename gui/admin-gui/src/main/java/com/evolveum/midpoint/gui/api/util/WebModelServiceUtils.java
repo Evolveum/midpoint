@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -344,7 +344,7 @@ public class WebModelServiceUtils {
     	try {
 			count = page.getModelService().countObjects(type, query, null, task, parentResult);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| ConfigurationException | CommunicationException ex) {
+				| ConfigurationException | CommunicationException | ExpressionEvaluationException ex) {
 			parentResult.recordFatalError("WebModelUtils.couldntCountObjects", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
 		}

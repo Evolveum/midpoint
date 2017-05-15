@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -86,7 +87,7 @@ public class PagePreviewChanges extends PageAdmin {
 			Task task = createSimpleTask("visualize");
 			primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());
 			secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
-		} catch (SchemaException e) {
+		} catch (SchemaException | ExpressionEvaluationException e) {
 			throw new SystemException(e);		// TODO
 		}
 		if (LOGGER.isTraceEnabled()) {

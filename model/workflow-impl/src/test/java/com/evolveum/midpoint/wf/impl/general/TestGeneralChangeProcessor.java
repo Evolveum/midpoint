@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -347,13 +347,15 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Test
     public void test000LoadContext() throws Exception {
-        TestUtil.displayTestTile(this, "test000LoadContext");
+    	final String TEST_NAME = "test000LoadContext";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
-        OperationResult result = new OperationResult("test000LoadContext");
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContextType lensContextType = prismContext.parserFor(new File("src/test/resources/model-contexts/context-dummy-resource.xml")).xml().parseRealValue(LensContextType.class);
         display("LensContextType", lensContextType);
-        LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
+        LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, task, result);
         display("LensContext", lensContext);
     }
 

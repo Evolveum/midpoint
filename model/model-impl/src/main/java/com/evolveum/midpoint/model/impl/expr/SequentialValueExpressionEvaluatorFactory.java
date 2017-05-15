@@ -20,8 +20,8 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluatorFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;

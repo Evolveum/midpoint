@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -237,7 +238,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             }
 
             @Override
-            public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
+            public TaskDto createTaskDto(PrismObject<TaskType> task, Task opTask, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
                 TaskDto dto = super.createTaskDto(task, opTask, result);
                 addInlineMenuToTaskRow(dto);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -540,12 +540,12 @@ public class MiscDataUtil {
 	}
 
 	// TODO move somewhere else?
-	public ChangesByState getChangesByStateForRoot(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+	public ChangesByState getChangesByStateForRoot(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		ChangesByState rv = new ChangesByState(prismContext);
-		recordChanges(rv, rootTask.getModelOperationContext(), modelInteractionService, result);
+		recordChanges(rv, rootTask.getModelOperationContext(), modelInteractionService, task, result);
 		for (TaskType subtask : rootTask.getSubtask()) {
-			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, result);
+			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, task, result);
 			final WfContextType wfc = subtask.getWorkflowContext();
 			if (wfc != null && wfc.getProcessInstanceId() != null) {
 				Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
@@ -592,11 +592,11 @@ public class MiscDataUtil {
 	}
 
 	private <F extends FocusType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (modelOperationContext == null) {
 			return;
 		}
-		ModelContext<F> modelContext = unwrapModelContext(modelOperationContext, modelInteractionService, result);
+		ModelContext<F> modelContext = unwrapModelContext(modelOperationContext, modelInteractionService, task, result);
 		ObjectTreeDeltas<F> deltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(modelContext);
 		ObjectTreeDeltas<F> target;
 		switch (modelContext.getState()) {
@@ -646,12 +646,12 @@ public class MiscDataUtil {
 		}
 	}
 
-	private ModelContext unwrapModelContext(LensContextType lensContextType, ModelInteractionService modelInteractionService, OperationResult result) throws
+	private ModelContext unwrapModelContext(LensContextType lensContextType, ModelInteractionService modelInteractionService, Task task, OperationResult result) throws
 			ObjectNotFoundException {
 		if (lensContextType != null) {
 			try {
-				return modelInteractionService.unwrapModelContext(lensContextType, result);
-			} catch (SchemaException | CommunicationException | ConfigurationException e) {   // todo treat appropriately
+				return modelInteractionService.unwrapModelContext(lensContextType, task, result);
+			} catch (SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {   // todo treat appropriately
 				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
 			}
 		} else {

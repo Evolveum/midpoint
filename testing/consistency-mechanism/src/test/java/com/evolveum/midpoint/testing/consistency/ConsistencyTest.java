@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2205,12 +2205,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 	
 	@Test
-	public void test801TestReconciliationRename() throws Exception{
+	public void test801TestReconciliationRename() throws Exception {
 		final String TEST_NAME = "test801TestReconciliationRename";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         openDJController.assumeRunning();
-		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
+		final OperationResult result = task.getResult();
 
 		LOGGER.info("starting rename");
 		
@@ -2252,7 +2253,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
 		
-		provisioningService.applyDefinition(repoShadow, result);
+		provisioningService.applyDefinition(repoShadow, task, result);
 		
 		ResourceAttributeContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
 		ResourceAttribute repoIcfNameAttr = repoAttributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());

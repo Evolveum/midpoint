@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -334,7 +334,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		return new FaultMessage(message, faultType);
 	}
 
-    public void throwFault(Exception ex, OperationResult result) throws FaultMessage {
+    public void throwFault(Throwable ex, OperationResult result) throws FaultMessage {
 		if (result != null) {
 			result.recordFatalError(ex.getMessage(), ex);
 		}
@@ -344,17 +344,17 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			faultType = new ObjectNotFoundFaultType();
 		} else if (ex instanceof IllegalArgumentException) {
 			faultType = new IllegalArgumentFaultType();
-		} else if (ex instanceof ObjectAlreadyExistsException){
+		} else if (ex instanceof ObjectAlreadyExistsException) {
 			faultType = new ObjectAlreadyExistsFaultType();
-		} else if (ex instanceof CommunicationException){
+		} else if (ex instanceof CommunicationException) {
 			faultType = new CommunicationFaultType();
-		} else if (ex instanceof ConfigurationException){
+		} else if (ex instanceof ConfigurationException) {
 			faultType = new ConfigurationFaultType();
-		} else if (ex instanceof ExpressionEvaluationException){
+		} else if (ex instanceof ExpressionEvaluationException) {
 			faultType = new SystemFaultType();
-		} else if (ex instanceof SchemaException){
+		} else if (ex instanceof SchemaException) {
 			faultType = new SchemaViolationFaultType();
-		} else if (ex instanceof PolicyViolationException){
+		} else if (ex instanceof PolicyViolationException) {
 			faultType = new PolicyViolationFaultType();
 		} else if (ex instanceof AuthorizationException) {
 			throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION),
@@ -410,31 +410,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		
 		try {
 			model.notifyChange(changeDescription, parentResult, task);
-			} catch (ObjectNotFoundException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (SchemaException ex) {
-				 LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (CommunicationException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (ConfigurationException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (SecurityViolationException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (RuntimeException ex){
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (ObjectAlreadyExistsException ex){
+			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
 				throwFault(ex, parentResult);

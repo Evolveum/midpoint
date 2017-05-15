@@ -26,12 +26,12 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.expression.Source;
-import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.repo.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;

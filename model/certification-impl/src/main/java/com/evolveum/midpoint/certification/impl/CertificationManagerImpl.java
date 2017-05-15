@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -459,7 +459,7 @@ public class CertificationManagerImpl implements CertificationManager {
             AccessCertificationCampaignType campaign;
             try {
                 campaign = modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, parentResult).asObjectable();
-            } catch (CommunicationException|ConfigurationException e) {
+            } catch (CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
                 throw new SystemException("Unexpected exception while getting campaign object: " + e.getMessage(), e);
             }
 

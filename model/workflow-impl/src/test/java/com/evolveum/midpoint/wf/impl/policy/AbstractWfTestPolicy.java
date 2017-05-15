@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -970,12 +970,12 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 //		}
 //	}
 
-	protected void assertNoObject(ObjectType object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException {
+	protected void assertNoObject(ObjectType object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, ExpressionEvaluationException {
 		assertNull("Object was created but it shouldn't be",
 				searchObjectByName(object.getClass(), object.getName().getOrig()));
 	}
 
-	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException {
+	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, ExpressionEvaluationException {
 		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
 		assertNotNull("Object " + object + " was not created", object);
 		objectFromRepo.removeItem(new ItemPath(ObjectType.F_METADATA), Item.class);

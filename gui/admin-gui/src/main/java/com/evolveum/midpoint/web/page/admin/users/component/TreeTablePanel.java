@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -446,7 +446,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					query, null, task, result);
 			return (count > 0);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| ConfigurationException | CommunicationException e) {
+				| ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
 			result.recordFatalError("Could not count members for org " + orgToDelete.getValue(), e);
 			return false;

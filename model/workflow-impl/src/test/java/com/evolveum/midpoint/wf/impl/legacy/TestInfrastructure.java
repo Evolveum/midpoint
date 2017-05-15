@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,10 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
 
     @Test(enabled = true)
     public void test100SerializeContext() throws Exception {
+    	final String TEST_NAME = "test100SerializeContext";
 
-        OperationResult result = new OperationResult("test100SerializeContext");
+    	Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContext<UserType> context = new LensContext<UserType>(UserType.class, prismContext, provisioningService);
         PrismObject<UserType> bill = prismContext.parseObject(USER_BARBOSSA_FILE);
@@ -87,7 +89,7 @@ public class TestInfrastructure extends AbstractInternalModelIntegrationTest {  
         container.clearActualValue();
         System.out.println("XML value = " + container.getXmlValue());
         LensContextType contextTypeRetrieved = container.getValue();
-        LensContext<UserType> contextRetrieved = LensContext.fromLensContextType(contextTypeRetrieved, prismContext, provisioningService, result);
+        LensContext<UserType> contextRetrieved = LensContext.fromLensContextType(contextTypeRetrieved, prismContext, provisioningService, task, result);
 
         assertEquals("Context after serialization/deserialization does not match context before it (object to add is changed)", context.getFocusContext().getPrimaryDelta().getObjectToAdd(), contextRetrieved.getFocusContext().getPrimaryDelta().getObjectToAdd());
     }

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.certification.impl.handlers;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;

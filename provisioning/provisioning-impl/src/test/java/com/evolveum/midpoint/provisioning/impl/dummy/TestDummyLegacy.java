@@ -119,7 +119,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		assertNotNull("Resource is null", resourceNative);
 		assertNotNull("ResourceType is null", resourceTypeNative);
 
-		Task task = taskManager.createTaskInstance(TestDummyLegacy.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult(); 
 
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NATIVE_OID, null, result)
@@ -132,8 +132,8 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummyLegacy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult(); 
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NATIVE_OID, null, result)
 				.asObjectable();
@@ -147,7 +147,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_NATIVE_OID);
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_NATIVE_OID, task);
 
 		// THEN
 		display("Test result", testResult);
@@ -218,8 +218,8 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummyLegacy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult(); 
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_LEGACY_OID, null, result)
 				.asObjectable();
@@ -233,7 +233,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_LEGACY_OID);
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_LEGACY_OID, task);
 
 		// THEN
 		display("Test result", testResult);

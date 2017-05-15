@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -27,6 +28,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
  */
 public interface FailableLensFunction<T, R> {
 	
-	R apply(T param) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException;
+	R apply(T param) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 }

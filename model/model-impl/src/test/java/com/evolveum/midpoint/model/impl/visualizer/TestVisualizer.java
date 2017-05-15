@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 	
 	@Test
-	public void test100UserBasic() throws SchemaException {
+	public void test100UserBasic() throws Exception {
 		final String TEST_NAME = "test100UserBasic";
 		Task task = createTask(TEST_NAME);
 
@@ -98,7 +98,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 
 	@Test
-	public void test110UserWithContainers() throws SchemaException {
+	public void test110UserWithContainers() throws Exception {
 		final String TEST_NAME = "test101UserWithContainers";
 		Task task = createTask(TEST_NAME);
 
@@ -136,7 +136,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 
 	@Test
-	public void test200UserDeltaBasic() throws SchemaException {
+	public void test200UserDeltaBasic() throws Exception {
 		final String TEST_NAME = "test200UserDeltaBasic";
 		Task task = createTask(TEST_NAME);
 
@@ -156,7 +156,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 
 	@Test
-	public void test210UserDeltaContainers() throws SchemaException {
+	public void test210UserDeltaContainers() throws Exception {
 		final String TEST_NAME = "test210UserDeltaContainers";
 		Task task = createTask(TEST_NAME);
 
@@ -186,7 +186,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 
 	@Test
-	public void test212UserDeltaContainerSimple() throws SchemaException {
+	public void test212UserDeltaContainerSimple() throws Exception {
 		final String TEST_NAME = "test212UserDeltaContainerSimple";
 		Task task = createTask(TEST_NAME);
 
@@ -207,7 +207,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 
 	@Test
-	public void test220UserContainerReplace() throws SchemaException {
+	public void test220UserContainerReplace() throws Exception {
 		final String TEST_NAME = "test220UserContainerReplace";
 		Task task = createTask(TEST_NAME);
 
@@ -238,7 +238,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 	}
 
 	@Test
-	public void test230UserContainerDelete() throws SchemaException {
+	public void test230UserContainerDelete() throws Exception {
 		final String TEST_NAME = "test230UserContainerDelete";
 		Task task = createTask(TEST_NAME);
 

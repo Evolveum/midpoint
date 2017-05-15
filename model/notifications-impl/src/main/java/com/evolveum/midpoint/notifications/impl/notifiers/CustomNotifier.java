@@ -17,9 +17,9 @@
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
