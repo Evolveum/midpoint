@@ -27,6 +27,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public class MidPointDataSource implements JRDataSource{
 
 	public static final String PARENT_NAME = "_parent_";
+	public static final String THIS_NAME = "_this_";
 
 	Collection<PrismContainerValue<? extends Containerable>> resultList = null;
 	Iterator<PrismContainerValue<? extends Containerable>> iterator = null;
@@ -63,13 +64,14 @@ public class MidPointDataSource implements JRDataSource{
 			} else {
 				throw new IllegalStateException("oid property is not supported for " + currentObject.getClass());
 			}
-		}
-		if (PARENT_NAME.equals(fieldName)) {
+		} else if (PARENT_NAME.equals(fieldName)) {
 			PrismContainerable parent1 = currentObject.getParent();
 			if (!(parent1 instanceof PrismContainer)) {
 				return null;
 			}
 			return ((PrismContainer) parent1).getParent();
+		} else if (THIS_NAME.equals(fieldName)) {
+			return currentObject;
 		}
 
 		ItemPathType itemPathType = new ItemPathType(fieldName);

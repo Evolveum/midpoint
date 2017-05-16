@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -88,6 +89,10 @@ public class ReportUtils {
         }
 
         return timestamp;
+    }
+
+    public static String prettyPrintCertOutcomeForReport(String uri) {
+        return prettyPrintForReport(OutcomeUtils.fromUri(uri));
     }
 
     public static String prettyPrintForReport(XMLGregorianCalendar dateTime) {

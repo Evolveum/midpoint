@@ -267,24 +267,58 @@ public class CertCampaignTypeUtil {
         return WorkItemTypeUtil.getOutcome(workItem) == null && StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem));
     }
 
-    public static List<ObjectReferenceType> getReviewedBy(List<AccessCertificationWorkItemType> workItems) {
+    // TODO use this also from GUI and maybe notifications
+    @SuppressWarnings("unused")         // used by certification cases report
+    public static List<ObjectReferenceType> getCurrentlyAssignedReviewers(PrismContainerValue<AccessCertificationCaseType> pcv) {
+        AccessCertificationCaseType aCase = pcv.asContainerable();
         List<ObjectReferenceType> rv = new ArrayList<>();
-        for (AccessCertificationWorkItemType workItem : workItems) {
-            if (hasNoResponse(workItem)) {
-                continue;
+        for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+            for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
+                if (workItem.getCloseTimestamp() == null
+                        && java.util.Objects.equals(workItem.getStageNumber(), aCase.getStageNumber())) {
+                    rv.add(assigneeRef);
+                }
             }
-            rv.add(workItem.getPerformerRef());
         }
         return rv;
     }
 
-    public static List<String> getComments(List<AccessCertificationWorkItemType> workItems) {
-        List<String> rv = new ArrayList<>();
-        for (AccessCertificationWorkItemType workItem : workItems) {
-            if (StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem))) {
-                continue;
+    @SuppressWarnings("unused")         // used by certification cases report
+    public static Date getLastReviewedOn(PrismContainerValue<AccessCertificationCaseType> pcv) {
+        return getReviewedTimestamp(pcv.asContainerable().getWorkItem());
+    }
+
+//    @SuppressWarnings("unused")         // used by certification cases report
+//    public static XMLGregorianCalendar getLastReviewedOn(PrismContainerValue<AccessCertificationCaseType> pcv) {
+//        AccessCertificationCaseType aCase = pcv.asContainerable();
+//        XMLGregorianCalendar max = null;
+//        for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+//            if (workItem.getOutputChangeTimestamp() != null &&
+//                    (max == null || max.compare(workItem.getOutputChangeTimestamp()) == DatatypeConstants.GREATER)) {
+//                max = workItem.getOutputChangeTimestamp();
+//            }
+//        }
+//        return max;
+//    }
+
+    @SuppressWarnings("unused")         // used by certification cases report
+    public static List<ObjectReferenceType> getReviewedBy(PrismContainerValue<AccessCertificationCaseType> pcv) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (AccessCertificationWorkItemType workItem : pcv.asContainerable().getWorkItem()) {
+            if (!hasNoResponse(workItem)) {
+                rv.add(workItem.getPerformerRef());
             }
-            rv.add(WorkItemTypeUtil.getComment(workItem));
+        }
+        return rv;
+    }
+
+    @SuppressWarnings("unused")         // used by certification cases report
+    public static List<String> getComments(PrismContainerValue<AccessCertificationCaseType> pcv) {
+        List<String> rv = new ArrayList<>();
+        for (AccessCertificationWorkItemType workItem : pcv.asContainerable().getWorkItem()) {
+            if (!StringUtils.isEmpty(WorkItemTypeUtil.getComment(workItem))) {
+                rv.add(WorkItemTypeUtil.getComment(workItem));
+            }
         }
         return rv;
     }
