@@ -355,7 +355,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ScriptExecutionResultType">
+    <xsd:complexType name="ExecuteScriptResponseType">
         <xsd:annotation>
             <xsd:documentation>
                 Result of a single script execution.
@@ -365,20 +365,13 @@
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-			<xsd:element name="dataOutput" type="s:PipelineDataType" minOccurs="0">
+			<xsd:element name="output" type="s:ExecuteScriptOutputType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Data output of the execution of the script.
+                        Data and console output of the execution of the script.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="consoleOutput" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Text ("console") output of the execution of the script.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
             <xsd:element name="result" type="c:OperationResultType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -388,7 +381,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="scriptExecutionResult" type="tns:ScriptExecutionResultType"/>
+    <xsd:element name="executeScriptResponse" type="tns:ExecuteScriptResponseType"/>
 
     <xsd:complexType name="ScriptOutputsType">
         <xsd:sequence>
@@ -516,7 +509,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="PolicyItemsDefinitionType">
 		<xsd:annotation>
 			<xsd:documentation>
