@@ -195,7 +195,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 }
 
                 @Override
-                protected List<InlineMenuItem> createTreeChildrenMenu() {
+                protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
                     return new ArrayList<>();
                 }
 
