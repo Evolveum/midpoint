@@ -43,7 +43,6 @@
             <class name="com.evolveum.midpoint.model.intest.TestMappingInbound"/>
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
-            <class name="com.evolveum.midpoint.model.intest.TestSecurity"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
             <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
@@ -117,6 +116,13 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
+        </classes>
+    </test>
+    <test name="Security" preserve-order="true" parallel="false" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>
+            <class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>
         </classes>
     </test>
 </suite>
