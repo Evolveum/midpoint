@@ -153,6 +153,9 @@ public class StartupConfiguration implements MidpointConfiguration {
                 }
         }
 
+        // This is not really good practice. But some components such as reports rely on well-formatted midpoint.home system property.
+        System.setProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
+        
         File midpointHome = new File(midPointHomePath);
         setupInitialLogging(midpointHome);
         loadConfiguration(midpointHome);

@@ -8634,6 +8634,17 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="enforcementStrategy" type="tns:AuthorizationEnforcementStrategyType" minOccurs="0" maxOccurs="1" default="alwaysEnforce">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Setting that specifies when to enforce the authorization.
+        				Default setting is to always enforce the authorization.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.6</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="object" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -8722,6 +8733,51 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:simpleType name="AuthorizationEnforcementStrategyType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies of when to enforce an authorization.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="alwaysEnforce">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The authorization will always be enforced for all applicable operations.
+                		Even at the cost of running inefficient operation. If the authorization
+                		cannot be enforced then the operation results in an error. We would rather
+                		stop the operation entirelly than risking data exposure.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS_ENFORCE"/>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="maySkipOnSearch">
+                <xsd:annotation>
+                	<xsd:documentation>
+                	    If this setting is applied then midPoint may skip this authorization during evaluation
+                	    of search operation. This is used for authorization that may be inefficient to evaluate
+                	    for search operations, especially when used in situations where there is another broader
+                	    authorization which is good enough to limit the seach results.
+        				Setting this strategy may cause that broader search results are returned. Use with care.
+        				This setting influences search operations only. It does not influence other operations, 
+        				such as read, modify or assign.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MAY_SKIP_ON_SEARCH"/>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:complexType name="ObjectSelectorType">
         <xsd:annotation>
@@ -8798,10 +8854,23 @@
 		                        </p>
 		                    </xsd:documentation>
 		                    <xsd:appinfo>
-		            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
-		            		</xsd:appinfo>
+				                <a:since>3.4</a:since>
+				            </xsd:appinfo>
 		                </xsd:annotation>
 		            </xsd:element>
+		        	<xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
+		        		<xsd:annotation>
+		        			<xsd:documentation>
+		        				<p>
+		                        	Definition of object with respect to subject relation to a role.
+		                        	Used to specify authorizations for role approvers, owners and so on.
+		                        </p>
+		        			</xsd:documentation>
+		        			<xsd:appinfo>
+		        				<a:since>3.6</a:since>
+		        			</xsd:appinfo>
+		        		</xsd:annotation>
+		        	</xsd:element>
 		        	<xsd:element name="special" type="tns:SpecialObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
 		        		<xsd:annotation>
 		        			<xsd:documentation>
@@ -8962,6 +9031,61 @@
         				If set to true then the reference org (the one which the subjects belongs to) is included
         				in the scope.
         				If set to false then the reference org is excluded from the scope. 
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="RoleRelationObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                	Definition of object with respect to subject relation to a role.
+                	Used to specify authorizations for role approvers, owners and so on.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="subjectRelation" minOccurs="0" type="xsd:QName">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Specifies the relation that the subject needs to have to the role for this condition to
+        				trigger. This is usually approver or owner.
+        				If not specified then any relation is accepted.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="objectRelation" minOccurs="0" maxOccurs="1" type="xsd:QName">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Specifies the relation that the target needs to have to the role for this condition to
+        				trigger. This is usually default relation (member).
+        				If not specified then any relation is accepted.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="includeMembers" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then the members of reference role (the one which the subjects belongs to) 
+        				are included in the scope (limited by objectRelation).
+        				If set to false then the members of reference role is excluded from the scope 
+        				(objectRelation is not used in this case).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="includeReferenceRole" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then the reference role (the one which the subjects belongs to) is included
+        				in the scope.
+        				If set to false then the reference role is excluded from the scope. 
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>

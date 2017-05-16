@@ -23,11 +23,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -41,12 +43,16 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		assignRole(userRumRogersOid, ROLE_ORDINARY_OID, initTask, initResult);
+		assignRole(userCobbOid, ROLE_ORDINARY_OID, initTask, initResult);
+
 	}
 
 
 	@Test
-    public void test400AutzJackPersonaManagement() throws Exception {
-		final String TEST_NAME = "test400AutzJackPersonaManagement";
+    public void test100AutzJackPersonaManagement() throws Exception {
+		final String TEST_NAME = "test100AutzJackPersonaManagement";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -72,8 +78,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
 
     @Test
-    public void test402AutzLechuckPersonaManagement() throws Exception {
-		final String TEST_NAME = "test402AutzLechuckPersonaManagement";
+    public void test102AutzLechuckPersonaManagement() throws Exception {
+		final String TEST_NAME = "test102AutzLechuckPersonaManagement";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_LECHUCK_OID);
@@ -100,8 +106,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	}
     
     @Test
-    public void test410AutzJackPersonaAdmin() throws Exception {
-		final String TEST_NAME = "test410AutzJackAddPersonaAdmin";
+    public void test110AutzJackPersonaAdmin() throws Exception {
+		final String TEST_NAME = "test110AutzJackAddPersonaAdmin";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -147,6 +153,45 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertPersonaLinks(userJack, 0);
         
         assertNoObject(UserType.class, personaJackOid);
+        
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        assertGlobalStateUntouched();
+	}
+    
+    @Test(enabled=false)
+    public void test150AutzJackApproverUnassignRoles() throws Exception {
+		final String TEST_NAME = "test150AutzJackApproverUnassignRoles";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
+        assignRole(USER_JACK_OID, ROLE_ORDINARY_OID, SchemaConstants.ORG_APPROVER);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
+        assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID); // no assignment
+        assertGetDeny(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID); // assignment exists, but wrong relation
+        
+        assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
+        assertGetAllow(UserType.class, userCobbOid);      // member of ROLE_ORDINARY_OID
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_LECHUCK_OID);
+        
+        assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
+        assertSearch(RoleType.class, null, 1);
+        assertSearch(OrgType.class, null, 0);
+
+        // TODO: assign role
+        
+        // TODO: list role members
+
+        // TODO: unassign role
         
         assertAddDeny();
         assertModifyDeny();
