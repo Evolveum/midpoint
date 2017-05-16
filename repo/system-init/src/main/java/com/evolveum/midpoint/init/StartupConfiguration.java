@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ import java.util.Iterator;
 public class StartupConfiguration implements MidpointConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
-    private static final String USER_HOME = "user.home";
-    private static final String MIDPOINT_HOME = "midpoint.home";
-    private static final String MIDPOINT_SECTION = "midpoint";
+    private static final String USER_HOME_SYSTEM_PROPERTY_NAME = "user.home";
+    private static final String MIDPOINT_HOME_SYSTEM_PROPERTY_NAME = "midpoint.home";
+    private static final String MIDPOINT_CONFIGURATION_SECTION = "midpoint";
     private static final String SAFE_MODE = "safeMode";
     private static final String PROFILING_ENABLED = "profilingEnabled";
 
@@ -54,6 +54,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     private CompositeConfiguration config = null;
     private Document xmlConfigAsDocument = null;        // just in case when we need to access original XML document
+    private String midPointHomePath = null;
     private String configFilename = null;
 
     /**
@@ -64,18 +65,15 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
     /**
-     * Constructor
-     *
-     * @param configFilename alternative configuration file
+     * Alternative constructor for use in the tests.
      */
-    public StartupConfiguration(String configFilename) {
+    public StartupConfiguration(String midPointHome, String configFilename) {
+    	this.midPointHomePath = midPointHome;
         this.configFilename = configFilename;
     }
 
     /**
      * Get current configuration file name
-     *
-     * @return
      */
     public String getConfigFilename() {
         return this.configFilename;
@@ -83,8 +81,6 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     /**
      * Set configuration filename
-     *
-     * @param configFilename
      */
     public void setConfigFilename(String configFilename) {
         this.configFilename = configFilename;
@@ -92,7 +88,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     @Override
     public String getMidpointHome() {
-        return System.getProperty(MIDPOINT_HOME);
+        return midPointHomePath;
     }
 
     @Override
@@ -104,14 +100,14 @@ public class StartupConfiguration implements MidpointConfiguration {
         // Insert replacement for relative path to midpoint.home else clean
         // replace
         if (getMidpointHome() != null) {
-            sub.addProperty(MIDPOINT_HOME, getMidpointHome());
+            sub.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, getMidpointHome());
         } else {
             @SuppressWarnings("unchecked")
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
-                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME + "}/", ""));
-                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME + "}", ""));
+                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME_SYSTEM_PROPERTY_NAME + "}/", ""));
+                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME_SYSTEM_PROPERTY_NAME + "}", ""));
             }
         }
 
@@ -131,45 +127,33 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Initialize system configuration
      */
     public void init() {
-        welcome();    
-        if (System.getProperty(MIDPOINT_HOME) == null || System.getProperty(MIDPOINT_HOME).isEmpty()) {
-            LOGGER.warn("*****************************************************************************************");
-            LOGGER.warn(MIDPOINT_HOME
-                    + " is not set ! Using default configuration, for more information see http://wiki.evolveum.com/display/midPoint/");
-            LOGGER.warn("*****************************************************************************************");
+        welcome();
+        
+        if (midPointHomePath == null) {
+        	
+	        if (System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME) == null || System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME).isEmpty()) {
+	            LOGGER.info("{} system property is not set, using default configuration", MIDPOINT_HOME_SYSTEM_PROPERTY_NAME);
 
-            System.out.println("*******************************************************************************");
-            System.out.println(MIDPOINT_HOME + " is not set ! Using default configuration, for more information");
-            System.out.println("                 see http://wiki.evolveum.com/display/midPoint/");
-            System.out.println("*******************************************************************************");
-
-			if (getConfigFilename().startsWith("test")) {
-				String midpointHome = "./target/midpoint-home";
-				System.setProperty(MIDPOINT_HOME, midpointHome);
-				System.out.println("Using " + MIDPOINT_HOME + " for test runs: '" + midpointHome + "'.");
-			} else {
-
-				String userHome = System.getProperty(USER_HOME);
-				if (!userHome.endsWith("/")) {
-					userHome += "/";
+	            midPointHomePath = System.getProperty(USER_HOME_SYSTEM_PROPERTY_NAME);
+				if (!midPointHomePath.endsWith("/")) {
+					midPointHomePath += "/";
 				}
-				userHome += "midpoint";
-				System.setProperty(MIDPOINT_HOME, userHome);
-				LOGGER.warn("Setting {} to '{}'.", new Object[] { MIDPOINT_HOME, userHome });
-				System.out.println("Setting " + MIDPOINT_HOME + " to '" + userHome + "'.");
+				midPointHomePath += "midpoint";
+				
+			} else {
+	
+				midPointHomePath = System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME);
 			}
-		}
-
-    	String midpointHomeString = System.getProperty(MIDPOINT_HOME);
-        if (midpointHomeString != null) {
+        }
+        
+        if (midPointHomePath != null) {
                 //Fix missing last slash in path
-                if (!midpointHomeString.endsWith("/")) {
-                	midpointHomeString = midpointHomeString + "/";
-                    System.setProperty(MIDPOINT_HOME, midpointHomeString);
+                if (!midPointHomePath.endsWith("/")) {
+                	midPointHomePath = midPointHomePath + "/";
                 }
         }
 
-        File midpointHome = new File(midpointHomeString);
+        File midpointHome = new File(midPointHomePath);
         setupInitialLogging(midpointHome);
         loadConfiguration(midpointHome);
 
@@ -199,7 +183,7 @@ public class StartupConfiguration implements MidpointConfiguration {
         if (midpointHome != null) {
         	
             ApplicationHomeSetup ah = new ApplicationHomeSetup();
-            ah.init(MIDPOINT_HOME);
+            ah.init(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME);
 
         	File configFile = new File(midpointHome, this.getConfigFilename());
         	System.out.println("Loading midPoint configuration from file "+configFile);
@@ -207,10 +191,16 @@ public class StartupConfiguration implements MidpointConfiguration {
         	try {
                 if (!configFile.exists()) {
                     LOGGER.warn("Configuration file {} does not exists. Need to do extraction ...", configFile);
-                    ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), configFile.getPath());
+                    boolean success = ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), configFile.getPath());
+                    if (!success || !configFile.exists()) {
+                    	String message = "Unable to extract configuration file " + this.getConfigFilename() + " from classpath";
+                        LOGGER.error(message);
+                        System.out.println(message);
+                        throw new SystemException(message);
+                    }
                 }
                 //Load and parse properties
-                config.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
+                config.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
                 createXmlConfiguration(documentBuilder, configFile.getPath());
             } catch (ConfigurationException e) {
                 String message = "Unable to read configuration file [" + configFile + "]: " + e.getMessage();
@@ -268,7 +258,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     @Override
     public boolean isSafeMode() {
-        Configuration c = getConfiguration(MIDPOINT_SECTION);
+        Configuration c = getConfiguration(MIDPOINT_CONFIGURATION_SECTION);
         if (c == null) {
             return false;           // should not occur
         }
@@ -277,7 +267,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 
 	@Override
 	public boolean isProfilingEnabled() {
-		Configuration c = getConfiguration(MIDPOINT_SECTION);
+		Configuration c = getConfiguration(MIDPOINT_CONFIGURATION_SECTION);
 		if (c == null) {
 			return false;           // should not occur
 		}

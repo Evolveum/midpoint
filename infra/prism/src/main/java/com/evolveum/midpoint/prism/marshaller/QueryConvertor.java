@@ -331,8 +331,7 @@ public class QueryConvertor {
                 } else {
 					RootXNode expressionRoot = clauseXMap.getEntryAsRoot(expressionEntry.getKey());
 					PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
-                    ExpressionWrapper expressionWrapper = new ExpressionWrapper();
-                    expressionWrapper.setExpression(expressionPropertyValue.getValue());
+                    ExpressionWrapper expressionWrapper = new ExpressionWrapper(expressionEntry.getKey(), expressionPropertyValue.getValue());
 					if (isEq) {
 						return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition<T>) itemDefinition, matchingRule, expressionWrapper);
 					} else if (isGt || isGtEq) {
@@ -832,7 +831,7 @@ public class QueryConvertor {
 		
 		ExpressionWrapper xexpression = filter.getExpression();
 		if (xexpression != null) {
-			map.merge(PrismUtil.serializeExpression(xexpression));
+			map.merge(PrismUtil.serializeExpression(xexpression, xnodeSerializer));
 		}
 		
 		return map;

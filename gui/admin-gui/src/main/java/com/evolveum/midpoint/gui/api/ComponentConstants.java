@@ -36,6 +36,9 @@ public class ComponentConstants {
     public static final QName UI_FOCUS_TAB_PROJECTIONS = new QName(NS_COMPONENTS_PREFIX, "focusTabProjections");
     public static final String UI_FOCUS_TAB_PROJECTIONS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_PROJECTIONS);
 
+    public static final QName UI_FOCUS_TAB_PERSONAS = new QName(NS_COMPONENTS_PREFIX, "focusTabPersonas");
+    public static final String UI_FOCUS_TAB_PERSONAS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_PERSONAS);
+
     public static final QName UI_FOCUS_TAB_ASSIGNMENTS = new QName(NS_COMPONENTS_PREFIX, "focusTabAssignments");
     public static final String UI_FOCUS_TAB_ASSIGNMENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_ASSIGNMENTS);
 

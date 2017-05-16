@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -72,7 +73,7 @@ import javax.xml.namespace.QName;
  *
  */
 public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegrationTest {
-			
+	
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
@@ -114,12 +115,14 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	protected static final String RESOURCE_DUMMY_QUOTE = "Arr!";
+	protected static final String RESOURCE_DUMMY_USELESS_STRING = "USEless";
 	
 	// RED resource has STRONG mappings
 	protected static final File RESOURCE_DUMMY_RED_FILE = new File(COMMON_DIR, "resource-dummy-red.xml");
 	protected static final String RESOURCE_DUMMY_RED_OID = "10000000-0000-0000-0000-000000000104";
 	protected static final String RESOURCE_DUMMY_RED_NAME = "red";
 	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
+	protected static final String RESOURCE_DUMMY_RED_USELESS_STRING = IntegrationTestTools.CONST_USELESS;
 	
 	// BLUE resource has WEAK mappings, outbound/inbound
 	protected static final File RESOURCE_DUMMY_BLUE_FILE = new File(COMMON_DIR, "resource-dummy-blue.xml");

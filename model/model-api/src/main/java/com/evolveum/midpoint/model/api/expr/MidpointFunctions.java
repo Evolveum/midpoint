@@ -1078,4 +1078,6 @@ public interface MidpointFunctions {
 	String createPasswordResetLink(UserType userType);
 	
 	String createAccountActivationLink(UserType userType);
+	
+	String getConst(String name);
 }

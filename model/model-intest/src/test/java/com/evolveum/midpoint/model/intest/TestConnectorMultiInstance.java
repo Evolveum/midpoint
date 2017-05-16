@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.FailableRunnable;
 import com.evolveum.midpoint.util.Holder;
@@ -87,6 +88,24 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, true, initResult);
         repoAddObjectFromFile(USER_ELAINE_FILE, true, initResult);
+	}
+	
+	@Test
+    public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        		
+		// WHEN
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_YELLOW_OID, task);
+		
+		// THEN
+        display("Test result", testResult);
+        assertSuccess(testResult);
+        
+        assertEquals("Wrong YELLOW useless string", IntegrationTestTools.CONST_USELESS, dummyResourceYellow.getUselessString());
 	}
 
 	@Test

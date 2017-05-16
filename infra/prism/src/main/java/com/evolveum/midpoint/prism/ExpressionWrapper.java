@@ -16,26 +16,41 @@
 
 package com.evolveum.midpoint.prism;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author mederly
  */
-public class ExpressionWrapper {
+public class ExpressionWrapper implements Cloneable {
 
+	private QName elementName;
     private Object expression;
 
-    public Object getExpression() {
+    public ExpressionWrapper(QName elementName, Object expression) {
+		super();
+		this.elementName = elementName;
+		this.expression = expression;
+	}
+
+	public QName getElementName() {
+		return elementName;
+	}
+
+	public Object getExpression() {
         return expression;
     }
-
-    public void setExpression(Object expression) {
-        this.expression = expression;
-    }
+	
+	public ExpressionWrapper clone() {
+		Object expressionClone = CloneUtil.clone(expression);
+		return new ExpressionWrapper(elementName, expressionClone);
+	}
 
 	@Override
 	public String toString() {
-		return expression==null?"ExpressionWrapper(null)":PrettyPrinter.prettyPrint(expression);
+		return "ExpressionWrapper(" + PrettyPrinter.prettyPrint(elementName) + ":" + PrettyPrinter.prettyPrint(expression);
 	}
     
     

@@ -117,10 +117,6 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	protected static OpenDJController openDJController = new OpenDJController();
 
-	public TestUcfOpenDj() {
-		System.setProperty("midpoint.home", "target/midPointHome/");
-	}
-
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);

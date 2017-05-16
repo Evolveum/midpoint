@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -117,8 +118,8 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 
 			@Override
-			protected List<InlineMenuItem> createTreeChildrenMenu() {
-				return TreeTablePanel.this.createTreeChildrenMenu();
+			protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+				return TreeTablePanel.this.createTreeChildrenMenu(org);
 			}
 
 		};
@@ -143,81 +144,102 @@ public class TreeTablePanel extends BasePanel<String> {
 		return items;
 	}
 
-	private List<InlineMenuItem> createTreeChildrenMenu() {
+	private List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
 		List<InlineMenuItem> items = new ArrayList<>();
+		try {
+			boolean allowModify = org == null ||
+					parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_MODIFY_ACTION_URL,
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
+			InlineMenuItem item;
+			if (allowModify) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								moveRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						moveRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								makeRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			}
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						makeRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+			boolean allowDelete = org == null ||
+					parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_DELETE_ACTION_URL,
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
+			if (allowDelete) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								deleteNodePerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			}
+			if (allowModify) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteNodePerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								recomputeRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"), Model.of(allowModify), Model.of(allowModify),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						recomputeRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								editRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			}
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+			boolean allowAddNew = parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_ACTION_URL,
+					AuthorizationPhaseType.REQUEST, (new OrgType(parentPage.getPrismContext())).asPrismObject(),
+					null, null, null);
+			if (allowModify && allowAddNew) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						editRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								try {
+									initObjectForAdd(
+											ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
+											OrgType.COMPLEX_TYPE, null, target);
+								} catch (SchemaException e) {
+									throw new SystemException(e.getMessage(), e);
+								}
+							}
+						});
+				items.add(item);
+			}
+		} catch (SchemaException ex){
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						try {
-							initObjectForAdd(
-									ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
-									OrgType.COMPLEX_TYPE, null, target);
-						} catch (SchemaException e) {
-							throw new SystemException(e.getMessage(), e);
-						}
-					}
-				});
-		items.add(item);
-
+		}
 		return items;
 	}
 

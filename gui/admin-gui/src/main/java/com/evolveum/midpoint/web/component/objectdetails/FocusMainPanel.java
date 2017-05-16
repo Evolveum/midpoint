@@ -260,6 +260,19 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL);
+		tabs.add(
+                new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"), authorization){
+
+                	private static final long serialVersionUID = 1L;
+
+					@Override
+					public WebMarkupContainer createPanel(String panelId) {
+                        return new FocusPersonasTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage);
+					}
+
+				});
+
 		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments"), authorization) {

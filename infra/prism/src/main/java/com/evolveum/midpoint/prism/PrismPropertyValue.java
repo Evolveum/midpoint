@@ -345,6 +345,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	protected void copyValues(PrismPropertyValue clone) {
 		super.copyValues(clone);
 		clone.value = CloneUtil.clone(this.value);
+		if (this.expression != null) {
+			clone.expression = this.expression.clone();
+		}
 		clone.rawElement = this.rawElement;
 	}
 
@@ -652,6 +655,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         if (value != null) {
         	builder.append(value.getClass().getSimpleName()).append(":");
         	builder.append(PrettyPrinter.prettyPrint(value));
+        } else if (isRaw()) {
+        	builder.append("[raw]");
+        } else if (expression != null) {
+        	builder.append("[expression]");
         } else {
             builder.append("null");
         }

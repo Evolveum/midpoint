@@ -130,8 +130,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
 			@Override
-			protected List<InlineMenuItem> createInlineMenuItems() {
-				return createTreeChildrenMenu();
+			protected List<InlineMenuItem> createInlineMenuItems(OrgType org) {
+				return createTreeChildrenMenu(org);
 			}
 		};
 		List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
@@ -142,7 +142,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 		columns.add(new TreeColumn<SelectableBean<OrgType>, String>(
 				createStringResource("TreeTablePanel.hierarchy")));
-		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu()));
+		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu(null)));
 
 		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
 
@@ -341,7 +341,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		return null;
 	}
 
-	protected List<InlineMenuItem> createTreeChildrenMenu() {
+	protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
 		return new ArrayList<>();
 	}
 
