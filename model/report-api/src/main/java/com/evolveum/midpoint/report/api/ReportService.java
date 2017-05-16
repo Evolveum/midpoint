@@ -37,13 +37,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface ReportService {
 	
-	public static final String PARAMETER_REPORT_SERVICE = "reportService";
+	String PARAMETER_REPORT_SERVICE = "reportService";
 	
-	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
+	ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
 	
-	public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+	Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 	
-	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
+	Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
 
-	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
+	Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException;
 }
