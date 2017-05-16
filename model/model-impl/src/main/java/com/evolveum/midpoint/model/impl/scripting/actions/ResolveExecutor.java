@@ -78,6 +78,7 @@ public class ResolveExecutor extends BaseActionExecutor {
                 } catch (Throwable e) {
                     //noinspection ThrowableNotThrown
                     processActionException(e, NAME, value, context);
+                    output.add(item);       // to keep track of failed item (may trigger exceptions downstream)
                 }
             } else {
                 //noinspection ThrowableNotThrown

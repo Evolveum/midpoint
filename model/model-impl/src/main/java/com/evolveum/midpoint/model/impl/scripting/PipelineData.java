@@ -24,6 +24,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -192,4 +194,31 @@ public class PipelineData implements DebugDumpable {
         }
         return retval;
     }
+
+	static PipelineData parseFrom(ValueListType input, PrismContext prismContext) {
+		PipelineData rv = new PipelineData();
+		if (input != null) {
+			for (Object o : input.getValue()) {
+				if (o instanceof RawType) {
+					// a bit of hack: this should have been solved by the parser (we'll fix this later)
+					RawType raw = (RawType) o;
+					PrismValue prismValue = raw.getAlreadyParsedValue();
+					if (prismValue != null) {
+						rv.addValue(prismValue);
+					} else {
+						throw new IllegalArgumentException("Raw value in the input data: " + raw);		// TODO attempt to parse it somehow (e.g. by passing to the pipeline and then parsing based on expected type)
+					}
+				} else {
+					if (o instanceof Containerable) {
+						rv.addValue(((Containerable) o).asPrismContainerValue());
+					} else if (o instanceof Referencable) {
+						rv.addValue(((Referencable) o).asReferenceValue());
+					} else {
+						rv.addValue(new PrismPropertyValue<>(o, prismContext));
+					}
+				}
+			}
+		}
+		return rv;
+	}
 }

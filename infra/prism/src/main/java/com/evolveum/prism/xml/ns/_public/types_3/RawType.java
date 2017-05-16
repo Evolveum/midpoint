@@ -132,6 +132,10 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         return null;
 	}
 
+	public PrismValue getAlreadyParsedValue() {
+    	return parsed;
+	}
+
 	public <T> T getParsedRealValue(@NotNull Class<T> clazz) throws SchemaException {
 		if (parsed != null) {
 			if (clazz.isAssignableFrom(parsed.getRealValue().getClass())) {
@@ -140,7 +144,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 				throw new IllegalArgumentException("Parsed value ("+parsed.getClass()+") is not assignable to "+clazz);
 			}
 		} else if (xnode != null) {
-			return (T) prismContext.parserFor(xnode.toRootXNode()).parseRealValue(clazz);
+			return prismContext.parserFor(xnode.toRootXNode()).parseRealValue(clazz);
 		} else {
 			return null;
 		}

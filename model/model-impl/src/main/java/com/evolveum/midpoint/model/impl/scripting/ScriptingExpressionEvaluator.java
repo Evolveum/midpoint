@@ -135,10 +135,9 @@ public class ScriptingExpressionEvaluator {
 
 
 	public ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
-        // TODO parse input data
 		Validate.notNull(executeScript.getScriptingExpression(), "Scripting expression must be present");
         ExecutionContext context = evaluateExpression(executeScript.getScriptingExpression().getValue(),
-                PipelineData.createEmpty(), executeScript.getOptions(), task, result);
+                PipelineData.parseFrom(executeScript.getInput(), prismContext), executeScript.getOptions(), task, result);
         context.computeResults();
         return context;
     }
