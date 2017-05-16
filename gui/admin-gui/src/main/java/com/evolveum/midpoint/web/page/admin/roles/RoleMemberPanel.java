@@ -159,8 +159,8 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
-	private AssignmentType createAssignmentToModify() throws SchemaException {
-		AssignmentType assignmentToModify = createAssignmentToModify(null);
+	private AssignmentType createMemberAssignmentToModify(QName relation) throws SchemaException {
+		AssignmentType assignmentToModify = createAssignmentToModify(relation);
 
 		DropDownChoice<OrgType> tenantChoice = (DropDownChoice<OrgType>) get(ID_TENANT);
 		OrgType tenant = tenantChoice.getModelObject();
@@ -278,13 +278,13 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	@Override
 	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null));
-		ObjectDelta delta = prepareDelta(type, MemberOperation.ADD, operationalTask.getResult());
+		ObjectDelta delta = prepareDelta(type, relation, MemberOperation.ADD, operationalTask.getResult());
 		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
 
 	}
 
-	private ObjectDelta prepareDelta(QName type, MemberOperation operation, OperationResult result) {
+	private ObjectDelta prepareDelta(QName type, QName relation, MemberOperation operation, OperationResult result) {
 		Class classType = WebComponentUtil.qnameToClass(getPrismContext(), type);
 		ObjectDelta delta = null;
 		try {
@@ -292,13 +292,13 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 				case ADD:
 
 					delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
+							FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(relation));
 
 					break;
 
 				case REMOVE:
 					delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
+							FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
 					break;
 			}
 		} catch (SchemaException e) {
@@ -311,7 +311,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	@Override
 	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope));
-		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, MemberOperation.REMOVE, operationalTask.getResult());
+		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, null, MemberOperation.REMOVE, operationalTask.getResult());
 		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
 
