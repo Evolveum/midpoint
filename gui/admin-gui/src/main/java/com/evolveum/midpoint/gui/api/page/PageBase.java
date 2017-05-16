@@ -1222,7 +1222,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		submenu.add(list);
 		createFocusPageViewMenu(submenu, "PageAdmin.menu.top.resources.view", PageResource.class);
         createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.resources.new", "PageAdmin.menu.top.resources.edit",
-				PageResourceWizard.class);
+				PageResourceWizard.class, false);
 		MenuItem n = new MenuItem(createStringResource("PageAdmin.menu.top.resources.import"),
 				PageImportResource.class);
 		submenu.add(n);
@@ -1495,7 +1495,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class);
 		submenu.add(list);
 		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.users.new", "PageAdmin.menu.top.users.edit",
-				PageUser.class);
+				PageUser.class, true);
 		// MenuItem search = new
 		// MenuItem(createStringResource("PageAdmin.menu.users.search"),
 		// PageUsersSearch.class);
@@ -1505,7 +1505,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
-			final Class<? extends PageAdmin> newPageClass) {
+			final Class<? extends PageAdmin> newPageClass, boolean checkAuthorization) {
 		MenuItem edit = new MenuItem(createStringResource(editKey), newPageClass, null, new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -1537,14 +1537,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 				@Override
 				public boolean isVisible() {
-					try {
-                        return getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_ACTION_URL,
-							AuthorizationPhaseType.REQUEST, (new OrgType(getPrismContext())).asPrismObject(),
-							null, null, null);
-					} catch (SchemaException ex){
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
-					}
-					return true;
+					return !checkAuthorization || isMenuItemAuthorized(newPageClass);
 				}
 			}) {
 				private static final long serialVersionUID = 1L;
@@ -1567,6 +1560,28 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				}
 			};
 			submenu.add(newMenu);
+	}
+
+	private boolean isMenuItemAuthorized(Class<? extends PageAdmin> newPageClass) {
+		try {
+			ObjectType object = null;
+			if (PageOrgUnit.class.equals(newPageClass)) {
+				object = new OrgType(getPrismContext());
+			} else if (PageUser.class.equals(newPageClass)) {
+				object = new UserType(getPrismContext());
+			} else if (PageRole.class.equals(newPageClass)) {
+				object = new RoleType(getPrismContext());
+			} else if (PageService.class.equals(newPageClass)) {
+				object = new ServiceType(getPrismContext());
+			}
+
+			return getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_ACTION_URL,
+					AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
+					null, null, null);
+		} catch (SchemaException ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New organization menu item", ex);
+		}
+		return false;
 	}
 
 	private void createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
@@ -1600,7 +1615,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgTree.class);
 		submenu.add(list);
 		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.users.org.new", "PageAdmin.menu.top.users.org.edit",
-				PageOrgUnit.class);
+				PageOrgUnit.class, true);
 
 		return item;
 	}
@@ -1614,7 +1629,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class);
 		submenu.add(list);
 		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
-				PageRole.class);
+				PageRole.class, true);
 
 		return item;
 	}
@@ -1628,7 +1643,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		MenuItem list = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"), PageServices.class);
 		submenu.add(list);
 		createFocusPageNewEditMenu(submenu, "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
-				PageService.class);
+				PageService.class, true);
 
 		return item;
 	}

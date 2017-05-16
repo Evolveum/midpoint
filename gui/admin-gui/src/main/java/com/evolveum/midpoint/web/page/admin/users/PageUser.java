@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.objectdetails.UserDelegationsTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
@@ -91,6 +92,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private List<AssignmentsPreviewDto> privilegesList = new ArrayList<>();
+    private UserDelegationsTabPanel userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 
@@ -192,118 +194,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegations"),
-                                delegationsModel) {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
-                                DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
-                                        privilegesList, PageUser.this);
-                                item.add(editor);
-                            }
-
-                            @Override
-                            public String getExcludeOid() {
-                                return getObject().getOid();
-                            }
-
-                            @Override
-                            protected List<InlineMenuItem> createAssignmentMenu() {
-                                List<InlineMenuItem> items = new ArrayList<>();
-
-                                InlineMenuItem item;
-                                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DELEGATE_ACTION_URL)) {
-                                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.addDelegation"),
-                                            new InlineMenuItemAction() {
-                                                private static final long serialVersionUID = 1L;
-
-                                                @Override
-                                                public void onClick(AjaxRequestTarget target) {
-                                                    List<QName> supportedTypes = new ArrayList<>();
-                                                    supportedTypes.add(UserType.COMPLEX_TYPE);
-                                                    ObjectFilter filter = InOidFilter.createInOid(getObjectWrapper().getOid());
-                                                    ObjectFilter notFilter = NotFilter.createNot(filter);
-                                                    ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
-                                                            getMainPopupBodyId(), UserType.class,
-                                                            supportedTypes, false, PageUser.this, notFilter) {
-                                                        private static final long serialVersionUID = 1L;
-
-                                                        @Override
-                                                        protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
-                                                            hideMainPopup(target);
-                                                            List<ObjectType> newAssignmentsList = new ArrayList<ObjectType>();
-                                                            newAssignmentsList.add(user);
-                                                            addSelectedAssignablePerformed(target, newAssignmentsList, getPageBase().getMainPopup().getId());
-                                                        }
-
-                                                    };
-                                                    panel.setOutputMarkupId(true);
-                                                    showMainPopup(panel, target);
-
-                                                }
-                                            });
-                                    items.add(item);
-                                }
-                                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
-                                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.deleteDelegation"),
-                                            new InlineMenuItemAction() {
-                                                private static final long serialVersionUID = 1L;
-
-                                                @Override
-                                                public void onClick(AjaxRequestTarget target) {
-                                            deleteAssignmentPerformed(target);
-                                                }
-                                            });
-                                    items.add(item);
-                                }
-
-                                return items;
-                            }
-
-                            @Override
-                            protected String getNoAssignmentsSelectedMessage(){
-                                return getString("AssignmentTablePanel.message.noDelegationsSelected");
-                            }
-
-                            @Override
-                            protected String getAssignmentsDeleteMessage(int size){
-                                return createStringResource("AssignmentTablePanel.modal.message.deleteDelegation",
-                                        size).getString();
-                            }
-
-                            @Override
-                            protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
-                                                                          String popupId) {
-                                ModalWindow window = (ModalWindow) get(popupId);
-                                if (window != null) {
-                                    window.close(target);
-                                }
-                                getPageBase().hideMainPopup(target);
-                                if (newAssignments.isEmpty()) {
-                                    warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
-                                    target.add(getPageBase().getFeedbackPanel());
-                                    return;
-                                }
-
-                                for (ObjectType object : newAssignments) {
-                                    try {
-                                        AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
-                                                    PageUser.this.getObjectWrapper().getObject().asObjectable(),
-                                                    SchemaConstants.ORG_DEPUTY, getPageBase(), (UserType) object);
-                                        dto.setPrivilegeLimitationList(privilegesList);
-                                        delegationsModel.getObject().add(dto);
-                                    } catch (Exception e) {
-                                        error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
-                                                e.getMessage()));
-                                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
-                                    }
-                                }
-                                reloadAssignmentsPanel(target);
-                                reloadMainFormButtons(target);
-                            }
-
-                        };
+                        userDelegationsTabPanel = new UserDelegationsTabPanel(panelId, getMainForm(), getObjectModel(), delegationsModel, privilegesList, PageUser.this);
+                        return userDelegationsTabPanel;
                     }
 
                     @Override
@@ -359,6 +251,12 @@ public class PageUser extends PageAdminFocus<UserType> {
                 } else {
                     return super.getOptionsPanelVisibility();
                 }
+            }
+
+            @Override
+            protected boolean areSavePreviewButtonsEnabled(){
+                return super.areSavePreviewButtonsEnabled() ||
+                        (userDelegationsTabPanel != null ? userDelegationsTabPanel.isDelegationsModelChanged() : false);
             }
         };
     }
