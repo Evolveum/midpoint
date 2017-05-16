@@ -421,12 +421,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		
 		OrgRelationObjectSpecificationType specOrgRelation = objectSelector.getOrgRelation();
+		RoleRelationObjectSpecificationType specRoleRelation = objectSelector.getRoleRelation();
 				
 		// Special
 		List<SpecialObjectSpecificationType> specSpecial = objectSelector.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
-			if (objectSelector.getFilter() != null || objectSelector.getOrgRef() != null || specOrgRelation != null) {
-				throw new SchemaException("Both filter/org and special "+desc+" specification specified in "+autzHumanReadableDesc);
+			if (objectSelector.getFilter() != null || objectSelector.getOrgRef() != null || specOrgRelation != null || specRoleRelation != null) {
+				throw new SchemaException("Both filter/org/role and special "+desc+" specification specified in "+autzHumanReadableDesc);
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
 				if (special == SpecialObjectSpecificationType.SELF) {
@@ -465,6 +466,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 			if (!match) {
 				LOGGER.trace("  org {} not applicable for {}, object OID {} because none of the subject orgs matches",
+						autzHumanReadableDesc, desc, object.getOid());
+				return false;
+			}			
+		}
+		
+		// roleRelation
+		if (specRoleRelation != null) {
+			boolean match = false;
+			for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
+				if (matchesRoleRelation(object, subjectRoleMembershipRef, specRoleRelation, autzHumanReadableDesc, desc)) {
+					LOGGER.trace("  {} applicable for {}, object OID {} because subject role relation {} matches",
+							autzHumanReadableDesc, desc, object.getOid(), subjectRoleMembershipRef.getOid());
+					match = true;
+					break;
+				}
+			}
+			if (!match) {
+				LOGGER.trace("  {} not applicable for {}, object OID {} because none of the subject roles matches",
 						autzHumanReadableDesc, desc, object.getOid());
 				return false;
 			}			
@@ -528,6 +547,31 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
 		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
 			if (oid.equals(objParentOrgRef.getOid())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private <O extends ObjectType> boolean matchesRoleRelation(PrismObject<O> object, ObjectReferenceType subjectRoleMembershipRef,
+			RoleRelationObjectSpecificationType specRoleRelation, String autzHumanReadableDesc, String desc) throws SchemaException {
+		if (!MiscSchemaUtil.compareRelation(specRoleRelation.getSubjectRelation(), subjectRoleMembershipRef.getRelation())) {
+			return false;
+		}
+		if (BooleanUtils.isTrue(specRoleRelation.isIncludeReferenceRole()) && subjectRoleMembershipRef.getOid().equals(object.getOid())) {
+			return true;
+		}
+		if (BooleanUtils.isTrue(specRoleRelation.isIncludeMembers())) {
+			if (!object.canRepresent(FocusType.class)) {
+				return false;
+			}
+			for (ObjectReferenceType objectRoleMembershipRef: ((FocusType)object.asObjectable()).getRoleMembershipRef()) {
+				if (!subjectRoleMembershipRef.getOid().equals(objectRoleMembershipRef.getOid())) {
+					continue;
+				}
+				if (!MiscSchemaUtil.compareRelation(specRoleRelation.getObjectRelation(), objectRoleMembershipRef.getRelation())) {
+					continue;
+				}
 				return true;
 			}
 		}
