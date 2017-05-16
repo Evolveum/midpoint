@@ -144,7 +144,7 @@ public class PageCertDecisions extends PageAdminCertification {
         add(mainForm);
         CertWorkItemDtoProvider provider = createProvider();
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
-        BoxedTablePanel table = new BoxedTablePanel(ID_DECISIONS_TABLE, provider, initColumns(),
+        BoxedTablePanel<CertWorkItemDto> table = new BoxedTablePanel<CertWorkItemDto>(ID_DECISIONS_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
 
             @Override
@@ -174,7 +174,7 @@ public class PageCertDecisions extends PageAdminCertification {
     private List<IColumn<CertWorkItemDto, String>> initColumns() {
         List<IColumn<CertWorkItemDto, String>> columns = new ArrayList<>();
 
-        IColumn column;
+        IColumn<CertWorkItemDto, String> column;
 
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
@@ -356,7 +356,7 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        column = new DirectlyEditablePropertyColumn(
+        column = new DirectlyEditablePropertyColumn<CertWorkItemDto>(
                 createStringResource("PageCertDecisions.table.comment"),
                 CertWorkItemDto.F_COMMENT) {
             @Override
@@ -458,6 +458,9 @@ public class PageCertDecisions extends PageAdminCertification {
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
         try {
             Task task = createSimpleTask(OPERATION_RECORD_ACTION);
+            if (response == null) {
+                response = workItemDto.getResponse();
+            }
             // TODO work item ID
             getCertificationService().recordDecision(
                     workItemDto.getCampaignRef().getOid(),
