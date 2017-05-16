@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 
 <!-- yellow resource - almost same as resource-dummy but with strong asIs administrativeStatus mapping 
                        also has a modified synchronization section: just correlation but no reactions.
-                       also it has minimum password length constraint. -->
+                       also it has minimum password length constraint
+                       also it is using some constants in the configuration and expressions. -->
 
 <resource oid="10000000-0000-0000-0000-000000000704"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -51,6 +52,11 @@
 		<icfc:configurationProperties>
 			<icfi:instanceId>yellow</icfi:instanceId>
 			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+			<icfi:uselessString>
+				<expression>
+					<const>useless</const>
+				</expression>
+			</icfi:uselessString>
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
@@ -187,7 +193,7 @@
 				<outbound>
 					<strength>strong</strength>
 					<expression>
-						<value>rum</value>
+						<const>drink</const>
 					</expression>
 				</outbound>
 			</attribute>
@@ -200,7 +206,7 @@
 					<expression>
 						<script>
 							<code>
-								'Bla bla bla ' + midpoint.getPrincipal().getUsername() + ' -- ' + actor?.getName()
+								midpoint.getConst('blabla') + ' ' + midpoint.getPrincipal().getUsername() + ' -- ' + actor?.getName()
 							</code>
 						</script>
 					</expression>

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -123,6 +124,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Autowired
 	private WorkflowService workflowService;
+	
+	@Autowired
+	private ConstantsManager constantsManager;
 
 	public String hello(String name) {
         return "Hello "+name;
@@ -1350,5 +1354,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		} catch (EncryptionException e) {
 			return null;
 		}
+	}
+
+	@Override
+	public String getConst(String name) {
+		return constantsManager.getConstantValue(name);
 	}
 }

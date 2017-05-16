@@ -59,6 +59,8 @@
         </keystore>
         <constants>
         	<useless>xUSEless</useless>
+        	<drink>rum</drink>
+        	<blabla>Bla bla bla</blabla>
         </constants>
     </midpoint>
 </configuration>

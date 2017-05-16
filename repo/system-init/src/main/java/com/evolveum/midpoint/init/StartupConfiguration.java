@@ -191,10 +191,16 @@ public class StartupConfiguration implements MidpointConfiguration {
         	try {
                 if (!configFile.exists()) {
                     LOGGER.warn("Configuration file {} does not exists. Need to do extraction ...", configFile);
-                    ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), configFile.getPath());
+                    boolean success = ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), configFile.getPath());
+                    if (!success || !configFile.exists()) {
+                    	String message = "Unable to extract configuration file " + this.getConfigFilename() + " from classpath";
+                        LOGGER.error(message);
+                        System.out.println(message);
+                        throw new SystemException(message);
+                    }
                 }
                 //Load and parse properties
-                config.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME));
+                config.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
                 createXmlConfiguration(documentBuilder, configFile.getPath());
             } catch (ConfigurationException e) {
                 String message = "Unable to read configuration file [" + configFile + "]: " + e.getMessage();

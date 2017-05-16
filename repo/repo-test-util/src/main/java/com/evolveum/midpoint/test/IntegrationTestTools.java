@@ -94,6 +94,8 @@ public class IntegrationTestTools {
 	
 	// Constants from test-config.xml.
 	public static final String CONST_USELESS = "xUSEless";
+	public static final String CONST_DRINK = "rum";
+	public static final String CONST_BLABLA = "Bla bla bla";
 	
 	public static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 	public static final String DBTABLE_CONNECTOR_TYPE = "org.identityconnectors.databasetable.DatabaseTableConnector";
