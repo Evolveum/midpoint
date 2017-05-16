@@ -51,7 +51,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
 	private LoadableModel<ObjectWrapper<O>> objectWrapperModel;
-	private PageBase pageBase;
+	protected PageBase pageBase;
 	private Form<ObjectWrapper<O>> mainForm;
 
 	public AbstractObjectTabPanel(String id, Form<ObjectWrapper<O>> mainForm, LoadableModel<ObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
