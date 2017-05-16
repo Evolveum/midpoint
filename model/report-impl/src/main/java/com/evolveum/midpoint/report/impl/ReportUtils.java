@@ -37,21 +37,13 @@ import java.util.ResourceBundle;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedExclusionTriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;   
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
@@ -93,6 +85,14 @@ public class ReportUtils {
 
     public static String prettyPrintCertOutcomeForReport(String uri) {
         return prettyPrintForReport(OutcomeUtils.fromUri(uri));
+    }
+
+    public static String prettyPrintCertOutcomeForReport(AbstractWorkItemOutputType output) {
+        return output != null ? prettyPrintCertOutcomeForReport(output.getOutcome()) : null;
+    }
+
+    public static String prettyPrintCertCommentForReport(AbstractWorkItemOutputType output) {
+        return output != null ? output.getComment() : null;
     }
 
     public static String prettyPrintForReport(XMLGregorianCalendar dateTime) {

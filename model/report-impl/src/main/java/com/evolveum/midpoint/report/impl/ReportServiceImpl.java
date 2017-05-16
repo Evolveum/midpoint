@@ -72,33 +72,16 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 public class ReportServiceImpl implements ReportService {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReportServiceImpl.class);
-
-	@Autowired(required = true)
-	private ModelService model;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private ExpressionFactory expressionFactory;
-
-	@Autowired(required = true)
-	private ObjectResolver objectResolver;
-
-	@Autowired(required = true)
-	private AuditService auditService;
 	
-	@Autowired(required = true)
-	private FunctionLibrary logFunctionLibrary;
-	
-	@Autowired(required = true)
-	private FunctionLibrary basicFunctionLibrary;
-	
-	@Autowired(required = true)
-	private FunctionLibrary midpointFunctionLibrary;
+	@Autowired private ModelService model;
+	@Autowired private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private ObjectResolver objectResolver;
+	@Autowired private AuditService auditService;
+	@Autowired private FunctionLibrary logFunctionLibrary;
+	@Autowired private FunctionLibrary basicFunctionLibrary;
+	@Autowired private FunctionLibrary midpointFunctionLibrary;
 
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
@@ -107,7 +90,7 @@ public class ReportServiceImpl implements ReportService {
 			return null;
 		}
 
-		ObjectQuery parsedQuery = null;
+		ObjectQuery parsedQuery;
 		try {
 			Task task = taskManager.createTaskInstance();
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));

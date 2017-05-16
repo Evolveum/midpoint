@@ -20,13 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -38,45 +32,21 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionForReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_OBJECT_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_TARGET_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
 public class ReportFunctions {
@@ -265,7 +235,7 @@ public class ReportFunctions {
     }
 
     <T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query) {
-        List<T> ret = new ArrayList();
+        List<T> ret = new ArrayList<>();
         Task task = taskManager.createTaskInstance();
         try {
             List<PrismObject<T>> list = model.searchObjects(type, query, null, task, task.getResult()).getList();
@@ -327,41 +297,35 @@ public class ReportFunctions {
             definitionsForReportMap.put(definition.getOid(), definitionForReport);
         }
 
-        ResultHandler<AccessCertificationCampaignType> handler = new ResultHandler<AccessCertificationCampaignType>() {
-            @Override
-            public boolean handle(PrismObject<AccessCertificationCampaignType> campaignObject, OperationResult parentResult) {
-                AccessCertificationCampaignType campaign = campaignObject.asObjectable();
-                if (campaign.getDefinitionRef() != null) {
-                    String definitionOid = campaign.getDefinitionRef().getOid();
-                    PrismObject<AccessCertificationDefinitionForReportType> definitionObject = definitionsForReportMap.get(definitionOid);
-                    if (definitionObject != null) {
-                        AccessCertificationDefinitionForReportType definition = definitionObject.asObjectable();
-                        int campaigns = definition.getCampaigns() != null ? definition.getCampaigns() : 0;
-                        definition.setCampaigns(campaigns+1);
-                        AccessCertificationCampaignStateType state = campaign.getState();
-                        if (state != AccessCertificationCampaignStateType.CREATED && state != CLOSED) {
-                            int openCampaigns = definition.getOpenCampaigns() != null ? definition.getOpenCampaigns() : 0;
-                            definition.setOpenCampaigns(openCampaigns+1);
-                        }
-                    }
-                }
-                return true;
-            }
-        };
+        ResultHandler<AccessCertificationCampaignType> handler = (campaignObject, parentResult) -> {
+			AccessCertificationCampaignType campaign = campaignObject.asObjectable();
+			if (campaign.getDefinitionRef() != null) {
+				String definitionOid = campaign.getDefinitionRef().getOid();
+				PrismObject<AccessCertificationDefinitionForReportType> definitionObject = definitionsForReportMap.get(definitionOid);
+				if (definitionObject != null) {
+					AccessCertificationDefinitionForReportType definition = definitionObject.asObjectable();
+					int campaigns = definition.getCampaigns() != null ? definition.getCampaigns() : 0;
+					definition.setCampaigns(campaigns+1);
+					AccessCertificationCampaignStateType state = campaign.getState();
+					if (state != AccessCertificationCampaignStateType.CREATED && state != CLOSED) {
+						int openCampaigns = definition.getOpenCampaigns() != null ? definition.getOpenCampaigns() : 0;
+						definition.setOpenCampaigns(openCampaigns+1);
+					}
+				}
+			}
+			return true;
+		};
         model.searchObjectsIterative(AccessCertificationCampaignType.class, null, handler, null, task, result);
 
         List<PrismObject<AccessCertificationDefinitionForReportType>> rv = new ArrayList<>(definitionsForReportMap.values());
-        Collections.sort(rv, new Comparator<PrismObject<AccessCertificationDefinitionForReportType>>() {
-            @Override
-            public int compare(PrismObject<AccessCertificationDefinitionForReportType> o1, PrismObject<AccessCertificationDefinitionForReportType> o2) {
-                String n1 = o1.asObjectable().getName().getOrig();
-                String n2 = o2.asObjectable().getName().getOrig();
-                if (n1 == null) {
-                    n1 = "";
-                }
-                return n1.compareTo(n2);
-            }
-        });
+        Collections.sort(rv, (o1, o2) -> {
+			String n1 = o1.asObjectable().getName().getOrig();
+			String n2 = o2.asObjectable().getName().getOrig();
+			if (n1 == null) {
+				n1 = "";
+			}
+			return n1.compareTo(n2);
+		});
         for (PrismObject<AccessCertificationDefinitionForReportType> defObject : rv) {
             AccessCertificationDefinitionForReportType def = defObject.asObjectable();
             if (def.getCampaigns() == null) {
@@ -398,18 +362,19 @@ public class ReportFunctions {
         return model.searchContainers(AccessCertificationCaseType.class, query, options, task, task.getResult());
     }
 
-//    public List<PrismContainerValue<AccessCertificationDecisionType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-//        List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
-//        List<AccessCertificationDecisionType> decisions = new ArrayList<>();
-//        for (AccessCertificationCaseType aCase : cases) {
-//            for (AccessCertificationDecisionType decision : aCase.getDecision()) {
-//                if (stageNumber == null || decision.getStageNumber() == stageNumber) {
-//                    decisions.add(decision);
-//                }
-//            }
-//        }
-//        return PrismContainerValue.toPcvList(decisions);
-//    }
+    public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
+        List<AccessCertificationWorkItemType> workItems = new ArrayList<>();
+        for (AccessCertificationCaseType aCase : cases) {
+            for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+                if (stageNumber == null || java.util.Objects.equals(workItem.getStageNumber(), stageNumber)) {
+                    workItems.add(workItem);
+                }
+            }
+        }
+        return PrismContainerValue.toPcvList(workItems);
+    }
 
     public List<PrismObject<AccessCertificationCampaignType>> getCertificationCampaigns(Boolean alsoClosedCampaigns) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Task task = taskManager.createTaskInstance();
