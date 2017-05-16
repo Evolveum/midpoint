@@ -25,6 +25,7 @@
 	default-lazy-init="false" default-autowire="byName">
 	
 	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
+		<constructor-arg value="./target/midpoint-home" />
 		<constructor-arg value="test-config.xml" />
 	</bean>
 	

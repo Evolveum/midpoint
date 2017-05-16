@@ -94,12 +94,10 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
-	protected ResourceType resourceDummyType;
 	protected PrismObject<ResourceType> resourceDummy;
 	
 	protected DummyResource dummyResourceRed;
 	protected DummyResourceContoller dummyResourceCtlRed;
-	protected ResourceType resourceDummyRedType;
 	protected PrismObject<ResourceType> resourceDummyRed;
 		
 	@Override
@@ -118,7 +116,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		resourceDummy.asObjectable().getConnectorRef().setOid(connectorDummy.getOid());
 		repositoryService.addObject(resourceDummy, null, initResult);
 		
-		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
 		
 		
@@ -131,10 +128,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		resourceDummyRed.asObjectable().getConnectorRef().setOid(connectorDummy.getOid());
 		repositoryService.addObject(resourceDummyRed, null, initResult);
 		
-		resourceDummyRedType = resourceDummyRed.asObjectable();
 		dummyResourceCtlRed.setResource(resourceDummyRed);
-		
-		
+				
 		ResourceCarefulAntUtil.initAnts(ants, RESOURCE_DUMMY_FILE, prismContext);
 		descriptionAnt = ants.get(0);
 		InternalMonitor.reset();
@@ -521,6 +516,8 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertConnectorSchemaParseIncrement(0);
         
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
+        
+        assertEquals("Wrong dummy useless string", RESOURCE_DUMMY_USELESS_STRING, dummyResource.getUselessString());
 	}
 	
 	@Test
@@ -745,6 +742,44 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         TestUtil.assertSuccess("getObject result", result);
         
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
+	}
+	
+	/**
+	 * Red resource has an expression for uselessString configuration property. Check that.
+	 */
+	@Test
+    public void test210GetResourceDummyRed() throws Exception {
+		final String TEST_NAME = "test210GetResourceDummyRed";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+        
+        rememberPrismObjectCloneCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_RED_OID, null , task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertPrismObjectCloneIncrement(1);
+        
+        assertResourceDummy(resource, true);
+        
+        assertResourceSchemaFetchIncrement(0);
+        assertResourceSchemaParseCountIncrement(0);
+        assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+        assertConnectorSchemaParseIncrement(0);
+        
+        IntegrationTestTools.displayXml("Initialized dummy resource", resource);
+        
+        assertEquals("Wrong RED useless string", RESOURCE_DUMMY_RED_USELESS_STRING, dummyResourceRed.getUselessString());
 	}
 	
     @Test

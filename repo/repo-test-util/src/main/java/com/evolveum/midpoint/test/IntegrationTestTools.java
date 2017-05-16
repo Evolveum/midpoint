@@ -92,6 +92,9 @@ import static org.testng.AssertJUnit.*;
  */
 public class IntegrationTestTools {
 	
+	// Constants from test-config.xml.
+	public static final String CONST_USELESS = "xUSEless";
+	
 	public static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 	public static final String DBTABLE_CONNECTOR_TYPE = "org.identityconnectors.databasetable.DatabaseTableConnector";
 	public static final String CONNECTOR_LDAP_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
