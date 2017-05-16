@@ -18,12 +18,13 @@ package com.evolveum.midpoint.prism;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author mederly
  */
-public class ExpressionWrapper {
+public class ExpressionWrapper implements Cloneable {
 
 	private QName elementName;
     private Object expression;
@@ -41,6 +42,11 @@ public class ExpressionWrapper {
 	public Object getExpression() {
         return expression;
     }
+	
+	public ExpressionWrapper clone() {
+		Object expressionClone = CloneUtil.clone(expression);
+		return new ExpressionWrapper(elementName, expressionClone);
+	}
 
 	@Override
 	public String toString() {

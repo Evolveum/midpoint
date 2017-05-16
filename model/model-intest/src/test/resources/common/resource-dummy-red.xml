@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
 	<name>Dummy Resource Red</name>
+	
 	<connectorRef type="ConnectorType">
 		<filter>
 			<q:and>
@@ -43,11 +44,17 @@
 			</q:and>
 		</filter>
 	</connectorRef>
+	
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>red</icfi:instanceId>
+			<icfi:uselessString>
+				<expression>
+					<const>useless</const>
+				</expression>
+			</icfi:uselessString>
 		</icfc:configurationProperties>
 
 	</connectorConfiguration>

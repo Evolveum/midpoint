@@ -101,7 +101,7 @@ public class ClassPathUtil {
 	 *            destination
 	 * @return successful extraction
 	 */
-	public static Boolean extractFileFromClassPath(String src, String dst) {
+	public static boolean extractFileFromClassPath(String src, String dst) {
 		InputStream is = ClassPathUtil.class.getClassLoader().getResourceAsStream(src);
 		if (null == is) {
 			LOGGER.error("Unable to find file {} for extraction to {}", src, dst);
