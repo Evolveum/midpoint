@@ -146,6 +146,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_READONLY_DEEP_EXEC_FILE = new File(TEST_DIR, "role-readonly-deep-exec.xml");
 	protected static final String ROLE_READONLY_DEEP_EXEC_OID = "00000000-0000-0000-0000-00000000ae02";
 	
+	protected static final File ROLE_READ_BASIC_ITEMS_FILE = new File(TEST_DIR, "role-read-basic-items.xml");
+	protected static final String ROLE_READ_BASIC_ITEMS_OID = "519e8bf4-3af3-11e7-bc89-cbcee62d4088";
+	
 	protected static final File ROLE_SELF_FILE = new File(TEST_DIR, "role-self.xml");
 	protected static final String ROLE_SELF_OID = "00000000-0000-0000-0000-00000000aa03";
 	
@@ -277,6 +280,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_ORDINARY_FILE = new File(TEST_DIR, "role-ordinary.xml");
 	protected static final String ROLE_ORDINARY_OID = "7a7ad698-3a37-11e7-9af7-6fd138dd9572";
 	
+	protected static final File ROLE_UNINTERESTING_FILE = new File(TEST_DIR, "role-uninteresting.xml");
+	protected static final String ROLE_UNINTERESTING_OID = "2264afee-3ae4-11e7-a63c-8b53efadd642";
+	
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
 	
@@ -306,6 +312,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
+	protected static final int NUMBER_OF_ALL_ROLES = 70;
+	protected static final int NUMBER_OF_ALL_ORGS = 10;
 	
 	protected String userRumRogersOid;
 	protected  String userCobbOid;
@@ -322,6 +330,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_READONLY_REQ_EXEC_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_EXEC_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_BASIC_ITEMS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_FILE, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, initResult);
@@ -372,6 +381,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_PERSONA_ADMIN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_APPROVER_UNASSIGN_ROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ORDINARY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_UNINTERESTING_FILE, initResult);
 
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		

@@ -23,6 +23,7 @@
     <authorization>
     	<name>appr-read-roles</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<enforcementStrategy>maySkipOnSearch</enforcementStrategy>
     	<object>
     		<type>RoleType</type>
     		<roleRelation>
@@ -45,8 +46,7 @@
     	</object>
     </authorization>
     <authorization>
-    	<name>appr-assign</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+    	<name>appr-unassign</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
     	<phase>request</phase>
     	<object>

@@ -1159,9 +1159,9 @@ public class Clockwork {
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
 			primaryDelta = primaryDelta.clone();
-			PrismObject<O> object = elementContext.getObjectNew();
-			if (primaryDelta.isDelete()) {
-				object = elementContext.getObjectCurrent();
+			PrismObject<O> object = elementContext.getObjectCurrent();
+			if (primaryDelta.isAdd()) {
+				object = elementContext.getObjectNew();
 			}
 			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver);
