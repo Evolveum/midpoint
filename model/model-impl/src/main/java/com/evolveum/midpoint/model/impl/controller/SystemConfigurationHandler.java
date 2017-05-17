@@ -70,7 +70,7 @@ public class SystemConfigurationHandler implements ChangeHook {
         hookRegistry.registerChangeHook(HOOK_URI, this);
     }
 
-    private void applyLoggingConfiguration(LoggingConfigurationType loggingConfig, String version, OperationResult parentResult) {
+    private void applyLoggingConfiguration(LoggingConfigurationType loggingConfig, String version, OperationResult parentResult) throws SchemaException {
         if (loggingConfig != null) {
             LoggingConfigurationManager.configure(loggingConfig, version, parentResult);
         }

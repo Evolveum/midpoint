@@ -11683,6 +11683,21 @@
         </xsd:complexContent>
     </xsd:complexType>
     
+    <xsd:complexType name="SyslogAppenderConfigurationType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AppenderConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="syslogHost" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="port" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="facility" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="suffixPattern" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="stackTracePattern" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="throwableExcluded" type="xsd:boolean" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
     <xsd:complexType name="RoleManagementConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
