@@ -64,5 +64,9 @@
 		<key>tr</key>
 		<label>Türkçe</label>
 	</row>
+	<row>
+		<key>zh_CN</key>
+		<label>中文</label>
+	</row>
 
 </lookupTable>
