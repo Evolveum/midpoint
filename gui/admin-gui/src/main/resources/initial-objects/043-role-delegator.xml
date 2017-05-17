@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2016-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -63,5 +63,24 @@
     	<object>
     		<type>ShadowType</type>
     	</object>
+    </authorization>
+        <authorization>
+    	<name>delegator-read-delagate-assignments</name>
+    	<description>
+    		Authorization to read the assignments and assignment-related items from my delegates.
+    		This authorization is necessary so the self-service GUI can properly display user's
+    		delegations. Delegations are in fact assignments in the delegate object, not delegator
+    		object. Therefore authorization to read just "self" will not display the delegations.
+    	</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>UserType</type>
+    		<delegator>
+    			<special>self</special>
+    		</delegator>
+    	</object>
+    	<item>assignment</item>
+    	<item>roleMembershipRef</item>
+    	<item>delegatedRef</item>
     </authorization>
 </role>
