@@ -26,9 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,7 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -181,7 +178,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     
 	@Test
     public void test120AutzJackDelagator() throws Exception {
-		final String TEST_NAME = "test350AutzJackDelagator";
+		final String TEST_NAME = "test120AutzJackDelagator";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
@@ -219,7 +216,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
             	(task, result) -> {
             		assignDeputy(USER_JACK_OID, USER_BARBOSSA_OID, task, result);
     			});
-        
 
         // Good direction
         assertAllow("delegate to Barbossa", 
@@ -228,11 +224,18 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 			});
         
         userJack = getUser(USER_JACK_OID);
+        display("Jack delegator", userJack);
         assertAssignments(userJack, 1);
         
         userBarbossa = getUser(USER_BARBOSSA_OID);
+        display("Barbossa delegate", userBarbossa);
         assertAssignments(userBarbossa, 1);
         assertAssignedDeputy(userBarbossa, USER_JACK_OID);
+        
+        // Non-delegate. We should be able to read just the name. Not the assignments.
+        PrismObject<UserType> userRum = getUser(userRumRogersOid);
+        display("User Rum Rogers", userRum);
+        assertNoAssignments(userRum);
         
         login(USER_BARBOSSA_USERNAME);
         // WHEN

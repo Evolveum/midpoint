@@ -8909,6 +8909,19 @@
 							</xsd:documentation>
 						</xsd:annotation>
 			        </xsd:element>
+			        <xsd:element name="delegator" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has a delegator specified by this element.
+								The "delegator" means that the object has an active delegation assignment to delegator.
+								
+								LIMITATION: only "self" delegator is supported now.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+			        </xsd:element>
 		        </xsd:sequence>        	
         	</xsd:extension>
         </xsd:complexContent>

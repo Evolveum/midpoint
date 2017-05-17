@@ -493,12 +493,54 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					return false;
 				}			
 			}
+			
+			// Delegator
+			SubjectedObjectSelectorType delegatorSpec = ((OwnedObjectSelectorType)objectSelector).getDelegator();
+			if (delegatorSpec != null) {
+				if (!isSelf(delegatorSpec)) {
+					throw new SchemaException("Unsupported non-self delegator clause");
+				}
+				if (!object.canRepresent(UserType.class)) {
+					LOGGER.trace("  {}: delegator object spec not applicable for {}, because the object is not user",
+							autzHumanReadableDesc, desc);
+					return false;
+				}
+				boolean found = false;
+				for (ObjectReferenceType objectDelegatedRef: ((UserType)object.asObjectable()).getDelegatedRef()) {
+					if (principal.getOid().equals(objectDelegatedRef.getOid())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					LOGGER.trace("  {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
+							autzHumanReadableDesc, desc, object.getOid());
+					return false;
+				}
+			}
 		}
 
 		LOGGER.trace("  {} applicable for {} (filter)", autzHumanReadableDesc, desc);
 		return true;
 	}
 	
+	private boolean isSelf(SubjectedObjectSelectorType spec) throws SchemaException {
+		List<SpecialObjectSpecificationType> specSpecial = spec.getSpecial();
+		if (specSpecial != null && !specSpecial.isEmpty()) {
+			if (spec.getFilter() != null || spec.getOrgRef() != null || spec.getOrgRelation() != null || spec.getRoleRelation() != null) {
+				return false;
+			}
+			for (SpecialObjectSpecificationType special: specSpecial) {
+				if (special == SpecialObjectSpecificationType.SELF) {
+					return true;
+				} else {
+					throw new SchemaException("Unsupported special object specification specified in authorization: "+special);
+				}
+			}
+		}
+		return false;
+	}
+
 	private <O extends ObjectType> boolean matchesOrgRelation(PrismObject<O> object, ObjectReferenceType subjectParentOrgRef,
 			OrgRelationObjectSpecificationType specOrgRelation, String autzHumanReadableDesc, String desc) throws SchemaException {
 		if (!MiscSchemaUtil.compareRelation(specOrgRelation.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
@@ -965,6 +1007,22 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									continue;
 								}								
 							}
+							
+//							// Delegator
+//							if (objectSpecType.getDelegator() != null) {
+//								if (objectDefinition == null) {
+//									objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+//								}
+//								// TODO: MID-3899
+//								if (UserType.class.isAssignableFrom(objectType)) { TODO
+//									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(AbstractRoleType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+//								} else if (TaskType.class.isAssignableFrom(objectType)) {
+//									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+//								} else {
+//									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
+//									continue;
+//								}								
+//							}
 							
 							applicable = true;
 							
