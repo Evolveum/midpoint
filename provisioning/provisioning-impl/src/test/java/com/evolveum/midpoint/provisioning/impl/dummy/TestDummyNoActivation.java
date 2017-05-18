@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestDummyNoActivation extends TestDummy {
 	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-no-activation/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-no-activation");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");

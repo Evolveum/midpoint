@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.getAttributeValue;
 import static org.testng.AssertJUnit.assertEquals;
@@ -71,7 +70,6 @@ import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.match.UuidMatchingRule;
 import com.evolveum.midpoint.prism.match.XmlMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -81,7 +79,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.impl.dummy.TestDummy;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -103,11 +100,9 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -852,7 +847,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		openDJController.executeRenameChange(TEST_DIR_NAME + "/rename.ldif");
+		openDJController.executeRenameChange(new File(TEST_DIR, "rename.ldif").getPath());
 		
 		Entry entry = openDJController.fetchEntry("uid=will123,ou=People,dc=example,dc=com");
 		assertNotNull("Entry with dn uid=will123,ou=People,dc=example,dc=com does not exist", entry);
@@ -1188,7 +1183,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_WITH_PASSWORD_FILENAME, ShadowType.class);
+		ShadowType object = parseObjectType(ACCOUNT_NEW_WITH_PASSWORD_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
@@ -1313,7 +1308,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, ShadowType.class);
+		ShadowType object = parseObjectType(ACCOUNT_DISABLE_SIMULATED_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
@@ -1322,7 +1317,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals(ACCOUNT_DISABLE_SIMULATED_OID, addedObjectOid);
 
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
-                new File(REQUEST_DISABLE_ACCOUNT_SIMULATED_FILENAME), ObjectModificationType.COMPLEX_TYPE);
+                REQUEST_DISABLE_ACCOUNT_SIMULATED_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		display("Object change",delta);
 
@@ -1549,7 +1544,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, ShadowType.class);
+		ShadowType object = parseObjectType(ACCOUNT_SEARCH_ITERATIVE_FILE, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());
@@ -1592,7 +1587,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, ShadowType.class); 
+		ShadowType object = parseObjectType(ACCOUNT_SEARCH_FILE, ShadowType.class); 
 
 		display("New object", object);
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
@@ -1951,7 +1946,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_SEARCH_FILENAME));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_SEARCH_FILE);
 		display("Account to add", account);
 		
 		try {
@@ -1980,7 +1975,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_NO_SN_FILENAME));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_NO_SN_FILE);
 		display("Account to add", account);
 		
 		try {
@@ -2731,7 +2726,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-no-read.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
+		addResourceFromFile(new File(TEST_DIR, "resource-opendj-no-read.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 		
 		try {
 			provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
@@ -2750,7 +2745,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-create.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
+		addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-create.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 		
 		try {
 			PrismObject<ShadowType> shadow = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class).asPrismObject();
@@ -2770,7 +2765,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-delete.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
+		addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-delete.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 		
 		try {
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
@@ -2788,7 +2783,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		addResourceFromFile(new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);		
+		addResourceFromFile(new File(TEST_DIR, "/resource-opendj-no-update.xml"), IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);		
 		
 		try {
 			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");

@@ -16,9 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -33,7 +31,6 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -57,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 @DirtiesContext
 public class TestDummyLegacy extends AbstractIntegrationTest {
 
-	private static final File TEST_DIR = new File("src/test/resources/impl/dummy-legacy/");
+	private static final File TEST_DIR = new File(AbstractDummyTest.TEST_DIR_DUMMY, "dummy-legacy");
 
 	private static final File RESOURCE_DUMMY_NATIVE_FILE = new File(TEST_DIR, "resource-dummy-native.xml");
 	private static final String RESOURCE_DUMMY_NATIVE_OID = "17e6e88c-4be6-11e5-8abd-001e8c717e5b";

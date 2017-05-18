@@ -69,9 +69,11 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext
 public class TestDBTable extends AbstractIntegrationTest {
 	
-	private static final File RESOURCE_DERBY_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-derby.xml");
+	protected static final File TEST_DIR = new File("src/test/resources/db");
+	
+	private static final File RESOURCE_DERBY_FILE = new File(TEST_DIR, "resource-derby.xml");
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
-	private static final File ACCOUNT_WILL_FILE = new File(ProvisioningTestUtil.TEST_DIR_IMPL_FILE, "account-derby.xml");
+	private static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-derby.xml");
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
 	private static final String ACCOUNT_WILL_USERNAME = "will";
 	private static final String ACCOUNT_WILL_FULLNAME = "Will Turner";

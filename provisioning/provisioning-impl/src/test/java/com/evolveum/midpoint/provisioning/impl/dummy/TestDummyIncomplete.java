@@ -50,7 +50,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext
 public class TestDummyIncomplete extends TestDummy {
 	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-incomplete/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-incomplete");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override

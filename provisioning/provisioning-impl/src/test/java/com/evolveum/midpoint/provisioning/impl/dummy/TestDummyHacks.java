@@ -23,6 +23,8 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -70,11 +72,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 @DirtiesContext
 public class TestDummyHacks extends AbstractIntegrationTest {
 	
-	private static final String TEST_DIR = "src/test/resources/impl/dummy-hacks/";
+	private static final File TEST_DIR = new File(AbstractDummyTest.TEST_DIR_DUMMY, "dummy-hacks");
 
-	private static final String CONNECTOR_DUMMY_FILENAME = TEST_DIR + "connector-dummy.xml";
+	private static final File CONNECTOR_DUMMY_FILE = new File(TEST_DIR, "connector-dummy.xml");
 
-	private static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
+	private static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";	
 		
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyHacks.class);
@@ -112,9 +114,9 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		// We want to avoid connector discovery and insert our own connector object
 //		provisioningService.postInit(initResult);
 		
-		connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILENAME, initResult);
+		connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILE, initResult);
 		
-		resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILENAME, initResult);
+		resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILE, initResult);
 		resourceType = resource.asObjectable();
 		
 		dummyResource = DummyResource.getInstance();

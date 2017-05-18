@@ -451,7 +451,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(new File(FILENAME_MODIFY_ACCOUNT),
+		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(MODIFY_ACCOUNT_FILE,
                 ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> accountDelta = DeltaConvertor.createObjectDelta(changeAddRoleCaptain,
 				ShadowType.class, prismContext);
@@ -1428,10 +1428,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		ShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, ShadowType.class);
+		ShadowType account = parseObjectType(ACCOUNT_SCRIPT_FILE, ShadowType.class);
 		display("Account before add", account);
 
-		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
 		// WHEN
@@ -1484,7 +1484,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
@@ -1533,7 +1533,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
@@ -1575,7 +1575,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		// WHEN
@@ -1612,7 +1612,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
 		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ProvisioningScriptType script = scriptsType.getScript().get(0);
@@ -2514,7 +2514,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		PrismObject<ShadowType> group = prismContext.parseObject(new File(GROUP_PIRATES_FILENAME));
+		PrismObject<ShadowType> group = prismContext.parseObject(GROUP_PIRATES_FILE);
 		group.checkConsistence();
 		
 		rememberDummyResourceGroupMembersReadCount(null);
@@ -2794,7 +2794,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        PrismObject<ShadowType> priv = prismContext.parseObject(new File(PRIVILEGE_BARGAIN_FILENAME));
+        PrismObject<ShadowType> priv = prismContext.parseObject(PRIVILEGE_BARGAIN_FILE);
         priv.checkConsistence();
         
         rememberDummyResourceGroupMembersReadCount(null);
@@ -3410,7 +3410,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		PrismObject<ShadowType> accountBefore = prismContext.parseObject(new File(ACCOUNT_LECHUCK_FILENAME));
+		PrismObject<ShadowType> accountBefore = prismContext.parseObject(ACCOUNT_LECHUCK_FILE);
 		accountBefore.checkConsistence();
 
 		display("Adding shadow", accountBefore);
