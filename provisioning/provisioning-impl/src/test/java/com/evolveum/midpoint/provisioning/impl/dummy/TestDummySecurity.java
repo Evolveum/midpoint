@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(new File(ACCOUNT_WILL_FILENAME));
+		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
 		account.checkConsistence();
 		
 		setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "water");
@@ -117,7 +117,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(new File(ACCOUNT_WILL_FILENAME));
+		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_WILL_FILE);
 		account.checkConsistence();
 		
 		setAttribute(account, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "At the moment?");

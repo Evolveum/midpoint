@@ -1232,7 +1232,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(new File(FILENAME_MODIFY_ACCOUNT),
+		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(MODIFY_ACCOUNT_FILE,
                 ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> accountDelta = DeltaConvertor.createObjectDelta(changeAddRoleCaptain,
 				ShadowType.class, prismContext);

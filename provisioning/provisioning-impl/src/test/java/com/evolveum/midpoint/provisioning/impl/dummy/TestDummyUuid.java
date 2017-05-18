@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.test.context.ContextConfiguration;
 @DirtiesContext
 public class TestDummyUuid extends TestDummy {
 	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-uuid/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-uuid");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override

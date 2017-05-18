@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 @DirtiesContext
 public class TestDummyExtra extends TestDummy {
 	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-extra/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-extra");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override

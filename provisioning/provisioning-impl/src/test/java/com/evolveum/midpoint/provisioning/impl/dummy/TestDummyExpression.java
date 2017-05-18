@@ -40,7 +40,7 @@ import com.evolveum.midpoint.task.api.Task;
 @DirtiesContext
 public class TestDummyExpression extends AbstractBasicDummyTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-expression/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-expression");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override

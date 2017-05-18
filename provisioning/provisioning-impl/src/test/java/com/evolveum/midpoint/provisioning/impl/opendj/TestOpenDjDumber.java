@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @DirtiesContext
 public class TestOpenDjDumber extends TestOpenDj {
 
-	protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-dumber.xml");
+	protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
 	
 	private static Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
 		
