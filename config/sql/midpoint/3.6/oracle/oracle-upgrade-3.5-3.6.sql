@@ -172,3 +172,6 @@ ALTER TABLE m_operation_execution
   ADD CONSTRAINT fk_op_exec_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
+
+ALTER TABLE m_audit_event ADD (nodeIdentifier VARCHAR2(255 CHAR));
+ALTER TABLE m_audit_event ADD (remoteHostAddress VARCHAR2(255 CHAR));
