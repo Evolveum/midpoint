@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import ch.qos.logback.core.util.StatusPrinter;
 
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
 
 public class LoggingConfigurationManager {
 
@@ -57,7 +59,7 @@ public class LoggingConfigurationManager {
 
     private static String currentlyUsedVersion = null;
 
-    public static void configure(LoggingConfigurationType config, String version, OperationResult result) {
+    public static void configure(LoggingConfigurationType config, String version, OperationResult result) throws SchemaException {
 
 		OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
 		
@@ -155,7 +157,7 @@ public class LoggingConfigurationManager {
 		return;
 	}
 
-	private static String prepareConfiguration(LoggingConfigurationType config) {
+	private static String prepareConfiguration(LoggingConfigurationType config) throws SchemaException {
 
 		if (null == config) {
 			throw new IllegalArgumentException("Configuration can't be null");
@@ -193,81 +195,19 @@ public class LoggingConfigurationManager {
 
 		//Generate appenders configuration
 		for (AppenderConfigurationType appender : config.getAppender()) {
-			if (appender instanceof FileAppenderConfigurationType) {
-				FileAppenderConfigurationType a = (FileAppenderConfigurationType) appender;
-				String fileName = a.getFileName();
-				String filePattern = a.getFilePattern();
+			prepareAppenderConfiguration(sb, appender, config);
 
-				boolean isRolling = false;
-				String appenderClass = "ch.qos.logback.core.FileAppender";
-				if (filePattern != null || a.getMaxHistory() > 0 || !StringUtils.isEmpty(a.getMaxFileSize()) ) {
-					isRolling = true;
-					appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
-				}
-				
-				sb.append("\t<appender name=\"");
-				sb.append(a.getName());
-				sb.append("\" class=\""+appenderClass+"\">\n");
-
-                //Apply profiling appender filter if necessary
-                if(IDM_PROFILE_APPENDER.equals(appender.getName())){
-                    for(ClassLoggerConfigurationType cs: config.getClassLogger()){
-                        if(REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage()) || PROFILING_ASPECT_LOGGER.endsWith(cs.getPackage())){
-                            LOGGER.info("Defining ProfilingLogbackFilter to IDM_LOG Appender.");
-                            sb.append(defineProfilingLogbackFilter());
-                        }
-                    }
-                }
-
-
-                sb.append("\t\t<file>");
-				sb.append(fileName);
-				sb.append("</file>\n");
-				sb.append("\t\t<append>");
-				sb.append(a.isAppend());
-				sb.append("</append>\n");
-				if (isRolling) {
-					//rolling policy
-					sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">\n");
-					sb.append("\t\t\t<fileNamePattern>");
-					sb.append(filePattern);
-					sb.append("</fileNamePattern>\n");
-					if (a.getMaxHistory() > 0) {
-						sb.append("\t\t\t<maxHistory>");
-						sb.append(a.getMaxHistory());
-						sb.append("</maxHistory>\n");
-					}
-					sb.append("\t\t\t<cleanHistoryOnStart>true</cleanHistoryOnStart>");
-	
-					// file triggering
-					// if max size is defined
-					if (!StringUtils.isEmpty(a.getMaxFileSize())) {
-						sb.append("\t\t\t<timeBasedFileNamingAndTriggeringPolicy class=\"ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP\">\n");
-						sb.append("\t\t\t\t<maxFileSize>");
-						sb.append(a.getMaxFileSize());
-						sb.append("</maxFileSize>\n");
-						sb.append("\t\t\t</timeBasedFileNamingAndTriggeringPolicy>\n");
-					}
-					sb.append("\t\t</rollingPolicy>\n");
-				}
-				sb.append("\t\t<encoder>\n");
-				sb.append("\t\t\t<pattern>");
-				sb.append(a.getPattern());
-				sb.append("</pattern>\n");
-				sb.append("\t\t</encoder>\n");
-				sb.append("\t</appender>\n");
-			}
-
-			//define root appender if defined
-			if (!StringUtils.isEmpty(config.getRootLoggerAppender())) {
-				sb.append("\t<root level=\"");
-				sb.append(config.getRootLoggerLevel());
-				sb.append("\">\n");
-				sb.append("\t\t<appender-ref ref=\"");
-				sb.append(config.getRootLoggerAppender());
-				sb.append("\" />\n");
-				sb.append("\t</root>\n");
-			}
+		}
+		
+		//define root appender if defined
+		if (!StringUtils.isEmpty(config.getRootLoggerAppender())) {
+			sb.append("\t<root level=\"");
+			sb.append(config.getRootLoggerLevel());
+			sb.append("\">\n");
+			sb.append("\t\t<appender-ref ref=\"");
+			sb.append(config.getRootLoggerAppender());
+			sb.append("\" />\n");
+			sb.append("\t</root>\n");
 		}
 
 		//Generate class based loggers
@@ -311,6 +251,108 @@ public class LoggingConfigurationManager {
 		
 		sb.append("</configuration>");
 		return sb.toString();
+	}
+
+	private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender, LoggingConfigurationType config) throws SchemaException {
+		if (appender instanceof FileAppenderConfigurationType) {
+			prepareFileAppenderConfiguration(sb, (FileAppenderConfigurationType) appender, config);
+		} else if (appender instanceof SyslogAppenderConfigurationType) {
+			prepareSyslogAppenderConfiguration(sb, (SyslogAppenderConfigurationType) appender, config);
+		} else {
+			throw new SchemaException("Unknown appender configuation "+appender);
+		}
+	}
+	
+	private static void prepareFileAppenderConfiguration(StringBuilder sb, FileAppenderConfigurationType appender, LoggingConfigurationType config) {
+		String fileName = appender.getFileName();
+		String filePattern = appender.getFilePattern();
+
+		boolean isRolling = false;
+		String appenderClass = "ch.qos.logback.core.FileAppender";
+		if (filePattern != null || appender.getMaxHistory() > 0 || !StringUtils.isEmpty(appender.getMaxFileSize()) ) {
+			isRolling = true;
+			appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
+		}
+		
+		prepareCommonAppenderHeader(sb, appender, config, appenderClass);
+
+		appendProp(sb, "file", fileName);
+		appendProp(sb, "append", appender.isAppend());
+		if (isRolling) {
+			//rolling policy
+			sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">\n");
+			sb.append("\t\t\t<fileNamePattern>");
+			sb.append(filePattern);
+			sb.append("</fileNamePattern>\n");
+			if (appender.getMaxHistory() > 0) {
+				sb.append("\t\t\t<maxHistory>");
+				sb.append(appender.getMaxHistory());
+				sb.append("</maxHistory>\n");
+			}
+			sb.append("\t\t\t<cleanHistoryOnStart>true</cleanHistoryOnStart>");
+
+			// file triggering
+			// if max size is defined
+			if (!StringUtils.isEmpty(appender.getMaxFileSize())) {
+				sb.append("\t\t\t<timeBasedFileNamingAndTriggeringPolicy class=\"ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP\">\n");
+				sb.append("\t\t\t\t<maxFileSize>");
+				sb.append(appender.getMaxFileSize());
+				sb.append("</maxFileSize>\n");
+				sb.append("\t\t\t</timeBasedFileNamingAndTriggeringPolicy>\n");
+			}
+			sb.append("\t\t</rollingPolicy>\n");
+		}
+		
+		prepareCommonAppenderFooter(sb, appender, config);
+
+	}
+	
+	private static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) {
+
+		prepareCommonAppenderHeader(sb, appender, config, "ch.qos.logback.classic.net.SyslogAppender");
+
+		appendProp(sb, "syslogHost", appender.getSyslogHost());
+		appendProp(sb, "port", appender.getPort());
+		appendProp(sb, "facility", appender.getFacility());
+		appendProp(sb, "suffixPattern", appender.getSuffixPattern());
+		appendProp(sb, "stackTracePattern", appender.getStackTracePattern());
+		appendProp(sb, "throwableExcluded", appender.isThrowableExcluded());
+		
+		prepareCommonAppenderFooter(sb, appender, config);
+
+	}
+
+	private static void appendProp(StringBuilder sb, String name, Object value) {
+		if (value != null) {
+			sb.append("\t\t<").append(name).append(">");
+			sb.append(value);
+			sb.append("</").append(name).append(">\n");
+		}
+	}
+
+	private static void prepareCommonAppenderHeader(StringBuilder sb,
+			AppenderConfigurationType appender, LoggingConfigurationType config, String appenderClass) {
+		sb.append("\t<appender name=\"").append(appender.getName()).append("\" class=\""+appenderClass+"\">\n");
+
+        //Apply profiling appender filter if necessary
+        if(IDM_PROFILE_APPENDER.equals(appender.getName())){
+            for(ClassLoggerConfigurationType cs: config.getClassLogger()){
+                if(REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage()) || PROFILING_ASPECT_LOGGER.endsWith(cs.getPackage())){
+                    LOGGER.debug("Defining ProfilingLogbackFilter to {} appender.", appender.getName());
+                    sb.append(defineProfilingLogbackFilter());
+                }
+            }
+        }
+	}
+	
+	private static void prepareCommonAppenderFooter(StringBuilder sb,
+			AppenderConfigurationType appender, LoggingConfigurationType config) {
+		sb.append("\t\t<encoder>\n");
+		sb.append("\t\t\t<pattern>");
+		sb.append(appender.getPattern());
+		sb.append("</pattern>\n");
+		sb.append("\t\t</encoder>\n");
+		sb.append("\t</appender>\n");
 	}
 
 	private static void generateAuditingLogConfig(AuditingConfigurationType auditing, StringBuilder sb) {

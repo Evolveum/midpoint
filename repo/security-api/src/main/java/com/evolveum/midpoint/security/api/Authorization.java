@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.security.core.GrantedAuthority;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationEnforcementStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
@@ -79,6 +80,14 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 
 	public AuthorizationPhaseType getPhase() {
 		return authorizationType.getPhase();
+	}
+	
+	public AuthorizationEnforcementStrategyType getEnforcementStrategy() {
+		return authorizationType.getEnforcementStrategy();
+	}
+	
+	public boolean maySkipOnSearch() {
+		return getEnforcementStrategy() == AuthorizationEnforcementStrategyType.MAY_SKIP_ON_SEARCH;
 	}
 
 	public List<OwnedObjectSelectorType> getObject() {

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -276,29 +277,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		});
 		return itemDecision.booleanValue();
 	}
-	
-	private Visitor createItemVisitor(final Collection<ItemPath> allowedItems, final MutableBoolean itemDecision) {
-		return visitable -> {
-			if (visitable instanceof Item) {
-
-				// TODO: problem with empty containers such as
-				// orderConstraint in assignment. Skip all
-				// empty items ... for now.
-				if (((Item)visitable).isEmpty()) {
-					return;
-				}
-
-				ItemPath itemPath = ((Item)visitable).getPath();
-				if (itemPath != null && !itemPath.isEmpty()) {
-					if (!isInList(itemPath, allowedItems)) {
-						LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
-						itemDecision.setValue(false);
-					}
-				}
-			}
-		};
-	}
-	
+		
 	private boolean isContainerAllowed(PrismContainerValue<?> cval, Collection<ItemPath> allowedItems) {
 		if (cval.isEmpty()) {
 			// TODO: problem with empty containers such as
@@ -512,12 +491,54 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					return false;
 				}			
 			}
+			
+			// Delegator
+			SubjectedObjectSelectorType delegatorSpec = ((OwnedObjectSelectorType)objectSelector).getDelegator();
+			if (delegatorSpec != null) {
+				if (!isSelf(delegatorSpec)) {
+					throw new SchemaException("Unsupported non-self delegator clause");
+				}
+				if (!object.canRepresent(UserType.class)) {
+					LOGGER.trace("  {}: delegator object spec not applicable for {}, because the object is not user",
+							autzHumanReadableDesc, desc);
+					return false;
+				}
+				boolean found = false;
+				for (ObjectReferenceType objectDelegatedRef: ((UserType)object.asObjectable()).getDelegatedRef()) {
+					if (principal.getOid().equals(objectDelegatedRef.getOid())) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					LOGGER.trace("  {}: delegator object spec not applicable for {}, object OID {} because delegator does not match",
+							autzHumanReadableDesc, desc, object.getOid());
+					return false;
+				}
+			}
 		}
 
 		LOGGER.trace("  {} applicable for {} (filter)", autzHumanReadableDesc, desc);
 		return true;
 	}
 	
+	private boolean isSelf(SubjectedObjectSelectorType spec) throws SchemaException {
+		List<SpecialObjectSpecificationType> specSpecial = spec.getSpecial();
+		if (specSpecial != null && !specSpecial.isEmpty()) {
+			if (spec.getFilter() != null || spec.getOrgRef() != null || spec.getOrgRelation() != null || spec.getRoleRelation() != null) {
+				return false;
+			}
+			for (SpecialObjectSpecificationType special: specSpecial) {
+				if (special == SpecialObjectSpecificationType.SELF) {
+					return true;
+				} else {
+					throw new SchemaException("Unsupported special object specification specified in authorization: "+special);
+				}
+			}
+		}
+		return false;
+	}
+
 	private <O extends ObjectType> boolean matchesOrgRelation(PrismObject<O> object, ObjectReferenceType subjectParentOrgRef,
 			OrgRelationObjectSpecificationType specOrgRelation, String autzHumanReadableDesc, String desc) throws SchemaException {
 		if (!MiscSchemaUtil.compareRelation(specOrgRelation.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
@@ -559,7 +580,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (BooleanUtils.isTrue(specRoleRelation.isIncludeReferenceRole()) && subjectRoleMembershipRef.getOid().equals(object.getOid())) {
 			return true;
 		}
-		if (BooleanUtils.isTrue(specRoleRelation.isIncludeMembers())) {
+		if (!BooleanUtils.isFalse(specRoleRelation.isIncludeMembers())) {
 			if (!object.canRepresent(FocusType.class)) {
 				return false;
 			}
@@ -936,6 +957,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
+							RoleRelationObjectSpecificationType specRoleRelation = objectSpecType.getRoleRelation();
 							QName specTypeQName = objectSpecType.getType();
 							PrismObjectDefinition<T> objectDefinition = null;
 							
@@ -978,13 +1000,29 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								}								
 							}
 							
+//							// Delegator
+//							if (objectSpecType.getDelegator() != null) {
+//								if (objectDefinition == null) {
+//									objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+//								}
+//								// TODO: MID-3899
+//								if (UserType.class.isAssignableFrom(objectType)) { TODO
+//									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(AbstractRoleType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+//								} else if (TaskType.class.isAssignableFrom(objectType)) {
+//									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
+//								} else {
+//									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
+//									continue;
+//								}								
+//							}
+							
 							applicable = true;
 							
 							// Special
 							List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 							if (specSpecial != null && !specSpecial.isEmpty()) {
-								if (specFilterType != null || specOrgRef != null || specOrgRelation != null) {
-									throw new SchemaException("Both filter/org and special object specification specified in authorization");
+								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null) {
+									throw new SchemaException("Both filter/org/role and special object specification specified in authorization");
 								}
 								ObjectFilter specialFilter = null;
 								for (SpecialObjectSpecificationType special: specSpecial) {
@@ -1059,6 +1097,25 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("  orgRelation empty");
 							}
 							
+							// roleRelation
+							if (specRoleRelation != null) {
+								ObjectFilter objSpecRoleRelationFilter = processRoleRelationFilter(principal, autz, specRoleRelation, origFilter);
+								if (objSpecRoleRelationFilter == null) {
+									if (autz.maySkipOnSearch()) {
+										LOGGER.trace("  not applying roleRelation filter because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
+										applicable = false;
+									} else {
+										objSpecRoleRelationFilter = NoneFilter.createNone();
+									}
+								}
+								if (objSpecRoleRelationFilter != null) {
+									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecRoleRelationFilter);
+									LOGGER.trace("  applying roleRelation filter {}", objSpecRoleRelationFilter);
+								}
+							} else {
+								LOGGER.trace("  roleRelation empty");
+							}
+							
 							if (objSpecTypeFilter != null) {
 								objSpecTypeFilter.setFilter(objSpecSecurityFilter);
 								objSpecSecurityFilter = objSpecTypeFilter;
@@ -1067,6 +1124,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							traceFilter("objSpecSecurityFilter", objectSpecType, objSpecSecurityFilter);
 							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
 						}
+						
+						
+						
 					} else {
 						LOGGER.trace("  No object specification in authorization (authorization is universaly applicable)");
 						autzObjSecurityFilter = AllFilter.createAll();
@@ -1148,6 +1208,77 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
+	/**
+	 * Very rudimentary and experimental implementation.
+	 */
+	private ObjectFilter processRoleRelationFilter(MidPointPrincipal principal, Authorization autz,
+			RoleRelationObjectSpecificationType specRoleRelation, ObjectFilter origFilter) {
+		ObjectFilter refRoleFilter = null;
+		if (BooleanUtils.isTrue(specRoleRelation.isIncludeReferenceRole())) {
+			// This could mean that we will need to add filters for all roles in 
+			// subject's roleMembershipRef. There may be thousands of these.
+			if (!autz.maySkipOnSearch()) {
+				throw new UnsupportedOperationException("Inefficient roleRelation search (includeReferenceRole=true) is not supported yet");
+			}
+		}
+		
+		ObjectFilter membersFilter = null;
+		if (!BooleanUtils.isFalse(specRoleRelation.isIncludeMembers())) {
+			List<PrismReferenceValue> queryRoleRefs = getRoleOidsFromFilter(origFilter);
+			if (queryRoleRefs == null || queryRoleRefs.isEmpty()) {
+				// Cannot find specific role OID in original query. This could mean that we
+				// will need to add filters for all roles in subject's roleMembershipRef.
+				// There may be thousands of these.
+				if (!autz.maySkipOnSearch()) {
+					throw new UnsupportedOperationException("Inefficient roleRelation search (includeMembers=true without role in the original query) is not supported yet");
+				}
+			} else {
+				QName subjectRelation = specRoleRelation.getSubjectRelation();
+				boolean isRoleOidOk = false;
+				for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
+					if (!MiscSchemaUtil.compareRelation(subjectRelation, subjectRoleMembershipRef.getRelation())) {
+						continue;
+					}
+					if (!PrismReferenceValue.containsOid(queryRoleRefs, subjectRoleMembershipRef.getOid())) {
+						continue;
+					}
+					isRoleOidOk = true;
+					break;
+				}
+				if (isRoleOidOk) {
+					// There is already a good filter in the origFilter
+					// TODO: mind the objectRelation
+					membersFilter = AllFilter.createAll();
+				} else {
+					membersFilter = NoneFilter.createNone();
+				}
+			}
+		}
+		
+		return ObjectQueryUtil.filterOr(refRoleFilter, membersFilter);
+	}
+
+	private List<PrismReferenceValue> getRoleOidsFromFilter(ObjectFilter origFilter) {
+		if (origFilter == null) {
+			return null;
+		}
+		if (origFilter instanceof RefFilter) {
+			ItemPath path = ((RefFilter)origFilter).getPath();
+			if (path.equals(SchemaConstants.PATH_ROLE_MEMBERSHIP_REF)) {
+				return ((RefFilter)origFilter).getValues();
+			}
+		}
+		if (origFilter instanceof AndFilter) {
+			for (ObjectFilter condition: ((AndFilter)origFilter).getConditions()) {
+				List<PrismReferenceValue> refs = getRoleOidsFromFilter(condition);
+				if (refs != null && !refs.isEmpty()) {
+					return refs;
+				}
+			}
+		}
+		return null;
+	}
+
 	private <T extends ObjectType> ObjectFilter applyOwnerFilterOwnerRef(ItemPath ownerRefPath, ObjectFilter objSpecSecurityFilter, MidPointPrincipal principal, PrismObjectDefinition<T> objectDefinition) {
 		PrismReferenceDefinition ownerRefDef = objectDefinition.findReferenceDefinition(ownerRefPath);
 		S_AtomicFilterExit builder = QueryBuilder.queryFor(AbstractRoleType.class, prismContext)

@@ -89,8 +89,8 @@
  	<logger name="com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security" level="TRACE" />
-    <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="TRACE" />
+    <logger name="com.evolveum.midpoint.security" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="DEBUG" />

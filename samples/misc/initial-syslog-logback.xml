@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+     This is a sample initial logging file that is redirecting the initial logging to syslog.
+     It is supposed to be placed as logback.xml into midpoint home directory.
+
+     This configuration is used only for midPoint early initialization. Once repository components
+     are running the logging configuration from the system configuration object will be used.
+-->
+<configuration>
+	<appender name="IDM_LOG" class="ch.qos.logback.classic.net.SyslogAppender">
+		<syslogHost>syslog.example.com</syslogHost>
+		<facility>LOCAL3</facility>
+		<suffixPattern>[%X{subsystem}] [%thread] %level \(%logger\): %msg</suffixPattern>
+	</appender>
+
+	<logger name="ro.isdc.wro.extensions.processor.css.Less4jProcessor" level="ERROR"/>
+	<logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+	<logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>
+	<logger name="PROFILING" level="INFO"/>
+	<logger name="com.evolveum.midpoint" level="INFO" />
+
+	<root level="INFO">
+		<appender-ref ref="IDM_LOG"/>
+	</root>
+</configuration>
+

@@ -8865,6 +8865,9 @@
 		                        	Definition of object with respect to subject relation to a role.
 		                        	Used to specify authorizations for role approvers, owners and so on.
 		                        </p>
+		                        <p>
+		                        	EXPERIMENTAL. Use at your own risk.
+		                        </p>
 		        			</xsd:documentation>
 		        			<xsd:appinfo>
 		        				<a:since>3.6</a:since>
@@ -8904,6 +8907,19 @@
 								The object matches the specification if it has an owner specified by this element.
 								The "owner" means a focus that has a link to the object.
 							</xsd:documentation>
+						</xsd:annotation>
+			        </xsd:element>
+			        <xsd:element name="delegator" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has a delegator specified by this element.
+								The "delegator" means that the object has an active delegation assignment to delegator.
+								
+								LIMITATION: only "self" delegator is supported now.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.6</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 			        </xsd:element>
 		        </xsd:sequence>        	
@@ -11662,6 +11678,21 @@
                     <xsd:element name="maxHistory" type="xsd:int"/>
                     <xsd:element name="maxFileSize" type="xsd:string"/>
                     <xsd:element name="append" type="xsd:boolean"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="SyslogAppenderConfigurationType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AppenderConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="syslogHost" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="port" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="facility" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="suffixPattern" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="stackTracePattern" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="throwableExcluded" type="xsd:boolean" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

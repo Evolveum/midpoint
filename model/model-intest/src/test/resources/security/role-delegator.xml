@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2016-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,7 +20,29 @@
     <name>Universal Self Delegator</name>
     <delegable>true</delegable>
     <authorization>
+    	<name>authz-read-basic</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<item>name</item>
+    </authorization>
+    <authorization>
+    	<name>authz-read-self</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<special>self</special>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>authz-read-delagate-assignments</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>UserType</type>
+    		<delegator>
+    			<special>self</special>
+    		</delegator>
+    	</object>
+    	<item>assignment</item>
+    	<item>roleMembershipRef</item>
+    	<item>delegatedRef</item>
     </authorization>
     <authorization>
 		<name>delegator-req</name>
