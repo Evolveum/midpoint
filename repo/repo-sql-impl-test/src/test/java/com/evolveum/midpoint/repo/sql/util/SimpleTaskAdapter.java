@@ -184,7 +184,7 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public String getChannel() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        return null;
     }
 
     @Override
