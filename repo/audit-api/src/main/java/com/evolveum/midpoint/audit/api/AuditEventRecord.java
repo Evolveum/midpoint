@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -79,9 +80,10 @@ public class AuditEventRecord implements DebugDumpable {
 	private String taskIdentifier;
 	private String taskOID;
 	
-	// host ID
-	private String hostIdentifier;
-	
+	private String hostIdentifier;		// local node name as obtained from the networking stack
+	private String nodeIdentifier;		// midPoint cluster node identifier (NodeType.nodeIdentifier)
+	private String remoteHostAddress;	// remote host address as obtained from the networking stack
+
 	// initiator (subject, event "owner"): store OID, type(implicit?), name
 	private PrismObject<UserType> initiator;
 
@@ -189,6 +191,22 @@ public class AuditEventRecord implements DebugDumpable {
 
 	public void setHostIdentifier(String hostIdentifier) {
 		this.hostIdentifier = hostIdentifier;
+	}
+
+	public String getNodeIdentifier() {
+		return nodeIdentifier;
+	}
+
+	public void setNodeIdentifier(String nodeIdentifier) {
+		this.nodeIdentifier = nodeIdentifier;
+	}
+
+	public String getRemoteHostAddress() {
+		return remoteHostAddress;
+	}
+
+	public void setRemoteHostAddress(String remoteHostAddress) {
+		this.remoteHostAddress = remoteHostAddress;
 	}
 
 	public PrismObject<UserType> getInitiator() {
@@ -381,6 +399,8 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setEventStage(AuditEventStage.fromAuditEventStage(eventStage));
     	auditRecordType.setEventType(AuditEventType.fromAuditEventType(eventType));
     	auditRecordType.setHostIdentifier(hostIdentifier);
+    	auditRecordType.setRemoteHostAddress(remoteHostAddress);
+		auditRecordType.setNodeIdentifier(nodeIdentifier);
     	auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiator, true));
     	auditRecordType.setMessage(message);
     	auditRecordType.setOutcome(OperationResultStatus.createStatusType(outcome));
@@ -435,6 +455,8 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecord.setEventStage(AuditEventStage.toAuditEventStage(auditEventRecordType.getEventStage()));
     	auditRecord.setEventType(AuditEventType.toAuditEventType(auditEventRecordType.getEventType()));
     	auditRecord.setHostIdentifier(auditEventRecordType.getHostIdentifier());
+    	auditRecord.setRemoteHostAddress(auditEventRecordType.getRemoteHostAddress());
+		auditRecord.setNodeIdentifier(auditEventRecordType.getNodeIdentifier());
     	auditRecord.setInitiator(getObjectFromObjectReferenceType(auditEventRecordType.getInitiatorRef()));
     	auditRecord.setMessage(auditEventRecordType.getMessage());
     	auditRecord.setOutcome(OperationResultStatus.parseStatusType(auditEventRecordType.getOutcome()));
@@ -482,6 +504,8 @@ public class AuditEventRecord implements DebugDumpable {
 		clone.eventStage = this.eventStage;
 		clone.eventType = this.eventType;
 		clone.hostIdentifier = this.hostIdentifier;
+		clone.remoteHostAddress = this.remoteHostAddress;
+		clone.nodeIdentifier = this.nodeIdentifier;
 		clone.initiator = this.initiator;
 		clone.outcome = this.outcome;
 		clone.sessionIdentifier = this.sessionIdentifier;
@@ -502,7 +526,8 @@ public class AuditEventRecord implements DebugDumpable {
 	public String toString() {
 		return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
 				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
-				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
+				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
+				+ ", I=" + formatObject(initiator)
 				+ ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
 				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
@@ -568,6 +593,8 @@ public class AuditEventRecord implements DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task Identifier", taskIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOID, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Node Identifier", nodeIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Remote Host Address", remoteHostAddress, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatObject(initiator), indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatReference(target), indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatObject(targetOwner), indent + 1);
@@ -622,4 +649,15 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 	}
 
+	public void setInitiatorAndLoginParameter(PrismObject<UserType> initiator) {
+		setInitiator(initiator);
+		String parameter = null;
+		if (initiator != null) {
+			PolyStringType name = initiator.asObjectable().getName();
+			if (name != null) {
+				parameter = name.getOrig();
+			}
+		}
+		setParameter(parameter);
+	}
 }

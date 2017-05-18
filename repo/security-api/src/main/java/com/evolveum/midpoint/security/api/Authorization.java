@@ -20,6 +20,7 @@ import java.util.Objects;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -84,6 +85,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 		return authorizationType.getObject();
 	}
 
+	@NotNull
 	public List<ItemPathType> getItem() {
 		return authorizationType.getItem();
 	}

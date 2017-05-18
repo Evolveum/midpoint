@@ -51,7 +51,6 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -73,6 +72,8 @@ public class RAuditEventRecord implements Serializable {
 	private String taskIdentifier;
 	private String taskOID;
 	private String hostIdentifier;
+	private String nodeIdentifier;
+	private String remoteHostAddress;
 
 	// prism object - user
 	private String initiatorOid;
@@ -173,6 +174,14 @@ public class RAuditEventRecord implements Serializable {
 
 	public String getHostIdentifier() {
 		return hostIdentifier;
+	}
+
+	public String getRemoteHostAddress() {
+		return remoteHostAddress;
+	}
+
+	public String getNodeIdentifier() {
+		return nodeIdentifier;
 	}
 
 	@Id
@@ -279,6 +288,14 @@ public class RAuditEventRecord implements Serializable {
 		this.hostIdentifier = hostIdentifier;
 	}
 
+	public void setRemoteHostAddress(String remoteHostAddress) {
+		this.remoteHostAddress = remoteHostAddress;
+	}
+
+	public void setNodeIdentifier(String nodeIdentifier) {
+		this.nodeIdentifier = nodeIdentifier;
+	}
+
 	public void setId(long id) {
 		this.id = id;
 	}
@@ -339,95 +356,48 @@ public class RAuditEventRecord implements Serializable {
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (o == null || getClass() != o.getClass())
+		if (!(o instanceof RAuditEventRecord))
 			return false;
-
 		RAuditEventRecord that = (RAuditEventRecord) o;
-
-		if (channel != null ? !channel.equals(that.channel) : that.channel != null)
-			return false;
-		if (deltas != null ? !deltas.equals(that.deltas) : that.deltas != null)
-			return false;
-		
-		if (changedItems != null ? !MiscUtil.unorderedCollectionEquals(getChangedItems(), that.getChangedItems()) : that.changedItems != null)
-			return false;
-		if (propertyValues != null ? !MiscUtil.unorderedCollectionEquals(getPropertyValues(), that.getPropertyValues()) : that.propertyValues != null)
-			return false;
-		if (referenceValues != null ? !MiscUtil.unorderedCollectionEquals(getReferenceValues(), that.getReferenceValues()) : that.referenceValues != null)
-			return false;
-		if (eventIdentifier != null ? !eventIdentifier.equals(that.eventIdentifier)
-				: that.eventIdentifier != null)
-			return false;
-		if (eventStage != that.eventStage)
-			return false;
-		if (eventType != that.eventType)
-			return false;
-		if (hostIdentifier != null ? !hostIdentifier.equals(that.hostIdentifier)
-				: that.hostIdentifier != null)
-			return false;
-		if (initiatorOid != null ? !initiatorOid.equals(that.initiatorOid) : that.initiatorOid != null)
-			return false;
-		if (initiatorName != null ? !initiatorName.equals(that.initiatorName) : that.initiatorName != null)
-			return false;
-		if (outcome != that.outcome)
-			return false;
-		if (sessionIdentifier != null ? !sessionIdentifier.equals(that.sessionIdentifier)
-				: that.sessionIdentifier != null)
-			return false;
-		if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null)
-			return false;
-		if (targetName != null ? !targetName.equals(that.targetName) : that.targetName != null)
-			return false;
-		if (targetType != null ? !targetType.equals(that.targetType) : that.targetType != null)
-			return false;
-		if (targetOwnerOid != null ? !targetOwnerOid.equals(that.targetOwnerOid)
-				: that.targetOwnerOid != null)
-			return false;
-		if (targetOwnerName != null ? !targetOwnerName.equals(that.targetOwnerName)
-				: that.targetOwnerName != null)
-			return false;
-		if (taskIdentifier != null ? !taskIdentifier.equals(that.taskIdentifier)
-				: that.taskIdentifier != null)
-			return false;
-		if (taskOID != null ? !taskOID.equals(that.taskOID) : that.taskOID != null)
-			return false;
-		if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null)
-			return false;
-		if (parameter != null ? !parameter.equals(that.parameter) : that.parameter != null)
-			return false;
-		if (message != null ? !message.equals(that.message) : that.message != null)
-			return false;
-		if (result != null ? !result.equals(that.result) : that.result != null)
-			return false;
-
-		return true;
+		return id == that.id &&
+				Objects.equals(timestamp, that.timestamp) &&
+				Objects.equals(eventIdentifier, that.eventIdentifier) &&
+				Objects.equals(sessionIdentifier, that.sessionIdentifier) &&
+				Objects.equals(taskIdentifier, that.taskIdentifier) &&
+				Objects.equals(taskOID, that.taskOID) &&
+				Objects.equals(hostIdentifier, that.hostIdentifier) &&
+				Objects.equals(remoteHostAddress, that.remoteHostAddress) &&
+				Objects.equals(nodeIdentifier, that.nodeIdentifier) &&
+				Objects.equals(initiatorOid, that.initiatorOid) &&
+				Objects.equals(initiatorName, that.initiatorName) &&
+				Objects.equals(targetOid, that.targetOid) &&
+				Objects.equals(targetName, that.targetName) &&
+				targetType == that.targetType &&
+				Objects.equals(targetOwnerOid, that.targetOwnerOid) &&
+				Objects.equals(targetOwnerName, that.targetOwnerName) &&
+				eventType == that.eventType &&
+				eventStage == that.eventStage &&
+				Objects.equals(deltas, that.deltas) &&
+				Objects.equals(channel, that.channel) &&
+				outcome == that.outcome &&
+				Objects.equals(parameter, that.parameter) &&
+				Objects.equals(message, that.message) &&
+				Objects.equals(changedItems, that.changedItems) &&
+				Objects.equals(propertyValues, that.propertyValues) &&
+				Objects.equals(referenceValues, that.referenceValues) &&
+				Objects.equals(result, that.result);
 	}
 
 	@Override
 	public int hashCode() {
-		int result = timestamp != null ? timestamp.hashCode() : 0;
-		result = 31 * result + (eventIdentifier != null ? eventIdentifier.hashCode() : 0);
-		result = 31 * result + (sessionIdentifier != null ? sessionIdentifier.hashCode() : 0);
-		result = 31 * result + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
-		result = 31 * result + (taskOID != null ? taskOID.hashCode() : 0);
-		result = 31 * result + (hostIdentifier != null ? hostIdentifier.hashCode() : 0);
-		result = 31 * result + (initiatorName != null ? initiatorName.hashCode() : 0);
-		result = 31 * result + (initiatorOid != null ? initiatorOid.hashCode() : 0);
-		result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
-		result = 31 * result + (targetName != null ? targetName.hashCode() : 0);
-		result = 31 * result + (targetType != null ? targetType.hashCode() : 0);
-		result = 31 * result + (targetOwnerOid != null ? targetOwnerOid.hashCode() : 0);
-		result = 31 * result + (targetOwnerName != null ? targetOwnerName.hashCode() : 0);
-		result = 31 * result + (eventType != null ? eventType.hashCode() : 0);
-		result = 31 * result + (eventStage != null ? eventStage.hashCode() : 0);
-		result = 31 * result + (deltas != null ? deltas.hashCode() : 0);
-		result = 31 * result + (changedItems != null ? changedItems.hashCode() : 0);
-		result = 31 * result + (channel != null ? channel.hashCode() : 0);
-		result = 31 * result + (outcome != null ? outcome.hashCode() : 0);
-		result = 31 * result + (parameter != null ? parameter.hashCode() : 0);
-		result = 31 * result + (message != null ? message.hashCode() : 0);
-		result = 31 * result + (this.result != null ? this.result.hashCode() : 0);
-		return result;
+		return Objects
+				.hash(id, timestamp, eventIdentifier, sessionIdentifier, taskIdentifier, taskOID, hostIdentifier,
+						remoteHostAddress,
+						nodeIdentifier, initiatorOid, initiatorName, targetOid, targetName, targetType, targetOwnerOid,
+						targetOwnerName,
+						eventType, eventStage, deltas, channel, outcome, parameter, message, changedItems, propertyValues,
+						referenceValues,
+						result);
 	}
 
 	public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext)
@@ -451,6 +421,8 @@ public class RAuditEventRecord implements Serializable {
 		repo.setSessionIdentifier(record.getSessionIdentifier());
 		repo.setEventIdentifier(record.getEventIdentifier());
 		repo.setHostIdentifier(record.getHostIdentifier());
+		repo.setRemoteHostAddress(record.getRemoteHostAddress());
+		repo.setNodeIdentifier(record.getNodeIdentifier());
 		repo.setParameter(record.getParameter());
 		repo.setMessage(RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
 		if (record.getOutcome() != null) {
@@ -534,6 +506,8 @@ public class RAuditEventRecord implements Serializable {
 			audit.setEventType(repo.getEventType().getType());
 		}
 		audit.setHostIdentifier(repo.getHostIdentifier());
+		audit.setRemoteHostAddress(repo.getRemoteHostAddress());
+		audit.setNodeIdentifier(repo.getNodeIdentifier());
 		audit.setMessage(repo.getMessage());
 
 		if (repo.getOutcome() != null) {

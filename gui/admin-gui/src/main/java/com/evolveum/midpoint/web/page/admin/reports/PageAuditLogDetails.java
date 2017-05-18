@@ -69,6 +69,8 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_TASK_IDENTIFIER = "taskIdentifier";
     private static final String ID_PARAMETERS_TASK_OID = "taskOID";
     private static final String ID_PARAMETERS_HOST_IDENTIFIER = "hostIdentifier";
+    private static final String ID_PARAMETERS_NODE_IDENTIFIER = "nodeIdentifier";
+    private static final String ID_PARAMETERS_REMOTE_HOST_ADDRESS = "remoteHostAddress";
     private static final String ID_PARAMETERS_EVENT_INITIATOR = "initiatorRef";
     private static final String ID_PARAMETERS_EVENT_TARGET = "targetRef";
     private static final String ID_PARAMETERS_EVENT_TARGET_OWNER = "targetOwnerRef";
@@ -284,7 +286,15 @@ public class PageAuditLogDetails extends PageBase {
         hostIdentifier.setOutputMarkupId(true);
         eventDetailsPanel.add(hostIdentifier);
 
-        final Label initiatorRef = new Label(ID_PARAMETERS_EVENT_INITIATOR,
+        final Label nodeIdentifier = new Label(ID_PARAMETERS_NODE_IDENTIFIER, new PropertyModel(recordModel, ID_PARAMETERS_NODE_IDENTIFIER));
+		nodeIdentifier.setOutputMarkupId(true);
+        eventDetailsPanel.add(nodeIdentifier);
+
+        final Label remoteHostAddress = new Label(ID_PARAMETERS_REMOTE_HOST_ADDRESS, new PropertyModel(recordModel, ID_PARAMETERS_REMOTE_HOST_ADDRESS));
+		remoteHostAddress.setOutputMarkupId(true);
+        eventDetailsPanel.add(remoteHostAddress);
+
+		final Label initiatorRef = new Label(ID_PARAMETERS_EVENT_INITIATOR,
                 new Model<>(WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getInitiatorRef(), this,
                         createSimpleTask(ID_PARAMETERS_EVENT_INITIATOR),
                         new OperationResult(ID_PARAMETERS_EVENT_INITIATOR))));

@@ -22,7 +22,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
@@ -50,7 +49,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		String enteredUsername = (String) authentication.getPrincipal();
 		LOGGER.trace("Authenticating username '{}'", enteredUsername);
 		
-		ConnectionEnvironment connEnv = createConnectionEnvironment(authentication);
+		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
 		
 		Authentication token;
 		if (authentication instanceof UsernamePasswordAuthenticationToken) {
@@ -71,7 +70,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	@Override
-	public boolean supports(Class<? extends Object> authentication) {
+	public boolean supports(Class<?> authentication) {
 		if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
 			return true;
 		}
@@ -81,16 +80,4 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 		return false;
 	}
-	
-	private ConnectionEnvironment createConnectionEnvironment(Authentication authentication) {
-		ConnectionEnvironment connEnv = new ConnectionEnvironment();
-		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-		connEnv.setRemoteHost(getRemoteHost(authentication));
-		return connEnv;
-	}
-
-	private String getRemoteHost(Authentication authentication) {
-		WebAuthenticationDetails details = (WebAuthenticationDetails)authentication.getDetails();
-		return details.getRemoteAddress();
-    }
 }

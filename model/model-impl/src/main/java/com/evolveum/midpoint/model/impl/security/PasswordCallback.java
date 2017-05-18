@@ -51,8 +51,7 @@ public class PasswordCallback implements CallbackHandler {
         LOGGER.trace("Username: '{}', Password type: {}", username, wssPasswordType);
         
         try {
-        	ConnectionEnvironment connEnv = new ConnectionEnvironment();
-        	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        	ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         	pc.setPassword(passwordAuthenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));
         } catch (Exception e) {
         	LOGGER.trace("Exception in password callback: {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);

@@ -86,6 +86,8 @@ public class LoggerAuditServiceImpl implements AuditService {
 				", tid=" + record.getTaskIdentifier() +
 				", toid=" + record.getTaskOID() + 
 				", hid=" + record.getHostIdentifier() +
+				", nid=" + record.getNodeIdentifier() +
+				", raddr=" + record.getRemoteHostAddress() +
 				", I=" + formatObject(record.getInitiator()) +
 				", T=" + formatReference(record.getTarget()) + 
 				", TO=" + formatObject(record.getTargetOwner()) + 

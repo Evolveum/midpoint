@@ -115,8 +115,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         	LOGGER.error("No soap message in handler");
         	throw createFault(WSSecurityException.ErrorCode.FAILURE);
         }
-        ConnectionEnvironment connEnv = new ConnectionEnvironment();
-    	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         String username = null;
         try {
             username = securityHelper.getUsernameFromMessage(saajSoapMessage);

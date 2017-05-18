@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -82,11 +81,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private RepositoryService repositoryService;
 	
 	@Autowired
-	private MatchingRuleRegistry matchingRuleRegistry;
-	
-	@Autowired
 	private PrismContext prismContext;
-	
+
+	private ThreadLocal<HttpConnectionInformation> connectionInformationThreadLocal = new ThreadLocal<>();
+
 	private UserProfileService userProfileService = null;
 	
 	@Override
@@ -578,7 +576,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return false;
 	}
 	
-	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
+	private <O extends ObjectType> boolean isApplicableItem(Authorization autz,
 			PrismObject<O> object, ObjectDelta<O> delta) throws SchemaException {
 		List<ItemPathType> itemPaths = autz.getItem();
 		if (itemPaths == null || itemPaths.isEmpty()) {
@@ -610,11 +608,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private Collection<ItemPath> getItems(Authorization autz) {
 		List<ItemPathType> itemPaths = autz.getItem();
 		Collection<ItemPath> items = new ArrayList<>(itemPaths.size());
-		if (itemPaths != null) {
-			for (ItemPathType itemPathType: itemPaths) {
-				ItemPath itemPath = itemPathType.getItemPath();
-				items.add(itemPath);
-			}
+		for (ItemPathType itemPathType: itemPaths) {
+			ItemPath itemPath = itemPathType.getItemPath();
+			items.add(itemPath);
 		}
 		return items;
 	}
@@ -705,7 +701,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		if (principal == null) {
 			return "(none)";
 		}
-		return "'"+((MidPointPrincipal)principal).getUsername()+"'";
+		return "'"+ principal.getUsername()+"'";
 	}
 
 	private MidPointPrincipal getMidPointPrincipal() {
@@ -810,11 +806,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private void applyItemDecision(Map<ItemPath, ItemSecurityConstraintsImpl> itemConstraintMap, ItemPath item,
 			List<String> actions, AuthorizationPhaseType phase, AuthorizationDecisionType decision) {
-		ItemSecurityConstraintsImpl entry = itemConstraintMap.get(item);
-		if (entry == null) {
-			entry = new ItemSecurityConstraintsImpl();
-			itemConstraintMap.put(item,entry);
-		}
+		ItemSecurityConstraintsImpl entry = itemConstraintMap.computeIfAbsent(item, k -> new ItemSecurityConstraintsImpl());
 		applyDecision(entry.getActionDecisionMap(), actions, phase, decision);
 	}
 
@@ -1292,7 +1284,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			if (origAuthentication instanceof AnonymousAuthenticationToken) {
 				newPrincipal = origPrincipal;
 			} else {
-				LOGGER.trace("ORIG principal {} ({})", origPrincipal, origPrincipal.getClass());
+				LOGGER.trace("ORIG principal {} ({})", origPrincipal, origPrincipal != null ? origPrincipal.getClass() : null);
 				if (origPrincipal != null) {
 					if (origPrincipal instanceof MidPointPrincipal) {
 						MidPointPrincipal newMidPointPrincipal = ((MidPointPrincipal)origPrincipal).clone();
@@ -1324,13 +1316,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		
 	}
 	
-	
 	private Authorization createPrivilegedAuthorization() {
 		AuthorizationType authorizationType = new AuthorizationType();
 		authorizationType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
 		return new Authorization(authorizationType);
 	}
-	
-}
 
-	
+	@Override
+	public void storeConnectionInformation(HttpConnectionInformation value) {
+		connectionInformationThreadLocal.set(value);
+	}
+
+	@Override
+	public HttpConnectionInformation getStoredConnectionInformation() {
+		return connectionInformationThreadLocal.get();
+	}
+
+}

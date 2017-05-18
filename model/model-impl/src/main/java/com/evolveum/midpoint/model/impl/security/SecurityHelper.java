@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.impl.security;
 import javax.xml.datatype.Duration;
 import javax.xml.soap.SOAPMessage;
 
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -58,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCre
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
@@ -71,14 +72,10 @@ public class SecurityHelper {
 
     public static final String CONTEXTUAL_PROPERTY_AUDITED_NAME = SecurityHelper.class.getName() + ".audited";
 
-    @Autowired
-    private TaskManager taskManager;
-    
-    @Autowired
-    private AuditService auditService;
-    
-    @Autowired(required = true)
-    private ModelObjectResolver objectResolver;
+    @Autowired private TaskManager taskManager;
+	@Autowired private AuditService auditService;
+	@Autowired private ModelObjectResolver objectResolver;
+	@Autowired private SecurityEnforcer securityEnforcer;
 
     public void auditLoginSuccess(@NotNull UserType user, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);
@@ -103,34 +100,32 @@ public class SecurityHelper {
 			record.setInitiator(user.asPrismObject());
 		}
 
-        record.setChannel(connEnv.getChannel());
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);
         record.setMessage(message);
-        record.setSessionIdentifier(connEnv.getSessionId());
+		storeConnectionEnvironment(record, connEnv);
 
         auditService.audit(record, task);
     }
     
     public void auditLogout(ConnectionEnvironment connEnv, Task task) {
     	AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-		PrismObject<UserType> owner = task.getOwner();
-		if (owner != null) {
-			record.setInitiator(owner);
-			PolyStringType name = owner.asObjectable().getName();
-			if (name != null) {
-				record.setParameter(name.getOrig());
-			}
-		}
-
-		record.setChannel(connEnv.getChannel());
+		record.setInitiatorAndLoginParameter(task.getOwner());
 		record.setTimestamp(System.currentTimeMillis());
-		record.setSessionIdentifier(connEnv.getSessionId());
-
 		record.setOutcome(OperationResultStatus.SUCCESS);
-
+		storeConnectionEnvironment(record, connEnv);
 		auditService.audit(record, task);
     }
+
+	private void storeConnectionEnvironment(AuditEventRecord record, ConnectionEnvironment connEnv) {
+		record.setChannel(connEnv.getChannel());
+		HttpConnectionInformation connInfo = connEnv.getConnectionInformation();
+		if (connInfo != null) {
+			record.setSessionIdentifier(connInfo.getSessionId());
+			record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
+			record.setHostIdentifier(connInfo.getLocalHostName());
+		}
+	}
 
 	public String getUsernameFromMessage(SOAPMessage saajSoapMessage) throws WSSecurityException {
         if (saajSoapMessage == null) {
@@ -341,5 +336,8 @@ public class SecurityHelper {
 	private Duration daysToDuration(int days) {
 		return XmlTypeConverter.createDuration(days * 1000 * 60 * 60 * 24);
 	}
-	
+
+	public SecurityEnforcer getSecurityEnforcer() {
+		return securityEnforcer;
+	}
 }

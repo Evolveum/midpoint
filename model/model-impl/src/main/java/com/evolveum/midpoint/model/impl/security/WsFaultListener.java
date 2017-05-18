@@ -61,8 +61,7 @@ public class WsFaultListener implements FaultListener {
 			}
 			SOAPMessage saajSoapMessage = message.getContent(SOAPMessage.class);
 	    	String username = securityHelper.getUsernameFromMessage(saajSoapMessage);
-	    	ConnectionEnvironment connEnv = new ConnectionEnvironment();
-        	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+	    	ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 			securityHelper.auditLoginFailure(username, null, connEnv, auditMessage);
 		} catch (WSSecurityException e) {
 			// Ignore

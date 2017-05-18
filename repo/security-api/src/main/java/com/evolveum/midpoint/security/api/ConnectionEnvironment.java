@@ -22,8 +22,21 @@ package com.evolveum.midpoint.security.api;
 public class ConnectionEnvironment {
 	
 	private String channel;
-	private String remoteHost;
-	private String sessionId;
+	private HttpConnectionInformation connectionInformation;
+
+	// probably not of much use
+	public ConnectionEnvironment() {
+	}
+
+	public ConnectionEnvironment(String channel, HttpConnectionInformation connectionInformation) {
+		this.channel = channel;
+		this.connectionInformation = connectionInformation;
+	}
+
+	// Not a constructor to make client realize there's some processing in it.
+	public static ConnectionEnvironment create(String channel) {
+		return new ConnectionEnvironment(channel, SecurityUtil.getCurrentConnectionInformation());
+	}
 
 	public String getChannel() {
 		return channel;
@@ -33,20 +46,12 @@ public class ConnectionEnvironment {
 		this.channel = channel;
 	}
 
-	public String getRemoteHost() {
-		return remoteHost;
+	public HttpConnectionInformation getConnectionInformation() {
+		return connectionInformation;
 	}
 
-	public void setRemoteHost(String remoteHost) {
-		this.remoteHost = remoteHost;
-	}
-
-	public String getSessionId() {
-		return sessionId;
-	}
-
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
+	public String getRemoteHostAddress() {
+		return connectionInformation != null ? connectionInformation.getRemoteHostAddress() : null;
 	}
 
 }

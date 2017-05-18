@@ -25,6 +25,7 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.security.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -48,10 +49,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -1073,9 +1070,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	}
 	
 	private ConnectionEnvironment createConnectionEnvironment() {
-		ConnectionEnvironment connEnv = new ConnectionEnvironment();
-		connEnv.setRemoteHost("remote.example.com");
-		return connEnv;
+		HttpConnectionInformation connInfo = new HttpConnectionInformation();
+		connInfo.setRemoteHostAddress("remote.example.com");
+		return new ConnectionEnvironment(null, connInfo);
 	}
 	
 	private void assertFailedLogins(PrismObject<UserType> user, int expected) {
