@@ -1017,8 +1017,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 
 	@Test
-	public void test100AddAccount() throws Exception {
-		final String TEST_NAME = "test100AddAccount";
+	public void test100AddAccountWill() throws Exception {
+		final String TEST_NAME = "test100AddAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);

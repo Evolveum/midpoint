@@ -206,7 +206,7 @@ public class TestRefinedSchema {
 	        assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
 	        assertEquals("Wrong entitlement displayNameAttribute", new QName(resourceType.getNamespace(), "cn"), entDisplayNameAttributeDef.getName());
 	        
-	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociationDefinitions().size());
+	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getAssociationDefinitions().size());
         }
         
         assertRefinedToLayer(rAccountDef, sourceLayer);
@@ -641,7 +641,7 @@ public class TestRefinedSchema {
         assertEquals("Wrong entitlement displayNameAttribute", new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "dn"),
         		entDisplayNameAttributeDef.getName());
         
-        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociationDefinitions().size());
+        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getAssociationDefinitions().size());
         
         ResourceAttributeContainerDefinition resAttrContainerDef = rAccountDef.toResourceAttributeContainerDefinition();
         assertNotNull("No ResourceAttributeContainerDefinition", resAttrContainerDef);

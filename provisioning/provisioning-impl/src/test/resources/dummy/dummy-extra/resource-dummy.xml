@@ -151,6 +151,14 @@
             	<associationAttribute>ri:privileges</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
+            <association>
+            	<ref>ri:crew</ref>
+            	<kind>account</kind>
+            	<intent>default</intent>
+            	<direction>subjectToObject</direction>
+            	<associationAttribute>ri:mate</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
 			<protected>
 				<icfs:name>root</icfs:name>
 			</protected>

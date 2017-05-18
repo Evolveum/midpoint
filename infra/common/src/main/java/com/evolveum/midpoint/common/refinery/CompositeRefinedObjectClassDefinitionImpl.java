@@ -454,15 +454,6 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return getAssociationDefinitions(ShadowKindType.ENTITLEMENT);
 	}
 
-	public RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name) {
-		for (RefinedAssociationDefinition assocType: getEntitlementAssociationDefinitions()) {
-			if (QNameUtil.match(assocType.getName(), name)) {
-				return assocType;
-			}
-		}
-		return null;
-	}
-
 	@Override
 	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
 		return getAssociationDefinitions().stream()

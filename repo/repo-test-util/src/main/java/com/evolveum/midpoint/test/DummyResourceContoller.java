@@ -102,7 +102,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
 	
 	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
-	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "priv";
+	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "privileges";
 	
 	public static final String CONNECTOR_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 	public static final String CONNECTOR_DUMMY_USELESS_STRING_NAME = "uselessString";
@@ -263,10 +263,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 	
 	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema) {
-		assertDummyResourceSchemaSanity(resourceSchema, resource.asObjectable());
+		assertDummyResourceSchemaSanity(resourceSchema, resource.asObjectable(), true);
 	}
 	
-	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
+	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
 		IntegrationTestTools.assertIcfResourceSchemaSanity(resourceSchema, resourceType);
 		
 		// ACCOUNT
@@ -280,9 +280,11 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No fullname create", fullnameDef.canAdd());
 		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
-		// TODO: fix, see MID-2642
-		assertTrue("Wrong displayOrder for attribute fullName: "+fullnameDef.getDisplayOrder(),
-				fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250);
+		if (checkDisplayOrder) {
+			// TODO: fix, see MID-2642
+			assertTrue("Wrong displayOrder for attribute fullName: "+fullnameDef.getDisplayOrder(),
+					fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250);
+		}
 		
 		// GROUP
 		ObjectClassComplexTypeDefinition groupObjectClass = resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_LOCAL_NAME);
@@ -298,18 +300,22 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 	
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema) {
-		assertDummyResourceSchemaSanityExtended(resourceSchema, resource.asObjectable());
+		assertDummyResourceSchemaSanityExtended(resourceSchema, resource.asObjectable(), true);
 	}
 	
-	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType) {
-		assertDummyResourceSchemaSanity(resourceSchema, resourceType);
+	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
+		assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, 17);
+	}
+	
+	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) {
+		assertDummyResourceSchemaSanity(resourceSchema, resourceType, checkDisplayOrder);
 		
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("No default account definition", accountDef);
 		ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		assertNotNull("No AccountObjectClass definition", accountObjectClassDef);
 		assertTrue("Default account definition is not same as AccountObjectClass", accountDef == accountObjectClassDef);
-		assertEquals("Unexpected number of defnitions", 17, accountDef.getDefinitions().size());
+		assertEquals("Unexpected number of defnitions", numberOfAccountDefinitions, accountDef.getDefinitions().size());
 		ResourceAttributeDefinition treasureDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_TREASURE_NAME);
 		assertFalse("Treasure IS returned by default and should not be", treasureDef.isReturnedByDefault());
 		assertEquals("Unexpected kind in account definition", ShadowKindType.ACCOUNT, accountDef.getKind());

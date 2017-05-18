@@ -316,7 +316,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
 		
-		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resourceTypeStaticSchema);
+		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resourceTypeStaticSchema, true);
 	}
 
 	@Test
@@ -337,7 +337,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
 		
-		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resource.asObjectable());
+		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resource.asObjectable(), true);
 	}
 	
 	@Test
