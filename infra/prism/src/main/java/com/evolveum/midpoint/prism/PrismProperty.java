@@ -106,7 +106,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
     }
 
     public PrismPropertyValue<T> getValue() {
-    	if (!isSingleValue()) {
+		// I know of no reason why we should not return a value if it's only one (even for multivalued items) (see MID-3922)
+		// TODO reconsider this
+		if (getValues().size() == 1) {
+			return getValues().get(0);
+		}
+		if (!isSingleValue()) {
     		throw new IllegalStateException("Attempt to get single value from property " + getElementName()
                     + " with multiple values");
     	}
