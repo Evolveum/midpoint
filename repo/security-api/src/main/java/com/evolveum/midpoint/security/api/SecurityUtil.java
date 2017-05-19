@@ -48,6 +48,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * @author Radovan Semancik
@@ -314,13 +315,17 @@ public class SecurityUtil {
 			return null;
 		}
 		ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) attr;
-		HttpConnectionInformation rv = new HttpConnectionInformation();
-		rv.setSessionId(servletRequestAttributes.getSessionId());
 		HttpServletRequest request = servletRequestAttributes.getRequest();
-		if (request != null) {
-			rv.setLocalHostName(request.getLocalName());
-			rv.setRemoteHostAddress(request.getRemoteAddr());
+		if (request == null) {
+			return null;
 		}
+		HttpConnectionInformation rv = new HttpConnectionInformation();
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			rv.setSessionId(session.getId());
+		}
+		rv.setLocalHostName(request.getLocalName());
+		rv.setRemoteHostAddress(request.getRemoteAddr());
 		return rv;
 	}
 
