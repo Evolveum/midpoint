@@ -85,6 +85,7 @@ import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -102,6 +103,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang.StringUtils;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
@@ -109,6 +112,7 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
+import org.w3c.dom.Element;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -1625,6 +1629,91 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void displayThen(String testName) {
 		TestUtil.displayThen(testName);
 	}
+	
+	protected void display(String str) {
+		IntegrationTestTools.display(str);
+	}
+	
+	public static void display(String message, SearchResultEntry response) {
+		IntegrationTestTools.display(message, response);
+	}
+
+	public static void display(Entry response) {
+		IntegrationTestTools.display(response);
+	}
+
+	public static void display(String message, Task task) {
+		IntegrationTestTools.display(message, task);
+	}
+
+	public static void display(String message, ObjectType o) {
+		IntegrationTestTools.display(message, o);
+	}
+
+	public static void display(String message, Collection collection) {
+		IntegrationTestTools.display(message, collection);
+	}
+	
+	public static void display(String title, Entry entry) {
+		IntegrationTestTools.display(title, entry);
+	}
+
+	public static void display(String message, PrismContainer<?> propertyContainer) {
+		IntegrationTestTools.display(message, propertyContainer);
+	}
+	
+	public static void display(OperationResult result) {
+		IntegrationTestTools.display(result);
+	}
+	
+	public static void display(String title, OperationResult result) {
+		IntegrationTestTools.display(title, result);
+	}
+	
+	public static void display(String title, OperationResultType result) throws SchemaException {
+		IntegrationTestTools.display(title, result);
+	}
+
+	public static void display(String title, List<Element> elements) {
+		IntegrationTestTools.display(title, elements);
+	}
+	
+	public static void display(String title, DebugDumpable dumpable) {
+		IntegrationTestTools.display(title, dumpable);
+	}
+	
+	public static void display(String title, String value) {
+		IntegrationTestTools.display(title, value);
+	}
+
+	public static void display(String title, Object value) {
+		IntegrationTestTools.display(title, value);
+	}
+
+	public static void display(String title, Containerable value) {
+		IntegrationTestTools.display(title, value);
+	}
+	
+	public static void display(String title, Throwable e) {
+		IntegrationTestTools.display(title, e);
+	}
+
+	public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
+		IntegrationTestTools.displayPrismValuesCollection(message, collection);
+	}
+
+	public static void displayContainerablesCollection(String message, Collection<? extends Containerable> collection) {
+		IntegrationTestTools.displayContainerablesCollection(message, collection);
+	}
+
+	public static void displayCollection(String message, Collection<? extends DebugDumpable> collection) {
+		IntegrationTestTools.displayCollection(message, collection);
+	}
+
+	public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
+		IntegrationTestTools.displayObjectTypeCollection(message, collection);
+	}
+
 	
 	protected Task createTask(String operationName) {
 		if (!operationName.contains(".")) {

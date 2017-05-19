@@ -26,6 +26,8 @@
 			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjNegative" />
 			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj" />
 			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjDumber" />
+			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjReadablePassword" />
+			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDjIncompletePassword" />
 			<class name="com.evolveum.midpoint.provisioning.impl.opendj.TestSynchronization" />
 		</classes>
 	</test>

@@ -451,52 +451,6 @@ public class IntegrationTestTools {
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" + dump);
 	}
 
-	public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		for (PrismValue v : collection) {
-			System.out.println(DebugUtil.debugDump(v));
-			LOGGER.debug("{}", DebugUtil.debugDump(v));
-			System.out.println(OBJECT_LIST_SEPARATOR);
-			LOGGER.debug(OBJECT_LIST_SEPARATOR);
-		}
-	}
-
-	public static void displayContainerablesCollection(String message, Collection<? extends Containerable> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		for (Containerable c : CollectionUtils.emptyIfNull(collection)) {
-			String s = DebugUtil.debugDump(c.asPrismContainerValue());
-			System.out.println(s);
-			LOGGER.debug("{}", s);
-			System.out.println(OBJECT_LIST_SEPARATOR);
-			LOGGER.debug(OBJECT_LIST_SEPARATOR);
-		}
-	}
-
-	public static void displayCollection(String message, Collection<? extends DebugDumpable> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		for (DebugDumpable c : CollectionUtils.emptyIfNull(collection)) {
-			String s = DebugUtil.debugDump(c);
-			System.out.println(s);
-			LOGGER.debug("{}", s);
-			System.out.println(OBJECT_LIST_SEPARATOR);
-			LOGGER.debug(OBJECT_LIST_SEPARATOR);
-		}
-	}
-
-	public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		for (ObjectType o : CollectionUtils.emptyIfNull(collection)) {
-			System.out.println(ObjectTypeUtil.dump(o));
-			LOGGER.debug(ObjectTypeUtil.dump(o));
-			System.out.println(OBJECT_LIST_SEPARATOR);
-			LOGGER.debug(OBJECT_LIST_SEPARATOR);			
-		}
-	}
-
 	public static void display(String title, Entry entry) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		String ldif = null;
@@ -575,6 +529,52 @@ public class IntegrationTestTools {
 		LOGGER.debug("{}{}: {} {}\n{}", new Object[]{
 				OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(),
 				stackTrace});
+	}
+	
+	public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (PrismValue v : collection) {
+			System.out.println(DebugUtil.debugDump(v));
+			LOGGER.debug("{}", DebugUtil.debugDump(v));
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);
+		}
+	}
+
+	public static void displayContainerablesCollection(String message, Collection<? extends Containerable> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (Containerable c : CollectionUtils.emptyIfNull(collection)) {
+			String s = DebugUtil.debugDump(c.asPrismContainerValue());
+			System.out.println(s);
+			LOGGER.debug("{}", s);
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);
+		}
+	}
+
+	public static void displayCollection(String message, Collection<? extends DebugDumpable> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (DebugDumpable c : CollectionUtils.emptyIfNull(collection)) {
+			String s = DebugUtil.debugDump(c);
+			System.out.println(s);
+			LOGGER.debug("{}", s);
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);
+		}
+	}
+
+	public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (ObjectType o : CollectionUtils.emptyIfNull(collection)) {
+			System.out.println(ObjectTypeUtil.dump(o));
+			LOGGER.debug(ObjectTypeUtil.dump(o));
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);			
+		}
 	}
 	
 	public static <O extends ObjectType> void assertSearchResultNames(SearchResultList<PrismObject<O>> resultList, MatchingRule<String> matchingRule, String... expectedNames) throws SchemaException {
