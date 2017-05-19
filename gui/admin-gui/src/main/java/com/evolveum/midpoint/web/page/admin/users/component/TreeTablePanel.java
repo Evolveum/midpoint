@@ -151,6 +151,10 @@ public class TreeTablePanel extends BasePanel<String> {
 					parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_MODIFY_ACTION_URL,
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
+			boolean allowRead = org == null ||
+					parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_READ_ACTION_URL,
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
 			InlineMenuItem item;
 			if (allowModify) {
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
@@ -205,6 +209,17 @@ public class TreeTablePanel extends BasePanel<String> {
 				items.add(item);
 
 				item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"), Model.of(allowModify), Model.of(allowModify),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								editRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			} else if (allowRead){
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.viewDetails"), Model.of(allowRead), Model.of(allowRead),
 						new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 

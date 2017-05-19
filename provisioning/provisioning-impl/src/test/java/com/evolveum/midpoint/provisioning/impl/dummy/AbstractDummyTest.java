@@ -18,6 +18,7 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -103,6 +104,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	protected static final String ACCOUNT_WILL_USERNAME = "Will";
 	protected static final XMLGregorianCalendar ACCOUNT_WILL_ENABLE_TIMESTAMP = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 30, 12, 30, 42);
+	
+	protected static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");
+	protected static final String ACCOUNT_ELIZABETH_OID = "ca42f312-3bc3-11e7-a32d-73a68a0f363b";
+	protected static final String ACCOUNT_ELIZABETH_USERNAME = "elizabeth";
 
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
@@ -146,8 +151,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractDummyTest.class);
 
-	private static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_DUMMY_NS, "group");
-	private static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
+	protected static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_DUMMY_NS, "group");
+	protected static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
 	
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
@@ -187,6 +192,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		dummyResourceCtl.setResource(resource);
 		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
+		extraDummyResourceInit();
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
 		dummyAccountDaemon.setEnabled(true);
@@ -201,6 +207,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		repositoryService.addObject(shadowDaemon, null, initResult);
 	}
 	
+	protected void extraDummyResourceInit() throws Exception {
+		// nothing to do here
+	}
+
 	protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
 		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
 		icfUidAttr.setRealValue(icfUid);
@@ -288,8 +298,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		assertNoAttribute(resource, shadow.asObjectable(), attrName);
 	}
 	
-	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
-		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
+	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
 	}
 	
 	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
@@ -311,6 +321,16 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 			 assertEquals("Unexpected name in "+account, icfName, account.getName());
 			 return account;
 		}
+	}
+	
+	protected void assertNoDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account;
+		if (isIcfNameUidSame()) {
+			account = dummyResource.getAccountByUsername(icfName);
+		} else {
+			account = dummyResource.getAccountById(icfUid);
+		}
+		assertNull("Unexpected dummy account with ICF UID "+icfUid+" (name "+icfName+")", account);
 	}
 	
 	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
@@ -367,6 +387,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues, expectedValues);
 	}
 	
+	protected void assertNoDummyAttribute(DummyObject object, String attributeName) {
+		Set<Object> attributeValues = object.getAttributeValues(attributeName, Object.class);
+		assertNotNull("Unexpected attribute "+attributeName+" in "+object.getShortTypeName()+" "+object+": "+attributeValues, attributeValues);
+	}
+	
 	protected String getWillRepoIcfName() {
 		return ACCOUNT_WILL_USERNAME;
 	}
@@ -388,11 +413,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 	
 	protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
-		IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+		assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
 	}
 	
 	protected void assertEntitlementPriv(PrismObject<ShadowType> account, String entitlementOid) {
-		IntegrationTestTools.assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
+		assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
 	}
 	
 	protected <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {

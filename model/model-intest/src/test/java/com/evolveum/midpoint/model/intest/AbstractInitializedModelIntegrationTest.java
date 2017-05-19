@@ -115,11 +115,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceDummyEmeraldType;
 	protected PrismObject<ResourceType> resourceDummyEmerald;
 	
-	protected DummyResource dummyResourceOrange;
-	protected DummyResourceContoller dummyResourceCtlOrange;
-	protected ResourceType resourceDummyOrangeType;
-	protected PrismObject<ResourceType> resourceDummyOrange;
-
 	protected DummyResource dummyResourceUpcase;
 	protected DummyResourceContoller dummyResourceCtlUpcase;
 	protected ResourceType resourceDummyUpcaseType;
@@ -200,13 +195,14 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyEmeraldType = resourceDummyEmerald.asObjectable();
 		dummyResourceCtlEmerald.setResource(resourceDummyEmerald);
 
-		dummyResourceCtlOrange = DummyResourceContoller.create(RESOURCE_DUMMY_ORANGE_NAME, resourceDummyOrange);
-		dummyResourceCtlOrange.extendSchemaPirate();
-		dummyResourceOrange = dummyResourceCtlOrange.getDummyResource();
-		resourceDummyOrange = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_ORANGE_FILENAME, RESOURCE_DUMMY_ORANGE_OID, initTask, initResult);
-		resourceDummyOrangeType = resourceDummyOrange.asObjectable();
-		dummyResourceCtlOrange.setResource(resourceDummyOrange);
-
+		initDummyResource(RESOURCE_DUMMY_ORANGE_NAME, RESOURCE_DUMMY_ORANGE_FILE, RESOURCE_DUMMY_ORANGE_OID, 
+				controller -> {
+					controller.extendSchemaPirate();
+					controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+							DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, String.class, false, true);
+				},
+				initTask, initResult);
+		
 		dummyResourceCtlUpcase = DummyResourceContoller.create(RESOURCE_DUMMY_UPCASE_NAME, resourceDummyUpcase);
 		dummyResourceCtlUpcase.extendSchemaPirate();
 		dummyResourceUpcase = dummyResourceCtlUpcase.getDummyResource();

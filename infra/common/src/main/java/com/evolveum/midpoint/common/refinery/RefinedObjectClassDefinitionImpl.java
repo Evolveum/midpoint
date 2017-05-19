@@ -212,13 +212,6 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
-	public RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name) {
-		return getEntitlementAssociationDefinitions().stream()
-				.filter(a -> QNameUtil.match(a.getName(), name))
-				.findFirst().orElse(null);
-	}
-
-	@Override
 	public Collection<QName> getNamesOfAssociations() {
 		return getAssociationDefinitions().stream()
 				.map(a -> a.getName())

@@ -101,13 +101,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	Collection<RefinedAssociationDefinition> getAssociationDefinitions(ShadowKindType kind);
 
-	default Collection<RefinedAssociationDefinition> getEntitlementAssociationDefinitions() {
-		return getAssociationDefinitions(ShadowKindType.ENTITLEMENT);
-	}
-
 	RefinedAssociationDefinition findAssociationDefinition(QName name);
-
-	RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name);
 
 	Collection<QName> getNamesOfAssociations();
 

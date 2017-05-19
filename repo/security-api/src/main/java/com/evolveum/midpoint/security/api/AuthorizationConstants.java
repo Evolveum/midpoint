@@ -343,6 +343,9 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_MODIFY_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "modify");
     public static final String AUTZ_UI_MODIFY_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_MODIFY_ACTION_QNAME);
 
+    public static final QName AUTZ_UI_READ_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "read");
+    public static final String AUTZ_UI_READ_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_READ_ACTION_QNAME);
+
     public static final QName AUTZ_UI_ADD_ACTION_QNAME = new QName(NS_AUTHORIZATION_MODEL, "add");
     public static final String AUTZ_UI_ADD_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_ADD_ACTION_QNAME);
 

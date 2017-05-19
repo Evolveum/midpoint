@@ -255,7 +255,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Generated resource schema", resourceSchema);
 		assertEquals("Unexpected number of definitions", 4, resourceSchema.getDefinitions().size());
 		
-		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
 		
 		Document xsdSchemaDom = resourceSchema.serializeToXsd();
 		assertNotNull("No serialized resource schema", xsdSchemaDom);
@@ -267,7 +267,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Re-parsed resource schema", reparsedResourceSchema);
 		assertEquals("Unexpected number of definitions in re-parsed schema", 4, reparsedResourceSchema.getDefinitions().size());
 		
-		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType);
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(reparsedResourceSchema, resourceType, true);
 	}
 	
 	@Test

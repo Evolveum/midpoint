@@ -89,6 +89,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1849,5 +1850,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		ExpressionType expressionType = (ExpressionType)expressionObj;
 		JAXBElement<?> evaluatorElement = expressionType.getExpressionEvaluator().iterator().next();
 		assertEquals("Wrong expression evaluator name", evaluatorName, evaluatorElement.getName().getLocalPart());
+	}
+    
+    protected <O extends ObjectType> void assertNoRepoObject(Class<O> type, String oid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask(AbstractIntegrationTest.class.getName() + ".assertNoRepoObject");
+		assertNoRepoObject(type, oid, task, task.getResult());
+	}
+
+	protected <O extends ObjectType> void assertNoRepoObject(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		try {
+			PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
+			
+			AssertJUnit.fail("Expected that "+object+" does not exist, in repo but it does");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+			return;
+		}
+	}
+	
+	protected void assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+		IntegrationTestTools.assertAssociation(shadow, associationName, entitlementOid);
+	}
+	
+	protected void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+		IntegrationTestTools.assertNoAssociation(shadow, associationName, entitlementOid);
 	}
 }

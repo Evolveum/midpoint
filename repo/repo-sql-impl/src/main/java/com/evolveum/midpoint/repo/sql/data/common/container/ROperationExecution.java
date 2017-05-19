@@ -52,7 +52,9 @@ import java.util.Objects;
 @Table(name = "m_operation_execution", indexes = {
         @Index(name = "iOpExecTaskOid", columnList = "taskRef_targetOid"),
         @Index(name = "iOpExecInitiatorOid", columnList = "initiatorRef_targetOid"),
-        @Index(name = "iOpExecStatus", columnList = "status")})
+        @Index(name = "iOpExecStatus", columnList = "status"),
+		@Index(name = "iOpExecStatus", columnList = "status"),
+		@Index(name = "iOpExecOwnerOid", columnList = "owner_oid")})
 @Persister(impl = MidPointSingleTablePersister.class)
 public class ROperationExecution implements Container<RObject<?>> {
 
