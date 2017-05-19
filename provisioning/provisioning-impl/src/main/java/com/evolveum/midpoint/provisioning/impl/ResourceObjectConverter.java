@@ -135,7 +135,7 @@ public class ResourceObjectConverter {
 		PrismObject<ShadowType> resourceShadow = fetchResourceObject(ctx, identifiers, 
 				attributesToReturn, fetchAssociations, parentResult);			// todo consider whether it is always necessary to fetch the entitlements
 		
-		LOGGER.trace("Got resource object {}", resourceShadow);
+		LOGGER.trace("Got resource object\n{}", resourceShadow.debugDumpLazily());
 		
 		return resourceShadow;
 
@@ -412,171 +412,178 @@ public class ResourceObjectConverter {
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_MODIFY_RESOURCE_OBJECT);
 		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifying resource object {}, deltas:\n", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
-		}
+		try {
 		
-		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-		Collection<Operation> operations = new ArrayList<Operation>();
-		
-		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
-		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
-
-		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
-			if (hasChangesOnResource(itemDeltas)) {
-				LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
-						+ identifiers);
-				SecurityViolationException e = new SecurityViolationException("Cannot modify protected resource object "
-						+ objectClassDefinition + ": " + identifiers);
-				result.recordFatalError(e);
-				throw e;
-			} else {
-				// Return immediately. This structure of the code makes sure that we do not execute any
-				// resource operation for protected account even if there is a bug in the code below.
-				LOGGER.trace("No resource modifications for protected resource object {}: {}; skipping",
-						objectClassDefinition, identifiers);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Modifying resource object {}, deltas:\n", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
+			}
+			
+			RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+			Collection<Operation> operations = new ArrayList<Operation>();
+			
+			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
+			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
+	
+			if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
+				if (hasChangesOnResource(itemDeltas)) {
+					LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
+							+ identifiers);
+					SecurityViolationException e = new SecurityViolationException("Cannot modify protected resource object "
+							+ objectClassDefinition + ": " + identifiers);
+					result.recordFatalError(e);
+					throw e;
+				} else {
+					// Return immediately. This structure of the code makes sure that we do not execute any
+					// resource operation for protected account even if there is a bug in the code below.
+					LOGGER.trace("No resource modifications for protected resource object {}: {}; skipping",
+							objectClassDefinition, identifiers);
+					result.recordNotApplicableIfUnknown();
+					return AsynchronousOperationReturnValue.wrap(null, result);
+				}
+			}
+			
+			boolean hasVolatilityTriggerModification = false;
+			boolean hasResourceModification = false;
+			for (ItemDelta modification: itemDeltas) {
+				ItemPath path = modification.getPath();
+				QName firstPathName = ItemPath.getFirstName(path);
+				if (QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES)) {
+					hasResourceModification = true;
+					QName attrName = ItemPath.getFirstName(path.rest());
+					RefinedAttributeDefinition<Object> attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attrName);
+					if (attrDef.isVolatilityTrigger()) {
+						LOGGER.trace("Will pre-read and re-read object because volatility trigger attribute {} has changed", attrName);
+						hasVolatilityTriggerModification = true;
+						break;
+					}
+				} else if (QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
+						QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
+					hasResourceModification = true;
+				}
+			}
+			
+			if (!hasResourceModification) {
+				// Quit early, so we avoid potential pre-read and other processing when there is no point of doing so.
+				// Also the read may fail which may invoke consistency mechanism which will complicate the situation.
+				LOGGER.trace("No resource modification found for {}, skipping", identifiers);
 				result.recordNotApplicableIfUnknown();
 				return AsynchronousOperationReturnValue.wrap(null, result);
 			}
-		}
-		
-		boolean hasVolatilityTriggerModification = false;
-		boolean hasResourceModification = false;
-		for (ItemDelta modification: itemDeltas) {
-			ItemPath path = modification.getPath();
-			QName firstPathName = ItemPath.getFirstName(path);
-			if (QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES)) {
-				hasResourceModification = true;
-				QName attrName = ItemPath.getFirstName(path.rest());
-				RefinedAttributeDefinition<Object> attrDef = ctx.getObjectClassDefinition().findAttributeDefinition(attrName);
-				if (attrDef.isVolatilityTrigger()) {
-					LOGGER.trace("Will pre-read and re-read object because volatility trigger attribute {} has changed", attrName);
-					hasVolatilityTriggerModification = true;
-					break;
-				}
-			} else if (QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
-					QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
-				hasResourceModification = true;
+	
+	        /*
+	         *  State of the shadow before execution of the deltas - e.g. with original attributes, as it may be recorded in such a way in
+	         *  groups of which this account is a member of. (In case of object->subject associations.)
+	         *
+	         *  This is used when the resource does NOT provide referential integrity by itself. This is e.g. the case of OpenDJ with default
+	         *  settings.
+	         *
+	         *  On the contrary, AD and OpenDJ with referential integrity plugin do provide automatic referential integrity, so this feature is
+	         *  not needed.
+	         *
+	         *  We decide based on setting of explicitReferentialIntegrity in association definition.
+	         */
+	       
+	
+			collectAttributeAndEntitlementChanges(ctx, itemDeltas, operations, repoShadow, result);
+			
+			PrismObject<ShadowType> preReadShadow = null;
+			Collection<PropertyModificationOperation> sideEffectOperations = null;
+			
+			//check identifier if it is not null
+			if (primaryIdentifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
+				GenericConnectorException e = new GenericConnectorException(
+						"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+				result.recordFatalError(e);
+				throw e;
 			}
-		}
-		
-		if (!hasResourceModification) {
-			// Quit early, so we avoid potential pre-read and other processing when there is no point of doing so.
-			// Also the read may fail which may invoke consistency mechanism which will complicate the situation.
-			LOGGER.trace("No resource modification found for {}, skipping", identifiers);
-			result.recordNotApplicableIfUnknown();
-			return AsynchronousOperationReturnValue.wrap(null, result);
-		}
-
-        /*
-         *  State of the shadow before execution of the deltas - e.g. with original attributes, as it may be recorded in such a way in
-         *  groups of which this account is a member of. (In case of object->subject associations.)
-         *
-         *  This is used when the resource does NOT provide referential integrity by itself. This is e.g. the case of OpenDJ with default
-         *  settings.
-         *
-         *  On the contrary, AD and OpenDJ with referential integrity plugin do provide automatic referential integrity, so this feature is
-         *  not needed.
-         *
-         *  We decide based on setting of explicitReferentialIntegrity in association definition.
-         */
-       
-
-		collectAttributeAndEntitlementChanges(ctx, itemDeltas, operations, repoShadow, result);
-		
-		PrismObject<ShadowType> preReadShadow = null;
-		Collection<PropertyModificationOperation> sideEffectOperations = null;
-		
-		//check identifier if it is not null
-		if (primaryIdentifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
-			GenericConnectorException e = new GenericConnectorException(
-					"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
+			
+			if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
+				// We need to filter out the deltas that add duplicate values or remove values that are not there
+				LOGGER.trace("Pre-reading resource shadow");
+				preReadShadow = preReadShadow(ctx, identifiers, operations, true, result);  // yes, we need associations here
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Pre-read object:\n{}", preReadShadow.debugDump());
+				}
+			}
+			
+			if (!operations.isEmpty()) {
+				
+				// This must go after the skip check above. Otherwise the scripts would be executed even if there is no need to.
+				addExecuteScriptOperation(operations, ProvisioningOperationTypeType.MODIFY, scripts, ctx.getResource(), result);
+				
+				// Execute primary ICF operation on this shadow
+				sideEffectOperations = executeModify(ctx, preReadShadow, identifiers, operations, result);
+				
+			} else {
+				// We have to check BEFORE we add script operations, otherwise the check would be pointless
+				LOGGER.trace("No modifications for connector object specified. Skipping processing of subject executeModify.");
+			}
+	
+			Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = convertToPropertyDelta(sideEffectOperations);
+			
+	        /*
+	         *  State of the shadow after execution of the deltas - e.g. with new DN (if it was part of the delta), because this one should be recorded
+	         *  in groups of which this account is a member of. (In case of object->subject associations.)
+	         */
+	        PrismObject<ShadowType> shadowAfter = preReadShadow == null ? repoShadow.clone() : preReadShadow.clone();
+	        for (ItemDelta itemDelta : itemDeltas) {
+	            itemDelta.applyTo(shadowAfter);
+	        }
+	        
+	        PrismObject<ShadowType> postReadShadow = null;
+	        if (hasVolatilityTriggerModification) {
+	        	// There may be other changes that were not detected by the connector. Re-read the object and compare.
+	        	LOGGER.trace("Post-reading resource shadow");
+	        	postReadShadow = preReadShadow(ctx, identifiers, operations, true, result);
+	        	if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Post-read object:\n{}", postReadShadow.debugDump());
+				}
+	        	ObjectDelta<ShadowType> resourceShadowDelta = preReadShadow.diff(postReadShadow);
+	        	if (LOGGER.isTraceEnabled()) {
+	        		LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDump());
+	        	}
+	        	for (ItemDelta modification: resourceShadowDelta.getModifications()) {
+	        		if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDelta.hasEquivalent(itemDeltas, modification)) {
+	        			ItemDelta.merge(sideEffectDeltas, modification);
+	        		}
+	        	}
+	        	if (LOGGER.isTraceEnabled()) {
+	        		LOGGER.trace("Side-effect changes after merging with old-new diff:\n{}", DebugUtil.debugDump(sideEffectDeltas));
+	        	}
+	        }
+	
+	        Collection<? extends ItemDelta> allDeltas = new ArrayList<>();
+	        ((Collection)allDeltas).addAll(itemDeltas);
+	        ((Collection)allDeltas).addAll(sideEffectDeltas);
+	        
+	        // Execute entitlement modification on other objects (if needed)
+	        shadowAfter = executeEntitlementChangesModify(ctx, 
+	        		preReadShadow == null ? repoShadow : preReadShadow,
+	        		postReadShadow == null ? shadowAfter : postReadShadow,
+	        		scripts, allDeltas, result);
+			
+	        if (!sideEffectDeltas.isEmpty()) {
+				if (preReadShadow != null) {
+					PrismUtil.setDeltaOldValue(preReadShadow, sideEffectDeltas);
+				} else {
+					PrismUtil.setDeltaOldValue(repoShadow, sideEffectDeltas);
+				}
+			}
+	        
+	        if (LOGGER.isTraceEnabled()) {
+	    		LOGGER.trace("Modificaiton side-effect changes:\n{}", DebugUtil.debugDump(sideEffectDeltas));
+	    	}
+	        
+	        LOGGER.trace("Modified resource object {}", repoShadow);
+	        
+	        computeResultStatus(result);
+	        
+			return AsynchronousOperationReturnValue.wrap(sideEffectDeltas, result);
+			
+		} catch (Throwable e) {
 			result.recordFatalError(e);
 			throw e;
 		}
-		
-		if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
-			// We need to filter out the deltas that add duplicate values or remove values that are not there
-			LOGGER.trace("Pre-reading resource shadow");
-			preReadShadow = preReadShadow(ctx, identifiers, operations, true, result);  // yes, we need associations here
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Pre-read object:\n{}", preReadShadow.debugDump());
-			}
-		}
-		
-		if (!operations.isEmpty()) {
-			
-			// This must go after the skip check above. Otherwise the scripts would be executed even if there is no need to.
-			addExecuteScriptOperation(operations, ProvisioningOperationTypeType.MODIFY, scripts, ctx.getResource(), result);
-			
-			// Execute primary ICF operation on this shadow
-			sideEffectOperations = executeModify(ctx, preReadShadow, identifiers, operations, result);
-			
-		} else {
-			// We have to check BEFORE we add script operations, otherwise the check would be pointless
-			LOGGER.trace("No modifications for connector object specified. Skipping processing of subject executeModify.");
-		}
-
-		Collection<PropertyDelta<PrismPropertyValue>> sideEffectDeltas = convertToPropertyDelta(sideEffectOperations);
-		
-        /*
-         *  State of the shadow after execution of the deltas - e.g. with new DN (if it was part of the delta), because this one should be recorded
-         *  in groups of which this account is a member of. (In case of object->subject associations.)
-         */
-        PrismObject<ShadowType> shadowAfter = preReadShadow == null ? repoShadow.clone() : preReadShadow.clone();
-        for (ItemDelta itemDelta : itemDeltas) {
-            itemDelta.applyTo(shadowAfter);
-        }
-        
-        PrismObject<ShadowType> postReadShadow = null;
-        if (hasVolatilityTriggerModification) {
-        	// There may be other changes that were not detected by the connector. Re-read the object and compare.
-        	LOGGER.trace("Post-reading resource shadow");
-        	postReadShadow = preReadShadow(ctx, identifiers, operations, true, result);
-        	if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Post-read object:\n{}", postReadShadow.debugDump());
-			}
-        	ObjectDelta<ShadowType> resourceShadowDelta = preReadShadow.diff(postReadShadow);
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDump());
-        	}
-        	for (ItemDelta modification: resourceShadowDelta.getModifications()) {
-        		if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDelta.hasEquivalent(itemDeltas, modification)) {
-        			ItemDelta.merge(sideEffectDeltas, modification);
-        		}
-        	}
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Side-effect changes after merging with old-new diff:\n{}", DebugUtil.debugDump(sideEffectDeltas));
-        	}
-        }
-
-        Collection<? extends ItemDelta> allDeltas = new ArrayList<>();
-        ((Collection)allDeltas).addAll(itemDeltas);
-        ((Collection)allDeltas).addAll(sideEffectDeltas);
-        
-        // Execute entitlement modification on other objects (if needed)
-        shadowAfter = executeEntitlementChangesModify(ctx, 
-        		preReadShadow == null ? repoShadow : preReadShadow,
-        		postReadShadow == null ? shadowAfter : postReadShadow,
-        		scripts, allDeltas, result);
-		
-        if (!sideEffectDeltas.isEmpty()) {
-			if (preReadShadow != null) {
-				PrismUtil.setDeltaOldValue(preReadShadow, sideEffectDeltas);
-			} else {
-				PrismUtil.setDeltaOldValue(repoShadow, sideEffectDeltas);
-			}
-		}
-        
-        if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("Modificaiton side-effect changes:\n{}", DebugUtil.debugDump(sideEffectDeltas));
-    	}
-        
-        LOGGER.trace("Modified resource object {}", repoShadow);
-        
-        computeResultStatus(result);
-        
-		return AsynchronousOperationReturnValue.wrap(sideEffectDeltas, result);
 	}
 	
 	private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDelta(

@@ -104,18 +104,21 @@ class EntitlementConverter {
 		ResourceType resourceType = subjectCtx.getResource();
 		LOGGER.trace("Starting postProcessEntitlementRead");
 		RefinedObjectClassDefinition objectClassDefinition = subjectCtx.getObjectClassDefinition();
-		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociationDefinitions();
+		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getAssociationDefinitions();
 		if (entitlementAssociationDefs != null) {
 			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
-			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
 			
 			PrismContainerDefinition<ShadowAssociationType> associationDef = resourceObject.getDefinition().findContainerDefinition(ShadowType.F_ASSOCIATION);
 			PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
 			
 			for (RefinedAssociationDefinition assocDefType: entitlementAssociationDefs) {
-				for (String intent: assocDefType.getIntents()) {
-					LOGGER.trace("Resolving association {} for intent {}", assocDefType.getName(), intent);
-					ProvisioningContext entitlementCtx = subjectCtx.spawn(ShadowKindType.ENTITLEMENT, intent);
+				ShadowKindType entitlementKind = assocDefType.getKind();
+				if (entitlementKind == null) {
+					entitlementKind = ShadowKindType.ENTITLEMENT;
+				}
+				for (String entitlementIntent: assocDefType.getIntents()) {
+					LOGGER.trace("Resolving association {} for kind {} and intent {}", assocDefType.getName(), entitlementKind, entitlementIntent);
+					ProvisioningContext entitlementCtx = subjectCtx.spawn(entitlementKind, entitlementIntent);
 					RefinedObjectClassDefinition entitlementDef = entitlementCtx.getObjectClassDefinition();
 					if (entitlementDef == null) {
 						throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' in "+resourceType);
@@ -178,6 +181,7 @@ class EntitlementConverter {
 		ResourceAttribute<T> assocAttr = attributesContainer.findAttribute(assocAttrName);
 		if (assocAttr == null || assocAttr.isEmpty()) {
 			// Nothing to do. No attribute to base the association on.
+			LOGGER.trace("Association attribute {} is empty, skipping association {}", assocAttrName, associationName);
 			return;
 		}
 
@@ -395,14 +399,14 @@ class EntitlementConverter {
 			PrismObject<ShadowType> subjectShadow, OperationResult parentResult) 
 					throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = subjectCtx.getObjectClassDefinition().getEntitlementAssociationDefinitions();
+		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = subjectCtx.getObjectClassDefinition().getAssociationDefinitions();
 		if (entitlementAssociationDefs == null || entitlementAssociationDefs.isEmpty()) {
 			// Nothing to do
 			LOGGER.trace("No associations in deleted shadow");
 			return;
 		}
 		ResourceAttributeContainer subjectAttributesContainer = ShadowUtil.getAttributesContainer(subjectShadow);
-		for (final RefinedAssociationDefinition assocDefType: subjectCtx.getObjectClassDefinition().getEntitlementAssociationDefinitions()) {
+		for (final RefinedAssociationDefinition assocDefType: subjectCtx.getObjectClassDefinition().getAssociationDefinitions()) {
 			if (assocDefType.getResourceObjectAssociationType().getDirection() != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 				// We can ignore these. They will die together with the object. No need to explicitly delete them.
 				LOGGER.trace("Ignoring subject-to-object association in deleted shadow");
@@ -422,8 +426,12 @@ class EntitlementConverter {
 			if (associationName == null) {
 				throw new SchemaException("No name in entitlement association "+assocDefType+" in "+subjectCtx.getResource());
 			}
-			for (String intent: assocDefType.getIntents()) {
-				final ProvisioningContext entitlementCtx = subjectCtx.spawn(ShadowKindType.ENTITLEMENT, intent);
+			ShadowKindType entitlementKind = assocDefType.getKind();
+			if (entitlementKind == null) {
+				entitlementKind = ShadowKindType.ENTITLEMENT;
+			}
+			for (String entitlementIntent: assocDefType.getIntents()) {
+				final ProvisioningContext entitlementCtx = subjectCtx.spawn(entitlementKind, entitlementIntent);
 				final RefinedObjectClassDefinition entitlementOcDef = entitlementCtx.getObjectClassDefinition();
 				if (entitlementOcDef == null) {
 					throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' defined in entitlement association "+associationName+" in "+subjectCtx.getResource());
@@ -548,9 +556,9 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+associationCVal);
 		}
-		RefinedAssociationDefinition assocDefType = objectClassDefinition.findEntitlementAssociationDefinition(associationName);
+		RefinedAssociationDefinition assocDefType = objectClassDefinition.findAssociationDefinition(associationName);
 		if (assocDefType == null) {
-			throw new SchemaException("No entitlement association with name "+associationName+" in schema of "+ctx.getResource());
+			throw new SchemaException("No association with name " + associationName + " in " + objectClassDefinition + " in schema of " + ctx.getResource());
 		}
 		
 		ResourceObjectAssociationDirectionType direction = assocDefType.getResourceObjectAssociationType().getDirection();
@@ -622,7 +630,7 @@ class EntitlementConverter {
 		if (associationName == null) {
 			throw new SchemaException("No name in entitlement association "+associationCVal);
 		}
-		RefinedAssociationDefinition assocDefType = subjectCtx.getObjectClassDefinition().findEntitlementAssociationDefinition(associationName);
+		RefinedAssociationDefinition assocDefType = subjectCtx.getObjectClassDefinition().findAssociationDefinition(associationName);
 		if (assocDefType == null) {
 			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
 		}
@@ -637,8 +645,12 @@ class EntitlementConverter {
 		if (entitlementIntents == null || entitlementIntents.isEmpty()) {
 			throw new SchemaException("No entitlement intent specified in association "+associationCVal+" in "+resource);
 		}
+		ShadowKindType entitlementKind = assocDefType.getKind();
+		if (entitlementKind == null) {
+			entitlementKind = ShadowKindType.ENTITLEMENT;
+		}
 		for (String entitlementIntent: entitlementIntents) {
-			ProvisioningContext entitlementCtx = subjectCtx.spawn(ShadowKindType.ENTITLEMENT, entitlementIntent);
+			ProvisioningContext entitlementCtx = subjectCtx.spawn(entitlementKind, entitlementIntent);
 			RefinedObjectClassDefinition entitlementOcDef = entitlementCtx.getObjectClassDefinition();
 			if (entitlementOcDef == null) {
 				throw new SchemaException("No definition of entitlement intent(s) '"+entitlementIntents+"' specified in association "+associationCVal+" in "+resource);

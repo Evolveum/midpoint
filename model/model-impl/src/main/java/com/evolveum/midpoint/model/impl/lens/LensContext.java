@@ -805,6 +805,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		clone.executionPhaseOnly = this.executionPhaseOnly;
 		clone.focusClass = this.focusClass;
 		clone.isFresh = this.isFresh;
+		clone.isRequestAuthorized = this.isRequestAuthorized;
 		clone.prismContext = this.prismContext;
 		clone.resourceCache = cloneResourceCache();
 		// User template is de-facto immutable, OK to just pass reference here.
@@ -880,6 +881,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 		sb.append(" changes, ");
 		sb.append("fresh=").append(isFresh);
+		sb.append(", reqAutz=").append(isRequestAuthorized);
 		if (systemConfiguration == null) {
 			sb.append(" null-system-configuration");
 		}

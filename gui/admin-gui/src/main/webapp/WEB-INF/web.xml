@@ -61,6 +61,10 @@
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
 
+    <listener>	<!-- needed for retrieving original HTTP request in SecurityUtil (e.g. for auditing) -->
+        <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+    </listener>
+
     <filter>
         <filter-name>MidPointProfilingServletFilter</filter-name>
         <filter-class>com.evolveum.midpoint.web.util.MidPointProfilingServletFilter</filter-class>

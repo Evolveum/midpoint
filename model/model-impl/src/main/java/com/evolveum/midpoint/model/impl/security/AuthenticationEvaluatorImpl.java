@@ -20,6 +20,7 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.security.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,6 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
@@ -42,11 +42,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,18 +57,12 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AuthenticationEvaluatorImpl.class);
 	
-	@Autowired
-	private Protector protector;
-	
-	@Autowired
-	private Clock clock;
-	
+	@Autowired private Protector protector;
+	@Autowired private Clock clock;
+	@Autowired private SecurityHelper securityHelper;
+
 	// Has to be package-private so the tests can manipulate it
-	@Autowired
-	UserProfileService userProfileService;
-	
-	@Autowired
-	private SecurityHelper securityHelper;
+	@Autowired UserProfileService userProfileService;
 	
 	protected abstract void checkEnteredCredentials(ConnectionEnvironment connEnv, T authCtx);
 	protected abstract boolean suportsAuthzCheck();
@@ -422,7 +411,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		}
 		LoginEventType event = new LoginEventType();
 		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-		event.setFrom(connEnv.getRemoteHost());
+		event.setFrom(connEnv.getRemoteHostAddress());
 
 		passwordType.setPreviousSuccessfulLogin(passwordType.getLastSuccessfulLogin());
 		passwordType.setLastSuccessfulLogin(event);
@@ -474,7 +463,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		
 		LoginEventType event = new LoginEventType();
 		event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
-		event.setFrom(connEnv.getRemoteHost());
+		event.setFrom(connEnv.getRemoteHostAddress());
 		
 		passwordType.setLastFailedLogin(event);
 		

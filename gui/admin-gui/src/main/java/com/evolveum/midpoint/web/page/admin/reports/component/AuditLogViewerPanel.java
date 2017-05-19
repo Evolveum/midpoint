@@ -229,9 +229,9 @@ public class AuditLogViewerPanel extends BasePanel {
         changedItemPanel.setOutputMarkupId(true);
         parametersPanel.add(changedItemPanel);
 
-        PropertyModel<String> hostIdentifierModel = new PropertyModel<String>(auditSearchDto,
+        PropertyModel<String> hostIdentifierModel = new PropertyModel<>(auditSearchDto,
                 AuditSearchDto.F_HOST_IDENTIFIER);
-        TextPanel<String> hostIdentifier = new TextPanel<String>(ID_HOST_IDENTIFIER, hostIdentifierModel);
+        TextPanel<String> hostIdentifier = new TextPanel<>(ID_HOST_IDENTIFIER, hostIdentifierModel);
         hostIdentifier.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         hostIdentifier.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         hostIdentifier.setOutputMarkupId(true);

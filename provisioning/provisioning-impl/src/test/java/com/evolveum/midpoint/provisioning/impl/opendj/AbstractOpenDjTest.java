@@ -49,11 +49,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	
-	protected static final String TEST_DIR_NAME = "src/test/resources/impl/opendj";
-	protected static final File TEST_DIR = new File(TEST_DIR_NAME);
+	protected static final File TEST_DIR = new File("src/test/resources/opendj");
 	
-	protected static final File RESOURCE_OPENDJ_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj.xml");
-	protected static final File RESOURCE_OPENDJ_INITIALIZED_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-initialized.xml");
+	protected static final File RESOURCE_OPENDJ_FILE = ProvisioningTestUtil.RESOURCE_OPENDJ_FILE;
+	protected static final File RESOURCE_OPENDJ_INITIALIZED_FILE = new File(TEST_DIR, "resource-opendj-initialized.xml");
 	protected static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	protected static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
@@ -63,8 +62,8 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	protected static final File RESOURCE_OPENDJ_BAD_BIND_DN_FILE = new File(TEST_DIR, "resource-opendj-bad-bind-dn.xml");
 	protected static final String RESOURCE_OPENDJ_BAD_BIND_DN_OID = "d180258a-ef5f-11e4-8737-001e8c717e5b";
 	
-	protected static final File ACCOUNT1_FILE = new File (TEST_DIR_NAME, "account1.xml");
-	protected static final File ACCOUNT1_REPO_FILE = new File(TEST_DIR_NAME, "account1-repo.xml");
+	protected static final File ACCOUNT1_FILE = new File (TEST_DIR, "account1.xml");
+	protected static final File ACCOUNT1_REPO_FILE = new File(TEST_DIR, "account1-repo.xml");
 	protected static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
@@ -82,20 +81,20 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	
 	protected static final String ACCOUNT_BARBOSSA_DN = "uid=hbarbossa,ou=People,dc=example,dc=com";
 	
-	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR_NAME, "account-modify-password.xml");
+	protected static final File ACCOUNT_MODIFY_PASSWORD_FILE = new File(TEST_DIR, "account-modify-password.xml");
 	protected static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	
-	protected static final File ACCOUNT_SPARROW_FILE = new File(TEST_DIR_NAME, "account-sparrow.xml");
-	protected static final File ACCOUNT_SPARROW_REPO_FILE = new File(TEST_DIR_NAME, "account-sparrow-repo.xml");
+	protected static final File ACCOUNT_SPARROW_FILE = new File(TEST_DIR, "account-sparrow.xml");
+	protected static final File ACCOUNT_SPARROW_REPO_FILE = new File(TEST_DIR, "account-sparrow-repo.xml");
 	protected static final String ACCOUNT_SPARROW_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	
-	protected static final String ACCOUNT_SEARCH_ITERATIVE_FILENAME = TEST_DIR_NAME + "/account-search-iterative.xml";
+	protected static final File ACCOUNT_SEARCH_ITERATIVE_FILE = new File(TEST_DIR, "account-search-iterative.xml");
 	protected static final String ACCOUNT_SEARCH_ITERATIVE_OID = "c0c010c0-d34d-b44f-f11d-333222666666";
 	
-	protected static final String ACCOUNT_SEARCH_FILENAME = TEST_DIR_NAME + "/account-search.xml";
+	protected static final File ACCOUNT_SEARCH_FILE = new File(TEST_DIR, "account-search.xml");
 	protected static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
 	
-	protected static final String ACCOUNT_NEW_WITH_PASSWORD_FILENAME = TEST_DIR_NAME + "/account-new-with-password.xml";;
+	protected static final File ACCOUNT_NEW_WITH_PASSWORD_FILE = new File(TEST_DIR, "account-new-with-password.xml");
 	protected static final String ACCOUNT_NEW_WITH_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222124422";
 	
 	protected static final File ACCOUNT_NEW_DISABLED_FILE = new File (TEST_DIR, "account-new-disabled.xml");
@@ -104,7 +103,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	protected static final File ACCOUNT_NEW_ENABLED_FILE = new File (TEST_DIR, "account-new-enabled.xml");
 	protected static final String ACCOUNT_NEW_ENABLED_OID = "c0c010c0-d34d-b44f-f11d-d3d2d2d2d4d3";
 
-	protected static final String ACCOUNT_DISABLE_SIMULATED_FILENAME = TEST_DIR_NAME + "/account-disable-simulated-opendj.xml";
+	protected static final File ACCOUNT_DISABLE_SIMULATED_FILE = new File(TEST_DIR, "account-disable-simulated-opendj.xml");
 	protected static final String ACCOUNT_DISABLE_SIMULATED_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa";
 	
 	protected static final File ACCOUNT_POSIX_MCMUTTON_FILE = new File (TEST_DIR, "account-posix-mcmutton.xml");
@@ -114,9 +113,9 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 
 	protected static final File ACCOUNT_POSIX_VANHELGEN_LDIF_FILE = new File(TEST_DIR, "vanhelgen.ldif");
 	
-	protected static final String REQUEST_DISABLE_ACCOUNT_SIMULATED_FILENAME = TEST_DIR_NAME + "/disable-account-simulated.xml";
+	protected static final File REQUEST_DISABLE_ACCOUNT_SIMULATED_FILE = new File(TEST_DIR, "disable-account-simulated.xml");
 	
-	protected static final String ACCOUNT_NO_SN_FILENAME = TEST_DIR_NAME + "/account-opendj-no-sn.xml";
+	protected static final File ACCOUNT_NO_SN_FILE = new File(TEST_DIR, "account-opendj-no-sn.xml");
 	protected static final String ACCOUNT_NO_SN_OID = "c0c010c0-d34d-beef-f33d-113222123444";
 	
 	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");

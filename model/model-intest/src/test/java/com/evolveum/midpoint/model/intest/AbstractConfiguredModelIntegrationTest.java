@@ -180,10 +180,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	// Orange dummy resource for testing associations with resource-provided referential integrity
 	// It also have very little outbound expressions and it has some strange inbound expressions.
-	protected static final String RESOURCE_DUMMY_ORANGE_FILENAME = COMMON_DIR + "/resource-dummy-orange.xml";
+	protected static final File RESOURCE_DUMMY_ORANGE_FILE = new File(COMMON_DIR, "resource-dummy-orange.xml");
 	protected static final String RESOURCE_DUMMY_ORANGE_OID = "10000000-0000-0000-0000-000000001104";
 	protected static final String RESOURCE_DUMMY_ORANGE_NAME = "orange";
 	protected static final String RESOURCE_DUMMY_ORANGE_NAMESPACE = MidPointConstants.NS_RI;
+	protected static final QName RESOURCE_DUMMY_ORANGE_ASSOCIATION_CREW_QNAME = new QName(RESOURCE_DUMMY_ORANGE_NAMESPACE, "crew");
 
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_FILENAME = COMMON_DIR + "/resource-dummy-schemaless-no-schema.xml";
 	protected static final String RESOURCE_DUMMY_SCHEMALESS_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
@@ -458,6 +459,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
+    protected static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
     
     protected static final String INTENT_TEST = "test";
     protected static final String INTENT_DUMMY_GROUP = "group";

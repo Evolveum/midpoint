@@ -24,6 +24,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -59,7 +61,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
 	
-	private static final String ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME = TEST_DIR + "account-elaine-resource-not-found.xml";
+	private static final File ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILE = new File(TEST_DIR, "account-elaine-resource-not-found.xml");
 	
 	@Test
 	public void test110GetResourceBrokenSchemaNetwork() throws Exception {
@@ -147,7 +149,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
@@ -180,7 +182,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test201AddAccountEmptyAttributes");
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
@@ -211,7 +213,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test210AddAccountNoObjectclass");
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
@@ -244,7 +246,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		
@@ -276,7 +278,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILE);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
 		

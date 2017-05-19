@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.security.api;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.access.AccessDecisionManager;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -101,4 +102,15 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 */
 	<O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems( MidPointPrincipal midPointPrincipal, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException;
 
+	/**
+	 * Store connection information for later use within current thread.
+	 */
+	void storeConnectionInformation(@Nullable HttpConnectionInformation value);
+
+	/**
+	 * Returns stored connection information.
+	 * Should be used for non-HTTP threads that have no access to stored Request object (see {@link SecurityUtil#getCurrentConnectionInformation()}).
+	 */
+	@Nullable
+	HttpConnectionInformation getStoredConnectionInformation();
 }

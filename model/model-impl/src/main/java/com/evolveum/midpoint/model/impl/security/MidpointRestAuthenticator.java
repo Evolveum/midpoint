@@ -107,8 +107,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        Task task = taskManager.createTaskInstance(ModelRestService.OPERATION_REST_SERVICE);
 	        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
 	        
-	        ConnectionEnvironment connEnv = createConnectionEnvironment();
-	        connEnv.setSessionId(task.getTaskIdentifier());
+	        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
 	        UsernamePasswordAuthenticationToken token;
 	        try {
 	        	token = getAuthenticationEvaluator().authenticate(connEnv, authenticationContext);
@@ -189,13 +188,6 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	    	return true;
 	    }
 	    
-	    private ConnectionEnvironment createConnectionEnvironment() {
-			ConnectionEnvironment connEnv = new ConnectionEnvironment();
-			connEnv.setChannel(SchemaConstants.CHANNEL_REST_URI);
-			// TODO: remote host
-			return connEnv;
-		}
-
 	    public SecurityEnforcer getSecurityEnforcer() {
 			return securityEnforcer;
 		}
@@ -207,6 +199,4 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	    public TaskManager getTaskManager() {
 			return taskManager;
 		}
-	    
-	    
 }

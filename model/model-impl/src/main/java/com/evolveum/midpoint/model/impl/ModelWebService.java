@@ -19,6 +19,8 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -284,7 +286,15 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         if (output != null) {
             for (PipelineItem item: output) {
 				PipelineItemType itemType = new PipelineItemType();
-				itemType.setValue(item.getValue().getRealValue());        				// TODO - ok?
+				PrismValue value = item.getValue();
+				if (value instanceof PrismReferenceValue) {
+					// This is a bit of hack: value.getRealValue() would return unserializable object (PRV$1 - does not have type QName)
+					ObjectReferenceType ort = new ObjectReferenceType();
+					ort.setupReferenceValue((PrismReferenceValue) value);
+					itemType.setValue(ort);
+				} else {
+					itemType.setValue(value.getRealValue());                        // TODO - ok?
+				}
 				itemType.setResult(item.getResult().createOperationResultType());
 				rv.getItem().add(itemType);
             }

@@ -26,19 +26,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.*;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -78,8 +74,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyResourceAndSchemaCaching.class);
-	
-	
 	
 	@Test
 	public void test010GetResource() throws Exception {
@@ -223,7 +217,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 				+ "." + TEST_NAME);
 		
 		// WHEN
-		addAccount(ACCOUNT_WILL_FILENAME);
+		addAccount(ACCOUNT_WILL_FILE);
 		
 		// THEN
 		display("Resource cache (1)", InternalMonitor.getResourceCacheStats());
@@ -586,11 +580,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertConnectorInstanceChanged(resourceProvisioning);
 	}
 	
-	private String addAccount(String filename) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
+	private String addAccount(File file) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".addAccount");
 		OperationResult result = task.getResult();
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(filename));
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
 		String oid = provisioningService.addObject(account, null, null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);

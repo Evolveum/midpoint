@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -245,7 +245,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     
 		// WHEN
 		modifyObjectAddProperty(ShadowType.class, guybrushShadowOrangeOid, 
-				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+				getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
 				task, result, ROLE_PIRATE_OID);
 
 		// THEN
@@ -333,7 +333,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     
 		// WHEN
 		modifyObjectDeleteProperty(ShadowType.class, guybrushShadowOrangeOid, 
-				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+				getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
 				task, result, ROLE_PIRATE_OID);
 
 		// THEN
@@ -379,7 +379,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     
 		// WHEN
 		modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid, 
-				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
 				task, result, "Look behind you, a Three-Headed Monkey!");
 
 		// THEN
@@ -427,7 +427,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     
 		// WHEN
 		modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid, 
-				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
 				task, result, "I wanna be a pirrrrrrate!");
 
 		// THEN
@@ -475,7 +475,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     
 		// WHEN
 		modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid, 
-				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
 				task, result, "How much wood could a woodchuck chuck if a woodchuck could chuck wood?");
 
 		// THEN
@@ -672,7 +672,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
     
 		// WHEN
 		modifyObjectReplaceProperty(ShadowType.class, guybrushShadowOrangeOid, 
-				dummyResourceCtlOrange.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
 				task, result, "Look behind you, a Three-Headed Monkey!");
 
 		// THEN

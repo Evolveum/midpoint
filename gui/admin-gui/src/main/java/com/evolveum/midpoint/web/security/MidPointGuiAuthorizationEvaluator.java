@@ -20,13 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -219,5 +213,15 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 			MidPointPrincipal midPointPrincipal, PrismObject<O> object, PrismObject<R> target,
 			OwnerResolver ownerResolver) throws SchemaException {
 		return securityEnforcer.getAllowedRequestAssignmentItems(midPointPrincipal, object, target, ownerResolver);
+	}
+
+	@Override
+	public void storeConnectionInformation(HttpConnectionInformation value) {
+		securityEnforcer.storeConnectionInformation(value);
+	}
+
+	@Override
+	public HttpConnectionInformation getStoredConnectionInformation() {
+		return securityEnforcer.getStoredConnectionInformation();
 	}
 }

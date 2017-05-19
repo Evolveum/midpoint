@@ -19,8 +19,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceFailure;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertTestResourceSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -33,7 +31,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,7 +40,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -55,8 +52,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -86,7 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnecti
 @DirtiesContext
 public class TestDummySchemaless extends AbstractIntegrationTest {
 
-	private static final String TEST_DIR = "src/test/resources/impl/dummy-schemaless/";
+	private static final File TEST_DIR = new File(AbstractDummyTest.TEST_DIR_DUMMY, "dummy-schemaless");
 
 	private static final File RESOURCE_DUMMY_NO_SCHEMA_FILE = new File(TEST_DIR, "resource-dummy-schemaless-no-schema.xml");
 	private static final String RESOURCE_DUMMY_NO_SCHEMA_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0000";
@@ -96,7 +93,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	private static final String RESOURCE_DUMMY_STATIC_SCHEMA_OID = "ef2bc95b-76e0-59e2-86d6-9999dddd0505";
 	private static final String RESOURCE_DUMMY_STATIC_SCHEMA_INSTANCE_ID = "staticSchema";
 	
-	private static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
+	private static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 	private static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	private static final String ACCOUNT_WILL_ICF_UID = "will";
 
@@ -319,7 +316,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
 		
-		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resourceTypeStaticSchema);
+		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resourceTypeStaticSchema, true);
 	}
 
 	@Test
@@ -340,7 +337,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		display("Parsed resource schema", returnedSchema);
 		assertNotNull("Null resource schema", returnedSchema);
 		
-		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resource.asObjectable());
+		dummyResourceSchemalessCtl.assertDummyResourceSchemaSanity(returnedSchema, resource.asObjectable(), true);
 	}
 	
 	@Test
@@ -407,7 +404,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
-		ShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType account = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		account.asPrismObject().checkConsistence();
 
 		display("Adding shadow", account.asPrismObject());

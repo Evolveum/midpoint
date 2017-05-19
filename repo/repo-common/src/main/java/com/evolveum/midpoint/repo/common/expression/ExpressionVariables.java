@@ -57,7 +57,7 @@ public class ExpressionVariables implements DebugDumpable {
         	if (!areDeltasAllowed() && value instanceof ObjectDeltaObject<?>) {
         		ObjectDeltaObject<?> odo = (ObjectDeltaObject<?>)value;
         		if (odo.getObjectDelta() != null) {
-        			throw new IllegalArgumentException("Cannot use variables with deltas in addVariableDefinitions, use addVariableDefinitionsOld or addVariableDefinitionsNew");
+        			throw new IllegalArgumentException("Cannot use variables with deltas in addVariableDefinitions. Use addVariableDefinitionsOld or addVariableDefinitionsNew.");
         		}
         		value = odo.getOldObject();
         	}

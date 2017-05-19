@@ -83,7 +83,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 	protected String willIcfUid;
 
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-priorities-read-replace/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-priorities-read-replace");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override

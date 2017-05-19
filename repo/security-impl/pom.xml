@@ -82,7 +82,7 @@
             <groupId>aopalliance</groupId>
             <artifactId>aopalliance</artifactId>
         </dependency>
-		
+
 		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>

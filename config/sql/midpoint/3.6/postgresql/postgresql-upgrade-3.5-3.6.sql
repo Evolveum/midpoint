@@ -167,7 +167,13 @@ CREATE INDEX iOpExecInitiatorOid
 CREATE INDEX iOpExecStatus
   ON m_operation_execution (status);
 
+CREATE INDEX iOpExecOwnerOid
+  ON m_operation_execution (owner_oid);
+
 ALTER TABLE m_operation_execution
   ADD CONSTRAINT fk_op_exec_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
+
+ALTER TABLE m_audit_event ADD COLUMN nodeIdentifier VARCHAR(255);
+ALTER TABLE m_audit_event ADD COLUMN remoteHostAddress VARCHAR(255);

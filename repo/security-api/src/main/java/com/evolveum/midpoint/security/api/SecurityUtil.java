@@ -43,6 +43,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsP
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Radovan Semancik
@@ -298,4 +303,25 @@ public class SecurityUtil {
 		}
 		return policyObj.asObjectable();
 	}
+
+	/**
+	 * Returns current connection information, as derived from HTTP request stored in current thread.
+	 * May be null if the thread is not associated with any HTTP request (e.g. task threads, operations invoked from GUI but executing in background).
+	 */
+	public static HttpConnectionInformation getCurrentConnectionInformation() {
+		RequestAttributes attr = RequestContextHolder.getRequestAttributes();
+		if (!(attr instanceof ServletRequestAttributes)) {
+			return null;
+		}
+		ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) attr;
+		HttpConnectionInformation rv = new HttpConnectionInformation();
+		rv.setSessionId(servletRequestAttributes.getSessionId());
+		HttpServletRequest request = servletRequestAttributes.getRequest();
+		if (request != null) {
+			rv.setLocalHostName(request.getLocalName());
+			rv.setRemoteHostAddress(request.getRemoteAddr());
+		}
+		return rv;
+	}
+
 }

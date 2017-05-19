@@ -451,11 +451,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return refinedObjectClassDefinition.isObjectCountingEnabled();
 	}
 
-	@Override
-	public Collection<RefinedAssociationDefinition> getEntitlementAssociationDefinitions() {
-		return refinedObjectClassDefinition.getEntitlementAssociationDefinitions();
-	}
-
     @Override
 	public boolean isAbstract() {
 		return refinedObjectClassDefinition.isAbstract();
@@ -486,11 +481,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 			boolean caseInsensitive) {
 		ID def = refinedObjectClassDefinition.findItemDefinition(name, clazz, caseInsensitive);
 		return (ID) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) def, layer);
-	}
-
-	@Override
-	public RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name) {
-		return refinedObjectClassDefinition.findEntitlementAssociationDefinition(name);
 	}
 
     @Override

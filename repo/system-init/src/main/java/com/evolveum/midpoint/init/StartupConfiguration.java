@@ -41,8 +41,7 @@ import java.text.SimpleDateFormat;
 import java.util.Iterator;
 
 public class StartupConfiguration implements MidpointConfiguration {
-
-    private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
+    
     private static final String USER_HOME_SYSTEM_PROPERTY_NAME = "user.home";
     private static final String MIDPOINT_HOME_SYSTEM_PROPERTY_NAME = "midpoint.home";
     private static final String MIDPOINT_CONFIGURATION_SECTION = "midpoint";
@@ -51,6 +50,10 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
 	private static final String LOGBACK_CONFIG_FILENAME = "logback.xml";
+	private static final String LOGBACK_EXTRA_CONFIG_FILENAME = "logback-extra.xml";
+	
+	private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
+	private static final Trace LOGGER_WELCOME = TraceManager.getTrace("com.evolveum.midpoint.init.welcome");
 
     private CompositeConfiguration config = null;
     private Document xmlConfigAsDocument = null;        // just in case when we need to access original XML document
@@ -127,8 +130,7 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Initialize system configuration
      */
     public void init() {
-        welcome();
-        
+              
         if (midPointHomePath == null) {
         	
 	        if (System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME) == null || System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME).isEmpty()) {
@@ -153,8 +155,15 @@ public class StartupConfiguration implements MidpointConfiguration {
                 }
         }
 
+        // This is not really good practice. But some components such as reports rely on well-formatted midpoint.home system property.
+        System.setProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
+        
         File midpointHome = new File(midPointHomePath);
+        
         setupInitialLogging(midpointHome);
+        
+        welcome();
+        
         loadConfiguration(midpointHome);
 
         if (isSafeMode()) {
@@ -224,19 +233,30 @@ public class StartupConfiguration implements MidpointConfiguration {
     
 	private void setupInitialLogging(File midpointHome) {
 		File logbackConfigFile = new File(midpointHome, LOGBACK_CONFIG_FILENAME);
-		if (!logbackConfigFile.exists()) {
-			return;
+		boolean clear = false;
+		if (logbackConfigFile.exists()) {
+			clear = true;
+		} else {
+			logbackConfigFile = new File(midpointHome, LOGBACK_EXTRA_CONFIG_FILENAME);
+			if (!logbackConfigFile.exists()) {
+				return;
+			}
 		}
-		LOGGER.info("Loading additional logging configuration from {}", logbackConfigFile);
+		LOGGER.info("Loading logging configuration from {} ({})", logbackConfigFile,
+				clear?"clearing default configuration":"extending defalt configuration");
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		if (clear) {
+			context.reset();
+		}
 		try {
 		  JoranConfigurator configurator = new JoranConfigurator();
 		  configurator.setContext(context);
-		configurator.doConfigure(logbackConfigFile);
-		} catch (JoranException je) {
-		  // StatusPrinter will handle this
-		} catch (Exception ex) {
-		  ex.printStackTrace();
+		  configurator.doConfigure(logbackConfigFile);
+		} catch (Exception e) {
+			// This will logged by defalt logging configuration
+			LOGGER.error("Error loading additional logging configuration: {}", e.getMessage(), e);
+			// If normal logging fail make sure it is logged by web container
+			e.printStackTrace();
 		}
 		StatusPrinter.printInCaseOfErrorsOrWarnings(context);
     }
@@ -293,25 +313,25 @@ public class StartupConfiguration implements MidpointConfiguration {
         try {
             Configuration info = new PropertiesConfiguration("midpoint.info");
             DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
-            LOGGER.info("+--------------------------------------------------------------------------------------------+");
-            LOGGER.info("|             _    | |  _  \\     _     _| |_");
-            LOGGER.info("|   ___ ____ (_) __| | |_) |___ (_)___|_   _|");
-            LOGGER.info("|  |  _ ` _ `| |/ _  |  __/  _ \\| |  _` | |");
-            LOGGER.info("|  | | | | | | | (_| | |  | (_) | | | | | |_");
-            LOGGER.info("|  |_| |_| |_|_|\\____|_|  \\____/|_|_| |_|\\__|  by Evolveum and partners");
-            LOGGER.info("|");
-            LOGGER.info("|  Licensed under the Apache License, Version 2.0 see: http://www.apache.org/licenses/LICENSE-2.0");
-            LOGGER.info("|  Version :  " + info.getString("midpoint.version"));
+            LOGGER_WELCOME.info("+--------------------------------------------------------------------------------------------+");
+            LOGGER_WELCOME.info("|             _    | |  _  \\     _     _| |_");
+            LOGGER_WELCOME.info("|   ___ ____ (_) __| | |_) |___ (_)___|_   _|");
+            LOGGER_WELCOME.info("|  |  _ ` _ `| |/ _  |  __/  _ \\| |  _` | |");
+            LOGGER_WELCOME.info("|  | | | | | | | (_| | |  | (_) | | | | | |_");
+            LOGGER_WELCOME.info("|  |_| |_| |_|_|\\____|_|  \\____/|_|_| |_|\\__|  by Evolveum and partners");
+            LOGGER_WELCOME.info("|");
+            LOGGER_WELCOME.info("|  Licensed under the Apache License, Version 2.0 see: http://www.apache.org/licenses/LICENSE-2.0");
+            LOGGER_WELCOME.info("|  Version :  " + info.getString("midpoint.version"));
 //			try {
-//				LOGGER.info("|  Build   :  " + info.getString("midpoint.build") + " at "
+//				LOGGER_WELCOME.info("|  Build   :  " + info.getString("midpoint.build") + " at "
 //						+ formatter.format(new Date(info.getLong("midpoint.timestamp"))));
 //			} catch (NumberFormatException ex) {
-//				LOGGER.info("|  Build   :  " + info.getString("midpoint.build"));
+//				LOGGER_WELCOME.info("|  Build   :  " + info.getString("midpoint.build"));
 //			}
-            LOGGER.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  " + info.getString("midpoint.branch"));
-            LOGGER.info("|  Bug reporting system : " + info.getString("midpoint.jira"));
-            LOGGER.info("|  Product information : http://wiki.evolveum.com/display/midPoint");
-            LOGGER.info("+---------------------------------------------------------------------------------------------+");
+            LOGGER_WELCOME.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  " + info.getString("midpoint.branch"));
+            LOGGER_WELCOME.info("|  Bug reporting system : " + info.getString("midpoint.jira"));
+            LOGGER_WELCOME.info("|  Product information : http://wiki.evolveum.com/display/midPoint");
+            LOGGER_WELCOME.info("+---------------------------------------------------------------------------------------------+");
         } catch (ConfigurationException e) {
             //NOTHING just skip
         }

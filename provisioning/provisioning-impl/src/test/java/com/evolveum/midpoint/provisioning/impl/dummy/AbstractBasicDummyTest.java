@@ -1017,8 +1017,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 
 	@Test
-	public void test100AddAccount() throws Exception {
-		final String TEST_NAME = "test100AddAccount";
+	public void test100AddAccountWill() throws Exception {
+		final String TEST_NAME = "test100AddAccountWill";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1232,7 +1232,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(new File(FILENAME_MODIFY_ACCOUNT),
+		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(MODIFY_ACCOUNT_FILE,
                 ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> accountDelta = DeltaConvertor.createObjectDelta(changeAddRoleCaptain,
 				ShadowType.class, prismContext);

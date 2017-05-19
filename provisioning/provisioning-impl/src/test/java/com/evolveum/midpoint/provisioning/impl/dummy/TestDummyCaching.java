@@ -65,7 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @DirtiesContext
 public class TestDummyCaching extends TestDummy {
 	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-caching/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-caching");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override

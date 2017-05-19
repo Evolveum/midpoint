@@ -426,29 +426,25 @@
                 Value of a parameter for an action.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ScriptingExpressionType">
-                <xsd:sequence>
-                    <xsd:element name="name" type="xsd:string">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Parameter name.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:choice>
-                        <xsd:element ref="c:value" minOccurs="0"/>
-                        <xsd:element ref="tns:scriptingExpression" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Parameter (argument) value.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:choice>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Parameter name.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:choice>
+				<xsd:element ref="c:value" minOccurs="0"/>
+				<xsd:element ref="tns:scriptingExpression" minOccurs="0">
+					<xsd:annotation>
+						<xsd:documentation>
+							Parameter (argument) value.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+		</xsd:sequence>
     </xsd:complexType>
 
     <!--
@@ -468,6 +464,35 @@
             <xsd:element name="options" type="tns:ScriptingExpressionEvaluationOptionsType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="executeScript" type="tns:ExecuteScriptType" />		<!-- collides with executeScript in extension, but let's ignore it for the moment -->
+
+    <xsd:complexType name="ExecuteScriptOutputType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Output of a single script execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="dataOutput" type="tns:PipelineDataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Data output of the execution of the script.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="consoleOutput" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Text ("console") output of the execution of the script.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="executeScriptOutput" type="tns:ExecuteScriptOutputType"/>
 
     <xsd:complexType name="ValueListType">
         <xsd:sequence>

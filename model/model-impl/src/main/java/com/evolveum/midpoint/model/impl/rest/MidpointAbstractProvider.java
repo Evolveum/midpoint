@@ -21,19 +21,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,14 +47,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public abstract class MidpointAbstractProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<T>, MessageBodyWriter<T>{
 
 	private static transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
 	
-	@Autowired(required=true)
+	@Autowired
 	protected PrismContext prismContext;
 	
 //	@Override
@@ -125,29 +123,37 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 		
-		if (entityStream == null){
+		if (entityStream == null) {
 			return null;
 		}
 		
 		PrismParser parser = getParser(entityStream);
 				
-		T object = null;
+		T object;
 		try {
-			LOGGER.info("type of respose: {}", type);
-			if (PrismObject.class.isAssignableFrom(type) || type.isAssignableFrom(PrismObject.class) || ObjectType.class.isAssignableFrom(type)){
+			LOGGER.info("type of request: {}", type);
+			if (PrismObject.class.isAssignableFrom(type)) {
 				object = (T) parser.parse();
 			} else {
-                object = parser.parseRealValue();
+                object = parser.parseRealValue();			// TODO consider prescribing type here (if no convertor is specified)
 			}
-			
-			return object;
-		} catch (SchemaException ex){
-			throw new WebApplicationException(ex);
-		} catch (IOException ex){
-			throw new IOException(ex);
-		}
-		
-	}
-	
 
+			if (object != null && !type.isAssignableFrom(object.getClass())) {	// TODO treat multivalues here
+				Optional<Annotation> convertorAnnotation = Arrays.stream(annotations).filter(a -> a instanceof Convertor).findFirst();
+				if (convertorAnnotation.isPresent()) {
+					Class<? extends ConvertorInterface> convertorClass = ((Convertor) convertorAnnotation.get()).value();
+					ConvertorInterface convertor;
+					try {
+						convertor = convertorClass.newInstance();
+					} catch (InstantiationException | IllegalAccessException e) {
+						throw new SystemException("Couldn't instantiate convertor class " + convertorClass, e);
+					}
+					object = (T) convertor.convert(object);
+				}
+			}
+			return object;
+		} catch (SchemaException ex) {
+			throw new WebApplicationException(ex);
+		}
+	}
 }

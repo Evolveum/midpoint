@@ -97,9 +97,7 @@ public class ModelClientUtil {
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
 				"com.evolveum.prism.xml.ns._public.annotation_3:" +
 				"com.evolveum.prism.xml.ns._public.query_3:" +
-				"com.evolveum.prism.xml.ns._public.types_3:" +
-				"org.w3._2000._09.xmldsig_:" +
-				"org.w3._2001._04.xmlenc_");
+				"com.evolveum.prism.xml.ns._public.types_3");
 	}
 	
 	public static Element createPathElement(String stringPath, Document doc) {

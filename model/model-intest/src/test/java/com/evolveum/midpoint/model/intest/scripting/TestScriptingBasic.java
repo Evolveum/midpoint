@@ -89,6 +89,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File NOTIFICATION_ABOUT_JACK_TYPE2_FILE = new File(TEST_DIR, "notification-about-jack-type2.xml");
 	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
 	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
+	private static final File GENERATE_PASSWORDS_2_FILE = new File(TEST_DIR, "generate-passwords-2.xml");
+	private static final File ECHO_FILE = new File(TEST_DIR, "echo.xml");
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -143,7 +145,30 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
     }
 
-    @Test
+	@Test
+	public void test112Echo() throws Exception {
+		final String TEST_NAME = "test112Echo";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+		ExecuteScriptType executeScript = parseRealValue(ECHO_FILE);
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, task, result);
+
+		// THEN
+		dumpOutput(output, result);
+		result.computeStatus();
+		PipelineData data = output.getFinalOutput();
+		assertEquals("Unexpected # of items in output", 4, data.getData().size());
+
+		// TODO check correct serialization (MID-
+	}
+
+
+	@Test
     public void test120Log() throws Exception {
     	final String TEST_NAME = "test120Log";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -170,6 +195,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
     private PrismProperty parseAnyData(File file) throws IOException, SchemaException {
         return (PrismProperty) prismContext.parserFor(file).parseItem();
+    }
+
+    private <T> T parseRealValue(File file) throws IOException, SchemaException {
+        return prismContext.parserFor(file).parseRealValue();
     }
 
     @Test
@@ -696,6 +725,38 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Unexpected OIDs in output",
 				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
 				realOids);
+	}
+
+    @Test
+	public void test520GeneratePasswordsFullInput() throws Exception {
+		final String TEST_NAME = "test520GeneratePasswordsFullInput";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_2_FILE);
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, task, result);
+
+		// THEN
+        dumpOutput(output, result);
+        result.computeStatus();
+		//TestUtil.assertSuccess(result);
+		PipelineData data = output.getFinalOutput();
+		assertEquals("Unexpected # of items in output", 4, data.getData().size());
+		Set<String> realOids = new HashSet<>();
+//        for (PipelineItem item : data.getData()) {
+//            PrismValue value = item.getValue();
+//			UserType user = ((PrismObjectValue<UserType>) value).asObjectable();
+//            ProtectedStringType passwordValue = user.getCredentials().getPassword().getValue();
+//            assertNotNull("clearValue for password not set", passwordValue.getClearValue());
+//            realOids.add(user.getOid());
+//		}
+//		assertEquals("Unexpected OIDs in output",
+//				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
+//				realOids);
 	}
 
 	private void assertNoOutputData(ExecutionContext output) {

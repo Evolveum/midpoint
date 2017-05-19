@@ -1147,7 +1147,7 @@ public class Clockwork {
 			context.setRequestAuthorized(true);
 			result.recordSuccess();
 			
-		} catch (SecurityViolationException | SchemaException e) {
+		} catch (SecurityViolationException | SchemaException | RuntimeException | Error e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -1159,9 +1159,12 @@ public class Clockwork {
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
 			primaryDelta = primaryDelta.clone();
-			PrismObject<O> object = elementContext.getObjectNew();
-			if (primaryDelta.isDelete()) {
-				object = elementContext.getObjectCurrent();
+			PrismObject<O> object = elementContext.getObjectCurrent();
+			if (object == null) {
+				// This may happen when object is being added. 
+				// But also in cases such as assignment of account and modification of 
+				// the same account in one operation
+				object = elementContext.getObjectNew();
 			}
 			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver);

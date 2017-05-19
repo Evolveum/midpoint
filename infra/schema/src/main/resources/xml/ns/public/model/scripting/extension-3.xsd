@@ -47,14 +47,6 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
-    <!--<xsd:element name="scriptInput" type="apit:ItemListType">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:appinfo>-->
-                <!--<a:maxOccurs>1</a:maxOccurs>            &lt;!&ndash; TODO (maybe there could be more scripts) &ndash;&gt;-->
-            <!--</xsd:appinfo>-->
-        <!--</xsd:annotation>-->
-    <!--</xsd:element>-->
 
 </xsd:schema>
 

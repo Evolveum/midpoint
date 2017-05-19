@@ -20,6 +20,8 @@ import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
+import com.evolveum.midpoint.model.impl.rest.Convertor;
+import com.evolveum.midpoint.model.impl.rest.ConvertorInterface;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,7 +58,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptOutputType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -64,6 +68,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -71,6 +76,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.net.URI;
 import java.util.ArrayList;
@@ -974,29 +980,29 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 
 //	@DELETE
 //	@Path("tasks/{oid}/suspend")
-    public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-
-    	Task task = RestServiceUtil.initRequest(mc);
-		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
-
-		Response response;
-		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
-		try {
-			model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
-
-			parentResult.computeStatus();
-			if (parentResult.isSuccess()) {
-				response = Response.accepted().build();
-			} else {
-				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-			}
-		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(parentResult, ex);
-		}
-
-		finishRequest(task);
-		return response;
-    }
+//    public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
+//
+//    	Task task = RestServiceUtil.initRequest(mc);
+//		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
+//
+//		Response response;
+//		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
+//		try {
+//			model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
+//
+//			parentResult.computeStatus();
+//			if (parentResult.isSuccess()) {
+//				response = Response.accepted().build();
+//			} else {
+//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+//			}
+//		} catch (Exception ex) {
+//			response = RestServiceUtil.handleException(parentResult, ex);
+//		}
+//
+//		finishRequest(task);
+//		return response;
+//    }
 
 	@POST
 	@Path("/tasks/{oid}/resume")
@@ -1054,47 +1060,56 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		return response;
     }
 
+	public static class ExecuteScriptConvertor implements ConvertorInterface {
+		public ExecuteScriptType convert(@NotNull Object input) {
+			if (input instanceof ExecuteScriptType) {
+				return (ExecuteScriptType) input;
+			} else if (input instanceof ScriptingExpressionType) {
+				ScriptingExpressionType expression = (ScriptingExpressionType) input;
+				ExecuteScriptType command = new ExecuteScriptType();
+				@SuppressWarnings({ "unchecked", "raw" })
+				Class<ScriptingExpressionType> declaredClass = (Class<ScriptingExpressionType>) expression.getClass();
+				command.setScriptingExpression(new JAXBElement<>(SchemaConstants.C_VALUE, declaredClass, expression));
+				return command;
+			} else {
+				throw new IllegalArgumentException("Wrong input value: " + input);
+			}
+		}
+	}
+
 	@POST
 	@Path("/rpc/executeScript")
 	//	@Produces({"text/html", "application/xml"})
 	@Consumes({"application/xml" })
-	public <T extends ObjectType> Response executeScript(ScriptingExpressionType scriptingExpression,
-			@QueryParam("asynchronous") Boolean asynchronous,
-			@Context UriInfo uriInfo, @Context MessageContext mc) {
+	public Response executeScript(@Convertor(ExecuteScriptConvertor.class) ExecuteScriptType command,
+			@QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_SCRIPT);
 
-		String oid;
 		Response response;
 		try {
 			ResponseBuilder builder;
 			if (Boolean.TRUE.equals(asynchronous)) {
-				scriptingService.evaluateExpression(scriptingExpression, task, result);
+				scriptingService.evaluateExpression(command, task, result);
 				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
 				builder = Response.created(resourceUri);
 			} else {
-				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(scriptingExpression, task, result);
+				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, task, result);
 
-				ExecuteScriptsResponseType operationOutput = new ExecuteScriptsResponseType();
-				operationOutput.setResult(result.createOperationResultType());
-				ScriptOutputsType outputs = new ScriptOutputsType();
-				operationOutput.setOutputs(outputs);
-				SingleScriptOutputType output = new SingleScriptOutputType();
-				output.setTextOutput(executionResult.getConsoleOutput());
-				output.setDataOutput(ModelWebService.prepareXmlData(executionResult.getDataOutput()));
-				outputs.getOutput().add(output);
-
+				ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
+						.result(result.createOperationResultType())
+						.output(new ExecuteScriptOutputType()
+								.consoleOutput(executionResult.getConsoleOutput())
+								.dataOutput(ModelWebService.prepareXmlData(executionResult.getDataOutput())));
 				builder = Response.ok();
-				builder.entity(operationOutput);
+				builder.entity(responseData);
 			}
-
 			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(result, ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script.", ex);
 		}
-
 		result.computeStatus();
 		finishRequest(task);
 		return response;

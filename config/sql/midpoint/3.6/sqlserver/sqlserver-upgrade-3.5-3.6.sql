@@ -82,8 +82,8 @@ DROP TABLE m_acc_cert_case_reference;
 EXEC sp_rename 'm_acc_cert_case.currentStageNumber', 'stageNumber', 'COLUMN';
 ALTER TABLE m_acc_cert_case DROP COLUMN currentStageOutcome;
 ALTER TABLE m_acc_cert_case DROP COLUMN overallOutcome;
-ALTER TABLE m_acc_cert_case ADD currentStageOutcome NVARCHAR(255);
-ALTER TABLE m_acc_cert_case ADD outcome NVARCHAR(255);
+ALTER TABLE m_acc_cert_case ADD currentStageOutcome NVARCHAR(255) COLLATE database_default;
+ALTER TABLE m_acc_cert_case ADD outcome NVARCHAR(255) COLLATE database_default;
 
 DROP TABLE m_acc_cert_decision;
 
@@ -171,3 +171,6 @@ ALTER TABLE m_operation_execution
   ADD CONSTRAINT fk_op_exec_owner
 FOREIGN KEY (owner_oid)
 REFERENCES m_object;
+
+ALTER TABLE m_audit_event ADD nodeIdentifier NVARCHAR(255) COLLATE database_default;
+ALTER TABLE m_audit_event ADD remoteHostAddress NVARCHAR(255) COLLATE database_default;

@@ -2245,7 +2245,7 @@ public abstract class ShadowCache {
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
 					RefinedAssociationDefinition rEntitlementAssociation = ctx.getObjectClassDefinition()
-							.findEntitlementAssociationDefinition(associationName);
+							.findAssociationDefinition(associationName);
 					if (rEntitlementAssociation == null) {
 						if (LOGGER.isTraceEnabled()) {
 							LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
@@ -2256,8 +2256,12 @@ public abstract class ShadowCache {
 						throw new SchemaException("Entitlement association with name " + associationName
 								+ " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc() + ", with using shadow coordinates " + ctx.isUseRefinedDefinition());
 					}
-					for (String intent : rEntitlementAssociation.getIntents()) {
-						ProvisioningContext ctxEntitlement = ctx.spawn(ShadowKindType.ENTITLEMENT, intent);
+					ShadowKindType entitlementKind = rEntitlementAssociation.getKind();
+					if (entitlementKind == null) {
+						entitlementKind = ShadowKindType.ENTITLEMENT;
+					}
+					for (String entitlementIntent : rEntitlementAssociation.getIntents()) {
+						ProvisioningContext ctxEntitlement = ctx.spawn(entitlementKind, entitlementIntent);
 
 						PrismObject<ShadowType> entitlementRepoShadow;
 						PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer

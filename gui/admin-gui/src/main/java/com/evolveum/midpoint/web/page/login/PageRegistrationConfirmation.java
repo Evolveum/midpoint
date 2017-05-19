@@ -114,29 +114,28 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 		initLayout(result);
 	}
 	
-	private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result){
-		ConnectionEnvironment connEnv = new ConnectionEnvironment();
-		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-		try {
-			return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext( username,
-					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
-		} catch (AuthenticationException ex) {
-			getSession()
-					.error(getString(ex.getMessage()));
-			result.recordFatalError("Failed to validate user");
-			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
-			 return null;
-		} catch (Exception ex) {
-			getSession()
-			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
-			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
-			return null;
-		}
-	}
+//	private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result){
+//		ConnectionEnvironment connEnv = new ConnectionEnvironment();
+//		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+//		try {
+//			return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext( username,
+//					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
+//		} catch (AuthenticationException ex) {
+//			getSession()
+//					.error(getString(ex.getMessage()));
+//			result.recordFatalError("Failed to validate user");
+//			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
+//			 return null;
+//		} catch (Exception ex) {
+//			getSession()
+//			.error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
+//			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
+//			return null;
+//		}
+//	}
 	
-	private UserType checkUserCredentials(String username, String nonce, OperationResult result){
-		ConnectionEnvironment connEnv = new ConnectionEnvironment();
-		connEnv.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+	private UserType checkUserCredentials(String username, String nonce, OperationResult result) {
+		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
 		try {
 			return getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext( username,
 					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
@@ -186,67 +185,59 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 	}
 	
 	private OperationResult removeNonce(final String userOid, final NonceType nonce){
-		return runPrivileged(new Producer<OperationResult>() {
-			
-			@Override
-			public OperationResult run() {
-				OperationResult result = new OperationResult("assignDefaultRoles");
-				Task task = createAnonymousTask("assignDefaultRoles");
-				
-				ObjectDelta<UserType> userAssignmentsDelta;
-				try {
-					userAssignmentsDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid, new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),  getPrismContext(), nonce);
-					userAssignmentsDelta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
-				} catch (SchemaException e) {
-					result.recordFatalError("Could not create delta");
-					LOGGER.error("Could not prepare delta for removing nonce and lyfecycle state {}", e.getMessage());
-					return result;
-				}
-				WebModelServiceUtils.save(userAssignmentsDelta, result, task, PageRegistrationConfirmation.this);
-				result.computeStatusIfUnknown();
+		return runPrivileged(() -> {
+			OperationResult result = new OperationResult("assignDefaultRoles");
+			Task task = createAnonymousTask("assignDefaultRoles");
+
+			ObjectDelta<UserType> userAssignmentsDelta;
+			try {
+				userAssignmentsDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, userOid, new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE),  getPrismContext(), nonce);
+				userAssignmentsDelta.addModificationReplaceProperty(UserType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
+			} catch (SchemaException e) {
+				result.recordFatalError("Could not create delta");
+				LOGGER.error("Could not prepare delta for removing nonce and lyfecycle state {}", e.getMessage());
 				return result;
 			}
+			WebModelServiceUtils.save(userAssignmentsDelta, result, task, PageRegistrationConfirmation.this);
+			result.computeStatusIfUnknown();
+			return result;
 		});
 	}
 
 	private OperationResult assignAdditionalRoleIfPresent(String userOid, NonceType nonceType, OperationResult result){
 //		SecurityContextHolder.getContext().setAuthentication(token);
-		return runPrivileged(new Producer<OperationResult>() {
-			
-			@Override
-			public OperationResult run() {
-				List<ItemDelta> userDeltas = new ArrayList<>();
-				if (nonceType.getName() != null) {
+		return runPrivileged(() -> {
+			List<ItemDelta> userDeltas = new ArrayList<>();
+			if (nonceType.getName() != null) {
 
-					Task task = createAnonymousTask(OPERATION_FINISH_REGISTRATION);
+				Task task = createAnonymousTask(OPERATION_FINISH_REGISTRATION);
 
-					ObjectDelta<UserType> assignRoleDelta = null;
+				ObjectDelta<UserType> assignRoleDelta = null;
 
-					try {
-						AssignmentType assignment = new AssignmentType();
-						assignment.setTargetRef(
-								ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
-						getPrismContext().adopt(assignment);
-						userDeltas.add((ItemDelta) ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
-								UserType.class, getPrismContext(), assignment));
+				try {
+					AssignmentType assignment = new AssignmentType();
+					assignment.setTargetRef(
+							ObjectTypeUtil.createObjectRef(nonceType.getName(), ObjectTypes.ABSTRACT_ROLE));
+					getPrismContext().adopt(assignment);
+					userDeltas.add((ItemDelta) ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT,
+							UserType.class, getPrismContext(), assignment));
 
-						assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas,
-								UserType.class, getPrismContext());
-						assignRoleDelta.setPrismContext(getPrismContext());
-					} catch (SchemaException e) {
-						result.recordFatalError("Could not create delta");
-						return result;
-
-					}
-
-					WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
-					result.computeStatusIfUnknown();
+					assignRoleDelta = ObjectDelta.createModifyDelta(userOid, userDeltas,
+							UserType.class, getPrismContext());
+					assignRoleDelta.setPrismContext(getPrismContext());
+				} catch (SchemaException e) {
+					result.recordFatalError("Could not create delta");
+					return result;
 
 				}
-				
-				return result;
-			
+
+				WebModelServiceUtils.save(assignRoleDelta, result, task, PageRegistrationConfirmation.this);
+				result.computeStatusIfUnknown();
+
 			}
+
+			return result;
+
 		});
 		
 //		SecurityContextHolder.getContext().setAuthentication(null);

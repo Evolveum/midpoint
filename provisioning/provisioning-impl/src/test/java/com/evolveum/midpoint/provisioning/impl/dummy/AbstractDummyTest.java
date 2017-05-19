@@ -15,10 +15,10 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
@@ -31,57 +31,43 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.processor.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.ResourceManager;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.CachingStatistics;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -94,8 +80,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
@@ -106,19 +90,24 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
  */
 public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationTest {
 	
-	protected static final String TEST_DIR = "src/test/resources/impl/dummy/";
+	public static final File TEST_DIR_DUMMY = new File("src/test/resources/dummy/");
+	protected static final File TEST_DIR = TEST_DIR_DUMMY;
 	
-	public static final File RESOURCE_DUMMY_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-dummy.xml");
+	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 	public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	public static final String RESOURCE_DUMMY_INTENT_GROUP = "group";
 	
 	protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
 
-	protected static final String ACCOUNT_WILL_FILENAME = TEST_DIR + "account-will.xml";
+	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	protected static final String ACCOUNT_WILL_USERNAME = "Will";
 	protected static final XMLGregorianCalendar ACCOUNT_WILL_ENABLE_TIMESTAMP = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 30, 12, 30, 42);
+	
+	protected static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");
+	protected static final String ACCOUNT_ELIZABETH_OID = "ca42f312-3bc3-11e7-a32d-73a68a0f363b";
+	protected static final String ACCOUNT_ELIZABETH_USERNAME = "elizabeth";
 
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
@@ -130,11 +119,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
 	
-	protected static final String ACCOUNT_LECHUCK_FILENAME = TEST_DIR + "account-lechuck.xml";
+	protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
 	protected static final String ACCOUNT_LECHUCK_OID = "c0c010c0-d34d-b44f-f11d-444400009aa9";
 	protected static final String ACCOUNT_LECHUCK_NAME = "lechuck";
 	
-	protected static final String GROUP_PIRATES_FILENAME = TEST_DIR + "group-pirates.xml";
+	protected static final File GROUP_PIRATES_FILE = new File(TEST_DIR, "group-pirates.xml");
 	protected static final String GROUP_PIRATES_OID = "c0c010c0-d34d-b44f-f11d-3332eeee0000";
 	protected static final String GROUP_PIRATES_NAME = "pirates";
 	
@@ -142,18 +131,18 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final String PRIVILEGE_PILLAGE_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0000";
 	protected static final String PRIVILEGE_PILLAGE_NAME = "pillage";
 
-    protected static final String PRIVILEGE_BARGAIN_FILENAME = TEST_DIR + "privilege-bargain.xml";
+    protected static final File PRIVILEGE_BARGAIN_FILE = new File(TEST_DIR, "privilege-bargain.xml");
     protected static final String PRIVILEGE_BARGAIN_OID = "c0c010c0-d34d-b44f-f11d-3332eeff0001";
     protected static final String PRIVILEGE_BARGAIN_NAME = "bargain";
     
     protected static final String PRIVILEGE_NONSENSE_NAME = "NoNsEnSe";
 
-    protected static final String FILENAME_ACCOUNT_SCRIPT = TEST_DIR + "account-script.xml";
+    protected static final File ACCOUNT_SCRIPT_FILE = new File(TEST_DIR, "account-script.xml");
 	protected static final String ACCOUNT_NEW_SCRIPT_OID = "c0c010c0-d34d-b44f-f11d-33322212abcd";
-	protected static final String FILENAME_ENABLE_ACCOUNT = TEST_DIR + "modify-will-enable.xml";
-	protected static final String FILENAME_DISABLE_ACCOUNT = TEST_DIR + "modify-will-disable.xml";
-	protected static final String FILENAME_MODIFY_ACCOUNT = TEST_DIR + "modify-will-fullname.xml";
-	protected static final File FILE_SCRIPTS = new File(TEST_DIR, "scripts.xml");
+	protected static final File ENABLE_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-enable.xml");
+	protected static final File DISABLE_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-disable.xml");
+	protected static final File MODIFY_ACCOUNT_FILE = new File(TEST_DIR, "modify-will-fullname.xml");
+	protected static final File SCRIPTS_FILE = new File(TEST_DIR, "scripts.xml");
 	
 	protected static final String NOT_PRESENT_OID = "deaddead-dead-dead-dead-deaddeaddead";
 	
@@ -162,8 +151,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractDummyTest.class);
 
-	private static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_DUMMY_NS, "group");
-	private static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
+	protected static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_DUMMY_NS, "group");
+	protected static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
 	
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
@@ -203,6 +192,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		dummyResourceCtl.setResource(resource);
 		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
+		extraDummyResourceInit();
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
 		dummyAccountDaemon.setEnabled(true);
@@ -217,6 +207,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		repositoryService.addObject(shadowDaemon, null, initResult);
 	}
 	
+	protected void extraDummyResourceInit() throws Exception {
+		// nothing to do here
+	}
+
 	protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
 		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_UID));
 		icfUidAttr.setRealValue(icfUid);
@@ -241,7 +235,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 	
 	protected File getAccountWillFile() {
-		return new File(ACCOUNT_WILL_FILENAME);
+		return ACCOUNT_WILL_FILE;
 	}
 			
 	protected String transformNameFromResource(String origName) {
@@ -304,8 +298,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		assertNoAttribute(resource, shadow.asObjectable(), attrName);
 	}
 	
-	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) {
-		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
+	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, true);
 	}
 	
 	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
@@ -327,6 +321,16 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 			 assertEquals("Unexpected name in "+account, icfName, account.getName());
 			 return account;
 		}
+	}
+	
+	protected void assertNoDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account;
+		if (isIcfNameUidSame()) {
+			account = dummyResource.getAccountByUsername(icfName);
+		} else {
+			account = dummyResource.getAccountById(icfUid);
+		}
+		assertNull("Unexpected dummy account with ICF UID "+icfUid+" (name "+icfName+")", account);
 	}
 	
 	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
@@ -383,6 +387,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues, expectedValues);
 	}
 	
+	protected void assertNoDummyAttribute(DummyObject object, String attributeName) {
+		Set<Object> attributeValues = object.getAttributeValues(attributeName, Object.class);
+		assertNotNull("Unexpected attribute "+attributeName+" in "+object.getShortTypeName()+" "+object+": "+attributeValues, attributeValues);
+	}
+	
 	protected String getWillRepoIcfName() {
 		return ACCOUNT_WILL_USERNAME;
 	}
@@ -404,11 +413,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 	
 	protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
-		IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
+		assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
 	}
 	
 	protected void assertEntitlementPriv(PrismObject<ShadowType> account, String entitlementOid) {
-		IntegrationTestTools.assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
+		assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
 	}
 	
 	protected <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {

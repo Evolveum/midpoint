@@ -75,6 +75,11 @@
             <artifactId>audit-api</artifactId>
             <version>3.6-SNAPSHOT</version>
         </dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-api</artifactId>
+			<version>3.6-SNAPSHOT</version>
+		</dependency>
 		<!-- this dependency is here, because we don't have hammer factory factory for cache repository in system init-->
         <dependency>
                 <groupId>com.evolveum.midpoint.repo</groupId>
@@ -122,7 +127,10 @@
             <groupId>org.apache.wss4j</groupId>
             <artifactId>wss4j-ws-security-dom</artifactId>
         </dependency>
-
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations-java5</artifactId>
+		</dependency>
 
 		<!--  Testing dependecies  -->
 		<dependency>

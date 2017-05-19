@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.FilterContentExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.stereotype.Component;
@@ -37,6 +39,8 @@ import java.util.stream.Collectors;
 @Component
 public class FilterContentEvaluator extends BaseExpressionEvaluator {
 
+    private static final Trace LOGGER = TraceManager.getTrace(FilterContentEvaluator.class);
+
     public PipelineData evaluate(FilterContentExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         List<ItemPath> keep = convert(expression.getKeep());
         List<ItemPath> remove = convert(expression.getRemove());
@@ -46,15 +50,21 @@ public class FilterContentEvaluator extends BaseExpressionEvaluator {
         for (PipelineItem pipelineItem : input.getData()) {
             PrismValue value = pipelineItem.getValue();
             if (!(value instanceof PrismContainerValue)) {
-                throw new ScriptExecutionException(
-                        "In 'select' commands in keep/remove mode, we can act only on prism container values, not on " + value);
-            }
-            PrismContainerValue<?> pcv = (PrismContainerValue) value;
-            if (!keep.isEmpty()) {
-                pcv.keepPaths(keep);
+                String message =
+                        "In 'select' commands in keep/remove mode, we can act only on prism container values, not on " + value;
+                if (context.isContinueOnAnyError()) {
+                    LOGGER.error(message);
+                } else {
+                    throw new ScriptExecutionException(message);
+                }
             } else {
-                pcv.removePaths(remove);
-            }
+				PrismContainerValue<?> pcv = (PrismContainerValue) value;
+				if (!keep.isEmpty()) {
+					pcv.keepPaths(keep);
+				} else {
+					pcv.removePaths(remove);
+				}
+			}
         }
         return input;
     }

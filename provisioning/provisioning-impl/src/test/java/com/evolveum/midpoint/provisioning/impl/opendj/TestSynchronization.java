@@ -59,7 +59,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 	private static final File TEST_DIR = new File("src/test/resources/synchronization/");
 	
-	private static final File RESOURCE_OPENDJ_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj.xml");
+	private static final File RESOURCE_OPENDJ_FILE = ProvisioningTestUtil.RESOURCE_OPENDJ_FILE;
 	
 	private static final File SYNC_TASK_FILE = new File(TEST_DIR, "sync-task-example.xml");
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
