@@ -62,9 +62,9 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	protected static final File RESOURCE_OPENDJ_BAD_BIND_DN_FILE = new File(TEST_DIR, "resource-opendj-bad-bind-dn.xml");
 	protected static final String RESOURCE_OPENDJ_BAD_BIND_DN_OID = "d180258a-ef5f-11e4-8737-001e8c717e5b";
 	
-	protected static final File ACCOUNT1_FILE = new File (TEST_DIR, "account1.xml");
-	protected static final File ACCOUNT1_REPO_FILE = new File(TEST_DIR, "account1-repo.xml");
-	protected static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
+	protected static final File ACCOUNT_JBOND_FILE = new File (TEST_DIR, "account-jbond.xml");
+	protected static final File ACCOUNT_JBOND_REPO_FILE = new File(TEST_DIR, "account-jbond-repo.xml");
+	protected static final String ACCOUNT_JBOND_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
 	protected static final File ACCOUNT_WILL_FILE = new File(TEST_DIR, "account-will.xml");
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-333222123456";

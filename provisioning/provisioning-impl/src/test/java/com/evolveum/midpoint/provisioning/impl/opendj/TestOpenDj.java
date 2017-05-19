@@ -113,9 +113,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
@@ -127,12 +129,13 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabi
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 
 /**
@@ -318,7 +321,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertFalse("Empty capabilities returned",nativeCapabilitiesList.isEmpty());
         CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
         assertNotNull("credentials capability not found",capCred);
-        assertNotNull("password capability not present",capCred.getPassword());
+        PasswordCapabilityType capPassword = capCred.getPassword();
+        assertNotNull("password capability not present", capPassword);
+        assertPasswordCapability(capPassword);
         
         // Connector cannot do activation, this should be null
         ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
@@ -364,6 +369,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertShadows(1);
 	}
 	
+	protected void assertPasswordCapability(PasswordCapabilityType capPassword) {
+		assertTrue("Wrong password capability readable flag: "+capPassword.isReadable(), 
+				capPassword.isReadable() != Boolean.TRUE);
+	}
+
 	@Test
 	public void test006Schema() throws Exception {
 		final String TEST_NAME = "test006RefinedSchema";
@@ -677,50 +687,50 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType objectToAdd = parseObjectType(ACCOUNT1_FILE, ShadowType.class);
+		ShadowType objectToAdd = parseObjectType(ACCOUNT_JBOND_FILE, ShadowType.class);
 
 		display(SchemaDebugUtil.prettyPrint(objectToAdd));
 		display(objectToAdd.asPrismObject().debugDump());
 		
 		String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, null, task, result);
-		assertEquals(ACCOUNT1_OID, addedObjectOid);
+		assertEquals(ACCOUNT_JBOND_OID, addedObjectOid);
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, task, result).asObjectable();
+		ShadowType provisioningShadow = provisioningService.getObject(ShadowType.class, ACCOUNT_JBOND_OID, null, task, result).asObjectable();
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		assertNotNull(shadow);
-
-		display(SchemaDebugUtil.prettyPrint(shadow));
-		display(shadow.asPrismObject().debugDump());
+		assertNotNull(provisioningShadow);
+		display("Account provisioning", provisioningShadow);
 		
-		PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", shadow.getName());
+		PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", provisioningShadow.getName());
 		
 		final String resourceNamespace = ResourceTypeUtil.getResourceNamespace(resource);
 		
-        assertNotNull(shadow.getOid());
-        assertNotNull(shadow.getName());
-        assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), shadow.getObjectClass());
-        assertEquals(RESOURCE_OPENDJ_OID, shadow.getResourceRef().getOid());
-        String idPrimaryVal = getAttributeValue(shadow, getPrimaryIdentifierQName());
+        assertNotNull(provisioningShadow.getOid());
+        assertNotNull(provisioningShadow.getName());
+        assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), provisioningShadow.getObjectClass());
+        assertEquals(RESOURCE_OPENDJ_OID, provisioningShadow.getResourceRef().getOid());
+        String idPrimaryVal = getAttributeValue(provisioningShadow, getPrimaryIdentifierQName());
         assertNotNull("No primary identifier ("+getPrimaryIdentifierQName().getLocalPart()+")", idPrimaryVal);
-        String idSecondaryVal = getAttributeValue(shadow, getSecondaryIdentifierQName());
+        String idSecondaryVal = getAttributeValue(provisioningShadow, getSecondaryIdentifierQName());
         assertNotNull("No secondary ("+getSecondaryIdentifierQName().getLocalPart()+")", idSecondaryVal);
         // Capitalization is the same as returned by OpenDJ
         assertEquals("Wrong secondary identifier", "uid=jbond,ou=People,dc=example,dc=com", idSecondaryVal);
-        assertEquals("Wrong LDAP uid", "jbond", getAttributeValue(shadow, new QName(resourceNamespace, "uid")));
-        assertEquals("Wrong LDAP cn", "James Bond", getAttributeValue(shadow, new QName(resourceNamespace, "cn")));
-        assertEquals("Wrong LDAP sn", "Bond", getAttributeValue(shadow, new QName(resourceNamespace, "sn")));        
-        assertNotNull("Missing activation", shadow.getActivation());
-        assertNotNull("Missing activation status", shadow.getActivation().getAdministrativeStatus());
-        assertEquals("Not enabled", ActivationStatusType.ENABLED, shadow.getActivation().getAdministrativeStatus());
+        assertEquals("Wrong LDAP uid", "jbond", getAttributeValue(provisioningShadow, new QName(resourceNamespace, "uid")));
+        assertEquals("Wrong LDAP cn", "James Bond", getAttributeValue(provisioningShadow, new QName(resourceNamespace, "cn")));
+        assertEquals("Wrong LDAP sn", "Bond", getAttributeValue(provisioningShadow, new QName(resourceNamespace, "sn")));        
+        assertNotNull("Missing activation", provisioningShadow.getActivation());
+        assertNotNull("Missing activation status", provisioningShadow.getActivation().getAdministrativeStatus());
+        assertEquals("Not enabled", ActivationStatusType.ENABLED, provisioningShadow.getActivation().getAdministrativeStatus());
+        assertShadowPassword(provisioningShadow);
 		
-        ShadowType repoShadow = repositoryService.getObject(ShadowType.class, shadow.getOid(), null, result).asObjectable();
+        ShadowType repoShadow = repositoryService.getObject(ShadowType.class, provisioningShadow.getOid(), null, result).asObjectable();
+        display("Account repo", repoShadow);
         assertEquals(new QName(resourceNamespace, OBJECT_CLASS_INETORGPERSON_NAME), repoShadow.getObjectClass());
         assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
         idPrimaryVal = getAttributeValue(repoShadow, getPrimaryIdentifierQName());
@@ -731,6 +741,19 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong secondary identifier (repo)", "uid=jbond,ou=people,dc=example,dc=com", idSecondaryVal);
 
         assertShadows(2 + getNumberOfBaseContextShadows());        
+	}
+
+	protected void assertShadowPassword(ShadowType provisioningShadow) throws Exception {
+		CredentialsType credentials = provisioningShadow.getCredentials();
+		if (credentials == null) {
+			return;
+		}
+		PasswordType passwordType = credentials.getPassword();
+		if (passwordType == null) {
+			return;
+		}
+		ProtectedStringType passwordValue = passwordType.getValue();
+		assertNull("Unexpected password value in "+provisioningShadow+": "+passwordValue, passwordValue);
 	}
 
 	/**
@@ -799,7 +822,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} finally {
 			try {
-				repositoryService.deleteObject(ShadowType.class, ACCOUNT1_OID, result);
+				repositoryService.deleteObject(ShadowType.class, ACCOUNT_JBOND_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
