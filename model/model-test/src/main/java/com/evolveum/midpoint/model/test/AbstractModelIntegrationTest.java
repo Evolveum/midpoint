@@ -1738,6 +1738,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					+", but was "+focus.asObjectable().getRoleMembershipRef());
 		}
 	}
+	
+	protected <F extends FocusType> void assertNoRoleMembershipRef(PrismObject<F> focus) {
+		PrismReference memRef = focus.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
+		assertNull("No roleMembershipRef expected in "+focus+", but found: "+memRef, memRef);
+	}
 
 	protected <F extends FocusType> void assertDelegatedRef(PrismObject<F> focus, String... oids) {
 		List<String> refOids = new ArrayList<>();
