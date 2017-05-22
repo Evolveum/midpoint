@@ -97,6 +97,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private static final String OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS = DOT_CLASS + "loadAssignmentConstraints";
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
+    private static final int TARGET_USERS_TITLE_ROWS = 30;
     private PageBase pageBase;
     private IModel<String> selectedTreeItemOidModel;
     private String rootOid;
@@ -341,6 +342,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 showUserSelectionPopup = true;
             }
         };
+        targetUserButton.setOutputMarkupId(true);
+        targetUserButton.add(new AttributeAppender("title", getTargetUsersButtonTitle()));
         targetUserContainer.add(targetUserButton);
 
         Label label = new Label(ID_TARGET_USER_LABEL, getTargetUserLabelModel());
@@ -390,6 +393,39 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         viewSelect.setOutputMarkupId(true);
         headerPanel.add(viewSelect);
 
+    }
+
+    private IModel<String> getTargetUsersButtonTitle() {
+        return new LoadableModel<String>(true) {
+            public String load() {
+                StringBuilder sb = new StringBuilder();
+                if (getRoleCatalogStorage().isMultiUserRequest()) {
+                    List<PrismObject<UserType>> sortedList = getRoleCatalogStorage().getTargetUserList();
+                    Collections.sort(sortedList, new Comparator<PrismObject<UserType>>() {
+
+                        @Override
+                        public int compare(PrismObject<UserType> u1, PrismObject<UserType> u2) {
+                            return String.CASE_INSENSITIVE_ORDER.compare(u1.getName().getOrig(), u2.getName().getOrig());
+                        }
+                    });
+                    int columnsAmount = sortedList.size() / TARGET_USERS_TITLE_ROWS;
+                    Iterator<PrismObject<UserType>> it = sortedList.iterator();
+                    while (it.hasNext()){
+                        for (int i=0; i <= columnsAmount; i++){
+                            if (it.hasNext()){
+                                PrismObject user = it.next();
+                                sb.append(user.getName().getOrig());
+                                if (it.hasNext()){
+                                    sb.append(",\t");
+                                }
+                            }
+                        }
+                        sb.append(System.lineSeparator());
+                    }
+                }
+                return sb.toString();
+            }
+        };
     }
 
     private WebMarkupContainer getCatalogItemsPanelContainer(){
