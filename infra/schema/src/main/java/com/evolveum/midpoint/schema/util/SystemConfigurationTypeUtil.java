@@ -53,4 +53,14 @@ public class SystemConfigurationTypeUtil {
         return sysconfigObject.asObjectable().getInternals().getMaxModelClicks();
     }
 
+    public static String getDefaultHostname(SystemConfigurationType sysconfig) {
+        if (sysconfig == null) {
+            return null;
+        } else if (sysconfig.getInfrastructure() != null && sysconfig.getInfrastructure().getDefaultHostname() != null) {
+            return sysconfig.getInfrastructure().getDefaultHostname();
+        } else {
+            return sysconfig.getDefaultHostname();      // deprecated (legacy)
+        }
+    }
+
 }
