@@ -352,7 +352,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 				QName relation = getRelation(assignmentType);
 				for (PrismObject<O> target : targets) {
-					checkCycle(segment, target, ctx);
+					if (hasCycle(segment, target, ctx)) {
+						continue;
+					}
 					if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
 						continue;
 					}
@@ -382,7 +384,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private <O extends ObjectType> void checkCycle(AssignmentPathSegmentImpl segment, @NotNull PrismObject<O> target,
+	private <O extends ObjectType> boolean hasCycle(AssignmentPathSegmentImpl segment, @NotNull PrismObject<O> target,
 			EvaluationContext ctx) throws PolicyViolationException {
 		if (target.getOid().equals(segment.source.getOid())) {
 			throw new PolicyViolationException("The "+segment.source+" refers to itself in assignment/inducement");
@@ -391,8 +393,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		// as currently it is always true
 		// TODO reconsider this
 		if (ctx.assignmentPath.containsTarget(target.asObjectable())) {
-			LOGGER.debug("Role cycle detected for target {} in {}", ObjectTypeUtil.toShortString(target), ctx.assignmentPath);
-			throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
+			LOGGER.debug("Role cycle detected for target {} in {} - stopping evaluation here", ObjectTypeUtil.toShortString(target), ctx.assignmentPath);
+			//throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
+			return true;
+		} else {
+			return false;
 		}
 	}
 
