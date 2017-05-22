@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -142,6 +143,8 @@ public interface ModelInteractionService {
      */
     <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
+    <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType, Class<O> objectType, String objectOid, ObjectQuery query, Task task, OperationResult result)  throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException ;
+    
     /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
      * The decisions are evaluated using the security context of a currently logged-in user.

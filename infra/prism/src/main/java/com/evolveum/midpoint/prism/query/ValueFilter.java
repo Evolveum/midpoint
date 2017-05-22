@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition> extends ObjectFilter implements Itemable {
+public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition> extends ObjectFilter implements Itemable, ItemFilter {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final ItemPath fullPath;
@@ -80,6 +80,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	@NotNull
+	@Override
 	public ItemPath getFullPath() {
 		return fullPath;
 	}
