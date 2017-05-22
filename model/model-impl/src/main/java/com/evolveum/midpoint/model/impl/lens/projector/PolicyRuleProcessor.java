@@ -29,6 +29,8 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -38,6 +40,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
@@ -65,18 +70,11 @@ public class PolicyRuleProcessor {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleProcessor.class);
 	
-	@Autowired
-    private PrismContext prismContext;
-	
-	@Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-	@Autowired
-	private MappingFactory mappingFactory;
-
-	@Autowired
-	private MappingEvaluator mappingEvaluator;
+	@Autowired private PrismContext prismContext;
+	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
@@ -197,14 +195,14 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> void checkExclusionsRuleBased(LensContext<F> context,
 			Collection<EvaluatedAssignmentImpl<F>> assignmentsA, Collection<EvaluatedAssignmentImpl<F>> assignmentsB)
-			throws PolicyViolationException {
+			throws PolicyViolationException, SchemaException {
 		for (EvaluatedAssignmentImpl<F> assignmentA : assignmentsA) {
 			checkExclusionsRuleBased(context, assignmentA, assignmentsB);
 		}
 	}
 
 	private <F extends FocusType> void checkExclusionsRuleBased(LensContext<F> context, EvaluatedAssignmentImpl<F> assignmentA,
-			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
+			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException, SchemaException {
 
 		// We consider all policy rules, i.e. also from induced targets. (It is not possible to collect local
 		// rules for individual targets in the chain - rules are computed only for directly evaluated assignments.)
@@ -233,14 +231,34 @@ public class PolicyRuleProcessor {
 		}
 	}
 
-	private boolean excludes(ExclusionPolicyConstraintType constraint, EvaluatedAssignmentTargetImpl target) {
-		if (constraint.getTargetRef() == null || target.getOid() == null) {
+	private boolean excludes(ExclusionPolicyConstraintType constraint, EvaluatedAssignmentTargetImpl targetAssignment) throws SchemaException {
+		if (constraint.getTargetRef() == null || targetAssignment.getOid() == null) {
 			return false;		// shouldn't occur
+			
+		} else if (constraint.getTargetRef() != null) {
+			ObjectReferenceType targetRef = constraint.getTargetRef();
+			if (targetRef.getOid() != null) {
+				return targetAssignment.getOid().equals(constraint.getTargetRef().getOid());
+			} else {
+				if (targetRef.getResolutionTime() == EvaluationTimeType.RUN) {
+					SearchFilterType filterType = targetRef.getFilter();
+					if (filterType == null) {
+						throw new SchemaException("No filter in exclusion reference");
+					}
+					QName typeQName = targetRef.getType();
+					@SuppressWarnings("rawtypes")
+					PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(typeQName);
+					ObjectFilter filter = QueryConvertor.parseFilter(filterType, objDef);
+					PrismObject<? extends FocusType> target = targetAssignment.getTarget();
+					return filter.match(target.getValue(), matchingRuleRegistry);
+				} else {
+					throw new SchemaException("No OID in exclusion reference");
+				}
+			}
+			
 		} else {
-			return target.getOid().equals(constraint.getTargetRef().getOid());
+			throw new SchemaException("No target reference in exclusion");
 		}
-		// We could speculate about resolving targets at runtime, but that's inefficient. More appropriate is
-		// to specify an expression, and evaluate (already resolved) target with regards to this expression.
 	}
 
 	private <F extends FocusType> void triggerExclusionConstraintViolation(EvaluatedAssignmentImpl<F> assignmentA,

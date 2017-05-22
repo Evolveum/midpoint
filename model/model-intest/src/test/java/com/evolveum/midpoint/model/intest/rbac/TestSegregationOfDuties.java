@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.rbac;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
@@ -28,6 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -86,6 +87,26 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	protected static final File ROLE_COLOR_NONE_FILE = new File(TEST_DIR, "role-color-none.xml");
 	protected static final String ROLE_COLOR_NONE_OID = "662a997e-df2b-11e6-9bb3-5f235d1a8e60";
 	
+	// Executive / controlling exclusion roles
+	
+	protected static final File ROLE_META_EXECUTIVE_FILE = new File(TEST_DIR, "role-meta-executive.xml");
+	protected static final String ROLE_META_EXECUTIVE_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee00";
+	
+	protected static final File ROLE_EXECUTIVE_1_FILE = new File(TEST_DIR, "role-executive-1.xml");
+	protected static final String ROLE_EXECUTIVE_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee01";
+	
+	protected static final File ROLE_EXECUTIVE_2_FILE = new File(TEST_DIR, "role-executive-2.xml");
+	protected static final String ROLE_EXECUTIVE_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1ee02";
+	
+	protected static final File ROLE_META_CONTROLLING_FILE = new File(TEST_DIR, "role-meta-controlling.xml");
+	protected static final String ROLE_META_CONTROLLING_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc00";
+	
+	protected static final File ROLE_CONTROLLING_1_FILE = new File(TEST_DIR, "role-controlling-1.xml");
+	protected static final String ROLE_CONTROLLING_1_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc01";
+	
+	protected static final File ROLE_CONTROLLING_2_FILE = new File(TEST_DIR, "role-controlling-2.xml");
+	protected static final String ROLE_CONTROLLING_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc02";
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -99,26 +120,38 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		repoAddObjectFromFile(ROLE_COLOR_GREEN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_COLOR_BLUE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_COLOR_NONE_FILE, initResult);
+		
+		repoAddObjectFromFile(ROLE_META_EXECUTIVE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_EXECUTIVE_1_FILE, initResult);
+		repoAddObjectFromFile(ROLE_EXECUTIVE_2_FILE, initResult);
+		repoAddObjectFromFile(ROLE_META_CONTROLLING_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CONTROLLING_1_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CONTROLLING_2_FILE, initResult);
+		
 	}
 		
 	@Test
     public void test110SimpleExclusion1() throws Exception {
 		final String TEST_NAME = "test110SimpleExclusion1";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // This should go well
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
+        assertSuccess(result);
+        
         try {
 	        // This should die
 	        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
 	        
-	        AssertJUnit.fail("Expected policy violation after adding judge role, but it went well");
+	        fail("Expected policy violation after adding judge role, but it went well");
         } catch (PolicyViolationException e) {
         	// This is expected
+        	result.computeStatus();
+        	assertFailure(result);
         }
         
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
@@ -693,20 +726,19 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test210GuybrushAssignRoleRed() throws Exception {
 		final String TEST_NAME = "test210GuybrushAssignRoleRed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
                 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_COLOR_RED_OID, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -815,5 +847,299 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_BLUE_SHIP);
+	}
+	
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test220GuybrushAssignRoleExecutiveOne() throws Exception {
+		final String TEST_NAME = "test220GuybrushAssignRoleExecutiveOne";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);        
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test222GuybrushAssignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test222GuybrushAssignRoleControllingOne";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        try {
+	        // WHEN
+        	
+	        displayWhen(TEST_NAME);
+	        assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	
+        	// THEN
+        	displayThen(TEST_NAME);
+        	assertFailure(result);
+        }
+	                
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);   
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test224GuybrushAssignRoleExecutiveTwo() throws Exception {
+		final String TEST_NAME = "test224GuybrushAssignRoleExecutiveTwo";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_2_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test225GuybrushAssignRoleControllingTwo() throws Exception {
+		final String TEST_NAME = "test225GuybrushAssignRoleControllingTwo";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        try {
+	        // WHEN
+        	
+	        displayWhen(TEST_NAME);
+	        assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_2_OID, task, result);
+        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	
+        	// THEN
+        	displayThen(TEST_NAME);
+        	assertFailure(result);
+        }
+	                
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
+	}
+
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test226GuybrushUnassignRoleExecutiveOne() throws Exception {
+		final String TEST_NAME = "test226GuybrushUnassignRoleExecutiveOne";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);        
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test227GuybrushAssignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test227GuybrushAssignRoleControllingOne";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        try {
+	        // WHEN
+        	
+	        displayWhen(TEST_NAME);
+	        assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	
+        	// THEN
+        	displayThen(TEST_NAME);
+        	assertFailure(result);
+        }
+	                
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
+        assertAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test229GuybrushUnassignRoleExecutiveTwo() throws Exception {
+		final String TEST_NAME = "test229GuybrushUnassignRoleExecutiveTwo";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_2_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
+        assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test230GuybrushAssignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test230GuybrushAssignRoleControllingOne";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);        
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test232GuybrushAssignRoleExecutiveOne() throws Exception {
+		final String TEST_NAME = "test232GuybrushAssignRoleExecutiveOne";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        try {
+	        // WHEN
+        	
+	        displayWhen(TEST_NAME);
+	        assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
+        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	
+        	// THEN
+        	displayThen(TEST_NAME);
+        	assertFailure(result);
+        }
+	                
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);   
+        assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
+	}
+	
+	/**
+	 * MID-3694
+	 */
+	@Test
+    public void test239GuybrushUnassignRoleControllingOne() throws Exception {
+		final String TEST_NAME = "test239GuybrushUnassignRoleControllingOne";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
+        assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
+        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
 	}
 }

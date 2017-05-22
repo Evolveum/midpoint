@@ -22,6 +22,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -37,6 +38,7 @@
     <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
@@ -146,11 +148,15 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPolicyConstraintType">
                 <xsd:sequence>
-                    <xsd:element name="targetRef" type="tns:ObjectReferenceType">
+                    <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Target of exclusion. The object defining this "exclustion" and
-                                the object defined as target cannot be assigned at the same time.
+					        	<p>
+	                                Target of exclusion. The object defining this "exclustion" and
+	                                the object defined as target cannot be assigned at the same time.
+	                                Filter in the reference may be used to dynamically exclude broader
+	                                range of roles - assuming that runtime resolution is used.
+	                            </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
