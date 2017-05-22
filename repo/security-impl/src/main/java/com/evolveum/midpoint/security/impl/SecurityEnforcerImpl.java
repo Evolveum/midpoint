@@ -877,27 +877,27 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
-			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
-		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, objectType={}: orig filter {}",
-				principal, objectType, origFilter);
+		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, searchResultType={}, object={}: orig filter {}",
+				principal, searchResultType, object, origFilter);
 		if (origFilter == null) {
 			origFilter = AllFilter.createAll();
 		}
 		ObjectFilter finalFilter;
 		if (phase != null) {
 			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, 
-					true, objectType, object, origFilter);
+					true, searchResultType, object, origFilter, "search pre-process");
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, 
-					false, objectType, object, origFilter);
+					false, searchResultType, object, origFilter, "search pre-process");
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
-					false, objectType, object, origFilter);
+					false, searchResultType, object, origFilter, "search pre-process");
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
-					false, objectType, object, origFilter);
+					false, searchResultType, object, origFilter, "search pre-process");
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
-		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", principal, objectType, finalFilter);
+		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", principal, searchResultType, finalFilter);
 		if (finalFilter instanceof AllFilter) {
 			// compatibility
 			return null;
@@ -905,18 +905,57 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return finalFilter;
 	}
 	
+	@Override
+	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl,
+			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, ObjectFilter filter)
+			throws SchemaException {
+		MidPointPrincipal principal = getMidPointPrincipal();
+		LOGGER.trace("AUTZ: evaluating search permission principal={}, searchResultType={}, object={}: filter {}",
+				principal, searchResultType, object, filter);
+		if (filter == null) {
+			return true;
+		}
+		ObjectFilter finalFilter;
+		if (phase != null) {
+			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, 
+					true, searchResultType, object, filter, "search permission");
+		} else {
+			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, 
+					false, searchResultType, object, filter, "search permission");
+			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
+					false, searchResultType, object, filter, "search permission");
+			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
+					false, searchResultType, object, filter, "search permission");
+			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
+		}
+		finalFilter = ObjectQueryUtil.simplify(finalFilter);
+		boolean decision = !(finalFilter instanceof NoneFilter);
+		LOGGER.trace("AUTZ: evaluated search permission principal={}, objectType={}: decision={} (from filter: {})", principal, searchResultType, decision, finalFilter);
+		return decision;
+	}
+
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
 			AuthorizationPhaseType phase, boolean includeNullPhase, 
-			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException {
+			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter, String desc) throws SchemaException {
+		
 		Collection<Authorization> authorities = getAuthorities(principal);
+		
 		ObjectFilter securityFilterAllow = null;
 		ObjectFilter securityFilterDeny = null;
+		
+		QueryItemsSpec queryItemsSpec = new QueryItemsSpec();
+		queryItemsSpec.addRequiredItems(origFilter); // MID-3916
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(" Initial query items spec {}", queryItemsSpec.shortDump());
+		}
+
 		boolean hasAllowAll = false;
 		if (authorities != null) {
 			for (GrantedAuthority authority: authorities) {
 				if (authority instanceof Authorization) {
 					Authorization autz = (Authorization)authority;
-					LOGGER.trace("Evaluating authorization {}", autz);
+					String autzHumanReadableDesc = autz.getHumanReadableDesc();
+					LOGGER.trace("Evaluating {}", autzHumanReadableDesc);
 					
 					// action
 					if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
@@ -933,23 +972,35 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 	
 					// object or target
+					String objectTargetSpec;
 					ObjectFilter autzObjSecurityFilter = null;
 					List<OwnedObjectSelectorType> objectSpecTypes;
 					if (object == null) {
 						// object not present. Therefore we are looking for object here
 						objectSpecTypes = autz.getObject();
+						objectTargetSpec = "object";
 					} else {
 						// object present. Therefore we are looking for target
 						objectSpecTypes = autz.getTarget();
+						objectTargetSpec = "target";
 						
 						// .. but we need to decide whether this authorization is applicable to the object
-						if (!isApplicableItem(autz, object, null)) {
+						if (isApplicable(autz.getObject(), object, principal, null, "object", autzHumanReadableDesc)) {
+							LOGGER.trace("  Authorization is applicable for object {}", object);
+						} else {
 							LOGGER.trace("  Authorization is not applicable for object {}", object);
+							continue;
 						}
 					}
 
 					boolean applicable = true;
-					if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
+					if (objectSpecTypes == null || objectSpecTypes.isEmpty()) {
+
+						LOGGER.trace("  No {} specification in authorization (authorization is universaly applicable)", objectTargetSpec);
+						autzObjSecurityFilter = AllFilter.createAll();
+						
+					} else {
+						
 						applicable = false;
 						for (OwnedObjectSelectorType objectSpecType: objectSpecTypes) {
 							ObjectFilter objSpecSecurityFilter = null;
@@ -966,7 +1017,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
                                 specTypeQName = prismContext.getSchemaRegistry().qualifyTypeName(specTypeQName);
 								PrismObjectDefinition<?> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
 								if (specObjectDef == null) {
-									throw new SchemaException("Unknown object type "+specTypeQName+" in "+autz.getHumanReadableDesc());
+									throw new SchemaException("Unknown object type "+specTypeQName+" in "+autzHumanReadableDesc);
 								}
 								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
 								if (!objectType.isAssignableFrom(specObjectClass)) {
@@ -1099,7 +1150,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// roleRelation
 							if (specRoleRelation != null) {
-								ObjectFilter objSpecRoleRelationFilter = processRoleRelationFilter(principal, autz, specRoleRelation, origFilter);
+								ObjectFilter objSpecRoleRelationFilter = processRoleRelationFilter(principal, autz, specRoleRelation, queryItemsSpec, origFilter);
 								if (objSpecRoleRelationFilter == null) {
 									if (autz.maySkipOnSearch()) {
 										LOGGER.trace("  not applying roleRelation filter because it is not efficient and maySkipOnSearch is set", objSpecRoleRelationFilter);
@@ -1125,16 +1176,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
 						}
 						
-						
-						
-					} else {
-						LOGGER.trace("  No object specification in authorization (authorization is universaly applicable)");
-						autzObjSecurityFilter = AllFilter.createAll();
 					}
 					
 					traceFilter("autzObjSecurityFilter", autz, autzObjSecurityFilter);
 					
 					if (applicable) {
+						autzObjSecurityFilter = ObjectQueryUtil.simplify(autzObjSecurityFilter);
 						// authority is applicable to this situation. now we can process the decision.
 						AuthorizationDecisionType decision = autz.getDecision();
 						if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
@@ -1144,6 +1191,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								hasAllowAll = true;
 							} else {
 								securityFilterAllow = ObjectQueryUtil.filterOr(securityFilterAllow, autzObjSecurityFilter);
+							}
+							if (!ObjectQueryUtil.isNone(autzObjSecurityFilter)) {
+								queryItemsSpec.addAllowedItems(autz);
 							}
 						} else {
 							// deny
@@ -1155,7 +1205,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
 									// This is "deny all". We cannot have anything stronger than that.
 									// There is no point in continuing the evaluation.
-									LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{getUsername(principal), operationUrl});
+									LOGGER.trace("AUTZ {}: principal={}, operation={}: deny all", desc, new Object[]{getUsername(principal), operationUrl});
 									NoneFilter secFilter = NoneFilter.createNone();
 									traceFilter("secFilter", null, secFilter);
 									return secFilter;
@@ -1177,12 +1227,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		traceFilter("securityFilterAllow", null, securityFilterAllow);
 		traceFilter("securityFilterDeny", null, securityFilterDeny);
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(" Final items: {}", queryItemsSpec.shortDump());
+		}
+		List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfierItems();
+		if (!unsatisfiedItems.isEmpty()) {
+			LOGGER.trace("AUTZ {}: principal={}, operation={}: deny because items {} are not allowed",  
+					desc, getUsername(principal), operationUrl, unsatisfiedItems);
+			NoneFilter secFilter = NoneFilter.createNone();
+			traceFilter("secFilter", null, secFilter);
+			return secFilter;
+		}
+		
 		ObjectFilter origWithAllowFilter;
 		if (hasAllowAll) {
 			origWithAllowFilter = origFilter;
 		} else if (securityFilterAllow == null) {
 			// Nothing has been allowed. This means default deny.
-			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: default deny",  new Object[]{getUsername(principal), operationUrl});
+			LOGGER.trace("AUTZ {}: principal={}, operation={}: default deny",  desc, getUsername(principal), operationUrl);
 			NoneFilter secFilter = NoneFilter.createNone();
 			traceFilter("secFilter", null, secFilter);
 			return secFilter;
@@ -1192,7 +1254,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		if (securityFilterDeny == null) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow:\n{}",
+				LOGGER.trace("AUTZ {}: principal={}, operation={}: allow:\n{}", desc,
 						getUsername(principal), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump());
 			}
 			traceFilter("origWithAllowFilter", null, origWithAllowFilter);
@@ -1200,7 +1262,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		} else {
 			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses):\n{}",
+				LOGGER.trace("AUTZ {}: principal={}, operation={}: allow (with deny clauses):\n{}", desc,
 						getUsername(principal), operationUrl, secFilter==null?"null":secFilter.debugDump());
 			}
 			traceFilter("secFilter", null, secFilter);
@@ -1212,7 +1274,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	 * Very rudimentary and experimental implementation.
 	 */
 	private ObjectFilter processRoleRelationFilter(MidPointPrincipal principal, Authorization autz,
-			RoleRelationObjectSpecificationType specRoleRelation, ObjectFilter origFilter) {
+			RoleRelationObjectSpecificationType specRoleRelation, QueryItemsSpec queryItemsSpec, ObjectFilter origFilter) {
 		ObjectFilter refRoleFilter = null;
 		if (BooleanUtils.isTrue(specRoleRelation.isIncludeReferenceRole())) {
 			// This could mean that we will need to add filters for all roles in 
@@ -1462,5 +1524,5 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	public HttpConnectionInformation getStoredConnectionInformation() {
 		return connectionInformationThreadLocal.get();
 	}
-
+	
 }

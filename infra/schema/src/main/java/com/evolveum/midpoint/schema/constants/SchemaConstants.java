@@ -233,7 +233,7 @@ public abstract class SchemaConstants {
 			UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, PasswordType.F_FAILED_LOGINS);
 	public static final ItemPath PATH_LINK_REF = new ItemPath(FocusType.F_LINK_REF);
 	public static final ItemPath PATH_LIFECYCLE_STATE = new ItemPath(ObjectType.F_LIFECYCLE_STATE);
-	public static final Object PATH_ROLE_MEMBERSHIP_REF = new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF);
+	public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
