@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -95,24 +94,21 @@ public class AssignmentPathImpl implements AssignmentPath {
 	}
 	
 	@Override
-	public boolean containsTarget(ObjectType target) {
+	public int countTargetOccurrences(ObjectType target) {
 		if (target == null) {
-			return false;
+			return 0;
 		}
+		int count = 0;
 		for (AssignmentPathSegment segment: segments) {
 			ObjectType segmentTarget = segment.getTarget();
 			if (segmentTarget != null) {
-				if (segmentTarget.getOid() != null && target.getOid() != null && 
-						segmentTarget.getOid().equals(target.getOid())) {
-					return true;
-				}
-				if (segmentTarget.getOid() == null && target.getOid() == null &&
-						segmentTarget.equals(target)) {
-					return true;
+				if (segmentTarget.getOid() != null && target.getOid() != null && segmentTarget.getOid().equals(target.getOid())
+						|| segmentTarget.getOid() == null && target.getOid() == null && segmentTarget.equals(target)) {
+					count++;
 				}
 			}
 		}
-		return false;
+		return count;
 	}
 
 	@NotNull

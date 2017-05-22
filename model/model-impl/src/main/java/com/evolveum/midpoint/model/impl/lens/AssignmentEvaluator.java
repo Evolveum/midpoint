@@ -384,17 +384,22 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
+	// number of times any given target is allowed to occur in the assignment path
+	private static final int MAX_TARGET_OCCURRENCES = 2;
+
 	private <O extends ObjectType> boolean hasCycle(AssignmentPathSegmentImpl segment, @NotNull PrismObject<O> target,
 			EvaluationContext ctx) throws PolicyViolationException {
+		// TODO reconsider this
 		if (target.getOid().equals(segment.source.getOid())) {
 			throw new PolicyViolationException("The "+segment.source+" refers to itself in assignment/inducement");
 		}
 		// removed condition "&& segment.getEvaluationOrder().equals(ctx.assignmentPath.getEvaluationOrder())"
 		// as currently it is always true
 		// TODO reconsider this
-		if (ctx.assignmentPath.containsTarget(target.asObjectable())) {
-			LOGGER.debug("Role cycle detected for target {} in {} - stopping evaluation here", ObjectTypeUtil.toShortString(target), ctx.assignmentPath);
-			//throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
+		int count = ctx.assignmentPath.countTargetOccurrences(target.asObjectable());
+		if (count >= MAX_TARGET_OCCURRENCES) {
+			LOGGER.debug("Max # of target occurrences ({}) detected for target {} in {} - stopping evaluation here",
+					MAX_TARGET_OCCURRENCES, ObjectTypeUtil.toShortString(target), ctx.assignmentPath);
 			return true;
 		} else {
 			return false;

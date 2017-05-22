@@ -50,7 +50,7 @@ public interface AssignmentPath extends DebugDumpable {
 	// beforeLast(1) means one before last()
 	AssignmentPathSegment beforeLast(int n);
 
-	boolean containsTarget(ObjectType target);
+	int countTargetOccurrences(ObjectType target);
 
 	/**
 	 * Returns a "user understandable" part of this path. I.e. only those objects that are of "order 1" above the focal object.
