@@ -26,7 +26,6 @@
         	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
         	<class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
         	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
-            <class name="com.evolveum.midpoint.model.intest.TestSegregationOfDuties"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiResource"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
@@ -59,6 +58,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacDeprecated"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">

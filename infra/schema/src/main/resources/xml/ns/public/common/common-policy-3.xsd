@@ -154,28 +154,12 @@
 					        	<p>
 	                                Target of exclusion. The object defining this "exclustion" and
 	                                the object defined as target cannot be assigned at the same time.
+	                                Filter in the reference may be used to dynamically exclude broader
+	                                range of roles - assuming that runtime resolution is used.
 	                            </p>
-					            <p>
-					            	Either target or filter must be specified.
-					            </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
-					    <xsd:annotation>
-					        <xsd:documentation>
-					        	<p>
-						            Filter that can be used to exclude all targets that match the filter.
-					            </p>
-					            <p>
-					            	Either target or filter must be specified.
-					            </p>
-					        </xsd:documentation>
-					        <xsd:appinfo>
-					        	<a:since>3.6</a:since>
-					        </xsd:appinfo>
-					    </xsd:annotation>
-		            </xsd:element>
                     <xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
