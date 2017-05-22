@@ -523,7 +523,17 @@
 
 	<xsd:complexType name="EvaluatedPolicyRuleType">
 		<xsd:sequence>
-			<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0" />
+            <!-- TODO use some kind of pointer here (otherwise it produces very long data e.g. in trigger info in assignments) -->
+			<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						DO NOT USE
+						Keeping only because some "pre-3.6" code stored some data here. So we're not deleting
+						it to avoid schema exceptions.
+						Will be replaced by something more compact in the future (something like a reference to the rule).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>

@@ -187,7 +187,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	@Override
 	public EvaluatedPolicyRuleType toEvaluatedPolicyRuleType() {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
-		rv.setPolicyRule(policyRuleType);
+		//rv.setPolicyRule(policyRuleType);			// DO NOT use this, in order to avoid large data in assignments
 		triggers.forEach(t -> rv.getTrigger().add(t.toEvaluatedPolicyRuleTriggerType(this)));
 		return rv;
 	}
