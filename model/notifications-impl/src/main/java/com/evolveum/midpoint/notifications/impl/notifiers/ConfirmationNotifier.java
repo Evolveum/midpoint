@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.impl.notifiers;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -92,7 +93,7 @@ public class ConfirmationNotifier extends GeneralNotifier {
 					LOGGER.trace("No system configuration defined. Skipping link generation.");
 					return null;
 				}
-				String defaultHostname = systemConfiguration.getDefaultHostname();
+				String defaultHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
 				String confirmationLink = defaultHostname + getConfirmationLink(userType);
 				return confirmationLink;
 			case PIN:

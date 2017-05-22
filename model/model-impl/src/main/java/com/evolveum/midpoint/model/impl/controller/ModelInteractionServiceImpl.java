@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
@@ -595,6 +596,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return roleTypeDval;
 		}
 		return null;
+	}
+
+	
+	
+	@Override
+	public <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType,
+			Class<O> objectType, String objectOid, ObjectQuery query, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		PrismObject<O> object = null;
+		if (objectOid != null) {
+			object = (PrismObject<O>) objectResolver.getObject(objectType, objectOid, null, task, result).asPrismObject();
+		}
+		return securityEnforcer.canSearch(ModelAuthorizationAction.READ.getUrl(), null, resultType, object, query.getFilter());
 	}
 
 	@Override

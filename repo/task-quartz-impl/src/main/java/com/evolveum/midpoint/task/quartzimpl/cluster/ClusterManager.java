@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -290,6 +291,7 @@ public class ClusterManager {
 
                 SystemConfigurationHolder.setCurrentConfiguration(
                         config.asObjectable());       // we rely on LoggingConfigurationManager to correctly record the current version
+                SecurityUtil.setRemoteHostAddressHeaders(config.asObjectable());
 
 				getRepositoryService().applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
             } else {

@@ -10684,9 +10684,12 @@
                             <xsd:documentation>
                                 Hostname that will be used as a public hostname for the midPoint deployment.
                                 E.g. it will be used in URLs that point to the midPoint in notification mails.
+								DEPRECATED. Use infrastructure/defaultHostname instead.
                             </xsd:documentation>
                             <xsd:appinfo>
                             	<a:since>3.5</a:since>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.6</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -10699,6 +10702,17 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                             	<a:since>3.5.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="infrastructure" type="tns:InfrastructureConfigurationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Technical (infrastructure) configuration of midPoint deployment.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                            	<a:since>3.6</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -15544,6 +15558,46 @@
 					<xsd:documentation>
 						Identifier of Evolveum subscription contract that applies to this deployment.
 					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="InfrastructureConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Technical (infrastructure) configuration of midPoint deployment.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.6</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="defaultHostname" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Hostname that will be used as a public hostname for the midPoint deployment.
+						E.g. it will be used in URLs that point to the midPoint in notification mails.
+						DEPRECATED. Use infrastructure/defaultHostname instead.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.5</a:since>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.6</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="remoteHostAddressHeader" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to try to determine client's IP address information from HTTP headers and if so,
+						what header(s) to use. Note that the order of headers to try is indeterminate: they might be
+						tried in any order.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>

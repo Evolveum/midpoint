@@ -289,7 +289,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     }
     
     public boolean isSingleValue() {
-		// We are not sure about multiplicity if there is no definition or the definition is dynamic
+    	// TODO what about dynamic definitions? See MID-3922
 		if (getDefinition() != null) {
     		if (getDefinition().isMultiValue()) {
     			return false;

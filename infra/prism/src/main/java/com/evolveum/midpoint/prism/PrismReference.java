@@ -56,11 +56,12 @@ public class PrismReference extends Item<PrismReferenceValue,PrismReferenceDefin
 	/**
 	 * {@inheritDoc}
 	 */
-	public PrismReferenceDefinition getDefinition() {
-		return (PrismReferenceDefinition) super.getDefinition();
-	}
-		
     public PrismReferenceValue getValue() {
+		// I know of no reason why we should not return a value if it's only one (even for multivalued items) (see MID-3922)
+		// TODO reconsider this
+		if (getValues().size() == 1) {
+			return getValues().get(0);
+		}
     	// We are not sure about multiplicity if there is no definition or the definition is dynamic
     	if (getDefinition() != null && !getDefinition().isDynamic()) {
     		if (getDefinition().isMultiValue()) {

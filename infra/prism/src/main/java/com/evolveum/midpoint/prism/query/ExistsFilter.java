@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * @author lazyman
  * @author mederly
  */
-public class ExistsFilter extends ObjectFilter {
+public class ExistsFilter extends ObjectFilter implements ItemFilter {
 
 	@NotNull private final ItemPath fullPath;
     private ItemDefinition definition;
@@ -44,6 +44,7 @@ public class ExistsFilter extends ObjectFilter {
     }
 
     @NotNull
+    @Override
 	public ItemPath getFullPath() {
         return fullPath;
     }

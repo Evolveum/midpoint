@@ -15,40 +15,29 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.MiscUtil;
-
-import org.apache.lucene.document.Field.Store;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Radovan Semancik
@@ -56,6 +45,8 @@ import javax.servlet.http.HttpSession;
 public class SecurityUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
+
+	@NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
 
 	/**
 	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
@@ -103,8 +94,8 @@ public class SecurityUtil {
 			String subjectDesc = getSubjectDescription();
 			LOGGER.debug("Denied access to {} by {} {}", object, subjectDesc, message);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations, 
-						new Object[]{object, subjectDesc, message, cause});
+				LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations,
+						object, subjectDesc, message, cause);
 			}
 		}
 	}
@@ -279,8 +270,6 @@ public class SecurityUtil {
 	
 	/**
 	 * Not very systematic. Used mostly in hacks.
-	 * @param securityPolicy
-	 * @return
 	 */
 	public static ValuePolicyType getPasswordPolicy(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
@@ -305,6 +294,21 @@ public class SecurityUtil {
 		return policyObj.asObjectable();
 	}
 
+	// This is a bit of hack. We don't have an access to system configuration object from the static context,
+	// so we rely on the upper layers to provide 'client address' header list here when the configuration object changes.
+	// A more serious solution would be moving getCurrentConnectionInformation out of static context (perhaps into
+	// securityEnforcer). But this would mean the easiness of its use would be gone...
+	@SuppressWarnings("NullableProblems")
+	public static void setRemoteHostAddressHeaders(SystemConfigurationType config) {
+		List<String> newValue = config != null && config.getInfrastructure() != null ?
+				new ArrayList<>(config.getInfrastructure().getRemoteHostAddressHeader()) :
+				Collections.emptyList();
+		if (!MiscUtil.unorderedCollectionEquals(remoteHostAddressHeaders, newValue)) {
+			LOGGER.debug("Setting new value for 'remoteHostAddressHeaders': {}", newValue);
+		}
+		remoteHostAddressHeaders = newValue;
+	}
+
 	/**
 	 * Returns current connection information, as derived from HTTP request stored in current thread.
 	 * May be null if the thread is not associated with any HTTP request (e.g. task threads, operations invoked from GUI but executing in background).
@@ -325,8 +329,23 @@ public class SecurityUtil {
 			rv.setSessionId(session.getId());
 		}
 		rv.setLocalHostName(request.getLocalName());
-		rv.setRemoteHostAddress(request.getRemoteAddr());
+		rv.setRemoteHostAddress(getRemoteHostAddress(request));
 		return rv;
 	}
 
+	private static String getRemoteHostAddress(HttpServletRequest request) {
+		for (String headerName : remoteHostAddressHeaders) {
+			String header = request.getHeader(headerName);
+			if (header != null) {
+				return getAddressFromHeader(headerName, header);
+			}
+		}
+		return request.getRemoteAddr();
+	}
+
+	// TODO implement various methods if necessary
+	private static String getAddressFromHeader(String name, String value) {
+		String[] split = StringUtils.split(value, ",");
+		return StringUtils.trim(split[0]);
+	}
 }

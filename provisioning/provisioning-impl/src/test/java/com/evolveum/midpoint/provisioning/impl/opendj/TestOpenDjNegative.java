@@ -97,7 +97,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
-		repoAddShadowFromFile(ACCOUNT1_REPO_FILE, initResult);
+		repoAddShadowFromFile(ACCOUNT_JBOND_REPO_FILE, initResult);
 		repoAddShadowFromFile(ACCOUNT_SPARROW_REPO_FILE, initResult);
 		repoAddShadowFromFile(ACCOUNT_JACK_REPO_FILE, initResult);
 	}
@@ -232,7 +232,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 				
 		try {
 
-			ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+			ShadowType acct = provisioningService.getObject(ShadowType.class, ACCOUNT_JBOND_OID, null, taskManager.createTaskInstance(), result).asObjectable();
 
 			AssertJUnit.fail("getObject succeeded unexpectedly");
 //		} catch (CommunicationException e) {
@@ -506,7 +506,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
 				
-		PrismObject<ShadowType> acct = provisioningService.getObject(ShadowType.class, ACCOUNT1_OID, null, taskManager.createTaskInstance(), result);
+		PrismObject<ShadowType> acct = provisioningService.getObject(ShadowType.class, ACCOUNT_JBOND_OID, null, taskManager.createTaskInstance(), result);
 
 		display("Account", acct);
 		
