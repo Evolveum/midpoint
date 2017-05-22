@@ -91,7 +91,10 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * The objectType parameter defines the class of the object for which should be the returned filter applicable.
 	 */
 	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
-			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException;
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter) throws SchemaException;
+	
+	<T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl, AuthorizationPhaseType phase,
+			Class<T> searchResultType, PrismObject<O> object, ObjectFilter filter) throws SchemaException;
 	
 	<T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException ;
 	
