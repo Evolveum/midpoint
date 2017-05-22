@@ -396,11 +396,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         // list ordinary role members, this is allowed
         assertSearch(UserType.class, createMembersQuery(ROLE_ORDINARY_OID), 2);
 
-        // MID-3916
         // list approver role members, this is not allowed
-//        assertSearch(UserType.class, 
-//        		QueryBuilder.queryFor(UserType.class, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(ROLE_APPROVER_UNASSIGN_ROLES_OID).build(), 
-//        		0);
+        assertSearch(UserType.class, 
+        		QueryBuilder.queryFor(UserType.class, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(ROLE_APPROVER_UNASSIGN_ROLES_OID).build(), 
+        		0);
         
         assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, true);
         assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
@@ -432,8 +431,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertDeleteDeny();
         assertGlobalStateUntouched();
 	}
-    
-    // TODO: combine ROLE_APPROVER_UNASSIGN_ROLES_OID with a role that allows basic read of users and roles
     
     @Override
     protected void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
