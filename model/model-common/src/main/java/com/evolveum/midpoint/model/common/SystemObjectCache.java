@@ -56,7 +56,7 @@ public class SystemObjectCache {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
 	
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
@@ -80,6 +80,7 @@ public class SystemObjectCache {
 		} catch (ObjectNotFoundException e) {
 			systemConfiguration = null;
 			LOGGER.trace("Cache ERROR: System configuration not found", e);
+			result.muteLastSubresultError();
 		}
 		return systemConfiguration;
 	}
