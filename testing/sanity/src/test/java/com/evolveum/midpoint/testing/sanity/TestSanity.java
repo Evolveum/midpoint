@@ -3753,9 +3753,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Entry from LDIF", ldifEntry);
         
         List<Attribute> attributes = ldifEntry.getAttributes();
-//        for (Attribute a : attributes){
-//        	display("attr anem : ", a.getAttributeType().toString());
-//        }
         List<Attribute> attrs = ldifEntry.getAttribute("entryUUID");
         
         AttributeValue val = null;
@@ -3811,8 +3808,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertAttribute(modelShadow, "givenName", "Angelika");
         assertAttribute(modelShadow, "sn", "Marley");
         assertAttribute(modelShadow, "cn", "Angelika Marley");
-        
-        assertShadowLdapPassword(modelShadow, "piranhaDogs");
 
     }
     
