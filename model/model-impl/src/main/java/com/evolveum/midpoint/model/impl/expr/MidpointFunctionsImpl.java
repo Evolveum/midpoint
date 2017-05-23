@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -104,6 +105,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Autowired
     private ModelService modelService;
+    
+    @Autowired ModelInteractionService modelInteractionService;
     
     @Autowired
     private ModelObjectResolver modelObjectResolver;
@@ -1341,9 +1344,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	private String getDefaultHostname(){
 		SystemConfigurationType systemConfiguration;
 		try {
-			systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
-		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
-				| SecurityViolationException | ExpressionEvaluationException e) {
+			systemConfiguration = modelInteractionService.getSystemConfiguration(getCurrentResult());
+		} catch (ObjectNotFoundException | SchemaException e) {
 			LOGGER.error("Error while getting system configuration. ", e);
 			return null;
 		}
