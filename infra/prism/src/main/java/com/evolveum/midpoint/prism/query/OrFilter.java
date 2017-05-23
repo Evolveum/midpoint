@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,37 +53,9 @@ public class OrFilter extends NaryLogicalFilter {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
+	protected String getDebugDumpOperationName() {
+		return "OR";
 	}
-	
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("OR:");
-		for (ObjectFilter filter : getConditions()){
-			sb.append("\n");
-			sb.append(filter.debugDump(indent + 1));
-		}
-		return sb.toString();
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("OR");
-		sb.append("(");
-		for (int i = 0; i < getConditions().size(); i++){
-			sb.append(getConditions().get(i));
-			if (i != getConditions().size() -1){
-				sb.append(",");
-			}
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
 
 	@Override
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,27 +103,22 @@ public class InOidFilter extends ObjectFilter {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("IN OID: ");
 		if (considerOwner) {
 			sb.append("(for owner)");
 		}
 		sb.append("VALUE:");
 		if (getOids() != null) {
-			sb.append("\n");
 			for (String oid : getOids()) {
+				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+1);
 				sb.append(oid);
-				sb.append("\n");
 			}
 		} else {
-			sb.append(" null\n");
+			sb.append(" null");
 		}
 		
 		return sb.toString();
