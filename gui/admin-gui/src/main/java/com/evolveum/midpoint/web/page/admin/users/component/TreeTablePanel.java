@@ -253,7 +253,7 @@ public class TreeTablePanel extends BasePanel<String> {
 				items.add(item);
 			}
 		} catch (SchemaException ex){
-
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
 		}
 		return items;
 	}

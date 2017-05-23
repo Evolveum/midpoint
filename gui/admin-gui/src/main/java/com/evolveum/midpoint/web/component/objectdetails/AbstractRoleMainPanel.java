@@ -18,7 +18,16 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
@@ -36,11 +45,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -50,6 +54,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	private static final long serialVersionUID = 1L;
 	
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMainPanel.class);
+    private static final String DOT_CLASS = AbstractRoleMainPanel.class.getName();
+    private static final String OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM = DOT_CLASS + "canSearchRoleMembershipItem";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
 			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
@@ -111,13 +118,36 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public boolean isVisible() {
 				return super.isVisible() &&
-						getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+						getObjectWrapper().getStatus() != ContainerStatus.ADDING &&
+						isAllowedToReadRoleMembership(getObjectWrapper().getOid(), parentPage);
 			}
 		});
 		
 		return tabs;
 	}
-	
+
+	private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){
+		return isAllowedToReadRoleMembershipItemForType(abstractRoleOid, UserType.class, parentPage)
+				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, RoleType.class, parentPage)
+				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, OrgType.class, parentPage)
+				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, ServiceType.class, parentPage);
+	}
+
+	private boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class type, PageBase parentPage){
+		ObjectQuery query = QueryBuilder.queryFor(type, parentPage.getPrismContext())
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleOid).build();
+		Task task = parentPage.createSimpleTask(OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM);
+		OperationResult result = task.getResult();
+		boolean isAllowed = false;
+		try {
+			isAllowed = parentPage.getModelInteractionService()
+                    .canSearch(type, null, null, false, query, task, result);
+        } catch (Exception ex){
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check if user is allowed to search for roleMembershipRef item", ex);
+        }
+        return isAllowed;
+    }
+
 	public abstract AbstractRoleMemberPanel<R> createMemberPanel(String panelId);
 	
 }
