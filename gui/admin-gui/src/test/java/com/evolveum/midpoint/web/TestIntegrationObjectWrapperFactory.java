@@ -120,9 +120,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
-				ContainerStatus.MODIFYING);
+				ContainerStatus.MODIFYING, task);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -171,9 +173,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
-				ContainerStatus.MODIFYING);
+				ContainerStatus.MODIFYING, task);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -222,10 +226,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
+		Task task = taskManager.createTaskInstance(TEST_NAME);
 		
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
 		ObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow, 
-				ContainerStatus.MODIFYING);
+				ContainerStatus.MODIFYING, task);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -304,7 +309,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         
         ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
 		ObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow, 
-				ContainerStatus.MODIFYING);
+				ContainerStatus.MODIFYING, task);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -364,8 +369,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         
+		Task task = taskManager.createTaskInstance(TEST_NAME);
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
-				ContainerStatus.MODIFYING);
+				ContainerStatus.MODIFYING, task);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -439,8 +445,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         
+		Task task = taskManager.createTaskInstance(TEST_NAME);
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
-				ContainerStatus.MODIFYING);
+				ContainerStatus.MODIFYING, task);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

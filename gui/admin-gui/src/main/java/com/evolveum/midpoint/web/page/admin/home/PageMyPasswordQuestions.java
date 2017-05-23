@@ -453,12 +453,11 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 	private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
 		OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 		PrismObject<UserType> user = null;
+		Task task = createSimpleTask(OPERATION_LOAD_USER);
 		try {
-
-
 			Collection options = SelectorOptions.createCollection(UserType.F_CREDENTIALS,
 					GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-			Task task = createSimpleTask(OPERATION_LOAD_USER);
+			
 			user = getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), options, task, result);
 
 
@@ -479,7 +478,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		ObjectWrapper wrapper;
 		try{
-			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status);
+			wrapper = owf.createObjectWrapper("pageMyPasswordQuestions.userDetails", null, user, status, task);
 		} catch (Exception ex){
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);

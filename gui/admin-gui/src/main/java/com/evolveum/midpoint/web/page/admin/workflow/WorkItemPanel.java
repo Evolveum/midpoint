@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageDefinitionType;
@@ -91,6 +93,9 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
 	private static final String ID_REQUESTER_COMMENT_CONTAINER = "requesterCommentContainer";
 	private static final String ID_REQUESTER_COMMENT_MESSAGE = "requesterCommentMessage";
+	
+	private static final String DOT_CLASS = WorkItemPanel.class.getName() + ".";
+	private static final String OPERATION_LOAD_CUSTOM_FORM = DOT_CLASS + "loadCustomForm";
 
 
 	public WorkItemPanel(String id, IModel<WorkItemDto> model, Form mainForm, PageBase pageBase) {
@@ -215,8 +220,9 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			if (focus == null) {
 				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME (this should not occur anyway)
 			}
+			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
 			DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
-					focus.asPrismObject(), formOid, mainForm, false, pageBase);
+					focus.asPrismObject(), formOid, mainForm, task, pageBase);
 			add(customForm);
 		} else {
 			add(new Label(ID_CUSTOM_FORM));

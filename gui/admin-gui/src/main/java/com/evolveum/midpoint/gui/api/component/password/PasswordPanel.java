@@ -161,7 +161,13 @@ public class PasswordPanel extends InputPanel {
             }
 
         };
-        removePassword.setVisible(showRemoveButton);
+        removePassword.add(new VisibleEnableBehaviour() {
+        	
+        	@Override
+        	public boolean isVisible() {
+        		return showRemoveButton;
+        	}
+        });
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
         removePassword.setOutputMarkupId(true);
         removeButtonContainer.add(removePassword);

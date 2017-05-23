@@ -22,6 +22,8 @@ public class PageRegistrationBase extends PageBase {
 	private static final long serialVersionUID = 1L;
 	private static final String DOT_CLASS = PageRegistrationBase.class.getName() + ".";
 	private static final String OPERATION_GET_SECURITY_POLICY = DOT_CLASS + "getSecurityPolicy";
+	
+	protected static final String OPERATION_LOAD_DYNAMIC_FORM = DOT_CLASS + "loadDynamicForm";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationBase.class);
 

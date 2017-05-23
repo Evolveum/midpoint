@@ -52,7 +52,6 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFormPanel.class);
 
 	private static final String DOT_CLASS = DynamicFormPanel.class.getName() + ".";
-	private static final String OPERATION_LOAD_FORM = DOT_CLASS + "loadForm";
 
 	private static final String ID_FORM_FIELDS = "formFields";
 
@@ -60,22 +59,22 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	private FormType form;
 
 	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
-			boolean runPrivileged, final PageBase parentPage) {
-		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, runPrivileged, parentPage);
+			Task task, final PageBase parentPage) {
+		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, task, parentPage);
 
 	}
 
 	public DynamicFormPanel(String id, final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			boolean runPrivileged, final PageBase parentPage) {
+			Task task, final PageBase parentPage) {
 		super(id);
-		initialize(prismObject, formOid, mainForm, runPrivileged, parentPage);
+		initialize(prismObject, formOid, mainForm, task, parentPage);
 	}
 
 	public DynamicFormPanel(String id, final QName objectType, String formOid, Form<?> mainForm,
-			boolean runPrivileged, final PageBase parentPage) {
+			Task task, final PageBase parentPage) {
 		super(id);
 		PrismObject<O> prismObject = instantiateObject(objectType, parentPage);
-		initialize(prismObject, formOid, mainForm, runPrivileged, parentPage);
+		initialize(prismObject, formOid, mainForm, task, parentPage);
 	}
 
 	private PrismObject<O> instantiateObject(QName objectType, PageBase parentPage) {
@@ -92,7 +91,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	}
 
 	private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			final boolean runPrivileged, final PageBase parentPage) {
+			Task task, final PageBase parentPage) {
 
 		if (prismObject == null) {
 			getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
@@ -100,7 +99,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		}
 
 		setParent(parentPage);
-		form = loadForm(formOid, runPrivileged);
+		form = loadForm(formOid, task);
 		if (form == null || form.getFormDefinition() == null) {
 			LOGGER.debug("No form or form definition; form OID = {}", formOid);
 			add(new Label(ID_FORM_FIELDS));			// to avoid wicket exceptions
@@ -112,20 +111,20 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 			@Override
 			protected ObjectWrapper<O> load() {
 				final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
-				return createObjectWrapper(owf, prismObject);
+				return createObjectWrapper(owf, task, prismObject);
 			}
 		};
 		initLayout(mainForm);
 	}
 
-	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, PrismObject<O> prismObject) {
+	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject) {
 		FormAuthorizationType formAuthorization = form.getFormDefinition().getAuthorization();
 		AuthorizationPhaseType authorizationPhase = formAuthorization != null && formAuthorization.getPhase() != null
 				? formAuthorization.getPhase()
 				: AuthorizationPhaseType.REQUEST;
 		ObjectWrapper<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
 				prismObject, prismObject.getOid() == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
-				false, authorizationPhase);
+				false, authorizationPhase, task);
 		objectWrapper.setShowEmpty(true);
 		return objectWrapper;
 	}
@@ -142,13 +141,13 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		add(formFields);
 	}
 
-	private FormType loadForm(String formOid, boolean runPrivileged) {
-		Task task;
-		if (runPrivileged) {
-			task = getPageBase().createAnonymousTask(OPERATION_LOAD_FORM);
-		} else {
-			task = getPageBase().createSimpleTask(OPERATION_LOAD_FORM);
-		}
+	private FormType loadForm(String formOid, Task task) {
+//		Task task;
+//		if (runPrivileged) {
+//			task = getPageBase().createAnonymousTask(OPERATION_LOAD_FORM);
+//		} else {
+//			task = getPageBase().createSimpleTask(OPERATION_LOAD_FORM);
+//		}
 		return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
 				getPageBase(), task, task.getResult()));
 	}

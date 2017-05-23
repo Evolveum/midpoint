@@ -446,6 +446,9 @@ public class PrismValuePanel extends Panel {
 						  ((PageUser) pageBase).getObjectWrapper().getObject().getOid() != null &&
 						  ((PageUser) pageBase).getObjectWrapper().getObject().getOid().equals(SecurityUtils.getPrincipalUser().getOid())) {
                       showRemovePasswordButton = false;
+                  } else if (valueWrapperModel.getObject().getStatus() == ValueStatus.ADDED) {
+                	  // it has no sense to show remove button while adding a new value..
+                	  showRemovePasswordButton = false;
                   }
                   panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(valueWrapperModel, baseExpression),
                           valueWrapperModel.getObject().isReadonly(), showRemovePasswordButton);
