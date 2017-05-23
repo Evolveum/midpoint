@@ -738,7 +738,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     }
     
     /**
-     * Idiot and Stupid are cyclic roles. The assignment should fail.
+     * Idiot and Stupid are cyclic roles. However, the assignment should proceed because now that's allowed.
      */
 	@Test
     public void test330AssignDeGhoulashIdiot() throws Exception {
@@ -750,25 +750,18 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         dummyAuditService.clear();
-                                
-        try {
-			// WHEN
-	        assignRole(USER_DEGHOULASH_OID, ROLE_IDIOT_OID, task, result);
-	        
-	        AssertJUnit.fail("Unexpected success");
-        } catch (PolicyViolationException e) {
-        	// This is expected
-        	display("Expected exception", e);
-        }
-		
+
+        // WHEN
+        assignRole(USER_DEGHOULASH_OID, ROLE_IDIOT_OID, task, result);
+
 		// THEN
 		result.computeStatus();
-        TestUtil.assertFailure(result);
+        TestUtil.assertSuccess(result);
         
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-		assertAssignedNoRole(userDeGhoulash);                
+		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID);
 	}
 
     /**
@@ -802,7 +795,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-		assertAssignedNoRole(userDeGhoulash);                
+		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID);
 	}
 	
 	@Test
@@ -829,7 +822,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-		assertAssignments(userDeGhoulash, 1);
+		assertAssignments(userDeGhoulash, 2);
 	}
 	
 	@Test
@@ -854,7 +847,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-		assertAssignments(userDeGhoulash, 0);
+		assertAssignments(userDeGhoulash, 1);
+		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID);
 	}
 	
 	@Test
@@ -883,7 +877,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-		assertAssignedRole(userDeGhoulash, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID);
+		assertAssignedRoles(userDeGhoulash, ROLE_BAD_CONSTRUCTION_RESOURCE_REF_OID, ROLE_IDIOT_OID);
 	}
 	
 	@Test
@@ -912,7 +906,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
 		display("User after change execution", userDeGhoulash);
 		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
-		assertAssignedNoRole(userDeGhoulash);
+		assertAssignedRoles(userDeGhoulash, ROLE_IDIOT_OID);
 	}
 
 	@Test
