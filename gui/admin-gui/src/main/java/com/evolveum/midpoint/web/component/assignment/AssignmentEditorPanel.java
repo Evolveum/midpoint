@@ -1255,4 +1255,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		}
 		return decisions;
 	}
+
+	@Override
+	public PageBase getPageBase() {
+		return pageBase != null ? pageBase : WebComponentUtil.getPageBase(this);
+	}
+
 }
