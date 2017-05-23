@@ -57,6 +57,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -84,6 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -411,11 +413,15 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		addObject(userRum, initTask, initResult);
 		userRumRogersOid = userRum.getOid();
 		assignOrg(userRumRogersOid, ORG_MINISTRY_OF_RUM_OID, initTask, initResult);
+		assignRole(userRumRogersOid, ROLE_ORDINARY_OID, initTask, initResult);
+		assignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, initTask, initResult);
 		
 		PrismObject<UserType> userCobb = createUser(USER_COBB_NAME, "Cobb");
 		addObject(userCobb, initTask, initResult);
 		userCobbOid = userCobb.getOid();
 		assignOrg(userCobbOid, ORG_SCUMM_BAR_OID, initTask, initResult);
+		assignRole(userCobbOid, ROLE_ORDINARY_OID, initTask, initResult);
+		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, initTask, initResult);
 	}
 
 	@Test
@@ -1175,4 +1181,44 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 			assertTrue("No audit records", auditRecords != null && !auditRecords.isEmpty());
 		});
 	}
+	
+	protected void assertCanSearchRoleMemberUsers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    	assertCanSearch("Search user members of role "+roleOid, UserType.class, 
+    			null, null, false, createMembersQuery(UserType.class, roleOid), expectedResult);
+	}
+    
+	protected void assertCanSearchRoleMembers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    	assertCanSearch("Search all members of role "+roleOid, FocusType.class, 
+    			null, null, false, createMembersQuery(FocusType.class, roleOid), expectedResult);
+	}
+
+	protected <T extends ObjectType, O extends ObjectType> void assertCanSearch(String message, Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertCanSearch");
+		OperationResult result = task.getResult();
+		String opName = "canSearch("+message+")";
+		logAttempt(opName);
+		
+		boolean decision = modelInteractionService.canSearch(resultType, objectType, objectOid, includeSpecial, query, task, result);
+		
+		assertSuccess(result);
+		if (expectedResult) {
+			if (decision) {
+				logAllow(opName);
+			} else {
+				failAllow(opName, null);
+			}
+		} else {
+			if (decision) {
+				failDeny(opName);
+			} else {
+				logDeny(opName);
+			}
+		}
+	}
+
+
+	protected <O extends ObjectType> ObjectQuery createMembersQuery(Class<O> resultType, String roleOid) {
+		return QueryBuilder.queryFor(resultType, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
+	}
+
 }

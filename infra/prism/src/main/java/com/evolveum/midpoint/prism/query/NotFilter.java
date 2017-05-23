@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,34 +47,6 @@ public class NotFilter extends UnaryLogicalFilter {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("NOT:");
-		if (getFilter() != null) {
-			sb.append("\n");
-			sb.append(getFilter().debugDump(indent + 1));
-		}
-		return sb.toString();
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("NOT(");
-		if (getFilter() != null){
-			sb.append(getFilter().toString());
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-	@Override
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		return !getFilter().match(value, matchingRuleRegistry);
 	}
@@ -82,6 +54,11 @@ public class NotFilter extends UnaryLogicalFilter {
 	@Override
 	public boolean equals(Object obj, boolean exact) {
 		return super.equals(obj, exact) && obj instanceof NotFilter;
+	}
+	
+	@Override
+	protected String getDebugDumpOperationName() {
+		return "NOT";
 	}
 
 }

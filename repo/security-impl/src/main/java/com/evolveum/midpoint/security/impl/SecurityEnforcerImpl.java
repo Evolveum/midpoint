@@ -887,14 +887,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter finalFilter;
 		if (phase != null) {
 			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, 
-					true, searchResultType, object, origFilter, "search pre-process");
+					true, searchResultType, object, true, origFilter, "search pre-process");
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, 
-					false, searchResultType, object, origFilter, "search pre-process");
+					false, searchResultType, object, true, origFilter, "search pre-process");
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
-					false, searchResultType, object, origFilter, "search pre-process");
+					false, searchResultType, object, true, origFilter, "search pre-process");
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, origFilter, "search pre-process");
+					false, searchResultType, object, true, origFilter, "search pre-process");
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", principal, searchResultType, finalFilter);
@@ -907,7 +907,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl,
-			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, ObjectFilter filter)
+			AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter)
 			throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		LOGGER.trace("AUTZ: evaluating search permission principal={}, searchResultType={}, object={}: filter {}",
@@ -918,25 +918,25 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		ObjectFilter finalFilter;
 		if (phase != null) {
 			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, 
-					true, searchResultType, object, filter, "search permission");
+					true, searchResultType, object, includeSpecial, filter, "search permission");
 		} else {
 			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, 
-					false, searchResultType, object, filter, "search permission");
+					false, searchResultType, object, includeSpecial, filter, "search permission");
 			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, 
-					false, searchResultType, object, filter, "search permission");
+					false, searchResultType, object, includeSpecial, filter, "search permission");
 			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION,
-					false, searchResultType, object, filter, "search permission");
+					false, searchResultType, object, includeSpecial, filter, "search permission");
 			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
 		}
 		finalFilter = ObjectQueryUtil.simplify(finalFilter);
 		boolean decision = !(finalFilter instanceof NoneFilter);
-		LOGGER.trace("AUTZ: evaluated search permission principal={}, objectType={}: decision={} (from filter: {})", principal, searchResultType, decision, finalFilter);
+		LOGGER.trace("AUTZ: evaluated search permission principal={}, objectType={}, evulated from filter: {}: decision={}", principal, searchResultType, finalFilter, decision);
 		return decision;
 	}
 
 	private <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
 			AuthorizationPhaseType phase, boolean includeNullPhase, 
-			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter, String desc) throws SchemaException {
+			Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String desc) throws SchemaException {
 		
 		Collection<Authorization> authorities = getAuthorities(principal);
 		
@@ -1072,6 +1072,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							// Special
 							List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 							if (specSpecial != null && !specSpecial.isEmpty()) {
+								if (!includeSpecial) {
+									LOGGER.trace("  Skipping authorization, because specials are present: {}", specSpecial);
+									applicable = false;
+								}
 								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null) {
 									throw new SchemaException("Both filter/org/role and special object specification specified in authorization");
 								}

@@ -63,40 +63,12 @@ public class AndFilter extends NaryLogicalFilter {
 	public AndFilter cloneEmpty() {
 		return new AndFilter(new ArrayList<ObjectFilter>());
 	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
 	
 	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("AND:");
-		for (ObjectFilter filter : getConditions()){
-			sb.append("\n");
-			sb.append(filter.debugDump(indent + 1));
-		}
-		return sb.toString();
+	protected String getDebugDumpOperationName() {
+		return "AND";
 	}
 	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("AND");
-		sb.append("(");
-		for (int i = 0; i < getConditions().size(); i++){
-			sb.append(getConditions().get(i));
-			if (i != getConditions().size() - 1) {
-				sb.append(",");
-			}
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-
 	@Override
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ObjectFilter filter : getConditions()){
