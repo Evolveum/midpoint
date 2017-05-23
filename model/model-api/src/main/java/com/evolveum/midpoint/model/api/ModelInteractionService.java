@@ -143,7 +143,14 @@ public interface ModelInteractionService {
      */
     <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException;
 
-    <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType, Class<O> objectType, String objectOid, ObjectQuery query, Task task, OperationResult result)  throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException ;
+    /**
+     * TODO
+     * 
+     * @param includeSpecial include special authorizations, such as "self". If set to false those authorizations
+     *                       will be ignored. This is a good way to avoid interference of "self" when checking for
+     *                       authorizations such as ability to display role members.
+     */
+    <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result)  throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException ;
     
     /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.

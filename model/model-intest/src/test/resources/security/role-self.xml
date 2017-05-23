@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Self</name>    
     <authorization>
+    	<name>self-read</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<object>
     		<special>self</special>
     	</object>
     </authorization>
     <authorization>
+    	<name>self-modify</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<object>
     		<special>self</special>

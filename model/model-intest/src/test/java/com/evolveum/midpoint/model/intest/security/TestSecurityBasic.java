@@ -273,9 +273,22 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         
         assertVisibleUsers(1);
+        assertSearch(OrgType.class, null, 0);
+        assertSearch(RoleType.class, null, 0);
         // The search with ObjectClass is important. It is a very different case
         // than searching just for UserType
         assertSearch(ObjectType.class, null, 2);		// user + campaign
+        
+        assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
+        assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
+        
+        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
+		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
+		
+		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
+		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
 
         assertAddDeny();
         

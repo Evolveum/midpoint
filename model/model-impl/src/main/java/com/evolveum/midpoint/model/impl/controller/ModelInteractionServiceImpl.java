@@ -602,12 +602,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType,
-			Class<O> objectType, String objectOid, ObjectQuery query, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		PrismObject<O> object = null;
 		if (objectOid != null) {
 			object = (PrismObject<O>) objectResolver.getObject(objectType, objectOid, null, task, result).asPrismObject();
 		}
-		return securityEnforcer.canSearch(ModelAuthorizationAction.READ.getUrl(), null, resultType, object, query.getFilter());
+		return securityEnforcer.canSearch(ModelAuthorizationAction.READ.getUrl(), null, resultType, object, includeSpecial, query.getFilter());
 	}
 
 	@Override

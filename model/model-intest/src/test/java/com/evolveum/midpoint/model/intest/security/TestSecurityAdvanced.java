@@ -27,8 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,12 +59,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-		assignRole(userRumRogersOid, ROLE_ORDINARY_OID, initTask, initResult);
-		assignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, initTask, initResult);
-		assignRole(userCobbOid, ROLE_ORDINARY_OID, initTask, initResult);
-		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, initTask, initResult);
-
 	}
 
 
@@ -337,8 +330,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     }
     
 	@Test
-    public void test152AutzJackApproverUnassignRolesAndRead() throws Exception {
-		final String TEST_NAME = "test152AutzJackApproverUnassignRolesAndRead";
+    public void test151AutzJackApproverUnassignRolesAndRead() throws Exception {
+		final String TEST_NAME = "test151AutzJackApproverUnassignRolesAndRead";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -396,23 +389,19 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         PrismObject<RoleType> roleOrdinary = assertGetAllow(RoleType.class, ROLE_ORDINARY_OID);
         assertNoRoleMembershipRef(roleOrdinary);
-        assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID); // no assignment
-        PrismObject<RoleType> roleAppr = assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID); // assignment exists, but wrong relation
+        assertGetAllow(RoleType.class, ROLE_PERSONA_ADMIN_OID);
+        PrismObject<RoleType> roleAppr = assertGetAllow(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID);
         assertNoRoleMembershipRef(roleAppr);
         
-        PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid); // member of ROLE_ORDINARY_OID
+        PrismObject<UserType> userRum = assertGetAllow(UserType.class, userRumRogersOid);
         assertNoRoleMembershipRef(userRum);
-        assertGetAllow(UserType.class, userCobbOid);      // member of ROLE_ORDINARY_OID
-        assertGetAllow(UserType.class, USER_JACK_OID);     // assignment exists, but wrong relation
-        assertGetAllow(UserType.class, USER_GUYBRUSH_OID); // no assignment to ROLE_ORDINARY_OID
-        assertGetAllow(UserType.class, USER_LECHUCK_OID);  // no assignment to ROLE_ORDINARY_OID
+        assertGetAllow(UserType.class, userCobbOid);
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
+        assertGetAllow(UserType.class, USER_LECHUCK_OID);
         
-        assertSearch(OrgType.class, null, NUMBER_OF_ALL_ORGS);
-        
-        // The appr-read-roles authorization is maySkipOnSearch and the readonly role allows read.
+        assertSearch(OrgType.class, null, NUMBER_OF_ALL_ORGS);        
         assertSearch(RoleType.class, null, NUMBER_OF_ALL_ROLES);
-
-        // The appr-read-users authorization is maySkipOnSearch and the readonly role allows read.
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
@@ -445,9 +434,72 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assertGlobalStateUntouched();
     }
 	
+	/**
+	 * Jack is an approver of a role, but he does not have any authorization
+	 * except reading self.
+	 * Note: tests with role-self and no approver are in TestSecurityBasic.test204AutzJackSelfRole()
+	 */
 	@Test
-    public void test156AutzJackReadRoleMembers() throws Exception {
-		final String TEST_NAME = "test156AutzJackReadRoleMembers";
+    public void test155AutzJackApproverSelf() throws Exception {
+		final String TEST_NAME = "test155AutzJackApproverSelf";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SELF_OID);
+        assignRole(USER_JACK_OID, ROLE_ORDINARY_OID, SchemaConstants.ORG_APPROVER);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
+        assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
+        assertGetDeny(RoleType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID);
+        
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        
+        assertGetDeny(UserType.class, userRumRogersOid);
+        assertGetDeny(UserType.class, userCobbOid);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_LECHUCK_OID);
+        
+        assertSearch(OrgType.class, null, 0);
+        assertSearch(RoleType.class, null, 0);
+        assertSearch(UserType.class, null, 1);
+        
+		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
+		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
+		
+		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
+		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
+		assertCanSearchRoleMemberUsers(ROLE_APPROVER_UNASSIGN_ROLES_OID, false);
+		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
+		
+		assertDeny("unassign ordinary role from cobb", 
+				(task,result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
+		
+		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
+		
+		assertDeny("unassign uninteresting role from cobb", 
+				(task,result) -> unassignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result));
+		assertDeny("unassign uninteresting role from rum", 
+				(task,result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));		
+		assertDeny("unassign ordinary role from lechuck", 
+				(task,result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
+		        
+		assertAddDeny();
+		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+		assertDeleteDeny();
+		assertGlobalStateUntouched();
+    }
+	
+	@Test
+    public void test157AutzJackReadRoleMembers() throws Exception {
+		final String TEST_NAME = "test157AutzJackReadRoleMembers";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -661,28 +713,4 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result);
         
 	}
-    
-    private void assertCanSearchRoleMemberUsers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	assertCanSearch("Search user members of role "+roleOid, UserType.class, 
-    			null, null, createMembersQuery(UserType.class, roleOid), expectedResult);
-	}
-    
-    private void assertCanSearchRoleMembers(String roleOid, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	assertCanSearch("Search user members of role "+roleOid, FocusType.class, 
-    			null, null, createMembersQuery(FocusType.class, roleOid), expectedResult);
-	}
-
-	private <T extends ObjectType, O extends ObjectType> void assertCanSearch(String message, Class<T> resultType, Class<O> objectType, String objectOid, ObjectQuery query, boolean expectedResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Task task = createTask("assertCanSearch");
-		OperationResult result = task.getResult();
-		boolean decision = modelInteractionService.canSearch(resultType, objectType, objectOid, query, task, result);
-		assertSuccess(result);
-		assertEquals(message+": wrong search decision", expectedResult, decision);
-	}
-
-
-	private <O extends ObjectType> ObjectQuery createMembersQuery(Class<O> resultType, String roleOid) {
-		return QueryBuilder.queryFor(resultType, prismContext).item(UserType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
-	}
-
 }

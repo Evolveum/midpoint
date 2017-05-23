@@ -200,9 +200,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 
 	@Override
 	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl,
-			AuthorizationPhaseType phase, Class<T> objectType, PrismObject<O> object, ObjectFilter filter)
+			AuthorizationPhaseType phase, Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter)
 			throws SchemaException {
-		return securityEnforcer.canSearch(operationUrl, phase, objectType, object, filter);
+		return securityEnforcer.canSearch(operationUrl, phase, objectType, object, includeSpecial, filter);
 	}
 
 	@Override
