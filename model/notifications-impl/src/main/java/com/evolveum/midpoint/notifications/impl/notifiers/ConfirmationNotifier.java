@@ -88,13 +88,13 @@ public class ConfirmationNotifier extends GeneralNotifier {
 	
 		switch (confirmationMethod) {
 			case LINK:
-				SystemConfigurationType systemConfiguration = notificationsUtil.getSystemConfiguration(result);
-				if (systemConfiguration == null) {
-					LOGGER.trace("No system configuration defined. Skipping link generation.");
-					return null;
-				}
-				String defaultHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
-				String confirmationLink = defaultHostname + getConfirmationLink(userType);
+//				SystemConfigurationType systemConfiguration = notificationsUtil.getSystemConfiguration(result);
+//				if (systemConfiguration == null) {
+//					LOGGER.trace("No system configuration defined. Skipping link generation.");
+//					return null;
+//				}
+////				String defaultHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
+				String confirmationLink = getConfirmationLink(userType);
 				return confirmationLink;
 			case PIN:
 				throw new UnsupportedOperationException("PIN confirmation not supported yes");

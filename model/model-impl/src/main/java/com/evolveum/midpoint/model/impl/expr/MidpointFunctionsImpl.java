@@ -67,6 +67,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1325,15 +1327,38 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 	
 	private String createBaseConfirmationLink(String prefix, UserType userType) {
-		return prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig(); 
+		return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig(); 
 	}
 	
 	private String createBaseConfirmationLink(String prefix, String oid) {
-		return prefix + "?" + SchemaConstants.USER_ID + "=" + oid; 
+		return getDefaultHostname() + prefix + "?" + SchemaConstants.USER_ID + "=" + oid; 
 	}
 	
 	private String createTokenConfirmationLink(String prefix, UserType userType) {
 		return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType); 
+	}
+	
+	private String getDefaultHostname(){
+		SystemConfigurationType systemConfiguration;
+		try {
+			systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value());
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
+				| SecurityViolationException | ExpressionEvaluationException e) {
+			LOGGER.error("Error while getting system configuration. ", e);
+			return null;
+		}
+		if (systemConfiguration == null) {
+			LOGGER.trace("No system configuration defined. Skipping link generation.");
+			return null;
+		}
+		String defautlHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
+		if (StringUtils.isBlank(defautlHostname)) {
+			LOGGER.error("No hostname defined. It can break link generation.");
+		}
+		
+		return defautlHostname;
+		
+		
 	}
 	
 	private String getNonce(UserType user) {
