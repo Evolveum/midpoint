@@ -136,7 +136,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * carried out.
 	 */
 	transient private boolean isFresh = false;
-	transient private boolean isRequestAuthorized = false;
+	private boolean isRequestAuthorized = false;
 
 	/**
 	 * Cache of resource instances. It is used to reduce the number of read
@@ -1081,6 +1081,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		lensContextType.setLazyAuditRequest(lazyAuditRequest);
 		lensContextType.setRequestAudited(requestAudited);
 		lensContextType.setExecutionAudited(executionAudited);
+		lensContextType.setRequestAuthorized(isRequestAuthorized);
 		lensContextType.setStats(stats);
 		lensContextType.setRequestMetadata(requestMetadata);
 
@@ -1142,6 +1143,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (lensContextType.isExecutionAudited() != null) {
 			lensContext.setExecutionAudited(lensContextType.isExecutionAudited());
 		}
+		lensContext.setRequestAuthorized(Boolean.TRUE.equals(lensContextType.isRequestAuthorized()));
 		lensContext.setStats(lensContextType.getStats());
 		lensContext.setRequestMetadata(lensContextType.getRequestMetadata());
 

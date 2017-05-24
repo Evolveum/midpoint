@@ -75,9 +75,9 @@
 	<assignment id="1000">
 		<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType"/>    <!-- End user -->
 	</assignment>
-	<assignment id="1001">
-		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>    <!-- Approver -->
-	</assignment>
+	<!--<assignment id="1001">-->
+		<!--<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>    &lt;!&ndash; Approver &ndash;&gt;-->
+	<!--</assignment>-->
 	<fullName>Ignatius Cheese</fullName>
 	<givenName>Ignatius</givenName>
 	<familyName>Cheese</familyName>

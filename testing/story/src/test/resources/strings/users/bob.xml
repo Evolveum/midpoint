@@ -23,6 +23,9 @@
 	<assignment>
 		<targetRef oid="00000000-8888-6666-0000-200000000002" type="c:OrgType"/>
 	</assignment>
+	<assignment>
+		<targetRef oid="00000000-0000-0000-0000-000000000008" type="RoleType"/>		<!-- End User -->
+	</assignment>
 	<fullName>Ghost Pirate Bob</fullName>
 	<givenName>Bob</givenName>
 	<emailAddress>bob@evolveum.com</emailAddress>

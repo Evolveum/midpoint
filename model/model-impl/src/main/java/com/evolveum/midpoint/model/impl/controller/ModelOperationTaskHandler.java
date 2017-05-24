@@ -27,12 +27,7 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,17 +59,10 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
     public static final String MODEL_OPERATION_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3";
 
-    @Autowired(required = true)
-	private TaskManager taskManager;
-
-    @Autowired(required = true)
-    private PrismContext prismContext;
-
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
-    @Autowired(required = true)
-    private Clockwork clockwork;
+    @Autowired private TaskManager taskManager;
+    @Autowired private PrismContext prismContext;
+	@Autowired private ProvisioningService provisioningService;
+	@Autowired private Clockwork clockwork;
 
 	@Override
 	public TaskRunResult run(Task task) {
@@ -90,7 +78,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 			}
 			runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
 		} else {
-            LensContext context = null;
+            LensContext context;
             try {
                 context = LensContext.fromLensContextType(contextType, prismContext, provisioningService, task, result);
             } catch (SchemaException e) {
@@ -132,7 +120,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
                     result.computeStatus();
                 }
                 runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-            } catch (Exception e) { // too many various exceptions; will be fixed with java7 :)
+            } catch (RuntimeException|CommonException e) {
                 String message = "An exception occurred within model operation, in task " + task;
                 LoggingUtils.logUnexpectedException(LOGGER, message, e);
                 result.recordPartialError(message, e);
