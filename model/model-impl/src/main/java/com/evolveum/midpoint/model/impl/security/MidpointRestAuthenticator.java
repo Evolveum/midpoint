@@ -108,6 +108,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
 	        
 	        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
+	        connEnv.setSessionIdOverride(task.getTaskIdentifier());
 	        UsernamePasswordAuthenticationToken token;
 	        try {
 	        	token = getAuthenticationEvaluator().authenticate(connEnv, authenticationContext);

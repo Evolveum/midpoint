@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,13 @@ public class ConnectionEnvironment {
 	
 	private String channel;
 	private HttpConnectionInformation connectionInformation;
+	/**
+	 * There are situations when we need to force the use of session ID other than the one derived from the HTTP session.
+	 * An example of this is REST service auditing. However, correct functioning of this mechanism requires that the
+	 * REST service does not use HTTP sessions at all; otherwise, both HTTP and artificial session IDs would get used
+	 * (task ID for login/logout and HTTP session ID for operations).
+	 */
+	private String sessionIdOverride;
 
 	// probably not of much use
 	public ConnectionEnvironment() {
@@ -33,7 +40,7 @@ public class ConnectionEnvironment {
 		this.connectionInformation = connectionInformation;
 	}
 
-	// Not a constructor to make client realize there's some processing in it.
+	// This is not a constructor to make client realize there's some processing in it.
 	public static ConnectionEnvironment create(String channel) {
 		return new ConnectionEnvironment(channel, SecurityUtil.getCurrentConnectionInformation());
 	}
@@ -46,6 +53,14 @@ public class ConnectionEnvironment {
 		this.channel = channel;
 	}
 
+	public String getSessionIdOverride() {
+		return sessionIdOverride;
+	}
+
+	public void setSessionIdOverride(String sessionIdOverride) {
+		this.sessionIdOverride = sessionIdOverride;
+	}
+
 	public HttpConnectionInformation getConnectionInformation() {
 		return connectionInformation;
 	}
@@ -54,4 +69,13 @@ public class ConnectionEnvironment {
 		return connectionInformation != null ? connectionInformation.getRemoteHostAddress() : null;
 	}
 
+	public String getSessionId() {
+		if (sessionIdOverride != null) {
+			return sessionIdOverride;
+		} else if (connectionInformation != null) {
+			return connectionInformation.getSessionId();
+		} else {
+			return null;
+		}
+	}
 }

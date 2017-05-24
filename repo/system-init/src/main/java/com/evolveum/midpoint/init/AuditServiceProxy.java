@@ -169,21 +169,19 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 			record.setNodeIdentifier(taskManager.getNodeId());
 		}
 
-		if (securityEnforcer != null) {
-			HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
-			if (connInfo == null) {
-				connInfo = securityEnforcer.getStoredConnectionInformation();
+		HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
+		if (connInfo == null && securityEnforcer != null) {
+			connInfo = securityEnforcer.getStoredConnectionInformation();
+		}
+		if (connInfo != null) {
+			if (record.getSessionIdentifier() == null) {
+				record.setSessionIdentifier(connInfo.getSessionId());
 			}
-			if (connInfo != null) {
-				if (record.getSessionIdentifier() == null) {
-					record.setSessionIdentifier(connInfo.getSessionId());
-				}
-				if (record.getRemoteHostAddress() == null) {
-					record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
-				}
-				if (record.getHostIdentifier() == null) {
-					record.setHostIdentifier(connInfo.getLocalHostName());
-				}
+			if (record.getRemoteHostAddress() == null) {
+				record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
+			}
+			if (record.getHostIdentifier() == null) {
+				record.setHostIdentifier(connInfo.getLocalHostName());
 			}
 		}
 
