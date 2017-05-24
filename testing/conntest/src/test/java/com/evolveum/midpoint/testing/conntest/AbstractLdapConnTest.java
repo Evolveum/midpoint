@@ -1385,17 +1385,6 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertLdapConnectorInstances(1, 2);
 	} 
 	
-	private void assertAssociation(PrismObject<ShadowType> shadow, QName assocName, String entitlementOid) {
-		for (ShadowAssociationType association: shadow.asObjectable().getAssociation()) {
-			if (QNameUtil.match(assocName, association.getName())) {
-				assertEquals("Wrong association shadow ref in "+shadow, entitlementOid, 
-						association.getShadowRef().getOid());
-				return;
-			}
-		}
-		AssertJUnit.fail("Association "+assocName+" not found in "+shadow);
-	}
-
 	protected void assertConnectorOperationIncrement(int shortcutIncrement, int noShortcutIncrement) {
 		if (hasAssociationShortcut()) {
 			assertConnectorOperationIncrement(shortcutIncrement);
