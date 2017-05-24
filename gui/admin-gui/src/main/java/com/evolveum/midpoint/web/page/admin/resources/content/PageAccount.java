@@ -107,7 +107,7 @@ public class PageAccount extends PageAdminResources {
             throw new RestartResponseException(PageResources.class);
         }
 
-        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, this);
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, task, this);
         OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
         wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
         wrapper.setShowEmpty(false);

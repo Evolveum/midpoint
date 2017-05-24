@@ -333,7 +333,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		ObjectWrapper<O> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status);
+			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, task);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);

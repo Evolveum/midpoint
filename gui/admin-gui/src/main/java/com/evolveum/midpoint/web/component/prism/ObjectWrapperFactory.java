@@ -83,18 +83,18 @@ public class ObjectWrapperFactory {
     }
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
-            String description, PrismObject<O> object, ContainerStatus status) {
-        return createObjectWrapper(displayName, description, object, status, false, AuthorizationPhaseType.REQUEST);
+            String description, PrismObject<O> object, ContainerStatus status, Task task) {
+        return createObjectWrapper(displayName, description, object, status, false, AuthorizationPhaseType.REQUEST, task);
     }
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
             PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation,
-            AuthorizationPhaseType authorizationPhase) {
+            AuthorizationPhaseType authorizationPhase, Task task) {
         if (authorizationPhase == null) {
             authorizationPhase = AuthorizationPhaseType.REQUEST;
         }
         try {
-        	Task task = modelServiceLocator.createSimpleTask(CREATE_OBJECT_WRAPPER);
+//        	Task task = modelServiceLocator.createSimpleTask(CREATE_OBJECT_WRAPPER);
             OperationResult result = task.getResult();
 
             PrismObjectDefinition<O> objectDefinitionForEditing = modelServiceLocator.getModelInteractionService()
@@ -110,7 +110,7 @@ public class ObjectWrapperFactory {
                 objectClassDefinitionForEditing = modelServiceLocator.getModelInteractionService().getEditObjectClassDefinition(
                         (PrismObject<ShadowType>) object, resource, authorizationPhase);
             }
-
+         
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
                     objectClassDefinitionForEditing, status, delayContainerCreation, result);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {

@@ -123,7 +123,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		objectWrapperModel = new LoadableModel<ObjectWrapper<TaskType>>() {
 			@Override
 			protected ObjectWrapper<TaskType> load() {
-				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), new OperationResult("loadObjectWrapper"));
+				final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
+				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), operationTask, new OperationResult("loadObjectWrapper"));
 			}
 		};
 		showAdvancedFeaturesModel = new Model<>(false);		// todo save setting in session
@@ -296,7 +297,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			LOGGER.debug("Refreshing task {}", oldTaskDto);
 			TaskType taskType = loadTaskType(oldTaskDto.getOid(), operationTask, result);
 			TaskDto newTaskDto = prepareTaskDto(taskType, operationTask, result);
-			final ObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), result);
+			final ObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), operationTask, result);
 			previousTaskDto = currentTaskDto;
 			currentTaskDto = newTaskDto;
 			taskDtoModel.setObject(newTaskDto);
@@ -306,12 +307,12 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		}
 	}
 
-	protected ObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, OperationResult result) {
+	protected ObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, Task task, OperationResult result) {
 		ObjectWrapper<TaskType> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
 			object.revive(getPrismContext());		// just to be sure (after deserialization the context is missing in this object)
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, ContainerStatus.MODIFYING);
+			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, ContainerStatus.MODIFYING, task);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
