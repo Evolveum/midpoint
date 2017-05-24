@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -85,36 +86,38 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 			prismObject = objectDef.instantiate();
 		} catch (SchemaException e) {
 			LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);
-			throw new RestartResponseException(getPageBase());
+			throw new RestartResponseException(parentPage);
 		}
 		return prismObject;
 	}
 
 	private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			Task task, final PageBase parentPage) {
+			final Task task, final PageBase parentPage) {
 
 		if (prismObject == null) {
 			getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
-			throw new RestartResponseException(getPageBase());
+			throw new RestartResponseException(parentPage);
 		}
 
-		setParent(parentPage);
-		form = loadForm(formOid, task);
+//		setParent(parentPage);
+		form = loadForm(formOid, task, parentPage);
 		if (form == null || form.getFormDefinition() == null) {
 			LOGGER.debug("No form or form definition; form OID = {}", formOid);
 			add(new Label(ID_FORM_FIELDS));			// to avoid wicket exceptions
 			return;
 		}
-
+		
+		final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
+		ObjectWrapper<O> objectWrapper = createObjectWrapper(owf, task, prismObject);
 		wrapperModel = new LoadableModel<ObjectWrapper<O>>() {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected ObjectWrapper<O> load() {
-				final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
-				return createObjectWrapper(owf, task, prismObject);
+				
+				return objectWrapper;
 			}
 		};
-		initLayout(mainForm);
+		initLayout(mainForm, parentPage);
 	}
 
 	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject) {
@@ -134,22 +137,23 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		return wrapperModel;
 	}
 
-	private void initLayout(Form<?> mainForm) {
+	private void initLayout(Form<?> mainForm, PageBase parenPage) {
 		DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<>(ID_FORM_FIELDS, getModel(),
-				form.getFormDefinition(), mainForm, getPageBase());
+				form.getFormDefinition(), mainForm, parenPage);
 		formFields.setOutputMarkupId(true);
 		add(formFields);
 	}
 
-	private FormType loadForm(String formOid, Task task) {
+	private FormType loadForm(String formOid, Task task, PageBase parentPage) {
 //		Task task;
 //		if (runPrivileged) {
 //			task = getPageBase().createAnonymousTask(OPERATION_LOAD_FORM);
 //		} else {
 //			task = getPageBase().createSimpleTask(OPERATION_LOAD_FORM);
 //		}
+		OperationResult result = new OperationResult("some some operation");
 		return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
-				getPageBase(), task, task.getResult()));
+				parentPage, task, result));
 	}
 
 	public ObjectDelta<O> getObjectDelta() throws SchemaException {
