@@ -43,6 +43,9 @@ public class ProtectedStringType extends ProtectedDataType<String> implements Cl
 	@Override
 	public byte[] getClearBytes() {
 		String clearValue = getClearValue();
+		if (clearValue == null) {
+			return null;
+		}
 		try {
 			// We want fixed charset here, independent of locale. We want consistent and portable encryption/decryption.
 			return clearValue.getBytes(CHARSET);
