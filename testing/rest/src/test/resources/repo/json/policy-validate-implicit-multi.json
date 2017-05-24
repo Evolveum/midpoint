@@ -1,10 +1,12 @@
 {
-"@ns": "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3",
-"policyItemsDefinition": {
-  "policyItemDefinition": [{
-  "target": {
-      "path": "organization"
-    }
- }]
-}
+  "@ns": "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3",
+  "policyItemsDefinition": {
+    "policyItemDefinition": [
+      {
+        "target": {
+          "path": "organization"
+        }
+      }
+    ]
+  }
 }

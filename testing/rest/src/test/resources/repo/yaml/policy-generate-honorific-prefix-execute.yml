@@ -4,7 +4,6 @@ policyItemsDefinition:
   - target:
       path: "honorificPrefix"
     valuePolicyRef:
-      '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ValuePolicyType"
       oid: "81818181-76e0-0000-8888-3d4f02d3fffb"
     execute: true

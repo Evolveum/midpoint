@@ -794,7 +794,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	
 	@Test
 	public void test502generateValueBadPath() throws Exception {
-		final String TEST_NAME = "test501generateValueBadPath";
+		final String TEST_NAME = "test502generateValueBadPath";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient();
@@ -808,7 +808,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
-		assertEquals("Expected 405 but got " + response.getStatus(), 200, response.getStatus());
+		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
 		
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
@@ -122,6 +123,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ModelService modelService;
 	@Autowired private ModelCrudService modelCrudService;
 
+	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
 
 	/* (non-Javadoc)
@@ -813,119 +815,104 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
 			PolicyViolationException {
 		String oid = object.getOid();
-		Class<O> clazz = (Class<O>) object.asObjectable().getClass();
-		PrismObject<ValuePolicyType> valuePolicy = resolvePolicy(object, task, parentResult);
+		OperationResult result = parentResult.createSubresult(OPERATION_GENERATE_VALUE);
+		try {
+			Class<O> clazz = (Class<O>) object.asObjectable().getClass();
+			PrismObject<ValuePolicyType> valuePolicy = getPasswordPolicy(object, task, result);
 
-		boolean executeImmediately = false;
-		Collection<PropertyDelta> propertyDeltas = new ArrayList<>();
-		for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
-
-			generateValue(object, valuePolicy, policyItemDefinition, task, parentResult);
-
-			if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
-				executeImmediately = true;
+			Collection<PropertyDelta> deltasToExecute = new ArrayList<>();
+			for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
+				generateValue(object, valuePolicy, policyItemDefinition, task, result);
 				ItemPath path = policyItemDefinition.getTarget().getPath().getItemPath();
-				PrismProperty item = object.findOrCreateProperty(path);
 				Object value = policyItemDefinition.getValue();
-				if (item.getDefinition() != null) {
-					if (item.getDefinition().getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-						ProtectedStringType pst = new ProtectedStringType();
-						pst.setClearValue((String) policyItemDefinition.getValue());
-						value = pst;
-					} else if (item.getDefinition().getTypeName().equals(PolyStringType.COMPLEX_TYPE)) {
-						value = new PolyString((String) policyItemDefinition.getValue());
-					}
+				if (object.getDefinition() == null) {
+					throw new IllegalStateException("No definition of " + object);		// shouldn't occur at all
 				}
-				PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
-				propertyDeltas.add(propertyDelta);
+				ItemDefinition<?> itemDef = object.getDefinition().findItemDefinition(path);
+				if (itemDef == null) {
+					throw new SchemaException("No definition of " + path);
+				} else if (!(itemDef instanceof PrismPropertyDefinition)) {
+					throw new SchemaException(path + " is not a property; its definition is " + itemDef.getClass().getSimpleName());
+				}
+				if (ProtectedStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
+					ProtectedStringType pst = new ProtectedStringType();
+					pst.setClearValue((String) value);
+					value = pst;
+				} else if (PolyStringType.COMPLEX_TYPE.equals(itemDef.getTypeName())) {
+					value = new PolyString((String) value);
+				}
+				PropertyDelta<?> propertyDelta = PropertyDelta.createModificationReplaceProperty(path, object.getDefinition(), value);
+				propertyDelta.applyTo(object);			// in bulk actions we need to modify original objects - hope that REST is OK with this
+				if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
+					deltasToExecute.add(propertyDelta);
+				}
 			}
-
-		}
-
-		if (executeImmediately) {
-			modelCrudService.modifyObject(clazz, oid, propertyDeltas, null, task, parentResult);
+			if (!deltasToExecute.isEmpty()) {
+				modelCrudService.modifyObject(clazz, oid, deltasToExecute, null, task, result);
+			}
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't generate value(s) for " + ObjectTypeUtil.toShortString(object) + ": " + t.getMessage());
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 
-	private <O extends ObjectType> void generateValue(PrismObject<O> object, PrismObject<ValuePolicyType> policy,
+	private <O extends ObjectType> void generateValue(PrismObject<O> object, PrismObject<ValuePolicyType> defaultPolicy,
 			PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult result)
 			throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException,
 			ConfigurationException, SecurityViolationException {
 
 		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		if (target == null || target.getPath() == null) {
+		if (target == null || ItemPath.isNullOrEmpty(target.getPath())) {
 			LOGGER.error("Target item path must be defined");
-			result.recordFatalError("Target item path must be defined");
 			throw new SchemaException("Target item path must be defined");
 		}
+		ItemPath targetPath = target.getPath().getItemPath();
 
-		ItemPath targetProperty = target.getPath().getItemPath();
-
-		StringPolicyType stringPolicy = null;
+		PrismObject<ValuePolicyType> valuePolicy;
 		if (policyItemDefinition.getValuePolicyRef() != null) {
-			PrismObject<ValuePolicyType> valuePolicy = modelService.getObject(ValuePolicyType.class, policyItemDefinition.getValuePolicyRef().getOid(), null, task, result);
-			PrismObject<ValuePolicyType> policyOverride = valuePolicy.clone();
-			stringPolicy = policyOverride != null ? policyOverride.asObjectable().getStringPolicy() : null;
+			valuePolicy = modelService.getObject(ValuePolicyType.class, policyItemDefinition.getValuePolicyRef().getOid(), null, task, result);
 		} else {
-			if (stringPolicy == null) {
-				SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
-				if (systemConfiguration.getGlobalPasswordPolicyRef() != null) {
-					PrismObject<ValuePolicyType> valuePolicy = modelService.getObject(ValuePolicyType.class, systemConfiguration.getGlobalPasswordPolicyRef().getOid(), null, task, result);
-					stringPolicy = valuePolicy != null ? valuePolicy.asObjectable().getStringPolicy() : null;
-				}
-
-			} else {
-				stringPolicy = policy != null ? policy.asObjectable().getStringPolicy() : null;
-			}
+			valuePolicy = defaultPolicy;
 		}
-		String newValue = policyProcessor
-				.generate(targetProperty, stringPolicy, 10, object, "generating value for" + targetProperty, task, result);
+		StringPolicyType stringPolicy = valuePolicy != null ? valuePolicy.asObjectable().getStringPolicy() : null;
+		if (stringPolicy == null) {
+			throw new IllegalStateException("No value policy for " + targetPath);
+		}
+
+		String newValue = policyProcessor.generate(targetPath, stringPolicy, 10, object,
+				"generating value for" + targetPath, task, result);
 		policyItemDefinition.setValue(newValue);
 	}
 
-	public <O extends ObjectType> void validateValue(PrismObject<O> object,
-			PolicyItemsDefinitionType policyItemsDefinition, Task task,
-			OperationResult parentResult)
-			throws ExpressionEvaluationException,
-			SchemaException, ObjectNotFoundException,
-			CommunicationException,
-			ConfigurationException,
-			SecurityViolationException,
-			PolicyViolationException {
-		PrismObject<ValuePolicyType> valuePolicy = resolvePolicy(object, task, parentResult);
-
+	public <O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition,
+			Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
+		PrismObject<ValuePolicyType> valuePolicy = getPasswordPolicy(object, task, parentResult);
 		for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition.getPolicyItemDefinition()) {
 			validateValue(object, valuePolicy, policyItemDefinition, task, parentResult);
 		}
 	}
 
-
-	private <O extends ObjectType> PrismObject<ValuePolicyType> resolvePolicy(PrismObject<O> object, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
-		PrismObject<ValuePolicyType> valuePolicy = null;
-
+	private <O extends ObjectType> PrismObject<ValuePolicyType> getPasswordPolicy(PrismObject<O> object, Task task,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException,
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		// user-level policy
 		if (object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
 			CredentialsPolicyType policy = getCredentialsPolicy((PrismObject<UserType>) object, task, parentResult);
-
-			if (policy != null) {
-
-				if (policy.getPassword().getPasswordPolicyRef() != null) {
-					valuePolicy = modelService.getObject(ValuePolicyType.class,
-							policy.getPassword().getPasswordPolicyRef().getOid(), null, task, parentResult);
-				}
+			if (policy != null && policy.getPassword().getPasswordPolicyRef() != null) {
+				return modelService.getObject(ValuePolicyType.class,
+						policy.getPassword().getPasswordPolicyRef().getOid(), null, task, parentResult);
 			}
-
-		} else {
-
-			SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
-			ObjectReferenceType policyRef = systemConfigurationType.getGlobalPasswordPolicyRef();
-			if (policyRef == null) {
-				return null;
-			}
-
-			valuePolicy = modelService.getObject(ValuePolicyType.class, policyRef.getOid(), null, task, parentResult);
 		}
-		return valuePolicy;
+		// system-level policy
+		SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
+		ObjectReferenceType policyRef = systemConfigurationType.getGlobalPasswordPolicyRef();
+		if (policyRef != null) {
+			return modelService.getObject(ValuePolicyType.class, policyRef.getOid(), null, task, parentResult);
+		}
+		return null;
 	}
 
 	private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, PrismObject<ValuePolicyType> policy, PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
