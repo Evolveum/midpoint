@@ -1081,8 +1081,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
-		
-		
 	}
 	
 	private <O extends ObjectType> O loadObject(Class<O> type, String oid)

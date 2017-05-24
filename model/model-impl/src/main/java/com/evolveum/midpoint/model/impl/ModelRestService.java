@@ -138,29 +138,30 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
-		Response response = null;
+		Response response;
 		if (policyItemsDefinition == null) {
-			LOGGER.error("Policy items definition must not be null");
-			parentResult.recordFatalError("Policy items definition must not be null");
-			ResponseBuilder builder = Response.status(Status.BAD_REQUEST).entity(parentResult);
-			return builder.build();
+			response = createNoPolicyItemsDefinitionsResponse(parentResult);
+		} else {
+			try {
+				PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+				modelInteraction.generateValue(object, policyItemsDefinition, task, parentResult);
+				parentResult.computeStatusIfUnknown();
+
+				ResponseBuilder responseBuilder = Response.ok(policyItemsDefinition);
+				response = responseBuilder.build();
+			} catch (Exception ex) {
+				parentResult.computeStatus();
+				response = RestServiceUtil.handleException(parentResult, ex);
+			}
 		}
-		try {
-			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
-
-			modelInteraction.generateValue(object, policyItemsDefinition, task, parentResult);
-
-			ResponseBuilder responseBuilder = Response.ok(policyItemsDefinition);
-			response = responseBuilder.build();
-		} catch (Exception ex) {
-			parentResult.computeStatus();
-			response = RestServiceUtil.handleException(parentResult, ex);
-		}
-
-		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
+	}
 
+	private Response createNoPolicyItemsDefinitionsResponse(OperationResult parentResult) {
+		LOGGER.error("Policy items definition must not be null");
+		parentResult.recordFatalError("Policy items definition must not be null");
+		return Response.status(Status.BAD_REQUEST).entity(parentResult).build();
 	}
 
 	@POST
@@ -173,29 +174,26 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
-		Response response = null;
+		Response response;
 		if (policyItemsDefinition == null) {
-			LOGGER.error("Policy items definition must not be null");
-			parentResult.recordFatalError("Policy items definition must not be null");
-			ResponseBuilder builder = Response.status(Status.BAD_REQUEST).entity(parentResult);
-			return builder.build();
-		}
-		try {
-			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+			response = createNoPolicyItemsDefinitionsResponse(parentResult);
+		} else {
+			try {
+				PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
+				modelInteraction.validateValue(object, policyItemsDefinition, task, parentResult);
 
-			modelInteraction.validateValue(object, policyItemsDefinition, task, parentResult);
-			
-			parentResult.computeStatusIfUnknown();
-			ResponseBuilder responseBuilder;
-			if (parentResult.isAcceptable()) {
-				responseBuilder = Response.ok();
-			} else {
-				responseBuilder = Response.status(Status.CONFLICT).entity(parentResult);
+				parentResult.computeStatusIfUnknown();
+				ResponseBuilder responseBuilder;
+				if (parentResult.isAcceptable()) {
+					responseBuilder = Response.ok();
+				} else {
+					responseBuilder = Response.status(Status.CONFLICT).entity(parentResult);
+				}
+				response = responseBuilder.build();
+			} catch (Exception ex) {
+				parentResult.computeStatus();
+				response = RestServiceUtil.handleException(parentResult, ex);
 			}
-			response = responseBuilder.build();
-		} catch (Exception ex) {
-			parentResult.computeStatus();
-			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
 		finishRequest(task);
