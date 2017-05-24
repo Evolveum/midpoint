@@ -220,7 +220,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			if (focus == null) {
 				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME (this should not occur anyway)
 			}
-			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
+			Task task = pageBase.createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
 			DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
 					focus.asPrismObject(), formOid, mainForm, task, pageBase);
 			add(customForm);
