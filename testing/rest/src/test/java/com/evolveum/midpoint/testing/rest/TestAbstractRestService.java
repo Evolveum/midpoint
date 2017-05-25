@@ -25,6 +25,7 @@ import java.io.File;
 
 import javax.ws.rs.core.Response;
 
+import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.annotations.Test;
@@ -40,11 +41,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -798,7 +794,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	
 	@Test
 	public void test502generateValueBadPath() throws Exception {
-		final String TEST_NAME = "test501generateValueBadPath";
+		final String TEST_NAME = "test502generateValueBadPath";
 		displayTestTile(this, TEST_NAME);
 
 		WebClient client = prepareClient();
@@ -812,7 +808,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
-		assertEquals("Expected 405 but got " + response.getStatus(), 200, response.getStatus());
+		assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
 		
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
@@ -1085,12 +1081,11 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
-		
-		
 	}
 	
-	
-	private <O extends ObjectType> O loadObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private <O extends ObjectType> O loadObject(Class<O> type, String oid)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
 		Task task = getTaskManager().createTaskInstance("loadObject");
 		OperationResult result = task.getResult();
 		

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -136,7 +137,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * carried out.
 	 */
 	transient private boolean isFresh = false;
-	transient private boolean isRequestAuthorized = false;
+	private boolean isRequestAuthorized = false;
 
 	/**
 	 * Cache of resource instances. It is used to reduce the number of read
@@ -456,6 +457,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
 	}
 
+	@Override
 	public ModelExecuteOptions getOptions() {
 		return options;
 	}
@@ -464,6 +466,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.options = options;
 	}
 
+	@Override
+	@NotNull
 	public PartialProcessingOptionsType getPartialProcessingOptions() {
 		if (options == null || options.getPartialProcessing() == null) {
 			return new PartialProcessingOptionsType();
@@ -1081,6 +1085,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		lensContextType.setLazyAuditRequest(lazyAuditRequest);
 		lensContextType.setRequestAudited(requestAudited);
 		lensContextType.setExecutionAudited(executionAudited);
+		lensContextType.setRequestAuthorized(isRequestAuthorized);
 		lensContextType.setStats(stats);
 		lensContextType.setRequestMetadata(requestMetadata);
 
@@ -1142,6 +1147,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (lensContextType.isExecutionAudited() != null) {
 			lensContext.setExecutionAudited(lensContextType.isExecutionAudited());
 		}
+		lensContext.setRequestAuthorized(Boolean.TRUE.equals(lensContextType.isRequestAuthorized()));
 		lensContext.setStats(lensContextType.getStats());
 		lensContext.setRequestMetadata(lensContextType.getRequestMetadata());
 

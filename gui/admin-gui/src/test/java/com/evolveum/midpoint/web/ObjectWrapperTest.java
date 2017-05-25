@@ -48,8 +48,10 @@ public class ObjectWrapperTest extends AbstractGuiIntegrationTest {
     public void testEmptyPolyString() throws Exception {
         PrismObject<UserType> user = prismContext.parseObject(new File("./src/test/resources/wrapper/user.xml"));
 
+        Task task = taskManager.createTaskInstance("testEmptyPolyString");
+        
         ObjectWrapperFactory owf = new ObjectWrapperFactory(null);
-        ObjectWrapper<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
+        ObjectWrapper<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING, task);
         //simulate change on honorific prefix
         ContainerWrapper containerWrapper = null;
         for (ContainerWrapper container : wrapper.getContainers()) {

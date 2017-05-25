@@ -90,6 +90,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	private static final File SCRIPTING_USERS_FILE = new File(TEST_DIR, "scripting-users.xml");
 	private static final File GENERATE_PASSWORDS_FILE = new File(TEST_DIR, "generate-passwords.xml");
 	private static final File GENERATE_PASSWORDS_2_FILE = new File(TEST_DIR, "generate-passwords-2.xml");
+	private static final File GENERATE_PASSWORDS_3_FILE = new File(TEST_DIR, "generate-passwords-3.xml");
 	private static final File ECHO_FILE = new File(TEST_DIR, "echo.xml");
 
     @Autowired
@@ -745,18 +746,38 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         result.computeStatus();
 		//TestUtil.assertSuccess(result);
 		PipelineData data = output.getFinalOutput();
-		assertEquals("Unexpected # of items in output", 4, data.getData().size());
-		Set<String> realOids = new HashSet<>();
-//        for (PipelineItem item : data.getData()) {
-//            PrismValue value = item.getValue();
-//			UserType user = ((PrismObjectValue<UserType>) value).asObjectable();
-//            ProtectedStringType passwordValue = user.getCredentials().getPassword().getValue();
-//            assertNotNull("clearValue for password not set", passwordValue.getClearValue());
-//            realOids.add(user.getOid());
-//		}
-//		assertEquals("Unexpected OIDs in output",
-//				Sets.newHashSet(Arrays.asList(USER_ADMINISTRATOR_OID, USER_JACK_OID, USER_BARBOSSA_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID)),
-//				realOids);
+		List<PipelineItem> items = data.getData();
+		assertEquals("Unexpected # of items in output", 4, items.size());
+		assertSuccess(items.get(0).getResult());
+		assertFailure(items.get(1).getResult());
+		assertSuccess(items.get(2).getResult());
+		assertSuccess(items.get(3).getResult());
+	}
+
+    @Test
+	public void test530GeneratePasswordsReally() throws Exception {
+		final String TEST_NAME = "test530GeneratePasswordsReally";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+		OperationResult result = task.getResult();
+		ExecuteScriptType executeScript = parseRealValue(GENERATE_PASSWORDS_3_FILE);
+
+		// WHEN
+		ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(executeScript, task, result);
+
+		// THEN
+        dumpOutput(output, result);
+        result.computeStatus();
+		PipelineData data = output.getFinalOutput();
+		List<PipelineItem> items = data.getData();
+		assertEquals("Unexpected # of items in output", 3, items.size());
+		assertFailure(items.get(0).getResult());
+		assertSuccess(items.get(1).getResult());
+		assertSuccess(items.get(2).getResult());
+
+		// TODO check that passwords were really stored
 	}
 
 	private void assertNoOutputData(ExecutionContext output) {

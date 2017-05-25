@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -48,6 +49,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = FocusPersonasTabPanel.class.getName() + ".";
     private static final String OPERATION_SEARCH_PERSONAS_OBJECTS = DOT_CLASS + "searchPersonas";
+    private static final String OPERATION_LOAD_PERSONAS = DOT_CLASS + "loadPersonas";
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusPersonasTabPanel.class);
 
@@ -84,10 +86,11 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             viewChild.add(emptyContainer);
             return;
         }
+        Task task = pageBase.createSimpleTask(OPERATION_LOAD_PERSONAS);
         for (PrismObject<FocusType> personaObject : personasListModel.getObject()){
             ObjectWrapper<FocusType> personaWrapper = ObjectWrapperUtil.createObjectWrapper(
                     WebComponentUtil.getEffectiveName(personaObject, RoleType.F_DISPLAY_NAME), "", personaObject,
-                    ContainerStatus.MODIFYING, getPageBase());
+                    ContainerStatus.MODIFYING, task, getPageBase());
 
             WebMarkupContainer personaPanel = new WebMarkupContainer(view.newChildId());
             personaPanel.setOutputMarkupId(true);

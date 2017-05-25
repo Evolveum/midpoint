@@ -339,7 +339,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
 
 			ObjectWrapper<S> wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
-					description.toString(), projection, ContainerStatus.MODIFYING, true, this);
+					description.toString(), projection, ContainerStatus.MODIFYING, true, task, this);
 			wrapper.setLoadOptions(loadOptions);
 			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
 			wrapper.setSelectable(true);

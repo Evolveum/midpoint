@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
+import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
@@ -85,22 +87,32 @@ public class ConfirmationNotifier extends GeneralNotifier {
 		if (confirmationMethod == null) {
 			return null;
 		}
-	
+		ExpressionEnvironment expressionEnv = new ExpressionEnvironment();
+		expressionEnv.setCurrentResult(result);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(expressionEnv);
+		
+		try {
+			
+		
 		switch (confirmationMethod) {
 			case LINK:
-				SystemConfigurationType systemConfiguration = notificationsUtil.getSystemConfiguration(result);
-				if (systemConfiguration == null) {
-					LOGGER.trace("No system configuration defined. Skipping link generation.");
-					return null;
-				}
-				String defaultHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
-				String confirmationLink = defaultHostname + getConfirmationLink(userType);
+//				SystemConfigurationType systemConfiguration = notificationsUtil.getSystemConfiguration(result);
+//				if (systemConfiguration == null) {
+//					LOGGER.trace("No system configuration defined. Skipping link generation.");
+//					return null;
+//				}
+////				String defaultHostname = SystemConfigurationTypeUtil.getDefaultHostname(systemConfiguration);
+				
+				String confirmationLink = getConfirmationLink(userType);
 				return confirmationLink;
 			case PIN:
 				throw new UnsupportedOperationException("PIN confirmation not supported yes");
 //				return getNonce(userType);
 			default:
 				break;
+		}
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 		
 		return null;

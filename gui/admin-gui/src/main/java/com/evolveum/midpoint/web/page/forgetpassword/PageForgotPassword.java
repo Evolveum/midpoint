@@ -16,8 +16,6 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
@@ -30,29 +28,16 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.R_AtomicFilter;
-import com.evolveum.midpoint.prism.query.builder.R_Filter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -75,7 +60,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto.ResetMethod;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -218,8 +202,9 @@ public class PageForgotPassword extends PageRegistrationBase {
 					if (formRef == null) {
 						return null;
 					}
+					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
 					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
-							formRef.getOid(), mainForm, true, this);
+							formRef.getOid(), mainForm, task, PageForgotPassword.this);
 				});
 
 		if (searchAttributesForm != null) {

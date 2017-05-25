@@ -95,6 +95,8 @@ public class TestStrings extends AbstractStoryTest {
 	private static final File ORG_SOD_APPROVERS_FILE = new File(ORG_DIR, "sod-approvers.xml");
 	private static String orgSodApproversOid;
 
+	private static final File ROLE_END_USER_FILE = new File(ROLES_DIR, "role-end-user.xml");
+	private static String roleEndUserOid;
 	private static final File FORM_USER_DETAILS_FILE = new File(ROLES_DIR, "form-user-details.xml");
 	private static String formUserDetailsOid;
 	private static final File METAROLE_APPROVAL_ROLE_APPROVERS_FIRST_FILE = new File(ROLES_DIR, "metarole-approval-role-approvers-first.xml");
@@ -176,6 +178,7 @@ public class TestStrings extends AbstractStoryTest {
 		orgSecurityApproversOid = repoAddObjectFromFile(ORG_SECURITY_APPROVERS_FILE, initResult).getOid();
 		orgSodApproversOid = repoAddObjectFromFile(ORG_SOD_APPROVERS_FILE, initResult).getOid();
 
+		roleEndUserOid = repoAddObjectFromFile(ROLE_END_USER_FILE, initResult).getOid();
 		formUserDetailsOid = repoAddObjectFromFile(FORM_USER_DETAILS_FILE, initResult).getOid();
 		metaroleApprovalRoleApproversFirstOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FIRST_FILE, initResult).getOid();
 		metaroleApprovalRoleApproversFormOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FORM_FILE, initResult).getOid();
@@ -950,7 +953,11 @@ public class TestStrings extends AbstractStoryTest {
 	public void test220FormRoleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test220FormRoleAssignmentStart";
 		TestUtil.displayTestTile(this, TEST_NAME);
+		PrismObject<UserType> bob = getUserFromRepo(userBobOid);
+		login(bob);
+
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
+		task.setOwner(bob);
 		OperationResult result = task.getResult();
 
 		dummyAuditService.clear();
@@ -960,6 +967,7 @@ public class TestStrings extends AbstractStoryTest {
 		assignRole(userBobOid, roleATest4Oid, task, task.getResult());
 
 		// THEN
+		login(userAdministrator);
 		assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
@@ -1003,10 +1011,12 @@ public class TestStrings extends AbstractStoryTest {
 		// WHEN
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
+
 		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", null, result);
 
 		// THEN
 		login(userAdministrator);
+		assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
 		List<WorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 1st approval", workItems);
 		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
@@ -1090,6 +1100,10 @@ public class TestStrings extends AbstractStoryTest {
 
 		// record #1, #2: cancellation of work items of other approvers
 		// record #3: finishing process execution
+
+		Task rootTask = taskManager.getTaskByIdentifier(wfTask.asObjectable().getParent(), result);
+		waitForTaskCloseOrSuspend(rootTask.getOid());
+		assertAssignedRole(getUser(userBobOid), roleATest4Oid);
 	}
 
 	@Test

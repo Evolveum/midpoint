@@ -85,7 +85,7 @@ public class PasswordResetNotifier extends ConfirmationNotifier {
 		
 		UserType userType = getUser(event);
 		
-      return "Did you request password reset? If yes, click on the link bellow \n" + createConfirmationLink(userType, generalNotifierType, result);
+      return "Did you request password reset? If yes, click on the link bellow \n\n" + createConfirmationLink(userType, generalNotifierType, result);
  	
     }
 	

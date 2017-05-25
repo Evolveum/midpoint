@@ -99,7 +99,6 @@ public class SecurityHelper {
 		if (user != null) {
 			record.setInitiator(user.asPrismObject());
 		}
-
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);
         record.setMessage(message);
@@ -119,9 +118,9 @@ public class SecurityHelper {
 
 	private void storeConnectionEnvironment(AuditEventRecord record, ConnectionEnvironment connEnv) {
 		record.setChannel(connEnv.getChannel());
+		record.setSessionIdentifier(connEnv.getSessionId());
 		HttpConnectionInformation connInfo = connEnv.getConnectionInformation();
 		if (connInfo != null) {
-			record.setSessionIdentifier(connInfo.getSessionId());
 			record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
 			record.setHostIdentifier(connInfo.getLocalHostName());
 		}

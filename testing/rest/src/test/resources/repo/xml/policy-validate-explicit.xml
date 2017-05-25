@@ -6,11 +6,11 @@
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<policyItemDefinition>
-		<c:target>
-			<t:path>employeeNumber</t:path>
-		</c:target>
-		<c:valuePolicyRef oid="00000000-0000-0000-1111-000000000003" type="c:ValuePolicyType"/>
-		<c:value>123456</c:value>
+		<target>
+			<path>employeeNumber</path>
+		</target>
+		<valuePolicyRef oid="00000000-0000-0000-1111-000000000003" type="c:ValuePolicyType"/>
+		<value>123456</value>
 	</policyItemDefinition>
 	
 </policyItemsDefinition>

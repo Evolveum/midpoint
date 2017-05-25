@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.BulkActionDto;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,8 +41,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import javax.xml.bind.JAXBElement;
 
 /**
  * @author lazyman
@@ -108,18 +106,12 @@ public class PageBulkAction extends PageAdminConfiguration {
             return;
         }
 
-        ScriptingExpressionType expression = null;
+        Object parsed = null;
         try {
-            Object parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
+            parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
             if (parsed == null) {
                 result.recordFatalError("No bulk action object was provided.");
-            }
-//            if (parsed instanceof JAXBElement) {
-//                parsed = ((JAXBElement) parsed).getValue();
-//            }
-            if (parsed instanceof ScriptingExpressionType) {
-                expression = (ScriptingExpressionType) parsed;
-            } else {
+            } else if (!(parsed instanceof ExecuteScriptType) && !(parsed instanceof ScriptingExpressionType)) {
                 result.recordFatalError("Provided text is not a bulk action object. An instance of {scripting-3}ScriptingExpressionType is expected; you have provided " + parsed.getClass() + " instead.");
             }
         } catch (SchemaException|RuntimeException e) {
@@ -127,10 +119,15 @@ public class PageBulkAction extends PageAdminConfiguration {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
         }
 
-        if (expression != null) {
+        if (parsed != null) {
             if (bulkActionDto.isAsync()) {
                 try {
-                    getScriptingService().evaluateExpressionInBackground(expression, task, result);
+                    if (parsed instanceof ExecuteScriptType) {
+                        getScriptingService().evaluateExpressionInBackground((ExecuteScriptType) parsed, task, result);
+                    } else {
+                        //noinspection ConstantConditions
+                        getScriptingService().evaluateExpressionInBackground((ScriptingExpressionType) parsed, task, result);
+                    }
                     result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");
                 } catch (SchemaException|SecurityViolationException e) {
                     result.recordFatalError("Couldn't submit bulk action to execution", e);
@@ -138,7 +135,11 @@ public class PageBulkAction extends PageAdminConfiguration {
                 }
             } else {
                 try {
-                    ScriptExecutionResult executionResult = getScriptingService().evaluateExpression(expression, task, result);
+                    //noinspection ConstantConditions
+                    ScriptExecutionResult executionResult =
+                            parsed instanceof ExecuteScriptType ?
+                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, task, result) :
+                                    getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
                     result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
                     result.addReturn("console", executionResult.getConsoleOutput());
                     result.addCollectionOfSerializablesAsReturn("data", executionResult.getDataOutput());

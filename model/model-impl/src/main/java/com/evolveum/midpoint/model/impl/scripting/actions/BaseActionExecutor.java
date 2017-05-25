@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class BaseActionExecutor implements ActionExecutor {
 
-	private static final Trace LOGGER = TraceManager.getTrace(AddExecutor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(BaseActionExecutor.class);
 
 	private static final String PARAM_RAW = "raw";
     private static final String PARAM_DRY_RUN = "dryRun";

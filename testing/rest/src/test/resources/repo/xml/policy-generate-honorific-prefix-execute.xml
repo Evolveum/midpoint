@@ -6,10 +6,10 @@
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<policyItemDefinition>
-		<c:target>
-			<t:path>honorificPrefix</t:path>
-		</c:target>
+		<target>
+			<path>honorificPrefix</path>
+		</target>
+		<valuePolicyRef oid="81818181-76e0-0000-8888-3d4f02d3fffb" type="c:ValuePolicyType"/>
 		<execute>true</execute>
-		<c:valuePolicyRef oid="81818181-76e0-0000-8888-3d4f02d3fffb" type="c:ValuePolicyType"/>
 	</policyItemDefinition>
 </policyItemsDefinition>

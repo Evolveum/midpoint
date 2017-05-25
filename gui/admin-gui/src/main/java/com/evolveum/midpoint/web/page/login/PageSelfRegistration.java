@@ -329,22 +329,18 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					}
 				}, mainForm);
 
-		DynamicFormPanel<UserType> dynamicForm = runPrivileged(new Producer<DynamicFormPanel<UserType>>() {
-
-			@Override
-			public DynamicFormPanel<UserType> run() {
-				final ObjectReferenceType ort = getSelfRegistrationConfiguration().getFormRef();
-
-				if (ort == null) {
-					return null;
-				}
-
-				DynamicFormPanel<UserType> dynamicForm = new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
-						userModel, ort.getOid(), mainForm, true, PageSelfRegistration.this);
-				return dynamicForm;
-			}
-
-		});
+		DynamicFormPanel<UserType> dynamicForm = runPrivileged(
+				() -> {
+					final ObjectReferenceType ort = getSelfRegistrationConfiguration().getFormRef();
+	
+					if (ort == null) {
+						return null;
+					}
+					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
+	
+					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
+							userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this);
+				});
 
 		if (dynamicForm != null) {
 			dynamicRegistrationForm.add(dynamicForm);

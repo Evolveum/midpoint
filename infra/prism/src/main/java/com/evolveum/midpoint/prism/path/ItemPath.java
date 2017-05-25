@@ -407,6 +407,10 @@ public class ItemPath implements Serializable, Cloneable {
 		return itemPath == null || itemPath.isEmpty();
 	}
 
+	public static boolean isNullOrEmpty(ItemPathType pathType) {
+		return pathType == null || isNullOrEmpty(pathType.getItemPath());
+	}
+
 	@SuppressWarnings("unused")
 	public static boolean containsSingleNameSegment(ItemPath path) {
 		return path != null && path.size() == 1 && path.first() instanceof NameItemPathSegment;

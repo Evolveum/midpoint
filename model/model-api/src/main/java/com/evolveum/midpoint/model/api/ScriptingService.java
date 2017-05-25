@@ -63,6 +63,7 @@ public interface ScriptingService {
      * @throws SchemaException
      */
     void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
+    void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
 
     /**
      * Synchronously executes any scripting expression (with no input data).

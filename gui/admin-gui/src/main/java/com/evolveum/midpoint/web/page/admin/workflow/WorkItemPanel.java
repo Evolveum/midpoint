@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageDefinitionType;
@@ -91,6 +93,10 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
 	private static final String ID_REQUESTER_COMMENT_CONTAINER = "requesterCommentContainer";
 	private static final String ID_REQUESTER_COMMENT_MESSAGE = "requesterCommentMessage";
+	private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
+	
+	private static final String DOT_CLASS = WorkItemPanel.class.getName() + ".";
+	private static final String OPERATION_LOAD_CUSTOM_FORM = DOT_CLASS + "loadCustomForm";
 
 
 	public WorkItemPanel(String id, IModel<WorkItemDto> model, Form mainForm, PageBase pageBase) {
@@ -206,20 +212,32 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
 				new PropertyModel<>(getModel(), WorkItemDto.F_ADDITIONAL_INFORMATION));
 		add(additionalInformation);
-
 		WorkItemDto dto = getModelObject();
 		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(dto.getWorkflowContext());
+		
+		WebMarkupContainer additionalAttribues = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);
+		add(additionalAttribues);
+		additionalAttribues.add(new VisibleEnableBehaviour() {
+		
+			private static final long serialVersionUID = 1L;
+
+			public boolean isVisible() {
+				return (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null);
+			};
+		});
+		
 		if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
 			String formOid = level.getFormRef().getOid();
 			ObjectType focus = dto.getFocus(pageBase);
 			if (focus == null) {
 				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME (this should not occur anyway)
 			}
+			Task task = pageBase.createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
 			DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
-					focus.asPrismObject(), formOid, mainForm, false, pageBase);
-			add(customForm);
+					focus.asPrismObject(), formOid, mainForm, task, pageBase);
+			additionalAttribues.add(customForm);
 		} else {
-			add(new Label(ID_CUSTOM_FORM));
+			additionalAttribues.add(new Label(ID_CUSTOM_FORM));
 		}
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));

@@ -41,6 +41,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.text.StrBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -107,11 +108,11 @@ public class ValuePolicyProcessor {
 		return path;
 	}
 
-	public <O extends ObjectType> String generate(ItemPath path, StringPolicyType policy, int defaultLength, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+	public <O extends ObjectType> String generate(ItemPath path, @NotNull StringPolicyType policy, int defaultLength, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		return generate(path, policy, defaultLength, false, object, shortDesc, task, result);
 	}
 
-	public <O extends ObjectType>  String generate(ItemPath path, StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
+	public <O extends ObjectType>  String generate(ItemPath path, @NotNull StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
 			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		setPath(path);
 		OperationResult result = parentResult.createSubresult(OP_GENERATE);
@@ -125,7 +126,7 @@ public class ValuePolicyProcessor {
 			result.recordFatalError(e);
 			throw e;
 		}
-		String generatedValue = null;
+		String generatedValue;
 		int attempt = 1;
 		for (;;) {
 			generatedValue = generateAttempt(policy, defaultLength, generateMinimalSize, result);

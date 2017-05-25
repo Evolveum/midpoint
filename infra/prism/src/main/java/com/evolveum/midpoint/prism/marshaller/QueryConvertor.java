@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.prism.marshaller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -409,7 +410,6 @@ public class QueryConvertor {
 
 	private static TypeFilter parseTypeFilter(MapXNode clauseXMap, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 		QName type = clauseXMap.getParsedPrimitiveValue(ELEMENT_TYPE, DOMUtil.XSD_QNAME);
-		
 		XNode subXFilter = clauseXMap.get(ELEMENT_FILTER);
 		PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
 		ObjectFilter subFilter = null;
@@ -419,13 +419,14 @@ public class QueryConvertor {
         if (preliminaryParsingOnly) {
             return null;
         } else {
+			// to report exception only when the filter is really to be used
+			checkExtraElements(clauseXMap, ELEMENT_TYPE, ELEMENT_FILTER);
 		    return new TypeFilter(type, subFilter);
         }
 	}
 
 	private static ExistsFilter parseExistsFilter(MapXNode clauseXMap, PrismContainerDefinition pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{
 		ItemPath path = getPath(clauseXMap);
-
 		XNode subXFilter = clauseXMap.get(ELEMENT_FILTER);
 		ObjectFilter subFilter = null;
 		PrismContainerDefinition subPcd = pcd != null ? pcd.findContainerDefinition(path) : null;
@@ -435,8 +436,20 @@ public class QueryConvertor {
         if (preliminaryParsingOnly) {
             return null;
         } else {
+			// to report exception only when the filter is really to be used
+			checkExtraElements(clauseXMap, ELEMENT_PATH, ELEMENT_FILTER);
 		    return ExistsFilter.createExists(path, pcd, subFilter);
         }
+	}
+
+	private static void checkExtraElements(MapXNode clauseXMap, QName... expected) throws SchemaException {
+		List<QName> expectedList = Arrays.asList(expected);
+		for (Entry<QName, XNode> entry : clauseXMap.entrySet()) {
+			if (!QNameUtil.contains(expectedList, entry.getKey())) {
+				throw new SchemaException("Unexpected item " + entry.getKey() + ":" +
+						(entry.getValue() != null ? entry.getValue().debugDump() : "null"));
+			}
+		}
 	}
 
 	private static <C extends Containerable> RefFilter parseRefFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException{

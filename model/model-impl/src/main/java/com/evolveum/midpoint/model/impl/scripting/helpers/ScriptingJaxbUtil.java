@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
-import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -35,14 +34,13 @@ import java.util.Map;
 /**
  * @author mederly
  */
-@Component
-public class JaxbHelper {
+public class ScriptingJaxbUtil {
 
-    private Map<Class<? extends ScriptingExpressionType>, QName> elements = new HashMap<>();
+    private static Map<Class<? extends ScriptingExpressionType>, QName> elements = new HashMap<>();
 
-    private ObjectFactory objectFactory = new ObjectFactory();
+    private static ObjectFactory objectFactory = new ObjectFactory();
 
-    public JaxbHelper() {
+    static {
         elements.put(ExpressionPipelineType.class, objectFactory.createPipeline(null).getName());
         elements.put(ExpressionSequenceType.class, objectFactory.createSequence(null).getName());
         elements.put(ForeachExpressionType.class, objectFactory.createForeach(null).getName());
@@ -55,11 +53,9 @@ public class JaxbHelper {
     /**
      * Ugly hack ... sometimes we have to convert "bare" ScriptingExpressionType instance to the JAXBElement version,
      * with the correct element name.
-     *
-     * @param expressionType
-     * @return
      */
-    public JAXBElement<? extends ScriptingExpressionType> toJaxbElement(ScriptingExpressionType expressionType) {
+    @SuppressWarnings({"raw", "unchecked"})
+    public static JAXBElement<? extends ScriptingExpressionType> toJaxbElement(ScriptingExpressionType expressionType) {
         QName qname = elements.get(expressionType.getClass());
         if (qname == null) {
             throw new IllegalArgumentException("Unsupported expression type: " + expressionType.getClass());

@@ -120,6 +120,7 @@ public class RestServiceUtil {
 	public static void finishRequest(Task task, SecurityHelper securityHelper) {
 		task.getResult().computeStatus();
 		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
+		connEnv.setSessionIdOverride(task.getTaskIdentifier());
 		securityHelper.auditLogout(connEnv, task);
 	}
 

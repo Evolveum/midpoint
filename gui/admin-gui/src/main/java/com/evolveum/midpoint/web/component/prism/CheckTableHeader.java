@@ -224,7 +224,9 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
                     return true;
                 }
 
+                //TODO: do we need to check overall status????
                 OperationResult result = getModelObject().getResult();
+                result.computeStatusIfUnknown();
                 if (result != null && !WebComponentUtil.isSuccessOrHandledError(result)) {
                     return true;
                 }

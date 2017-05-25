@@ -110,6 +110,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
+	private static final String OPERATION_LOAD_MANAGERS = DOT_CLASS + "loadManagers";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 	private static final String ID_REMOVE_MANAGER = "removeManager";
 	private static final String ID_DELETE_MANAGER = "deleteManager";
@@ -193,10 +194,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 		List<PrismObject<FocusType>> managers = WebModelServiceUtils.searchObjects(FocusType.class,
 				managersQuery, options, searchManagersResult, getPageBase());
+		Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
 		for (PrismObject<FocusType> manager : managers) {
 			ObjectWrapper<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
 					WebComponentUtil.getEffectiveName(manager, RoleType.F_DISPLAY_NAME), "", manager,
-					ContainerStatus.MODIFYING, getPageBase());
+					ContainerStatus.MODIFYING, task, getPageBase());
 			WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
 
 			AjaxLink<String> link = new AjaxLink<String>(ID_EDIT_MANAGER) {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum
   ~
@@ -15,16 +15,20 @@
   ~ limitations under the License.
   -->
 
-<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <s:search>
-        <s:type>c:UserType</s:type>
-    </s:search>
-    <s:action>
-        <s:type>generate-value</s:type>
-    </s:action>
-    <s:filterContent>
-        <s:keep>name</s:keep>
-        <s:keep>credentials/password/value</s:keep>
-    </s:filterContent>
-</s:pipeline>
+<query xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"><filter>
+	<q:type>
+		<q:type>RoleType</q:type>
+		<q:or>
+			<q:equal>
+				<q:path>name</q:path>
+				<q:value>My Example 1</q:value>
+			</q:equal>
+			<q:substring>
+				<q:path>name</q:path>
+				<q:value>My Example 2</q:value>
+				<q:anchorStart>true</q:anchorStart>
+			</q:substring>
+		</q:or>
+	</q:type>
+</filter>
+</query>

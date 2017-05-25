@@ -722,4 +722,19 @@ public class TestQueryConvertor {
 		checkQueryRoundtripFile(AccessCertificationCaseType.class, q, TEST_NAME);
 	}
 
+	@Test
+	public void test900TypeWrong() throws Exception {
+		final String TEST_NAME = "test900TypeWrong";
+		String fileName = TEST_DIR + "/" + TEST_NAME + ".xml";
+		QueryType jaxb = toQueryType(FileUtils.readFileToString(new File(fileName)));
+		displayQueryType(jaxb);
+		try {
+			ObjectQuery query = toObjectQuery(ObjectType.class, jaxb);
+			displayQuery(query);
+			fail("Unexpected success!");
+		} catch (SchemaException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+		}
+	}
+
 }

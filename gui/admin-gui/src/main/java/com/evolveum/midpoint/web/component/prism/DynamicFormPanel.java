@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FormTypeUtil;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -52,7 +53,6 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFormPanel.class);
 
 	private static final String DOT_CLASS = DynamicFormPanel.class.getName() + ".";
-	private static final String OPERATION_LOAD_FORM = DOT_CLASS + "loadForm";
 
 	private static final String ID_FORM_FIELDS = "formFields";
 
@@ -60,22 +60,22 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	private FormType form;
 
 	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
-			boolean runPrivileged, final PageBase parentPage) {
-		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, runPrivileged, parentPage);
+			Task task, final PageBase parentPage) {
+		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, task, parentPage);
 
 	}
 
 	public DynamicFormPanel(String id, final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			boolean runPrivileged, final PageBase parentPage) {
+			Task task, final PageBase parentPage) {
 		super(id);
-		initialize(prismObject, formOid, mainForm, runPrivileged, parentPage);
+		initialize(prismObject, formOid, mainForm, task, parentPage);
 	}
 
 	public DynamicFormPanel(String id, final QName objectType, String formOid, Form<?> mainForm,
-			boolean runPrivileged, final PageBase parentPage) {
+			Task task, final PageBase parentPage) {
 		super(id);
 		PrismObject<O> prismObject = instantiateObject(objectType, parentPage);
-		initialize(prismObject, formOid, mainForm, runPrivileged, parentPage);
+		initialize(prismObject, formOid, mainForm, task, parentPage);
 	}
 
 	private PrismObject<O> instantiateObject(QName objectType, PageBase parentPage) {
@@ -86,46 +86,48 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 			prismObject = objectDef.instantiate();
 		} catch (SchemaException e) {
 			LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);
-			throw new RestartResponseException(getPageBase());
+			throw new RestartResponseException(parentPage);
 		}
 		return prismObject;
 	}
 
 	private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			final boolean runPrivileged, final PageBase parentPage) {
+			final Task task, final PageBase parentPage) {
 
 		if (prismObject == null) {
 			getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
-			throw new RestartResponseException(getPageBase());
+			throw new RestartResponseException(parentPage);
 		}
 
-		setParent(parentPage);
-		form = loadForm(formOid, runPrivileged);
+//		setParent(parentPage);
+		form = loadForm(formOid, task, parentPage);
 		if (form == null || form.getFormDefinition() == null) {
 			LOGGER.debug("No form or form definition; form OID = {}", formOid);
 			add(new Label(ID_FORM_FIELDS));			// to avoid wicket exceptions
 			return;
 		}
-
+		
+		final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
+		ObjectWrapper<O> objectWrapper = createObjectWrapper(owf, task, prismObject);
 		wrapperModel = new LoadableModel<ObjectWrapper<O>>() {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected ObjectWrapper<O> load() {
-				final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
-				return createObjectWrapper(owf, prismObject);
+				
+				return objectWrapper;
 			}
 		};
-		initLayout(mainForm);
+		initLayout(mainForm, parentPage);
 	}
 
-	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, PrismObject<O> prismObject) {
+	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject) {
 		FormAuthorizationType formAuthorization = form.getFormDefinition().getAuthorization();
 		AuthorizationPhaseType authorizationPhase = formAuthorization != null && formAuthorization.getPhase() != null
 				? formAuthorization.getPhase()
 				: AuthorizationPhaseType.REQUEST;
 		ObjectWrapper<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
 				prismObject, prismObject.getOid() == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
-				false, authorizationPhase);
+				false, authorizationPhase, task);
 		objectWrapper.setShowEmpty(true);
 		return objectWrapper;
 	}
@@ -135,22 +137,23 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		return wrapperModel;
 	}
 
-	private void initLayout(Form<?> mainForm) {
+	private void initLayout(Form<?> mainForm, PageBase parenPage) {
 		DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<>(ID_FORM_FIELDS, getModel(),
-				form.getFormDefinition(), mainForm, getPageBase());
+				form.getFormDefinition(), mainForm, parenPage);
 		formFields.setOutputMarkupId(true);
 		add(formFields);
 	}
 
-	private FormType loadForm(String formOid, boolean runPrivileged) {
-		Task task;
-		if (runPrivileged) {
-			task = getPageBase().createAnonymousTask(OPERATION_LOAD_FORM);
-		} else {
-			task = getPageBase().createSimpleTask(OPERATION_LOAD_FORM);
-		}
+	private FormType loadForm(String formOid, Task task, PageBase parentPage) {
+//		Task task;
+//		if (runPrivileged) {
+//			task = getPageBase().createAnonymousTask(OPERATION_LOAD_FORM);
+//		} else {
+//			task = getPageBase().createSimpleTask(OPERATION_LOAD_FORM);
+//		}
+		OperationResult result = new OperationResult("some some operation");
 		return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
-				getPageBase(), task, task.getResult()));
+				parentPage, task, result));
 	}
 
 	public ObjectDelta<O> getObjectDelta() throws SchemaException {

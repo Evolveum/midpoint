@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -83,6 +85,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 
 	private static final String MODAL_ID_RESOURCE = "resourcePopup";
+	
+	private static final String DOT_CLASS = FocusProjectionsTabPanel.class.getName() + ".";
+	private static final String OPERATION_ADD_ACCOUNT = DOT_CLASS + "addShadow";
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusProjectionsTabPanel.class);
 
@@ -242,9 +247,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 				getPrismContext().adopt(shadow);
 
+				Task task = getPageBase().createSimpleTask(OPERATION_ADD_ACCOUNT);
 				ObjectWrapper<ShadowType> wrapper = ObjectWrapperUtil.createObjectWrapper(
 						WebComponentUtil.getOrigStringFromPoly(resource.getName()), null,
-						shadow.asPrismObject(), ContainerStatus.ADDING, getPageBase());
+						shadow.asPrismObject(), ContainerStatus.ADDING, task, getPageBase());
 				if (wrapper.getResult() != null
 						&& !WebComponentUtil.isSuccessOrHandledError(wrapper.getResult())) {
 					showResult(wrapper.getResult(), false);
