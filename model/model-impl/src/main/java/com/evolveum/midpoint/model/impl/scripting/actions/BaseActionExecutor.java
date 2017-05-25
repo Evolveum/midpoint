@@ -29,7 +29,10 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -101,4 +104,13 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     		throw new ScriptExecutionException("Couldn't execute action '" + actionName + "' on " + value + ": " + e.getMessage(), e);
 		}
 	}
+
+	protected void checkRootAuthorization(OperationResult globalResult, String actionName) throws ScriptExecutionException {
+		try {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, globalResult);
+		} catch (SecurityViolationException |SchemaException e) {
+			throw new ScriptExecutionException("You are not authorized to execute '" + actionName + "' action.");
+		}
+	}
+
 }

@@ -75,6 +75,10 @@ public class NotifyExecutor extends BaseActionExecutor {
                 PARAM_OPERATION, input, context, EventOperationType.class, globalResult);
         boolean forWholeInput = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_SUBTYPE, globalResult);
 
+        if (handler != null) {
+			checkRootAuthorization(globalResult, NAME);		// TODO explain that the reason is that handler is not null
+		}
+
         if (status == null) {
             status = EventStatusType.SUCCESS;
         }
