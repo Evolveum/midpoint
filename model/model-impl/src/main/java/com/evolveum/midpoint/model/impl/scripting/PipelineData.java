@@ -206,7 +206,8 @@ public class PipelineData implements DebugDumpable {
 					if (prismValue != null) {
 						rv.addValue(prismValue);
 					} else {
-						throw new IllegalArgumentException("Raw value in the input data: " + raw);		// TODO attempt to parse it somehow (e.g. by passing to the pipeline and then parsing based on expected type)
+						throw new IllegalArgumentException("Raw value in the input data: " + DebugUtil.debugDump(raw.getXnode()));
+						// TODO attempt to parse it somehow (e.g. by passing to the pipeline and then parsing based on expected type)
 					}
 				} else {
 					if (o instanceof Containerable) {
