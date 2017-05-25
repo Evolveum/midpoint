@@ -61,6 +61,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private static final String ID_ITEM_BUTTON_CONTAINER = "itemButtonContainer";
     private static final String ID_INNER = "inner";
     private static final String ID_INNER_LABEL = "innerLabel";
+    private static final String ID_INNER_DESCRIPTION = "innerDescription";
     private static final String ID_TYPE_ICON = "typeIcon";
     private static final String ID_ALREADY_ASSIGNED_ICON = "alreadyAssignedIcon";
     private static final String ID_ADD_TO_CART_LINK = "addToCartLink";
@@ -146,6 +147,10 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         
         Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
         inner.add(nameLabel);
+
+        Label descriptionLabel = new Label(ID_INNER_DESCRIPTION, assignment.getDescription());
+        descriptionLabel.setOutputMarkupId(true);
+        inner.add(descriptionLabel);
 
         AjaxLink detailsLink = new AjaxLink(ID_DETAILS_LINK) {
             @Override

@@ -17,12 +17,14 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -33,18 +35,19 @@ import org.apache.wicket.model.*;
  * 
  * WARNING: super ugly code ahead
  */
-public class PrismHeaderPanel extends Panel {
+public class PrismHeaderPanel extends BasePanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
     private static final String ID_SORT_PROPERTIES = "sortProperties";
+    private static final String ID_SHOW_METADATA = "showMetadata";
 	private static final String ID_LABEL = "label";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
 
     
     public PrismHeaderPanel(String id, IModel model) {
-        super(id);
+        super(id, model);
         
         initLayout(model);
     }
@@ -60,6 +63,29 @@ public class PrismHeaderPanel extends Panel {
 			}
 		};
 		
+		ToggleIconButton showMetadataButton = new ToggleIconButton(ID_SHOW_METADATA,
+				GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public void onClick(AjaxRequestTarget target) {
+            	ObjectWrapper objectWrapper = getObjectWrapper(model);
+                objectWrapper.setShowMetadata(!objectWrapper.isShowMetadata());
+				onButtonClick(target);
+            }
+
+			@Override
+			public boolean isOn() {
+				return getObjectWrapper(model).isShowMetadata();
+			}
+        };
+		showMetadataButton.add(new AttributeModifier("title",
+						getObjectWrapper(model).isShowMetadata() ?
+				createStringResource("PrismObjectPanel.hideMetadata") :
+								createStringResource("PrismObjectPanel.showMetadata")));
+		showMetadataButton.add(buttonsVisibleBehaviour);
+		add(showMetadataButton);
+
 		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
 				GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS, GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS) {
 			private static final long serialVersionUID = 1L;
@@ -68,8 +94,6 @@ public class PrismHeaderPanel extends Panel {
             public void onClick(AjaxRequestTarget target) {
             	ObjectWrapper objectWrapper = getObjectWrapper(model);
                 objectWrapper.setShowEmpty(!objectWrapper.isShowEmpty());
-//
-//				target.appendJavaScript("document.getElementsByClassName('tooltip').style.visibility = 'hidden';");
 
 				onButtonClick(target);
             }

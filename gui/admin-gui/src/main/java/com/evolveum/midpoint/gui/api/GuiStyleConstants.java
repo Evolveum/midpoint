@@ -103,6 +103,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_ICON_SORT_ALPHA_ASC = "fa fa-sort-alpha-asc";
 	public static final String CLASS_ICON_SHOW_EMPTY_FIELDS = "fa fa-square-o";
 	public static final String CLASS_ICON_NOT_SHOW_EMPTY_FIELDS = "fa fa-square";
+	public static final String CLASS_ICON_SHOW_METADATA = "fa fa-asterisk";
 	public static final String CLASS_ICON_SUPERUSER = "fa fa-shield";
 	public static final String CLASS_ICON_NO_OBJECTS = "fa fa-times";
 	public static final String CLASS_ICON_ACTIVATION_ACTIVE = "fa fa-check";

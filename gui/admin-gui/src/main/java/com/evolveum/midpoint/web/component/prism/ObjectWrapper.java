@@ -68,6 +68,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private boolean showEmpty;
     private boolean minimalized;
     private boolean sorted;
+    private boolean showMetadata = false;
     private boolean selectable;
     private boolean selected;
 
@@ -218,6 +219,14 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
     public void setSorted(boolean sorted) {
         this.sorted = sorted;
+    }
+
+    public boolean isShowMetadata() {
+        return showMetadata;
+    }
+
+    public void setShowMetadata(boolean showMetadata) {
+        this.showMetadata = showMetadata;
     }
 
     public boolean isShowEmpty() {
