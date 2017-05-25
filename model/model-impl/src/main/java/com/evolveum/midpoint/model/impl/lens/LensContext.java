@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -456,6 +457,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
 	}
 
+	@Override
 	public ModelExecuteOptions getOptions() {
 		return options;
 	}
@@ -464,6 +466,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.options = options;
 	}
 
+	@Override
+	@NotNull
 	public PartialProcessingOptionsType getPartialProcessingOptions() {
 		if (options == null || options.getPartialProcessing() == null) {
 			return new PartialProcessingOptionsType();

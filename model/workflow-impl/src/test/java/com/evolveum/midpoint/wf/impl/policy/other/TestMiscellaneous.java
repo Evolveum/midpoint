@@ -21,8 +21,11 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -164,6 +167,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// GIVEN
 		setDefaultUserTemplate(userTemplateAssigningRole1aOid);
+		unassignAllRoles(userJackOid);
 
 		// WHEN
 		// some innocent change
@@ -187,6 +191,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// GIVEN
 		setDefaultUserTemplate(userTemplateAssigningRole1aOidAfter);
+		unassignAllRoles(userJackOid);
 
 		// WHEN
 		// some innocent change
@@ -211,9 +216,41 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// GIVEN
 		setDefaultUserTemplate(null);
+		unassignAllRoles(userJackOid);
 
 		// WHEN
 		assignRole(userJackOid, roleFocusAssignmentMapping, task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertAssignedRole(userJackOid, roleRole1aOid, task, result);
+	}
+
+	@Test
+	public void test250SkippingApprovals() throws Exception {
+		final String TEST_NAME = "test250SkippingApprovals";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+		setDefaultUserTemplate(null);
+		unassignAllRoles(userJackOid);
+
+		// WHEN
+		@SuppressWarnings({"raw", "unchecked"})
+		ObjectDelta<? extends ObjectType> delta =
+				(ObjectDelta<? extends ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT)
+						.add(ObjectTypeUtil.createAssignmentTo(roleRole1aOid, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(userJackOid);
+		ModelExecuteOptions options = ModelExecuteOptions.createPartialProcessing(
+				new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
+		modelService.executeChanges(Collections.singletonList(delta), options, task, result);
 
 		// THEN
 		result.computeStatus();

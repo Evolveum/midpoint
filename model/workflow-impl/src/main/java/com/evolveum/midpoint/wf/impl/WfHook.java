@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -103,6 +104,14 @@ public class WfHook implements ChangeHook {
                 return HookOperationMode.FOREGROUND;
             }
 
+            if (context.getPartialProcessingOptions().getApprovals() == PartialProcessingTypeType.SKIP) {
+                LOGGER.debug("Skipping workflow processing because of the partial processing option set to SKIP");
+                result.recordSuccess();
+                return HookOperationMode.FOREGROUND;
+            }
+
+            // It would be also possible to set 'skip' partial processing option for initial import; however,
+            // e.g. for tests, initialization is scattered through many places, so that would be too much work.
             if (SchemaConstants.CHANNEL_GUI_INIT_URI.equals(context.getChannel())) {
                 LOGGER.debug("Skipping workflow processing because the channel is '" + SchemaConstants.CHANNEL_GUI_INIT_URI + "'.");
                 result.recordSuccess();
