@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -361,7 +361,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	
 	public static ResourceAttributeContainer convertFromContainer(PrismContainer<?> origAttrContainer,
 			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
-		if (origAttrContainer == null) {
+		if (origAttrContainer == null || origAttrContainer.getValue() == null) {
 			return null;
 		}
 		QName elementName = origAttrContainer.getElementName();
