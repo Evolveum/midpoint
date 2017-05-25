@@ -686,7 +686,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 public MetadataType getObject() {
                     return getModelObject().getOldValue().getValue().getMetadata();
                 }
-            }, "row");
+            }, "", "row");
         }
         metadataPanel.setOutputMarkupId(true);
 		metadataPanel.add(new VisibleEnableBehaviour(){
