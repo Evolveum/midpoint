@@ -1054,8 +1054,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 LOGGER.trace("Searching objects with null paging (query in TRACE).");
             } else {
                 LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
-                        new Object[] { query.getPaging().getOffset(), query.getPaging().getMaxSize(),
-                                query.getPaging().getDirection(), query.getPaging().getOrderBy() });
+						query.getPaging().getOffset(), query.getPaging().getMaxSize(),
+						query.getPaging().getDirection(), query.getPaging().getOrderBy());
             }
         }
 	}
@@ -1086,26 +1086,22 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return null;
 		}
 
-		ResultHandler<T> internalHandler = new ResultHandler<T>() {
-
-            @Override
-			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-                try {
-                	object = object.cloneIfImmutable();
-                    if (hookRegistry != null) {
-                        for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                            hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
-                        }
-                    }
-                    schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, parentResult);
-                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                        | CommunicationException | ConfigurationException ex) {
-                    parentResult.recordFatalError(ex);
-                    throw new SystemException(ex.getMessage(), ex);
-                }
-
-				return handler.handle(object, parentResult);
+		ResultHandler<T> internalHandler = (object, parentResult1) -> {
+			try {
+				object = object.cloneIfImmutable();
+				if (hookRegistry != null) {
+					for (ReadHook hook : hookRegistry.getAllReadHooks()) {
+						hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
+					}
+				}
+				schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, parentResult1);
+			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+					| CommunicationException | ConfigurationException ex) {
+				parentResult1.recordFatalError(ex);
+				throw new SystemException(ex.getMessage(), ex);
 			}
+
+			return handler.handle(object, parentResult1);
 		};
         
 		SearchResultMetadata metadata;
@@ -1978,6 +1974,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
         checkScriptingAuthorization(parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, parentResult);
+    }
+
+    @Override
+    public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
+        checkScriptingAuthorization(parentResult);
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(executeScriptCommand, task, parentResult);
     }
 
     @Override

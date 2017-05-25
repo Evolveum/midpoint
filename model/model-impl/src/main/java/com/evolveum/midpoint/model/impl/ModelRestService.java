@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.rest.Convertor;
 import com.evolveum.midpoint.model.impl.rest.ConvertorInterface;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
+import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.Item;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -801,12 +801,7 @@ public class ModelRestService {
 			if (input instanceof ExecuteScriptType) {
 				return (ExecuteScriptType) input;
 			} else if (input instanceof ScriptingExpressionType) {
-				ScriptingExpressionType expression = (ScriptingExpressionType) input;
-				ExecuteScriptType command = new ExecuteScriptType();
-				@SuppressWarnings({ "unchecked", "raw" })
-				Class<ScriptingExpressionType> declaredClass = (Class<ScriptingExpressionType>) expression.getClass();
-				command.setScriptingExpression(new JAXBElement<>(SchemaConstants.C_VALUE, declaredClass, expression));
-				return command;
+				return ScriptingExpressionEvaluator.createExecuteScriptCommand((ScriptingExpressionType) input);
 			} else {
 				throw new IllegalArgumentException("Wrong input value: " + input);
 			}

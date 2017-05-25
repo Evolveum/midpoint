@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.expressions.FilterContentEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
-import com.evolveum.midpoint.model.impl.scripting.helpers.JaxbHelper;
+import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingJaxbUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -59,7 +59,6 @@ public class ScriptingExpressionEvaluator {
     @Autowired private SearchEvaluator searchEvaluator;
     @Autowired private SelectEvaluator selectEvaluator;
     @Autowired private FilterContentEvaluator filterContentEvaluator;
-    @Autowired private JaxbHelper jaxbHelper;
     @Autowired private PrismContext prismContext;
 
     private ObjectFactory objectFactory = new ObjectFactory();
@@ -93,6 +92,13 @@ public class ScriptingExpressionEvaluator {
         evaluateExpressionInBackground(search, task, parentResult);
     }
 
+    // TODO implement more nicely
+    public static ExecuteScriptType createExecuteScriptCommand(ScriptingExpressionType expression) {
+        ExecuteScriptType executeScriptCommand = new ExecuteScriptType();
+        executeScriptCommand.setScriptingExpression(ScriptingJaxbUtil.toJaxbElement(expression));
+        return executeScriptCommand;
+    }
+
     /**
      * Asynchronously executes any scripting expression.
      *
@@ -102,16 +108,18 @@ public class ScriptingExpressionEvaluator {
      *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
      */
     public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
+        evaluateExpressionInBackground(createExecuteScriptCommand(expression), task, parentResult);
+    }
+
+    public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException {
         if (!task.isTransient()) {
             throw new IllegalStateException("Task must be transient");
         }
         if (task.getHandlerUri() != null) {
             throw new IllegalStateException("Task must not have a handler");
         }
-        ExecuteScriptType executeScriptType = new ExecuteScriptType();
-        executeScriptType.setScriptingExpression(jaxbHelper.toJaxbElement(expression));
-        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptType);
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
+        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptCommand);
         task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
         taskManager.switchToBackground(task, result);
         result.computeStatus();
