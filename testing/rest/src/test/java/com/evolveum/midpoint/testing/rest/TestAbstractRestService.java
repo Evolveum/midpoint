@@ -783,6 +783,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
+		
+		traceResponse(response);
 
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 		
@@ -831,9 +833,9 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
-
-		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		traceResponse(response);
 		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 		
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(4);
@@ -910,13 +912,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
-
-		if (response.getStatus() == 500) {
-			OperationResultType result = response.readEntity(OperationResultType.class);
-			LOGGER.info("####RESULT");
-			LOGGER.info(OperationResult.createOperationResult(result).debugDump());
-		}
-		
+		traceResponse(response);		
 		
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 				
@@ -927,6 +923,14 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		
 		//UserType user = loadObject(UserType.class, USER_DARTHADDER_OID);
 		//TODO assert changed items
+	}
+	
+	private void traceResponse(Response response){
+		if (response.getStatus() != 200) {
+			OperationResultType result = response.readEntity(OperationResultType.class);
+			LOGGER.info("####RESULT");
+			LOGGER.info(OperationResult.createOperationResult(result).debugDump());
+		}
 	}
 	
 	@Test
@@ -969,7 +973,8 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
-
+		traceResponse(response);
+		
 		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 		
 		
@@ -1021,6 +1026,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
+		traceResponse(response);
 
 		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 		
@@ -1045,9 +1051,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
-
-		OperationResultType result = response.readEntity(OperationResultType.class);
-		IntegrationTestTools.display(OperationResult.createOperationResult(result));
+		traceResponse(response);
 		
 		assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 	
