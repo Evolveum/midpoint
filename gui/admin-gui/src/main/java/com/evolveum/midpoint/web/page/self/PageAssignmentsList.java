@@ -65,15 +65,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private OperationResult backgroundTaskOperationResult = null;
     IModel<String> descriptionModel;
 
-    public PageAssignmentsList() {
-        this(false);
-    }
-
-    public PageAssignmentsList(boolean setConflictsToSession){
+    public PageAssignmentsList(){
         initModels();
-        if (setConflictsToSession) {
-            getSessionStorage().getRoleCatalog().setConflictsList(getAssignmentConflicts());
-        }
+        getSessionStorage().getRoleCatalog().setConflictsList(getAssignmentConflicts());
         initLayout();
     }
 

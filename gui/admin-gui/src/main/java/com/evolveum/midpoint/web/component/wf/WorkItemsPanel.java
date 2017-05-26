@@ -243,8 +243,7 @@ public class WorkItemsPanel extends BasePanel {
 									 final IModel<WorkItemDto> rowModel) {
 				super.populateItem(cellItem, componentId, rowModel);
 				Component c = cellItem.get(componentId);
-				c.add(new AttributeAppender("title", rowModel.getObject().getTargetRef() != null ?
-						rowModel.getObject().getTargetRef().asReferenceValue().getObject().asObjectable().getDescription() : ""));
+				c.add(new AttributeAppender("title", getTargetObjectDescription(rowModel)));
 			}
 		};
 	}

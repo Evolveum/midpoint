@@ -408,7 +408,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	}
 
 	@Test
-	public void test104AddAccountRaw() throws Exception {
+	public void test104AddAccountRawResourceDoesNotExist() throws Exception {
 		final String TEST_NAME = "test104AddAccountRaw";
 		displayTestTile(this, TEST_NAME);
 
@@ -424,8 +424,12 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
-		assertStatus(response, 201);
-
+		// expecting hadnled error because resource doesn't exist.. it is OK, but let's say admin about that
+		assertStatus(response, 240);
+		OperationResult addResult = traceResponse(response);
+		assertNotNull("Expected operation result in the response, but nothing in the body", addResult);
+		assertEquals("Unexpected status of the operation result. Expected "+ OperationResultStatus.HANDLED_ERROR + ", but was " + addResult.getStatus(), addResult.getStatus(), OperationResultStatus.HANDLED_ERROR);
+		
 		OperationResult parentResult = new OperationResult("get");
 		try {
 			getProvisioning().getObject(ShadowType.class, ACCOUT_CHUCK_OID,
@@ -925,12 +929,16 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		//TODO assert changed items
 	}
 	
-	private void traceResponse(Response response){
+	private OperationResult traceResponse(Response response){
 		if (response.getStatus() != 200) {
 			OperationResultType result = response.readEntity(OperationResultType.class);
 			LOGGER.info("####RESULT");
-			LOGGER.info(OperationResult.createOperationResult(result).debugDump());
+			OperationResult opResult = OperationResult.createOperationResult(result);
+			LOGGER.info(opResult.debugDump());
+			return opResult;
 		}
+		
+		return null;
 	}
 	
 	@Test
