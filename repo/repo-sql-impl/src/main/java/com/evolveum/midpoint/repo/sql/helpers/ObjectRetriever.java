@@ -539,6 +539,12 @@ public class ObjectRetriever {
             QName name = RUtil.stringToQName((String) value[0]);
             QName type = RUtil.stringToQName((String) value[1]);
             Item item = attributes.findItem(name);
+            
+            if (item == null) {
+            	// Just skip. Cannot throw exceptions here. Otherwise we
+            	// could break raw reading.
+            	continue;
+            }
 
             // A switch statement used to be here
             // but that caused strange trouble with OpenJDK. This if-then-else works.

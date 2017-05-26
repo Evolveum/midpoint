@@ -244,6 +244,10 @@ public class ModelObjectResolver implements ObjectResolver {
 	
 	public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
 			Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
+		if (object == null) {
+			LOGGER.trace("No object provided. Cannost find security policy specific for an object.");
+			return null;
+		}
 		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
 		if (orgRef == null) {
 			return null;
