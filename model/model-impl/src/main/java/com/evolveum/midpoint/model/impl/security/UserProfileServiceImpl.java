@@ -85,52 +85,29 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
     
-    @Autowired(required = true)
-    private transient RepositoryService repositoryService;
-    
-    @Autowired(required = true)
-    private ObjectResolver objectResolver;
-    
-    @Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
-    
-    @Autowired(required = true)
-    private MappingFactory mappingFactory;
-
-    @Autowired(required = true)
-    private MappingEvaluator mappingEvaluator;
-    
-    @Autowired(required = true)
-    private SecurityHelper securityHelper;
-
-    @Autowired(required = true)
-    private UserComputer userComputer;
-    
-    @Autowired(required = true)
-	private ActivationComputer activationComputer;
-    
-    @Autowired(required = true)
-    private Clock clock;
-    
-    @Autowired(required = true)
-    private PrismContext prismContext;
-    
-    @Autowired(required = true)
-    private TaskManager taskManager;
+    @Autowired private transient RepositoryService repositoryService;
+	@Autowired private ObjectResolver objectResolver;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private SecurityHelper securityHelper;
+	@Autowired private UserComputer userComputer;
+	@Autowired private ActivationComputer activationComputer;
+	@Autowired private Clock clock;
+	@Autowired private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
 
     @Override
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	PrismObject<UserType> user = null;
+    	PrismObject<UserType> user;
         try {
             user = findByUsername(username, result);
         } catch (ObjectNotFoundException ex) {
-        	LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
-                    new Object[]{username, ex.getMessage(), ex});
+        	LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
         	throw ex;
         } catch (Exception ex) {
-            LOGGER.warn("Error getting user with name '{}', reason: {}.",
-                    new Object[]{username, ex.getMessage(), ex});
+            LOGGER.warn("Error getting user with name '{}', reason: {}.", username, ex.getMessage(), ex);
             throw new SystemException(ex.getMessage(), ex);
         }
 
@@ -168,8 +145,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         try {
             save(principal, result);
         } catch (Exception ex) {
-            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage(), ex});
+            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.", principal.getFullName(), principal.getOid(), ex.getMessage(), ex);
         }
     }
 
@@ -178,13 +154,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
-                result);
-        LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
-        if (list == null || list.size() != 1) {
+        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, result);
+		LOGGER.trace("Users found: {}.", list.size());
+        if (list.size() != 1) {
             return null;
         }
-        
         return list.get(0);
     }
         
@@ -194,7 +168,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		Collection<Authorization> authorizations = principal.getAuthorities();
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 
-		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
+		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
 
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
