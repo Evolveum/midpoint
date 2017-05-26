@@ -112,32 +112,34 @@ public class AdminGuiConfigTypeUtil {
 	}
 
 	private static boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm){
-		if (oldForm.getType().equals(newForm.getType())){
+		if (!oldForm.getType().equals(newForm.getType())){
 			return false;
 		}
-		if (oldForm.getFormSpecification() == null || newForm.getFormSpecification() == null){
+		if (oldForm.isIncludeDefaultForms() != null &&
+				newForm.isIncludeDefaultForms() != null){
 			return true;
 		}
-		String oldFormPanelUri = oldForm.getFormSpecification().getPanelUri();
-		String newFormPanelUri = newForm.getFormSpecification().getPanelUri();
-		if (oldFormPanelUri != null && oldFormPanelUri.equals(newFormPanelUri)){
-			return true;
-		}
+		if (oldForm.getFormSpecification() == null && newForm.getFormSpecification() == null) {
+			String oldFormPanelUri = oldForm.getFormSpecification().getPanelUri();
+			String newFormPanelUri = newForm.getFormSpecification().getPanelUri();
+			if (oldFormPanelUri != null && oldFormPanelUri.equals(newFormPanelUri)) {
+				return true;
+			}
 
-		String oldFormPanelClass = oldForm.getFormSpecification().getPanelClass();
-		String newFormPanelClass = newForm.getFormSpecification().getPanelClass();
-		if (oldFormPanelClass != null && oldFormPanelClass.equals(newFormPanelClass)){
-			return true;
-		}
+			String oldFormPanelClass = oldForm.getFormSpecification().getPanelClass();
+			String newFormPanelClass = newForm.getFormSpecification().getPanelClass();
+			if (oldFormPanelClass != null && oldFormPanelClass.equals(newFormPanelClass)) {
+				return true;
+			}
 
-		String oldFormRefOid = oldForm.getFormSpecification().getFormRef() == null ?
-				null : oldForm.getFormSpecification().getFormRef().getOid();
-		String newFormRefOid = newForm.getFormSpecification().getFormRef() == null ?
-				null : newForm.getFormSpecification().getFormRef().getOid();
-		if (oldFormRefOid != null && oldFormRefOid.equals(newFormRefOid)){
-			return true;
+			String oldFormRefOid = oldForm.getFormSpecification().getFormRef() == null ?
+					null : oldForm.getFormSpecification().getFormRef().getOid();
+			String newFormRefOid = newForm.getFormSpecification().getFormRef() == null ?
+					null : newForm.getFormSpecification().getFormRef().getOid();
+			if (oldFormRefOid != null && oldFormRefOid.equals(newFormRefOid)) {
+				return true;
+			}
 		}
-
 		return false;
 	}
 

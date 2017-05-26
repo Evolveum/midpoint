@@ -440,18 +440,8 @@ public class PrismValuePanel extends Panel {
                   panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(valueWrapperModel, baseExpression));
                   
               } else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
-                  boolean showRemovePasswordButton = true;
-				  if (pageBase instanceof PageUser &&
-						  ((PageUser) pageBase).getObjectWrapper().getObject() != null &&
-						  ((PageUser) pageBase).getObjectWrapper().getObject().getOid() != null &&
-						  ((PageUser) pageBase).getObjectWrapper().getObject().getOid().equals(SecurityUtils.getPrincipalUser().getOid())) {
-                      showRemovePasswordButton = false;
-                  } else if (valueWrapperModel.getObject().getStatus() == ValueStatus.ADDED) {
-                	  // it has no sense to show remove button while adding a new value..
-                	  showRemovePasswordButton = false;
-                  }
                   panel = new PasswordPanel(id, new PropertyModel<ProtectedStringType>(valueWrapperModel, baseExpression),
-                          valueWrapperModel.getObject().isReadonly(), showRemovePasswordButton);
+                          valueWrapperModel.getObject().isReadonly());
               } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
                   panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(valueWrapperModel, baseExpression));
                   

@@ -2070,6 +2070,7 @@ public abstract class ShadowCache {
 			PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
 					ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		ProvisioningContext subctx = ctx.spawn(shadow);
+		subctx.assertDefinition();
 		RefinedObjectClassDefinition objectClassDefinition = subctx.getObjectClassDefinition();
 
 		PrismContainer<ShadowAttributesType> attributesContainer = shadow

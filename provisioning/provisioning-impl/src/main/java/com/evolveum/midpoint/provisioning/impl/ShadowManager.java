@@ -1254,7 +1254,7 @@ public class ShadowManager {
 		ProvisioningContext shadowCtx = ctx.spawn(currentRepoShadow);
 		RefinedObjectClassDefinition ocDef = shadowCtx.getObjectClassDefinition();
 		PrismContainer<Containerable> attributesContainer = currentRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		if (attributesContainer != null) {
+		if (attributesContainer != null && attributesContainer.getValue() != null) {
 			ObjectDelta<ShadowType> shadowDelta = currentRepoShadow.createModifyDelta();
 			for (Item<?, ?> item: attributesContainer.getValue().getItems()) {
 				if (item instanceof PrismProperty<?>) {

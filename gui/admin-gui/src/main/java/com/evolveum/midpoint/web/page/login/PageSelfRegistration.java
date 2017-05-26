@@ -351,8 +351,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
 		// ProtectedStringType initialPassword = null;
 		PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-				new PropertyModel<ProtectedStringType>(userModel, "credentials.password.value"), false, true,
-				false);
+				new PropertyModel<ProtectedStringType>(userModel, "credentials.password.value"), false, true);
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		password.getBaseFormComponent().setRequired(true);
 		staticRegistrationForm.add(password);

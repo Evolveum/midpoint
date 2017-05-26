@@ -19,6 +19,14 @@ package com.evolveum.midpoint.gui.api.component.password;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,22 +70,22 @@ public class PasswordPanel extends InputPanel {
     private boolean passwordInputVisble;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
-        this(id, model, false, false);
+        this(id, model, false);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean showRemoveButton) {
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly) {
         super(id);
         this.passwordInputVisble = model.getObject() == null;
-        initLayout(model, isReadOnly, showRemoveButton);
+        initLayout(model, isReadOnly);
     }
     
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible, boolean showRemoveButton) {
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
         super(id);
         this.passwordInputVisble = isInputVisible;
-        initLayout(model, isReadOnly, showRemoveButton);
+        initLayout(model, isReadOnly);
     }
 
-    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly, boolean showRemoveButton) {
+    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly) {
     	setOutputMarkupId(true);
 		final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
 			@Override
@@ -165,7 +173,18 @@ public class PasswordPanel extends InputPanel {
         	
         	@Override
         	public boolean isVisible() {
-        		return showRemoveButton;
+        		PageBase pageBase = (PageBase)getPage();
+                if (pageBase == null){
+                    return false;
+                }
+                if (pageBase instanceof PageSelfProfile){
+                    return false;
+                }
+                if (pageBase instanceof PageUser
+                        && model.getObject() != null && !model.getObject().isEmpty()){
+                    return true;
+                }
+                return false;
         	}
         });
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
