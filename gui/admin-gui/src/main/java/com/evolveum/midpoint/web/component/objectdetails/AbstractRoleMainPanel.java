@@ -20,6 +20,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,9 +28,23 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
+import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.ajax.AjaxChannel;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -57,6 +72,10 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMainPanel.class);
     private static final String DOT_CLASS = AbstractRoleMainPanel.class.getName();
     private static final String OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM = DOT_CLASS + "canSearchRoleMembershipItem";
+    private static final String ID_SHOPPING_CART_BUTTONS_PANEL = "shoppingCartButtonsPanel";
+    private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
+    private static final String ID_SHOPPING_CART_BUTTON = "shoppingCartButton";
+    private static final String ID_ITEMS_COUNT = "itemsCount";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
 			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
@@ -64,6 +83,113 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
 		super(id, objectModel, assignmentsModel, projectionModel, parentPage);
 		this.inducementsModel = inducementsModel;
+	}
+
+	@Override
+	protected void initLayoutButtons(PageAdminObjectDetails<R> parentPage) {
+		super.initLayoutButtons(parentPage);
+		initShoppingCartPanel(parentPage);
+	}
+
+	private void initShoppingCartPanel(PageAdminObjectDetails<R> parentPage){
+		RoleCatalogStorage storage = parentPage.getSessionStorage().getRoleCatalog();
+
+		WebMarkupContainer shoppingCartButtonsPanel = new WebMarkupContainer(ID_SHOPPING_CART_BUTTONS_PANEL);
+		shoppingCartButtonsPanel.setOutputMarkupId(true);
+		shoppingCartButtonsPanel.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				//show panel only in case if user came to object details from
+				// Role Catalog page
+				return PageAssignmentShoppingKart.class.equals(getPreviousPage(parentPage));
+			}
+		});
+		getMainForm().add(shoppingCartButtonsPanel);
+
+		AjaxButton addToCartButton = new AjaxButton(ID_ADD_TO_CART_BUTTON, parentPage
+				.createStringResource("PageAssignmentDetails.addToCartButton")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+				attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+			}
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
+				storage.getAssignmentShoppingCart().add(dto);
+				target.add(shoppingCartButtonsPanel);
+			}
+		};
+		addToCartButton.setOutputMarkupId(true);
+		addToCartButton.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isEnabled(){
+				AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
+				return storage.isMultiUserRequest() || dto.isAssignable();
+			}
+		});
+		shoppingCartButtonsPanel.add(addToCartButton);
+
+		AjaxButton shoppingCartButton = new AjaxButton(ID_SHOPPING_CART_BUTTON) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+				attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+			}
+
+			@Override
+			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+				parentPage.navigateToNext(PageAssignmentsList.class);
+			}
+		};
+		shoppingCartButton.setOutputMarkupId(true);
+		shoppingCartButtonsPanel.add(shoppingCartButton);
+
+		Label cartItemsCount = new Label(ID_ITEMS_COUNT, new LoadableModel<String>(true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String load(){
+				return Integer.toString(storage.getAssignmentShoppingCart().size());
+			}
+		});
+		cartItemsCount.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				if (storage.getAssignmentShoppingCart().size() == 0) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+		});
+		cartItemsCount.setOutputMarkupId(true);
+		shoppingCartButton.add(cartItemsCount);
+
+	}
+
+	private Class getPreviousPage(PageAdminObjectDetails<R> parentPage){
+		List<Breadcrumb> breadcrumbs = parentPage.getBreadcrumbs();
+		if (breadcrumbs == null || breadcrumbs.size() < 2){
+			return null;
+		}
+		Breadcrumb previousBreadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+		Class page = null;
+		if (previousBreadcrumb instanceof BreadcrumbPageClass){
+			page = ((BreadcrumbPageClass) previousBreadcrumb).getPage();
+		} else if (previousBreadcrumb instanceof BreadcrumbPageInstance){
+			page = ((BreadcrumbPageInstance) previousBreadcrumb).getPage().getClass();
+		}
+		return page;
 	}
 
 	@Override

@@ -343,22 +343,24 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 			}
 			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {
-				List<PrismObject<O>> targets = getTargets(segment, ctx);
-				LOGGER.trace("Targets in {}, assignment ID {}: {}", segment.source, assignmentType.getId(), targets);
-
-				if (isDirectAssignment) {
-					setEvaluatedAssignmentTarget(segment, targets, ctx);
-				}
-
 				QName relation = getRelation(assignmentType);
-				for (PrismObject<O> target : targets) {
-					if (hasCycle(segment, target, ctx)) {
-						continue;
+				if (loginMode && !ObjectTypeUtil.isMembershipRelation(relation)) {
+					// to optimize logging-in, we skip all assignments with non-membership relations (e.g. approver, owner, etc)
+				} else {
+					List<PrismObject<O>> targets = getTargets(segment, ctx);
+					LOGGER.trace("Targets in {}, assignment ID {}: {}", segment.source, assignmentType.getId(), targets);
+					if (isDirectAssignment) {
+						setEvaluatedAssignmentTarget(segment, targets, ctx);
 					}
-					if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
-						continue;
+					for (PrismObject<O> target : targets) {
+						if (hasCycle(segment, target, ctx)) {
+							continue;
+						}
+						if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
+							continue;
+						}
+						evaluateSegmentTarget(segment, mode, reallyValid, (FocusType) target.asObjectable(), relation, ctx);
 					}
-					evaluateSegmentTarget(segment, mode, reallyValid, (FocusType)target.asObjectable(), relation, ctx);
 				}
 			}
 		} else {
