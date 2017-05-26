@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 
 public abstract class TestAbstractRestService extends RestServiceInitializer{
@@ -737,6 +739,30 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(1);
 		getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	@Test
+	public void test200searchAllUsers() {
+		final String TEST_NAME = "test200searchAllUsers";
+		displayTestTile(this, TEST_NAME);
+		
+		WebClient client = prepareClient();
+		client.path("/users/search");
+		
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(new QueryType());
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		
+		assertStatus(response, 200);
+		
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+
 	}
 	
 
