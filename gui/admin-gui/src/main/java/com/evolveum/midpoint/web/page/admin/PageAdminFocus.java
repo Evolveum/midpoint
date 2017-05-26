@@ -15,53 +15,27 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import net.sf.saxon.functions.Abs;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Session;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.protocol.http.WebSession;
-
+import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -77,6 +51,14 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.protocol.http.WebSession;
+
+import javax.xml.namespace.QName;
+import java.util.*;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
 		implements ProgressReportingAwarePage {
@@ -91,7 +73,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
+	private CountableLoadableModel<AssignmentEditorDto> assignmentsModel;
     private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
@@ -115,12 +97,17 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		};
 
-		assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+		assignmentsModel = new CountableLoadableModel<AssignmentEditorDto>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<AssignmentEditorDto> load() {
 				return loadAssignments();
+			}
+
+			@Override
+			public int countInternal() {
+				return countAssignments();
 			}
 		};
 
@@ -137,7 +124,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionModel;
 	}
 
-	public LoadableModel<List<AssignmentEditorDto>> getAssignmentsModel() {
+	public CountableLoadableModel<AssignmentEditorDto> getAssignmentsModel() {
 		return assignmentsModel;
 	}
 
@@ -380,6 +367,19 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return list;
     }
 
+    private int countAssignments() {
+
+		int rv = 0;
+		PrismObject<F> focus = getObjectModel().getObject().getObject();
+		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		for (AssignmentType assignment : assignments) {
+			if (isAssignmentRelevant(assignment)) {
+				rv++;
+			}
+		}
+		return rv;
+	}
+
     private List<AssignmentEditorDto> loadAssignments() {
 		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 
@@ -387,8 +387,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = focusWrapper.getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (assignment.getTargetRef() == null ||
-					!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+			if (isAssignmentRelevant(assignment)) {
 				list.add(new AssignmentEditorDto(StringUtils.isEmpty(focusWrapper.getOid()) ?
 						UserDtoStatus.ADD : UserDtoStatus.MODIFY, assignment, this));
 			}
@@ -397,6 +396,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		Collections.sort(list);
 
 		return list;
+	}
+
+	private boolean isAssignmentRelevant(AssignmentType assignment) {
+		return assignment.getTargetRef() == null ||
+				!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
 	}
 
 	@Override

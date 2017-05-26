@@ -142,16 +142,15 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
 	protected PageBase pageBase;
-	protected List<AssignmentsPreviewDto> privilegesList;
+	protected IModel<List<AssignmentsPreviewDto>> privilegesListModel;
 	protected boolean delegatedToMe;
 	private LoadableModel<ItemSecurityDecisions> decisionsModel;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
-								 List<AssignmentsPreviewDto> privilegesList,
-								 PageBase pageBase) {
+			LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel, PageBase pageBase) {
 		super(id, model);
 		this.pageBase = pageBase;
-		this.privilegesList = privilegesList;
+		this.privilegesListModel = privilegesListModel;
 		this.delegatedToMe = delegatedToMe;
 
 		initDecisionsModel();
@@ -210,7 +209,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	protected void initHeaderRow(){
 		AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
-				new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
+				new PropertyModel<>(getModel(), AssignmentEditorDto.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -474,7 +473,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		body.add(focusTypeContainer);
 
 		ObjectTypeSelectPanel<FocusType> focusType = new ObjectTypeSelectPanel<>(ID_FOCUS_TYPE,
-				new PropertyModel<QName>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
+				new PropertyModel<>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
 		focusTypeContainer.add(focusType);
 
 		Label relationLabel = new Label(ID_RELATION_LABEL, new AbstractReadOnlyModel<String>() {
@@ -584,7 +583,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		activationBlock.add(validFromContainer);
 
 		DateInput validFrom = new DateInput(ID_VALID_FROM,
-				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+				createDateModel(new PropertyModel<>(getModel(),
 						AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
 		validFrom.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
@@ -610,7 +609,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		activationBlock.add(validToContainer);
 
 		DateInput validTo = new DateInput(ID_VALID_TO,
-				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+				createDateModel(new PropertyModel<>(getModel(),
 						AssignmentEditorDto.F_ACTIVATION + ".validTo")));
 		validTo.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;

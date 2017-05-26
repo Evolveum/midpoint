@@ -18,14 +18,13 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,14 +63,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
+	private CountableLoadableModel<AssignmentEditorDto> assignmentsModel;
 	private TaskDtoProvider taskDtoProvider;
     private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
 	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
-						  LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
-						  LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-						  PageAdminFocus<F> parentPage) {
+			CountableLoadableModel<AssignmentEditorDto> assignmentsModel,
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
+			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.assignmentsModel = assignmentsModel;
@@ -286,7 +285,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 					@Override
 					public String getCount() {
-						return Integer.toString(assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size());
+						return Integer.toString(assignmentsModel.count());
 					}
 				});
 
