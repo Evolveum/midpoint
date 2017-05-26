@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.wf;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -34,7 +35,9 @@ import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.*;
 import org.apache.wicket.markup.html.basic.Label;
@@ -234,7 +237,26 @@ public class WorkItemsPanel extends BasePanel {
 				WorkItemDto dto = rowModel.getObject();
 				dispatchToObjectDetailsPage(dto.getTargetRef(), getPageBase(), false);
 			}
+
+			@Override
+			public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId,
+									 final IModel<WorkItemDto> rowModel) {
+				super.populateItem(cellItem, componentId, rowModel);
+				Component c = cellItem.get(componentId);
+				c.add(new AttributeAppender("title", getTargetObjectDescription(rowModel)));
+			}
 		};
+	}
+
+	private String getTargetObjectDescription(IModel<WorkItemDto> rowModel){
+		if (rowModel == null || rowModel.getObject() == null ||
+				rowModel.getObject().getTargetRef() == null) {
+			return "";
+		}
+		PrismReferenceValue refVal = rowModel.getObject().getTargetRef().asReferenceValue();
+		return refVal.getObject() != null ?
+				refVal.getObject().asObjectable().getDescription() : "";
+
 	}
 
 	public IColumn<WorkItemDto, String> createTypeIconColumn(final boolean object) {		// true = object, false = target

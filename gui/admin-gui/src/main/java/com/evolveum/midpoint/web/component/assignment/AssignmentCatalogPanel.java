@@ -554,8 +554,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                PageAssignmentsList assignmentsPanel = new PageAssignmentsList(true);
-                pageBase.navigateToNext(assignmentsPanel);
+                pageBase.navigateToNext(PageAssignmentsList.class);
             }
         };
         cartButton.add(new VisibleEnableBehaviour(){
@@ -566,22 +565,12 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         cartButton.setOutputMarkupId(true);
         headerPanel.add(cartButton);
 
-        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new IModel<String>() {
-            @Override
-            public String getObject() {
-                SessionStorage storage = pageBase.getSessionStorage();
-                return Integer.toString(storage.getRoleCatalog().getAssignmentShoppingCart().size());
-            }
+        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT,  new LoadableModel<String>(true) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            public void setObject(String s) {
-
-
-            }
-
-            @Override
-            public void detach() {
-
+            public String load(){
+                return Integer.toString(getRoleCatalogStorage().getAssignmentShoppingCart().size());
             }
         });
         cartItemsCount.add(new VisibleEnableBehaviour() {
