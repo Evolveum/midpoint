@@ -28,6 +28,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
@@ -212,6 +214,23 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 				}
 			};
+			link.add(new VisibleEnableBehaviour(){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isVisible(){
+					boolean isVisible = false;
+					try {
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_READ_ACTION_URL,
+								AuthorizationPhaseType.REQUEST, managerWrapper.getObject(), null, null, null);
+					} catch (Exception ex) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #read operation on object " +
+								managerWrapper.getObject(), ex);
+					}
+					return isVisible;
+				}
+			});
+
 			if (manager.getCompileTimeClass().equals(UserType.class)) {
 				managerMarkup.add(new UserSummaryPanel(ID_MANAGER_SUMMARY,
 						new Model<ObjectWrapper<UserType>>((ObjectWrapper) managerWrapper)));
@@ -242,6 +261,22 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 				}
 			};
+			removeManager.add(new VisibleEnableBehaviour(){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isVisible(){
+					boolean isVisible = false;
+					try {
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL, null,
+								managerWrapper.getObject(), null, getModelObject().asPrismObject(), null);
+					} catch (Exception ex) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #unassign operation on object " +
+								managerWrapper.getObject(), ex);
+					}
+					return isVisible;
+				}
+			});
 			removeManager.setOutputMarkupId(true);
 			managerMarkup.add(removeManager);
 			
@@ -255,6 +290,22 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				}
 			};
 			deleteManager.setOutputMarkupId(true);
+			deleteManager.add(new VisibleEnableBehaviour(){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isVisible(){
+					boolean isVisible = false;
+					try {
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_DELETE_ACTION_URL, null,
+								managerWrapper.getObject(), null, null, null);
+					} catch (Exception ex) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #delete operation on object " +
+								managerWrapper.getObject(), ex);
+					}
+					return isVisible;
+				}
+			});
 			managerMarkup.add(deleteManager);
 		}
 
