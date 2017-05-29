@@ -31,6 +31,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -105,12 +106,12 @@ public class NotificationChangeHook implements ChangeHook {
 		for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
 			emitPolicyEventIfPresent(rule, context, task, result);
 		}
-		Collection<EvaluatedAssignmentImpl<?>> assignments = ((LensContext<?>) context)
-				.getEvaluatedAssignmentTriple()
-				.getNonNegativeValues();
-		for (EvaluatedAssignment<?> assignment : assignments) {
-			for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
-				emitPolicyEventIfPresent(rule, context, task, result);
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
+		if (triple != null) {
+			for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
+				for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
+					emitPolicyEventIfPresent(rule, context, task, result);
+				}
 			}
 		}
 	}
