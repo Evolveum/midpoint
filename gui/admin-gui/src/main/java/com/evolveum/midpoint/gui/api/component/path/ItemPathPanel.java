@@ -38,8 +38,6 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 	private static final String ID_PLUS = "plus";
 	private static final String ID_MINUS = "minus";
 
-	Map<QName, Collection<ItemDefinition<?>>> schemaDefinitionsMap = null;
-
 	public ItemPathPanel(String id, IModel<ItemPathDto> model, PageBase parent) {
 		super(id, model);
 
@@ -69,8 +67,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
-				initNamspaceDefinitionMap();
-				return schemaDefinitionsMap;
+				return initNamspaceDefinitionMap();
 			}
 		};
 		itemDefPanel.setOutputMarkupId(true);
@@ -91,7 +88,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public boolean isVisible() {
-				if (getModelObject().getParentPath() == null) {
+				if (getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null) {
 					return true;
 				}
 				return (getModelObject().getParentPath().getItemDef() instanceof PrismContainerDefinition);
@@ -105,7 +102,14 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				refreshItemPathPanel(ItemPathPanel.this.getModelObject().getParentPath(), false, target);
+				ItemPathDto path = ItemPathPanel.this.getModelObject();
+//				ItemPathDto parent = null;
+//				if (path.getItemDef() == null){
+//					parent = path.getParentPath();
+//				} else {
+//					parent = path;
+//				}
+				refreshItemPathPanel(path, false, target);
 
 			}
 		};
@@ -114,7 +118,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public boolean isVisible() {
-				return getModelObject().getParentPath() != null;
+				return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
 			}
 		});
 		minusButton.setOutputMarkupId(true);
@@ -140,7 +144,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public boolean isVisible() {
-				return getModelObject().getParentPath() == null;
+				return getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null;
 			}
 		});
 		namespacePanel.setOutputMarkupId(true);
@@ -154,14 +158,19 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		}
 		
 		if (!isAdd) {
-			ItemPathDto parentPath = itemPathDto.getParentPath();
+			ItemPathDto newItem = itemPathDto;
+			ItemPathDto currentItem = itemPathDto.getParentPath();
+			ItemPathDto parentPath = currentItem.getParentPath();
+			ItemPathDto resultingItem = null;
 			if (parentPath == null) {
 				parentPath = new ItemPathDto();
-				parentPath.setObjectType(itemPathDto.getObjectType());
-				itemPathDto = parentPath;
+				parentPath.setObjectType(currentItem.getObjectType());
+				resultingItem = parentPath;
 			} else {
-				itemPathDto = itemPathDto.getParentPath();
+				resultingItem = parentPath;
 			}
+			newItem.setParentPath(resultingItem);
+			itemPathDto = resultingItem;
 		}
 		// pathSegmentPanel.refreshModel(itemPathDto);
 		this.getModel().setObject(itemPathDto);
@@ -177,8 +186,8 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		target.add(this);
 	}
 
-	private void initNamspaceDefinitionMap() {
-		schemaDefinitionsMap = new HashMap<>();
+	private Map<QName, Collection<ItemDefinition<?>>> initNamspaceDefinitionMap() {
+		Map<QName, Collection<ItemDefinition<?>>> schemaDefinitionsMap = new HashMap<>();
 		if (getModelObject().getObjectType() != null) {
 			Class clazz = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
 					getModelObject().getObjectType());
@@ -196,7 +205,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 				schemaDefinitionsMap.put(getModelObject().getObjectType(), itemDefs);
 			}
 		}
-		// }
+		return schemaDefinitionsMap;
 	}
 
 }
