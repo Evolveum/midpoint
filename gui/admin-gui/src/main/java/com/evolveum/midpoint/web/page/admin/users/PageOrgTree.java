@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.users;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -61,7 +60,8 @@ public class PageOrgTree extends PageAdminUsers {
 
     private void initLayout() {
     	AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_PANEL, this) {
-			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
 				return new TreeTablePanel(id, model, PageOrgTree.this);
