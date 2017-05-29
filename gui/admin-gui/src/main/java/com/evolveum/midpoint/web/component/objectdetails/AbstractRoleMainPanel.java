@@ -15,9 +15,11 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import java.util.List;
-
 import com.evolveum.midpoint.gui.api.ComponentConstants;
+import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -57,9 +59,13 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+
+import java.util.List;
 
 /**
  * @author semancik
@@ -78,7 +84,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_ITEMS_COUNT = "itemsCount";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
+			CountableLoadableModel<AssignmentEditorDto> assignmentsModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, 
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
 		super(id, objectModel, assignmentsModel, projectionModel, parentPage);

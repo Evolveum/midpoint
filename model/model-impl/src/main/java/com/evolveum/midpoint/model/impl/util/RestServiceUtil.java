@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.model.impl.util;
 
+import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
@@ -64,6 +66,53 @@ public class RestServiceUtil {
 	public static Response handleException(OperationResult result, Exception ex) {
 		return createErrorResponseBuilder(result, ex).build();
 	}
+	
+	public static <T> Response createResponse(Response.Status statusCode, OperationResult result) {
+		
+		return createResponse(statusCode, null, result, false);
+		
+	}
+	
+	public static <T> Response createResponse(Response.Status statusCode, T body, OperationResult result) {
+		
+		return createResponse(statusCode, body, result, false);
+		
+	}
+	
+	public static <T> Response createResponse(Response.Status statusCode, T body, OperationResult result, boolean sendOriginObjectIfNotSuccess) {
+		result.computeStatusIfUnknown();
+		
+		if (result.isPartialError()) {
+			return createBody(Response.status(250), sendOriginObjectIfNotSuccess, body, result).build();
+		} else if (result.isHandledError()) {
+			return createBody(Response.status(240), sendOriginObjectIfNotSuccess, body, result).build();
+		}		
+		
+		return body == null ? Response.status(statusCode).build() : Response.status(statusCode).entity(body).build();
+	}
+	
+	private static <T> ResponseBuilder createBody(ResponseBuilder builder, boolean sendOriginObjectIfNotSuccess, T body, OperationResult result) {
+		if (sendOriginObjectIfNotSuccess) {
+			return builder.entity(body);
+		}
+		return builder.entity(result);
+		
+	}
+	
+	public static <T> Response createResponse(Response.Status statusCode, URI location, OperationResult result) {
+		result.computeStatusIfUnknown();
+		
+		if (result.isPartialError()) {
+			return createBody(Response.status(250), false, null, result).location(location).build();
+		} else if (result.isHandledError()) {
+			return createBody(Response.status(240), false, null, result).location(location).build();
+		}		
+		
+		
+		return location == null ? Response.status(statusCode).build() : Response.status(statusCode).location(location).build();
+	}
+	
+	
 
 	public static Response.ResponseBuilder createErrorResponseBuilder(OperationResult result, Exception ex) {
 		if (ex instanceof ObjectNotFoundException) {
@@ -126,9 +175,9 @@ public class RestServiceUtil {
 
 	// slightly experimental
 	public static Response.ResponseBuilder createResultHeaders(Response.ResponseBuilder builder, OperationResult result) {
-		return builder
-				.header(OPERATION_RESULT_STATUS, OperationResultStatus.createStatusType(result.getStatus()).value())
-				.header(OPERATION_RESULT_MESSAGE, result.getMessage());
+		return builder.entity(result);
+//				.header(OPERATION_RESULT_STATUS, OperationResultStatus.createStatusType(result.getStatus()).value())
+//				.header(OPERATION_RESULT_MESSAGE, result.getMessage());
 	}
 	
 	public static void createAbortMessage(ContainerRequestContext requestCtx){

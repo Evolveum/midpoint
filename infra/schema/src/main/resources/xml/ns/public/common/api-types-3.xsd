@@ -574,6 +574,16 @@
 	                </xsd:documentation>	                
 	            </xsd:annotation>
         	</xsd:element>
+        	
+        	<xsd:element name="result" type="c:OperationResultType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Specifies if the generated value should be set immediately to the object. 
+	                    Relevant only for generate operation.
+	                </xsd:documentation>	                
+	            </xsd:annotation>
+        	</xsd:element>
+        	
         </xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType"/>

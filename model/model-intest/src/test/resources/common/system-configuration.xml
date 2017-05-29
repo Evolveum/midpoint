@@ -39,6 +39,14 @@
         </appender>
     </logging>
     <notificationConfiguration>
+		<handler>
+			<simplePolicyRuleNotifier>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:policyRuleNotifier</transport>
+			</simplePolicyRuleNotifier>
+		</handler>
         <handler>
             <accountPasswordNotifier>
                 <recipientExpression>

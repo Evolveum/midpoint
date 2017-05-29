@@ -310,11 +310,13 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	}
 
 	@SuppressWarnings("unchecked")
+	@NotNull
 	public Collection<T> getNonNegativeValues() {
         return MiscUtil.union(zeroSet, plusSet);
     }
 
 	@SuppressWarnings("unchecked")
+	@NotNull
     public Collection<T> getNonPositiveValues() {
         return MiscUtil.union(zeroSet, minusSet);
     }

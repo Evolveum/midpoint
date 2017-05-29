@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -86,16 +87,31 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
     public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
                                  List<AssignmentsPreviewDto> privilegesList, PageBase pageBase) {
-            super(id, delegationTargetObjectModel, delegatedToMe, privilegesList, pageBase);
+        super(id, delegationTargetObjectModel, delegatedToMe, new LoadableModel<List<AssignmentsPreviewDto>>(false) {
+            @Override
+            protected List<AssignmentsPreviewDto> load() {
+                return privilegesList;
+            }
+        }, pageBase);
+    }
+
+    public DelegationEditorPanel(String id, IModel<AssignmentEditorDto> delegationTargetObjectModel, boolean delegatedToMe,
+                                 LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel, PageBase pageBase) {
+            super(id, delegationTargetObjectModel, delegatedToMe, privilegesListModel, pageBase);
         }
 
     @Override
     protected void initHeaderRow(){
-        if (delegatedToMe){
-            privilegesList = getModelObject().getPrivilegeLimitationList();
+        if (delegatedToMe) {
+            privilegesListModel = new LoadableModel<List<AssignmentsPreviewDto>>(false) {
+                @Override
+                protected List<AssignmentsPreviewDto> load() {
+                    return DelegationEditorPanel.this.getModelObject().getPrivilegeLimitationList();
+                }
+            };
         }
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
-                new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
+                new PropertyModel<>(getModel(), AssignmentEditorDto.F_SELECTED)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -217,6 +233,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                 if (!UserDtoStatus.ADD.equals(getModelObject().getStatus())){
                     return true;
                 }
+                List<AssignmentsPreviewDto> privilegesList = privilegesListModel.getObject();
                 return privilegesList != null && privilegesList.size() > 0;
             }
         });
@@ -235,7 +252,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
                     @Override
                     public void setObject(Boolean value){
                         if (value){
-                            getModelObject().setPrivilegeLimitationList(privilegesList);
+                            getModelObject().setPrivilegeLimitationList(privilegesListModel.getObject());
                         } else {
                             getModelObject().setPrivilegeLimitationList(new ArrayList<>());
                         }
@@ -287,7 +304,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             public void onClick(AjaxRequestTarget target) {
                 AssignmentPreviewDialog assignmentPreviewDialog =
                         new AssignmentPreviewDialog(pageBase.getMainPopupBodyId(),
-                                selectExistingPrivileges(privilegesList),
+                                selectExistingPrivileges(privilegesListModel.getObject()),
                                 null, pageBase, true){
                             @Override
                             protected boolean isDelegationPreview(){
@@ -473,7 +490,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
     private boolean allAssignmentPrivilegesSelected(){
         return getModelObject().getPrivilegeLimitationList() == null ||
                     getModelObject().getPrivilegeLimitationList().size() == 0 ||
-                    getModelObject().getPrivilegeLimitationList().size() == privilegesList.size();
+                    getModelObject().getPrivilegeLimitationList().size() == privilegesListModel.getObject().size();
     }
 
     private List<String> getPrivilegesNamesList(){

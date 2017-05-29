@@ -29,6 +29,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -138,7 +139,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
 	protected static final File ROLE_NON_ASSIGNABLE_FILE = new File(TEST_DIR, "role-non-assignable.xml");
 	protected static final String ROLE_NON_ASSIGNABLE_OID = "db67d2f0-abd8-11e6-9c30-b35abe3e4e3a";
-	
+
+	protected static final File ROLE_SCREAMING_FILE = new File(TEST_DIR, "role-screaming.xml");
+	protected static final String ROLE_SCREAMING_OID = "024e204d-ce40-4fe9-ae5a-0da3cbce989a";
+
 	protected static final File ROLE_NON_CREATEABLE_FILE = new File(TEST_DIR, "role-non-createable.xml");
 	protected static final String ROLE_NON_CREATEABLE_OID = "c45a25ce-b2e8-11e6-923e-938d2c54d334";
 	
@@ -213,6 +217,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_WEAK_SINGER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_SCREAMING_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_UNTOUCHABLE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_FOOL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BLOODY_FOOL_FILE, RoleType.class, initResult);
@@ -4301,9 +4306,40 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyGroupMember(null, GROUP_FOOLS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         // Group association is non-tolerant. It should be removed.
         assertNoDummyGroupMember(null, GROUP_SIMPLETONS_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-
-
 	}
+
+	@Test
+	public void test870AssignRoleScreaming() throws Exception {
+		final String TEST_NAME = "test870AssignRoleScreaming";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		notificationManager.setDisabled(false);
+
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+		display("user jack", userJackBefore);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		assignRole(USER_JACK_OID, ROLE_SCREAMING_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+		display("user after", userJackAfter);
+
+		display("dummy transport", dummyTransport);
+		List<Message> messages = dummyTransport.getMessages("dummy:policyRuleNotifier");
+		assertNotNull("No notification messages", messages);
+		assertEquals("Wrong # of notification messages", 1, messages.size());
+	}
+
 
 	protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
 		return true;

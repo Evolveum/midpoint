@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 
 public abstract class TestAbstractRestService extends RestServiceInitializer{
@@ -408,7 +410,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	}
 
 	@Test
-	public void test104AddAccountRaw() throws Exception {
+	public void test104AddAccountRawResourceDoesNotExist() throws Exception {
 		final String TEST_NAME = "test104AddAccountRaw";
 		displayTestTile(this, TEST_NAME);
 
@@ -424,8 +426,12 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		TestUtil.displayThen(TEST_NAME);
 		displayResponse(response);
 
-		assertStatus(response, 201);
-
+		// expecting hadnled error because resource doesn't exist.. it is OK, but let's say admin about that
+		assertStatus(response, 240);
+		OperationResult addResult = traceResponse(response);
+		assertNotNull("Expected operation result in the response, but nothing in the body", addResult);
+		assertEquals("Unexpected status of the operation result. Expected "+ OperationResultStatus.HANDLED_ERROR + ", but was " + addResult.getStatus(), addResult.getStatus(), OperationResultStatus.HANDLED_ERROR);
+		
 		OperationResult parentResult = new OperationResult("get");
 		try {
 			getProvisioning().getObject(ShadowType.class, ACCOUT_CHUCK_OID,
@@ -735,6 +741,30 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
 	}
 	
+	@Test
+	public void test200searchAllUsers() {
+		final String TEST_NAME = "test200searchAllUsers";
+		displayTestTile(this, TEST_NAME);
+		
+		WebClient client = prepareClient();
+		client.path("/users/search");
+		
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(new QueryType());
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		
+		assertStatus(response, 200);
+		
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(2);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+
+	}
+	
 
 	@Test
 	public void test401AddUserTemplateOverwrite() throws Exception {
@@ -925,12 +955,16 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		//TODO assert changed items
 	}
 	
-	private void traceResponse(Response response){
+	private OperationResult traceResponse(Response response){
 		if (response.getStatus() != 200) {
 			OperationResultType result = response.readEntity(OperationResultType.class);
 			LOGGER.info("####RESULT");
-			LOGGER.info(OperationResult.createOperationResult(result).debugDump());
+			OperationResult opResult = OperationResult.createOperationResult(result);
+			LOGGER.info(opResult.debugDump());
+			return opResult;
 		}
+		
+		return null;
 	}
 	
 	@Test

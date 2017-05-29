@@ -45,14 +45,14 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
     private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
 
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
-    private List<AssignmentsPreviewDto> privilegesList = new ArrayList<>();
+    private LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel;
 
     public UserDelegationsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-                                    LoadableModel<List<AssignmentEditorDto>> delegationsModel,
-                                   List<AssignmentsPreviewDto> privilegesList, PageBase page) {
+            LoadableModel<List<AssignmentEditorDto>> delegationsModel,
+			LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel, PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
         this.delegationsModel = delegationsModel;
-        this.privilegesList = privilegesList;
+        this.privilegesListModel = privilegesListModel;
         initLayout();
     }
 
@@ -69,7 +69,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             @Override
             public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), false,
-                        privilegesList, pageBase);
+                        privilegesListModel, pageBase);
                 item.add(editor);
             }
 
@@ -102,7 +102,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                                         @Override
                                         protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
                                             pageBase.hideMainPopup(target);
-                                            List<ObjectType> newAssignmentsList = new ArrayList<ObjectType>();
+                                            List<ObjectType> newAssignmentsList = new ArrayList<>();
                                             newAssignmentsList.add(user);
                                             addSelectedAssignablePerformed(target, newAssignmentsList, getPageBase().getMainPopup().getId());
                                         }
@@ -161,7 +161,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
                                 ((PrismObject<UserType>)getObjectWrapper().getObject()).asObjectable(),
                                 SchemaConstants.ORG_DEPUTY, getPageBase(), (UserType) object);
-                        dto.setPrivilegeLimitationList(privilegesList);
+                        dto.setPrivilegeLimitationList(privilegesListModel.getObject());
                         delegationsModel.getObject().add(dto);
                     } catch (Exception e) {
                         error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
