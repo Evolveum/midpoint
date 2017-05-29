@@ -29,6 +29,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.util.QNameUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -4334,6 +4335,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		display("user after", userJackAfter);
 
 		display("dummy transport", dummyTransport);
+		List<Message> messages = dummyTransport.getMessages("dummy:policyRuleNotifier");
+		assertNotNull("No notification messages", messages);
+		assertEquals("Wrong # of notification messages", 1, messages.size());
 	}
 
 
