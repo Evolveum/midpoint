@@ -46,6 +46,8 @@ public interface Event {
 
     boolean isWorkflowRelated();
 
+    boolean isPolicyRuleRelated();
+
     boolean isAdd();
 
     boolean isModify();

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
@@ -96,8 +97,6 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -164,6 +163,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private static final String DOT_CLASS = PageBase.class.getName() + ".";
 	private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
 	private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
+	private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
 	private static final String ID_TITLE = "title";
 	private static final String ID_MAIN_HEADER = "mainHeader";
@@ -264,6 +264,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private boolean initialized = false;
 
 	private LoadableModel<Integer> workItemCountModel;
+	private LoadableModel<Integer> certWorkItemCountModel;
 	private LoadableModel<DeploymentInformationType> deploymentInfoModel;
 
 	public PageBase(PageParameters parameters) {
@@ -315,6 +316,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				}
 			}
 		};
+		certWorkItemCountModel = new LoadableModel<Integer>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected Integer load() {
+				try {
+					AccessCertificationService acs = getCertificationService();
+					Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
+					OperationResult result = task.getResult();
+					List<AccessCertificationWorkItemType> certWorkItems = acs.searchOpenWorkItems(new ObjectQuery(),
+							true, null, task, result);
+
+					return certWorkItems == null ? 0 : certWorkItems.size();
+				} catch (SchemaException|SecurityViolationException|ObjectNotFoundException
+						|ConfigurationException|CommunicationException e) {
+					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
+					return null;
+				}
+			}
+		};
 		deploymentInfoModel = new LoadableModel<DeploymentInformationType>() {
 			private static final long serialVersionUID = 1L;
 
@@ -328,6 +349,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	public void resetWorkItemCountModel() {
 		if (workItemCountModel != null) {
 			workItemCountModel.reset();
+		}
+	}
+
+	public void resetCertWorkItemCountModel() {
+		if (certWorkItemCountModel != null) {
+			certWorkItemCountModel.reset();
 		}
 	}
 
@@ -1261,7 +1288,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private MainMenuItem createCertificationItems() {
 
 		MainMenuItem item = new MainMenuItem("fa fa-certificate",
-				createStringResource("PageAdmin.menu.top.certification"), null);
+				createStringResource("PageAdmin.menu.top.certification"), null){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getBubbleLabel() {
+				Integer certWorkItemCount = certWorkItemCountModel.getObject();
+				if (certWorkItemCount == null || certWorkItemCount == 0) {
+					return null;
+				} else {
+					return certWorkItemCount.toString();
+				}
+			}
+		};
 
 		List<MenuItem> submenu = item.getItems();
 

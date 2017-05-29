@@ -303,6 +303,8 @@ public abstract class SchemaConstants {
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "modified"));
 	public static final String MODEL_POLICY_SITUATION_ASSIGNED = 
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assigned"));
+	public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));			// currently unused, planned for 3.7+
 
 	public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
 	public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";

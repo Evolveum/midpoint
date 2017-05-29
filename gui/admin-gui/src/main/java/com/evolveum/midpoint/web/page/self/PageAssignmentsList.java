@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.assignment.TargetUserSelectorComponent;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -54,6 +56,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String ID_REQUEST_BUTTON = "request";
     private static final String ID_RESOLVE_CONFLICTS_BUTTON = "resolveConflicts";
     private static final String ID_DESCRIPTION = "description";
+    private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRequestRole.class);
     private static final String DOT_CLASS = PageAssignmentsList.class.getName() + ".";
@@ -102,6 +105,10 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
         };
         mainForm.add(panel);
+
+        WebMarkupContainer targetUserPanel = new TargetUserSelectorComponent(ID_TARGET_USER_PANEL, PageAssignmentsList.this);
+        targetUserPanel.setOutputMarkupId(true);
+        mainForm.add(targetUserPanel);
 
         TextArea descriptionInput = new TextArea<String>(ID_DESCRIPTION, descriptionModel);
         descriptionInput.add(new AjaxFormComponentUpdatingBehavior("blur") {

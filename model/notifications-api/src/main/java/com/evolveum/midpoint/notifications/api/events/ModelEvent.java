@@ -51,8 +51,9 @@ public class ModelEvent extends BaseEvent {
     // we can expect that modelContext != null and focus context != null as well
     private ModelContext modelContext;
 
-    public ModelEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+    public ModelEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ModelContext modelContext) {
         super(lightweightIdentifierGenerator);
+        this.modelContext = modelContext;
     }
 
     public ModelContext getModelContext() {
@@ -65,10 +66,6 @@ public class ModelEvent extends BaseEvent {
     
     public Collection<ModelElementContext> getProjectionContexts() {
         return modelContext.getProjectionContexts();
-    }
-
-    public void setModelContext(ModelContext modelContext) {
-        this.modelContext = modelContext;
     }
 
     public List<? extends ObjectDeltaOperation> getFocusExecutedDeltas() {
