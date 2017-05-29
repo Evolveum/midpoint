@@ -40,22 +40,18 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
-import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -86,18 +82,13 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private static final String ID_VIEW_TYPE = "viewTypeSelect";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH = "search";
-    private static final String ID_PANEL_CONTAINER = "catalogItemsPanelContainer";
-    private static final String ID_TARGET_USER_CONTAINER = "targetUserContainer";
-    private static final String ID_TARGET_USER_BUTTON = "targetUserButton";
-    private static final String ID_DELETE_TARGET_USER_BUTTON = "deleteTargetUserButton";
-    private static final String ID_TARGET_USER_LABEL = "targetUserLabel";
+    private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
 
     private static final String DOT_CLASS = AssignmentCatalogPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
     private static final String OPERATION_LOAD_ASSIGNMENT_CONSTRAINTS = DOT_CLASS + "loadAssignmentConstraints";
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
-    private static final int TARGET_USERS_TITLE_ROWS = 30;
     private PageBase pageBase;
     private IModel<String> selectedTreeItemOidModel;
     private String rootOid;
@@ -105,7 +96,6 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private IModel<AssignmentViewType> viewModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> objectProvider;
     private int itemsPerRow = 4;
-    private boolean showUserSelectionPopup = true;
     private List<AssignmentEditorDto> listProviderData;
     List<AssignmentViewType> viewTypeList = new ArrayList<>();
 
@@ -330,46 +320,11 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     }
 
     private void initUserSelectionPanel(WebMarkupContainer headerPanel){
-        WebMarkupContainer targetUserContainer = new WebMarkupContainer(ID_TARGET_USER_CONTAINER);
-        targetUserContainer.setOutputMarkupId(true);
-        AjaxLink<String> targetUserButton = new AjaxLink<String>(ID_TARGET_USER_BUTTON) {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (showUserSelectionPopup) {
-                    initUserSelectionPopup(createStringResource("AssignmentCatalogPanel.selectTargetUser"), true, target);
-                }
-                showUserSelectionPopup = true;
-            }
-        };
-        targetUserButton.setOutputMarkupId(true);
-        targetUserButton.add(new AttributeAppender("title", getTargetUsersButtonTitle()));
-        targetUserContainer.add(targetUserButton);
-
-        Label label = new Label(ID_TARGET_USER_LABEL, getTargetUserLabelModel());
-        label.setRenderBodyOnly(true);
-        targetUserButton.add(label);
-
-        AjaxLink deleteButton = new AjaxLink(ID_DELETE_TARGET_USER_BUTTON) {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showUserSelectionPopup = false;
-                getRoleCatalogStorage().setTargetUserList(null);
-                target.add(getTargetUserContainer());
-            }
-        };
-        deleteButton.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-            @Override
-            public boolean isVisible(){
-                return  getRoleCatalogStorage().getTargetUserList() != null &&
-                        getRoleCatalogStorage().getTargetUserList().size() > 0;
-            }
-        });
-        targetUserButton.add(deleteButton);
-        headerPanel.add(targetUserContainer);
+        WebMarkupContainer targetUserPanel = new TargetUserSelectorComponent(ID_TARGET_USER_PANEL, "btn-sm", pageBase);
+        targetUserPanel.setOutputMarkupId(true);
+        headerPanel.add(targetUserPanel);
     }
+
     private void initViewSelector(WebMarkupContainer headerPanel){
         DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewModel,
                 Model.ofList(viewTypeList != null && viewTypeList.size() > 0 ?
@@ -381,8 +336,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 if (AssignmentViewType.USER_TYPE.equals(viewSelect.getModelObject())){
-                    initUserSelectionPopup(createStringResource("AssignmentCatalogPanel.selectAssignmentsUserOwner"),
-                            false, target);
+                    initUserViewSelectionPopup(createStringResource("AssignmentCatalogPanel.selectAssignmentsUserOwner"),
+                            target);
                 } else {
                     AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
                     target.add(getCatalogItemsPanelContainer());
@@ -395,40 +350,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     }
 
-    private IModel<String> getTargetUsersButtonTitle() {
-        return new LoadableModel<String>(true) {
-            public String load() {
-                StringBuilder sb = new StringBuilder();
-                if (getRoleCatalogStorage().isMultiUserRequest()) {
-                    List<PrismObject<UserType>> sortedList = getRoleCatalogStorage().getTargetUserList();
-                    Collections.sort(sortedList, new Comparator<PrismObject<UserType>>() {
-
-                        @Override
-                        public int compare(PrismObject<UserType> u1, PrismObject<UserType> u2) {
-                            return String.CASE_INSENSITIVE_ORDER.compare(u1.getName().getOrig(), u2.getName().getOrig());
-                        }
-                    });
-                    int columnsAmount = sortedList.size() / TARGET_USERS_TITLE_ROWS;
-                    Iterator<PrismObject<UserType>> it = sortedList.iterator();
-                    while (it.hasNext()){
-                        for (int i=0; i <= columnsAmount; i++){
-                            if (it.hasNext()){
-                                PrismObject user = it.next();
-                                sb.append(user.getName().getOrig());
-                                if (it.hasNext()){
-                                    sb.append(",\t");
-                                }
-                            }
-                        }
-                        sb.append(System.lineSeparator());
-                    }
-                }
-                return sb.toString();
-            }
-        };
-    }
-
-    private WebMarkupContainer getCatalogItemsPanelContainer(){
+   private WebMarkupContainer getCatalogItemsPanelContainer(){
         return (WebMarkupContainer)get(ID_CATALOG_ITEMS_PANEL_CONTAINER);
     }
 
@@ -621,25 +543,15 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 (selectedTreeItemOidModel == null || StringUtils.isEmpty(oid));
     }
 
-    private void initUserSelectionPopup(StringResourceModel title, boolean multiselect, AjaxRequestTarget target) {
+    private void initUserViewSelectionPopup(StringResourceModel title, AjaxRequestTarget target) {
 
         List<QName> supportedTypes = new ArrayList<>();
         supportedTypes.add(pageBase.getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(UserType.class).getTypeName());
         ObjectBrowserPanel<UserType> focusBrowser = new ObjectBrowserPanel<UserType>(pageBase.getMainPopupBodyId(),
-                UserType.class, supportedTypes, multiselect, pageBase, null, getSelectedObjects()) {
-            @Override
-            protected void addPerformed(AjaxRequestTarget target, QName type, List<UserType> selected) {
-                super.addPerformed(target, type, selected);
-                List<PrismObject<UserType>> userList = new ArrayList<>();
-                for (UserType user : selected){
-                    userList.add(user.asPrismObject());
-                }
-                getRoleCatalogStorage().setTargetUserList(userList);
-                AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
-                target.add(getHeaderPanel());
-                target.add(getCatalogItemsPanelContainer());
-            }
+                UserType.class, supportedTypes, false, pageBase, null, new ArrayList<>()) {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, UserType targetUser) {
@@ -656,48 +568,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 return title;
             }
 
-         };
-        pageBase.showMainPopup(focusBrowser, target);
-    }
-
-    private List<UserType> getSelectedObjects(){
-        List<PrismObject<UserType>> selectedUsers = getRoleCatalogStorage().getTargetUserList();
-        List<UserType> users = new ArrayList<>();
-        if (selectedUsers != null) {
-            for (PrismObject<UserType> user : selectedUsers) {
-                users.add(user.asObjectable());
-            }
-        }
-        return users;
-    }
-
-    private WebMarkupContainer getTargetUserContainer(){
-        return (WebMarkupContainer)get(ID_HEADER_PANEL).get(ID_TARGET_USER_CONTAINER);
-    }
-    private IModel<String> getTargetUserLabelModel(){
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                if (getRoleCatalogStorage().isSelfRequest()){
-                    return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
-                }
-                List<PrismObject<UserType>> targetUsersList =  getRoleCatalogStorage().getTargetUserList();
-                if (targetUsersList.size() == 1){
-                    return createStringResource("AssignmentCatalogPanel.requestFor").getString() +
-                            " " + targetUsersList.get(0).getName().getOrig();
-                }
-                return createStringResource("AssignmentCatalogPanel.requestForMultiple", targetUsersList.size()).getString();
-            }
-
-            @Override
-            public void setObject(String s) {
-            }
-
-            @Override
-            public void detach() {
-
-            }
         };
+        pageBase.showMainPopup(focusBrowser, target);
     }
 
     private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj, AssignmentEditorDto assignmentDto){

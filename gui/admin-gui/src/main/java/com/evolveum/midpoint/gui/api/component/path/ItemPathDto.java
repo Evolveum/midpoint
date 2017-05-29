@@ -59,6 +59,17 @@ public class ItemPathDto implements Serializable{
 	}
 	
 	public ItemPath toItemPath() {
+		if (parentPath == null) {
+			if (itemDef == null) {
+				return path;
+			}
+			this.path = new ItemPath(itemDef.getName());
+		} else {
+			if (itemDef == null) {
+				return parentPath.toItemPath();
+			}
+			this.path = parentPath.toItemPath().append(itemDef.getName());
+		}
 		return path;
 		
 	}

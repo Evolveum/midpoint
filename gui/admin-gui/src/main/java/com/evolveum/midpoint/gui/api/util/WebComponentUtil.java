@@ -409,11 +409,21 @@ public final class WebComponentUtil {
 	
 	// TODO: move to schema component
 	public static List<QName> createObjectTypeList() {
+		
 		List<QName> types = new ArrayList<>(ObjectTypes.values().length);
 		for (ObjectTypes t : ObjectTypes.values()) {
 			types.add(t.getTypeQName());
 		}
-		return types;
+		
+		return types.stream().sorted((type1, type2) -> {
+				Validate.notNull(type1);
+				Validate.notNull(type2);
+
+				return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
+
+			
+		}).collect(Collectors.toList());
+		
 	}
 
 	// TODO: move to schema component

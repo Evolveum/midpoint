@@ -475,8 +475,8 @@ public class PageCertDecisions extends PageAdminCertification {
         if (!result.isSuccess()) {
             showResult(result);
         }
-        target.add(getFeedbackPanel());
-        target.add((Component) getDecisionsTable());
+        resetCertWorkItemCountModel();
+        target.add(this);
     }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
