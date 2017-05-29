@@ -52,6 +52,10 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 						return null;
 					}
 					
+					if (getModelObject().getParentPath().toItemPath() == null) {
+						return null;
+					}
+					
 					return getString("ItemPathSegmentPanel.itemToSearch", getModelObject().getParentPath().toItemPath().toString());
 				}
 				});
@@ -61,7 +65,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public boolean isVisible() {
-				return getModelObject().getParentPath() != null;
+				return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
 			}
 		});
 		label.setOutputMarkupId(true);

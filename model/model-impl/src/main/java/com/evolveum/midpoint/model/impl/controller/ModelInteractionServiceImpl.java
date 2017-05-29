@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
@@ -163,7 +164,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		LensContext<F> context;
 		
 		try {
-			
+			RepositoryCache.enter();
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 			context = contextFactory.createContext(clonedDeltas, options, task, result);
 //			context.setOptions(options);
@@ -180,6 +181,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				ExpressionEvaluationException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
+		} finally {
+			RepositoryCache.exit();
 		}
 
 		if (LOGGER.isDebugEnabled()) {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.security;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,8 +86,11 @@ import java.util.List;
 public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
-    
-    @Autowired private transient RepositoryService repositoryService;
+
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
+
 	@Autowired private ObjectResolver objectResolver;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private MappingFactory mappingFactory;
@@ -198,37 +203,42 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
-			for (AssignmentType assignmentType: userType.getAssignment()) {
-				try {
-					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-					assignmentIdi.recompute();
-					EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
-					if (assignment.isValid()) {
-						authorizations.addAll(assignment.getAuthorizations());
-						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-					}
-					for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-						if (target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-							&& DeputyUtils.isDelegationPath(target.getAssignmentPath())) {
-							List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-							principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-									(UserType) target.getTarget().asObjectable(), limitations));
+			try {
+				RepositoryCache.enter();
+				for (AssignmentType assignmentType: userType.getAssignment()) {
+					try {
+						ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+						assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+						assignmentIdi.recompute();
+						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
+						if (assignment.isValid()) {
+							authorizations.addAll(assignment.getAuthorizations());
+							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
 						}
+						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+							if (target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+									&& DeputyUtils.isDelegationPath(target.getAssignmentPath())) {
+								List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
+								principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
+										(UserType) target.getTarget().asObjectable(), limitations));
+							}
+						}
+					} catch (SchemaException e) {
+						LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}",
+								userType, e.getMessage(), assignmentType, e);
+					} catch (ObjectNotFoundException e) {
+						LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}",
+								userType, e.getMessage(), assignmentType, e);
+					} catch (ExpressionEvaluationException e) {
+						LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}",
+								userType, e.getMessage(), assignmentType, e);
+					} catch (PolicyViolationException e) {
+						LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}",
+								userType, e.getMessage(), assignmentType, e);
 					}
-				} catch (SchemaException e) {
-					LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
-				} catch (ObjectNotFoundException e) {
-					LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
-				} catch (ExpressionEvaluationException e) {
-					LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
-				} catch (PolicyViolationException e) {
-					LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
 				}
+			} finally {
+				RepositoryCache.exit();
 			}
 		}
 		if (userType.getAdminGuiConfiguration() != null) {

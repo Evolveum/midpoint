@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
@@ -74,7 +75,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 public class MiscSchemaUtil {
 	
-	private static Random rnd = new Random();
+	private static final Trace LOGGER = TraceManager.getTrace(MiscSchemaUtil.class);
+	private static final Random RND = new Random();
 	
 	public static ObjectListType toObjectListType(List<PrismObject<? extends ObjectType>> list) {
 		ObjectListType listType = new ObjectListType();
@@ -124,7 +126,7 @@ public class MiscSchemaUtil {
 	}
 
 	private static String generateSerialNumber() {
-		return Long.toHexString(rnd.nextLong())+"-"+Long.toHexString(rnd.nextLong());
+		return Long.toHexString(RND.nextLong())+"-"+Long.toHexString(RND.nextLong());
 	}
 
 	public static boolean isNullOrEmpty(ProtectedStringType ps) {
@@ -408,5 +410,48 @@ public class MiscSchemaUtil {
 		}
 		return true;
 	}
-		
+	
+	/**
+	 * Make quick and reasonably reliable comparison. E.g. compare prism objects only by
+	 * comparing OIDs. This is ideal for cases when the compare is called often and the
+	 * objects are unlikely to change (e.g. user interface selectable beans).
+	 */
+	@SuppressWarnings("rawtypes")
+	public static boolean quickEquals(Object a, Object b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a instanceof PrismObject) {
+			if (b instanceof PrismObject) {
+				// In case both values are objects then compare only OIDs.
+				// that should be enough. Comparing complete objects may be slow
+				// (e.g. if the objects have many assignments)
+				String aOid = ((PrismObject)a).getOid();
+				String bOid = ((PrismObject)b).getOid();
+				if (aOid != null && bOid != null) {
+					return aOid.equals(bOid);
+				}
+			} else {
+				return false;
+			}
+		}
+		if (a instanceof ObjectType) {
+			if (b instanceof ObjectType) {
+				// In case both values are objects then compare only OIDs.
+				// that should be enough. Comparing complete objects may be slow
+				// (e.g. if the objects have many assignments)
+				String aOid = ((ObjectType)a).getOid();
+				String bOid = ((ObjectType)b).getOid();
+				if (aOid != null && bOid != null) {
+					return aOid.equals(bOid);
+				}
+			} else {
+				return false;
+			}
+		}
+		return a.equals(b);
+	}
 }
