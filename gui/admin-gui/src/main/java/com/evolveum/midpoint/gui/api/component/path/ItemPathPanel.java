@@ -44,7 +44,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		super(id, model);
 
 		setParent(parent);
-		initNamspaceDefinitionMap();
+		
 
 		initLayout();
 
@@ -56,7 +56,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 	}
 
 	private void initLayout() {
-		final ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
+		ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
 				new AbstractReadOnlyModel<ItemPathDto>() {
 			
 					private static final long serialVersionUID = 1L;
@@ -69,6 +69,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
+				initNamspaceDefinitionMap();
 				return schemaDefinitionsMap;
 			}
 		};
@@ -128,7 +129,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(itemDefPanel);
+				refreshItemPath(ItemPathPanel.this.getModelObject(), target);
 
 			}
 		});
@@ -153,7 +154,14 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		}
 		
 		if (!isAdd) {
-			itemPathDto = itemPathDto.getParentPath();
+			ItemPathDto parentPath = itemPathDto.getParentPath();
+			if (parentPath == null) {
+				parentPath = new ItemPathDto();
+				parentPath.setObjectType(itemPathDto.getObjectType());
+				itemPathDto = parentPath;
+			} else {
+				itemPathDto = itemPathDto.getParentPath();
+			}
 		}
 		// pathSegmentPanel.refreshModel(itemPathDto);
 		this.getModel().setObject(itemPathDto);
@@ -161,6 +169,12 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		target.add(this);
 		// target.add(pathSegmentPanel);
 
+	}
+	
+	private void refreshItemPath(ItemPathDto itemPathDto, AjaxRequestTarget target) {
+		
+		this.getModel().setObject(itemPathDto);
+		target.add(this);
 	}
 
 	private void initNamspaceDefinitionMap() {
