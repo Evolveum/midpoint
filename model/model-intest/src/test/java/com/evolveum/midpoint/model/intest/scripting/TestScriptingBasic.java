@@ -114,7 +114,6 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
         ExpressionSequenceType sequence = new ExpressionSequenceType();
-        ObjectFactory of = new ObjectFactory();
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(sequence, result);

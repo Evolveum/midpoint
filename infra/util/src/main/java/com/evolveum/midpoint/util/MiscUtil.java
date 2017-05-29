@@ -44,7 +44,8 @@ public class MiscUtil {
             throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
         }
     }
-	
+
+    @NotNull
 	public static <T> Collection<T> union(Collection<T>... sets) {
 		Set<T> resultSet = new HashSet<>();
 		for (Collection<T> set: sets) {

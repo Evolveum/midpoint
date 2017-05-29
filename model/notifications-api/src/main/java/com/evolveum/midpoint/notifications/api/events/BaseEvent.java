@@ -109,7 +109,12 @@ public abstract class BaseEvent implements Event {
         return isCategoryType(EventCategoryType.WORKFLOW_EVENT);
     }
 
-    public boolean isCertCampaignStageRelated() {
+	@Override
+	public boolean isPolicyRuleRelated() {
+		return isCategoryType(EventCategoryType.POLICY_RULE_EVENT);
+	}
+
+	public boolean isCertCampaignStageRelated() {
         return isCategoryType(EventCategoryType.CERT_CAMPAIGN_STAGE_EVENT);
     }
 

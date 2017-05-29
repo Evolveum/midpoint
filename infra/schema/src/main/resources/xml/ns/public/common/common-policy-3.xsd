@@ -83,6 +83,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="timeValidity" type="tns:TimeValidityPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A constraint that triggers when validity of an object, assignment, or basically any time-sensitive
+                        item (e.g. password) is about to end.
+
+						Note: in 3.6, this constraint is _not_ evaluated during projector run. It is meant to be evaluated
+						by a special task. In the future we plan to bring evaluation of this constraint into standard
+						projector/clockwork processing.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="situation" type="tns:PolicySituationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -305,6 +320,64 @@
     </xsd:complexType>
     <xsd:element name="assignmentPolicyConstraint" type="tns:AssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
+    <xsd:complexType name="TimeValidityPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A constraint that triggers when validity of an object, assignment, or basically any time-sensitive
+                item (e.g. password) is about to end.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="item" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The item whose validity is to be checked. If not specified, activation/validTo is assumed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="assignment" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true, validity of assignments of the relevant object are to be checked, not
+                                items of the object itself. So, for example, if you want to send notifications before validity of
+                                assignments to roles A, B, C expire, you'd need to attach a policy rule with this constraint
+                                having assignment=true to roles A, B, and C.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="activateOn" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When will this policy constraint activate (trigger)? If not specified, activation will occur
+                                on the moment of validity change. Specify negative durations if you need to activate the trigger
+                                before that moment; and positive ones is the trigger should be activated after that.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="deactivateOn" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When will be this policy constraint deactivated? If not specified, it will be active forever.
+                                Specify negative durations if you need to activate the trigger before the moment of validity
+                                change; and positive ones is the trigger should be deactivated after that.
+
+                                If not specified, the trigger will be active forever (TODO ok? or only until validTo occurs?)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="timeValidityPolicyConstraint" type="tns:TimeValidityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
     <xsd:complexType name="PolicySituationPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
@@ -384,7 +457,7 @@
     <xsd:simpleType name="ExclusionPolicyType">
         <xsd:annotation>
             <xsd:documentation>
-                Enumeration of exclustion policy enforcement types.
+                Enumeration of exclusion policy enforcement types.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -855,7 +928,7 @@
             <xsd:documentation>
                 Recorded exception from a policy rule. The exceptions that are approved are
                 recoded here to avoid re-evaluating and re-approving them all the time.
-                This is EXPERIMENAL functionality. It is likely to change in the near future.
+                This is EXPERIMENTAL functionality. It is likely to change in the near future.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container />
