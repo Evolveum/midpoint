@@ -415,6 +415,9 @@
             <entry key="org.apache.cxf.logging.FaultListener" value-ref="wsFaultListener"/>
         </jaxws:properties>
 
+        <jaxws:features>
+            <bean class="org.apache.cxf.feature.LoggingFeature"/>
+        </jaxws:features>
     </jaxws:endpoint>
 
     <jaxrs:server id="restService" address="/rest/">
