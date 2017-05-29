@@ -49,7 +49,6 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private static final String ID_PAGING = "paging";
     private static final String ID_COUNT = "count";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
-    private static final String ID_SUBMIT_BUTTON = "submitButton";
     private static final String ID_FOOTER = "footer";
 
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> objectDataProvider;
@@ -62,10 +61,6 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
     private IModel<String> catalogOidModel;
     private long currentPage = 0;
     private boolean isListProvider = false;
-
-    public CatalogItemsPanel(String id) {
-        super(id);
-    }
 
     public CatalogItemsPanel(String id, final PageBase pageBase, int itemsPerRow,
                              ListDataProvider provider) {
@@ -112,10 +107,6 @@ public class CatalogItemsPanel extends BasePanel implements IPageableItems {
         add(assignmentsTable);
 
         add(createFooter(ID_FOOTER));
-
-    }
-
-    protected void refreshCatalogItemsPanel() {
 
     }
 

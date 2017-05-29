@@ -75,8 +75,6 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentCatalogPanel.class);
     private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "." + "loadTargetObject";
 
-    private String addToCartLinkIcon = "fa fa-times-circle fa-lg text-danger";
-    private String detailsLinkIcon = "fa fa-arrow-circle-right";
     private long itemsCount = 0;
     private long itemsPerRow = 0;
     private PageBase pageBase;
@@ -314,44 +312,6 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         AssignmentCatalogPanel parent = MultiButtonTable.this.findParent(AssignmentCatalogPanel.class);
         parent.reloadCartButton(target);
 
-    }
-
-    private PageBase getTargetObjectDetailsPage(AssignmentEditorDtoType type, PrismObject<AbstractRoleType> targetObject){
-        if (targetObject == null){
-            return pageBase;
-        }
-        if (AssignmentEditorDtoType.ORG_UNIT.equals(type)){
-            return new PageOrgUnit(((OrgType)targetObject.asObjectable()).asPrismObject()){
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected IModel<String> createPageTitleModel() {
-                    return createStringResource("PageAdminObjectDetails.title.editOrgType",
-                            WebComponentUtil.getName(targetObject.asObjectable()));
-                }
-            };
-        } else if (AssignmentEditorDtoType.ROLE.equals(type)){
-            return new PageRole(((RoleType)targetObject.asObjectable()).asPrismObject()){
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected IModel<String> createPageTitleModel() {
-                    return createStringResource("PageAdminObjectDetails.title.editRoleType",
-                            WebComponentUtil.getName(targetObject.asObjectable()));
-                }
-            };
-        } else if (AssignmentEditorDtoType.SERVICE.equals(type)){
-            return new PageService(((ServiceType)targetObject.asObjectable()).asPrismObject()){
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected IModel<String> createPageTitleModel() {
-                    return createStringResource("PageAdminObjectDetails.title.editServiceType",
-                            WebComponentUtil.getName(targetObject.asObjectable()));
-                }
-            };
-        }
-        return pageBase;
     }
 
     private boolean isMultiUserRequest(){

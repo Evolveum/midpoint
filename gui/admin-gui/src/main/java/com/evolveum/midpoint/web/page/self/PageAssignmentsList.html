@@ -26,12 +26,15 @@
         <textarea class="form-control input-sm" rows="2"
                   wicket:id="description"
                   wicket:message="placeholder:PageAssignmentsList.commentHere" style="width: 50%; margin-bottom: 10px;"></textarea>
-        <div class="main-button-bar">
+        <div class="col-md-4">
+            <div wicket:id="targetUserPanel" class="pull-left"/>
+            <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="back"/>
             <a class="btn btn-danger" wicket:id="resolveConflicts"/>
             <a class="btn btn-primary" wicket:id="request"/>
             </span>
+            </div>
         </div>
     </form>
 </wicket:extend>
