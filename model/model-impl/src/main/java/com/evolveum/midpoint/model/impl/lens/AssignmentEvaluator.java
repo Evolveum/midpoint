@@ -344,8 +344,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {
 				QName relation = getRelation(assignmentType);
-				if (loginMode && !ObjectTypeUtil.isMembershipRelation(relation)) {
-					// to optimize logging-in, we skip all assignments with non-membership relations (e.g. approver, owner, etc)
+				if (loginMode && !ObjectTypeUtil.isMembershipRelation(relation) && !ObjectTypeUtil.isDelegationRelation(relation)) {
+					// to optimize logging-in, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
 				} else {
 					List<PrismObject<O>> targets = getTargets(segment, ctx);
 					LOGGER.trace("Targets in {}, assignment ID {}: {}", segment.source, assignmentType.getId(), targets);
