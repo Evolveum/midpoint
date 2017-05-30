@@ -318,7 +318,7 @@ public class TestVillage extends AbstractStoryTest {
         TestUtil.assertSuccess(result);
         
         // variable number of clones because of trigger scanner task
-        assertPrismObjectCloneIncrement(2, 3);
+        assertPrismObjectCloneIncrement(1, 2);
         
         assertResourceSchemaFetchIncrement(0);
         assertResourceSchemaParseCountIncrement(0);
@@ -368,8 +368,8 @@ public class TestVillage extends AbstractStoryTest {
         display("Times", "getObject(RESOURCE_OPENDJ_OID): "+(t1-t0)+"ms\ngetResourceSchema: "+(t3-t2)
         		+"ms\ngetRefinedSchema: "+(t4-t3)+"ms");
         
-        // variable number of clones: 2 or 3 because of trigger scanner task
-        assertPrismObjectCloneIncrement(2,3);
+        // variable number of clones: 1 or 2 because of trigger scanner task
+        assertPrismObjectCloneIncrement(1,2);
         
         assertResourceSchemaFetchIncrement(0);
         assertResourceSchemaParseCountIncrement(0);
