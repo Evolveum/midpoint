@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -175,7 +175,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -224,7 +224,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -293,7 +293,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 		
 		// THEN
@@ -371,7 +371,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -421,7 +421,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -470,7 +470,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -524,7 +524,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -600,7 +600,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -666,7 +666,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, TEST_NAME, task, result);
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
@@ -728,7 +728,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
@@ -809,7 +809,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
@@ -867,7 +867,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, false, userTypeJack, "testRoleEngineer", task, result);
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", task, result);
 		evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
 		// THEN
