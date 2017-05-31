@@ -3070,6 +3070,7 @@
             </xsd:appinfo>
     	</xsd:annotation>
         <xsd:sequence>
+        	
         	<xsd:element name="questionIdentifier" type="xsd:anyURI" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -3097,6 +3098,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="LoginEventType">

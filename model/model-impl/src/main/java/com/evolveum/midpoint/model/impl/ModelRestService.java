@@ -548,6 +548,7 @@ public class ModelRestService {
 //			response = Response.noContent().build();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {
+			parentResult.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 

@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -45,11 +46,14 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -100,9 +104,10 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestAbstractRestService.class);
 
-	private static final String MODIFICATION_DISABLE = "modification-disable"; //new File(REQ_DIR, "modification-disable.xml");
-	private static final String MODIFICATION_ENABLE = "modification-enable"; //new File(REQ_DIR, "modification-enable.xml");
-	private static final String MODIFICATION_ASSIGN_ROLE_MODIFIER = "modification-assign-role-modifier"; //new File(REQ_DIR, "modification-assign-role-modifier.xml");
+	private static final String MODIFICATION_DISABLE = "modification-disable"; 
+	private static final String MODIFICATION_ENABLE = "modification-enable"; 
+	private static final String MODIFICATION_ASSIGN_ROLE_MODIFIER = "modification-assign-role-modifier";
+	private static final String MODIFICATION_REPLACE_ANSWER = "modification-replace-answer";
 
 	
 	protected abstract File getRepoFile(String fileBaseName);
@@ -956,7 +961,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	}
 	
 	private OperationResult traceResponse(Response response){
-		if (response.getStatus() != 200) {
+		if (response.getStatus() != 200 && response.getStatus() != 201 && response.getStatus() != 204) {
 			OperationResultType result = response.readEntity(OperationResultType.class);
 			LOGGER.info("####RESULT");
 			OperationResult opResult = OperationResult.createOperationResult(result);
@@ -1119,6 +1124,54 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		IntegrationTestTools.display("Audit", getDummyAuditService());
 		getDummyAuditService().assertRecords(2);
 		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+	}
+	
+	
+	@Test
+	public void test600modifySecurityQuestionAnswer() throws Exception {
+		final String TEST_NAME = "test600modifySecurityQuestionAnswer";
+		displayTestTile(this, TEST_NAME);
+
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID);
+		
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+		
+		assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
+		
+		
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		TestUtil.displayWhen(TEST_NAME);
+		response = client.get();
+		
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		UserType userDarthadder = response.readEntity(UserType.class);
+		CredentialsType credentials = userDarthadder.getCredentials();
+		assertNotNull("No credentials in user. Something is wrong.", credentials);
+		SecurityQuestionsCredentialsType securityQuestions = credentials.getSecurityQuestions();
+		assertNotNull("No security questions defined for user. Something is wrong.", securityQuestions);
+		List<SecurityQuestionAnswerType> secQuestionAnswers = securityQuestions.getQuestionAnswer();
+		assertEquals("Expected just one question-answer couple, but found " + secQuestionAnswers.size(), 1, secQuestionAnswers.size());
+		
+		SecurityQuestionAnswerType secQuestionAnswer = secQuestionAnswers.iterator().next();
+		String decrypted = getPrismContext().getDefaultProtector().decryptString(secQuestionAnswer.getQuestionAnswer());
+		assertEquals("Unexpected answer " + decrypted + ". Expected 'newAnswer'." , "newAnswer", decrypted);
+		
+		
 	}
 	
 	private <O extends ObjectType> O loadObject(Class<O> type, String oid)

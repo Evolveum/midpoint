@@ -560,6 +560,7 @@ public class PageSelfDashboard extends PageSelf {
 			// account construction
 			PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
 			String name = null;
+            String description = "";
 			if (construction.getValue().asContainerable() != null && !construction.isEmpty()) {
 				ConstructionType constr = (ConstructionType) construction.getValue().asContainerable();
 
@@ -569,10 +570,11 @@ public class PageSelfDashboard extends PageSelf {
 					PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
 							resourceRef.getOid(), this, task, result);
 					name = WebComponentUtil.getName(resource);
+                    description = constr.getDescription();
 				}
 			}
 
-			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, null, null);
+			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
 		}
 
 		PrismReferenceValue refValue = targetRef.getValue();
@@ -590,10 +592,12 @@ public class PageSelfDashboard extends PageSelf {
 		String name = WebComponentUtil.getDisplayNameOrName(value);
 		AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
 		String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
-		String description = null;
+		String description = "";
 		if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
 			description = (String) value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 		}
+        description = (description != null && !description.equals("null") ? description + " " : "") + (value.getValue().asObjectable() instanceof ObjectType ?
+                    ((ObjectType) value.getValue().asObjectable()).getDescription() : "");
 
 		return new AssignmentItemDto(type, name, description, relation);
 	}
