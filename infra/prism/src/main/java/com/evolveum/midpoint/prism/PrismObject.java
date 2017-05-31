@@ -351,7 +351,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (prismContext != null) {
+		if (prismContext != null && prismContext.getMonitor() != null) {
 			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
 		}
 		return super.equals(obj);
