@@ -147,7 +147,8 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
         inner.add(nameLabel);
 
-        Label descriptionLabel = new Label(ID_INNER_DESCRIPTION, assignment.getDescription());
+        Label descriptionLabel = new Label(ID_INNER_DESCRIPTION, assignment.getTargetRef() != null ?
+                assignment.getTargetRef().getDescription() : "");
         descriptionLabel.setOutputMarkupId(true);
         inner.add(descriptionLabel);
 
