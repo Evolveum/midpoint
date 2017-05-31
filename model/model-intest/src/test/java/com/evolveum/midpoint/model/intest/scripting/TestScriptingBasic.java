@@ -69,6 +69,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final String DOT_CLASS = TestScriptingBasic.class.getName() + ".";
     private static final File LOG_FILE = new File(TEST_DIR, "log.xml");
     private static final File SEARCH_FOR_USERS_FILE = new File(TEST_DIR, "search-for-users.xml");
+    private static final File SEARCH_FOR_USERS_RESOLVE_NAMES_FILE = new File(TEST_DIR, "search-for-users-resolve-names.xml");
+    private static final File SEARCH_FOR_USERS_RESOLVE_ROLE_MEMBERSHIP_REF_FILE = new File(TEST_DIR, "search-for-users-resolve-roleMembershipRef.xml");
     private static final File SEARCH_FOR_SHADOWS_FILE = new File(TEST_DIR, "search-for-shadows.xml");
     private static final File SEARCH_FOR_SHADOWS_NOFETCH_FILE = new File(TEST_DIR, "search-for-shadows-nofetch.xml");
     private static final File SEARCH_FOR_RESOURCES_FILE = new File(TEST_DIR, "search-for-resources.xml");
@@ -779,7 +781,53 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		// TODO check that passwords were really stored
 	}
 
-	private void assertNoOutputData(ExecutionContext output) {
+    @Test
+    public void test540SearchUserResolveNames() throws Exception {
+        final String TEST_NAME = "test540SearchUserResolveNames";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_RESOLVE_NAMES_FILE);
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
+
+        // THEN
+        dumpOutput(output, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(2, output.getFinalOutput().getData().size());
+        //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
+
+		// TODO check the values
+    }
+
+    @Test
+    public void test545SearchUserResolveRoleMembershipRef() throws Exception {
+        final String TEST_NAME = "test545SearchUserResolveRoleMembershipRef";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+        PrismProperty<SearchExpressionType> expression = parseAnyData(SEARCH_FOR_USERS_RESOLVE_ROLE_MEMBERSHIP_REF_FILE);
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression.getAnyValue().getValue(), result);
+
+        // THEN
+        dumpOutput(output, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(2, output.getFinalOutput().getData().size());
+        //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
+
+		// TODO check the values
+    }
+
+
+
+    private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
 
@@ -815,7 +863,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         display("stdout", output.getConsoleOutput());
         display(result);
         if (output.getFinalOutput() != null) {
-            PipelineDataType bean = ModelWebService.prepareXmlData(output.getFinalOutput().getData());
+            PipelineDataType bean = ModelWebService.prepareXmlData(output.getFinalOutput().getData(), null);
             display("output in XML", prismContext.xmlSerializer().root(new QName("output")).serializeRealValue(bean));
         }
     }

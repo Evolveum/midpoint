@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.PrismObject;
  */
 public interface PrismMonitor {
 
+	<O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject);
+	
 	<O extends Objectable> void beforeObjectClone(PrismObject<O> orig);
 	
 	<O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone);

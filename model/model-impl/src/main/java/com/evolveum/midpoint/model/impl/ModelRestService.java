@@ -548,6 +548,7 @@ public class ModelRestService {
 //			response = Response.noContent().build();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {
+			parentResult.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
@@ -846,25 +847,19 @@ public class ModelRestService {
 
 		Response response;
 		try {
-//			ResponseBuilder builder;
 			if (Boolean.TRUE.equals(asynchronous)) {
 				scriptingService.evaluateExpression(command, task, result);
 				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
-//				builder = Response.created(resourceUri);
 				response = RestServiceUtil.createResponse(Response.Status.CREATED, resourceUri, result);
 			} else {
 				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, task, result);
-
 				ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
 						.result(result.createOperationResultType())
 						.output(new ExecuteScriptOutputType()
 								.consoleOutput(executionResult.getConsoleOutput())
-								.dataOutput(ModelWebService.prepareXmlData(executionResult.getDataOutput())));
-//				builder = Response.ok();
-//				builder.entity(responseData);
+								.dataOutput(ModelWebService.prepareXmlData(executionResult.getDataOutput(), command.getOptions())));
 				response = RestServiceUtil.createResponse(Response.Status.OK, responseData, result);
 			}
-//			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(result, ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script.", ex);

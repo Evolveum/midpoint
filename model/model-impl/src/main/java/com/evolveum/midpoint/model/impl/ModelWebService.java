@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineDataType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.StringUtils;
@@ -264,10 +265,10 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
                 output.setTextOutput(executionResult.getConsoleOutput());
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
-                    output.setDataOutput(prepareXmlData(executionResult.getDataOutput()));
+                    output.setDataOutput(prepareXmlData(executionResult.getDataOutput(), null));
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
-                    PipelineDataType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
+                    PipelineDataType jaxbOutput = prepareXmlData(executionResult.getDataOutput(), null);
                     output.setMslData(prismContext.xmlSerializer().serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE));
                 }
             }
@@ -281,7 +282,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return response;
     }
 
-    public static PipelineDataType prepareXmlData(List<PipelineItem> output) throws JAXBException, SchemaException {
+    public static PipelineDataType prepareXmlData(List<PipelineItem> output,
+			ScriptingExpressionEvaluationOptionsType options) throws JAXBException, SchemaException {
+		boolean hideResults = options != null && Boolean.TRUE.equals(options.isHideOperationResults());
         PipelineDataType rv = new PipelineDataType();
         if (output != null) {
             for (PipelineItem item: output) {
@@ -295,7 +298,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 				} else {
 					itemType.setValue(value.getRealValue());                        // TODO - ok?
 				}
-				itemType.setResult(item.getResult().createOperationResultType());
+				if (!hideResults) {
+					itemType.setResult(item.getResult().createOperationResultType());
+				}
 				rv.getItem().add(itemType);
             }
         }

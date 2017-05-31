@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -619,6 +619,16 @@ public class ObjectTypeUtil {
 	public static boolean isDefaultRelation(QName relation) {
 		return relation == null || QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT);
 	}
+	
+	// We want to make this configurable in the future MID-3581
+	public static boolean processRelationOnLogin(QName relation) {
+		return isMembershipRelation(relation) || isDelegationRelation(relation);
+	}
+	
+	// We want to make this configurable in the future MID-3581
+	public static boolean processRelationOnRecompute(QName relation) {
+		return !QNameUtil.match(relation, SchemaConstants.ORG_APPROVER) && !QNameUtil.match(relation, SchemaConstants.ORG_OWNER);
+	}
 
 	public static boolean relationMatches(QName relationQuery, QName relation) {
 		return QNameUtil.match(relationQuery, PrismConstants.Q_ANY) || relationsEquivalent(relationQuery, relation);
@@ -631,6 +641,28 @@ public class ObjectTypeUtil {
 			return QNameUtil.match(relation1, relation2);
 		}
 	}
+	
+	public static boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName targetType, QName relation) {
+		if (ref == null) {
+			return false;
+		}
+		if (targetOid != null) {
+			if (!targetOid.equals(ref.getOid())) {
+				return false;
+			}
+		}
+		if (targetType != null) {
+			if (!QNameUtil.match(ref.getType(), targetType)) {
+				return false;
+			}
+		}
+		if (relation != null) {
+			if (!relationMatches(relation, ref.getRelation())) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	public static OrderConstraintsType getConstraintFor(List<OrderConstraintsType> constraints, QName relation) {
 		return CollectionUtils.emptyIfNull(constraints).stream()
@@ -641,4 +673,5 @@ public class ObjectTypeUtil {
 	public static <T extends Objectable> T asObjectable(PrismObject<T> prismObject) {
     	return prismObject != null ? prismObject.asObjectable() : null;
 	}
+
 }

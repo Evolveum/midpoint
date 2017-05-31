@@ -32,16 +32,12 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismParser;
-import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -88,7 +84,8 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
 		String xml;
 		
-		PrismSerializer<String> serializer = getSerializer();
+		PrismSerializer<String> serializer = getSerializer()
+				.options(SerializationOptions.createSerializeReferenceNames());
 		
 		try {
 			if (object instanceof PrismObject) {

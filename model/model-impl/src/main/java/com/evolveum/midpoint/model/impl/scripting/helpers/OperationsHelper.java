@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -87,14 +89,26 @@ public class OperationsHelper {
         }
     }
 
-    public Collection<SelectorOptions<GetOperationOptions>> createGetOptions(boolean noFetch) {
-        LOGGER.trace("noFetch = {}", noFetch);
-        return noFetch ? SelectorOptions.createCollection(GetOperationOptions.createNoFetch()) : null;
+    public Collection<SelectorOptions<GetOperationOptions>> createGetOptions(SelectorQualifiedGetOptionsType optionsBean, boolean noFetch) {
+        LOGGER.trace("optionsBean = {}, noFetch = {}", optionsBean, noFetch);
+        Collection<SelectorOptions<GetOperationOptions>> rv = MiscSchemaUtil.optionsTypeToOptions(optionsBean);
+        if (noFetch) {
+            if (rv == null) {
+                return SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+            }
+            GetOperationOptions root = SelectorOptions.findRootOptions(rv);
+            if (root != null) {
+                root.setNoFetch(true);
+            } else {
+                rv.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
+            }
+        }
+        return rv;
     }
 
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, boolean noFetch, ExecutionContext context, OperationResult result) throws ScriptExecutionException, ExpressionEvaluationException {
         try {
-            return modelService.getObject(type, oid, createGetOptions(noFetch), context.getTask(), result);
+            return modelService.getObject(type, oid, createGetOptions(null, noFetch), context.getTask(), result);
         } catch (ConfigurationException|ObjectNotFoundException|SchemaException|CommunicationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't get object: " + e.getMessage(), e);
         }

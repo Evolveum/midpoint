@@ -113,6 +113,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
     //region Methods for accessing content (findRoot, hasToLoadPath, ...)
     /**
 	 * Returns options that apply to the "root" object. I.e. options that have null selector, null path, empty path, ...
+	 * Must return 'live object' that could be modified.
 	 */
 	public static <T> T findRootOptions(Collection<SelectorOptions<T>> options) {
 		if (options == null) {

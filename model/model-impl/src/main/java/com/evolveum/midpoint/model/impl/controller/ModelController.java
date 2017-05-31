@@ -790,7 +790,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return new SearchResultList(new ArrayList<>());
 		}
 
-		SearchResultList<PrismObject<T>> list = null;
+		SearchResultList<PrismObject<T>> list;
 		try {
 			RepositoryCache.enter();
 			logQuery(query);
@@ -1094,6 +1094,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
 					}
 				}
+				resolve(object, options, task, result);
 				schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, parentResult1);
 			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 					| CommunicationException | ConfigurationException ex) {

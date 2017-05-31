@@ -3070,6 +3070,7 @@
             </xsd:appinfo>
     	</xsd:annotation>
         <xsd:sequence>
+        	
         	<xsd:element name="questionIdentifier" type="xsd:anyURI" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -3097,6 +3098,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="LoginEventType">
@@ -13213,7 +13215,131 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="ModelExecuteOptionsType">
+	<xsd:complexType name="SelectorQualifiedGetOptionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Selector-qualified options for a get-like operation.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="option" type="tns:SelectorQualifiedGetOptionType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="SelectorQualifiedGetOptionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="selector" type="tns:OptionObjectSelectorType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="options" type="tns:GetOperationOptionsType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="OptionObjectSelectorType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="GetOperationOptionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				See GetOperationOptions for a description.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="retrieve" type="tns:RetrieveOptionType" minOccurs="0"/>
+			<xsd:element name="resolve" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="resolveNames" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="noFetch" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="raw" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="tolerateRawData" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="noDiscovery" type="xsd:boolean" minOccurs="0"/>		<!-- should be named 'doNotDiscovery' -->
+			<xsd:element name="allowNotFound" type="xsd:boolean" minOccurs="0"/>
+			<!-- readOnly is quite an internal flag, doesn't make sense to externalize it -->
+			<xsd:element name="pointInTimeType" type="tns:PointInTimeTypeType" minOccurs="0"/>
+			<xsd:element name="staleness" type="xsd:long" minOccurs="0"/>
+			<xsd:element name="distinct" type="xsd:boolean" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="RetrieveOptionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="default">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DEFAULT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="include">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="INCLUDE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="exclude">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXCLUDE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="PointInTimeTypeType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="cached">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CACHED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="current">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CURRENT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="future">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FUTURE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="ModelExecuteOptionsType">
         <xsd:annotation>
             <xsd:documentation>
                 Options for execution of Model operations. These options influence the way how the operations are executed.
