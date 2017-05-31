@@ -93,6 +93,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="hideOperationResults" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Hides operation results from the output data.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -231,6 +238,13 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="searchFilter" type="q:SearchFilterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter to apply when searching for instances. (Alternative to query. This is tried as second one.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Filter to apply when searching for instances. (Alternative to query. This is tried as second one.)

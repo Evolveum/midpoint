@@ -219,9 +219,7 @@ public class DOMUtil {
 		try {
 			DocumentBuilder loader = createDocumentBuilder();
 			return loader.parse(IOUtils.toInputStream(doc, "utf-8"));
-		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
-		} catch (IOException ex) {
+		} catch (SAXException | IOException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
@@ -236,11 +234,7 @@ public class DOMUtil {
 			factory.setNamespaceAware(true);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(file);
-		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
-		} catch (IOException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
-		} catch (ParserConfigurationException ex) {
+		} catch (SAXException | IOException | ParserConfigurationException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
@@ -257,9 +251,7 @@ public class DOMUtil {
 			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(inputStream);
-		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
-		} catch (ParserConfigurationException ex) {
+		} catch (SAXException | ParserConfigurationException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
@@ -406,7 +398,7 @@ public class DOMUtil {
 	
 	public static List<Element> getChildElements(Element element, QName elementName){
 		Validate.notNull(elementName, "Element name to get must not be null");
-		List<Element> elements = new ArrayList<Element>();
+		List<Element> elements = new ArrayList<>();
 		NodeList childNodes = element.getChildNodes();
 		for (int i= 0; i< childNodes.getLength(); i++){
 			Node childNode = childNodes.item(i);
@@ -716,7 +708,7 @@ public class DOMUtil {
 	 * Returns map of all namespace declarations from specified element (prefix -> namespace).
 	 */
 	public static Map<String,String> getNamespaceDeclarations(Element element) {
-		Map<String,String> nsDeclMap = new HashMap<String, String>();
+		Map<String,String> nsDeclMap = new HashMap<>();
 		NamedNodeMap attributes = element.getAttributes();
 		for(int i=0; i<attributes.getLength(); i++) {
 			Attr attr = (Attr)attributes.item(i);
@@ -779,7 +771,7 @@ public class DOMUtil {
 			Attr attr = (Attr)attributes.item(i);
 			if (isNamespaceDefinition(attr)) {
 				String prefix = getNamespaceDeclarationPrefix(attr);
-				String namespace = getNamespaceDeclarationNamespace(attr);
+				//String namespace = getNamespaceDeclarationNamespace(attr);
 				if (hasNamespaceDeclarationForPrefix(targetElement, prefix)) {
 					if (targetElement != currentElement) {
 						// We are processing parent element, while the original element already

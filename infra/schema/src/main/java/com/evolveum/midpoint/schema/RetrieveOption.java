@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.RetrieveOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RetrieveOptionType;
 
 public enum RetrieveOption {
 	

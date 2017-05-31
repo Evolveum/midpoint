@@ -61,6 +61,10 @@ public class ExecutionContext {
     	return options != null && Boolean.TRUE.equals(options.isContinueOnAnyError());
 	}
 
+	public boolean isHideOperationResults() {
+        return options != null && Boolean.TRUE.equals(options.isHideOperationResults());
+    }
+
 	public PipelineData getVariable(String variableName) {
         return variables.get(variableName);
     }
@@ -93,8 +97,7 @@ public class ExecutionContext {
         if (getFinalOutput() != null) {
             items = getFinalOutput().getData();
         }
-        ScriptExecutionResult result = new ScriptExecutionResult(getConsoleOutput(), items);
-        return result;
+        return new ScriptExecutionResult(getConsoleOutput(), items);
     }
 
     public String getChannel() {

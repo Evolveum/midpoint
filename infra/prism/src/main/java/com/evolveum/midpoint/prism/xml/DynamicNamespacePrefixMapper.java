@@ -33,26 +33,26 @@ import java.util.Map;
  */
 public interface DynamicNamespacePrefixMapper extends DebugDumpable {
 
-    public void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
+    void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
 	
-	public void registerPrefixLocal(String namespace, String prefix);
+	void registerPrefixLocal(String namespace, String prefix);
 	
-	public String getPrefix(String namespace);
+	String getPrefix(String namespace);
 	
-	public QName setQNamePrefix(QName qname);
+	QName setQNamePrefix(QName qname);
 	
 	/**
 	 * Makes sure that there is explicit prefix and not a default namespace prefix.
 	 */
-	public QName setQNamePrefixExplicit(QName qname);
+	QName setQNamePrefixExplicit(QName qname);
 	
-	public DynamicNamespacePrefixMapper clone();
+	DynamicNamespacePrefixMapper clone();
 	
 	// Follwing two methods are kind of a hack to force JAXB to always use prefixes.
 	// This works around the JAXB bug with default namespaces
-	public boolean isAlwaysExplicit();
+	boolean isAlwaysExplicit();
 
-	public void setAlwaysExplicit(boolean alwaysExplicit);
+	void setAlwaysExplicit(boolean alwaysExplicit);
 
     // Specifies that this prefix should be declared by default (at top of XML files)
     void addDeclaredByDefault(String prefix);

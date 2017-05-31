@@ -178,6 +178,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(MidPointConstants.PREFIX_NS_RI); // declared by default
 
         schemaRegistry.getNamespacePrefixMapper().registerPrefix(SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG, false);
+		schemaRegistry.getNamespacePrefixMapper().addDeclaredByDefault(SchemaConstants.PREFIX_NS_ORG); // declared by default
     }
 	
 	private void setupDebug() {

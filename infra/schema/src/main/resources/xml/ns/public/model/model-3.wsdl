@@ -86,7 +86,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0">
+                    <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Options influencing the retrieval and processing of the object.
@@ -189,7 +189,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0">
+                    <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Options influencing the retrieval and processing of objects.

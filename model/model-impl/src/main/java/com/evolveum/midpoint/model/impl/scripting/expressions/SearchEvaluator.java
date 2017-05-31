@@ -25,7 +25,9 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
@@ -41,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
+import java.util.Collection;
 
 /**
  * @author mederly
@@ -117,7 +120,8 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 		};
 
         try {
-            modelService.searchObjectsIterative(objectClass, objectQuery, handler, operationsHelper.createGetOptions(noFetch), context.getTask(), globalResult);
+			Collection<SelectorOptions<GetOperationOptions>> options = operationsHelper.createGetOptions(searchExpression.getOptions(), noFetch);
+			modelService.searchObjectsIterative(objectClass, objectQuery, handler, options, context.getTask(), globalResult);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
         	// TODO continue on any error?
             throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
