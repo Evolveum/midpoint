@@ -690,7 +690,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		isAlreadyAssigned = alreadyAssigned;
 	}
 
-	public AssignmentConstraintsType getDefualtAssignmentConstraints() {
+	public AssignmentConstraintsType getDefaultAssignmentConstraints() {
 		return defualtAssignmentConstraints;
 	}
 

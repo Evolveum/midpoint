@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -227,6 +228,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         cellContainer.add(icon);
 
         WebMarkupContainer alreadyAssignedIcon = new WebMarkupContainer(ID_ALREADY_ASSIGNED_ICON);
+        alreadyAssignedIcon.add(new AttributeAppender("title", getAlreadyAssignedIconTitleModel(assignment)));
         alreadyAssignedIcon.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
@@ -237,6 +239,24 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
         });
         cellContainer.add(alreadyAssignedIcon);
 
+    }
+
+    private IModel<String> getAlreadyAssignedIconTitleModel(AssignmentEditorDto dto){
+        List<RelationTypes> assignedRelations = dto.getAssignedRelationsList();
+        if (assignedRelations != null && assignedRelations.size() > 0){
+            String relations = createStringResource("MultiButtonPanel.alreadyAssignedIconTitle").getString() + " ";
+            for (RelationTypes relation : assignedRelations){
+                String relationName = createStringResource(relation).getString();
+                if (!relations.contains(relationName)) {
+                    if (assignedRelations.indexOf(relation) > 0){
+                        relations = relations + ", ";
+                    }
+                    relations = relations + createStringResource(relation).getString();
+                }
+            }
+            return Model.of(relations);
+        }
+        return Model.of("");
     }
 
     private boolean canAssign(final AssignmentEditorDto assignment) {
