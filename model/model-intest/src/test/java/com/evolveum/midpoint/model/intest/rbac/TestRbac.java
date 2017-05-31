@@ -66,7 +66,13 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -1102,17 +1108,28 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         
-        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
-        // WHEN
+        // WHEN (1)
+        displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, task, result);
         
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        // THEN (1)
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertJackAssignRolePirateRelationNoPrivs(relation);
         
-        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        // WHEN (2)
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN (2)
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertJackAssignRolePirateRelationNoPrivs(relation);
+	}
+	
+	private void assertJackAssignRolePirateRelationNoPrivs(QName relation) throws Exception {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);

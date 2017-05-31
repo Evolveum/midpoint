@@ -619,6 +619,16 @@ public class ObjectTypeUtil {
 	public static boolean isDefaultRelation(QName relation) {
 		return relation == null || QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT);
 	}
+	
+	// We want to make this configurable in the future MID-3581
+	public static boolean processRelationOnLogin(QName relation) {
+		return isMembershipRelation(relation) || isDelegationRelation(relation);
+	}
+	
+	// We want to make this configurable in the future MID-3581
+	public static boolean processRelationOnRecompute(QName relation) {
+		return !QNameUtil.match(relation, SchemaConstants.ORG_APPROVER) && !QNameUtil.match(relation, SchemaConstants.ORG_OWNER);
+	}
 
 	public static boolean relationMatches(QName relationQuery, QName relation) {
 		return QNameUtil.match(relationQuery, PrismConstants.Q_ANY) || relationsEquivalent(relationQuery, relation);
