@@ -61,6 +61,9 @@ public class InternalMonitor implements PrismMonitor {
 	 */
 	private static long provisioningAllExtOperationCount = 0;
 	
+	private static long repositoryReadCount = 0;
+	
+	private static long prismObjectCompareCount = 0;
 	private static long prismObjectCloneCount = 0;
 	private static long prismObjectCloneDurationMillis = 0;
 	private static boolean tracePrismObjectClone = false;
@@ -224,6 +227,22 @@ public class InternalMonitor implements PrismMonitor {
 		provisioningAllExtOperationCount++;
 	}
 	
+	public static long getRepositoryReadCount() {
+		return repositoryReadCount;
+	}
+	
+	public static synchronized void recordRepositoryRead() {
+		repositoryReadCount++;
+	}
+
+	public static long getPrismObjectCompareCount() {
+		return prismObjectCompareCount;
+	}
+
+	public synchronized <O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject) {
+		prismObjectCompareCount++;
+	}
+	
 	public static long getPrismObjectCloneDurationMillis() {
 		return prismObjectCloneDurationMillis;
 	}
@@ -288,6 +307,9 @@ public class InternalMonitor implements PrismMonitor {
 		shadowChangeOpeartionCount = 0;
 		traceConnectorOperation = false;
 		connectorOperationCount = 0;
+		repositoryReadCount = 0;
+		prismObjectCompareCount = 0;
+		prismObjectCloneCount = 0;
 	}
 
 	private static void traceOperation(String opName, long counter, boolean traceAndDebug) {

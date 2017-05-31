@@ -349,6 +349,14 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return realValue.getOrig();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (prismContext != null) {
+			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
+		}
+		return super.equals(obj);
+	}
+
 	/**
 	 * Returns short string identification of object type. It should be in a form
 	 * suitable for log messages. There is no requirement for the type name to be unique,

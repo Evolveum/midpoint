@@ -1,0 +1,223 @@
+/*
+ * Copyright (c) 2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.testing.story;
+
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+
+import static org.testng.AssertJUnit.*;
+
+/**
+ * @author Radovan Semancik
+ *
+ */
+@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+public class TestPlentyOfAssignments extends AbstractStoryTest {
+	
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "plenty-of-assignments");
+	
+	public static final File USER_CHEESE_FILE = new File(TEST_DIR, "user-cheese.xml");
+	public static final String USER_CHEESE_OID = "9e796c76-45e0-11e7-9dfd-1792e56081d0";
+	
+	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
+	public static final String ROLE_BASIC_OID = "6909ff20-45e4-11e7-b0a3-0fe76ff4380e";
+
+	private static final int NUMBER_OF_ORDINARY_ROLES = 2; // including superuser role
+	private static final int NUMBER_OF_GENERATED_ROLES = 10;
+	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER = 6;
+	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER = 4;
+	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_ORDINARY = 1;
+	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS = NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER + NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER + NUMBER_OF_CHEESE_ASSIGNMENTS_ORDINARY;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(TestPlentyOfAssignments.class);
+	
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+		
+		importObjectFromFile(ROLE_BASIC_FILE, initResult);
+		
+		generateRoles(initResult);
+		
+	}
+	
+	private void generateRoles(OperationResult result) throws Exception {
+		long startMillis = System.currentTimeMillis();
+		
+		PrismObjectDefinition<RoleType> roleDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
+		for(int i=0; i < NUMBER_OF_GENERATED_ROLES; i++) {
+			PrismObject<RoleType> role = roleDefinition.instantiate();
+			RoleType roleType = role.asObjectable();
+			String name = String.format("role%04d", i);
+			String oid = generateRoleOid(i);
+			roleType.setName(createPolyStringType(name));
+			roleType.setOid(oid);
+			LOGGER.info("Adding {}", role);
+			repositoryService.addObject(role, null, result);
+			LOGGER.info("  added {}", role);
+		}
+		
+		long endMillis = System.currentTimeMillis();
+		long duration = (endMillis - startMillis);
+		display("Roles import", "import of "+NUMBER_OF_GENERATED_ROLES+" roles took "+(duration/1000)+" seconds ("+(duration/NUMBER_OF_GENERATED_ROLES)+"ms per role)");
+	}
+
+	private String generateRoleOid(int num) {
+		return String.format("00000000-0000-ffff-2000-00000000%04d", num);
+	}
+	
+	@Test
+    public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+        displayTestTile(TEST_NAME);
+
+        assertObjects(RoleType.class, NUMBER_OF_GENERATED_ROLES + NUMBER_OF_ORDINARY_ROLES);
+	}
+	
+	@Test
+    public void test020AddCheese() throws Exception {
+		final String TEST_NAME = "test020AddCheese";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> cheeseBefore = prepareCheese();
+        display("Cheese before", cheeseBefore);
+        
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        addObject(cheeseBefore, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Added cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
+        
+        PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
+        display("Cheese after", cheeseAfter);
+        assertCheeseRoleMembershipRef(cheeseAfter);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        // TODO: assert number of repo reads
+        
+        assertPrismObjectCompareCount(0);
+	}
+	
+	// TODO recompute cheese
+	
+	// TODO preview changes
+
+	private PrismObject<UserType> prepareCheese() throws Exception {
+		PrismObject<UserType> cheese = PrismTestUtil.parseObject(USER_CHEESE_FILE);
+		addAssignments(cheese, SchemaConstants.ORG_APPROVER, 0, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER);
+		addAssignments(cheese, SchemaConstants.ORG_OWNER, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER, NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER);
+		return cheese;
+	}
+
+	private void addAssignments(PrismObject<UserType> user, QName relation, int offset, int num) {
+		UserType userType = user.asObjectable();
+		for (int i = 0; i < num; i++) {
+			AssignmentType assignmentType = new AssignmentType();
+			String oid = generateRoleOid(offset + i);
+			assignmentType.targetRef(oid, RoleType.COMPLEX_TYPE, relation);
+			userType.getAssignment().add(assignmentType);
+		}
+	}
+
+	private void assertCheeseRoleMembershipRef(PrismObject<UserType> cheese) {
+		
+		assertRoleMembershipRefs(cheese, SchemaConstants.ORG_APPROVER, 0, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER);
+		assertRoleMembershipRefs(cheese, SchemaConstants.ORG_OWNER, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER, NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER);
+		
+		assertRoleMembershipRef(cheese, ROLE_BASIC_OID, SchemaConstants.ORG_DEFAULT);
+		
+		assertRoleMembershipRefs(cheese, NUMBER_OF_CHEESE_ASSIGNMENTS);
+	}
+
+	private void assertRoleMembershipRefs(PrismObject<UserType> user, QName relation, int offset, int num) {
+		for (int i = 0; i < num; i++) {
+			assertRoleMembershipRef(user, relation, offset + i);
+		}
+	}
+
+	private void assertRoleMembershipRef(PrismObject<UserType> user, QName relation, int num) {
+		assertRoleMembershipRef(user, generateRoleOid(num), relation);
+	}
+	
+	private void assertRoleMembershipRef(PrismObject<UserType> user, String roleOid, QName relation) {
+		List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
+		for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {
+			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, RoleType.COMPLEX_TYPE, relation)) {
+				return;
+			}
+		}
+		fail("Cannot find membership of role "+roleOid+" ("+relation.getLocalPart()+") in "+user);
+	}
+}

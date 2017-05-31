@@ -46,6 +46,7 @@ import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -137,6 +138,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(result, "Operation result must not be null.");
 
         LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        InternalMonitor.recordRepositoryRead();
 
         final String operation = "getting";
         int attempt = 1;
