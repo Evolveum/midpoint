@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -641,6 +641,28 @@ public class ObjectTypeUtil {
 			return QNameUtil.match(relation1, relation2);
 		}
 	}
+	
+	public static boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName targetType, QName relation) {
+		if (ref == null) {
+			return false;
+		}
+		if (targetOid != null) {
+			if (!targetOid.equals(ref.getOid())) {
+				return false;
+			}
+		}
+		if (targetType != null) {
+			if (!QNameUtil.match(ref.getType(), targetType)) {
+				return false;
+			}
+		}
+		if (relation != null) {
+			if (!relationMatches(relation, ref.getRelation())) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	public static OrderConstraintsType getConstraintFor(List<OrderConstraintsType> constraints, QName relation) {
 		return CollectionUtils.emptyIfNull(constraints).stream()
@@ -651,4 +673,5 @@ public class ObjectTypeUtil {
 	public static <T extends Objectable> T asObjectable(PrismObject<T> prismObject) {
     	return prismObject != null ? prismObject.asObjectable() : null;
 	}
+
 }

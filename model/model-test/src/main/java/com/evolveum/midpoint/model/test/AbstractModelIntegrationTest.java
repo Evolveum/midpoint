@@ -1711,39 +1711,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				.toArray(String[]::new);
 	}
 
-	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {
-		List<String> refOids = new ArrayList<String>();
-		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
-			refOids.add(ref.getOid());
-			assertNotNull("Missing type in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getType());
-			// Name is not stored now
-//			assertNotNull("Missing name in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getTargetName());
-		}
-		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
-	}
-	
-	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, QName relation, String... roleOids) {
-		if (!MiscUtil.unorderedCollectionEquals(Arrays.asList(roleOids), focus.asObjectable().getRoleMembershipRef(),
-				(expectedOid, hasRef) -> {
-					if (!expectedOid.equals(hasRef.getOid())) {
-						return false;
-					}
-					if (!ObjectTypeUtil.relationMatches(relation, hasRef.getRelation())) {
-						return false;
-					}
-					return true;
-				})) {
-			AssertJUnit.fail("Wrong values in roleMembershipRef in "+focus
-					+", expected relation "+relation+", OIDs "+Arrays.toString(roleOids)
-					+", but was "+focus.asObjectable().getRoleMembershipRef());
-		}
-	}
-	
-	protected <F extends FocusType> void assertNoRoleMembershipRef(PrismObject<F> focus) {
-		PrismReference memRef = focus.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
-		assertNull("No roleMembershipRef expected in "+focus+", but found: "+memRef, memRef);
-	}
-
 	protected <F extends FocusType> void assertDelegatedRef(PrismObject<F> focus, String... oids) {
 		List<String> refOids = new ArrayList<>();
 		for (ObjectReferenceType ref: focus.asObjectable().getDelegatedRef()) {

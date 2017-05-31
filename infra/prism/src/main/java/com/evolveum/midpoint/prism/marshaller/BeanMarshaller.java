@@ -96,7 +96,7 @@ public class BeanMarshaller {
 		}
 
 		if (bean instanceof Containerable) {
-			return prismContext.xnodeSerializer().serializeRealValue(bean, new QName("dummy")).getSubnode();
+			return prismContext.xnodeSerializer().context(ctx).serializeRealValue(bean, new QName("dummy")).getSubnode();
 		} else if (bean instanceof Enum) {
 			return marshalEnum((Enum) bean, ctx);
 		} else if (bean.getClass().getAnnotation(XmlType.class) != null) {

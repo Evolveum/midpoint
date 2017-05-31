@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PointInTimeTypeType;
+
 /**
  * Specifies the point in time for the returned data. This option controls whether fresh or cached data will
  * be returned or whether future data projection will be returned. MidPoint usually deals with fresh data
@@ -48,4 +50,27 @@ public enum PointInTimeType {
 	 */
 	FUTURE;
 
+	public static PointInTimeTypeType toPointInTimeTypeType(PointInTimeType value) {
+		if (value == null) {
+			return null;
+		}
+		switch (value) {
+			case CACHED: return PointInTimeTypeType.CACHED;
+			case CURRENT: return PointInTimeTypeType.CURRENT;
+			case FUTURE: return PointInTimeTypeType.FUTURE;
+			default: throw new IllegalArgumentException("value: " + value);
+		}
+	}
+
+	public static PointInTimeType toPointInTimeType(PointInTimeTypeType value) {
+		if (value == null) {
+			return null;
+		}
+		switch (value) {
+			case CACHED: return PointInTimeType.CACHED;
+			case CURRENT: return PointInTimeType.CURRENT;
+			case FUTURE: return PointInTimeType.FUTURE;
+			default: throw new IllegalArgumentException("value: " + value);
+		}
+	}
 }

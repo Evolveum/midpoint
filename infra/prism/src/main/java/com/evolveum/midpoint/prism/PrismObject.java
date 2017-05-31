@@ -302,11 +302,22 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return ItemPath.EMPTY_PATH;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (prismContext != null && prismContext.getMonitor() != null) {
+			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
+		}
+		return super.equals(obj);
+	}
+	
 	/**
 	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
 	 * These methods compare the "meaningful" parts of the objects.
 	 */
 	public boolean equivalent(Object obj) {
+		if (prismContext != null && prismContext.getMonitor() != null) {
+			prismContext.getMonitor().recordPrismObjectCompareCount(this, obj);
+		}
 		if (this == obj)
 			return true;
 		if (getClass() != obj.getClass())
@@ -348,7 +359,7 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		}
 		return realValue.getOrig();
 	}
-
+	
 	/**
 	 * Returns short string identification of object type. It should be in a form
 	 * suitable for log messages. There is no requirement for the type name to be unique,

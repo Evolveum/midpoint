@@ -76,6 +76,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -173,6 +174,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastConnectorOperationCount = 0;
 	private long lastConnectorSimulatedPagingSearchCount = 0;
 	private long lastDummyResourceGroupMembersReadCount = 0;
+	private long lastRepositoryReadCount = 0;
+	private long lastPrismObjectCompareCount = 0;
 	private long lastPrismObjectCloneCount = 0;
 
 	@Autowired(required = true)
@@ -979,6 +982,28 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
 		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
 		lastStats.setMisses(currentStats.getMisses());
+	}
+	
+	protected void rememberRepositoryReadCount() {
+		lastRepositoryReadCount = InternalMonitor.getRepositoryReadCount();
+	}
+
+	protected void assertRepositoryReadCount(int expectedIncrement) {
+		long currentCount = InternalMonitor.getRepositoryReadCount();
+		long actualIncrement = currentCount - lastRepositoryReadCount;
+		assertEquals("Unexpected increment in repository read count", (long)expectedIncrement, actualIncrement);
+		lastRepositoryReadCount = currentCount;
+	}
+	
+	protected void rememberPrismObjectCompareCount() {
+		lastPrismObjectCompareCount = InternalMonitor.getPrismObjectCompareCount();
+	}
+
+	protected void assertPrismObjectCompareCount(int expectedIncrement) {
+		long currentCount = InternalMonitor.getPrismObjectCompareCount();
+		long actualIncrement = currentCount - lastPrismObjectCompareCount;
+		assertEquals("Unexpected increment in prism object compare count", (long)expectedIncrement, actualIncrement);
+		lastPrismObjectCompareCount = currentCount;
 	}
 	
 	protected void rememberPrismObjectCloneCount() {
@@ -1963,5 +1988,43 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected void assertNoAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
 		IntegrationTestTools.assertNoAssociation(shadow, associationName, entitlementOid);
+	}
+	
+	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, String... roleOids) {
+		List<String> refOids = new ArrayList<String>();
+		for (ObjectReferenceType ref: focus.asObjectable().getRoleMembershipRef()) {
+			refOids.add(ref.getOid());
+			assertNotNull("Missing type in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getType());
+			// Name is not stored now
+//			assertNotNull("Missing name in roleMembershipRef "+ref.getOid()+" in "+focus, ref.getTargetName());
+		}
+		PrismAsserts.assertSets("Wrong values in roleMembershipRef in "+focus, refOids, roleOids);
+	}
+	
+	protected <F extends FocusType> void assertRoleMembershipRef(PrismObject<F> focus, QName relation, String... roleOids) {
+		if (!MiscUtil.unorderedCollectionEquals(Arrays.asList(roleOids), focus.asObjectable().getRoleMembershipRef(),
+				(expectedOid, hasRef) -> {
+					if (!expectedOid.equals(hasRef.getOid())) {
+						return false;
+					}
+					if (!ObjectTypeUtil.relationMatches(relation, hasRef.getRelation())) {
+						return false;
+					}
+					return true;
+				})) {
+			AssertJUnit.fail("Wrong values in roleMembershipRef in "+focus
+					+", expected relation "+relation+", OIDs "+Arrays.toString(roleOids)
+					+", but was "+focus.asObjectable().getRoleMembershipRef());
+		}
+	}
+	
+	protected <F extends FocusType> void assertRoleMembershipRefs(PrismObject<F> focus, int expectedNumber) {
+		List<ObjectReferenceType> roleMembershipRefs = focus.asObjectable().getRoleMembershipRef();
+		assertEquals("Wrong number of roleMembershipRefs in "+focus, expectedNumber, roleMembershipRefs.size());
+	}
+	
+	protected <F extends FocusType> void assertNoRoleMembershipRef(PrismObject<F> focus) {
+		PrismReference memRef = focus.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
+		assertNull("No roleMembershipRef expected in "+focus+", but found: "+memRef, memRef);
 	}
 }

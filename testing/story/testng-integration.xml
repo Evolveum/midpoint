@@ -40,6 +40,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestEntertainment"/>
             <class name="com.evolveum.midpoint.testing.story.TestStrings"/>
             <class name="com.evolveum.midpoint.testing.story.TestDependencyRename"/>
+            <class name="com.evolveum.midpoint.testing.story.TestPlentyOfAssignments"/>
         </classes>
     </test>
 </suite>

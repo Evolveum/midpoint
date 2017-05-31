@@ -31,40 +31,22 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.*;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ObjectSelector;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -167,7 +149,7 @@ public class MiscSchemaUtil {
 	}
 	
 	private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(SelectorOptions<GetOperationOptions> selectorOption){
-		ObjectSelectorType selectorType = selectorToSelectorType(selectorOption.getSelector());
+		OptionObjectSelectorType selectorType = selectorToSelectorType(selectorOption.getSelector());
 		GetOperationOptionsType getOptionsType = getOptionsToGetOptionsType(selectorOption.getOptions());
 		SelectorQualifiedGetOptionType selectorOptionType = new SelectorQualifiedGetOptionType();
 		selectorOptionType.setOptions(getOptionsType);
@@ -175,35 +157,42 @@ public class MiscSchemaUtil {
 		return selectorOptionType;
 	}
 
-	 private static ObjectSelectorType selectorToSelectorType(ObjectSelector selector) {
+	 private static OptionObjectSelectorType selectorToSelectorType(ObjectSelector selector) {
 			if (selector == null) {
 				return null;
 			}
-			ObjectSelectorType selectorType = new ObjectSelectorType();
+			OptionObjectSelectorType selectorType = new OptionObjectSelectorType();
 			selectorType.setPath(new ItemPathType(selector.getPath()));
 			return selectorType;
 		}
 	 
 	 private static GetOperationOptionsType getOptionsToGetOptionsType(GetOperationOptions options) {
-			GetOperationOptionsType optionsType = new GetOperationOptionsType();
-			optionsType.setRetrieve(RetrieveOption.toRetrieveOptionType(options.getRetrieve()));
-			optionsType.setResolve(options.getResolve());
-			optionsType.setNoFetch(options.getNoFetch());
-			optionsType.setRaw(options.getRaw());
-			optionsType.setNoDiscovery(options.getDoNotDiscovery());
-			return optionsType;
-		}
-   
+		 GetOperationOptionsType optionsType = new GetOperationOptionsType();
+		 optionsType.setRetrieve(RetrieveOption.toRetrieveOptionType(options.getRetrieve()));
+		 optionsType.setResolve(options.getResolve());
+		 optionsType.setResolveNames(options.getResolveNames());
+		 optionsType.setNoFetch(options.getNoFetch());
+		 optionsType.setRaw(options.getRaw());
+		 optionsType.setTolerateRawData(options.getTolerateRawData());
+		 optionsType.setNoDiscovery(options.getDoNotDiscovery());
+		 // TODO relational value search query (but it might become obsolete)
+		 optionsType.setAllowNotFound(options.getAllowNotFound());
+		 optionsType.setPointInTimeType(PointInTimeType.toPointInTimeTypeType(options.getPointInTimeType()));
+		 optionsType.setStaleness(options.getStaleness());
+		 optionsType.setDistinct(options.getDistinct());
+		 return optionsType;
+	 }
+
 	 public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(SelectorQualifiedGetOptionsType objectOptionsType) {
-        if (objectOptionsType == null) {
-            return null;
-        }
-        List<SelectorOptions<GetOperationOptions>> retval = new ArrayList<>();
-        for (SelectorQualifiedGetOptionType optionType : objectOptionsType.getOption()) {
-            retval.add(selectorQualifiedGetOptionTypeToSelectorOption(optionType));
-        }
-        return retval;
-    }
+		if (objectOptionsType == null) {
+			return null;
+		}
+		List<SelectorOptions<GetOperationOptions>> retval = new ArrayList<>();
+		for (SelectorQualifiedGetOptionType optionType : objectOptionsType.getOption()) {
+			retval.add(selectorQualifiedGetOptionTypeToSelectorOption(optionType));
+		}
+		return retval;
+	}
 
 	private static SelectorOptions<GetOperationOptions> selectorQualifiedGetOptionTypeToSelectorOption(SelectorQualifiedGetOptionType objectOptionsType) {
 		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
@@ -215,13 +204,20 @@ public class MiscSchemaUtil {
 		GetOperationOptions options = new GetOperationOptions();
         options.setRetrieve(RetrieveOption.fromRetrieveOptionType(optionsType.getRetrieve()));
         options.setResolve(optionsType.isResolve());
+        options.setResolveNames(optionsType.isResolveNames());
         options.setNoFetch(optionsType.isNoFetch());
         options.setRaw(optionsType.isRaw());
-        options.setDoNotDiscovery(optionsType.isNoDiscovery());
+		options.setTolerateRawData(optionsType.isTolerateRawData());
+		options.setDoNotDiscovery(optionsType.isNoDiscovery());
+		// TODO relational value search query (but it might become obsolete)
+		options.setAllowNotFound(optionsType.isAllowNotFound());
+		options.setPointInTimeType(PointInTimeType.toPointInTimeType(optionsType.getPointInTimeType()));
+		options.setStaleness(optionsType.getStaleness());
+		options.setDistinct(optionsType.isDistinct());
 		return options;
 	}
 
-    private static ObjectSelector selectorTypeToSelector(ObjectSelectorType selectorType) {
+    private static ObjectSelector selectorTypeToSelector(OptionObjectSelectorType selectorType) {
 		if (selectorType == null) {
 			return null;
 		}

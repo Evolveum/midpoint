@@ -390,6 +390,8 @@
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
+    <bean id="loggingFeature" class="com.evolveum.midpoint.model.impl.util.LoggingFeature"/>
+
     <jaxws:endpoint id="modelWS"
                     address="/model-3"
                     wsdlLocation="classpath:xml/ns/public/model/model-3.wsdl"
@@ -416,7 +418,7 @@
         </jaxws:properties>
 
         <jaxws:features>
-            <bean class="org.apache.cxf.feature.LoggingFeature"/>
+            <ref bean="loggingFeature"/>
         </jaxws:features>
     </jaxws:endpoint>
 
@@ -431,7 +433,7 @@
             <ref bean="restAuthenticationHandler"/>
         </jaxrs:providers>
         <jaxrs:features>
-            <bean class="org.apache.cxf.feature.LoggingFeature"/>
+            <ref bean="loggingFeature"/>
         </jaxrs:features>
     </jaxrs:server>
      
