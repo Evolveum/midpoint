@@ -15,53 +15,43 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-
-import static org.testng.AssertJUnit.*;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalInspector;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Radovan Semancik
@@ -88,6 +78,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestPlentyOfAssignments.class);
 	
+	private Inspector inspector;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -96,6 +88,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 		
 		generateRoles(initResult);
 		
+		inspector = new Inspector();
+		InternalMonitor.setInspector(inspector);
 	}
 	
 	private void generateRoles(OperationResult result) throws Exception {
@@ -129,19 +123,23 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayTestTile(TEST_NAME);
 
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_ROLES + NUMBER_OF_ORDINARY_ROLES);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
 	}
 	
 	@Test
-    public void test020AddCheese() throws Exception {
-		final String TEST_NAME = "test020AddCheese";
+    public void test100AddCheese() throws Exception {
+		final String TEST_NAME = "test100AddCheese";
         displayTestTile(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<UserType> cheeseBefore = prepareCheese();
-        display("Cheese before", cheeseBefore);
+        display("Cheese before", assignmentSummary(cheeseBefore));
         
+        inspector.reset();
         rememberPrismObjectCompareCount();
         rememberRepositoryReadCount();
         long startMillis = System.currentTimeMillis();
@@ -159,20 +157,135 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("Added cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
         
         PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
-        display("Cheese after", cheeseAfter);
+        display("Cheese after", assignmentSummary(cheeseAfter));
         assertCheeseRoleMembershipRef(cheeseAfter);
         
         display("Repo reads", InternalMonitor.getRepositoryReadCount());
         display("Object compares", InternalMonitor.getPrismObjectCompareCount());
 
-        // TODO: assert number of repo reads
+        display("Inspector", inspector);
+        
+//        inspector.assertRead(RoleType.class, NUMBER_OF_CHEESE_ASSIGNMENTS);
+//        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
         assertPrismObjectCompareCount(0);
 	}
 	
-	// TODO recompute cheese
+	
+	@Test
+    public void test110RecomputeCheese() throws Exception {
+		final String TEST_NAME = "test110RecomputeCheese";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> cheeseBefore = prepareCheese();
+        display("Cheese before", assignmentSummary(cheeseBefore));
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        recomputeUser(USER_CHEESE_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Recomputed cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
+        
+        PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
+        display("Cheese after", assignmentSummary(cheeseAfter));
+        assertCheeseRoleMembershipRef(cheeseAfter);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        
+        display("Inspector", inspector);
+
+        inspector.assertRead(RoleType.class, 1);
+//        assertRepositoryReadCount(4); // may be influenced by tasks
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test120CheesePreviewChanges() throws Exception {
+		final String TEST_NAME = "test120CheesePreviewChanges";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> cheeseBefore = prepareCheese();
+        display("Cheese before", assignmentSummary(cheeseBefore));
+        
+        ObjectDelta<UserType> delta = cheeseBefore.createModifyDelta();
+        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+		ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Preview cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
+        
+        PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
+        display("Cheese after", assignmentSummary(cheeseAfter));
+        assertCheeseRoleMembershipRef(cheeseAfter);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        
+        display("Inspector", inspector);
+
+        inspector.assertRead(RoleType.class, 1);
+//        assertRepositoryReadCount(4); // may be influenced by tasks
+        assertPrismObjectCompareCount(0);
+	}
 	
 	// TODO preview changes
+
+	private String assignmentSummary(PrismObject<UserType> user) {
+		Map<String,Integer> assignmentRelations = new HashMap<>();
+		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			relationToMap(assignmentRelations, assignment.getTargetRef());
+		}
+		Map<String,Integer> memRelations = new HashMap<>();
+		for (ObjectReferenceType ref: user.asObjectable().getRoleMembershipRef()) {
+			relationToMap(memRelations, ref);
+		}
+		return "User "+user
+				+"\n  "+user.asObjectable().getAssignment().size()+" assignments\n    "+assignmentRelations
+				+"\n  "+user.asObjectable().getRoleMembershipRef().size()+" roleMembershipRefs\n    "+memRelations;
+	}
+
+	private void relationToMap(Map<String, Integer> map, ObjectReferenceType ref) {
+		if (ref != null) {
+			Integer i = map.get(ref.getRelation().getLocalPart());
+			if (i == null) {
+				i = 0;
+			}
+			i++;
+			map.put(ref.getRelation().getLocalPart(), i);
+		}
+	}
 
 	private PrismObject<UserType> prepareCheese() throws Exception {
 		PrismObject<UserType> cheese = PrismTestUtil.parseObject(USER_CHEESE_FILE);
@@ -219,5 +332,40 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 			}
 		}
 		fail("Cannot find membership of role "+roleOid+" ("+relation.getLocalPart()+") in "+user);
+	}
+	
+	private class Inspector implements InternalInspector, DebugDumpable {
+
+		@SuppressWarnings("rawtypes")
+		Map<Class,Integer> readMap = new HashMap<>();
+		
+		@Override
+		public <O extends ObjectType> void inspectRepositoryRead(Class<O> type, String oid) {
+			Integer i = readMap.get(type);
+			if (i == null) {
+				i = 0;
+			}
+			i++;
+			readMap.put(type, i);
+		}
+		
+		public <O extends ObjectType> void assertRead(Class<O> type, int expectedCount) {
+			assertEquals("Unexpected number of reads of "+type.getSimpleName(), (Integer)expectedCount, readMap.get(type));
+		}
+
+		private void reset() {
+			readMap = new HashMap<>();
+		}
+
+		@Override
+		public String debugDump(int indent) {
+			StringBuilder sb = new StringBuilder();
+			DebugUtil.indentDebugDump(sb, indent);
+			DebugUtil.debugDumpWithLabel(sb, "read", readMap, indent + 1);
+			return sb.toString();
+		}
+		
+		
+		
 	}
 }

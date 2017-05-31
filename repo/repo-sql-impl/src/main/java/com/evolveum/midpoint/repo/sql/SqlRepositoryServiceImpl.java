@@ -138,7 +138,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(result, "Operation result must not be null.");
 
         LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
-        InternalMonitor.recordRepositoryRead();
+        InternalMonitor.recordRepositoryRead(type, oid);
 
         final String operation = "getting";
         int attempt = 1;

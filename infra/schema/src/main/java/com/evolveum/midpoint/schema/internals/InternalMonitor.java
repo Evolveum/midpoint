@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Simple monitoring object. It records the count of expensive operations
@@ -67,6 +68,8 @@ public class InternalMonitor implements PrismMonitor {
 	private static long prismObjectCloneCount = 0;
 	private static long prismObjectCloneDurationMillis = 0;
 	private static boolean tracePrismObjectClone = false;
+	
+	private static InternalInspector inspector;
 	
 	public static long getResourceSchemaParseCount() {
 		return resourceSchemaParseCount;
@@ -231,8 +234,13 @@ public class InternalMonitor implements PrismMonitor {
 		return repositoryReadCount;
 	}
 	
-	public static synchronized void recordRepositoryRead() {
-		repositoryReadCount++;
+	public static <O extends ObjectType> void recordRepositoryRead(Class<O> type, String oid) {
+		synchronized (InternalMonitor.class) {
+			repositoryReadCount++;
+		}
+		if (inspector != null) {
+			inspector.inspectRepositoryRead(type, oid);
+		}
 	}
 
 	public static long getPrismObjectCompareCount() {
@@ -291,6 +299,14 @@ public class InternalMonitor implements PrismMonitor {
 		InternalMonitor.prismObjectCloneCount = prismObjectCloneCount;
 	}
 
+	public static InternalInspector getInspector() {
+		return inspector;
+	}
+
+	public static void setInspector(InternalInspector inspector) {
+		InternalMonitor.inspector = inspector;
+	}
+	
 	public static void reset() {
 		LOGGER.info("MONITOR reset");
 		resourceSchemaParseCount = 0;
@@ -310,6 +326,7 @@ public class InternalMonitor implements PrismMonitor {
 		repositoryReadCount = 0;
 		prismObjectCompareCount = 0;
 		prismObjectCloneCount = 0;
+		inspector = null;
 	}
 
 	private static void traceOperation(String opName, long counter, boolean traceAndDebug) {
