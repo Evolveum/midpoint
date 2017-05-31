@@ -170,7 +170,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         //Both read locks and write locks are kept until the transaction commits.
         jdbcUrl.append(";LOCK_MODE=1");
         //fix for "Timeout trying to lock table [50200-XXX]" in H2 database. Default value is 1000ms.
-        jdbcUrl.append(";LOCK_TIMEOUT=10000");
+        jdbcUrl.append(";LOCK_TIMEOUT=100");        // experimental setting - let's resolve locking conflicts by midPoint itself
         //we want to store blob datas (full xml object right in table (it's always only a few kb)
         jdbcUrl.append(";MAX_LENGTH_INPLACE_LOB=10240");
 
