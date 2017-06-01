@@ -2138,6 +2138,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
 	}
 
+	/**
+	 * We are going to violate minAssignees constraint in cannibal role.
+	 */
 	@Test
     public void test632RappUnassignRoleCanibalAsOwner() throws Exception {
 

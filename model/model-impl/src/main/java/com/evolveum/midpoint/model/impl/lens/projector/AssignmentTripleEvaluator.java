@@ -282,8 +282,12 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
                     collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+        		} else if (assignmentElement.isOld()) {
+        			// This is OK, safe to skip. This is just an relic of earlier processing.
+        			return;
         		} else {
-        			throw new SystemException("Whoops. Unexpected things happen. Assignment is not old nor new (replace delta)");
+        			LOGGER.error("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta)\n{}", assignmentElement.debugDump(1));
+        			throw new SystemException("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta).");
         		}
         		
         	} else {
