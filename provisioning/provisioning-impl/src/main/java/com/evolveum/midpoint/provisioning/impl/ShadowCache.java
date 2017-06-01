@@ -464,11 +464,7 @@ public abstract class ShadowCache {
 		if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
 			return false;
 		}
-		Boolean cachingOnly = readCapabilityType.isCachingOnly();
-		if (cachingOnly == Boolean.TRUE) {
-			return true;
-		}
-		return false;
+		return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
 	}
 	
 	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
