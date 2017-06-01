@@ -41,6 +41,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestStrings"/>
             <class name="com.evolveum.midpoint.testing.story.TestDependencyRename"/>
             <class name="com.evolveum.midpoint.testing.story.TestPlentyOfAssignments"/>
+            <class name="com.evolveum.midpoint.testing.story.TestNotoriousRole"/>
         </classes>
     </test>
 </suite>
