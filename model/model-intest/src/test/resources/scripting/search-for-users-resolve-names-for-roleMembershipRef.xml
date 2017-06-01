@@ -34,6 +34,9 @@
     </s:query>
     <s:options>
         <c:option>
+            <c:selector>
+                <c:path>roleMembershipRef</c:path>
+            </c:selector>
             <c:options>
                 <c:resolveNames>true</c:resolveNames>
             </c:options>

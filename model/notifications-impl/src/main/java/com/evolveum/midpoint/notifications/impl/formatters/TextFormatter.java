@@ -128,7 +128,7 @@ public class TextFormatter {
                 source = objectOld;
             }
             if (item == null) {
-                LOGGER.warn("Couldn't find {} in {} nor {}, no explanation could be created.", new Object[] {pathToExplain, objectNew, objectOld});
+                LOGGER.warn("Couldn't find {} in {} nor {}, no explanation could be created.", pathToExplain, objectNew, objectOld);
                 continue;
             }
             if (first) {
@@ -141,7 +141,7 @@ public class TextFormatter {
                 sb.append(" - ").append(label).append(":\n");
                 formatContainerValue(sb, "   ", (PrismContainerValue) item, false, hiddenPaths, showOperationalAttributes);
             } else {
-                LOGGER.warn("{} in {} was expected to be a PrismContainerValue; it is {} instead", new Object[]{pathToExplain, source, item.getClass()});
+                LOGGER.warn("{} in {} was expected to be a PrismContainerValue; it is {} instead", pathToExplain, source, item.getClass());
                 if (item instanceof PrismContainer) {
                     formatPrismContainer(sb, "   ", (PrismContainer) item, false, hiddenPaths, showOperationalAttributes);
                 } else if (item instanceof PrismReference) {

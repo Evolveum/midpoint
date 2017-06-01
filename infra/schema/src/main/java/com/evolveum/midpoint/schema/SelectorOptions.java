@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -111,7 +112,12 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
     //endregion
 
     //region Methods for accessing content (findRoot, hasToLoadPath, ...)
-    /**
+	@NotNull
+	public ItemPath getItemPath() {
+		return selector == null || selector.getPath() == null ? ItemPath.EMPTY_PATH : selector.getPath();
+	}
+
+	/**
 	 * Returns options that apply to the "root" object. I.e. options that have null selector, null path, empty path, ...
 	 * Must return 'live object' that could be modified.
 	 */
@@ -128,13 +134,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 	}
 
 	public boolean isRoot() {
-		if (selector == null) {
-			return true;
-		}
-		if (selector.getPath() == null || selector.getPath().isEmpty()) {
-			return true;
-		}
-		return false;
+		return getItemPath().isEmpty();
 	}
 
     public static boolean hasToLoadPath(QName itemName, Collection<SelectorOptions<GetOperationOptions>> options) {

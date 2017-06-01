@@ -1646,7 +1646,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (items != null) {
 			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
 				Item<?, ?> item = iterator.next();
-				if (!ItemPath.containsSubpathOrEquivalent(keep, item.getPath())) {
+				if (!ItemPath.containsSuperpathOrEquivalent(keep, item.getPath())) {
 					iterator.remove();
 				} else {
 					if (item instanceof PrismContainer) {
@@ -1666,7 +1666,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				Item<?, ?> item = iterator.next();
 				if (ItemPath.containsEquivalent(remove, item.getPath())) {
 					iterator.remove();
-				} else if (ItemPath.containsSubpath(remove, item.getPath())) {
+				} else if (ItemPath.containsSuperpath(remove, item.getPath())) {
 					if (item instanceof PrismContainer) {
 						((PrismContainer<?>) item).getValues().forEach(v -> v.removePaths(remove));
 					}

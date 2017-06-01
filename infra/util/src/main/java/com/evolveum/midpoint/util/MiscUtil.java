@@ -586,4 +586,8 @@ public class MiscUtil {
 	public static <T> T last(List<T> list) {
 		return list.get(list.size() - 1);
 	}
+
+	public static String emptyIfNull(String s) {
+		return s == null ? "" : s;
+	}
 }
