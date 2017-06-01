@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 
 import com.evolveum.midpoint.util.QNameUtil;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -1207,4 +1207,53 @@ public class PrismAsserts {
 					+ " (precision of " + threshold + "); real difference with the expected value is " + difference);
 		}
 	}
+
+	public static void assertHasTargetName(PrismContainerValue<?> pcv, ItemPath path) {
+		for (PrismValue value : getValues(pcv, path)) {
+			PrismReferenceValue prv = (PrismReferenceValue) value;
+			assertHasTargetName(prv);
+		}
+	}
+
+	@NotNull
+	private static List<PrismValue> getValues(PrismContainerValue<?> pcv, ItemPath path) {
+		Item<PrismValue, ItemDefinition> item = pcv.findItem(path);
+		return item != null ? item.getValues() : Collections.emptyList();
+	}
+
+	private static void assertHasTargetName(PrismReferenceValue prv) {
+		assertNotNull("No target name in " + prv, prv.getTargetName());
+	}
+
+	public static void assertHasNoTargetName(PrismContainerValue<?> pcv, ItemPath path) {
+		for (PrismValue value : getValues(pcv, path)) {
+			PrismReferenceValue prv = (PrismReferenceValue) value;
+			assertHasNoTargetName(prv);
+		}
+	}
+
+	private static void assertHasNoTargetName(PrismReferenceValue prv) {
+		assertNull("Target name present in " + prv + ": " + prv.getTargetName(), prv.getTargetName());
+	}
+
+	public static void assertHasObject(PrismContainerValue<?> pcv, ItemPath path) {
+		for (PrismValue value : getValues(pcv, path)) {
+			assertHasObject((PrismReferenceValue) value);
+		}
+	}
+
+	private static void assertHasObject(PrismReferenceValue prv) {
+		assertNotNull("No resolved object in " + prv, prv.getObject());
+	}
+
+	public static void assertHasNoObject(PrismContainerValue<?> pcv, ItemPath path) {
+		for (PrismValue value : getValues(pcv, path)) {
+			assertHasNoObject((PrismReferenceValue) value);
+		}
+	}
+
+	private static void assertHasNoObject(PrismReferenceValue prv) {
+		assertNull("Resolved object present in " + prv + ": " + prv.getObject(), prv.getObject());
+	}
+
 }

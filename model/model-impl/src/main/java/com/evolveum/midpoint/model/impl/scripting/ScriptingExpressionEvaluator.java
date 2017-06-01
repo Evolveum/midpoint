@@ -150,13 +150,6 @@ public class ScriptingExpressionEvaluator {
         return context;
     }
 
-    // use in tests only (we need the task at least to report progress/statistics)
-	@Deprecated
-    public ExecutionContext evaluateExpression(ScriptingExpressionType expression, OperationResult result) throws ScriptExecutionException {
-        Task task = taskManager.createTaskInstance();
-        return evaluateExpression(expression, task, result);
-    }
-
     // main entry point from the outside
 	private ExecutionContext evaluateExpression(ScriptingExpressionType expression, PipelineData data,
 			ScriptingExpressionEvaluationOptionsType options, Task task, OperationResult result) throws ScriptExecutionException {

@@ -17,13 +17,16 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.transform.Transformers;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -43,8 +46,9 @@ public class NameResolutionHelper {
 	}
 
     public void resolveNamesIfRequested(Session session, List<? extends PrismContainerValue> containerValues, Collection<SelectorOptions<GetOperationOptions>> options) {
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-		if (!GetOperationOptions.isResolveNames(rootOptions)) {
+
+    	List<ItemPath> pathsToResolve = getPathsToResolve(options);
+		if (pathsToResolve.isEmpty()) {
 			return;
 		}
 
@@ -52,6 +56,9 @@ public class NameResolutionHelper {
 		Visitor oidExtractor = visitable -> {
 			if (visitable instanceof PrismReferenceValue) {
 				PrismReferenceValue value = (PrismReferenceValue) visitable;
+				if (!ItemPath.containsSuperpathOrEquivalent(pathsToResolve, value.getPath())) {
+					return;
+				}
 				if (value.getTargetName() != null) {    // just for sure
 					return;
 				}
@@ -98,5 +105,16 @@ public class NameResolutionHelper {
 			};
 			roots.forEach(root -> root.accept(nameSetter));
 		}
+	}
+
+	@NotNull
+	private List<ItemPath> getPathsToResolve(Collection<SelectorOptions<GetOperationOptions>> options) {
+    	List<ItemPath> rv = new ArrayList<>();
+		for (SelectorOptions<GetOperationOptions> option : CollectionUtils.emptyIfNull(options)) {
+			if (GetOperationOptions.isResolveNames(option.getOptions())) {
+				rv.add(option.getItemPath());
+			}
+		}
+		return rv;
 	}
 }

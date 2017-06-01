@@ -342,7 +342,15 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return normalizedPath;
 	}
-	
+
+	/**
+	 * path1.compareComplex(path2) returns:
+	 *
+	 *  - EQUIVALENT if the paths are equivalent
+	 *  - SUBPATH if path1 is a subpath of path2, i.e. it is its 'prefix' (it is shorter): like A/B is a subpath of A/B/C/D
+	 *  - SUPERPATH if path2 is a subpath of path1, like A/B/C/D is a superpath of A/B
+	 *  - NO_RELATION if neither of the above three occurs
+	 */
 	public CompareResult compareComplex(ItemPath otherPath) {
 		ItemPath thisNormalized = this.normalize();
 		ItemPath otherNormalized = otherPath == null ? EMPTY_PATH : otherPath.normalize();
@@ -373,25 +381,57 @@ public class ItemPath implements Serializable, Cloneable {
         return false;
     }
 
-    public static boolean containsSubpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
-        for (ItemPath path : paths) {
-            CompareResult r = pathToBeFound.compareComplex(path);
-            if (r == CompareResult.SUBPATH || r == CompareResult.EQUIVALENT) {
-                return true;
-            }
-        }
-        return false;
+	/**
+	 * Returns true if the collection contains a superpath of or equivalent path to the given path.
+	 * I.e. having collection = { A/B, A/C }
+	 * then the method for this collection and 'path' returns:
+	 *  - path = A/B -> true
+	 *  - path = A -> true
+	 *  - path = A/B/C -> false
+	 *  - path = X -> false
+	 */
+    public static boolean containsSuperpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
+    	return paths.stream().anyMatch(p -> p.isSuperPathOrEquivalent(pathToBeFound));
     }
 
-    public static boolean containsSubpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
-        for (ItemPath path : paths) {
-            CompareResult r = pathToBeFound.compareComplex(path);
-            if (r == CompareResult.SUBPATH) {
-                return true;
-            }
-        }
-        return false;
+	/**
+	 * Returns true if the collection contains a superpath of the given path.
+	 * I.e. having collection = { A/B, A/C }
+	 * then the method for this collection and 'path' returns:
+	 *  - path = A/B -> false
+	 *  - path = A -> true
+	 *  - path = A/B/C -> false
+	 *  - path = X -> false
+	 */
+	public static boolean containsSuperpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
+		return paths.stream().anyMatch(p -> p.isSuperPath(pathToBeFound));
+	}
+
+	/**
+	 * Returns true if the collection contains a subpath of or equivalent path to the given path.
+	 * I.e. having collection = { A/B, A/C }
+	 * then the method for this collection and 'path' returns:
+	 *  - path = A/B -> true
+	 *  - path = A -> false
+	 *  - path = A/B/C -> true
+	 *  - path = X -> false
+	 */
+    public static boolean containsSubpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
+    	return paths.stream().anyMatch(p -> p.isSubPathOrEquivalent(pathToBeFound));
     }
+
+	/**
+	 * Returns true if the collection contains a superpath of the given path.
+	 * I.e. having collection = { A/B, A/C }
+	 * then the method for this collection and 'path' returns:
+	 *  - path = A/B -> false
+	 *  - path = A -> false
+	 *  - path = A/B/C -> true
+	 *  - path = X -> false
+	 */
+	public static boolean containsSubpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
+		return paths.stream().anyMatch(p -> p.isSubPath(pathToBeFound));
+	}
 
     public ItemPath namedSegmentsOnly() {
         ItemPath rv = new ItemPath();
@@ -488,6 +528,11 @@ public class ItemPath implements Serializable, Cloneable {
 	
 	public boolean isSuperPath(ItemPath otherPath) {
 		return compareComplex(otherPath) == CompareResult.SUPERPATH;
+	}
+
+	public boolean isSuperPathOrEquivalent(ItemPath otherPath) {
+		CompareResult result = compareComplex(otherPath);
+		return result == CompareResult.SUPERPATH || result == CompareResult.EQUIVALENT;
 	}
 
     public boolean isSubPathOrEquivalent(ItemPath otherPath) {
