@@ -35,7 +35,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author semancik
@@ -121,7 +126,26 @@ public class DomLexicalWriter {
 		} else {
 			throw new SchemaException("Sub-root xnode is not a map nor an explicit list, cannot serialize to XML (it is "+subnode+")");
 		}
+		addDefaultNamespaceDeclaration(topElement);
 		return topElement;
+	}
+
+	/**
+	 * Adds xmlns='...common-3' if needed.
+	 * In fact, this is VERY ugly hack to avoid putting common-3 declarations all over the elements in bulk actions response.
+	 * e.getNamespaceURI returns something only if it was present during node creation.
+	 * So, in fact, this code is more than fragile. Seems to work with the current XNode->DOM serialization, though.
+	 */
+	private void addDefaultNamespaceDeclaration(Element top) {
+		List<Element> prefixless = DOMUtil.getElementsWithoutNamespacePrefix(top);
+		if (prefixless.size() < 2) {
+			return;		// nothing to do here
+		}
+		Set<String> namespaces = prefixless.stream().map(e -> emptyIfNull(e.getNamespaceURI())).collect(Collectors.toSet());
+		if (namespaces.size() != 1 || StringUtils.isEmpty(namespaces.iterator().next())) {
+			return;
+		}
+		DOMUtil.setNamespaceDeclaration(top, "", namespaces.iterator().next());
 	}
 
 	Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {

@@ -396,7 +396,7 @@ public class DOMUtil {
 		return null;
 	}
 	
-	public static List<Element> getChildElements(Element element, QName elementName){
+	public static List<Element> getChildElements(Element element, QName elementName) {
 		Validate.notNull(elementName, "Element name to get must not be null");
 		List<Element> elements = new ArrayList<>();
 		NodeList childNodes = element.getChildNodes();
@@ -421,7 +421,7 @@ public class DOMUtil {
 		}
 		return subelements;
 	}
-	
+
 	public static boolean hasChildElements(Node node) {
 		List<Element> childElements = listChildElements(node);
 		return (!childElements.isEmpty());
@@ -679,13 +679,10 @@ public class DOMUtil {
 	}
 
 	public static boolean isNamespaceDefinition(Attr attr) {
-			if(W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
-				return true;
-			}
-			if(attr.getName().startsWith("xmlns:") || "xmlns".equals(attr.getName())) {
-				return true;
-			}
-			return false;
+		if (W3C_XML_SCHEMA_XMLNS_URI.equals(attr.getNamespaceURI())) {
+			return true;
+		}
+		return attr.getName().startsWith("xmlns:") || "xmlns".equals(attr.getName());
 	}
 
 	public static void setNamespaceDeclaration(Element element, String prefix, String namespaceUri) {
@@ -1412,4 +1409,29 @@ public class DOMUtil {
 		return attr;
     }
 
+	public static boolean hasNoPrefix(Element top) {
+		return Objects.equals(top.getLocalName(), top.getNodeName());
+	}
+
+	@NotNull
+	public static List<Element> getElementsWithoutNamespacePrefix(Element element) {
+    	List<Element> rv = new ArrayList<>();
+    	getElementsWithoutNamespacePrefix(element, rv);
+    	return rv;
+	}
+
+	private static void getElementsWithoutNamespacePrefix(Element element, List<Element> result) {
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Node childNode = childNodes.item(i);
+			if (childNode instanceof Element) {
+				Element childElement = (Element) childNode;
+				if (hasNoPrefix(childElement)) {
+					result.add(childElement);
+				} else {
+					getElementsWithoutNamespacePrefix(childElement, result);
+				}
+			}
+		}
+	}
 }
