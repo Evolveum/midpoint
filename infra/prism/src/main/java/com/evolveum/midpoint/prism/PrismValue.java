@@ -327,7 +327,7 @@ public abstract class PrismValue implements IPrismValue {
 
 	@Override
 	public int hashCode() {
-		int result = 1;
+		int result = 0;
 		return result;
 	}
 	

@@ -1191,7 +1191,7 @@ public class ContextLoader {
 		}
 	}
 	
-	public <F extends ObjectType> void loadFullShadow(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
+	public <F extends ObjectType> void loadFullShadow(LensContext<F> context, LensProjectionContext projCtx, String reason, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (projCtx.isFullShadow()) {
 			// already loaded
@@ -1217,11 +1217,11 @@ public class ContextLoader {
 		GetOperationOptions getOptions = GetOperationOptions.createAllowNotFound();
 		getOptions.setPointInTimeType(PointInTimeType.FUTURE);
 		if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
-			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops", projCtx);
+			LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops; reason: {}", projCtx, reason);
 			// Avoid discovery loops
 			getOptions.setDoNotDiscovery(true);
 		} else {
-			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled), channel: {}", projCtx, context.getChannel());
+			LOGGER.trace("Loading full resource object {} from provisioning (discovery enabled), reason: {}, channel: {}", projCtx, reason, context.getChannel());
 		}
 		try {	
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);

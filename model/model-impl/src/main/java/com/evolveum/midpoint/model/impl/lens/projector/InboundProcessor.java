@@ -337,7 +337,7 @@ public class InboundProcessor {
 			LensProjectionContext projContext, Task task, OperationResult result, PrismObject<ShadowType> accountCurrent)
 			throws SchemaException {
 		try {
-			contextLoader.loadFullShadow(context, projContext, task, result);
+			contextLoader.loadFullShadow(context, projContext, "inbound", task, result);
 			accountCurrent = projContext.getObjectCurrent();
 		} catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projContext.getOid(), e.getMessage());

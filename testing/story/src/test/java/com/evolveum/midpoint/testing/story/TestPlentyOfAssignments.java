@@ -70,9 +70,9 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 	public static final String ROLE_BASIC_OID = "6909ff20-45e4-11e7-b0a3-0fe76ff4380e";
 
 	private static final int NUMBER_OF_ORDINARY_ROLES = 2; // including superuser role
-	private static final int NUMBER_OF_GENERATED_ROLES = 10;
-	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER = 6;
-	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER = 4;
+	private static final int NUMBER_OF_GENERATED_ROLES = 1000;
+	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER = 600;
+	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER = 400;
 	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS_ORDINARY = 1;
 	private static final int NUMBER_OF_CHEESE_ASSIGNMENTS = NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER + NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER + NUMBER_OF_CHEESE_ASSIGNMENTS_ORDINARY;
 	

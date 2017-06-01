@@ -1655,6 +1655,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.displayThen(testName);
 	}
 	
+	protected void displayCleanup(String testName) {
+		TestUtil.displayCleanup(testName);
+	}
+	
 	protected void display(String str) {
 		IntegrationTestTools.display(str);
 	}

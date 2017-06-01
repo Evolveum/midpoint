@@ -1398,8 +1398,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((items == null) ? 0 : MiscUtil.unorderedCollectionHashcode(items));
+		// Do not include id. containers with non-null id and null id may still be considered equivalent
+		// We also need to make sure that container valus that contain only metadata will produce zero hashcode
+		// so it will not ruin hashcodes of parent containers
+		int itemsHash = 0;
+		if (items != null) {
+			itemsHash = MiscUtil.unorderedCollectionHashcode(items, item -> !item.isMetadata());
+		}
+		if (itemsHash != 0) {
+			result = prime * result + itemsHash;
+		}
 		return result;
 	}
 		
