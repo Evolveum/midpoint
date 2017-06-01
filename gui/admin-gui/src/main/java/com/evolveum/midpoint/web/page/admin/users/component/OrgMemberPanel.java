@@ -105,7 +105,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
 	protected static final String SEARCH_SCOPE_ONE = "one";
 
-	protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.OBJECT;
+	protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.USER;
 
 	protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList(SEARCH_SCOPE_SUBTREE,
 			SEARCH_SCOPE_ONE);
@@ -160,7 +160,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		form.add(objectType);
 
 		DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE,
-				Model.of(SEARCH_SCOPE_ONE), SEARCH_SCOPE_VALUES,
+				Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
 				new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
 		seachScrope.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
