@@ -73,6 +73,7 @@ public class TaskManagerConfiguration {
     private static final String STALLED_TASKS_THRESHOLD_CONFIG_ENTRY = "stalledTasksThreshold";
     private static final String STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY = "stalledTasksRepeatedNotificationInterval";
     private static final String RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY = "runNowKeepsOriginalSchedule";
+    private static final String SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY = "schedulerInitiallyStopped";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
     private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
@@ -114,6 +115,7 @@ public class TaskManagerConfiguration {
     private int stalledTasksThreshold;
     private int stalledTasksRepeatedNotificationInterval;
     private boolean runNowKeepsOriginalSchedule;
+    private boolean schedulerInitiallyStopped;
 
     // JMX credentials for connecting to remote nodes
     private String jmxUsername;
@@ -175,7 +177,8 @@ public class TaskManagerConfiguration {
             STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY,
             STALLED_TASKS_THRESHOLD_CONFIG_ENTRY,
             STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY,
-            RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY
+            RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY,
+			SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
@@ -185,7 +188,7 @@ public class TaskManagerConfiguration {
 
     // todo copied from WfConfiguration -- refactor
     private void checkAllowedKeys(Configuration c, List<String> knownKeys) throws TaskManagerConfigurationException {
-        Set<String> knownKeysSet = new HashSet<String>(knownKeys);
+        Set<String> knownKeysSet = new HashSet<>(knownKeys);
 
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext())  {
@@ -265,10 +268,11 @@ public class TaskManagerConfiguration {
         stalledTasksThreshold = c.getInt(STALLED_TASKS_THRESHOLD_CONFIG_ENTRY, STALLED_TASKS_THRESHOLD_DEFAULT);
         stalledTasksRepeatedNotificationInterval = c.getInt(STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY, STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_DEFAULT);
         runNowKeepsOriginalSchedule = c.getBoolean(RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY, RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT);
+        schedulerInitiallyStopped = c.getBoolean(SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY, false);
     }
 
-    private static final Map<String,String> schemas = new HashMap<String,String>();
-    private static final Map<String,String> delegates = new HashMap<String,String>();
+    private static final Map<String,String> schemas = new HashMap<>();
+    private static final Map<String,String> delegates = new HashMap<>();
 
     static void addDbInfo(String dialect, String schema, String delegate) {
         schemas.put(dialect, schema);
@@ -517,4 +521,8 @@ public class TaskManagerConfiguration {
     public String getDataSource() {
         return dataSource;
     }
+
+	public boolean isSchedulerInitiallyStopped() {
+		return schedulerInitiallyStopped;
+	}
 }
