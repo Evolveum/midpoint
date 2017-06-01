@@ -187,6 +187,10 @@ public class ItemPath implements Serializable, Cloneable {
 		this.segments.add(createSegment(qname, false));
 	}
 
+	private void add(ItemPathSegment segment) {
+		this.segments.add(segment);
+	}
+
 	public static ItemPathSegment createSegment(QName qname, boolean variable) {
 		if (ParentPathSegment.QNAME.equals(qname)) {
 			return new ParentPathSegment();
@@ -341,6 +345,16 @@ public class ItemPath implements Serializable, Cloneable {
 			normalizedPath.segments.add(new IdItemPathSegment());
 		}
 		return normalizedPath;
+	}
+
+	public ItemPath removeIdentifiers() {
+		ItemPath rv = new ItemPath();
+		for (ItemPathSegment segment : segments) {
+			if (!(segment instanceof IdItemPathSegment)) {
+				rv.add(segment);
+			}
+		}
+		return rv;
 	}
 
 	/**

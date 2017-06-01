@@ -56,7 +56,7 @@ public class NameResolutionHelper {
 		Visitor oidExtractor = visitable -> {
 			if (visitable instanceof PrismReferenceValue) {
 				PrismReferenceValue value = (PrismReferenceValue) visitable;
-				if (!ItemPath.containsSuperpathOrEquivalent(pathsToResolve, value.getPath())) {
+				if (!ItemPath.containsSubpathOrEquivalent(pathsToResolve, value.getPath())) {
 					return;
 				}
 				if (value.getTargetName() != null) {    // just for sure
