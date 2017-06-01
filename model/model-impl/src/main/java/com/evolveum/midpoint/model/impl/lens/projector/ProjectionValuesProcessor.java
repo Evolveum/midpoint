@@ -156,7 +156,7 @@ public class ProjectionValuesProcessor {
 		if (consistencyChecks) context.checkConsistence();
 		
 		if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
-			contextLoader.loadFullShadow(context, projContext, task, result);
+			contextLoader.loadFullShadow(context, projContext, "iteration expression", task, result);
 			if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
             	return;
             }

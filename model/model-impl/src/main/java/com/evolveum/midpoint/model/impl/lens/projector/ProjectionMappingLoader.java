@@ -53,8 +53,8 @@ public class ProjectionMappingLoader<F extends ObjectType> implements MappingLoa
 	}
 
 	@Override
-	public PrismObject load(Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		contextLoader.loadFullShadow(context, projectionContext, task, result);
+	public PrismObject load(String loadReason, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		contextLoader.loadFullShadow(context, projectionContext, loadReason, task, result);
 		if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
 				// TODO
 			}
