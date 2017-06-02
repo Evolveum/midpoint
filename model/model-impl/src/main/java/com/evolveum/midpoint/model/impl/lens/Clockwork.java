@@ -675,11 +675,16 @@ public class Clockwork {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		Integer recordsToKeep;
 		Long deleteBefore;
+		boolean keepNoExecutions = false;
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		if (systemConfiguration != null && systemConfiguration.asObjectable().getCleanupPolicy() != null
 				&& systemConfiguration.asObjectable().getCleanupPolicy().getObjectResults() != null) {
 			CleanupPolicyType policy = systemConfiguration.asObjectable().getCleanupPolicy().getObjectResults();
 			recordsToKeep = policy.getMaxRecords();
+			if (recordsToKeep != null && recordsToKeep == 0) {
+				LOGGER.trace("objectResults.recordsToKeep is 0, will skip storing operationExecutions");
+				keepNoExecutions = true;
+			}
 			if (policy.getMaxAge() != null) {
 				XMLGregorianCalendar limit = XmlTypeConverter.addDuration(
 						XmlTypeConverter.createXMLGregorianCalendar(new Date()), policy.getMaxAge().negate());
@@ -705,19 +710,33 @@ public class Clockwork {
 		}
 		// delete all surplus executions
 		if (recordsToKeep != null && object.asObjectable().getOperationExecution().size() > recordsToKeep - 1) {
-			executions.sort(Comparator.nullsFirst(Comparator.comparing(e -> XmlTypeConverter.toDate(e.getTimestamp()))));
-			executionsToDelete.addAll(executions.subList(0, executions.size() - (recordsToKeep - 1)));
+			if (keepNoExecutions) {
+				executionsToDelete.addAll(executions);
+			} else {
+				executions.sort(Comparator.nullsFirst(Comparator.comparing(e -> XmlTypeConverter.toDate(e.getTimestamp()))));
+				executionsToDelete.addAll(executions.subList(0, executions.size() - (recordsToKeep - 1)));
+			}
 		}
 		// construct and execute the delta
 		Class<? extends ObjectType> objectClass = object.asObjectable().getClass();
-		List<ItemDelta<?, ?>> deltas = DeltaBuilder.deltaFor(objectClass, prismContext)
-				.item(ObjectType.F_OPERATION_EXECUTION)
+		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+		if (!keepNoExecutions) {
+			deltas.add(DeltaBuilder.deltaFor(objectClass, prismContext)
+					.item(ObjectType.F_OPERATION_EXECUTION)
 					.add(executionToAdd)
+					.asItemDelta());
+		}
+		if (!executionsToDelete.isEmpty()) {
+			deltas.add(DeltaBuilder.deltaFor(objectClass, prismContext)
+					.item(ObjectType.F_OPERATION_EXECUTION)
 					.delete(PrismContainerValue.toPcvList(CloneUtil.cloneCollectionMembers(executionsToDelete)))
-				.asItemDeltas();
+					.asItemDelta());
+		}
 		LOGGER.trace("Operation execution delta:\n{}", DebugUtil.debugDumpLazily(deltas));
 		try {
-			repositoryService.modifyObject(objectClass, oid, deltas, result);
+			if (!deltas.isEmpty()) {
+				repositoryService.modifyObject(objectClass, oid, deltas, result);
+			}
 		} catch (ObjectNotFoundException e) {
 			if (!deletedOk) {
 				throw e;
