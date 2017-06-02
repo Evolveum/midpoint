@@ -1532,6 +1532,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		
 		try {
 			ObjectClassComplexTypeDefinition structuralObjectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassDef.getTypeName());
+			if (structuralObjectClassDefinition == null) {
+				throw new SchemaException("No definition of structural object class "+objectClassDef.getTypeName()+" in "+description);
+			}
 			Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
 			if (auxiliaryObjectClassDelta != null) {
 				// Activation change means modification of attributes

@@ -41,8 +41,7 @@ public class SmartAssignmentKey {
 
 	@Override
 	public int hashCode() { 
-		int result = assignmentCVal.hashCode();
-		return result;
+		return assignmentCVal.hashCode();
 	}
 
 	@Override
@@ -68,8 +67,12 @@ public class SmartAssignmentKey {
 	}
 
 	private boolean equalsAssignment(PrismContainerValue<AssignmentType> other) {
-		boolean b = assignmentCVal.match(other);
-		return b;
-	}	
+		return assignmentCVal.match(other);
+	}
+
+	@Override
+	public String toString() {
+		return "SmartAssignmentKey(" + assignmentCVal + ")";
+	}
 	
 }

@@ -460,7 +460,13 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		int result = super.hashCode();
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
 		QName normalizedRelation = normalizedRelation(relation, false);
-		result = prime * result + ((normalizedRelation == null) ? 0 : normalizedRelation.hashCode());
+		if (normalizedRelation != null) {
+			// Take just the local part to avoid problems with incomplete namespaces
+			String relationLocal = normalizedRelation.getLocalPart();
+			if (relationLocal != null) {
+				result = prime * result + relationLocal.hashCode();
+			}
+		}
 		return result;
 	}
 		
