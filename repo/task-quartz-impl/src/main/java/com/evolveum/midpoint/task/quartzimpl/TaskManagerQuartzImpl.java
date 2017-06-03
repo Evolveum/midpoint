@@ -147,21 +147,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	private BeanFactory beanFactory;
 
-    @Autowired(required=true)
-    MidpointConfiguration midpointConfiguration;
-
-    @Autowired(required=true)
-	private RepositoryService repositoryService;
-
-    @Autowired(required=true)
-	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-	
-    @Autowired(required=true)
+    @Autowired private MidpointConfiguration midpointConfiguration;
+	@Autowired private RepositoryService repositoryService;
+	@Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+	@Autowired
     @Qualifier("securityEnforcer")
     private SecurityEnforcer securityEnforcer;
-    
-	@Autowired(required=true)
-	private PrismContext prismContext;
+	@Autowired private PrismContext prismContext;
 	
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerQuartzImpl.class);
 
@@ -226,10 +218,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             clusterManager.startClusterManagerThread();
         }
 
-        executionManager.startScheduler(getNodeId(), result);
-        if (result.getLastSubresultStatus() != SUCCESS) {
-            throw new SystemException("Quartz task scheduler couldn't be started.");
-        }
+        if (configuration.isSchedulerInitiallyStopped()) {
+        	LOGGER.info("Scheduler was not started because of system configuration 'schedulerInitiallyStopped' setting. You can start it manually if needed.");
+		} else if (midpointConfiguration.isSafeMode()) {
+			LOGGER.info("Scheduler was not started because the safe mode is ON. You can start it manually if needed.");
+		} else {
+			executionManager.startScheduler(getNodeId(), result);
+			if (result.getLastSubresultStatus() != SUCCESS) {
+				throw new SystemException("Quartz task scheduler couldn't be started.");
+			}
+		}
         
         result.computeStatus();
     }

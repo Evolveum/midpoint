@@ -1398,8 +1398,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((items == null) ? 0 : MiscUtil.unorderedCollectionHashcode(items));
+		// Do not include id. containers with non-null id and null id may still be considered equivalent
+		// We also need to make sure that container valus that contain only metadata will produce zero hashcode
+		// so it will not ruin hashcodes of parent containers
+		int itemsHash = 0;
+		if (items != null) {
+			itemsHash = MiscUtil.unorderedCollectionHashcode(items, item -> !item.isMetadata());
+		}
+		if (itemsHash != 0) {
+			result = prime * result + itemsHash;
+		}
 		return result;
 	}
 		
@@ -1638,7 +1646,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (items != null) {
 			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
 				Item<?, ?> item = iterator.next();
-				if (!ItemPath.containsSubpathOrEquivalent(keep, item.getPath())) {
+				ItemPath itemPath = item.getPath().removeIdentifiers();
+				if (!ItemPath.containsSuperpathOrEquivalent(keep, itemPath)) {
 					iterator.remove();
 				} else {
 					if (item instanceof PrismContainer) {
@@ -1656,9 +1665,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		if (items != null) {
 			for (Iterator<Item<?, ?>> iterator = items.iterator(); iterator.hasNext(); ) {
 				Item<?, ?> item = iterator.next();
-				if (ItemPath.containsEquivalent(remove, item.getPath())) {
+				ItemPath itemPath = item.getPath().removeIdentifiers();
+				if (ItemPath.containsEquivalent(remove, itemPath)) {
 					iterator.remove();
-				} else if (ItemPath.containsSubpath(remove, item.getPath())) {
+				} else if (ItemPath.containsSuperpath(remove, itemPath)) {
 					if (item instanceof PrismContainer) {
 						((PrismContainer<?>) item).getValues().forEach(v -> v.removePaths(remove));
 					}

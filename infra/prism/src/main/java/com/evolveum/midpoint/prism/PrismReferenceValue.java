@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -409,19 +409,22 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (!equalsTargetType(other)) {
 			return false;
 		}
-		if (!relationsEquivalent(relation, other.relation)) {
+		if (!relationsEquivalent(relation, other.relation, isLiteral)) {
 			return false;
 		}
 		return true;
 	}
 
-	private boolean relationsEquivalent(QName r1, QName r2) {
-		return QNameUtil.match(normalizedRelation(r1), normalizedRelation(r2));
+	private boolean relationsEquivalent(QName r1, QName r2, boolean isLiteral) {
+		return QNameUtil.match(normalizedRelation(r1, isLiteral), normalizedRelation(r2, isLiteral));
 	}
 
-	private QName normalizedRelation(QName r) {
+	private QName normalizedRelation(QName r, boolean isLiteral) {
 		if (r != null) {
 			return r;
+		}
+		if (isLiteral) {
+			return null;
 		}
 		PrismContext prismContext = getPrismContext();
 		return prismContext != null ? prismContext.getDefaultRelation() : null;
@@ -456,8 +459,14 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
-		result = prime * result + ((targetType == null) ? 0 : targetType.hashCode());
-		result = prime * result + ((relation == null) ? 0 : relation.hashCode());
+		QName normalizedRelation = normalizedRelation(relation, false);
+		if (normalizedRelation != null) {
+			// Take just the local part to avoid problems with incomplete namespaces
+			String relationLocal = normalizedRelation.getLocalPart();
+			if (relationLocal != null) {
+				result = prime * result + relationLocal.hashCode();
+			}
+		}
 		return result;
 	}
 		
@@ -472,7 +481,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	
 	public boolean representsSameValue(PrismReferenceValue other) {
 		if (this.getOid() != null && other.getOid() != null) {
-			return this.getOid().equals(other.getOid()) && relationsEquivalent(this.getRelation(), other.getRelation());
+			return this.getOid().equals(other.getOid()) && relationsEquivalent(this.getRelation(), other.getRelation(), false);
 		}
 		return false;
 	}

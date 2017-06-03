@@ -17,6 +17,9 @@ package com.evolveum.midpoint.util;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
@@ -26,6 +29,7 @@ import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -35,6 +39,9 @@ import java.util.stream.Stream;
 public class MiscUtil {
 	
 	private static final int BUFFER_SIZE = 2048; 
+	
+	private static final Trace LOGGER = TraceManager.getTrace(MiscUtil.class);
+	
 	private static DatatypeFactory df = null;
 
     static {
@@ -174,11 +181,15 @@ public class MiscUtil {
 		return true;
 	}
 	
-	public static int unorderedCollectionHashcode(Collection collection) {
+	public static <T> int unorderedCollectionHashcode(Collection<T> collection, Predicate<T> filter) {
 		// Stupid implmentation, just add all the hashcodes
 		int hashcode = 0;
-		for (Object item: collection) {
-			hashcode += item.hashCode();
+		for (T item: collection) {
+			if (filter != null && !filter.test(item)) {
+				continue;
+			}
+			int itemHash = item.hashCode();
+			hashcode += itemHash;
 		}
 		return hashcode;
 	}
@@ -574,5 +585,9 @@ public class MiscUtil {
 	// @pre: !list.isEmpty()
 	public static <T> T last(List<T> list) {
 		return list.get(list.size() - 1);
+	}
+
+	public static String emptyIfNull(String s) {
+		return s == null ? "" : s;
 	}
 }

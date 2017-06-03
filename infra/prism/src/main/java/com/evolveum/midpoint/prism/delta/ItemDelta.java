@@ -185,6 +185,18 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 	}
 
+	public int size() {
+		return sizeSet(valuesToReplace) + sizeSet(valuesToAdd) + sizeSet(valuesToDelete);
+	}
+	
+	private int sizeSet(Collection<V> set) {
+		if (set == null) {
+			return 0;
+		} else {
+			return set.size();
+		}
+	}
+
 	// TODO think if estimated old values have to be visited as well
 	@Override
 	public void accept(Visitor visitor, ItemPath path, boolean recursive) {

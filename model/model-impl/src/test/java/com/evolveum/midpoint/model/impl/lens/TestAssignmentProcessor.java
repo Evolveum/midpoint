@@ -374,12 +374,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     }
 
-		
-
 	@Test
     public void test031DeleteAssignmentModifyAccount() throws Exception {
 		final String TEST_NAME = "test031DeleteAssignmentModifyAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -399,12 +397,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
+        displayWhen(TEST_NAME);
         assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
+        displayThen(TEST_NAME);
         display("Output context", context.dump(true));
-        display("outbound processor result", result);
-//		assertSuccess("Outbound processor failed (result)", result);
+        display("result", result);
+        assertSuccess(result);
 
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());

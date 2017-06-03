@@ -661,6 +661,10 @@ public class Mapping<V extends PrismValue,D extends ItemDefinition> implements D
 		sb.append(" in ");
 		sb.append(contextDescription);
 		sb.append("]---------------------------");
+		MappingStrengthType strength = getStrength();
+		if (strength != null) {
+			sb.append("\nStregth: ").append(strength);
+		}
 		for (Source<?,?> source: sources) {
 			sb.append("\nSource: ");
 			sb.append(source.shortDebugDump());

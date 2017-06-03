@@ -132,9 +132,12 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -1186,6 +1189,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 	
+	protected PrismObjectDefinition<RoleType> getRoleDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
+	}
+	
 	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 	}
@@ -1655,6 +1662,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.displayThen(testName);
 	}
 	
+	protected void displayCleanup(String testName) {
+		TestUtil.displayCleanup(testName);
+	}
+	
 	protected void display(String str) {
 		IntegrationTestTools.display(str);
 	}
@@ -2027,4 +2038,54 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismReference memRef = focus.findReference(FocusType.F_ROLE_MEMBERSHIP_REF);
 		assertNull("No roleMembershipRef expected in "+focus+", but found: "+memRef, memRef);
 	}
+	
+	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, Consumer<RoleType> mutator, OperationResult result) throws Exception {
+		long startMillis = System.currentTimeMillis();
+		
+		PrismObjectDefinition<RoleType> roleDefinition = getRoleDefinition();
+		for(int i=0; i < numberOfRoles; i++) {
+			PrismObject<RoleType> role = roleDefinition.instantiate();
+			RoleType roleType = role.asObjectable();
+			String name = String.format(nameFormat, i);
+			String oid = String.format(oidFormat, i);
+			roleType.setName(createPolyStringType(name));
+			roleType.setOid(oid);
+			if (mutator != null) {
+				mutator.accept(roleType);
+			}
+			LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
+			repositoryService.addObject(role, null, result);
+		}
+		
+		long endMillis = System.currentTimeMillis();
+		long duration = (endMillis - startMillis);
+		display("Roles import", "import of "+numberOfRoles+" roles took "+(duration/1000)+" seconds ("+(duration/numberOfRoles)+"ms per role)");
+	}
+	
+	protected String assignmentSummary(PrismObject<UserType> user) {
+		Map<String,Integer> assignmentRelations = new HashMap<>();
+		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			relationToMap(assignmentRelations, assignment.getTargetRef());
+		}
+		Map<String,Integer> memRelations = new HashMap<>();
+		for (ObjectReferenceType ref: user.asObjectable().getRoleMembershipRef()) {
+			relationToMap(memRelations, ref);
+		}
+		return "User "+user
+				+"\n  "+user.asObjectable().getAssignment().size()+" assignments\n    "+assignmentRelations
+				+"\n  "+user.asObjectable().getRoleMembershipRef().size()+" roleMembershipRefs\n    "+memRelations;
+	}
+
+	private void relationToMap(Map<String, Integer> map, ObjectReferenceType ref) {
+		if (ref != null) {
+			Integer i = map.get(ref.getRelation().getLocalPart());
+			if (i == null) {
+				i = 0;
+			}
+			i++;
+			map.put(ref.getRelation().getLocalPart(), i);
+		}
+	}
+
 }

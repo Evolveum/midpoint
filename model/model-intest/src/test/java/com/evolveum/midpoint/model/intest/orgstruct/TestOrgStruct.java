@@ -281,17 +281,21 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test208JackUnAssignAll() throws Exception {
-		final String TEST_NAME = "test208JackUnAssignAll";
-        TestUtil.displayTestTile(this, TEST_NAME);
+    public void test208JackUnassignAll() throws Exception {
+		final String TEST_NAME = "test208JackUnassignAll";
+        displayTestTile(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
+        displayWhen(TEST_NAME);
         unassignAll(USER_JACK_OID, task, result);
         
         // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
         assertUserNoOrg(userJack);

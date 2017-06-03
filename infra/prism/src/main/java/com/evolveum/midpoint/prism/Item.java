@@ -802,10 +802,19 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
     @Override
 	public int hashCode() {
+		int valuesHash = 0;
+		if (values != null) {
+			valuesHash = MiscUtil.unorderedCollectionHashcode(values, null);
+		}
+		if (valuesHash == 0) {
+			// empty or non-significant container. We do not want this to destroy hashcode of
+			// parent item
+			return 0;
+		}
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((elementName == null) ? 0 : elementName.hashCode());
-		result = prime * result + ((values == null) ? 0 : MiscUtil.unorderedCollectionHashcode(values));
+		result = prime * result + valuesHash;
 		return result;
 	}
 
@@ -916,6 +925,19 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 		} else if (!match(this.values, other.values))
 			return false;
 		return true;
+	}
+	
+	/**
+	 * Returns true if this item is metadata item that should be ignored
+	 * for metadata-insensitive comparisons and hashCode functions.
+	 */
+	public boolean isMetadata() {
+		D def = getDefinition();
+		if (def != null) {
+			return def.isOperational(); 
+		} else {
+			return false;
+		}
 	}
 
 	@Override

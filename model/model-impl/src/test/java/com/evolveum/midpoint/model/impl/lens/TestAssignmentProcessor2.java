@@ -155,11 +155,19 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			createObjectsInFirstPart(false, initTask, initResult, null);
 		}
 	}
-
+	
+	@Test(enabled = FIRST_PART)
+	public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+		displayTestTile(TEST_NAME);
+		
+		assertEquals("Wrong default relation", SchemaConstants.ORG_DEFAULT, prismContext.getDefaultRelation());
+	}
+	
 	@Test(enabled = FIRST_PART)
 	public void test010AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -204,7 +212,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test020AssignMR1ToR1() throws Exception {
 		final String TEST_NAME = "test020AssignMR1ToR1";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -213,14 +221,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<RoleType> context = createContextForAssignment(RoleType.class, ROLE_R1_OID, RoleType.class, ROLE_MR1_OID, null, null, result);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		display("Output context", context);
 		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
-
-		result.computeStatus();
-		assertSuccess("Assignment processor failed (result)", result);
+		assertSuccess(result);
 
 		// assignment of construction R1-0
 		// assignment of focus mappings R1-0

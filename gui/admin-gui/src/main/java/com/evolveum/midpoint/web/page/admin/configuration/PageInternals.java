@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,11 +35,15 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.InternalsConfigDto;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import java.util.function.Supplier;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -47,8 +53,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_INTERNALS_URL,
                 label = "PageInternals.auth.configInternals.label", description = "PageInternals.auth.configInternals.description")})
 public class PageInternals extends PageAdminConfiguration {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageInternals.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageInternals.class);
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_OFFSET = "offset";
@@ -63,6 +70,12 @@ public class PageInternals extends PageAdminConfiguration {
     private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
     private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
+    private static final String ID_TRACE_REPOSITORY_OPERATIONS = "traceRepositoryOperations";
+    
+    private static final String ID_REPOSITORY_READ_COUNT = "repositoryReadCount";
+    private static final String ID_PRISM_OBJECT_COMPARE_COUNT = "prismObjectCompareCount";
+    private static final String ID_PRISM_OBJECT_CLONE_COUNT = "prismObjectCloneCount";
+    private static final String ID_PRISM_OBJECT_CLONE_DURATION = "prismObjectCloneDurationMillis";
 
     private static final String LABEL_SIZE = "col-md-4";
     private static final String INPUT_SIZE = "col-md-8";
@@ -75,8 +88,9 @@ public class PageInternals extends PageAdminConfiguration {
 
     public PageInternals() {
         model = new LoadableModel<XMLGregorianCalendar>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected XMLGregorianCalendar load() {
                 return clock.currentTimeXMLGregorianCalendar();
             }
@@ -96,6 +110,7 @@ public class PageInternals extends PageAdminConfiguration {
         mainForm.add(offset);
 
         AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageInternals.button.changeTime")) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -110,6 +125,7 @@ public class PageInternals extends PageAdminConfiguration {
         mainForm.add(saveButton);
 
         AjaxSubmitButton resetButton = new AjaxSubmitButton(ID_BUTTON_RESET, createStringResource("PageInternals.button.resetTimeChange")) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -125,9 +141,10 @@ public class PageInternals extends PageAdminConfiguration {
 
         initDebugUtilForm();
         initInternalsConfigForm();
+        initCounters();
     }
 
-    private void initDebugUtilForm() {
+	private void initDebugUtilForm() {
         Form form = new Form(ID_DEBUG_UTIL_FORM);
         form.setOutputMarkupId(true);
         add(form);
@@ -139,6 +156,7 @@ public class PageInternals extends PageAdminConfiguration {
 
         AjaxSubmitButton update = new AjaxSubmitButton(ID_SAVE_DEBUG_UTIL,
                 createStringResource("PageBase.button.update")) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -157,28 +175,18 @@ public class PageInternals extends PageAdminConfiguration {
         Form form = new Form(ID_INTERNALS_CONFIG_FORM);
         form.setOutputMarkupId(true);
         add(form);
-
-        CheckFormGroup consistency = new CheckFormGroup(ID_CONSISTENCY_CHECKS,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_CONSISTENCY_CHECKS),
-                createStringResource("PageInternals.checkConsistency"), LABEL_SIZE, INPUT_SIZE);
-        form.add(consistency);
-        CheckFormGroup encryption = new CheckFormGroup(ID_ENCRYPTION_CHECKS,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_ENCRYPTION_CHECKS),
-                createStringResource("PageInternals.checkEncryption"), LABEL_SIZE, INPUT_SIZE);
-        form.add(encryption);
-        CheckFormGroup encryptionRead = new CheckFormGroup(ID_READ_ENCRYPTION_CHECKS,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS),
-                createStringResource("PageInternals.checkReadEncrypion"), LABEL_SIZE, INPUT_SIZE);
-        form.add(encryptionRead);
-        CheckFormGroup tolerateUndeclaredPrefixes = new CheckFormGroup(ID_TOLERATE_UNDECLARED_PREFIXES,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES),
-                createStringResource("PageInternals.tolerateUndeclaredPrefixes"), LABEL_SIZE, INPUT_SIZE);
-        form.add(tolerateUndeclaredPrefixes);
+        
+        form.add(createCheckbox(ID_CONSISTENCY_CHECKS, InternalsConfigDto.F_CONSISTENCY_CHECKS));
+        form.add(createCheckbox(ID_ENCRYPTION_CHECKS, InternalsConfigDto.F_ENCRYPTION_CHECKS));
+        form.add(createCheckbox(ID_READ_ENCRYPTION_CHECKS, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS));
+        form.add(createCheckbox(ID_TOLERATE_UNDECLARED_PREFIXES, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES));
+        form.add(createCheckbox(ID_TRACE_REPOSITORY_OPERATIONS, InternalsConfigDto.F_TRACE_REPOSITORY_OPERATIONS));
 
         AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
                 createStringResource("PageBase.button.update")) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 updateInternalConfig(target);
             }
@@ -189,6 +197,37 @@ public class PageInternals extends PageAdminConfiguration {
             }
         };
         form.add(update);
+    }
+    
+    private CheckFormGroup createCheckbox(String id, String propName) {
+    	return new CheckFormGroup(id,
+                new PropertyModel<Boolean>(internalsModel, propName),
+                createStringResource("PageInternals."+propName), LABEL_SIZE, INPUT_SIZE);
+    }
+    
+    private void initCounters() {
+    	addCounter(ID_REPOSITORY_READ_COUNT, InternalMonitor::getRepositoryReadCount);
+    	addCounter(ID_PRISM_OBJECT_COMPARE_COUNT, InternalMonitor::getPrismObjectCompareCount);
+    	addCounter(ID_PRISM_OBJECT_CLONE_COUNT, InternalMonitor::getPrismObjectCloneCount);
+    	addCounter(ID_PRISM_OBJECT_CLONE_DURATION, InternalMonitor::getPrismObjectCloneDurationMillis);
+		// TODO
+	}
+
+    private <T> void addCounter(String id, final Producer<T> producer) {
+    	Label label = new Label(id, new AbstractReadOnlyModel<String>() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getObject() {
+				T val = producer.run();
+				if (val == null) {
+					return "";
+				} else {
+					return val.toString();
+				}
+			}
+		});
+    	add(label);
     }
 
     private Form getMainForm(){

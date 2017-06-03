@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
+import java.util.function.Supplier;
+
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
@@ -63,6 +65,7 @@ public class InternalMonitor implements PrismMonitor {
 	private static long provisioningAllExtOperationCount = 0;
 	
 	private static long repositoryReadCount = 0;
+	private static boolean traceRepositoryOperations = false;
 	
 	private static long prismObjectCompareCount = 0;
 	private static long prismObjectCloneCount = 0;
@@ -78,7 +81,7 @@ public class InternalMonitor implements PrismMonitor {
 	public synchronized static void recordResourceSchemaParse() {
 		resourceSchemaParseCount++;
 		if (traceShadowFetchOperation) {
-			traceOperation("resource schema parse", resourceSchemaParseCount, true);
+			traceOperation("resource schema parse", null, resourceSchemaParseCount, true);
 		}
 	}
 	
@@ -98,7 +101,7 @@ public class InternalMonitor implements PrismMonitor {
 		resourceSchemaFetchCount++;
 		provisioningAllExtOperationCount++;
 		if (traceShadowFetchOperation) {
-			traceOperation("resource schema fetch", resourceSchemaFetchCount, true);
+			traceOperation("resource schema fetch", null, resourceSchemaFetchCount, true);
 		}
 	}
 
@@ -159,7 +162,7 @@ public class InternalMonitor implements PrismMonitor {
 		shadowFetchOperationCount++;
 		provisioningAllExtOperationCount++;
 		if (traceShadowFetchOperation) {
-			traceOperation("shadow fetch", shadowFetchOperationCount, true);
+			traceOperation("shadow fetch", null, shadowFetchOperationCount, true);
 		}
 	}
 
@@ -198,7 +201,7 @@ public class InternalMonitor implements PrismMonitor {
 	public static void recordConnectorOperation(String name) {
 		connectorOperationCount++;
 		if (traceConnectorOperation) {
-			traceOperation("connector "+name, connectorOperationCount, true);
+			traceOperation("connector", () -> name, connectorOperationCount, true);
 		}
 	}
 	
@@ -209,7 +212,7 @@ public class InternalMonitor implements PrismMonitor {
 	public static void recordConnectorSimulatedPagingSearchCount() {
 		connectorSimulatedPagingSearchCount++;
 		if (traceConnectorOperation) {
-			traceOperation("simulated paged search", connectorSimulatedPagingSearchCount, true);
+			traceOperation("simulated paged search", null, connectorSimulatedPagingSearchCount, true);
 		}
 	}
 
@@ -238,9 +241,20 @@ public class InternalMonitor implements PrismMonitor {
 		synchronized (InternalMonitor.class) {
 			repositoryReadCount++;
 		}
+		if (traceRepositoryOperations) {
+			traceOperation("repositoryRead", () -> type.getSimpleName() + ", " + oid , repositoryReadCount, false);
+		}
 		if (inspector != null) {
 			inspector.inspectRepositoryRead(type, oid);
 		}
+	}
+
+	public static boolean isTraceRepositoryOperations() {
+		return traceRepositoryOperations;
+	}
+
+	public static void setTraceRepositoryOperations(boolean traceRepositoryOperations) {
+		InternalMonitor.traceRepositoryOperations = traceRepositoryOperations;
 	}
 
 	public static long getPrismObjectCompareCount() {
@@ -287,7 +301,7 @@ public class InternalMonitor implements PrismMonitor {
 			LOGGER.debug("MONITOR prism object clone end: {}", orig);
 		}
 		if (tracePrismObjectClone) {
-			traceOperation("prism object clone", prismObjectCloneCount, false);
+			traceOperation("prism object clone", null, prismObjectCloneCount, false);
 		}
 	}
 	
@@ -329,7 +343,7 @@ public class InternalMonitor implements PrismMonitor {
 		inspector = null;
 	}
 
-	private static void traceOperation(String opName, long counter, boolean traceAndDebug) {
+	private static void traceOperation(String opName, Supplier<String> paramsSupplier, long counter, boolean traceAndDebug) {
 		LOGGER.info("MONITOR {} ({})", opName, counter);
 		if (LOGGER.isDebugEnabled()) {
 			StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
@@ -349,10 +363,14 @@ public class InternalMonitor implements PrismMonitor {
 				sb.append(stackElement.toString());
 				sb.append("\n");
 			}
-			if (traceAndDebug) {
-				LOGGER.debug("MONITOR {} ({}): {} {}", new Object[]{opName, counter, immediateClass, immediateMethod});
+			String params = "";
+			if (paramsSupplier != null) {
+				params = paramsSupplier.get();
 			}
-			LOGGER.trace("MONITOR {} ({}):\n{}", new Object[]{opName, counter, sb});
+			if (traceAndDebug) {
+				LOGGER.debug("MONITOR {}({}) ({}): {} {}", opName, params, counter, immediateClass, immediateMethod);
+			}
+			LOGGER.trace("MONITOR {}({}) ({}):\n{}", opName, params, counter, sb);
 		}
 	}
 
