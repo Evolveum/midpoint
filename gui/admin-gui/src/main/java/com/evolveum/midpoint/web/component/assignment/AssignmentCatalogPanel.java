@@ -476,7 +476,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                pageBase.navigateToNext(PageAssignmentsList.class);
+                pageBase.navigateToNext(new PageAssignmentsList(true));
             }
         };
         cartButton.add(new VisibleEnableBehaviour(){

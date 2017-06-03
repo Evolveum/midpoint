@@ -44,4 +44,10 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
             super(id, index, model);
         }
     }
+
+    @Override
+    protected void onPageChanged() {
+        super.onPageChanged();
+        String s = "";
+    }
 }

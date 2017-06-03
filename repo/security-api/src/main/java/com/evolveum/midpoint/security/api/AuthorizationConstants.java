@@ -298,6 +298,9 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_SELF_ASSIGNMENTS_CONFLICTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfAssignmentsConflicts");
 	public static final String AUTZ_UI_SELF_ASSIGNMENTS_CONFLICTS_URL = NS_AUTHORIZATION_UI + "#selfAssignmentsConflicts";
 
+	public static final QName AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfRequestAssignments");
+	public static final String AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL = NS_AUTHORIZATION_UI + "#selfRequestAssignments";
+
 	public static final QName AUTZ_UI_SELF_CREDENTIALS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfCredentials");
 	public static final String AUTZ_UI_SELF_CREDENTIALS_URL = NS_AUTHORIZATION_UI + "#selfCredentials";
 
