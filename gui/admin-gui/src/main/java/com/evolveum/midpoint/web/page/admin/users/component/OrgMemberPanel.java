@@ -456,7 +456,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					OrgMemberPanel.this.createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
 				}
 			}));
-			headerMenuItems.add(new InlineMenuItem());
 		}
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_MEMBER_ACTION_URI)) {
