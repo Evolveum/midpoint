@@ -172,7 +172,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 						target.add(shadows);
 					}
 				};
-                if (item.getModel().getObject().getStatus().equals(UserDtoStatus.DELETE)) {
+                if (UserDtoStatus.DELETE.equals(dto.getStatus())) {
                     shadowHeader.add(new AttributeModifier("class", "box-header with-border delete"));
                 }
 				item.add(shadowHeader);
