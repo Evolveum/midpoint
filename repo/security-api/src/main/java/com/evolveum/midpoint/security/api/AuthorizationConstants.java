@@ -298,6 +298,9 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_SELF_ASSIGNMENTS_CONFLICTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfAssignmentsConflicts");
 	public static final String AUTZ_UI_SELF_ASSIGNMENTS_CONFLICTS_URL = NS_AUTHORIZATION_UI + "#selfAssignmentsConflicts";
 
+	public static final QName AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfRequestAssignments");
+	public static final String AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL = NS_AUTHORIZATION_UI + "#selfRequestAssignments";
+
 	public static final QName AUTZ_UI_SELF_CREDENTIALS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfCredentials");
 	public static final String AUTZ_UI_SELF_CREDENTIALS_URL = NS_AUTHORIZATION_UI + "#selfCredentials";
 
@@ -354,5 +357,21 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_DELEGATE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "delegate");
     public static final String AUTZ_UI_DELEGATE_ACTION_URL = QNameUtil.qNameToUri(AUTZ_UI_DELEGATE_ACTION_QNAME);
+
+	//ui authorizations for menu items on the org members/managers panel
+	public static final QName AUTZ_UI_ASSIGN_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "assignMember");
+    public static final String AUTZ_UI_ASSIGN_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ASSIGN_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_UNASSIGN_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "unassignMember");
+    public static final String AUTZ_UI_UNASSIGN_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_UNASSIGN_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_ADD_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "addMember");
+    public static final String AUTZ_UI_ADD_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADD_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_DELETE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "deleteMember");
+    public static final String AUTZ_UI_DELETE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_DELETE_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_RECOMPUTE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "recomputeMember");
+    public static final String AUTZ_UI_RECOMPUTE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_RECOMPUTE_MEMBER_ACTION_QNAME);
 
 }

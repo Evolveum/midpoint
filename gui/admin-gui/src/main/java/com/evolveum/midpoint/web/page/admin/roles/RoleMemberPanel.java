@@ -15,12 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -55,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -367,13 +363,13 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
+	protected List<InlineMenuItem> newMemberInlineMenuItems() {
 		return super.createNewMemberInlineMenuItems();
 	}
 
 	@Override
-	protected List<InlineMenuItem> createRemoveMemberInlineMenuItems() {
-		return super.createRemoveMemberInlineMenuItems();
+	protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
+		return super.createUnassignMemberInlineMenuItems();
 	}
 
 	@Override

@@ -5,7 +5,9 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.component.AssignmentConflictPanel;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -16,6 +18,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -69,11 +72,28 @@ public class PageAssignmentConflicts extends PageSelf {
 
             @Override
             public void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
+                processConflictDecisions();
                 redirectBack();
             }
 
         };
         mainForm.add(submit);
 
+    }
+
+    private void processConflictDecisions(){
+        List<AssignmentConflictDto> conflictsList = getSessionStorage().getRoleCatalog().getConflictsList();
+        List<AssignmentEditorDto> assignmentsList = getSessionStorage().getRoleCatalog().getAssignmentShoppingCart();
+        for (AssignmentConflictDto conflictDto : conflictsList){
+            if (conflictDto.isUnassignedNew()){
+                Iterator<AssignmentEditorDto> it = assignmentsList.iterator();
+                while (it.hasNext()){
+                    AssignmentEditorDto assignment = it.next();
+                    if (conflictDto.getAddedAssignmentTargetObj().getOid().equals(assignment.getTargetRef().getOid())){
+                        it.remove();
+                    }
+                }
+            }
+        }
     }
 }

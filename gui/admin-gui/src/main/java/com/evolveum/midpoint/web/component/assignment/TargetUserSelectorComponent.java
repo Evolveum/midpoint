@@ -32,6 +32,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
@@ -80,7 +81,7 @@ public class TargetUserSelectorComponent extends BasePanel {
         targetUserButton.add(new AttributeAppender("title", getTargetUsersButtonTitle()));
         add(targetUserButton);
 
-        Label label = new Label(ID_TARGET_USER_LABEL, createStringResource("AssignmentCatalogPanel.selectTargetUser"));
+        Label label = new Label(ID_TARGET_USER_LABEL, getTargetUserButtonLabel());
         label.setRenderBodyOnly(true);
         targetUserButton.add(label);
 
@@ -102,6 +103,38 @@ public class TargetUserSelectorComponent extends BasePanel {
             }
         });
         targetUserButton.add(deleteButton);
+    }
+
+    private IModel<String> getTargetUserButtonLabel(){
+        return new IModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                if (getRoleCatalogStorage().isSelfRequest()){
+                    return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
+                } else if (getRoleCatalogStorage().isMultiUserRequest()){
+                    return createStringResource("AssignmentCatalogPanel.selectTargetUser").getString() + " (" +
+                            createStringResource("AssignmentCatalogPanel.requestForMultiple",
+                                    getRoleCatalogStorage().getTargetUserList().size()).getString()
+                            + ")";
+                } else {
+                    String name = getRoleCatalogStorage().getTargetUserList().get(0).asObjectable().getName().getOrig();
+                    return createStringResource("AssignmentCatalogPanel.requestFor").getString() + " " + name;
+                }
+            }
+
+            @Override
+            public void setObject(String s) {
+
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+
     }
 
     private void initUserSelectionPopup(StringResourceModel title, boolean multiselect, AjaxRequestTarget target) {
@@ -154,8 +187,7 @@ public class TargetUserSelectorComponent extends BasePanel {
                             " " + targetUsersList.get(0).getName().getOrig();
                 }
 
-                StringBuilder sb = new StringBuilder( createStringResource("AssignmentCatalogPanel.requestForMultiple", targetUsersList.size()).getString());
-                sb.append(System.lineSeparator());
+                StringBuilder sb = new StringBuilder();
                 if (getRoleCatalogStorage().isMultiUserRequest()) {
                     List<PrismObject<UserType>> sortedList = getRoleCatalogStorage().getTargetUserList();
                     Collections.sort(sortedList, new Comparator<PrismObject<UserType>>() {

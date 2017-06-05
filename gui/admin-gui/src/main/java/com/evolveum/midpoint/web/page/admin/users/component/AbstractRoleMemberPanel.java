@@ -190,13 +190,20 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.addAll(createNewMemberInlineMenuItems());
+		headerMenuItems.addAll(newMemberInlineMenuItems());
 
 		headerMenuItems.add(new InlineMenuItem());
-        headerMenuItems.addAll(createRemoveMemberInlineMenuItems());
+        headerMenuItems.addAll(createUnassignMemberInlineMenuItems());
         headerMenuItems.addAll(createMemberRecomputeInlineMenuItems());
 
 		return headerMenuItems;
+	}
+
+	protected List<InlineMenuItem> newMemberInlineMenuItems() {
+		List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
+		newMemberMenuItems.addAll(createNewMemberInlineMenuItems());
+		newMemberMenuItems.addAll(assignNewMemberInlineMenuItems());
+		return newMemberMenuItems;
 	}
 
 	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
@@ -210,7 +217,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 				createFocusMemberPerformed(null, target);
 			}
 		}));
+		return newMemberMenuItems;
+	}
 
+	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
+		List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
 		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers"), false,
 				new HeaderMenuAction(this) {
 					private static final long serialVersionUID = 1L;
@@ -262,7 +273,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
         return recomputeMenuItems;
 	}
 
-	protected List<InlineMenuItem> createRemoveMemberInlineMenuItems() {
+	protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
 		List<InlineMenuItem> removeMenuItems = new ArrayList<>();
         removeMenuItems
                 .add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersSelected"),
