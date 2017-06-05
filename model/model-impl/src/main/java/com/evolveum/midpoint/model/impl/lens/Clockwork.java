@@ -404,13 +404,13 @@ public class Clockwork {
 	    				try {
 							evaluateScriptingHook(context, hookType, scriptExpressionEvaluatorType, shortDesc, task, result);
 						} catch (ExpressionEvaluationException e) {
-							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
 							throw new ExpressionEvaluationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
 						} catch (ObjectNotFoundException e) {
-							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
 							throw new ObjectNotFoundException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
 						} catch (SchemaException e) {
-							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
 							throw new SchemaException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
 						}
 	    			}
@@ -456,6 +456,7 @@ public class Clockwork {
 		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
 		
 		Utils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
+		LOGGER.trace("Finished evaluation of {}", shortDesc);
 	}
 
     private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, Task task, OperationResult result) {
