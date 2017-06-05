@@ -47,6 +47,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -213,7 +214,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				public boolean isVisible(){
 					boolean isVisible = false;
 					try {
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_READ_ACTION_URL,
+						// TODO: the modify authorization here is probably wrong.
+						// It is a model autz. UI autz should be here instead?
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(),
 								AuthorizationPhaseType.REQUEST, managerWrapper.getObject(), null, null, null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #read operation on object " +
@@ -260,7 +263,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				public boolean isVisible(){
 					boolean isVisible = false;
 					try {
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL, null,
+						// TODO: the modify authorization here is probably wrong.
+						// It is a model autz. UI autz should be here instead?
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl(), null,
 								managerWrapper.getObject(), null, getModelObject().asPrismObject(), null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #unassign operation on object " +
@@ -289,7 +294,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				public boolean isVisible(){
 					boolean isVisible = false;
 					try {
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_DELETE_ACTION_URL, null,
+						// TODO: the modify authorization here is probably wrong.
+						// It is a model autz. UI autz should be here instead?
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(), null,
 								managerWrapper.getObject(), null, null, null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #delete operation on object " +
@@ -378,13 +385,13 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 		headerMenuItems.addAll(newMemberInlineMenuItems());
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_UNASSIGN_MEMBER_ACTION_URI)) {
 			headerMenuItems.addAll(super.createUnassignMemberInlineMenuItems());
 		}
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RECOMPUTE_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_RECOMPUTE_MEMBER_ACTION_URI)) {
 			headerMenuItems.addAll(super.createMemberRecomputeInlineMenuItems());
 		}
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DELETE_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_DELETE_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteMember"),
 					false, new HeaderMenuAction(this) {
 
@@ -407,14 +414,14 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ADD_MEMBER_ACTION_URI)) {
 			return super.createNewMemberInlineMenuItems();
 		}
 		return new ArrayList<>();
 	}
 
 	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ASSIGN_MEMBER_ACTION_URI)) {
 			return super.assignNewMemberInlineMenuItems();
 		}
 		return new ArrayList<>();
@@ -445,7 +452,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ADD_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
 					false, new HeaderMenuAction(this) {
 				private static final long serialVersionUID = 1L;
@@ -457,7 +464,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ASSIGN_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
 					new HeaderMenuAction(this) {
 						private static final long serialVersionUID = 1L;
@@ -469,7 +476,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_UNASSIGN_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
 					false, new HeaderMenuAction(this) {
 				private static final long serialVersionUID = 1L;
@@ -481,7 +488,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RECOMPUTE_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_RECOMPUTE_MEMBER_ACTION_URI)) {
 			headerMenuItems
 					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
 							false, new HeaderMenuAction(this) {
@@ -494,7 +501,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DELETE_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_DELETE_MEMBER_ACTION_URI)) {
 			headerMenuItems
 					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteManagersAll"),
 							false, new HeaderMenuAction(this) {

@@ -1,9 +1,25 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -115,7 +131,9 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                             });
                     items.add(item);
                 }
-                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
+                // TODO: the modify authorization here is probably wrong.
+        		// It is a model autz. UI autz should be here instead?
+                if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl())) {
                     item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.deleteDelegation"),
                             new InlineMenuItemAction() {
                                 private static final long serialVersionUID = 1L;
