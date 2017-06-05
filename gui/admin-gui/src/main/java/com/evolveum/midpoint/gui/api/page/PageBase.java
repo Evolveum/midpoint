@@ -465,6 +465,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return taskService;
 	}
 
+	@Override
 	public SecurityEnforcer getSecurityEnforcer() {
 		return securityEnforcer;
 	}
