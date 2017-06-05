@@ -283,30 +283,31 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
 		String resourceName = null;
 		try {
-			Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
+			Collection<SelectorOptions<GetOperationOptions>> loadOptions;
 			if (ShadowType.class.equals(type)) {
 				GetOperationOptions resourceOption = GetOperationOptions.createResolve();
 				resourceOption.setReadOnly(true);
-				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-						resourceOption);
-			} 
+				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE, resourceOption);
+			} else {
+				loadOptions = new ArrayList<>();
+			}
 			
 			if (noFetch) {
 				GetOperationOptions rootOptions = SelectorOptions.findRootOptions(loadOptions);
 				if (rootOptions == null) {
-					loadOptions.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
+					loadOptions.add(new SelectorOptions<>(GetOperationOptions.createNoFetch()));
 				} else {
 					rootOptions.setNoFetch(true);
 				}
 			}
 
-			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this,
-					task, subResult);
+			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this, task, subResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Loaded projection {} ({}):\n{}", oid, loadOptions, projection==null?null:projection.debugDump());
 			}
 			if (projection == null) {
 				// No access or error
+				// TODO actually it would be nice to show an error if the shadow repo object does not exist
 				return null;
 			}
 			S projectionType = projection.asObjectable();
