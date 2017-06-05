@@ -25,6 +25,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,7 +58,7 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeUsers;
     private boolean enabledItemsOnly;
 	private ExpressionType itemSelectionExpression;
-	private List<QName> relationList;
+	private List<QName> relationList = new ArrayList<>();
 
 	public void loadSearchFilter(SearchFilterType searchFilterType, PrismContext prismContext)  {
         if (searchFilterType == null) {

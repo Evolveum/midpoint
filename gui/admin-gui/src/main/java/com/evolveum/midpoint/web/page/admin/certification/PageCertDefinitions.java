@@ -85,7 +85,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		MainObjectListPanel<AccessCertificationDefinitionType> mainPanel = new MainObjectListPanel<AccessCertificationDefinitionType>(ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
+		MainObjectListPanel<AccessCertificationDefinitionType> mainPanel = new MainObjectListPanel<AccessCertificationDefinitionType>(
+				ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -113,6 +114,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 				navigateToNext(PageCertDefinition.class);
 			}
 		};
+		mainPanel.setOutputMarkupId(true);
 		mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
 		mainForm.add(mainPanel);
 	}
