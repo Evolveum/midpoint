@@ -180,6 +180,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastRepositoryReadCount = 0;
 	private long lastPrismObjectCompareCount = 0;
 	private long lastPrismObjectCloneCount = 0;
+	private long lastRoleEvaluationCount = 0;
+	private long lastProjectorRunCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -997,7 +999,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected increment in repository read count", (long)expectedIncrement, actualIncrement);
 		lastRepositoryReadCount = currentCount;
 	}
-	
+		
 	protected void rememberPrismObjectCompareCount() {
 		lastPrismObjectCompareCount = InternalMonitor.getPrismObjectCompareCount();
 	}
@@ -1027,6 +1029,28 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		+expectedIncrementMin+"-"+expectedIncrementMax+" but was "+actualIncrement, 
 		actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax);
 		lastPrismObjectCloneCount = currentCount;
+	}
+	
+	protected void rememberRoleEvaluationCount() {
+		lastRoleEvaluationCount = InternalMonitor.getRoleEvaluationCount();
+	}
+
+	protected void assertRoleEvaluationCount(int expectedIncrement) {
+		long currentCount = InternalMonitor.getRoleEvaluationCount();
+		long actualIncrement = currentCount - lastRoleEvaluationCount;
+		assertEquals("Unexpected increment in role evaluation count", (long)expectedIncrement, actualIncrement);
+		lastRoleEvaluationCount = currentCount;
+	}
+	
+	protected void rememberProjectorRunCount() {
+		lastProjectorRunCount = InternalMonitor.getProjectorRunCount();
+	}
+
+	protected void assertProjectorRunCount(int expectedIncrement) {
+		long currentCount = InternalMonitor.getProjectorRunCount();
+		long actualIncrement = currentCount - lastProjectorRunCount;
+		assertEquals("Unexpected increment in projector run count", (long)expectedIncrement, actualIncrement);
+		lastProjectorRunCount = currentCount;
 	}
 	
 	protected void assertSteadyResources() {

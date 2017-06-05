@@ -20,7 +20,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Notorious</name>
-    
+    <idempotent>true</idempotent>
     <!-- inducements are generated -->
     
 </role>

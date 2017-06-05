@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
@@ -154,6 +155,8 @@ public class Projector {
 		if (context.getDebugListener() != null) {
 			context.getDebugListener().beforeProjection(context);
 		}
+		
+		InternalMonitor.recordProjectorRun();
 
 		// Read the time at the beginning so all processors have the same notion of "now"
 		// this provides nicer unified timestamp that can be used in equality checks in tests and also for

@@ -485,7 +485,7 @@ public class Clockwork {
 		
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
-		rotContext(context);
+		rotContextIfNeeded(context);
 
 		boolean restartRequested = false;
 		if (restartRequestedHolder.getValue() != null) {
@@ -495,16 +495,18 @@ public class Clockwork {
 		if (!restartRequested) {
 			// TODO what if restart is requested indefinitely?
 			context.incrementExecutionWave();
+		} else {
+			// explicitly rot context?
 		}
 		
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
 	
 	/**
-	 * Force recompute for the next wave. Recompute only those contexts that were changed.
-	 * This is more inteligent than context.rot()
+	 * Force recompute for the next execution wave. Recompute only those contexts that were changed.
+	 * This is more intelligent than context.rot()
 	 */
-	private <F extends ObjectType> void rotContext(LensContext<F> context) throws SchemaException {
+	private <F extends ObjectType> void rotContextIfNeeded(LensContext<F> context) throws SchemaException {
 		boolean rot = false;
     	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
     		if (projectionContext.getWave() != context.getExecutionWave()) {
@@ -516,9 +518,9 @@ public class Clockwork {
 //				continue;
 //			}
     		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
-    		if (isSignificant(execDelta)) {
+    		if (isShadowDeltaSignificant(execDelta)) {
     			
-    			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
+    			LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", projectionContext, execDelta);
    				projectionContext.setFresh(false);
       			projectionContext.setFullShadow(false);
        			rot = true;
@@ -536,6 +538,7 @@ public class Clockwork {
     	if (focusContext != null) {
     		ObjectDelta<F> execDelta = focusContext.getWaveDelta(context.getExecutionWave());
     		if (execDelta != null && !execDelta.isEmpty()) {
+    			LOGGER.debug("Context rot: context rotten because of focus execution delta {}", execDelta);
     			rot = true;
     		}
     		if (rot) {
@@ -561,7 +564,7 @@ public class Clockwork {
 //		executionWaveDeltaList.clear();
 //	}
 	
-	private <P extends ObjectType> boolean isSignificant(ObjectDelta<P> delta) {
+	private <P extends ObjectType> boolean isShadowDeltaSignificant(ObjectDelta<P> delta) {
 		if (delta == null || delta.isEmpty()) {
 			return false;
 		}

@@ -58,8 +58,8 @@
             </attribute>
     	</construction>
     </inducement>
+    <idempotent>true</idempotent>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#punish</action>
     </authorization>
-    
 </role>

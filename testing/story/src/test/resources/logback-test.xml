@@ -42,7 +42,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
@@ -50,7 +50,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ReconciliationProcessor" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector.InboundProcessor" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.InboundProcessor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
@@ -66,7 +66,7 @@
 	<logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.controller.SystemConfigurationHandler" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="INFO" />
+	<logger name="com.evolveum.midpoint.schema.internals.InternalMonitor" level="TRACE" />
 	
 	<logger name="org.identityconnectors.framework" level="TRACE" />
 	<logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />

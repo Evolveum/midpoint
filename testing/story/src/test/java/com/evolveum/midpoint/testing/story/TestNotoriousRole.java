@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -95,11 +97,11 @@ public class TestNotoriousRole extends AbstractStoryTest {
 	
 	private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
 	
-	private static final int NUMBER_OF_LEVEL_A_ROLES = 10;
+	private static final int NUMBER_OF_LEVEL_A_ROLES = 100;
 	private static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
 	private static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
 	
-	private static final int NUMBER_OF_LEVEL_B_ROLES = 10;
+	private static final int NUMBER_OF_LEVEL_B_ROLES = 300;
 	private static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
 	private static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
 	
@@ -110,8 +112,6 @@ public class TestNotoriousRole extends AbstractStoryTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-//		importObjectFromFile(ROLE_BASIC_FILE, initResult);
 		
 		generateRoles(NUMBER_OF_LEVEL_A_ROLES, ROLE_LEVEL_A_NAME_FORMAT, ROLE_LEVEL_A_OID_FORMAT,
 				role -> {
@@ -127,6 +127,8 @@ public class TestNotoriousRole extends AbstractStoryTest {
 		
 		inspector = new RepoReadInspector();
 		InternalMonitor.setInspector(inspector);
+		
+		InternalMonitor.setTraceRoleEvaluation(true);
 	}
 	
 	private void addNotoriousRole(OperationResult result) throws Exception {
@@ -152,7 +154,7 @@ public class TestNotoriousRole extends AbstractStoryTest {
 		final String TEST_NAME = "test000Sanity";
         displayTestTile(TEST_NAME);
 
-        assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_ORDINARY_ROLES + 1);
+        assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + 1);
         
         display("Repo reads", InternalMonitor.getRepositoryReadCount());
         display("Object compares", InternalMonitor.getPrismObjectCompareCount());
@@ -169,6 +171,8 @@ public class TestNotoriousRole extends AbstractStoryTest {
         inspector.reset();
         rememberPrismObjectCompareCount();
         rememberRepositoryReadCount();
+        rememberProjectorRunCount();
+        rememberRoleEvaluationCount();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -183,116 +187,455 @@ public class TestNotoriousRole extends AbstractStoryTest {
         display("Ra0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
         
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("Cheese after", assignmentSummary(userAfter));
+        display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, 1);
         
         display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Projector runs", InternalMonitor.getProjectorRunCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
         display("Object compares", InternalMonitor.getPrismObjectCompareCount());
 
         display("Inspector", inspector);
         
-//        inspector.assertRead(RoleType.class, NUMBER_OF_CHEESE_ASSIGNMENTS);
-//        assertRepositoryReadCount(xxx); // may be influenced by tasks
+        assertProjectorRunCount(hackify(1));
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
+        assertPrismObjectCompareCount(0);
+	}
+	
+	private int hackify(int i) {
+		// TODO: projector now runs three times instead of one.
+		return i*3;
+	}
+
+	@Test
+    public void test102RecomputeJack() throws Exception {
+		final String TEST_NAME = "test102RecomputeJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
         
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberProjectorRunCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Ra0 recompute in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleMembershipRef(userAfter, 1);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test104PreviewChangesJack() throws Exception {
+		final String TEST_NAME = "test104PreviewChangesJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", assignmentSummary(userBefore));
+        
+        ObjectDelta<UserType> delta = userBefore.createModifyDelta();
+        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberProjectorRunCount();
+        rememberRepositoryReadCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);        
+		ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Ra0 preview changes in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleMembershipRef(userAfter, 1);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertProjectorRunCount(1);
+        assertRoleEvaluationCount((NUMBER_OF_LEVEL_B_ROLES + 2)*2);
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test109UnassignRa0FromJack() throws Exception {
+		final String TEST_NAME = "test109UnassignRa0FromJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertNoAssignments(userAfter);
+        assertRoleMembershipRefs(userAfter, 0);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 2));        
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test110Assign5ARolesToJack() throws Exception {
+		final String TEST_NAME = "test110AssignAllARolesToJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignJackARoles(5, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Assign 5 A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleMembershipRef(userAfter, 5);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test112RecomputeJack() throws Exception {
+		final String TEST_NAME = "test112RecomputeJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberProjectorRunCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Recompute 5 A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleMembershipRef(userAfter, 5);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test119Unassign5ARolesFromJack() throws Exception {
+		final String TEST_NAME = "test119Unassign5ARolesFromJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignJackARoles(5, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertNoAssignments(userAfter);
+        assertRoleMembershipRefs(userAfter, 0);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));        
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test120AssignAllARolesToJack() throws Exception {
+		final String TEST_NAME = "test120AssignAllARolesToJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignJackARoles(NUMBER_OF_LEVEL_A_ROLES, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Assign all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test122RecomputeJack() throws Exception {
+		final String TEST_NAME = "test122RecomputeJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberProjectorRunCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Recompute all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test124PreviewChangesJack() throws Exception {
+		final String TEST_NAME = "test124PreviewChangesJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", assignmentSummary(userBefore));
+        
+        ObjectDelta<UserType> delta = userBefore.createModifyDelta();
+        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberProjectorRunCount();
+        rememberRepositoryReadCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);        
+		ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Preview changes (all A roles) in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertProjectorRunCount(1);
+        assertRoleEvaluationCount((NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES)*2);
+        assertPrismObjectCompareCount(0);
+	}
+	
+	@Test
+    public void test129Unassign5ARolesFromJack() throws Exception {
+		final String TEST_NAME = "test129Unassign5ARolesFromJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        inspector.reset();
+        rememberPrismObjectCompareCount();
+        rememberRepositoryReadCount();
+        rememberRoleEvaluationCount();
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignJackARoles(NUMBER_OF_LEVEL_A_ROLES, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Unassign all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertNoAssignments(userAfter);
+        assertRoleMembershipRefs(userAfter, 0);
+        
+        display("Repo reads", InternalMonitor.getRepositoryReadCount());
+        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
+        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+
+        display("Inspector", inspector);
+        
+        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));        
         assertPrismObjectCompareCount(0);
 	}
 
+	private void assignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
+		modifyJackARolesAssignment(numberOfRoles, true, task, result);
+	}
+	
+	private void unassignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
+		modifyJackARolesAssignment(numberOfRoles, false, task, result);
+	}
+	
+	private void modifyJackARolesAssignment(int numberOfRoles, boolean add, Task task, OperationResult result) throws Exception {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		for (int i=0; i<numberOfRoles; i++) {
+			modifications.add((createAssignmentModification(generateRoleAOid(i), RoleType.COMPLEX_TYPE, null, null, null, add)));
+		}
+		ObjectDelta<UserType> delta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+		
+		executeChanges(delta, null, task, result);
+	}
 
-//	@Test
-//    public void test110RecomputeCheese() throws Exception {
-//		final String TEST_NAME = "test110RecomputeCheese";
-//        displayTestTile(TEST_NAME);
-//
-//        Task task = createTask(TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        PrismObject<UserType> cheeseBefore = prepareCheese();
-//        display("Cheese before", assignmentSummary(cheeseBefore));
-//        
-//        inspector.reset();
-//        rememberPrismObjectCompareCount();
-//        rememberRepositoryReadCount();
-//        long startMillis = System.currentTimeMillis();
-//        
-//        // WHEN
-//        displayWhen(TEST_NAME);
-//        
-//        recomputeUser(USER_CHEESE_OID, task, result);
-//        
-//        // THEN
-//        displayThen(TEST_NAME);
-//        long endMillis = System.currentTimeMillis();
-//        assertSuccess(result);
-//        
-//        display("Recomputed cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
-//        
-//        PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
-//        display("Cheese after", assignmentSummary(cheeseAfter));
-//        assertCheeseRoleMembershipRef(cheeseAfter);
-//        
-//        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-//        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-//        
-//        display("Inspector", inspector);
-//
-//        inspector.assertRead(RoleType.class, 1);
-////        assertRepositoryReadCount(4); // may be influenced by tasks
-//        assertPrismObjectCompareCount(0);
-//	}
-//	
-//	@Test
-//    public void test120CheesePreviewChanges() throws Exception {
-//		final String TEST_NAME = "test120CheesePreviewChanges";
-//        displayTestTile(TEST_NAME);
-//
-//        Task task = createTask(TEST_NAME);
-//        OperationResult result = task.getResult();
-//        
-//        PrismObject<UserType> cheeseBefore = prepareCheese();
-//        display("Cheese before", assignmentSummary(cheeseBefore));
-//        
-//        ObjectDelta<UserType> delta = cheeseBefore.createModifyDelta();
-//        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
-//        
-//        inspector.reset();
-//        rememberPrismObjectCompareCount();
-//        rememberRepositoryReadCount();
-//        long startMillis = System.currentTimeMillis();
-//        
-//        // WHEN
-//        displayWhen(TEST_NAME);
-//        
-//		ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
-//        
-//        // THEN
-//        displayThen(TEST_NAME);
-//        long endMillis = System.currentTimeMillis();
-//        assertSuccess(result);
-//        
-//        display("Preview cheese in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_CHEESE_ASSIGNMENTS)+"ms per assignment)");
-//        
-//        PrismObject<UserType> cheeseAfter = getUser(USER_CHEESE_OID);
-//        display("Cheese after", assignmentSummary(cheeseAfter));
-//        assertCheeseRoleMembershipRef(cheeseAfter);
-//        
-//        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-//        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-//        
-//        display("Inspector", inspector);
-//
-//        inspector.assertRead(RoleType.class, 1);
-////        assertRepositoryReadCount(4); // may be influenced by tasks
-//        assertPrismObjectCompareCount(0);
-//	}
-//	
-
-//	private PrismObject<UserType> prepareCheese() throws Exception {
-//		PrismObject<UserType> cheese = PrismTestUtil.parseObject(USER_CHEESE_FILE);
-//		addAssignments(cheese, SchemaConstants.ORG_APPROVER, 0, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER);
-//		addAssignments(cheese, SchemaConstants.ORG_OWNER, NUMBER_OF_CHEESE_ASSIGNMENTS_APPROVER, NUMBER_OF_CHEESE_ASSIGNMENTS_OWNER);
-//		return cheese;
-//	}
-//
+	//
 //	private void addAssignments(PrismObject<UserType> user, QName relation, int offset, int num) {
 //		UserType userType = user.asObjectable();
 //		for (int i = 0; i < num; i++) {

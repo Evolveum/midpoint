@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -71,6 +72,11 @@ public class InternalMonitor implements PrismMonitor {
 	private static long prismObjectCloneCount = 0;
 	private static long prismObjectCloneDurationMillis = 0;
 	private static boolean tracePrismObjectClone = false;
+	
+	private static long roleEvaluationCount = 0;
+	private static boolean traceRoleEvaluation = false;
+	
+	private static long projectorRunCount = 0;
 	
 	private static InternalInspector inspector;
 	
@@ -312,7 +318,41 @@ public class InternalMonitor implements PrismMonitor {
 	public static void setPrismObjectCloneCount(long prismObjectCloneCount) {
 		InternalMonitor.prismObjectCloneCount = prismObjectCloneCount;
 	}
+	
+	public static long getRoleEvaluationCount() {
+		return roleEvaluationCount;
+	}
+	
+	public static <F extends FocusType> void recordRoleEvaluation(F target, boolean fullEvaluation) {
+		synchronized (InternalMonitor.class) {
+			roleEvaluationCount++;
+		}
+		if (traceRoleEvaluation) {
+			traceOperation("roleEvaluation", () -> target.toString() , roleEvaluationCount, false);
+		}
+//		if (inspector != null) {
+//			inspector.inspectRepositoryRead(type, oid);
+//		}
+	}
 
+	public static boolean isTraceRoleEvaluation() {
+		return traceRoleEvaluation;
+	}
+
+	public static void setTraceRoleEvaluation(boolean traceRoleEvaluation) {
+		InternalMonitor.traceRoleEvaluation = traceRoleEvaluation;
+	}
+
+	public static long getProjectorRunCount() {
+		return projectorRunCount;
+	}
+
+	public static <F extends FocusType> void recordProjectorRun() {
+		synchronized (InternalMonitor.class) {
+			projectorRunCount++;
+		}
+	}
+	
 	public static InternalInspector getInspector() {
 		return inspector;
 	}

@@ -145,6 +145,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		this.result = result;
 	}
 
+	public void reset() {
+		assignmentEvaluator.reset();
+	}
+	
 	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 		
 		LensFocusContext<F> focusContext = context.getFocusContext();
