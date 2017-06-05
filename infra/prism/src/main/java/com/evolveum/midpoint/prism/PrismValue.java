@@ -188,7 +188,9 @@ public abstract class PrismValue implements IPrismValue {
 		if (this.prismContext == null) {
 			this.prismContext = prismContext;
 		}
-		recompute(prismContext);
+		if (!immutable) {
+			recompute(prismContext);
+		}
 	}
 	
 	/**
