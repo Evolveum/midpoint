@@ -136,7 +136,7 @@ public class ResourceManager {
 		}
 		
 		LOGGER.debug("Storing fetched resource {}, version {} to cache (previously cached version {})",
-				new Object[]{ repositoryObject.getOid(), repositoryObject.getVersion(), resourceCache.getVersion(repositoryObject.getOid())});
+				repositoryObject.getOid(), repositoryObject.getVersion(), resourceCache.getVersion(repositoryObject.getOid()));
 		
 		return loadAndCacheResource(repositoryObject, options, task, parentResult);
 	}
@@ -521,26 +521,31 @@ public class ResourceManager {
 	 */
 	private void applyConnectorSchemaToResource(PrismObject<ResourceType> resource, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		synchronized (resource) {
-			boolean immutable = resource.isImmutable();
-			if (immutable) {
-				resource.setImmutable(false);
+		try {
+			resource.modifyUnfrozen(() -> {
+				try {
+					PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
+					for (ConnectorSpec connectorSpec : getAllConnectorSpecs(resource)) {
+						applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
+					}
+					resource.setDefinition(newResourceDefinition);
+				} catch (Exception e) {
+					throw new TunnelException(e);
+				}
+			});
+		} catch (TunnelException te) {
+			Throwable originalException = te.getCause();
+			if (originalException instanceof SchemaException) {
+				throw (SchemaException) originalException;
+			} else if (originalException instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException) originalException;
+			} else if (originalException instanceof ExpressionEvaluationException) {
+				throw (ExpressionEvaluationException) originalException;
+			} else if (originalException instanceof RuntimeException) {
+				throw (RuntimeException) originalException;
+			} else {
+				throw new IllegalStateException("Unexpected exception: "+te+": "+te.getMessage(), te);
 			}
-			try {
-
-				PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
-				
-				for (ConnectorSpec connectorSpec: getAllConnectorSpecs(resource)) {
-					applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, result);
-				}
-				
-				resource.setDefinition(newResourceDefinition);
-				
-			} finally {
-				if (immutable) {
-					resource.setImmutable(true);
-				}
-			}				
 		}
 	}
 	
@@ -911,35 +916,25 @@ public class ResourceManager {
 			
 			synchronized (resource) {
 				if (resourceType.getOperationalState() == null || resourceType.getOperationalState().getLastAvailabilityStatus() == null || resourceType.getOperationalState().getLastAvailabilityStatus() != status) {
-					List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
+					List<PropertyDelta<?>> modifications = new ArrayList<>();
 					PropertyDelta<?> statusDelta = createResourceAvailabilityStatusDelta(resource, status);
 					modifications.add(statusDelta);
 					
-					try{
+					try {
 						repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, result);
-					} catch(SchemaException ex){
-						throw new SystemException(ex);
-					} catch(ObjectAlreadyExistsException ex){
-						throw new SystemException(ex);
-					} catch(ObjectNotFoundException ex){
+					} catch(SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException ex) {
 						throw new SystemException(ex);
 					}
 				}
-				// ugly hack: change object even if it's immutable
-				boolean immutable = resource.isImmutable();
-				if (immutable) {
-					resource.setImmutable(false);
-				}
-				if (resourceType.getOperationalState() == null) {
-					OperationalStateType operationalState = new OperationalStateType();
-					operationalState.setLastAvailabilityStatus(status);
-					resourceType.setOperationalState(operationalState);
-				} else {
-					resourceType.getOperationalState().setLastAvailabilityStatus(status);
-				}
-				if (immutable) {
-					resource.setImmutable(true);
-				}
+				resource.modifyUnfrozen(() -> {
+					if (resourceType.getOperationalState() == null) {
+						OperationalStateType operationalState = new OperationalStateType();
+						operationalState.setLastAvailabilityStatus(status);
+						resourceType.setOperationalState(operationalState);
+					} else {
+						resourceType.getOperationalState().setLastAvailabilityStatus(status);
+					}
+				});
 			}
 		}
 	
