@@ -139,9 +139,7 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
 			@Override
             public boolean isEnabled() {
-            	// TODO: the modify authorization here is probably wrong.
-        		// It is a model autz. UI autz should be here instead?
-                return WebComponentUtil.isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl());
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI);
             }
         });
 

@@ -131,9 +131,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                             });
                     items.add(item);
                 }
-                // TODO: the modify authorization here is probably wrong.
-        		// It is a model autz. UI autz should be here instead?
-                if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl())) {
+                if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
                     item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.deleteDelegation"),
                             new InlineMenuItemAction() {
                                 private static final long serialVersionUID = 1L;

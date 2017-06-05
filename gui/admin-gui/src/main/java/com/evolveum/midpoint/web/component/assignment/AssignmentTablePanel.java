@@ -209,9 +209,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		List<InlineMenuItem> items = new ArrayList<>();
 
 		InlineMenuItem item;
-		// TODO: the modify authorization here is probably wrong.
-		// It is a model autz. UI autz should be here instead?
-		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.ASSIGN.getUrl())) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)) {
 			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
 					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
@@ -270,9 +268,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			items.add(item);
 			items.add(new InlineMenuItem());
 		}
-		// TODO: the modify authorization here is probably wrong.
-		// It is a model autz. UI autz should be here instead?
-		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl())) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
 			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
 					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;

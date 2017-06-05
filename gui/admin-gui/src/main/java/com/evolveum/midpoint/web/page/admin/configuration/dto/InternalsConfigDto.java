@@ -35,6 +35,7 @@ public class InternalsConfigDto implements Serializable {
     public static final String F_DETAILED_DEBUG_DUMP = "detailedDebugDump";
     public static final String F_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
     public static final String F_TRACE_REPOSITORY_OPERATIONS = "traceRepositoryOperations";
+    public static final String F_TRACE_SHADOW_FETCH_OPERATIONS = "traceShadowFetchOperations";
 
     //internals config
     private boolean consistencyChecks;
@@ -45,6 +46,7 @@ public class InternalsConfigDto implements Serializable {
     //DOM util
     private boolean tolerateUndeclaredPrefixes;
     // InternalMonitor
+    private boolean traceShadowFetchOperations;
     private boolean traceRepositoryOperations;
 
     public InternalsConfigDto() {
@@ -57,6 +59,7 @@ public class InternalsConfigDto implements Serializable {
         tolerateUndeclaredPrefixes = QNameUtil.isTolerateUndeclaredPrefixes();
         
         traceRepositoryOperations = InternalMonitor.isTraceRepositoryOperations();
+        traceShadowFetchOperations = InternalMonitor.isTraceShadowFetchOperations();
     }
 
     public boolean isConsistencyChecks() {
@@ -91,6 +94,14 @@ public class InternalsConfigDto implements Serializable {
 		this.traceRepositoryOperations = traceRepositoryOperations;
 	}
 
+	public boolean isTraceShadowFetchOperations() {
+		return traceShadowFetchOperations;
+	}
+
+	public void setTraceShadowFetchOperations(boolean traceShadowFetchOperations) {
+		this.traceShadowFetchOperations = traceShadowFetchOperations;
+	}
+
 	public boolean isDetailedDebugDump() {
         return detailedDebugDump;
     }
@@ -113,6 +124,7 @@ public class InternalsConfigDto implements Serializable {
         InternalsConfig.encryptionChecks = encryptionChecks;
         InternalsConfig.readEncryptionChecks = readEncryptionChecks;
         QNameUtil.setTolerateUndeclaredPrefixes(tolerateUndeclaredPrefixes);
+        InternalMonitor.setTraceShadowFetchOperations(traceShadowFetchOperations);
         InternalMonitor.setTraceRepositoryOperations(traceRepositoryOperations);
     }
 
