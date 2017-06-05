@@ -106,7 +106,8 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	/**
 	 * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
 	 */
-	<O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems( MidPointPrincipal midPointPrincipal, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException;
+	<O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal,
+			String operationUrl, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException;
 
 	/**
 	 * Store connection information for later use within current thread.

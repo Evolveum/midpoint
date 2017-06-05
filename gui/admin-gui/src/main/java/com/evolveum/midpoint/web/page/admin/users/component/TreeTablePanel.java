@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -148,11 +149,15 @@ public class TreeTablePanel extends BasePanel<String> {
 		List<InlineMenuItem> items = new ArrayList<>();
 		try {
 			boolean allowModify = org == null ||
-					parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_MODIFY_ACTION_URL,
+					// TODO: the modify authorization here is probably wrong.
+					// It is a model autz. UI autz should be here instead?
+					parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			boolean allowRead = org == null ||
-					parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_READ_ACTION_URL,
+					// TODO: the authorization URI here is probably wrong.
+					// It is a model autz. UI autz should be here instead?
+					parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			InlineMenuItem item;
@@ -181,7 +186,9 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 
 			boolean allowDelete = org == null ||
-					parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_DELETE_ACTION_URL,
+					// TODO: the authorization URI here is probably wrong.
+					// It is a model autz. UI autz should be here instead?
+					parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			if (allowDelete) {
@@ -231,7 +238,9 @@ public class TreeTablePanel extends BasePanel<String> {
 				items.add(item);
 			}
 
-			boolean allowAddNew = parentPage.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_ACTION_URL,
+			// TODO: the modify authorization here is probably wrong.
+			// It is a model autz. UI autz should be here instead?
+			boolean allowAddNew = parentPage.getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
 					AuthorizationPhaseType.REQUEST, (new OrgType(parentPage.getPrismContext())).asPrismObject(),
 					null, null, null);
 			if (allowModify && allowAddNew) {

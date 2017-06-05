@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -208,7 +209,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		List<InlineMenuItem> items = new ArrayList<>();
 
 		InlineMenuItem item;
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL)) {
+		// TODO: the modify authorization here is probably wrong.
+		// It is a model autz. UI autz should be here instead?
+		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.ASSIGN.getUrl())) {
 			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
 					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
@@ -267,7 +270,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 			items.add(item);
 			items.add(new InlineMenuItem());
 		}
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL)) {
+		// TODO: the modify authorization here is probably wrong.
+		// It is a model autz. UI autz should be here instead?
+		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl())) {
 			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
 					new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,10 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		return isValid;
 	}
 
+	/**
+	 * Only for legacy exclusions. Not reliable. Do not use if you can avoid it.
+	 * It will get deprecated eventually.
+	 */
 	public Collection<ExclusionPolicyConstraintType> getExclusions() {
 		if (exclusions == null) {
 			exclusions = new ArrayList<>();

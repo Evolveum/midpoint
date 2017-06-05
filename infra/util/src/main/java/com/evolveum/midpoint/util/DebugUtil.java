@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -373,6 +373,18 @@ public class DebugUtil {
 		}
 	}
 	
+	public static StringBuilder createIndentedStringBuilder(int indent) {
+		StringBuilder sb = new StringBuilder();
+		indentDebugDump(sb, indent);
+		return sb;
+	}
+	
+	public static StringBuilder createTitleStringBuilder(Class<?> titleClass, int indent) {
+		StringBuilder sb = createIndentedStringBuilder(indent);
+		sb.append(titleClass.getSimpleName());
+		return sb;
+	}
+	
 	public static <K, V> String debugDumpMapMultiLine(Map<K, V> map) {
 		StringBuilder sb = new StringBuilder();
 		debugDumpMapMultiLine(sb, map, 0);
@@ -593,4 +605,5 @@ public class DebugUtil {
 			}
 		};
 	}
+
 }

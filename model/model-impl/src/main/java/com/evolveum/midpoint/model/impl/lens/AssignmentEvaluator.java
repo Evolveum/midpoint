@@ -50,6 +50,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -95,6 +96,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private final boolean loginMode;		// restricted mode, evaluating only authorizations and gui config (TODO name)
 	private final PrismObject<SystemConfigurationType> systemConfiguration;
 	private final MappingEvaluator mappingEvaluator;
+	private final EvaluatedAssignmentTargetCache evaluatedAssignmentTargetCache;
 
 	private AssignmentEvaluator(Builder<F> builder) {
 		repository = builder.repository;
@@ -110,6 +112,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		loginMode = builder.loginMode;
 		systemConfiguration = builder.systemConfiguration;
 		mappingEvaluator = builder.mappingEvaluator;
+		evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
 	}
 
 	public RepositoryService getRepository() {
@@ -165,6 +168,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 	@SuppressWarnings("unused")
 	public MappingEvaluator getMappingEvaluator() {
 		return mappingEvaluator;
+	}
+	
+	public void reset() {
+		evaluatedAssignmentTargetCache.reset();
 	}
 
 	// This is to reduce the number of parameters passed between methods in this class.
@@ -641,6 +648,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		segment.setTarget(targetType);
 		segment.setRelation(relation);			// probably not needed
+		
+		if (evaluatedAssignmentTargetCache.canSkip(segment, ctx.primaryAssignmentMode)) {
+			LOGGER.trace("Skipping evaluation of segment {} because we have seen the target before", segment);
+			return;
+		}
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Evaluating segment TARGET:\n{}", segment.debugDump(1));
 		}
@@ -651,6 +664,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			LOGGER.trace("Skipping evaluation of {} because it is not valid", targetType);
 			return;
 		}
+		
+		InternalMonitor.recordRoleEvaluation(targetType, true);
 		
 		if (targetType instanceof AbstractRoleType) {
 			MappingType roleCondition = ((AbstractRoleType)targetType).getCondition();
@@ -714,6 +729,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType);
 			}
 		}
+		
+		evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
+		
 		LOGGER.trace("Evaluating segment target DONE for {}", segment);
 	}
 

@@ -1373,7 +1373,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems( MidPointPrincipal midPointPrincipal, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException {
+	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(MidPointPrincipal midPointPrincipal, 
+			String operationUrl, PrismObject<O> object, PrismObject<R> target, OwnerResolver ownerResolver) throws SchemaException {
 		
 		ItemSecurityDecisions decisions = new ItemSecurityDecisions();
 		
@@ -1384,8 +1385,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			// First check if the authorization is applicable.
 			
 			// action
-			if (!autz.getAction().contains(AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
-				LOGGER.trace("  {} not applicable for operation {}", autzHumanReadableDesc, AuthorizationConstants.AUTZ_UI_ASSIGN_ACTION_URL);
+			if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
+				LOGGER.trace("  {} not applicable for operation {}", autzHumanReadableDesc, operationUrl);
 				continue;
 			}
 			

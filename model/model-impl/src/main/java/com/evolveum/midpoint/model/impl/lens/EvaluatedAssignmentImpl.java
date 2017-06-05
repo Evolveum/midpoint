@@ -128,6 +128,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 *
 	 * @return
 	 */
+	@Override
 	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
 		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
