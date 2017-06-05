@@ -325,15 +325,17 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected boolean processDeputyAssignments(){
+    protected boolean processDeputyAssignments(boolean previewOnly) {
         boolean isAnythingChanged = false;
-        for (AssignmentEditorDto dto : delegationsModel.getObject()){
-            if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
-                UserType user = dto.getDelegationOwner();
-                List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
-                userAssignmentsDtos.add(dto);
-                saveDelegationToUser(user, userAssignmentsDtos);
-                isAnythingChanged = true;
+        if (!previewOnly) {
+            for (AssignmentEditorDto dto : delegationsModel.getObject()) {
+                if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
+                    UserType user = dto.getDelegationOwner();
+                    List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
+                    userAssignmentsDtos.add(dto);
+                    saveDelegationToUser(user, userAssignmentsDtos);
+                    isAnythingChanged = true;
+                }
             }
         }
         return isAnythingChanged;

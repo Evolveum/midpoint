@@ -429,7 +429,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 	}
 
 	public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-		boolean isAnythingChanged = processDeputyAssignments();
+		boolean isAnythingChanged = processDeputyAssignments(previewOnly);
 
 		ObjectWrapper<O> objectWrapper = getObjectWrapper();
 		LOGGER.debug("Saving object {}", objectWrapper);
@@ -573,7 +573,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		LOGGER.trace("returning from saveOrPreviewPerformed");
 	}
 
-	protected boolean processDeputyAssignments(){
+	protected boolean processDeputyAssignments(boolean previewOnly){
 		return false;
 	}
 

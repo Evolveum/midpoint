@@ -377,7 +377,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 		headerMenuItems.addAll(newMemberInlineMenuItems());
-		headerMenuItems.add(new InlineMenuItem());
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_MEMBER_ACTION_URI)) {
 			headerMenuItems.addAll(super.createUnassignMemberInlineMenuItems());
@@ -468,7 +467,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 							OrgMemberPanel.this.addMembers(SchemaConstants.ORG_MANAGER, target);
 						}
 					}));
-			headerMenuItems.add(new InlineMenuItem());
 		}
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_MEMBER_ACTION_URI)) {

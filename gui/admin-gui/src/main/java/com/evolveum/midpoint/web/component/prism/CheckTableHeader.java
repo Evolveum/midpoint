@@ -223,14 +223,13 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
                 if (fetchResult != null && !WebComponentUtil.isSuccessOrHandledError(fetchResult)) {
                     return true;
                 }
-
                 //TODO: do we need to check overall status????
-                OperationResult result = getModelObject().getResult();
-                result.computeStatusIfUnknown();
-                if (result != null && !WebComponentUtil.isSuccessOrHandledError(result)) {
-                    return true;
-                }
-
+                //[PM] you're absolutely right - see MID-3951. The result contains results of fetching all shadows. So I'm commenting the code out.
+//                OperationResult result = getModelObject().getResult();
+//                result.computeStatusIfUnknown();
+//                if (result != null && !WebComponentUtil.isSuccessOrHandledError(result)) {
+//                    return true;
+//                }
                 return false;
             }
         };
