@@ -984,4 +984,29 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			throw new IllegalStateException("An attempt to modify an immutable item: " + toString());
 		}
 	}
+
+	public void checkImmutability() {
+    	synchronized (this) {		// because of modifyUnfrozen
+			if (!immutable) {
+				throw new IllegalStateException("Item is not immutable even if it should be: " + this);
+			}
+		}
+	}
+
+	// should be always called on non-overlapping objects! (for the synchronization to work correctly)
+	public void modifyUnfrozen(Runnable mutator) {
+		synchronized (this) {
+			boolean wasImmutable = immutable;
+			if (wasImmutable) {
+				setImmutable(false);
+			}
+			try {
+				mutator.run();
+			} finally {
+				if (wasImmutable) {
+					setImmutable(true);
+				}
+			}
+		}
+	}
 }

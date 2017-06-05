@@ -57,7 +57,7 @@ public class InternalMonitor implements PrismMonitor {
 	private static long connectorSimulatedPagingSearchCount = 0;
 	
 	private static long shadowFetchOperationCount = 0;
-	private static boolean traceShadowFetchOperation = false;
+	private static boolean traceShadowFetchOperations = false;
 	
 	private static long shadowChangeOpeartionCount = 0;
 	/**
@@ -86,7 +86,7 @@ public class InternalMonitor implements PrismMonitor {
 	
 	public synchronized static void recordResourceSchemaParse() {
 		resourceSchemaParseCount++;
-		if (traceShadowFetchOperation) {
+		if (traceShadowFetchOperations) {
 			traceOperation("resource schema parse", null, resourceSchemaParseCount, true);
 		}
 	}
@@ -106,7 +106,7 @@ public class InternalMonitor implements PrismMonitor {
 	public synchronized static void recordResourceSchemaFetch() {
 		resourceSchemaFetchCount++;
 		provisioningAllExtOperationCount++;
-		if (traceShadowFetchOperation) {
+		if (traceShadowFetchOperations) {
 			traceOperation("resource schema fetch", null, resourceSchemaFetchCount, true);
 		}
 	}
@@ -167,18 +167,18 @@ public class InternalMonitor implements PrismMonitor {
 	public static void recordShadowFetchOperation() {
 		shadowFetchOperationCount++;
 		provisioningAllExtOperationCount++;
-		if (traceShadowFetchOperation) {
+		if (traceShadowFetchOperations) {
 			traceOperation("shadow fetch", null, shadowFetchOperationCount, true);
 		}
 	}
 
-	public static boolean isTraceShadowFetchOperation() {
-		return traceShadowFetchOperation;
+	public static boolean isTraceShadowFetchOperations() {
+		return traceShadowFetchOperations;
 	}
 
-	public static void setTraceShadowFetchOperation(boolean traceShadowFetchOperation) {
-		LOGGER.debug("MONITOR traceShadowFetchOperation={}", traceShadowFetchOperation);
-		InternalMonitor.traceShadowFetchOperation = traceShadowFetchOperation;
+	public static void setTraceShadowFetchOperations(boolean traceShadowFetchOperations) {
+		LOGGER.debug("MONITOR traceShadowFetchOperations={}", traceShadowFetchOperations);
+		InternalMonitor.traceShadowFetchOperations = traceShadowFetchOperations;
 	}
 
 	public static boolean isTraceResourceSchemaOperations() {
@@ -223,7 +223,7 @@ public class InternalMonitor implements PrismMonitor {
 	}
 
 	public static boolean isTraceConnectorOperation() {
-		return traceShadowFetchOperation;
+		return traceShadowFetchOperations;
 	}
 
 	public static void setTraceConnectorOperation(boolean trace) {
@@ -373,7 +373,7 @@ public class InternalMonitor implements PrismMonitor {
 		scriptCompileCount = 0;
 		scriptExecutionCount = 0;
 		shadowFetchOperationCount = 0;
-		traceShadowFetchOperation = false;
+		traceShadowFetchOperations = false;
 		shadowChangeOpeartionCount = 0;
 		traceConnectorOperation = false;
 		connectorOperationCount = 0;

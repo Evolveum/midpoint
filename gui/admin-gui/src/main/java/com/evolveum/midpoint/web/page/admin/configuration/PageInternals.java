@@ -70,6 +70,7 @@ public class PageInternals extends PageAdminConfiguration {
     private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
     private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
+    private static final String ID_TRACE_SHADOW_FETCH_OPERATIONS = "traceShadowFetchOperations";
     private static final String ID_TRACE_REPOSITORY_OPERATIONS = "traceRepositoryOperations";
     
     private static final String ID_REPOSITORY_READ_COUNT = "repositoryReadCount";
@@ -180,6 +181,7 @@ public class PageInternals extends PageAdminConfiguration {
         form.add(createCheckbox(ID_ENCRYPTION_CHECKS, InternalsConfigDto.F_ENCRYPTION_CHECKS));
         form.add(createCheckbox(ID_READ_ENCRYPTION_CHECKS, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS));
         form.add(createCheckbox(ID_TOLERATE_UNDECLARED_PREFIXES, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES));
+        form.add(createCheckbox(ID_TRACE_SHADOW_FETCH_OPERATIONS, InternalsConfigDto.F_TRACE_SHADOW_FETCH_OPERATIONS));
         form.add(createCheckbox(ID_TRACE_REPOSITORY_OPERATIONS, InternalsConfigDto.F_TRACE_REPOSITORY_OPERATIONS));
 
         AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,

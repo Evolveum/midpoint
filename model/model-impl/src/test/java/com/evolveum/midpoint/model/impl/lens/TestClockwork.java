@@ -98,7 +98,7 @@ public class TestClockwork extends AbstractLensTest {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperation(true);
+		InternalMonitor.setTraceShadowFetchOperations(true);
 	}
 
     // tests specific bug dealing with preservation of null values in focus secondary deltas
