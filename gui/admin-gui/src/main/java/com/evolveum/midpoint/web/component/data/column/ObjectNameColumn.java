@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -56,7 +57,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 	@Override
 	public void populateItem(final Item<ICellPopulator<SelectableBean<O>>> cellItem, String componentId,
 			final IModel<SelectableBean<O>> rowModel) {
-		
+
 		IModel<String> labelModel = new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 			
@@ -108,6 +109,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 		} else {
 			cellItem.add(new Label(componentId, labelModel));
 		}
+		cellItem.add(new AttributeModifier("style", "max-width: 300px; word-wrap: break-word;"));
 	}
 	
 	public boolean isClickable(IModel<SelectableBean<O>> rowModel) {

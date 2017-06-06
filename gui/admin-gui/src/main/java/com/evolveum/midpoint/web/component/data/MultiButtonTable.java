@@ -142,6 +142,7 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
                 return isMultiUserRequest() || canAssign(assignment);
             }
         });
+        inner.add(new AttributeAppender("title", assignment.getName()));
         cellContainer.add(inner);
         
         Label nameLabel = new Label(ID_INNER_LABEL, assignment.getName());
