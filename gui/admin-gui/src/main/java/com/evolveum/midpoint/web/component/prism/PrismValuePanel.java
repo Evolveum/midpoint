@@ -104,7 +104,7 @@ public class PrismValuePanel extends Panel {
     private PageBase pageBase;
 
     public PrismValuePanel(String id, IModel<ValueWrapper> valueWrapperModel, IModel<String> labelModel, Form form,
-                           String valueCssClass, String inputCssClass, PageBase pageBase){
+			String valueCssClass, String inputCssClass, PageBase pageBase) {
         super(id);
         Validate.notNull(valueWrapperModel, "Property value model must not be null.");
         Validate.notNull(pageBase, "The reference to page base must not be null.");
@@ -358,7 +358,9 @@ public class PrismValuePanel extends Panel {
             objectWrapper = valueWrapper.getItem().getContainer().getObject();
         }
         Item property = valueWrapper.getItem().getItem();
-        boolean required = property.getDefinition().getMinOccurs() > 0;
+		ItemDefinition definition = valueWrapper.getItem().getItemDefinition();
+		boolean required = definition.getMinOccurs() > 0;
+        LOGGER.trace("createInputComponent: id={}, required={}, definition={}", id, required, definition);
 
         Panel component = createTypedInputComponent(id);
 

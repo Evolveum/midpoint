@@ -19,7 +19,7 @@ import org.apache.wicket.model.IModel;
 
 /**
  * Interface for objects that provide Wicket model which represents
- * object count or similar tag. The count in susually displayed as a
+ * object count or similar tag. The count in usually displayed as a
  * small "bubble" in the tab, next to the menu item, etc.
  * 
  * @author semancik
