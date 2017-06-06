@@ -1629,6 +1629,11 @@ public class TaskQuartzImpl implements Task {
         return isPersistent() ? PropertyDelta.createReplaceDeltaOrEmptyDelta(
                 taskManager.getTaskObjectDefinition(), TaskType.F_DESCRIPTION, value) : null;
     }
+    
+    @Override
+    public PolicyRuleType getPolicyRule() {
+    	return taskPrism.asObjectable().getPolicyRule();
+    }
 
     /*
     * Parent

@@ -1620,6 +1620,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                     <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Policy rule for the task. E.g notify user 5 days before their account expires.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -12023,6 +12030,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="timeValidity">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TIME_VALIDITY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
