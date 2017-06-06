@@ -58,6 +58,7 @@
     <logger name="ro.isdc.wro.extensions.processor.css.Less4jProcessor" level="ERROR"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>
+    <logger name="org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl" level="WARN"/>
     <logger name="PROFILING" level="INFO"/>
     <logger name="com.evolveum.midpoint" level="INFO" />
     <logger name="com.evolveum.midpoint.web.util.MidPointProfilingServletFilter" level="TRACE">
