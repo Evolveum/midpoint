@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -105,6 +106,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			@Override
 			public PrismContext getPrismContext() {
 				return prismContext;
+			}
+
+			@Override
+			public SecurityEnforcer getSecurityEnforcer() {
+				return securityEnforcer;
 			}
 		};
 	}

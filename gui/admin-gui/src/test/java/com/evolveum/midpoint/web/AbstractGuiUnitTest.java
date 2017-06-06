@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -68,6 +69,11 @@ public abstract class AbstractGuiUnitTest {
 			@Override
 			public PrismContext getPrismContext() {
 				return PrismTestUtil.getPrismContext();
+			}
+
+			@Override
+			public SecurityEnforcer getSecurityEnforcer() {
+				return null;
 			}
 		};
 	}

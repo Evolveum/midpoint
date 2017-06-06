@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.util;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 
 /**
@@ -38,5 +39,7 @@ public interface ModelServiceLocator {
 	Task createSimpleTask(String operationName);
 	
 	PrismContext getPrismContext();
+	
+	SecurityEnforcer getSecurityEnforcer();
 
 }
