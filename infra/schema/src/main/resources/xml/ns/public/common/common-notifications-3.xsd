@@ -416,7 +416,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="simpleActivationNotifier" type="tns:SimpleActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="timeValidityNotifier" type="tns:TimeValidityNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -912,14 +912,14 @@
         </xsd:complexContent>
     </xsd:complexType>
     
-    <xsd:complexType name="SimpleActivationNotifierType">
+    <xsd:complexType name="TimeValidityNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:SimpleFocalObjectNotifierType">
+            <xsd:extension base="tns:SimplePolicyRuleNotifierType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

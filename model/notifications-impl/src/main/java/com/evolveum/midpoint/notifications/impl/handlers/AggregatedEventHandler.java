@@ -128,7 +128,6 @@ public class AggregatedEventHandler extends BaseHandler {
                 forkHelper.processEvent(event, eventHandlerType, notificationManager, task, result);
 
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleUserNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleActivationNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleFocalObjectNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleResourceObjectNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleWorkflowNotifier(), notificationManager, task, result);
@@ -144,6 +143,7 @@ public class AggregatedEventHandler extends BaseHandler {
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleReviewerNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleTaskNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimplePolicyRuleNotifier(), notificationManager, task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getTimeValidityNotifier(), notificationManager, task, result);
 
         logEnd(LOGGER, event, eventHandlerType, shouldContinue);
         return shouldContinue;

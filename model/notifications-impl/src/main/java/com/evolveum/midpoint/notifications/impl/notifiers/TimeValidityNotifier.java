@@ -16,16 +16,13 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import javax.annotation.PostConstruct;
+
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
-import com.evolveum.midpoint.notifications.api.events.TaskEvent;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,31 +30,21 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleActivationNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleUserNotifierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeValidityNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Iterator;
-
-import javax.annotation.PostConstruct;
-
 /**
- * @author mederly
+ * @author katkav
  */
 @Component
-public class SimpleActivationNotifier extends SimplePolicyRuleNotifier {
+public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SimpleActivationNotifier.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TimeValidityNotifier.class);
 
     @PostConstruct
     public void init() {
-        register(SimpleActivationNotifierType.class);
+        register(TimeValidityNotifierType.class);
     }
 
     @Override
