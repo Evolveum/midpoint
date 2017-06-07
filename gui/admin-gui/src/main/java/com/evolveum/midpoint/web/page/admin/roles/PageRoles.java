@@ -133,15 +133,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
     private List<IColumn<SelectableBean<RoleType>, String>> initColumns() {
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
-        IColumn column = new PropertyColumn<SelectableBean<RoleType>, String>(createStringResource("OrgType.displayName"), "value.displayName"){
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> item, String componentId, IModel<SelectableBean<RoleType>> rowModel) {
-                super.populateItem(item, componentId, rowModel);
-                item.add(new AttributeAppender("style", "max-width: 300px; word-wrap: break-word;"));
-            }
-
-        };
-        columns.add(column);
+        IColumn column = new PropertyColumn<SelectableBean<RoleType>, String>(createStringResource("OrgType.displayName"), "value.displayName");        columns.add(column);
 
         column = new PropertyColumn(createStringResource("OrgType.identifier"), "value.identifier");
         columns.add(column);

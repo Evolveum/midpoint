@@ -109,7 +109,6 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 		} else {
 			cellItem.add(new Label(componentId, labelModel));
 		}
-		cellItem.add(new AttributeModifier("style", "max-width: 300px; word-wrap: break-word;"));
 	}
 	
 	public boolean isClickable(IModel<SelectableBean<O>> rowModel) {
