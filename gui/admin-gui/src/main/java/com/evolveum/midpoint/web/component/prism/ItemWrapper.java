@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Revivable;
@@ -56,23 +57,30 @@ public interface ItemWrapper<I extends Item, ID extends ItemDefinition> extends 
 
     boolean hasChanged();
     
-    public List<ValueWrapper> getValues();
+    List<ValueWrapper> getValues();
 
     /**
      * Visibility flag. This is NOT an override, it defines whether the item
      * should be displayed or not.
      */
-    public boolean isVisible();
+	boolean isVisible();
     
     /**
      * Used to display the form elements with stripe in every other line.
      */
-    public boolean isStripe();
+	boolean isStripe();
     
     void setStripe(boolean isStripe);
     
     ContainerWrapper getContainer();
     
-    public void addValue();
+    void addValue();
 
+	boolean checkRequired(PageBase pageBase);
+
+	// are required fields enforced by wicket?
+	default boolean isEnforceRequiredFields() {
+	    ContainerWrapper cw = getContainer();
+	    return cw == null || cw.isEnforceRequiredFields();
+    }
 }

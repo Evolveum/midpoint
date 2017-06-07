@@ -650,5 +650,19 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 		}
 	}
 
+	@Override
+	public boolean checkRequired(PageBase pageBase) {
+    	boolean rv = true;
+		for (ItemWrapper itemWrapper : getItems()) {
+			if (!itemWrapper.checkRequired(pageBase)) {
+				rv = false;
+			}
+		}
+		return rv;
+	}
 
+	@Override
+	public boolean isEnforceRequiredFields() {
+		return objectWrapper != null && objectWrapper.isEnforceRequiredFields();
+	}
 }

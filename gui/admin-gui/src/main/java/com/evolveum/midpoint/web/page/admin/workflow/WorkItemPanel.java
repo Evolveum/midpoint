@@ -234,7 +234,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			}
 			Task task = pageBase.createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
 			DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
-					focus.asPrismObject(), formOid, mainForm, task, pageBase);
+					focus.asPrismObject(), formOid, mainForm, task, pageBase, false);
 			additionalAttribues.add(customForm);
 		} else {
 			additionalAttribues.add(new Label(ID_CUSTOM_FORM));
@@ -244,11 +244,25 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     }
 
 	ObjectDelta getDeltaFromForm() throws SchemaException {
-		Component formPanel = get(ID_CUSTOM_FORM);
+		Component formPanel = getFormPanel();
 		if (formPanel instanceof DynamicFormPanel) {
-			return ((DynamicFormPanel) formPanel).getObjectDelta();
+			return ((DynamicFormPanel<?>) formPanel).getObjectDelta();
 		} else {
 			return null;
 		}
+	}
+
+	// true means OK
+	boolean checkRequiredFields() {
+		Component formPanel = getFormPanel();
+		if (formPanel instanceof DynamicFormPanel) {
+			return ((DynamicFormPanel<?>) formPanel).checkRequiredFields(getPageBase());
+		} else {
+			return true;
+		}
+	}
+
+	private Component getFormPanel() {
+		return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
 	}
 }

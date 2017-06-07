@@ -27,14 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class ObjectWrapperUtil {
 
     public static <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
-            PrismObject<O> object, ContainerStatus status, Task task, PageBase pageBase) {
-        return createObjectWrapper(displayName, description, object, status, false, task, pageBase);
-    }
-
-    public static <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
-			PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation, Task task, PageBase pageBase) {
+			PrismObject<O> object, ContainerStatus status, Task task, PageBase pageBase) {
         ObjectWrapperFactory owf = new ObjectWrapperFactory(pageBase);
-        return owf.createObjectWrapper(displayName, description, object, status, delayContainerCreation,
-                AuthorizationPhaseType.REQUEST, task);
+        return owf.createObjectWrapper(displayName, description, object, status,
+				AuthorizationPhaseType.REQUEST, task);
     }
 }

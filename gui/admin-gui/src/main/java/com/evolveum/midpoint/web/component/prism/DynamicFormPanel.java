@@ -60,22 +60,21 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	private FormType form;
 
 	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
-			Task task, final PageBase parentPage) {
-		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, task, parentPage);
-
+			Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, task, parentPage, enforceRequiredFields);
 	}
 
 	public DynamicFormPanel(String id, final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			Task task, final PageBase parentPage) {
+			Task task, final PageBase parentPage, boolean enforceRequiredFields) {
 		super(id);
-		initialize(prismObject, formOid, mainForm, task, parentPage);
+		initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
 	}
 
 	public DynamicFormPanel(String id, final QName objectType, String formOid, Form<?> mainForm,
-			Task task, final PageBase parentPage) {
+			Task task, final PageBase parentPage, boolean enforceRequiredFields) {
 		super(id);
 		PrismObject<O> prismObject = instantiateObject(objectType, parentPage);
-		initialize(prismObject, formOid, mainForm, task, parentPage);
+		initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
 	}
 
 	private PrismObject<O> instantiateObject(QName objectType, PageBase parentPage) {
@@ -92,7 +91,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	}
 
 	private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			final Task task, final PageBase parentPage) {
+			final Task task, final PageBase parentPage, boolean enforceRequiredFields) {
 
 		if (prismObject == null) {
 			getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
@@ -108,27 +107,22 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 		}
 		
 		final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
-		ObjectWrapper<O> objectWrapper = createObjectWrapper(owf, task, prismObject);
-		wrapperModel = new LoadableModel<ObjectWrapper<O>>() {
-			private static final long serialVersionUID = 1L;
-			@Override
-			protected ObjectWrapper<O> load() {
-				
-				return objectWrapper;
-			}
-		};
+		ObjectWrapper<O> objectWrapper = createObjectWrapper(owf, task, prismObject, enforceRequiredFields);
+		wrapperModel = LoadableModel.create(() -> objectWrapper, true);
 		initLayout(mainForm, parentPage);
 	}
 
-	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject) {
+	private ObjectWrapper<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject,
+			boolean enforceRequiredFields) {
 		FormAuthorizationType formAuthorization = form.getFormDefinition().getAuthorization();
 		AuthorizationPhaseType authorizationPhase = formAuthorization != null && formAuthorization.getPhase() != null
 				? formAuthorization.getPhase()
 				: AuthorizationPhaseType.REQUEST;
 		ObjectWrapper<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
 				prismObject, prismObject.getOid() == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
-				false, authorizationPhase, task);
+				authorizationPhase, task);
 		objectWrapper.setShowEmpty(true);
+		objectWrapper.setEnforceRequiredFields(enforceRequiredFields);
 		return objectWrapper;
 	}
 
@@ -145,12 +139,6 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 	}
 
 	private FormType loadForm(String formOid, Task task, PageBase parentPage) {
-//		Task task;
-//		if (runPrivileged) {
-//			task = getPageBase().createAnonymousTask(OPERATION_LOAD_FORM);
-//		} else {
-//			task = getPageBase().createSimpleTask(OPERATION_LOAD_FORM);
-//		}
 		OperationResult result = new OperationResult("some some operation");
 		return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
 				parentPage, task, result));
@@ -158,6 +146,11 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	public ObjectDelta<O> getObjectDelta() throws SchemaException {
 		return wrapperModel.getObject().getObjectDelta();
+	}
+
+	public boolean checkRequiredFields(PageBase pageBase) {
+		// TODO - or check only fields present in the form itself? (But other required attributes should be present as well.)
+		return wrapperModel.getObject().checkRequiredFields(pageBase);
 	}
 
 	public PrismObject<O> getObject() throws SchemaException {

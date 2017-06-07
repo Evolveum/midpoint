@@ -360,7 +360,9 @@ public class PrismValuePanel extends Panel {
         Item property = valueWrapper.getItem().getItem();
 		ItemDefinition definition = valueWrapper.getItem().getItemDefinition();
 		boolean required = definition.getMinOccurs() > 0;
-        LOGGER.trace("createInputComponent: id={}, required={}, definition={}", id, required, definition);
+		boolean enforceRequiredFields = valueWrapper.getItem().isEnforceRequiredFields();
+        LOGGER.trace("createInputComponent: id={}, required={}, enforceRequiredFields={}, definition={}",
+				id, required, enforceRequiredFields, definition);
 
         Panel component = createTypedInputComponent(id);
 
@@ -379,7 +381,7 @@ public class PrismValuePanel extends Panel {
             final List<FormComponent> formComponents = inputPanel.getFormComponents();
             for (FormComponent formComponent : formComponents) {
                 formComponent.setLabel(labelModel);
-                formComponent.setRequired(required);
+				formComponent.setRequired(required && enforceRequiredFields);
 
                 if (formComponent instanceof TextField) {
                     formComponent.add(new AttributeModifier("size", "42"));
@@ -481,9 +483,10 @@ public class PrismValuePanel extends Panel {
                       inputPanel = new TextPanel<>(id, new PropertyModel<String>(valueWrapperModel, baseExpression + ".orig"), String.class);
                   }
 
-                  if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
-                      inputPanel.getBaseFormComponent().setRequired(true);
-                  }
+                  // TODO is this really necessary? 'required' flag is overridden in createTypedComponent anyway
+//                  if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
+//                      inputPanel.getBaseFormComponent().setRequired(true);
+//                  }
                   panel = inputPanel;
                   
               } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)) {

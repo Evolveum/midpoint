@@ -84,12 +84,11 @@ public class ObjectWrapperFactory {
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
             String description, PrismObject<O> object, ContainerStatus status, Task task) {
-        return createObjectWrapper(displayName, description, object, status, false, AuthorizationPhaseType.REQUEST, task);
+        return createObjectWrapper(displayName, description, object, status, AuthorizationPhaseType.REQUEST, task);
     }
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
-            PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation,
-            AuthorizationPhaseType authorizationPhase, Task task) {
+			PrismObject<O> object, ContainerStatus status, AuthorizationPhaseType authorizationPhase, Task task) {
         if (authorizationPhase == null) {
             authorizationPhase = AuthorizationPhaseType.REQUEST;
         }
@@ -112,30 +111,23 @@ public class ObjectWrapperFactory {
             }
          
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                    objectClassDefinitionForEditing, status, delayContainerCreation, result);
+                    objectClassDefinitionForEditing, status, result);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
             throw new SystemException(ex);
         }
     }
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
-                                                                    String description,
-                                                                    PrismObject<O> object,
-                                                                    PrismObjectDefinition<O> objectDefinitionForEditing,
-                                                                    RefinedObjectClassDefinition objectClassDefinitionForEditing,
-                                                                    ContainerStatus status,
-                                                                    boolean delayContainerCreation) {
+			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
+			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status) {
         return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                objectClassDefinitionForEditing, status, delayContainerCreation, null);
+                objectClassDefinitionForEditing, status, null);
     }
 
     private <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
-                                             String description,
-                                             PrismObject<O> object,
-                                             PrismObjectDefinition<O> objectDefinitionForEditing,
-                                             RefinedObjectClassDefinition objectClassDefinitionForEditing,
-                                             ContainerStatus status,
-                                             boolean delayContainerCreation, OperationResult result) {
+			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
+			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status,
+			OperationResult result) {
 
         if (result == null) {
             this.result = new OperationResult(CREATE_OBJECT_WRAPPER);
@@ -143,10 +135,11 @@ public class ObjectWrapperFactory {
             this.result = result;
         }
 
-        ObjectWrapper<O> objectWrapper = new ObjectWrapper<O>(displayName, description, object, objectDefinitionForEditing,
-                objectClassDefinitionForEditing, status, delayContainerCreation);
+        ObjectWrapper<O> objectWrapper = new ObjectWrapper<>(displayName, description, object, objectDefinitionForEditing,
+                objectClassDefinitionForEditing, status);
 
-        List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object, objectDefinitionForEditing, status, this.result);
+        List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
+				objectDefinitionForEditing, status, this.result);
         objectWrapper.setContainers(containerWrappers);
 
         this.result.computeStatusIfUnknown();
@@ -161,9 +154,7 @@ public class ObjectWrapperFactory {
     }
 
     private <O extends ObjectType> List<ContainerWrapper<? extends Containerable>> createContainerWrappers(ObjectWrapper<O> oWrapper, 
-    												PrismObject<O> object,
-                                                    PrismObjectDefinition<O> objectDefinitionForEditing,
-                                                    ContainerStatus cStatus, OperationResult pResult) {
+			PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing, ContainerStatus cStatus, OperationResult pResult) {
         OperationResult result = pResult.createSubresult(CREATE_CONTAINERS);
 
         List<ContainerWrapper<? extends Containerable>> containerWrappers = new ArrayList<>();
@@ -192,7 +183,7 @@ public class ObjectWrapperFactory {
                     e);
         }
 
-        Collections.sort(containerWrappers, new ItemWrapperComparator());
+        containerWrappers.sort(new ItemWrapperComparator());
         result.recomputeStatus();
         result.recordSuccessIfUnknown();
 

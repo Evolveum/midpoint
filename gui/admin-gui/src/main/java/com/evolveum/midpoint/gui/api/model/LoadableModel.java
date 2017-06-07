@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.model;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.wicket.model.IModel;
@@ -51,6 +52,15 @@ public abstract class LoadableModel<T> implements IModel<T> {
     public LoadableModel(T object, boolean alwaysReload) {
         this.object = object;
         this.alwaysReload = alwaysReload;
+    }
+
+    public static <T> LoadableModel<T> create(Producer<T> producer, boolean alwaysReload) {
+        return new LoadableModel<T>(alwaysReload) {
+            @Override
+            protected T load() {
+                return producer.run();
+            }
+        };
     }
 
     public T getObject() {

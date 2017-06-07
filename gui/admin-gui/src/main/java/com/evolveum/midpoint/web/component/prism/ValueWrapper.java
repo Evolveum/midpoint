@@ -146,8 +146,18 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
     }
     
     public boolean isEmpty() {
-    	return value.isEmpty();
-    }
+    	if (value == null || value.isEmpty()) {
+    		return true;
+		}
+		Object realValue = value.getRealValue();
+    	if (realValue instanceof String) {
+    		return ((String) realValue).isEmpty();
+		} else if (realValue instanceof PolyString) {
+    		return ((PolyString) realValue).isEmpty();
+		} else {
+    		return false;
+		}
+	}
 
     @Override
     public String toString() {

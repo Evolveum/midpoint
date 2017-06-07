@@ -48,7 +48,7 @@ public class PrismContainerPanel extends Panel {
 
     public PrismContainerPanel(String id, final IModel<ContainerWrapper> model, boolean showHeader, Form form, PageBase pageBase) {
         super(id);
-        this.pageBase = pageBase;
+		this.pageBase = pageBase;
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
         

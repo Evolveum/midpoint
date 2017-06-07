@@ -261,12 +261,19 @@ public class PageWorkItem extends PageAdminWorkItems {
         redirectBack();
     }
 
-    private void savePerformed(AjaxRequestTarget target, boolean decision) {
+    private void savePerformed(AjaxRequestTarget target, boolean approved) {
         OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
         try {
 			WorkItemDto dto = workItemDtoModel.getObject();
+			if (approved) {
+				boolean requiredFieldsPresent = getWorkItemPanel().checkRequiredFields();
+				if (!requiredFieldsPresent) {
+					target.add(getFeedbackPanel());
+					return;
+				}
+			}
 			ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
-            getWorkflowService().completeWorkItem(dto.getWorkItemId(), decision, dto.getApproverComment(), delta, result);
+            getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);

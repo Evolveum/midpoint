@@ -339,7 +339,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
 	
 					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
-							userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this);
+							userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this, true);
 				});
 
 		if (dynamicForm != null) {
