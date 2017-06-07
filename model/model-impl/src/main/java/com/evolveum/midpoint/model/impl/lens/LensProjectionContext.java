@@ -359,7 +359,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isModify() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.KEEP) {
 			return true;
-		} else if (synchronizationPolicyDecision != null){
+		} else if (synchronizationPolicyDecision != null) {
 			return false;
 		}
 		return super.isModify();
@@ -368,7 +368,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public boolean isDelete() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE) {
 			return true;
-		} else if (synchronizationPolicyDecision != null){
+		} else if (synchronizationPolicyDecision != null) {
 			return false;
 		}
 		if (syncDelta != null && syncDelta.isDelete()) {
