@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectTyp
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -683,6 +685,41 @@ public class SchemaDebugUtil {
 		if (syncDescType.isFull() != null && syncDescType.isFull()) {
 			sb.append(",full");
 		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ObjectDeltaType deltaType) {
+		if (deltaType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
+		sb.append(deltaType.getOid()).append(" ");
+		sb.append(deltaType.getChangeType());
+		sb.append(": ");
+		if (deltaType.getObjectToAdd() != null) {
+			sb.append(deltaType.getObjectToAdd());
+		} else {
+			sb.append(deltaType.getItemDelta());
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
+		if (deltaOpType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ObjectDeltaOperationType(");
+		sb.append(prettyPrint(deltaOpType.getObjectDelta()));
+		sb.append(": ");
+		OperationResultType result = deltaOpType.getExecutionResult();
+		if (result == null) {
+			sb.append("null result");
+		} else {
+			sb.append(result.getStatus());
+		}
+		// object, resource?
 		sb.append(")");
 		return sb.toString();
 	}

@@ -37,10 +37,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -128,8 +133,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
     private List<IColumn<SelectableBean<RoleType>, String>> initColumns() {
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
-        IColumn column = new PropertyColumn(createStringResource("OrgType.displayName"), "value.displayName");
-        columns.add(column);
+        IColumn column = new PropertyColumn<SelectableBean<RoleType>, String>(createStringResource("OrgType.displayName"), "value.displayName");        columns.add(column);
 
         column = new PropertyColumn(createStringResource("OrgType.identifier"), "value.identifier");
         columns.add(column);

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.repeater.Item;
@@ -43,6 +44,13 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
         public SelectableRowItem(String id, int index, IModel<T> model) {
             super(id, index, model);
         }
+    }
+
+    @Override
+    protected Item<IColumn<T, String>> newCellItem(String id, int index, IModel<IColumn<T, String>> model) {
+        Item item = super.newCellItem(id, index, model);
+        item.add(new AttributeModifier("style", "max-width: 250px; word-wrap: break-word;"));
+        return item;
     }
 
     @Override
