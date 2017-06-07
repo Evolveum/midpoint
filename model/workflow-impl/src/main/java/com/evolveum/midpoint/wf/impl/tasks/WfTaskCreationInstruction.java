@@ -278,6 +278,11 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	public PCS getProcessContent() {
 		return processContent;
 	}
+
+	public WfContextType getWfContext() {
+		return wfContext;
+	}
+
 	//endregion
 
     //region Diagnostics
@@ -376,15 +381,21 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		}
 		wfContext.setChangeProcessor(changeProcessor.getClass().getName());
 		wfContext.setStartTimestamp(createXMLGregorianCalendar(processCreationTimestamp));
-		if (processorContent != null) {
-			wfContext.setProcessorSpecificState(processorContent.createProcessorSpecificState());
-		}
+		createProcessorContent();
 		if (processContent != null) {
 			wfContext.setProcessSpecificState(processContent.createProcessSpecificState());
 		}
 		task.setWorkflowContext(wfContext);
 
 		return task;
+	}
+
+	// FIXME brutal hack because of objectDelta should be in wfContext when evaluating auto completion expression
+	public void createProcessorContent() {
+		if (processorContent != null) {
+			wfContext.setProcessorSpecificState(null);			// ugly hack, see PrismForJaxbUtil:217
+			wfContext.setProcessorSpecificState(processorContent.createProcessorSpecificState());
+		}
 	}
 
 	public Map<String, Object> getAllProcessVariables() throws SchemaException {

@@ -775,6 +775,26 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         });
     }
 
+    @Test(enabled = true)
+    public void test061UserModifyAddRoleAutoSkip() throws Exception {
+        final String TEST_NAME = "test061UserModifyAddRoleAutoSkip";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        login(userAdministrator);
+        Task task = taskManager.createTaskInstance(TestUserChangeApprovalLegacy.class.getName() + "."+TEST_NAME);
+        task.setOwner(userAdministrator);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_R10_SKIP_OID, task, result);
+
+        // THEN
+        PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        assertAssignedRole(jack, ROLE_R10_OID, task, result);
+
+        result.computeStatusIfUnknown();
+        assertSuccess(result);
+    }
+
     @Test
     public void test062UserModifyAddRoleAutoApprovalFirstDecides() throws Exception {
         TestUtil.displayTestTile(this, "test062UserModifyAddRoleAutoApprovalFirstDecides");

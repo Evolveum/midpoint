@@ -229,7 +229,7 @@ public class WfContextUtil {
 		}
 	}
 
-	private static List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType approvalSchema) {
+	public static List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType approvalSchema) {
 		return !approvalSchema.getStage().isEmpty() ? approvalSchema.getStage() : approvalSchema.getLevel();
 	}
 

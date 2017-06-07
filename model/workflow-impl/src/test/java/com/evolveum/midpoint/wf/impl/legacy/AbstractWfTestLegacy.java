@@ -116,6 +116,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     public static final File USER_BILL_FILE = new File(TEST_RESOURCE_DIR, "user-bill.xml");
     public static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
     public static final String ROLE_R10_OID = "00000001-d34d-b33f-f00d-000000000010";
+    public static final String ROLE_R10_SKIP_OID = "00000001-d34d-b33f-f00d-000000000S10";
 
     public static final File ROLE_R11_FILE = new File(TEST_RESOURCE_DIR, "role11.xml");
     public static final String ROLE_R11_OID = "00000001-d34d-b33f-f00d-000000000011";

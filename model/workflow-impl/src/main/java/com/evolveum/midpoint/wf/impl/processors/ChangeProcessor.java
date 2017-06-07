@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,7 +80,8 @@ public interface ChangeProcessor {
      * Actually, the FOREGROUND return value is quite unusual, because the change processor cannot
      * know in advance whether other processors would not want to process the invocation from the model.
      */
-    HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
+    HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType, @NotNull Task taskFromModel, @NotNull OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
 
     /**
      * Handles an event from WfMS that indicates finishing of the workflow process instance.

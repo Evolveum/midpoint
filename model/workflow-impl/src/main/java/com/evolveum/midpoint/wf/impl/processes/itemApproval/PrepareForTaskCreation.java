@@ -84,7 +84,7 @@ public class PrepareForTaskCreation implements JavaDelegate {
 		} else {
         	additionalInformation = new AdditionalInformationGenerator().getDefaultAdditionalInformation(wfTask, stageDef.getNumber());
 		}
-		if (additionalInformation != null && !additionalInformation.isEmpty()) {
+		if (!additionalInformation.isEmpty()) {
 			execution.setVariableLocal(CommonProcessVariableNames.ADDITIONAL_INFORMATION,
 					new SingleItemSerializationSafeContainerImpl<>(
 							wrapAdditionalInformationIfNeeded(additionalInformation), prismContext));

@@ -129,9 +129,8 @@ public class CorrelationConfirmationEvaluator {
 		
 		if (users != null) {
 			LOGGER.debug(
-					"SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}",
-					new Object[] { currentShadow, users.size(),
-							PrettyPrinter.prettyPrint(users, 3) });
+					"SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", currentShadow, users.size(),
+					PrettyPrinter.prettyPrint(users, 3));
 			if (users.size() > 1) {
                     // remove duplicates
 				Set<PrismObject<F>> usersWithoutDups = new HashSet<>();
@@ -241,6 +240,8 @@ public class CorrelationConfirmationEvaluator {
 					+ "returning empty list of users.", resourceType);
 			return false;
 		}
+
+		// TODO evaluate condition here
 
 		ObjectQuery q;
 		try {

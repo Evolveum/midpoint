@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
+import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
@@ -70,32 +72,16 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
-    @Autowired
-    private PcpConfigurationHelper pcpConfigurationHelper;
-
-    @Autowired
-    private BaseConfigurationHelper baseConfigurationHelper;
-
-    @Autowired
-    private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-
-    @Autowired
-    private BaseAuditHelper baseAuditHelper;
-
-    @Autowired
-    private WfTaskUtil wfTaskUtil;
-
-    @Autowired
-    private WfTaskController wfTaskController;
-
-    @Autowired
-    private PcpRepoAccessHelper pcpRepoAccessHelper;
-
-    @Autowired
-    private ProcessInterfaceFinder processInterfaceFinder;
-
-    @Autowired
-    private MiscDataUtil miscDataUtil;
+    @Autowired private PcpConfigurationHelper pcpConfigurationHelper;
+	@Autowired private BaseConfigurationHelper baseConfigurationHelper;
+	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+	@Autowired private BaseAuditHelper baseAuditHelper;
+	@Autowired private WfTaskUtil wfTaskUtil;
+	@Autowired private WfTaskController wfTaskController;
+	@Autowired private PcpRepoAccessHelper pcpRepoAccessHelper;
+	@Autowired private ProcessInterfaceFinder processInterfaceFinder;
+	@Autowired private MiscDataUtil miscDataUtil;
+	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
 
     public static final String UNKNOWN_OID = "?";
 
@@ -119,7 +105,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
 			@NotNull Task taskFromModel, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         if (context.getState() != PRIMARY || context.getFocusContext() == null) {
             return null;
@@ -145,15 +131,28 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         List<PcpChildWfTaskCreationInstruction> childTaskInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
 
         // start the process(es)
-
+        removeEmptyProcesses(childTaskInstructions, ctx, result);
         if (childTaskInstructions.isEmpty()) {
-            LOGGER.trace("There are no workflow processes to be started, exiting.");
+            LOGGER.debug("There are no workflow processes to be started, exiting.");
             return null;
         }
 		return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, wfConfigurationType, result);
     }
 
-	private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(@NotNull ObjectTreeDeltas changesBeingDecomposed,
+    private void removeEmptyProcesses(List<PcpChildWfTaskCreationInstruction> instructions, ModelInvocationContext ctx,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		for (Iterator<PcpChildWfTaskCreationInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
+			PcpChildWfTaskCreationInstruction instruction = iterator.next();
+			instruction.createProcessorContent();		// brutal hack
+			if (instruction.startsWorkflowProcess() &&
+					instruction.getProcessContent().checkEmpty(instruction, evaluationHelper, ctx, result)) {
+				LOGGER.debug("Skipping empty processing instruction: {}", DebugUtil.debugDumpLazily(instruction));
+				iterator.remove();
+			}
+		}
+    }
+
+    private List<PcpChildWfTaskCreationInstruction> gatherStartInstructions(@NotNull ObjectTreeDeltas changesBeingDecomposed,
 			ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         PrimaryChangeProcessorConfigurationType processorConfigurationType =
@@ -166,17 +165,14 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
             List<PcpChildWfTaskCreationInstruction> instructions = aspect.prepareTasks(changesBeingDecomposed, ctx, result);
             logAspectResult(aspect, instructions, changesBeingDecomposed);
-            if (instructions != null) {
-                startProcessInstructions.addAll(instructions);
-            }
+            startProcessInstructions.addAll(instructions);
         }
         return startProcessInstructions;
     }
 
 	private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
-        Collection<PrimaryChangeAspect> rv = getAllChangeAspects().stream()
+        return getAllChangeAspects().stream()
 				.filter(aspect -> aspect.isEnabled(processorConfigurationType)).collect(Collectors.toList());
-		return rv;
     }
 
     private void logAspectResult(PrimaryChangeAspect aspect, List<? extends WfTaskCreationInstruction> instructions, ObjectTreeDeltas changesBeingDecomposed) {
