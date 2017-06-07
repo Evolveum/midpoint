@@ -1077,24 +1077,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertAssignmentPath(2);
 
 		// swap indices if internals of evaluator change and "Pirate" branch is executed first
-		getRunInfo("MetaroleCrewMember!", 1)
+		getRunInfo("MetaroleCrewMember!", 0)
 				.assertThisAssignment("->MetaroleCrewMember")
 				.assertImmediateAssignment("->Pirate")
 				.assertSource("Pirate")
 				.assertImmediateRole(null)
 				.assertAssignmentPath(2);
 
-		getRunInfo("MetaroleCrewMember!", 0)
+		getRunInfo("MetaroleCrewMember!", 1)
 				.assertThisAssignment("->MetaroleCrewMember")
 				.assertImmediateAssignment("->Sailor")
 				.assertSource("Sailor")
-				.assertImmediateRole("Pirate")
-				.assertAssignmentPath(3);
-
-		getRunInfo("MetarolePerson!", 1)
-				.assertThisAssignment("->MetarolePerson")
-				.assertImmediateAssignment("->MetaroleCrewMember")
-				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
@@ -1102,17 +1095,24 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertThisAssignment("->MetarolePerson")
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetarolePerson!", 1)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Sailor")
 				.assertAssignmentPath(4);
 
-		getRunInfo("Human!", 1)
+		getRunInfo("Human!", 0)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
 				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(4);
 
-		getRunInfo("Human!", 0)
+		getRunInfo("Human!", 1)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
@@ -1142,28 +1142,28 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("MetaroleCrewMember-MetarolePerson!", 1)
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 0)
 				.assertThisAssignment("->MetarolePerson")
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("MetaroleCrewMember-MetarolePerson!", 0)
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 1)
 				.assertThisAssignment("->MetarolePerson")
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Sailor")
 				.assertAssignmentPath(4);
 
-		getRunInfo("MetarolePerson-Human!", 1)
+		getRunInfo("MetarolePerson-Human!", 0)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
 				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(4);
 
-		getRunInfo("MetarolePerson-Human!", 0)
+		getRunInfo("MetarolePerson-Human!", 1)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
@@ -1184,25 +1184,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("C3", 1)
+		getRunInfo("C3", 0)
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertThisObject("Pirate")
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("C3", 0)
+		getRunInfo("C3", 1)
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertThisObject("Sailor")
 				.assertImmediateRole("Sailor")
-				.assertAssignmentPath(4);
-
-		getRunInfo("C4", 1)
-				.assertImmediateAssignment("->MetarolePerson")
-				.assertSource("MetarolePerson")
-				.assertThisObject("MetaroleCrewMember")			// TODO
-				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(4);
 
 		getRunInfo("C4", 0)
@@ -1210,16 +1203,23 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertSource("MetarolePerson")
 				.assertThisObject("MetaroleCrewMember")			// TODO
 				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("C4", 1)
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertThisObject("MetaroleCrewMember")			// TODO
+				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(5);
 
-		getRunInfo("C5", 1)
+		getRunInfo("C5", 0)
 				.assertImmediateAssignment("->Human")
 				.assertSource("Human")
 				.assertThisObject("Human")
 				.assertImmediateRole("MetarolePerson")
 				.assertAssignmentPath(5);
 
-		getRunInfo("C5", 0)
+		getRunInfo("C5", 1)
 				.assertImmediateAssignment("->Human")
 				.assertSource("Human")
 				.assertThisObject("Human")

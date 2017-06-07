@@ -876,23 +876,29 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 		TestUtil.assertSuccess(result);
 
 		assertNotNull(evaluatedAssignment);
-		display("Evaluated assignment",evaluatedAssignment.debugDump());
-		assertEquals(0, evaluatedAssignment.getConstructionTriple().size());
+		display("Evaluated assignment", evaluatedAssignment.debugDump());
+		assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-		assertNoConstruction(evaluatedAssignment, ZERO, "title");
+		for (Construction<UserType> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
+			assertEquals("Wrong validity for " + construction, false, construction.isValid());
+		}
+
+		assertConstruction(evaluatedAssignment, ZERO, "title", ZERO, "Engineer");
+		assertConstruction(evaluatedAssignment, ZERO, "title", PLUS);
+		assertConstruction(evaluatedAssignment, ZERO, "title", MINUS);
 		assertNoConstruction(evaluatedAssignment, PLUS, "title");
 		assertNoConstruction(evaluatedAssignment, MINUS, "title");
 
-		assertNoConstruction(evaluatedAssignment, ZERO, "location");
+		assertConstruction(evaluatedAssignment, ZERO, "location", ZERO, "Caribbean");
+		assertConstruction(evaluatedAssignment, ZERO, "location", PLUS);
+		assertConstruction(evaluatedAssignment, ZERO, "location", MINUS);
 		assertNoConstruction(evaluatedAssignment, PLUS, "location");
 		assertNoConstruction(evaluatedAssignment, MINUS, "location");
 
 		assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
 	}
 
-
-	
 	protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
 	        Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
 	        for (Construction construction : constructions) {

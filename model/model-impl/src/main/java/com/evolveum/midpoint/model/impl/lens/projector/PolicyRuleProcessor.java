@@ -623,6 +623,9 @@ public class PolicyRuleProcessor {
 			}
 			for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
 				for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) {
+					if (!target.getAssignmentPath().last().isMatchingOrder()) {
+						continue;
+					}
 					if (!repositoryService.selectorMatches(globalPolicyRule.getTargetSelector(),
 							target.getTarget(), LOGGER, "Global policy rule "+globalPolicyRule.getName()+" target selector: ")) {
 						continue;
@@ -631,9 +634,9 @@ public class PolicyRuleProcessor {
 						LOGGER.trace("Skipping global policy rule because the condition evaluated to false: {}", globalPolicyRule);
 						continue;
 					}
-					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule,
-							target.getAssignmentPath() != null ? target.getAssignmentPath().clone() : null);
-					if (target.getAssignmentPath() != null && target.getAssignmentPath().size() == 1) {
+					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone());
+					boolean direct = target.getAssignmentPath().getFirstOrderChain().size() == 1;
+					if (direct) {
 						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);
 					} else {
 						evaluatedAssignment.addOtherTargetPolicyRule(evaluatedRule);

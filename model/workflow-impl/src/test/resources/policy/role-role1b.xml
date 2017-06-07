@@ -20,6 +20,9 @@
 	<assignment> <!-- metarole 1 'default' -->
 		<targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
 	</assignment>
+	<activation>
+		<administrativeStatus>disabled</administrativeStatus>
+	</activation>
 	<inducement>
 		<targetRef oid="00000001-d34d-b33f-f00d-00000000010b" type="RoleType" />
 	</inducement>

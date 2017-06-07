@@ -66,6 +66,9 @@
     <role oid="00000001-d34d-b33f-f00d-000000000001">
         <name>Role1</name>
         <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
+        <activation>
+            <administrativeStatus>disabled</administrativeStatus>
+        </activation>
     </role>
 
     <role oid="00000001-d34d-b33f-f00d-000000000002" xsi:type="RoleType">
