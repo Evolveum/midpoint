@@ -252,6 +252,7 @@ public class AssignmentProcessor {
         if (needToReevaluateAssignments) {
         	LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
         	
+        	assignmentTripleEvaluator.reset();
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 

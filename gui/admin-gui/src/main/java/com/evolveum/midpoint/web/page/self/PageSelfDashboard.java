@@ -592,15 +592,20 @@ public class PageSelfDashboard extends PageSelf {
 		String name = WebComponentUtil.getDisplayNameOrName(value);
 		AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
 		String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
-		String description = "";
-		if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
-			description = (String) value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
-		}
-        description = (description != null && !description.equals("null") ? description + " " : "") + (value.getValue().asObjectable() instanceof ObjectType ?
-                    ((ObjectType) value.getValue().asObjectable()).getDescription() : "");
 
-		return new AssignmentItemDto(type, name, description, relation);
+		return new AssignmentItemDto(type, name, getAssignmentDescription(value), relation);
 	}
+
+	private String getAssignmentDescription(PrismObject value){
+        Object orgIdentifier = null;
+        if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
+            orgIdentifier = value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
+        }
+        String description = (orgIdentifier != null ? orgIdentifier + " " : "") +
+                (value.asObjectable() instanceof ObjectType && value.asObjectable().getDescription() != null ?
+                        value.asObjectable().getDescription() : "");
+        return description;
+    }
 
 	private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
         if (adminGuiConfig == null || adminGuiConfig.getUserDashboard() == null) {

@@ -96,7 +96,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
             try {
                 // here we brutally remove all the projection contexts -- because if we are continuing after rejection of a role/resource assignment
                 // that resulted in such projection contexts, we DO NOT want them to appear in the context any more
-                context.rot();
+                context.rot("assignment rejection");
                 Iterator<LensProjectionContext> projectionIterator = context.getProjectionContextsIterator();
                 while (projectionIterator.hasNext()) {
                     LensProjectionContext projectionContext = projectionIterator.next();

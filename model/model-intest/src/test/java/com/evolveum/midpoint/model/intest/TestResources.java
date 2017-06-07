@@ -133,7 +133,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		ResourceCarefulAntUtil.initAnts(ants, RESOURCE_DUMMY_FILE, prismContext);
 		descriptionAnt = ants.get(0);
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperation(true);
+		InternalMonitor.setTraceShadowFetchOperations(true);
 		InternalMonitor.setTraceResourceSchemaOperations(true);
 		InternalsConfig.encryptionChecks = false;
 		

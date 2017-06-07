@@ -7,7 +7,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -18,7 +17,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -56,7 +54,7 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     }
 
     @Override
-    protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
+    protected List<InlineMenuItem> newMemberInlineMenuItems() {
         List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
         newMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createApprover"),
                 false, new HeaderMenuAction(this) {
@@ -120,8 +118,8 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     }
 
     @Override
-    protected List<InlineMenuItem> createRemoveMemberInlineMenuItems() {
-        return super.createRemoveMemberInlineMenuItems();
+    protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
+        return super.createUnassignMemberInlineMenuItems();
     }
 
     @Override

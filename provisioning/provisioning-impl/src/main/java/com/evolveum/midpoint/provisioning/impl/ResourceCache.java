@@ -37,11 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class ResourceCache {
 
 	private Map<String,PrismObject<ResourceType>> cache;
-    @Autowired(required = true)
-	private PrismContext prismContext;
 
     ResourceCache() {
-        cache = new HashMap<String, PrismObject<ResourceType>>();
+        cache = new HashMap<>();
     }
 	
 	public synchronized void put(PrismObject<ResourceType> resource) throws SchemaException {
@@ -61,7 +59,6 @@ public class ResourceCache {
 		} else {
 			if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
 				// We already have equivalent resource, nothing to do
-				return;
 			} else {
 				cache.put(oid, resource.createImmutableClone());
 			}
@@ -97,9 +94,7 @@ public class ResourceCache {
 		}
 		
 		if (GetOperationOptions.isReadOnly(options)) {
-			if (!cachedResource.isImmutable()) {
-				throw new IllegalStateException("Cached resource is not immutable");
-			}
+			cachedResource.checkImmutability();
 			return cachedResource;
 		} else {
 			return cachedResource.clone();
@@ -109,7 +104,7 @@ public class ResourceCache {
 	/**
 	 * Returns currently cached version. FOR DIAGNOSTICS ONLY. 
 	 */
-	public String getVersion(String oid) {
+	public synchronized String getVersion(String oid) {
 		if (oid == null) {
 			return null;
 		}
@@ -120,7 +115,7 @@ public class ResourceCache {
 		return cachedResource.getVersion();
 	}
 
-	public void remove(String oid) {
+	public synchronized void remove(String oid) {
 		cache.remove(oid);
 	}
 

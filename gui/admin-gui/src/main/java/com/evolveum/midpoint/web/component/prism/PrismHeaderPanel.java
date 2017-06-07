@@ -80,9 +80,9 @@ public class PrismHeaderPanel extends BasePanel {
 			}
         };
 		showMetadataButton.add(new AttributeModifier("title",
-						getObjectWrapper(model).isShowMetadata() ?
+						getObjectWrapper(model) == null ? "" : (getObjectWrapper(model).isShowMetadata() ?
 				createStringResource("PrismObjectPanel.hideMetadata") :
-								createStringResource("PrismObjectPanel.showMetadata")));
+								createStringResource("PrismObjectPanel.showMetadata"))));
 		showMetadataButton.add(buttonsVisibleBehaviour);
 		add(showMetadataButton);
 

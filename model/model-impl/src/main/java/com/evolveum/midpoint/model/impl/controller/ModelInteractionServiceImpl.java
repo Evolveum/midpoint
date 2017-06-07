@@ -340,7 +340,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	public <O extends ObjectType,R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target) throws SchemaException, SecurityViolationException  {
-		return securityEnforcer.getAllowedRequestAssignmentItems(securityEnforcer.getPrincipal(), object, target, null);
+		return securityEnforcer.getAllowedRequestAssignmentItems(securityEnforcer.getPrincipal(), ModelAuthorizationAction.ASSIGN.getUrl(), object, target, null);
 	}
 
 	@Override

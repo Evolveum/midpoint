@@ -374,7 +374,7 @@ public class MappingEvaluator {
 						// This is all not right. See MID-3847
 						if (!hasFullTargetObject && params.getTargetLoader() != null) {
 							if (!params.getTargetLoader().isLoaded()) {
-								aPrioriTargetObject = params.getTargetLoader().load(task, result);
+								aPrioriTargetObject = params.getTargetLoader().load("weak mapping", task, result);
 								LOGGER.trace("Loaded object because of weak mapping: {}", aPrioriTargetObject);
 								hasFullTargetObject = true;
 							}

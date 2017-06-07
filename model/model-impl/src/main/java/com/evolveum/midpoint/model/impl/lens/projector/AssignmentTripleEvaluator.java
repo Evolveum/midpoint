@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -144,6 +145,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		this.result = result;
 	}
 
+	public void reset() {
+		assignmentEvaluator.reset();
+	}
+	
 	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 		
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -154,18 +159,12 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         assignmentDelta.expand(focusContext.getObjectCurrent());
 
         LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
-		
-		// This information is used for various reasons. We specifically distinguish between assignments in objectCurrent and objectOld
-		// to be able to reliably detect phantom adds: a phantom add is an assignment that is both in OLD and CURRENT objects. This is
-		// important in waves greater than 0, where objectCurrent is already updated with existing assignments. (See MID-2422.)
-		Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent = getAssignmentsFromObject(focusContext.getObjectCurrent());
-		Collection<PrismContainerValue<AssignmentType>> assignmentsOld = getAssignmentsFromObject(focusContext.getObjectOld());
-		
-		Collection<PrismContainerValue<AssignmentType>> changedAssignments = computeChangedAssignments(assignmentDelta, assignmentsCurrent);
-		
+        
+        SmartAssignmentCollection<F> assignmentCollection = new SmartAssignmentCollection<>();
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta);
+        		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Current assignments {}", SchemaDebugUtil.prettyPrint(assignmentsCurrent));
-			LOGGER.trace("Changed assignments {}", SchemaDebugUtil.prettyPrint(changedAssignments));
+			LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
 		}
 		
 		// Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
@@ -175,39 +174,32 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
         // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
         // sorted out later.
-        Collection<PrismContainerValue<AssignmentType>> allAssignments = mergeAssignments(assignmentsCurrent, changedAssignments);
         DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = new DeltaSetTriple<>();
-        for (PrismContainerValue<AssignmentType> assignmentCVal : allAssignments) {
-        	processAssignment(evaluatedAssignmentTriple, focusDelta, assignmentDelta,
-        			assignmentsCurrent, assignmentsOld, changedAssignments, 
-        			assignmentCVal);
+        for (SmartAssignmentElement assignmentElement : assignmentCollection) {
+        	processAssignment(evaluatedAssignmentTriple, focusDelta, assignmentDelta, assignmentElement);
         }
         
         return evaluatedAssignmentTriple;
 	}
 	
     private void processAssignment(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-    		ObjectDelta<F> focusDelta, ContainerDelta<AssignmentType> assignmentDelta,
-    		Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent,
-    		Collection<PrismContainerValue<AssignmentType>> assignmentsOld,
-    		Collection<PrismContainerValue<AssignmentType>> changedAssignments,
-    		PrismContainerValue<AssignmentType> assignmentCVal) 
+    		ObjectDelta<F> focusDelta, ContainerDelta<AssignmentType> assignmentDelta, SmartAssignmentElement assignmentElement)
     				throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
     	
     	LensFocusContext<F> focusContext = context.getFocusContext();
+    	PrismContainerValue<AssignmentType> assignmentCVal = assignmentElement.getAssignmentCVal();
         AssignmentType assignmentType = assignmentCVal.asContainerable();
         PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
         PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;
         ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
         assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 
-		boolean presentInCurrent = PrismContainerValue.containsRealValue(assignmentsCurrent, assignmentCVal);
-		boolean presentInOld = PrismContainerValue.containsRealValue(assignmentsOld, assignmentCVal);
-
-        boolean forceRecon = false;
+		boolean presentInCurrent = assignmentElement.isCurrent();
+		boolean presentInOld = assignmentElement.isOld();
         // This really means whether the WHOLE assignment was changed (e.g. added/delted/replaced). It tells nothing
         // about "micro-changes" inside assignment, these will be processed later.
-        boolean isAssignmentChanged = PrismContainerValue.containsRealValue(changedAssignments, assignmentCVal);
+        boolean isAssignmentChanged = assignmentElement.isChanged();
+        boolean forceRecon = false;
         String assignmentPlacementDesc;
         
         if (isAssignmentChanged) {
@@ -294,8 +286,12 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 					evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 					evaluatedAssignment.setPresentInOldObject(presentInOld);
                     collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
+        		} else if (assignmentElement.isOld()) {
+        			// This is OK, safe to skip. This is just an relic of earlier processing.
+        			return;
         		} else {
-        			throw new SystemException("Whoops. Unexpected things happen. Assignment is not old nor new (replace delta)");
+        			LOGGER.error("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta)\n{}", assignmentElement.debugDump(1));
+        			throw new SystemException("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta).");
         		}
         		
         	} else {
@@ -496,60 +492,6 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	result.recordFatalError(e);
         	throw e;
         }
-	}
-    
-    private Collection<PrismContainerValue<AssignmentType>> mergeAssignments(
-			Collection<PrismContainerValue<AssignmentType>> currentAssignments,
-			Collection<PrismContainerValue<AssignmentType>> changedAssignments) {
-		Collection<PrismContainerValue<AssignmentType>> all = new ArrayList<>(currentAssignments.size() + changedAssignments.size());
-		all.addAll(currentAssignments);
-		for (PrismContainerValue<AssignmentType> changedAssignment: changedAssignments) {
-			boolean skip = false;
-			for (PrismContainerValue<AssignmentType> currentAssignment: currentAssignments) {
-				if (currentAssignment.match(changedAssignment)) {
-					skip = true;
-					break;
-				}
-			}
-			if (!skip) {
-				all.add(changedAssignment);
-			}
-		}
-		return all;
-	}
-
-	private Collection<PrismContainerValue<AssignmentType>> computeChangedAssignments(
-			ContainerDelta<AssignmentType> assignmentDelta, 
-			Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent) {
-		Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
-        // Changes assignments may be "light", i.e. they may contain just the identifier. Make sure that we always have
-        // the full assignment data.
-        Iterator<PrismContainerValue<AssignmentType>> iterator = changedAssignments.iterator();
-        while (iterator.hasNext()) {
-        	PrismContainerValue<AssignmentType> changedAssignment = iterator.next();
-        	if (changedAssignment.getItems().isEmpty()) {
-        		if (changedAssignment.getId() != null) {
-        			for (PrismContainerValue<AssignmentType> assignmentCurrent: assignmentsCurrent) {
-        				if (changedAssignment.getId().equals(assignmentCurrent.getId())) {
-        					iterator.remove();
-        					changedAssignments.add(assignmentCurrent.clone());
-        				}
-        			}
-        		}
-        	}
-        }
-        return changedAssignments;
-	}
-	
-	private <F extends FocusType> Collection<PrismContainerValue<AssignmentType>> getAssignmentsFromObject(PrismObject<F> object) {
-		Collection<PrismContainerValue<AssignmentType>> assignments = new ArrayList<PrismContainerValue<AssignmentType>>();
-		if (object != null) {
-            PrismContainer<AssignmentType> assignmentContainer = object.findContainer(FocusType.F_ASSIGNMENT);
-            if (assignmentContainer != null) {
-                assignments.addAll(assignmentContainer.getValues());
-            }
-        }
-		return assignments;
 	}
 	
 	/**

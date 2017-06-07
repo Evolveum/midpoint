@@ -58,6 +58,19 @@
 	<role oid="b613c706-3889-11e6-b175-d78cc67d7066">
 		<name>Delegated Identity Administrator</name>
 		<description>Allows full identity administration for organizations where the user is a manager.</description>
+		<assignment>
+			<policyRule>
+	    		<name>identity administrator exclusion</name>
+	    		<policyConstraints>
+			    	<exclusion>
+				    	<targetRef oid="7750ef7a-4a04-11e7-af32-638f754f4ddf" type="RoleType"/> <!-- Auditor -->
+			    	</exclusion>
+			    </policyConstraints>
+			    <policyActions>
+			    	<enforcement/>
+			    </policyActions>
+	    	</policyRule>
+    	</assignment>
 		<authorization>
 	    	<name>gui-access</name>
 	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#usersAll</action>
@@ -270,6 +283,28 @@
 			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
 		</inducement>
 		<requestable>false</requestable>
+		<roleType>job</roleType>
+	</role>
+	
+	<role oid="7750ef7a-4a04-11e7-af32-638f754f4ddf">
+		<name>Auditor</name>
+		<inducement>
+			<targetRef oid="2e242b4c-07f5-11e7-9369-83a5c3b84cb2" type="RoleType" /> <!-- Employee -->
+		</inducement>
+		<assignment>
+	    	<policyRule>
+	    		<name>auditor exclusion</name>
+	    		<policyConstraints>
+			    	<exclusion>
+				    	<targetRef oid="b613c706-3889-11e6-b175-d78cc67d7066" type="RoleType"/> <!-- Delegated identity administrator -->
+			    	</exclusion>
+			    </policyConstraints>
+			    <policyActions>
+			    	<enforcement/>
+			    </policyActions>
+	    	</policyRule>
+	    </assignment>
+		<requestable>true</requestable>
 		<roleType>job</roleType>
 	</role>
 	

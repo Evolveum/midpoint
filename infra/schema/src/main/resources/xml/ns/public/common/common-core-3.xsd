@@ -8440,6 +8440,51 @@
                     		</xsd:documentation>
                     		 <xsd:appinfo>
                                 <a:displayName>AbstractRoleType.delegable</a:displayName>
+                                <a:since>3.5</a:since>
+                            </xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="idempotent" type="xsd:boolean" minOccurs="0" default="false">
+                    	<xsd:annotation>
+                    		<xsd:documentation>
+                    			<p>
+                    				<p>
+		                    			True value of this flag indicates, that the evaluation of this role gives the
+		                    			same results regardless of its position in the assignment/inducement
+		                    			hierarchy. I.e. evaluation of this roles does not depend on the assignment
+		                    			parameters of focus or any of the preceding roles. This flag is used
+		                    			to enable aggresive caching of role evaluation, so idempotent roles
+		                    			are only evaluated once regardless of their position in the hierarchy
+		                    			as we can assume that any subsequent eveluation will produce exactly
+		                    			the same results as the first evaluation. This is a very important
+		                    			feature that allows efficient evaluation of big role hierarchies.
+		                    		</p>  
+	                    			<p>
+	                    				Marking role as idempotent is likely to result in huge performance
+	                    				improvements in systems with large role hierarchies. But there are
+	                    				also risks of incorrect evaluation of the roles.
+	                    				If an role is idempotent then is is also assumed that any roles included
+	                    				in this role are also idempotent. Therefore please take care when
+	                    				constructing role hierarchies. This flag has false value by default.
+	                    			</p>
+	                    			<p>
+	                    				Rules of the thumb: 
+	                    				Roles that are frequently used, roles that are
+	                    				included in many other roles and roles that combine many other roles
+	                    				are should be idempotent. Typical example is a "basic" roles that is
+	                    				assigned to almost any user and that contains a lot of smaller roles.
+	                    				Roles that are parametric or very dynamic should NOT be idempotent.
+	                    				Note: it is perfectly OK for some dynamic roles to be marked as
+	                    				idempotent - even if the role contains complex expressions and conditions.
+	                    				If those conditions depend only on the environment or properties of the
+	                    				focus then their outcome does not depend on their posittion in
+	                    				assignment/inducement hierarchy and these roles can be made idempotent.   
+	                    			</p>
+                    			</p>
+                    		</xsd:documentation>
+                    		 <xsd:appinfo>
+                                <a:displayName>AbstractRoleType.idempotent</a:displayName>
+                                <a:since>3.6</a:since>
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
@@ -11419,6 +11464,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="advanced" type="tns:AdvancedLoggingConfigurationType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="debug" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to include 'debug=true' in generated logback configuration file.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

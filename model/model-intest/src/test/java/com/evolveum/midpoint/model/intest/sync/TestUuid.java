@@ -117,7 +117,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlUuid.setResource(resourceDummyUuid);	
 				
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperation(true);
+		InternalMonitor.setTraceShadowFetchOperations(true);
 		
 //		DebugUtil.setDetailedDebugDump(true);
 	}

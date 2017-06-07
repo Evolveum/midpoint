@@ -188,7 +188,9 @@ public abstract class PrismValue implements IPrismValue {
 		if (this.prismContext == null) {
 			this.prismContext = prismContext;
 		}
-		recompute(prismContext);
+		if (!immutable) {
+			recompute(prismContext);
+		}
 	}
 	
 	/**
@@ -327,7 +329,7 @@ public abstract class PrismValue implements IPrismValue {
 
 	@Override
 	public int hashCode() {
-		int result = 1;
+		int result = 0;
 		return result;
 	}
 	

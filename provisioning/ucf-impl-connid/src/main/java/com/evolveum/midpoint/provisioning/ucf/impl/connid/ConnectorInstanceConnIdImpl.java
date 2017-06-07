@@ -240,14 +240,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult)
+	public void configure(PrismContainerValue<?> configurationOriginal, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
-		result.addParam("configuration", configuration);
+		result.addParam("configuration", configurationOriginal);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configuration.debugDump(1));
+			LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDump(1));
 		}
 
 		try {
@@ -256,22 +256,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 			// Make sure that the proper configuration schema is applied. This
 			// will cause that all the "raw" elements are parsed
-			boolean immutable = configuration.isImmutable();
-			try {
-				if (immutable) {
-					configuration.setImmutable(false);
-				}
-				configuration.applyDefinition(getConfigurationContainerDefinition());
-			} finally {
-				if (immutable) {
-					configuration.setImmutable(true);
-				}
-			}
+			PrismContainerValue<?> configurationCloned = configurationOriginal.clone();
+			configurationCloned.applyDefinition(getConfigurationContainerDefinition());
 
 			ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, cinfo, protector);
 			// Transform XML configuration from the resource to the ICF connector configuration
 			try {
-				apiConfig = configTransformer.transformConnectorConfiguration(configuration);
+				apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned);
 			} catch (SchemaException e) {
 				result.recordFatalError(e.getMessage(), e);
 				throw e;
@@ -289,6 +280,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			connIdConnectorFacade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
 
 			result.recordSuccess();
+
+			PrismProperty<Boolean> legacySchemaConfigProperty = configurationCloned.findProperty(new QName(
+					SchemaConstants.NS_ICF_CONFIGURATION,
+					ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME));
+			if (legacySchemaConfigProperty != null) {
+				legacySchema = legacySchemaConfigProperty.getRealValue();
+			}
+			LOGGER.trace("Legacy schema (config): {}", legacySchema);
+
 		} catch (Throwable ex) {
 			Throwable midpointEx = processIcfException(ex, this, result);
 			result.computeStatus("Removing attribute values failed");
@@ -310,14 +310,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
-		
-		PrismProperty<Boolean> legacySchemaConfigProperty = configuration.findProperty(new QName(
-				SchemaConstants.NS_ICF_CONFIGURATION,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME));
-		if (legacySchemaConfigProperty != null) {
-			legacySchema = legacySchemaConfigProperty.getRealValue();
-		}
-		LOGGER.trace("Legacy schema (config): {}", legacySchema);
 	}
 
 	private PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
@@ -1532,6 +1524,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		
 		try {
 			ObjectClassComplexTypeDefinition structuralObjectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassDef.getTypeName());
+			if (structuralObjectClassDefinition == null) {
+				throw new SchemaException("No definition of structural object class "+objectClassDef.getTypeName()+" in "+description);
+			}
 			Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
 			if (auxiliaryObjectClassDelta != null) {
 				// Activation change means modification of attributes

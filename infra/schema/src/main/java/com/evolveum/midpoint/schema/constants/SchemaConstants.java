@@ -425,6 +425,8 @@ public abstract class SchemaConstants {
 	public static final QName S_SEQUENCE = new QName(NS_SCRIPTING, "sequence");
 	public static final QName S_ACTION = new QName(NS_SCRIPTING, "action");
 
+	public static final QName S_PIPELINE_DATA = new QName(NS_SCRIPTING, "pipelineData");
+
 	public static final QName C_EVENT = new QName(NS_C, "event");
 	public static final QName C_EVENT_HANDLER = new QName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
 	public static final QName C_TEXT_FORMATTER = new QName(NS_C, "textFormatter");

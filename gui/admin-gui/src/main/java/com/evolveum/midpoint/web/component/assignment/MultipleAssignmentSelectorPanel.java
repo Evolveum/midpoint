@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -106,15 +107,19 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         final MultipleAssignmentSelector availableAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_AVAILABLE_ASSIGNMENTS,
                 availableAssignmentModel, targetFocusClass, type, focus, getFilterModel(true), page);
         final MultipleAssignmentSelector currentAssignmentsPanel = new MultipleAssignmentSelector<F, H>(ID_CURRENT_ASSIGNMENTS,
-                assignmentsModel, targetFocusClass, type, null, getFilterModel(true), page){
+                assignmentsModel, targetFocusClass, type, null, getFilterModel(true), page) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
-        protected List<AssignmentEditorDto> getListProviderDataList(){
-                return assignmentsModel.getObject();
-            }
-        };
+	        protected List<AssignmentEditorDto> getListProviderDataList(){
+	                return assignmentsModel.getObject();
+	            }
+	        };
         currentAssignmentsPanel.setFilterButtonVisibility(false);
 
         AjaxButton add = new AjaxButton(ID_BUTTON_ADD) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form form) {
                 addToAssignmentsModel(target, availableAssignmentsPanel, currentAssignmentsPanel);
@@ -122,19 +127,25 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
         };
 
         AjaxButton remove = new AjaxButton(ID_BUTTON_REMOVE) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form form) {
                 deleteFromAssignmentsModel(target, currentAssignmentsPanel, availableAssignmentsPanel);
             }
         };
         remove.add(new VisibleEnableBehaviour() {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isEnabled() {
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL);
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI);
             }
         });
 
         AjaxLink<String> buttonReset = new AjaxLink<String>(ID_BUTTON_RESET) {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClick(AjaxRequestTarget target) {
                 reset(currentAssignmentsPanel);
@@ -241,6 +252,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
     private  IModel<ObjectFilter> getFilterModel(final boolean isRequestableFilter){
         return new IModel<ObjectFilter>() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public ObjectFilter getObject() {
                 ObjectFilter archivedRolesFilter = QueryBuilder.queryFor(RoleType.class, getPageBase().getPrismContext())
@@ -298,7 +311,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private GenericMultiValueLabelEditPanel createTenantContainer(){
         final GenericMultiValueLabelEditPanel tenantEditor = new GenericMultiValueLabelEditPanel<OrgType>(ID_TENANT_EDITOR,
                 createTenantModel(),
-                createStringResource("MultipleAssignmentSelector.tenant"), LABEL_SIZE, INPUT_SIZE, false){
+                createStringResource("MultipleAssignmentSelector.tenant"), LABEL_SIZE, INPUT_SIZE, false) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected boolean getLabelVisibility(){
@@ -309,6 +323,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
             protected IModel<String> createTextModel(final IModel<OrgType> model) {
 
                 return new IModel<String>() {
+                	private static final long serialVersionUID = 1L;
+                	
                     @Override
                     public String getObject() {
                         return WebComponentUtil.getName(model.getObject().asPrismObject());
@@ -343,6 +359,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
                 ObjectBrowserPanel<OrgType> tenantPanel = new ObjectBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
                         OrgType.class, supportedTypes, false, getPageBase(), filter) {
+                	private static final long serialVersionUID = 1L;
+                	
                     @Override
                     protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {
                         super.onSelectPerformed(target, org);
@@ -380,7 +398,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
     private GenericMultiValueLabelEditPanel createOrgContainer(){
         final GenericMultiValueLabelEditPanel orgUnitEditor = new GenericMultiValueLabelEditPanel<OrgType>(ID_ORG_EDITOR,
                 createOrgUnitModel(),
-                createStringResource("MultipleAssignmentSelector.orgUnit"), LABEL_SIZE, INPUT_SIZE, false){
+                createStringResource("MultipleAssignmentSelector.orgUnit"), LABEL_SIZE, INPUT_SIZE, false) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected boolean getLabelVisibility(){
@@ -420,6 +439,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
                         .findObjectDefinitionByCompileTimeClass(OrgType.class).getTypeName());
                 ObjectBrowserPanel<OrgType> orgPanel = new ObjectBrowserPanel<OrgType>(getPageBase().getMainPopupBodyId(),
                         OrgType.class, supportedTypes, false, getPageBase()) {
+                	private static final long serialVersionUID = 1L;
+                	
                     @Override
                     protected void onSelectPerformed(AjaxRequestTarget target, OrgType org) {
                         super.onSelectPerformed(target, org);
@@ -491,6 +512,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
     private IModel<List<OrgType>> createTenantModel(){
         return new IModel<List<OrgType>>() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public List<OrgType> getObject() {
                 return tenantEditorObject;
@@ -511,6 +534,8 @@ public class MultipleAssignmentSelectorPanel<F extends FocusType, H extends Focu
 
     private IModel<List<OrgType>> createOrgUnitModel(){
         return new IModel<List<OrgType>>() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public List<OrgType> getObject() {
                 return orgEditorObject;

@@ -217,9 +217,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 
 	@Override
 	public <O extends ObjectType, R extends AbstractRoleType> ItemSecurityDecisions getAllowedRequestAssignmentItems(
-			MidPointPrincipal midPointPrincipal, PrismObject<O> object, PrismObject<R> target,
+			MidPointPrincipal midPointPrincipal, String actionUri, PrismObject<O> object, PrismObject<R> target,
 			OwnerResolver ownerResolver) throws SchemaException {
-		return securityEnforcer.getAllowedRequestAssignmentItems(midPointPrincipal, object, target, ownerResolver);
+		return securityEnforcer.getAllowedRequestAssignmentItems(midPointPrincipal, actionUri, object, target, ownerResolver);
 	}
 
 	@Override

@@ -153,7 +153,7 @@ public class ContextFactory {
 		}
 
 		// This forces context reload before the next projection
-		context.rot();
+		context.rot("context initialization");
 		
 		if (InternalsConfig.consistencyChecks) context.checkConsistence();
 		

@@ -26,7 +26,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -48,17 +47,12 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -105,7 +99,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
 	protected static final String SEARCH_SCOPE_ONE = "one";
 
-	protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.OBJECT;
+	protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.USER;
 
 	protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList(SEARCH_SCOPE_SUBTREE,
 			SEARCH_SCOPE_ONE);
@@ -160,7 +154,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		form.add(objectType);
 
 		DropDownChoice<String> seachScrope = new DropDownChoice<String>(ID_SEARCH_SCOPE,
-				Model.of(SEARCH_SCOPE_ONE), SEARCH_SCOPE_VALUES,
+				Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
 				new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
 		seachScrope.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
@@ -220,7 +214,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				public boolean isVisible(){
 					boolean isVisible = false;
 					try {
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_READ_ACTION_URL,
+						// TODO: the modify authorization here is probably wrong.
+						// It is a model autz. UI autz should be here instead?
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(),
 								AuthorizationPhaseType.REQUEST, managerWrapper.getObject(), null, null, null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #read operation on object " +
@@ -267,7 +263,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				public boolean isVisible(){
 					boolean isVisible = false;
 					try {
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_UNASSIGN_ACTION_URL, null,
+						// TODO: the modify authorization here is probably wrong.
+						// It is a model autz. UI autz should be here instead?
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl(), null,
 								managerWrapper.getObject(), null, getModelObject().asPrismObject(), null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #unassign operation on object " +
@@ -296,7 +294,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				public boolean isVisible(){
 					boolean isVisible = false;
 					try {
-						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_DELETE_ACTION_URL, null,
+						// TODO: the modify authorization here is probably wrong.
+						// It is a model autz. UI autz should be here instead?
+						isVisible = getPageBase().getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.DELETE.getUrl(), null,
 								managerWrapper.getObject(), null, null, null);
 					} catch (Exception ex) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #delete operation on object " +
@@ -382,28 +382,51 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	
 	@Override
 	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = super.createMembersHeaderInlineMenu();
-		
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteMember"),
-				false, new HeaderMenuAction(this) {
+		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
+		headerMenuItems.addAll(newMemberInlineMenuItems());
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteMemberPerformed(QueryScope.SELECTED, null, target, "TreeTablePanel.menu.deleteMember.confirm");
-					}
-				}));
-		
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteAllMembers"),
-				false, new HeaderMenuAction(this) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_UNASSIGN_MEMBER_ACTION_URI)) {
+			headerMenuItems.addAll(super.createUnassignMemberInlineMenuItems());
+		}
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_RECOMPUTE_MEMBER_ACTION_URI)) {
+			headerMenuItems.addAll(super.createMemberRecomputeInlineMenuItems());
+		}
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_DELETE_MEMBER_ACTION_URI)) {
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteMember"),
+					false, new HeaderMenuAction(this) {
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteMemberPerformed(QueryScope.ALL, null, target, "TreeTablePanel.menu.deleteAllMembers.confirm");
-					}
-				}));
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					deleteMemberPerformed(QueryScope.SELECTED, null, target, "TreeTablePanel.menu.deleteMember.confirm");
+				}
+			}));
+
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteAllMembers"),
+					false, new HeaderMenuAction(this) {
+
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					deleteMemberPerformed(QueryScope.ALL, null, target, "TreeTablePanel.menu.deleteAllMembers.confirm");
+				}
+			}));
+		}
 		return headerMenuItems;
 	}
-	
+
+	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ADD_MEMBER_ACTION_URI)) {
+			return super.createNewMemberInlineMenuItems();
+		}
+		return new ArrayList<>();
+	}
+
+	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ASSIGN_MEMBER_ACTION_URI)) {
+			return super.assignNewMemberInlineMenuItems();
+		}
+		return new ArrayList<>();
+	}
+
 	private void deleteMemberPerformed(final QueryScope scope, final QName relation, final AjaxRequestTarget target, String confirmMessageKey) {
 		ConfirmationPanel confirmDelete = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource(confirmMessageKey)) {
 			@Override
@@ -429,60 +452,67 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
-				false, new HeaderMenuAction(this) {
-					private static final long serialVersionUID = 1L;
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ADD_MEMBER_ACTION_URI)) {
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
+					false, new HeaderMenuAction(this) {
+				private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						OrgMemberPanel.this.createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem());
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					OrgMemberPanel.this.createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
+				}
+			}));
+		}
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
-				new HeaderMenuAction(this) {
-					private static final long serialVersionUID = 1L;
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_ASSIGN_MEMBER_ACTION_URI)) {
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
+					new HeaderMenuAction(this) {
+						private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						OrgMemberPanel.this.addMembers(SchemaConstants.ORG_MANAGER, target);
-					}
-				}));
-		headerMenuItems.add(new InlineMenuItem());
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							OrgMemberPanel.this.addMembers(SchemaConstants.ORG_MANAGER, target);
+						}
+					}));
+		}
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
-				false, new HeaderMenuAction(this) {
-					private static final long serialVersionUID = 1L;
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_UNASSIGN_MEMBER_ACTION_URI)) {
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
+					false, new HeaderMenuAction(this) {
+				private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						removeManagersPerformed(QueryScope.ALL, target);
-					}
-				}));
+				@Override
+				public void onClick(AjaxRequestTarget target) {
+					removeManagersPerformed(QueryScope.ALL, target);
+				}
+			}));
+		}
 
-		headerMenuItems
-				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
-						false, new HeaderMenuAction(this) {
-							private static final long serialVersionUID = 1L;
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_RECOMPUTE_MEMBER_ACTION_URI)) {
+			headerMenuItems
+					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
+							false, new HeaderMenuAction(this) {
+						private static final long serialVersionUID = 1L;
 
-							@Override
-							public void onClick(AjaxRequestTarget target) {
-								recomputeManagersPerformed(QueryScope.ALL, target);
-							}
-						}));
-		
-		headerMenuItems
-		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteManagersAll"),
-				false, new HeaderMenuAction(this) {
-					private static final long serialVersionUID = 1L;
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							recomputeManagersPerformed(QueryScope.ALL, target);
+						}
+					}));
+		}
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						OrgMemberPanel.this.deleteMemberPerformed(QueryScope.ALL, SchemaConstants.ORG_MANAGER, target, "TreeTablePanel.menu.deleteManagersAll.confirm");
-					}
-				}));
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_DELETE_MEMBER_ACTION_URI)) {
+			headerMenuItems
+					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteManagersAll"),
+							false, new HeaderMenuAction(this) {
+						private static final long serialVersionUID = 1L;
 
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							OrgMemberPanel.this.deleteMemberPerformed(QueryScope.ALL, SchemaConstants.ORG_MANAGER, target, "TreeTablePanel.menu.deleteManagersAll.confirm");
+						}
+					}));
+		}
 		return headerMenuItems;
 	}
 

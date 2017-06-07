@@ -526,6 +526,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="pipelineData" type="tns:PipelineDataType"/>
 
     <xsd:complexType name="PipelineItemType">
         <xsd:sequence>

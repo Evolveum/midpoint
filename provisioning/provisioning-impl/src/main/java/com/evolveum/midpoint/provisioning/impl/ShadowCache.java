@@ -20,7 +20,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -78,7 +77,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -397,7 +395,7 @@ public abstract class ShadowCache {
 		PrismObject<ShadowType> resultShadow = shadow;
 		ShadowType resultShadowType = resultShadow.asObjectable();
 		List<PendingOperationType> sortedOperations = sortOperations(resultShadowType.getPendingOperation());
-		boolean resourceReadIsCachingOnly = resourceReadIsCahingOnly(resource);
+		boolean resourceReadIsCachingOnly = resourceReadIsCachingOnly(resource);
 		for (PendingOperationType pendingOperation: sortedOperations) {
 			OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
 			if (resultStatus == OperationResultStatusType.FATAL_ERROR || resultStatus == OperationResultStatusType.NOT_APPLICABLE) {
@@ -416,7 +414,7 @@ public abstract class ShadowCache {
 			ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
 			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
 			if (pendingDelta.isAdd()) {
-				if (resultShadowType.isExists() == Boolean.FALSE) {
+				if (Boolean.FALSE.equals(resultShadowType.isExists())) {
 					resultShadow = pendingDelta.getObjectToAdd().clone();
 					resultShadow.setOid(shadow.getOid());
 					resultShadowType = resultShadow.asObjectable();
@@ -443,13 +441,12 @@ public abstract class ShadowCache {
 		return resultShadow;
 	}
 
-	private boolean resourceReadIsCahingOnly(ResourceType resource) {
+	private boolean resourceReadIsCachingOnly(ResourceType resource) {
 		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
-		Boolean cachingOnly = readCapabilityType.isCachingOnly();
-		if (cachingOnly == Boolean.TRUE) {
-			return true;
+		if (readCapabilityType == null) {
+			return false;		// TODO reconsider this
 		}
-		return false;
+		return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
 	}
 
 	private boolean canReturnCachedAfterNotFoundOnResource(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
@@ -464,15 +461,11 @@ public abstract class ShadowCache {
 		if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
 			return false;
 		}
-		Boolean cachingOnly = readCapabilityType.isCachingOnly();
-		if (cachingOnly == Boolean.TRUE) {
-			return true;
-		}
-		return false;
+		return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
 	}
 	
 	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
-		if (resourceReadIsCahingOnly(resource)) {
+		if (resourceReadIsCachingOnly(resource)) {
 			return true;
 		}
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));

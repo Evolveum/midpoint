@@ -465,6 +465,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return taskService;
 	}
 
+	@Override
 	public SecurityEnforcer getSecurityEnforcer() {
 		return securityEnforcer;
 	}
@@ -1614,7 +1615,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 				object = new ServiceType(getPrismContext());
 			}
 
-			return getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_UI_ADD_ACTION_URL,
+			// TODO: the modify authorization here is probably wrong.
+			// It is a model autz. UI autz should be here instead?
+			return getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
 					AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
 					null, null, null);
 		} catch (SchemaException ex) {

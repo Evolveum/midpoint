@@ -652,12 +652,7 @@ public class ModelRestService {
 	}
 
 	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) {
-		for (ItemPath path : ItemPath.fromStringList(exclude)) {
-			Item item = object.findItem(path);		// reduce to "removeItem" after fixing that method implementation
-			if (item != null) {
-				object.removeItem(item.getPath(), Item.class);
-			}
-		}
+		object.getValue().removePaths(ItemPath.fromStringList(exclude));
 	}
 
 	@POST

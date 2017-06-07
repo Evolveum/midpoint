@@ -293,7 +293,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
 		
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperation(true);
+		InternalMonitor.setTraceShadowFetchOperations(true);
 		
 //		DebugUtil.setDetailedDebugDump(true);
 	}

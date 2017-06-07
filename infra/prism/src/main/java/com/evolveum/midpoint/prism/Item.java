@@ -802,10 +802,19 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 
     @Override
 	public int hashCode() {
+		int valuesHash = 0;
+		if (values != null) {
+			valuesHash = MiscUtil.unorderedCollectionHashcode(values, null);
+		}
+		if (valuesHash == 0) {
+			// empty or non-significant container. We do not want this to destroy hashcode of
+			// parent item
+			return 0;
+		}
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((elementName == null) ? 0 : elementName.hashCode());
-		result = prime * result + ((values == null) ? 0 : MiscUtil.unorderedCollectionHashcode(values));
+		result = prime * result + valuesHash;
 		return result;
 	}
 
@@ -917,6 +926,19 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 			return false;
 		return true;
 	}
+	
+	/**
+	 * Returns true if this item is metadata item that should be ignored
+	 * for metadata-insensitive comparisons and hashCode functions.
+	 */
+	public boolean isMetadata() {
+		D def = getDefinition();
+		if (def != null) {
+			return def.isOperational(); 
+		} else {
+			return false;
+		}
+	}
 
 	@Override
     public String toString() {
@@ -960,6 +982,31 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	protected void checkMutability() {
 		if (immutable) {
 			throw new IllegalStateException("An attempt to modify an immutable item: " + toString());
+		}
+	}
+
+	public void checkImmutability() {
+    	synchronized (this) {		// because of modifyUnfrozen
+			if (!immutable) {
+				throw new IllegalStateException("Item is not immutable even if it should be: " + this);
+			}
+		}
+	}
+
+	// should be always called on non-overlapping objects! (for the synchronization to work correctly)
+	public void modifyUnfrozen(Runnable mutator) {
+		synchronized (this) {
+			boolean wasImmutable = immutable;
+			if (wasImmutable) {
+				setImmutable(false);
+			}
+			try {
+				mutator.run();
+			} finally {
+				if (wasImmutable) {
+					setImmutable(true);
+				}
+			}
 		}
 	}
 }

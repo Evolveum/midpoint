@@ -31,6 +31,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -51,6 +53,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private static final long serialVersionUID = -778283437426659540L;
 	private static final String DOT_CLASS = LensContext.class.getName() + ".";
+	
+	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
 
 	private ModelState state = ModelState.INITIAL;
 
@@ -381,7 +385,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	/**
 	 * Makes the context and all sub-context non-fresh.
 	 */
-	public void rot() {
+	public void rot(String reason) {
+		LOGGER.debug("Rotting context because of {}", reason);
 		setFresh(false);
 		if (focusContext != null) {
 			focusContext.setFresh(false);
@@ -391,30 +396,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			projectionContext.setFullShadow(false);
 		}
 	}
-
-	// /**
-	// * Make the context as clean as new. Except for the executed deltas and
-	// other "traces" of
-	// * what was already done and cannot be undone. Also the configuration
-	// items that were loaded may remain.
-	// * This is used to restart the context computation but keep the trace of
-	// what was already done.
-	// */
-	// public void reset() {
-	// state = ModelState.INITIAL;
-	// evaluatedAssignmentTriple = null;
-	// projectionWave = 0;
-	// executionWave = 0;
-	// isFresh = false;
-	// if (focusContext != null) {
-	// focusContext.reset();
-	// }
-	// if (projectionContexts != null) {
-	// for (LensProjectionContext projectionContext: projectionContexts) {
-	// projectionContext.reset();
-	// }
-	// }
-	// }
 
 	public String getChannel() {
 		return channel;

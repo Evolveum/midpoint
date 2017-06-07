@@ -102,7 +102,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(ROLE_FOOL_FILE, initResult);
         
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperation(false);
+		InternalMonitor.setTraceShadowFetchOperations(false);
 		InternalMonitor.setTraceResourceSchemaOperations(false);
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -63,6 +65,8 @@ import static org.testng.AssertJUnit.assertTrue;
 public class TestDiffEquals {
 
     private static final String NS_TEST_RI = "http://midpoint.evolveum.com/xml/ns/test/ri-1";
+    
+    private static final Trace LOGGER = TraceManager.getTrace(TestDiffEquals.class);
 
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -264,6 +268,68 @@ public class TestDiffEquals {
 
         ObjectDelta delta2 = userWithContext.asPrismObject().createDelta(ChangeType.DELETE);
         assertNotNull(delta2.getPrismContext());
+    }
+    
+    @Test
+    public void testAssignmentHashcode() throws Exception {
+    	LOGGER.info("\n\n===[ testAssignmentHashcode ]===\n");
+    	System.out.println("\n\n===[ testAssignmentHashcode ]===\n");
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    	
+        AssignmentType a1a = new AssignmentType();
+        prismContext.adopt(a1a);
+        a1a.setDescription("descr1");
+
+        AssignmentType a2 = new AssignmentType();
+        prismContext.adopt(a2);
+        a2.setDescription("descr2");
+
+        AssignmentType a1b = new AssignmentType();
+        prismContext.adopt(a1b);
+        a1b.setDescription("descr1");
+        
+        AssignmentType a1m = new AssignmentType();
+        prismContext.adopt(a1m);
+        a1m.setDescription("descr1");
+        MetadataType metadata1m = new MetadataType();
+        metadata1m.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+		a1m.setMetadata(metadata1m);
+		
+		AssignmentType a1e = new AssignmentType();
+        prismContext.adopt(a1e);
+        a1e.setDescription("descr1");
+        ActivationType activation1e = new ActivationType();
+        activation1e.setEffectiveStatus(ActivationStatusType.ENABLED);
+        a1e.setActivation(activation1e);
+        
+        // WHEN
+        assertFalse(a1a.hashCode() == a2.hashCode());        
+        assertFalse(a1b.hashCode() == a2.hashCode());
+        assertFalse(a1m.hashCode() == a2.hashCode());
+        assertFalse(a1e.hashCode() == a2.hashCode());
+        assertFalse(a2.hashCode() == a1a.hashCode());
+        assertFalse(a2.hashCode() == a1b.hashCode());
+        assertFalse(a2.hashCode() == a1m.hashCode());
+        assertFalse(a2.hashCode() == a1e.hashCode());
+        
+        assertTrue(a1a.hashCode() == a1a.hashCode());
+        assertTrue(a1b.hashCode() == a1b.hashCode());
+        assertTrue(a1m.hashCode() == a1m.hashCode());
+        assertTrue(a1e.hashCode() == a1e.hashCode());
+        assertTrue(a2.hashCode() == a2.hashCode());
+        
+        assertTrue(a1a.hashCode() == a1b.hashCode());
+        assertTrue(a1b.hashCode() == a1a.hashCode());
+        assertTrue(a1a.hashCode() == a1m.hashCode());
+        assertTrue(a1b.hashCode() == a1m.hashCode());
+        assertTrue(a1m.hashCode() == a1a.hashCode());
+        assertTrue(a1m.hashCode() == a1b.hashCode());
+        assertTrue(a1m.hashCode() == a1e.hashCode());
+        assertTrue(a1a.hashCode() == a1e.hashCode());
+        assertTrue(a1b.hashCode() == a1e.hashCode());
+        assertTrue(a1e.hashCode() == a1a.hashCode());
+        assertTrue(a1e.hashCode() == a1b.hashCode());
+        assertTrue(a1e.hashCode() == a1m.hashCode());
     }
 
     @Test
