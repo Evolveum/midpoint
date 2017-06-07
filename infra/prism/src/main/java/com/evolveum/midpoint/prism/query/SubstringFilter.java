@@ -89,20 +89,22 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 		
 		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, item);
 		
-		for (Object val : item.getValues()){
-			if (val instanceof PrismPropertyValue){
+		for (Object val : item.getValues()) {
+			if (val instanceof PrismPropertyValue) {
 				Object value = ((PrismPropertyValue) val).getValue();
-				Iterator<String> iterator = (Iterator<String>) toRealValues().iterator();
-				while(iterator.hasNext()){
+				for (Object o : toRealValues()) {
+					if (o == null) {
+						continue;			// shouldn't occur
+					}
 					StringBuilder sb = new StringBuilder();
 					if (!anchorStart) {
 						sb.append(".*");
 					}
-					sb.append(Pattern.quote(iterator.next()));
+					sb.append(Pattern.quote(o.toString()));
 					if (!anchorEnd) {
 						sb.append(".*");
 					}
-					if (matching.matchRegex(value, sb.toString())){
+					if (matching.matchRegex(value, sb.toString())) {
 						return true;
 					}
 				}

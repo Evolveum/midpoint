@@ -182,6 +182,7 @@ public class SchemaTransformer {
 	public <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
 			AuthorizationPhaseType phase, Task task, OperationResult parentResult) 
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+		LOGGER.trace("applySchemasAndSecurity starting");
     	OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
     	validateObject(object, rootOptions, result);
     	
@@ -220,6 +221,7 @@ public class SchemaTransformer {
 		
 		result.computeStatus();
 		result.recordSuccessIfUnknown();
+		LOGGER.trace("applySchemasAndSecurity finishing");			// to allow folding in log viewer
     }
 	
 	private <O extends ObjectType> void applySchemasAndSecurityPhase(PrismObject<O> object, ObjectSecurityConstraints securityConstraints, PrismObjectDefinition<O> objectDefinition, 

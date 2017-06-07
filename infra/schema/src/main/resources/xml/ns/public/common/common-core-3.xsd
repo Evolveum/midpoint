@@ -1620,6 +1620,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                     <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Policy rule for the task. E.g notify user 5 days before their account expires.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -11457,6 +11464,16 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="advanced" type="tns:AdvancedLoggingConfigurationType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="debug" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to include 'debug=true' in generated logback configuration file.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -12068,6 +12085,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="timeValidity">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TIME_VALIDITY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

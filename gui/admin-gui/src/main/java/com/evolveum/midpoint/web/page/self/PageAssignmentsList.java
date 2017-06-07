@@ -382,8 +382,12 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
             handleAssignmentDeltas(delta, getSessionStorage().getRoleCatalog().getAssignmentShoppingCart(), def);
 
-            modelContext = getModelInteractionService()
-                    .previewChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+            PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
+            partialProcessing.setInbound(PartialProcessingTypeType.SKIP);
+            partialProcessing.setProjection(PartialProcessingTypeType.SKIP);
+			ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
+			modelContext = getModelInteractionService()
+                    .previewChanges(WebComponentUtil.createDeltaCollection(delta), recomputeOptions, task, result);
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple

@@ -73,6 +73,8 @@ public class LoggingDto implements Serializable {
 	private String auditAppender;
 
 	private boolean advanced;
+
+	private Boolean debug;
 	
 
 	public LoggingDto() {
@@ -116,20 +118,9 @@ public class LoggingDto implements Serializable {
 			}
 		}
 
-		Collections.sort(loggers, new Comparator<LoggerConfiguration>() {
-
-			@Override
-			public int compare(LoggerConfiguration l1, LoggerConfiguration l2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName());
-			}
-		});
-		Collections.sort(filters, new Comparator<FilterConfiguration>() {
-
-			@Override
-			public int compare(FilterConfiguration f1, FilterConfiguration f2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
-			}
-		});
+		loggers.sort((l1, l2) -> String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName()));
+		filters.sort((f1, f2) -> String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName()));
+		debug = config.isDebug();
 	}
 
 	public LoggingConfigurationType getNewObject() {
@@ -185,7 +176,7 @@ public class LoggingDto implements Serializable {
 		for (AppenderConfiguration appender : getAppenders()) {
 			appender.setEditing(false);
 		}
-
+		configuration.setDebug(debug);
 		return configuration;
 	}
 

@@ -137,6 +137,11 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Sets task description, immediately storing it into the repo.
      */
     void setDescriptionImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    
+    /**
+     * Gets the policy rule defined for the task
+     */
+    PolicyRuleType getPolicyRule();
 
     // =================================================================== Execution status
 

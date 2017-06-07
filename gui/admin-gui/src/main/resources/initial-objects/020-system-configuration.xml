@@ -43,6 +43,13 @@
             <level>OFF</level>
             <package>org.hibernate.engine.jdbc.batch.internal.BatchingBatch</package>
         </classLogger>
+        <!-- Disabled because of the same reason; this time concerning messages like
+             "INFO (org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl):
+             HHH000010: On release of batch it still contained JDBC statements" -->
+        <classLogger>
+            <level>WARN</level>
+            <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
+        </classLogger>
         <classLogger>
             <!-- disabled because of MID-1612, jasper library needs to be fixed -->
             <level>OFF</level>

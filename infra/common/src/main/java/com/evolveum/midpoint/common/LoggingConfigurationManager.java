@@ -113,11 +113,7 @@ public class LoggingConfigurationManager {
 		try {
 			configurator.doConfigure(cis);
 			LOGGER.info("New logging configuration applied");
-		} catch (JoranException e) {
-			System.out.println("Error during applying logging configuration: " + e.getMessage());
-			LOGGER.error("Error during applying logging configuration: " + e.getMessage(), e);
-			result.createSubresult("Applying logging configuration.").recordFatalError(e.getMessage(), e);
-		} catch (NumberFormatException e) {
+		} catch (JoranException | NumberFormatException e) {
 			System.out.println("Error during applying logging configuration: " + e.getMessage());
 			LOGGER.error("Error during applying logging configuration: " + e.getMessage(), e);
 			result.createSubresult("Applying logging configuration.").recordFatalError(e.getMessage(), e);
@@ -153,8 +149,6 @@ public class LoggingConfigurationManager {
 		// Initialize JUL bridge
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
-
-		return;
 	}
 
 	private static String prepareConfiguration(LoggingConfigurationType config) throws SchemaException {
@@ -165,7 +159,8 @@ public class LoggingConfigurationManager {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		sb.append("<configuration scan=\"false\" debug=\"true\">\n");
+		boolean debug = Boolean.TRUE.equals(config.isDebug());
+		sb.append("<configuration scan=\"false\" debug=\"").append(debug).append("\">\n");
 
 		//find and configure ALL logger and bring it to top of turbo stack
 		for (SubSystemLoggerConfigurationType ss : config.getSubSystemLogger()) {
