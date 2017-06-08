@@ -137,6 +137,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -2063,7 +2064,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNull("No roleMembershipRef expected in "+focus+", but found: "+memRef, memRef);
 	}
 	
-	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, Consumer<RoleType> mutator, OperationResult result) throws Exception {
+	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, OperationResult result) throws Exception {
 		long startMillis = System.currentTimeMillis();
 		
 		PrismObjectDefinition<RoleType> roleDefinition = getRoleDefinition();
@@ -2075,7 +2076,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			roleType.setName(createPolyStringType(name));
 			roleType.setOid(oid);
 			if (mutator != null) {
-				mutator.accept(roleType);
+				mutator.accept(roleType, i);
 			}
 			LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
 			repositoryService.addObject(role, null, result);
@@ -2103,12 +2104,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	private void relationToMap(Map<String, Integer> map, ObjectReferenceType ref) {
 		if (ref != null) {
-			Integer i = map.get(ref.getRelation().getLocalPart());
+			String relation = null;
+			if (ref.getRelation() != null) {
+				relation = ref.getRelation().getLocalPart();
+			}
+			Integer i = map.get(relation);
 			if (i == null) {
 				i = 0;
 			}
 			i++;
-			map.put(ref.getRelation().getLocalPart(), i);
+			map.put(relation, i);
 		}
 	}
 
