@@ -436,8 +436,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
         }
-		if (!constructionTriple.isEmpty()) {
-			sb.append("\n");
+        sb.append("\n");
+		if (constructionTriple.isEmpty()) {
+			DebugUtil.debugDumpWithLabel(sb, "Constructions", "(empty)", indent+1);
+		} else {
 			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructionTriple, indent+1);
 		}
 		if (!personaConstructionTriple.isEmpty()) {

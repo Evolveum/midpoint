@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.PolicyRuleProcessor;
@@ -1426,7 +1427,12 @@ public class ChangeExecutor {
 
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr,
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
-		return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+		try {
+			return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
 
 	}
 

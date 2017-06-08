@@ -114,7 +114,7 @@ public class TestNotoriousRole extends AbstractStoryTest {
 		super.initSystem(initTask, initResult);
 		
 		generateRoles(NUMBER_OF_LEVEL_A_ROLES, ROLE_LEVEL_A_NAME_FORMAT, ROLE_LEVEL_A_OID_FORMAT,
-				role -> {
+				(role,i) -> {
 					role.beginInducement().targetRef(ROLE_NOTORIOUS_OID, RoleType.COMPLEX_TYPE).end();
 				},
 				initResult);
