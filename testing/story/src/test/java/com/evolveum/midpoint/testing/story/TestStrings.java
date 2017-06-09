@@ -297,8 +297,8 @@ public class TestStrings extends AbstractStoryTest {
 		login(userAdministrator);
 
 		List<WorkItemType> workItems = getWorkItems(task, result);
-		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
 		displayWorkItems("Work item after 1st approval", workItems);
+		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
 		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
 		display("wfTask after 1st approval", wfTask);
 

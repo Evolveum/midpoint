@@ -373,7 +373,17 @@ public class AssignmentEvaluator<F extends FocusType> {
 					
 					// Important: but we still want this to be reflected in roleMembershipRef
 					if ((isNonNegative(relativeMode)) && segment.isProcessMembership()) {
-						collectMembership(assignmentType.getTargetRef(), relation, ctx);
+						if (assignmentType.getTargetRef().getOid() != null) {
+							collectMembership(assignmentType.getTargetRef(), relation, ctx);
+						} else {
+							// no OID, so we have to resolve the filter
+							for (PrismObject<ObjectType> targetObject : getTargets(segment, ctx)) {
+								ObjectType target = targetObject.asObjectable();
+								if (target instanceof FocusType) {
+									collectMembership((FocusType) target, relation, ctx);
+								}
+							}
+						}
 					}
 				} else {
 					List<PrismObject<O>> targets = getTargets(segment, ctx);

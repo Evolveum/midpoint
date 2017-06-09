@@ -14,13 +14,21 @@
   ~ limitations under the License.
   -->
 
-<user oid="00000001-d34d-b33f-f00d-L00000000001">
+<user oid="00000001-d34d-b33f-f00d-L00000000001" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<name>lead1</name>
 	<assignment> <!-- approver -->
 		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
 	</assignment>
-	<assignment> <!-- role1 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000001" type="RoleType" relation="approver"/>
+	<assignment> <!-- Role1 -->
+		<targetRef type="RoleType" relation="approver">
+			<filter>
+				<q:equal>
+					<q:path>name</q:path>
+					<q:value>Role1</q:value>
+				</q:equal>
+			</filter>
+			<resolutionTime>run</resolutionTime>
+		</targetRef>
 	</assignment>
 	<assignment> <!-- role1b -->
 		<targetRef oid="00000001-d34d-b33f-f00d-00000000001b" type="RoleType" relation="special-approver"/>
