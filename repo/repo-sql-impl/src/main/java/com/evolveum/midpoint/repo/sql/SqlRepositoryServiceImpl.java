@@ -75,13 +75,7 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -768,6 +762,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return null;
         }
 
+        /*
+         * Here we store OIDs that were already sent to the client during previous attempts.
+         */
+        Set<String> retrievedOids = new HashSet<>();
+
 //        turned off until resolved 'unfinished operation' warning
 //        SqlPerformanceMonitor pm = getPerformanceMonitor();
 //        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
@@ -777,7 +776,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    objectRetriever.searchObjectsIterativeAttempt(type, query, handler, options, subResult);
+                    objectRetriever.searchObjectsIterativeAttempt(type, query, handler, options, subResult, retrievedOids);
                     return null;
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
