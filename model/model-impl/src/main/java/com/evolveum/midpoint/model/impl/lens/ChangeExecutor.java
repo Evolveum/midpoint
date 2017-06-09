@@ -1427,7 +1427,7 @@ public class ChangeExecutor {
 
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr,
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
-		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
 		try {
 			return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
 		} finally {
@@ -1593,15 +1593,20 @@ public class ChangeExecutor {
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow,
 				projContext.getResourceShadowDiscriminator(), resource.asPrismObject(),
 				context.getSystemConfiguration(), projContext);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, projContext, task, parentResult));
+		try {
 		OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
 				projContext.getResourceShadowDiscriminator(), ProvisioningOperationTypeType.RECONCILE, order,
 				variables, context, projContext, task, parentResult);
-
 		for (OperationProvisioningScriptType script : evaluatedScript.getScript()) {
 			Utils.setRequestee(task, context);
 			provisioning.executeScript(resource.getOid(), script, task, parentResult);
 			Utils.clearRequestee(task);
 		}
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
+		
 	}
 
 }
