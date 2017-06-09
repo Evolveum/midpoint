@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.ldaphierarchy;
 
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
@@ -54,6 +54,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -168,7 +170,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -181,8 +183,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
 		final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
@@ -210,8 +212,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test110AddUserTeleke() throws Exception {
 		final String TEST_NAME = "test110AddUserTeleke";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_TELEKE_USERNAME, 
@@ -241,8 +243,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test200AddOrgCortuvHrad() throws Exception {
 		final String TEST_NAME = "test200AddOrgCortuvHrad";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
@@ -271,8 +273,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test210AddUserGorc() throws Exception {
 		final String TEST_NAME = "test210AddUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME, 
@@ -298,8 +300,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
 		final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
@@ -328,8 +330,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test230AddUserViljaDezi() throws Exception {
 		final String TEST_NAME = "test230AddUserViljaDezi";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_DEZI_USERNAME, 
@@ -354,8 +356,8 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test300RenameOrgCortuvHrad() throws Exception {
 		final String TEST_NAME = "test300RenameOrgCortuvHrad";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
@@ -387,21 +389,20 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test310RenameUserGorc() throws Exception {
 		final String TEST_NAME = "test310RenameUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME, 
         		USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyObjectReplaceProperty(UserType.class, userGorcOid, UserType.F_NAME, task, result, new PolyString(USER_GORC_USERNAME2));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         dumpOrgTree();
 		dumpLdap();
@@ -412,21 +413,20 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test320AddOrgRoyulaDiabolica() throws Exception {
 		final String TEST_NAME = "test320AddOrgRoyulaDiabolica";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_DIABOLICA_NAME, ORG_TOP_OID);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
         addObject(orgBefore, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         dumpOrgTree();
 		dumpLdap();
@@ -443,12 +443,13 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test322MoveOrgZblo() throws Exception {
 		final String TEST_NAME = "test322MoveOrgZblo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = getOrg(ORG_CORTUV_HRAD_NAME2);
         ObjectDelta<OrgType> delta = orgBefore.createModifyDelta();
+        
         PrismContainerValue<AssignmentType> oldAssignment = null;
         for (PrismContainerValue aval: orgBefore.findContainer(OrgType.F_ASSIGNMENT).getValues()) {
         	oldAssignment = (PrismContainerValue<AssignmentType>)aval;
@@ -457,22 +458,20 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
         	}
         }
         delta.addModificationDeleteContainer(OrgType.F_ASSIGNMENT, oldAssignment.clone());
+
         AssignmentType newAssignmentType = new AssignmentType();
-        ObjectReferenceType targetRef = new ObjectReferenceType();
-        targetRef.setOid(orgRolyulaDiabolicaOid);
-        targetRef.setType(OrgType.COMPLEX_TYPE);
-		newAssignmentType.setTargetRef(targetRef);
+        newAssignmentType.targetRef(orgRolyulaDiabolicaOid, OrgType.COMPLEX_TYPE);
 		delta.addModificationAddContainer(OrgType.F_ASSIGNMENT, newAssignmentType);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
+        
         display("Modifying "+orgBefore+"with delta", delta);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         dumpOrgTree();
 		dumpLdap();

@@ -29,10 +29,10 @@
             <class name="com.evolveum.midpoint.testing.story.TestUniversity"/>
             <class name="com.evolveum.midpoint.testing.story.TestUnix"/>
             <class name="com.evolveum.midpoint.testing.story.TestUuid"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapFlat"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapNested"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapHierarchical"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapDeeplyHierarchical"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapFlat"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapNested"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapHierarchical"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapDeeplyHierarchical"/>
             <class name="com.evolveum.midpoint.testing.story.TestRetirement"/>
             <class name="com.evolveum.midpoint.testing.story.TestNullAttribute"/>
             <class name="com.evolveum.midpoint.testing.story.TestMachineIntelligence"/>
