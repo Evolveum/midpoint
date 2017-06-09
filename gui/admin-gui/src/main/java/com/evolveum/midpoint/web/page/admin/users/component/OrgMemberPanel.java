@@ -146,8 +146,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
+				refreshSearch(target);
 				refreshTable(target);
-
 			}
 		});
 		objectType.setOutputMarkupId(true);
@@ -526,6 +526,10 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName(), ObjectType.class), target);
 	}
 
+	protected void refreshSearch(AjaxRequestTarget target) {
+		getMemberTable().resetSearchModel();
+	}
+
 	private MainObjectListPanel<ObjectType> getMemberTable() {
 		return (MainObjectListPanel<ObjectType>) get(
 				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
@@ -758,4 +762,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				|| ServiceType.COMPLEX_TYPE.equals(type);
 	}
 
+	@Override
+	protected Class getDefaultObjectType(){
+		return OBJECT_TYPES_DEFAULT.getClassDefinition();
+	}
 }
