@@ -419,6 +419,7 @@ public class DummyResource implements DebugDumpable {
 		if (!enforceUniqueName) {
 			throw new IllegalStateException("Attempt to search object by name while resource is in non-unique name mode");
 		}
+		checkBlockOperations();
 		if (checkBreak) {
 			breakIt(getBreakMode, "get");
 		}
@@ -458,6 +459,7 @@ public class DummyResource implements DebugDumpable {
 	}
 	
 	private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id, boolean checkBreak) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		checkBlockOperations();
 		if (checkBreak) {
 			breakIt(getBreakMode, "get");
 		}

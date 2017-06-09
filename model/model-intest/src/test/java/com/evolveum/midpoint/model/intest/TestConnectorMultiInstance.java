@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -30,7 +29,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.model.intest.rbac.TestRbac;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -48,7 +46,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -93,17 +90,17 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         		
 		// WHEN
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_YELLOW_OID, task);
 		
 		// THEN
         display("Test result", testResult);
-        assertSuccess(testResult);
+        TestUtil.assertSuccess("Yellow dummy test result", testResult);
         
         assertEquals("Wrong YELLOW useless string", IntegrationTestTools.CONST_USELESS, dummyResourceYellow.getUselessString());
 	}
@@ -111,18 +108,17 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test100JackAssignDummyYellow() throws Exception {
 		final String TEST_NAME = "test100JackAssignDummyYellow";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         		
 		// WHEN
 		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         accountJackYellowOid = getSingleLinkOid(userJack);
@@ -144,7 +140,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test102ReadJackDummyYellowAgain() throws Exception {
 		final String TEST_NAME = "test102ReadJackDummyYellowAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
         		
 		// WHEN
         PrismObject<ShadowType> shadowYellow = getShadowModel(accountJackYellowOid);
@@ -167,20 +163,17 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test110ReadJackDummyYellowBlocking() throws Exception {
 		final String TEST_NAME = "test110ReadJackDummyYellowBlocking";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		
 		dummyResourceYellow.setBlockOperations(true);
 		final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>(); 
 		
 		// WHEN
-		Thread t = executeInNewThread("get1", new FailableRunnable() {
-			@Override
-			public void run() throws Exception {
+		Thread t = executeInNewThread("get1", () -> {
 					PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
 					LOGGER.trace("Got shadow {}", shadow);
 					shadowHolder.setValue(shadow);
-			}
-		});
+			});
 		
 		// Give the new thread a chance to get blocked
 		Thread.sleep(200);
@@ -215,21 +208,18 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
    public void test120ReadJackDummyYellowTwoOperationsOneBlocking() throws Exception {
 		final String TEST_NAME = "test120ReadJackDummyYellowTwoOperationsOneBlocking";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		
 		dummyResourceYellow.setBlockOperations(true);
 		final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>(); 
 		final Holder<PrismObject<ShadowType>> shadowHolder2 = new Holder<>();
 		
 		// WHEN
-		Thread t1 = executeInNewThread("get1", new FailableRunnable() {
-			@Override
-			public void run() throws Exception {
+		Thread t1 = executeInNewThread("get1", () -> {
 					PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
 					LOGGER.trace("Got shadow {}", shadow);
 					shadowHolder1.setValue(shadow);
-			}
-		});
+			});
 		
 		// Give the new thread a chance to get blocked
 		Thread.sleep(200);
@@ -242,14 +232,11 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 		
 		// This should not be blocked and it should proceed immediately
 		
-		Thread t2 = executeInNewThread("get2", new FailableRunnable() {
-			@Override
-			public void run() throws Exception {
+		Thread t2 = executeInNewThread("get2", () -> {
 					PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
 					LOGGER.trace("Got shadow {}", shadow);
 					shadowHolder2.setValue(shadow);
-			}
-		});
+			});
 
 		t2.join(1000);
 
@@ -288,21 +275,18 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
    public void test125ReadJackDummyYellowTwoBlocking() throws Exception {
 		final String TEST_NAME = "test125ReadJackDummyYellowTwoBlocking";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		
 		dummyResourceYellow.setBlockOperations(true);
 		final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>(); 
 		final Holder<PrismObject<ShadowType>> shadowHolder2 = new Holder<>();
 		
 		// WHEN
-		Thread t1 = executeInNewThread("get1", new FailableRunnable() {
-			@Override
-			public void run() throws Exception {
+		Thread t1 = executeInNewThread("get1", () -> {
 					PrismObject<ShadowType> shadow = getShadowModel(accountJackYellowOid);
 					LOGGER.trace("Got shadow {}", shadow);
 					shadowHolder1.setValue(shadow);
-			}
-		});
+			});
 				
 		Thread t2 = executeInNewThread("get2", new FailableRunnable() {
 			@Override
@@ -349,18 +333,17 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test200GuybrushAssignDummyBlack() throws Exception {
 		final String TEST_NAME = "test200GuybrushAssignDummyBlack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         		
 		// WHEN
 		assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_GUYBRUSH_OID);
         accountGuybrushBlackOid = getSingleLinkOid(userJack);
@@ -380,18 +363,14 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	}
 
 	private Thread executeInNewThread(final String threadName, final FailableRunnable runnable) {
-		Thread t = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
+		Thread t = new Thread(() -> {
 				try {
 					login(userAdministrator);
 					runnable.run();
 				} catch (Throwable e) {
 					LOGGER.error("Error in {}: {}", threadName, e.getMessage(), e);
 				}
-			}
-		});
+			});
 		t.setName(threadName);
 		t.start();
 		return t;
