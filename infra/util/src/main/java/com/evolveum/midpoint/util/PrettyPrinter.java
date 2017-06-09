@@ -249,7 +249,7 @@ public class PrettyPrinter {
 		sb.append("]");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";

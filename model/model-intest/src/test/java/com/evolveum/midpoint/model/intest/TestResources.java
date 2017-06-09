@@ -146,7 +146,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test050GetResourceRaw() throws Exception {
 		final String TEST_NAME = "test050GetResourceRaw";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -193,7 +193,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test052GetResourceNoFetch() throws Exception {
 		final String TEST_NAME = "test052GetResourceNoFetch";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -242,7 +242,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test053GetResourceNoFetchReadOnly() throws Exception {
 		final String TEST_NAME = "test053GetResourceNoFetchReadOnly";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -292,7 +292,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test100SearchResourcesNoFetch() throws Exception {
 		final String TEST_NAME = "test100SearchResourcesNoFetch";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -339,7 +339,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test102SearchResourcesNoFetchReadOnly() throws Exception {
 		final String TEST_NAME = "test102SearchResourcesNoFetchReadOnly";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -388,7 +388,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test105SearchResourcesIterativeNoFetch() throws Exception {
 		final String TEST_NAME = "test105SearchResourcesIterativeNoFetch";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -438,7 +438,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test107SearchResourcesIterativeNoFetchReadOnly() throws Exception {
 		final String TEST_NAME = "test107SearchResourcesIterativeNoFetchReadOnly";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -487,7 +487,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test110GetResourceDummy() throws Exception {
 		final String TEST_NAME = "test110GetResourceDummy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -523,7 +523,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test112GetResourceDummyReadOnly() throws Exception {
 		final String TEST_NAME = "test112GetResourceDummyReadOnly";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -562,7 +562,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test120SearchResources() throws Exception {
 		final String TEST_NAME = "test120SearchResources";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -599,7 +599,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test125SearchResourcesIterative() throws Exception {
 		final String TEST_NAME = "test125SearchResourcesIterative";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -719,7 +719,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test200GetResourceRawAfterSchema() throws Exception {
 		final String TEST_NAME = "test200GetResourceRawAfterSchema";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -750,7 +750,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test210GetResourceDummyRed() throws Exception {
 		final String TEST_NAME = "test210GetResourceDummyRed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -785,7 +785,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test750GetResourceRaw() throws Exception {
 		final String TEST_NAME = "test750GetResourceRaw";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -828,7 +828,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test752GetResourceDummy() throws Exception {
 		final String TEST_NAME = "test752GetResourceDummy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -860,40 +860,131 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	}
     
     @Test
-    public void test760ModifyConfiguration() throws Exception {
-		final String TEST_NAME = "test760ModifyConfiguration";
-        TestUtil.displayTestTile(this, TEST_NAME);
+    public void test760ModifyConfigurationString() throws Exception {
+		final String TEST_NAME = "test760ModifyConfigurationString";
+        displayTestTile(TEST_NAME);
     	
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
-        		IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
-		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
-				DOMUtil.XSD_STRING, prismContext);
-		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, "whatever wherever");
-    	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
-    	display("Resource delta", resourceDelta);
-    	Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+        ObjectDelta<ResourceType> resourceDelta =  createConfigurationPropertyDelta(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+        		"whatever wherever");
     	
     	// WHEN
-    	TestUtil.displayWhen(TEST_NAME);
-    	modelService.executeChanges(deltas, null, task, result);
+    	displayWhen(TEST_NAME);
+    	modelService.executeChanges(MiscSchemaUtil.createCollection(resourceDelta), null, task, result);
     	
     	// THEN
-    	TestUtil.displayThen(TEST_NAME);
-    	result.computeStatus();
-    	TestUtil.assertSuccess(result);
+    	displayThen(TEST_NAME);
+    	assertSuccess(result);
     	
     	PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
-    	PrismAsserts.assertPropertyValue(resourceAfter, propPath, "whatever wherever");
+    	PrismAsserts.assertPropertyValue(resourceAfter, 
+    			getConfigurationPropertyPath(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME),
+    			"whatever wherever");
     	
+    	assertResourceSchemaParseCountIncrement(1);
+    }
+    
+    @Test
+    public void test761ModifyConfigurationStringRaw() throws Exception {
+		final String TEST_NAME = "test761ModifyConfigurationStringRaw";
+        displayTestTile(TEST_NAME);
+    	
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ResourceType> resourceDelta =  createConfigurationPropertyDelta(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+        		"whatever raw wherever");
+    	
+    	// WHEN
+    	displayWhen(TEST_NAME);
+    	modelService.executeChanges(MiscSchemaUtil.createCollection(resourceDelta), ModelExecuteOptions.createRaw(),
+    			task, result);
+    	
+    	// THEN
+    	displayThen(TEST_NAME);
+    	assertSuccess(result);
+    	
+    	PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+    	PrismAsserts.assertPropertyValue(resourceAfter, 
+    			getConfigurationPropertyPath(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME),
+    			"whatever raw wherever");
+    	
+    	assertResourceSchemaParseCountIncrement(1);
+    }
+    
+    @Test
+    public void test765ModifyConfigurationDiffExpressionRaw() throws Exception {
+		final String TEST_NAME = "test765ModifyConfigurationDiffExpressionRaw";
+        displayTestTile(TEST_NAME);
+    	
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        // just to improve readability
+        resourceBefore.removeProperty(ObjectType.F_FETCH_RESULT);
+        String serializedResource = prismContext.serializerFor(PrismContext.LANG_XML).serialize(resourceBefore);
+        String modifiedResourceXml = serializedResource.replace("whatever raw wherever", 
+        		"<expression><const xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"c:ConstExpressionEvaluatorType\">useless</const></expression>");
+        display("New resource XML", modifiedResourceXml);
+        PrismObject<ResourceType> modifiedResource = prismContext.parseObject(modifiedResourceXml);
+        display("New resource", modifiedResource);
+        
+        // just for fun
+        String serializedModifiedResource = prismContext.serializerFor(PrismContext.LANG_XML).serialize(modifiedResource);
+        assertNotNull(serializedModifiedResource);
+        
+        ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource);
+        display("Diff delta", diffDelta);
+    	
+    	// WHEN
+    	displayWhen(TEST_NAME);
+    	modelService.executeChanges(MiscSchemaUtil.createCollection(diffDelta), ModelExecuteOptions.createRaw(), task, result);
+    	
+    	// THEN
+    	displayThen(TEST_NAME);
+    	assertSuccess(result);
+    	
+    	// Evaluate expression, re-apply configuration
+    	OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+    	TestUtil.assertSuccess("Dummy resource test", testResult);
+    	
+    	assertConnectorInitializationCountIncrement(1);
+    	assertResourceSchemaFetchIncrement(1);
+    	assertConnectorCapabilitiesFetchIncrement(1);
+    	assertResourceSchemaParseCountIncrement(1);
+    	
+    	PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+    	display("Resource after", resourceAfter);
+    	
+		assertEquals("Wrong default useless string", IntegrationTestTools.CONST_USELESS, dummyResource.getUselessString());
+    	
+		// TODO: strictly speaking, this should not be necessary. 
+		// But now the schema is re-parsed a bit more than is needed
+    	assertResourceSchemaParseCountIncrement(1);
+    }
+    
+    private ObjectDelta<ResourceType> createConfigurationPropertyDelta(QName elementQName, String newValue) {
+    	ItemPath propPath = getConfigurationPropertyPath(elementQName);
+		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinitionImpl<>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+				DOMUtil.XSD_STRING, prismContext);
+		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, newValue);
+    	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
+    	display("Resource delta", resourceDelta);
+    	return resourceDelta;
+    }
+    
+    private ItemPath getConfigurationPropertyPath(QName elementQName) {
+    	return new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
+    			elementQName);
     }
 	
 	@Test
     public void test800GetResourceDummy() throws Exception {
 		final String TEST_NAME = "test800GetResourceDummy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -916,7 +1007,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertResourceDummy(resource, true);
         
         assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(1);
+        assertResourceSchemaParseCountIncrement(0);
         assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
         assertConnectorSchemaParseIncrement(0);
@@ -927,7 +1018,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test820SingleDescriptionModify() throws Exception {
 		final String TEST_NAME = "test820SingleDescriptionModify";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
     	
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -938,7 +1029,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test840RadomModifySequence() throws Exception {
     	final String TEST_NAME = "test840RadomModifySequence";
-    	TestUtil.displayTestTile(this, TEST_NAME);
+    	displayTestTile(TEST_NAME);
     	
     	Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

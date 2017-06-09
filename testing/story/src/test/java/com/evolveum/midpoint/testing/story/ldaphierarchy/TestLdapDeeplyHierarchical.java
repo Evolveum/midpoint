@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.ldaphierarchy;
 
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;

@@ -882,7 +882,7 @@ public class AssignmentProcessor {
 		for (PrismReferenceValue reference: references) {
 			boolean found = false;
 			for (PrismReferenceValue exVal: extractedReferences) {
-				if (exVal.getOid().equals(reference.getOid())
+				if (MiscUtil.equals(exVal.getOid(), reference.getOid())
 						&& ObjectTypeUtil.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
 					found = true;
 					break;

@@ -122,7 +122,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		form.add(memberContainer);
 
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
-				ID_MEMBER_TABLE, ObjectType.class, tableId, getSearchOptions(), getPageBase()) {
+				ID_MEMBER_TABLE, getDefaultObjectType(), tableId, getSearchOptions(), getPageBase()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -544,5 +544,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
 		return null;
+	}
+
+	protected Class getDefaultObjectType(){
+		return ObjectType.class;
 	}
 }

@@ -436,9 +436,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			message = result.getMessage();
 		}
 		if (logErrors && LOGGER.isErrorEnabled()) {
-			LOGGER.error("{} of object {} {} failed: {}", new Object[] {
-					getProcessShortNameCapitalized(),
-					object, getContextDesc(), message, ex });
+			LOGGER.error("{} of object {} {} failed: {}", getProcessShortNameCapitalized(), object, getContextDesc(), message, ex);
 		}
 		// We do not want to override the result set by handler. This is just a fallback case
 		if (result.isUnknown() || result.isInProgress()) {

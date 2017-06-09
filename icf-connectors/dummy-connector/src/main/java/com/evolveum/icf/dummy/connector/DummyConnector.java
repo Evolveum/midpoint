@@ -1235,7 +1235,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     	Collection<String> attributesToGet = getAttrsToGet(options);
         log.ok("attributesToGet={0}", attributesToGet);
         
-        if (isEqualsFilter(query, Name.NAME)) {
+        if (isEqualsFilter(query, Name.NAME) && resource.isEnforceUniqueName()) {
         	Attribute nameAttribute = ((EqualsFilter)query).getAttribute();
         	String name = (String)nameAttribute.getValue().get(0);
         	T object = nameGetter.get(name);

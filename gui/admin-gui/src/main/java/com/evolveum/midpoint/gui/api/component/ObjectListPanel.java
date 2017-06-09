@@ -459,7 +459,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 		if (newType != null && !this.type.equals(newType)) {
 			this.type = newType;
-			searchModel.reset();
+			resetSearchModel();
 		} else {
 			saveSearchModel();
 		}
@@ -473,7 +473,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	}
 
-	
+	public void resetSearchModel(){
+		searchModel.reset();
+	}
 
 	private void saveSearchModel() {
 		String storageKey = getStorageKey();

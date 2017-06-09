@@ -56,7 +56,12 @@
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
-			<icfi:uselessString>USEless</icfi:uselessString>
+			<icfi:uselessString>
+				<expression>
+                  <const xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xsi:type="c:ConstExpressionEvaluatorType">useless</const>
+				</expression>
+			</icfi:uselessString>
 			<icfi:varyLetterCase>true</icfi:varyLetterCase>
 		</icfc:configurationProperties>
 

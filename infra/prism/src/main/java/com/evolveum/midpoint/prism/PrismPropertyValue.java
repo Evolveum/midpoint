@@ -589,11 +589,17 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         return toString();
     }
 
-    @Override
+	
+	@Override
     public String debugDump(int indent) {
+		return debugDump(indent, false);
+	}
+    
+	public String debugDump(int indent, boolean detailedDump) {
+		detailedDump = detailedDump || DebugUtil.isDetailedDebugDump();
         StringBuilder sb = new StringBuilder();
         boolean wasIndent = false;
-        if (DebugUtil.isDetailedDebugDump()) {
+        if (detailedDump) {
         	DebugUtil.indentDebugDump(sb, indent);
         	wasIndent = true;
         	sb.append("PPV(");
@@ -601,7 +607,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	        sb.append("):");
         }
         if (value != null) {
-            if (DebugUtil.isDetailedDebugDump()) {
+            if (detailedDump) {
             	sb.append(" ").append(value.getClass().getSimpleName()).append(":");
             }
         	if (value instanceof DebugDumpable) {

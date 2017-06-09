@@ -638,10 +638,10 @@ public class ObjectRetriever {
         return version;
     }
 
-    public <T extends ObjectType> void searchObjectsIterativeAttempt(Class<T> type, ObjectQuery query,
-                                                                     ResultHandler<T> handler,
-                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                     OperationResult result) throws SchemaException {
+    public <T extends ObjectType> void searchObjectsIterativeAttempt(Class<T> type, ObjectQuery query, ResultHandler<T> handler,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result, Set<String> retrievedOids)
+			throws SchemaException {
+		Set<String> newlyRetrievedOids = new HashSet<>();
         Session session = null;
         try {
             session = baseHelper.beginReadOnlyTransaction();
@@ -651,12 +651,28 @@ public class ObjectRetriever {
 
             ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
             try {
-                Iterator<GetObjectResult> iterator = new ScrollableResultsIterator(results);
+                Iterator<GetObjectResult> iterator = new ScrollableResultsIterator<>(results);
                 while (iterator.hasNext()) {
                     GetObjectResult object = iterator.next();
 
+                    if (retrievedOids.contains(object.getOid())) {
+                    	continue;
+					}
+
 					// TODO treat exceptions encountered within the next call
-                    PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, null, session, result);
+					PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, null, session, result);
+
+					/*
+					 *  We DO NOT store OIDs directly into retrievedOids, because this would mean that any duplicated results
+					 *  would get eliminated from processing. While this is basically OK, it would break existing behavior,
+					 *  and would lead to inconsistencies between e.g. "estimated total" vs "progress" in iterative tasks.
+					 *  Such inconsistencies could happen also in the current approach with retrievedOids/newlyRetrievedOids,
+					 *  but are much less likely.
+					 *  TODO reconsider this in the future - i.e. if it would not be beneficial to skip duplicate processing of objects
+					 *  TODO what about memory requirements of this data structure (consider e.g. millions of objects)
+					 */
+					newlyRetrievedOids.add(object.getOid());
+
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }
@@ -672,6 +688,7 @@ public class ObjectRetriever {
             baseHelper.handleGeneralException(ex, session, result);
         } finally {
             baseHelper.cleanupSessionAndResult(session, result);
+			retrievedOids.addAll(newlyRetrievedOids);
         }
     }
 

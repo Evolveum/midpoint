@@ -249,7 +249,7 @@ public class ReportUtils {
         return "*****";
     }
 
-    public static String prettyPrintForReport(PrismPropertyValue ppv) {
+    public static String prettyPrintForReport(PrismPropertyValue<?> ppv) {
         String retPPV;
         try {
             retPPV = prettyPrintForReport(ppv.getValue());
@@ -259,18 +259,16 @@ public class ReportUtils {
         return retPPV;
     }
 
-    public static String prettyPrintForReport(PrismContainerValue pcv) {
+    public static String prettyPrintForReport(PrismContainerValue<?> pcv) {
         StringBuilder sb = new StringBuilder();
-        for (Iterator<Item> iter = pcv.getItems().iterator(); iter.hasNext();) {
-            Item item = iter.next();
+        for (Item<?, ?> item : pcv.getItems()) {
             if ("metadata".equals(item.getElementName().getLocalPart())) {
                 continue;
             }
             sb.append(prettyPrintForReport(item.getElementName()));
             sb.append("=");
             sb.append("{");
-            for (Iterator iter2 = item.getValues().iterator(); iter2.hasNext();) {
-                Object item2 = iter2.next();
+            for (PrismValue item2 : item.getValues()) {
                 sb.append(prettyPrintForReport(item2));
                 sb.append(", ");
             }

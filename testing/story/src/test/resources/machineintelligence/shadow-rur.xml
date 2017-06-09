@@ -24,7 +24,7 @@
 	<resourceRef oid="10000000-0000-0000-0000-000000000001" type="ResourceType"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<attributes>
-		<icfs:name>R.U.R</icfs:name>
+		<ri:identifier>R.U.R</ri:identifier>
 		<ri:First_Name>Rossum</ri:First_Name>
 		<ri:Last_Name>Universal Robots</ri:Last_Name>
 		<ri:Display_Name>Rossum's Universal Robots</ri:Display_Name>
