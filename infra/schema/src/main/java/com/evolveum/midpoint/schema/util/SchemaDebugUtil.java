@@ -296,7 +296,20 @@ public class SchemaDebugUtil {
 		if (vc.getRef() != null) {
 			sb.append("ref=");
 			sb.append(prettyPrint(vc.getRef()));
-			sb.append("...");
+
+			boolean other = !vc.getInbound().isEmpty();
+			if (vc.getOutbound() != null && vc.getOutbound().getExpression() != null ) {
+				Object value = SimpleExpressionUtil.getConstantIfPresent(vc.getOutbound().getExpression());
+				if (value != null) {
+					sb.append(", value='").append(PrettyPrinter.prettyPrint(value)).append("'");
+				} else {
+					other = true;
+				}
+			}
+
+			if (other) {
+				sb.append(", ...");
+			}
 		}
 		
 		// TODO: Other properties
@@ -817,5 +830,7 @@ public class SchemaDebugUtil {
 		PrettyPrinter.registerPrettyPrinter(SchemaDebugUtil.class);
 	}
 
-
+	public static void initialize() {
+		// nothing to do here, we just make sure static initialization will take place
+	}
 }

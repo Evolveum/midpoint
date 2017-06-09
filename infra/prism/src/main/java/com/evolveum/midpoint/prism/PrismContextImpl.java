@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -72,6 +73,10 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull private final JaxbDomHack jaxbDomHack;
 
 	private QName defaultRelation;
+
+	static {
+		PrismPrettyPrinter.initialize();
+	}
 
 	//region Standard overhead
 	private PrismContextImpl(@NotNull SchemaRegistryImpl schemaRegistry) {

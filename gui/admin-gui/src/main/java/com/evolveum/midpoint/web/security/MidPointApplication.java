@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.error.*;
@@ -113,6 +114,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private static final String PROP_DEFAULT = ".default";
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
+
+    static {
+        SchemaDebugUtil.initialize();
+    }
 
     static {
         List<LocaleDescriptor> locales = new ArrayList<>();
