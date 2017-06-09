@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.notorious;
 
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -47,14 +47,18 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.testing.story.RepoReadInspector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -72,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *       +------+------+-----+-----+
  *                     |
  *                     v
- *                notorious role
+ *            notorious role / org
  *                     |
  *       +------+------+-----+-----+-....
  *       |      |      |     |     |
@@ -88,26 +92,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestNotoriousRole extends AbstractStoryTest {
+public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "notorious");
-	
-	public static final File ROLE_NOTORIOUS_FILE = new File(TEST_DIR, "role-notorious.xml");
-	public static final String ROLE_NOTORIOUS_OID = "1e95a1b8-46d1-11e7-84c5-e36e43bb0f00";
-	
+		
 	private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
 	
-	private static final int NUMBER_OF_LEVEL_A_ROLES = 100;
-	private static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
-	private static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
+	protected static final int NUMBER_OF_LEVEL_A_ROLES = 100;
+	protected static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
+	protected static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
 	
-	private static final int NUMBER_OF_LEVEL_B_ROLES = 300;
-	private static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
-	private static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
+	protected static final int NUMBER_OF_LEVEL_B_ROLES = 300;
+	protected static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
+	protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
 	
-	private static final Trace LOGGER = TraceManager.getTrace(TestNotoriousRole.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractNotoriousTest.class);
 	
-	private RepoReadInspector inspector;
+	protected RepoReadInspector inspector;
+	
+	protected abstract String getNotoriousOid();
+	
+	protected abstract QName getNotoriousType();
+	
+	protected abstract int getNumberOfExtraRoles();
+	
+	protected abstract int getNumberOfExtraOrgs();
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -115,7 +124,7 @@ public class TestNotoriousRole extends AbstractStoryTest {
 		
 		generateRoles(NUMBER_OF_LEVEL_A_ROLES, ROLE_LEVEL_A_NAME_FORMAT, ROLE_LEVEL_A_OID_FORMAT,
 				(role,i) -> {
-					role.beginInducement().targetRef(ROLE_NOTORIOUS_OID, RoleType.COMPLEX_TYPE).end();
+					role.beginInducement().targetRef(getNotoriousOid(), getNotoriousType()).end();
 				},
 				initResult);
 
@@ -131,14 +140,12 @@ public class TestNotoriousRole extends AbstractStoryTest {
 		InternalMonitor.setTraceRoleEvaluation(true);
 	}
 	
-	private void addNotoriousRole(OperationResult result) throws Exception {
-		PrismObject<RoleType> role = parseObject(ROLE_NOTORIOUS_FILE);
-		RoleType roleType = role.asObjectable();
+	protected abstract void addNotoriousRole(OperationResult result) throws Exception;
+	
+	protected void fillNotorious(AbstractRoleType roleType) throws Exception {
 		for(int i=0; i < NUMBER_OF_LEVEL_B_ROLES; i++) {
 			roleType.beginInducement().targetRef(generateRoleOid(ROLE_LEVEL_B_OID_FORMAT, i), RoleType.COMPLEX_TYPE).end();
 		}
-		LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
-		repositoryService.addObject(role, null, result);
 	}
 
 	private String generateRoleOid(String oidFormat, int num) {
@@ -154,7 +161,8 @@ public class TestNotoriousRole extends AbstractStoryTest {
 		final String TEST_NAME = "test000Sanity";
         displayTestTile(TEST_NAME);
 
-        assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + 1);
+        assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + getNumberOfExtraRoles());
+        assertObjects(OrgType.class, getNumberOfExtraOrgs());
         
         display("Repo reads", InternalMonitor.getRepositoryReadCount());
         display("Object compares", InternalMonitor.getPrismObjectCompareCount());
@@ -635,21 +643,10 @@ public class TestNotoriousRole extends AbstractStoryTest {
 		executeChanges(delta, null, task, result);
 	}
 
-	//
-//	private void addAssignments(PrismObject<UserType> user, QName relation, int offset, int num) {
-//		UserType userType = user.asObjectable();
-//		for (int i = 0; i < num; i++) {
-//			AssignmentType assignmentType = new AssignmentType();
-//			String oid = generateRoleOid(offset + i);
-//			assignmentType.targetRef(oid, RoleType.COMPLEX_TYPE, relation);
-//			userType.getAssignment().add(assignmentType);
-//		}
-//	}
-//
 	private void assertJackRoleMembershipRef(PrismObject<UserType> user, int numberOfLevelARoles) {
 		
 		assertRoleMembershipRefs(user, ROLE_LEVEL_A_OID_FORMAT, numberOfLevelARoles);
-		assertRoleMembershipRefNonExclusive(user, ROLE_NOTORIOUS_OID);
+		assertRoleMembershipRefNonExclusive(user, getNotoriousOid(), getNotoriousType());
 		assertRoleMembershipRefs(user, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES);
 		
 		assertRoleMembershipRefs(user, numberOfLevelARoles + 1 + NUMBER_OF_LEVEL_B_ROLES);
@@ -657,14 +654,14 @@ public class TestNotoriousRole extends AbstractStoryTest {
 
 	private void assertRoleMembershipRefs(PrismObject<UserType> user, String oidFormat, int num) {
 		for (int i = 0; i < num; i++) {
-			assertRoleMembershipRefNonExclusive(user, generateRoleOid(oidFormat, i));
+			assertRoleMembershipRefNonExclusive(user, generateRoleOid(oidFormat, i), RoleType.COMPLEX_TYPE);
 		}
 	}
 	
-	private void assertRoleMembershipRefNonExclusive(PrismObject<UserType> user, String roleOid) {
+	private void assertRoleMembershipRefNonExclusive(PrismObject<UserType> user, String roleOid, QName roleType) {
 		List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
 		for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {
-			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)) {
+			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, roleType, SchemaConstants.ORG_DEFAULT)) {
 				return;
 			}
 		}
