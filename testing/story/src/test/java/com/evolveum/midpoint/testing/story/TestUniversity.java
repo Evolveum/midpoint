@@ -338,7 +338,7 @@ public class TestUniversity extends AbstractStoryTest {
 		assertHasOrg(prif, uk.getOid());
 		assertAssignedOrg(prif, uk.getOid());
 		assertSubOrgs(prif, 1);
-		assertGroupMembers(prif, "cn=DL-VC,ou=VC,ou=PRIF,ou=UK,dc=example,dc=com");
+		assertGroupMembers(prif, "cn=dl-vc,ou=vc,ou=prif,ou=uk,dc=example,dc=com");
 
 		PrismObject<OrgType> vc = getAndAssertFunctionalOrg("VC");
 		assertNotNull("VC was not found", vc);
