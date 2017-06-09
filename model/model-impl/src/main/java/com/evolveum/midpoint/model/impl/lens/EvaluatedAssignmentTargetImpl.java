@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,14 +32,14 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	
 	final PrismObject<? extends FocusType> target;
 	private final boolean evaluateConstructions;
-	private final AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
+	@NotNull private final AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
 	private final AssignmentType assignment;
 	private Collection<ExclusionPolicyConstraintType> exclusions = null;
 	private final boolean isValid;
 
 	EvaluatedAssignmentTargetImpl(
 			PrismObject<? extends FocusType> target, boolean evaluateConstructions,
-			AssignmentPathImpl assignmentPath, AssignmentType assignment,
+			@NotNull AssignmentPathImpl assignmentPath, AssignmentType assignment,
 			boolean isValid) {
 		this.target = target;
 		this.evaluateConstructions = evaluateConstructions;
@@ -73,6 +74,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	}
 
 	@Override
+	@NotNull
 	public AssignmentPathImpl getAssignmentPath() {
 		return assignmentPath;
 	}

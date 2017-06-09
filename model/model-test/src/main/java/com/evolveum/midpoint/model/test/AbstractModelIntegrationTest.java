@@ -3086,12 +3086,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			return;
 		}
 		assertNotNull("No values for attribute "+attributeName+" of "+dummyInstanceName+" dummy account "+username, values);
-		assertEquals("Unexpected number of values for attribute " + attributeName + " of dummy account " + username +
+		assertEquals("Unexpected number of values for attribute " + attributeName + " of "+dummyInstanceName+" dummy account " + username +
 				". Expected: " + Arrays.toString(expectedAttributeValues) + ", was: " + values,
 				expectedAttributeValues.length, values.size());
 		for (Object expectedValue: expectedAttributeValues) {
 			if (!values.contains(expectedValue)) {
-				AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy account "+username+
+				AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of "+dummyInstanceName+" dummy account "+username+
 						" but not found. Values found: "+values);
 			}
 		}
@@ -3099,12 +3099,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void assertNoDummyAccountAttribute(String dummyInstanceName, String username, String attributeName) throws SchemaViolationException, ConflictException {
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
-		assertNotNull("No dummy account for username "+username, account);
+		assertNotNull("No dummy "+dummyInstanceName+" account for username "+username, account);
 		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
 		if (values == null || values.isEmpty()) {
 			return;
 		}
-		AssertJUnit.fail("Expected no value in attribute " + attributeName + " of dummy account " + username +
+		AssertJUnit.fail("Expected no value in attribute " + attributeName + " of "+dummyInstanceName+" dummy account " + username +
 				". Values found: " + values);
 	}
 

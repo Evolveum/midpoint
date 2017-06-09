@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
@@ -191,4 +193,17 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return (I) updatedItem;
 	}
 
+	@Override
+	public boolean checkRequired(PageBase pageBase) {
+		if (itemDefinition == null || !itemDefinition.isMandatory()) {
+			return true;
+		}
+		for (ValueWrapper valueWrapper : CollectionUtils.emptyIfNull(getValues())) {
+			if (!valueWrapper.isEmpty()) {
+				return true;
+			}
+		}
+		pageBase.error("Item '" + getDisplayName() + "' must not be empty");
+		return false;
+	}
 }

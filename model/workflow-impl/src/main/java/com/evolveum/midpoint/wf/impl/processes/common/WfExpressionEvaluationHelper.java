@@ -38,10 +38,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -126,36 +123,40 @@ public class WfExpressionEvaluationHelper {
 
 	public ExpressionVariables getDefaultVariables(@Nullable DelegateExecution execution, Task wfTask, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
+		ExpressionVariables variables = getDefaultVariables(wfTask.getWorkflowContext(), result);
+		// Activiti process instance variables (use with care)
+		if (execution != null) {
+			execution.getVariables().forEach((key, value) -> variables.addVariableDefinition(new QName("_" + key), value));
+		}
+		return variables;
+	}
+
+	public ExpressionVariables getDefaultVariables(WfContextType wfContext, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
 
 		MiscDataUtil miscDataUtil = getMiscDataUtil();
 
 		ExpressionVariables variables = new ExpressionVariables();
 
 		variables.addVariableDefinition(C_REQUESTER,
-				miscDataUtil.resolveObjectReference(wfTask.getWorkflowContext().getRequesterRef(), result));
+				miscDataUtil.resolveObjectReference(wfContext.getRequesterRef(), result));
 
 		variables.addVariableDefinition(C_OBJECT,
-				miscDataUtil.resolveObjectReference(wfTask.getWorkflowContext().getObjectRef(), result));
+				miscDataUtil.resolveObjectReference(wfContext.getObjectRef(), result));
 
 		// might be null
 		variables.addVariableDefinition(C_TARGET,
-				miscDataUtil.resolveObjectReference(wfTask.getWorkflowContext().getTargetRef(), result));
+				miscDataUtil.resolveObjectReference(wfContext.getTargetRef(), result));
 
 		ObjectDelta objectDelta;
 		try {
-			objectDelta = miscDataUtil.getFocusPrimaryDelta(wfTask.getWorkflowContext(), true);
+			objectDelta = miscDataUtil.getFocusPrimaryDelta(wfContext, true);
 		} catch (JAXBException e) {
 			throw new SchemaException("Couldn't get object delta: " + e.getMessage(), e);
 		}
 		variables.addVariableDefinition(SchemaConstants.T_OBJECT_DELTA, objectDelta);
 
 		// todo other variables?
-
-		// Activiti process instance variables (use with care)
-		if (execution != null) {
-			execution.getVariables().entrySet().forEach(e ->
-					variables.addVariableDefinition(new QName("_" + e.getKey()), e.getValue()));
-		}
 
 		return variables;
 	}

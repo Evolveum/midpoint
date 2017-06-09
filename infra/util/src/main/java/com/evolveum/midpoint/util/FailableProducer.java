@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.gui.api.model;
+package com.evolveum.midpoint.util;
 
-import org.apache.wicket.model.IModel;
+import java.io.Serializable;
 
 /**
- * Interface for objects that provide Wicket model which represents
- * object count or similar tag. The count in usually displayed as a
- * small "bubble" in the tab, next to the menu item, etc.
+ * Almost the same as java.util.function.Supplier, but this one is Serializable.
+ * That is very useful especially in use in Wicket models.
  * 
- * @author semancik
+ * @author Radovan Semancik
  */
-public interface CountModelProvider {
-	
-	/**
-	 * Return count model. May return null. If null is
-	 * returned then no count should be displayed.
-	 */
-	IModel<String> getCountModel();
+@FunctionalInterface
+public interface FailableProducer<T> extends Serializable {
 
+	T run() throws Exception;
+	
 }

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -46,6 +47,7 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable {
 	 */
 	AssignmentType getAssignment();
 
+	@NotNull
 	AssignmentPath getAssignmentPath();
 
 	boolean isValid();

@@ -53,7 +53,7 @@ public class TestUnitObjectWrapperFactory extends AbstractGuiUnitTest {
 		
 		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
-				objDef, null, ContainerStatus.MODIFYING, false);
+				objDef, null, ContainerStatus.MODIFYING);
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

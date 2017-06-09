@@ -204,7 +204,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 					}
 					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
 					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
-							formRef.getOid(), mainForm, task, PageForgotPassword.this);
+							formRef.getOid(), mainForm, task, PageForgotPassword.this, true);
 				});
 
 		if (searchAttributesForm != null) {

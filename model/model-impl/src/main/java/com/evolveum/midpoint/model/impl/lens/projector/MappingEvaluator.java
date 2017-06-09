@@ -104,14 +104,9 @@ public class MappingEvaluator {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(MappingEvaluator.class);
 	
-    @Autowired(required=true)
-    private MappingFactory mappingFactory;
-    
-    @Autowired(required=true)
-    private CredentialsProcessor credentialsProcessor;
-    
-    @Autowired(required=true)
-    private ContextLoader contextLoader;
+    @Autowired private MappingFactory mappingFactory;
+    @Autowired private CredentialsProcessor credentialsProcessor;
+    @Autowired private ContextLoader contextLoader;
 
     public static final List<QName> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
@@ -155,6 +150,7 @@ public class MappingEvaluator {
 		}
 	}
     
+    // TODO: unify OutboundProcessor.evaluateMapping() with MappingEvaluator.evaluateOutboundMapping(...)
     public <T, F extends FocusType> void evaluateOutboundMapping(final LensContext<F> context, 
 			final LensProjectionContext projCtx, List<MappingType> outboundMappings,
 			final ItemPath focusPropertyPath, final ItemPath projectionPropertyPath,

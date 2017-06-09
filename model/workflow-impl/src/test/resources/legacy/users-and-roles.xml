@@ -66,6 +66,9 @@
     <role oid="00000001-d34d-b33f-f00d-000000000001">
         <name>Role1</name>
         <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
+        <activation>
+            <administrativeStatus>disabled</administrativeStatus>
+        </activation>
     </role>
 
     <role oid="00000001-d34d-b33f-f00d-000000000002" xsi:type="RoleType">
@@ -102,7 +105,6 @@
             <stage>
                 <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
                 <automaticallyCompleted>
-                    <description>Assignment of this role is always automatically approved.</description>
                     <script>
                         <code>
                             com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE
@@ -111,12 +113,34 @@
                 </automaticallyCompleted>
             </stage>
         </approvalSchema>
-        <!--<automaticallyApproved>-->
-            <!--<description>Assignment of this role is always automatically approved.</description>-->
-            <!--<script>-->
-                <!--<code>true</code>-->
-            <!--</script>-->
-        <!--</automaticallyApproved>-->
+    </role>
+
+    <role oid="00000001-d34d-b33f-f00d-000000000S10" xsi:type="RoleType">
+        <name>Role R10 skip</name>
+        <approvalSchema>
+            <stage>
+                <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
+                <automaticallyCompleted>
+                    <script>
+                        <code>
+                            if (requester == null) {
+                                throw new IllegalStateException("No requester variable")
+                            }
+                            if (object == null) {
+                                throw new IllegalStateException("No object variable")
+                            }
+                            if (target == null) {
+                                throw new IllegalStateException("No target variable")
+                            }
+                            if (objectDelta == null) {
+                                throw new IllegalStateException("No objectDelta variable")
+                            }
+                            com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP
+                        </code>
+                    </script>
+                </automaticallyCompleted>
+            </stage>
+        </approvalSchema>
     </role>
 
 </objects>

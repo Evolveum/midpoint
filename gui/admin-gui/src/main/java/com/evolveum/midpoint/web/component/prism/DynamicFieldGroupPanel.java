@@ -120,7 +120,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 		ItemDefinition itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
 		
-		ItemWrapper itemWrapper = null;
+		ItemWrapper itemWrapper;
 		
 		if (itemDef instanceof PrismContainerDefinition) {
 			itemWrapper = objectWrapper.findContainerWrapper(path);

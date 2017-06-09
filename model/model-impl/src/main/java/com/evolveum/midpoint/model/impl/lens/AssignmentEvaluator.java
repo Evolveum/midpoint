@@ -660,14 +660,19 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		checkRelationWithTarget(segment, targetType, relation);
 
-		if (!LensUtil.isFocusValid(targetType, now, activationComputer)) {
-			LOGGER.trace("Skipping evaluation of {} because it is not valid", targetType);
-			return;
+		boolean isTargetValid = LensUtil.isFocusValid(targetType, now, activationComputer);
+		if (!isTargetValid) {
+			if (!segment.isValidityOverride()) {
+				LOGGER.trace("Skipping evaluation of {} because it is not valid and validityOverride is not set", targetType);
+				return;
+			} else {
+				isValid = false;
+			}
 		}
 		
 		InternalMonitor.recordRoleEvaluation(targetType, true);
 		
-		if (targetType instanceof AbstractRoleType) {
+		if (isTargetValid && targetType instanceof AbstractRoleType) {
 			MappingType roleCondition = ((AbstractRoleType)targetType).getCondition();
 			if (roleCondition != null) {
 	            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
@@ -695,9 +700,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 				segment.getAssignment(),
 				isValid);
 		ctx.evalAssignment.addRole(evalAssignmentTarget, relativeMode);
-		
+
+		// we need to evaluate assignments also for disabled targets, because of target policy rules
+		for (AssignmentType roleAssignment : targetType.getAssignment()) {
+			evaluateAssignment(segment, relativeMode, isValid, ctx, targetType, relation, roleAssignment);
+		}
+
 		if ((isNonNegative(relativeMode)) && segment.isProcessMembership()) {
-			collectMembership(targetType, relation, ctx);
+			if (isTargetValid || !ObjectTypeUtil.isMembershipRelation(relation)) {
+				// we want to collect approver/owner/whatever-non-membership relations also for disabled targets (MID-3942)
+				collectMembership(targetType, relation, ctx);
+			}
+		}
+
+		if (!isTargetValid) {
+			return;
 		}
 
 		// We continue evaluation even if the relation is non-membership and non-delegation.
@@ -707,9 +724,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 			for (AssignmentType roleInducement : ((AbstractRoleType)targetType).getInducement()) {
 				evaluateInducement(segment, relativeMode, isValid, ctx, targetType, roleInducement);
 			}
-		}
-		for (AssignmentType roleAssignment : targetType.getAssignment()) {
-			evaluateAssignment(segment, relativeMode, isValid, ctx, targetType, relation, roleAssignment);
 		}
 
 		//boolean matchesOrder = AssignmentPathSegmentImpl.computeMatchingOrder(segment.getEvaluationOrder(), 1, Collections.emptyList());

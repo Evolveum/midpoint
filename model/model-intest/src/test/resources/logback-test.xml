@@ -56,7 +56,7 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.PasswordPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ObjectTemplateProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.AssignmentTripleEvaluator" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.AssignmentTripleEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ProjectionValuesProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.OutboundProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
@@ -69,7 +69,7 @@
  	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="TRACE" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="DEBUG" />

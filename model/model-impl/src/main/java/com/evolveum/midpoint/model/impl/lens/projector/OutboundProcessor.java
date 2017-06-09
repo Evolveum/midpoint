@@ -78,17 +78,13 @@ public class OutboundProcessor {
 
     private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
 
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private MappingFactory mappingFactory;
-    
-    @Autowired
-    private MappingEvaluator mappingEvaluator;
+    @Autowired private PrismContext prismContext;
+    @Autowired private MappingFactory mappingFactory;    
+    @Autowired private MappingEvaluator mappingEvaluator;
+    @Autowired private ContextLoader contextLoader;
 
     public <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
-            ExpressionEvaluationException, ObjectNotFoundException {
+            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
         ObjectDelta<ShadowType> projectionDelta = projCtx.getDelta();
@@ -135,6 +131,12 @@ public class OutboundProcessor {
 				continue;
 			}
 			
+			MappingStrengthType strength = outboundMappingType.getStrength();
+			if (!projCtx.isDelete() && !projCtx.isFullShadow() && (strength == MappingStrengthType.STRONG || strength == MappingStrengthType.WEAK)) {
+				contextLoader.loadFullShadow(context, projCtx, "strong/weak outbound mapping", task, result);
+				projectionOdo = projCtx.getObjectDeltaObject();
+			}
+			
 			Mapping.Builder<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> builder = mappingFactory.createMappingBuilder(outboundMappingType,
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + rOcDef.getResourceType());
@@ -178,11 +180,12 @@ public class OutboundProcessor {
         projCtx.setOutboundConstruction(outboundConstruction);
     }
     
+    // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
     private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> Mapping<V, D> evaluateMapping(final Mapping.Builder<V,D> mappingBuilder, QName mappingQName,
     		D targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
     		String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
     		LensContext<F> context, LensProjectionContext projCtx, final Task task, OperationResult result)
-    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (!mappingBuilder.isApplicableToChannel(context.getChannel())) {
 			LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", mappingQName);
 			return null;
@@ -200,9 +203,9 @@ public class OutboundProcessor {
 //			return null;
 //		}
 		
-		mappingBuilder.setDefaultTargetDefinition(targetDefinition);
-		mappingBuilder.setSourceContext(focusOdo);
-		mappingBuilder.setMappingQName(mappingQName);
+		mappingBuilder.defaultTargetDefinition(targetDefinition);
+		mappingBuilder.sourceContext(focusOdo);
+		mappingBuilder.mappingQName(mappingQName);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
@@ -218,9 +221,9 @@ public class OutboundProcessor {
 		if (assocTargetObjectClassDefinition != null) {
 			mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
 		}
-		mappingBuilder.setRootNode(focusOdo);
-		mappingBuilder.setOriginType(OriginType.OUTBOUND);
-		mappingBuilder.setRefinedObjectClassDefinition(rOcDef);
+		mappingBuilder.rootNode(focusOdo);
+		mappingBuilder.originType(OriginType.OUTBOUND);
+		mappingBuilder.refinedObjectClassDefinition(rOcDef);
 		
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private ItemPath outputPath;
@@ -259,16 +262,16 @@ public class OutboundProcessor {
 				return null;
 			}
 		};
-		mappingBuilder.setStringPolicyResolver(stringPolicyResolver);
+		mappingBuilder.stringPolicyResolver(stringPolicyResolver);
 		// TODO: other variables?
 		
 		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
 		// (e.g. in old values in ADD situations and new values in DELETE situations).
 		if (focusOdo.getOldObject() == null) {
-			mappingBuilder.setConditionMaskOld(false);
+			mappingBuilder.conditionMaskOld(false);
 		}
 		if (focusOdo.getNewObject() == null) {
-			mappingBuilder.setConditionMaskNew(false);
+			mappingBuilder.conditionMaskNew(false);
 		}
 
 		Mapping<V,D> mapping = mappingBuilder.build();

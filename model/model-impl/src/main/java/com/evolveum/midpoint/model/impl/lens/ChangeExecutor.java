@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.lens.projector.PolicyRuleProcessor;
@@ -1426,7 +1427,12 @@ public class ChangeExecutor {
 
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr,
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
-		return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
+		try {
+			return evaluateScript(resourceScripts, discr, operation, null, variables, context, objectContext, task, result);
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
 
 	}
 
@@ -1587,15 +1593,20 @@ public class ChangeExecutor {
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow,
 				projContext.getResourceShadowDiscriminator(), resource.asPrismObject(),
 				context.getSystemConfiguration(), projContext);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, projContext, task, parentResult));
+		try {
 		OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
 				projContext.getResourceShadowDiscriminator(), ProvisioningOperationTypeType.RECONCILE, order,
 				variables, context, projContext, task, parentResult);
-
 		for (OperationProvisioningScriptType script : evaluatedScript.getScript()) {
 			Utils.setRequestee(task, context);
 			provisioning.executeScript(resource.getOid(), script, task, parentResult);
 			Utils.clearRequestee(task);
 		}
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
+		
 	}
 
 }

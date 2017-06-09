@@ -17,6 +17,9 @@
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  oid="00000001-d34d-b33f-f00d-00000000001a">
 	<name>Role1a</name>
+	<activation>
+		<administrativeStatus>disabled</administrativeStatus>
+	</activation>
 	<inducement>
 		<targetRef oid="00000001-d34d-b33f-f00d-00000000010a" type="RoleType" />
 	</inducement>

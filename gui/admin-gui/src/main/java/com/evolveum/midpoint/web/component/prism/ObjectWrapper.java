@@ -76,8 +76,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     // whether to show name and description properties and metadata container
     private boolean showInheritedObjectAttributes = true;
     
-    // readolny flag is an override. false means "do not override"
+    // readonly flag is an override. false means "do not override"
     private boolean readonly = false;
+
+    // whether to make wicket enforce that required fields are filled-in (if set to false, this check has to be done explicitly)
+    private boolean enforceRequiredFields = true;
 
     private Collection<SelectorOptions<GetOperationOptions>> loadOptions;
     private OperationResult result;
@@ -91,16 +94,13 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private RefinedObjectClassDefinition objectClassDefinitionForEditing;
 
     public ObjectWrapper(String displayName, String description, PrismObject object,
-                         PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status) {
-        this(displayName, description, object, objectDefinitionForEditing, null, status, false);
+            PrismContainerDefinition objectDefinitionForEditing, ContainerStatus status) {
+        this(displayName, description, object, objectDefinitionForEditing, null, status);
     }
 
-    // delayContainerCreation is used in cases where caller wants to configure
-    // those aspects of the wrapper that must be set before container creation
     public ObjectWrapper(String displayName, String description, PrismObject object,
-                         PrismContainerDefinition objectDefinitionForEditing,
-                         RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status,
-                         boolean delayContainerCreation) {
+			PrismContainerDefinition objectDefinitionForEditing,
+			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status) {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
 
@@ -578,7 +578,15 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         this.showInheritedObjectAttributes = showInheritedObjectAttributes;
     }
 
-    public PrismContainerDefinition getDefinition() {
+	public boolean isEnforceRequiredFields() {
+		return enforceRequiredFields;
+	}
+
+	public void setEnforceRequiredFields(boolean enforceRequiredFields) {
+		this.enforceRequiredFields = enforceRequiredFields;
+	}
+
+	public PrismContainerDefinition getDefinition() {
         if (objectDefinitionForEditing != null) {
             return objectDefinitionForEditing;
         }
@@ -603,6 +611,18 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 		newWrapper.setReadonly(this.isReadonly());
 	}
 
+	// returns true if everything is OK
+	// to be used when enforceRequiredFields is false, so we want to check them only when really needed
+	// (e.g. MID-3876: when rejecting a work item, fields marked as required need not be present)
+	public boolean checkRequiredFields(PageBase pageBase) {
+    	boolean rv = true;
+		for (ContainerWrapper<? extends Containerable> container : containers) {
+			if (!container.checkRequired(pageBase)) {
+				rv = false;	// continuing to display messages for all missing fields
+			}
+		}
+		return rv;
+	}
 
     @Override
     public String debugDump() {

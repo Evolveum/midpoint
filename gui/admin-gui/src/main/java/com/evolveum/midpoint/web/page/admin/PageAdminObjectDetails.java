@@ -21,7 +21,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -337,7 +336,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, false);
+			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status);
 		}
 		wrapper.setLoadOptions(loadOptions);
 		

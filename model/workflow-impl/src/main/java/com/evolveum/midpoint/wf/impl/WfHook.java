@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -164,7 +165,7 @@ public class WfHook implements ChangeHook {
                     if (hookOperationMode != null) {
                         return hookOperationMode;
                     }
-                } catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
+                } catch (ObjectNotFoundException|SchemaException|RuntimeException|ExpressionEvaluationException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Exception while running change processor {}", e, changeProcessor.getClass().getName());
                     result.recordFatalError("Exception while running change processor " + changeProcessor.getClass(), e);
                     return HookOperationMode.ERROR;

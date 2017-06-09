@@ -200,9 +200,15 @@
 			<attribute>
 				<ref>ri:quote</ref>
 				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
+				<tolerant>false</tolerant>
 				<outbound>
+					<name>yellow-outbound-quote</name>
+					<trace>true</trace>
 					<strength>strong</strength>
+					<source>
+						<name>shadowStatus</name>
+						<path>$shadow/activation/administrativeStatus</path>
+					</source>
 					<expression>
 						<script>
 							<code>
@@ -210,6 +216,14 @@
 							</code>
 						</script>
 					</expression>
+					<condition> <!--MID-3946 -->
+						<trace>true</trace>
+						<script>
+							<code>
+								shadowStatus == com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED
+							</code>
+						</script>
+					</condition>
 				</outbound>
 			</attribute>
             <attribute>

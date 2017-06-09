@@ -17,6 +17,13 @@
 package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
 
 import java.util.Map;
@@ -31,4 +38,8 @@ public interface ProcessSpecificContent {
 	void createProcessVariables(Map<String, Object> map, PrismContext prismContext);
 
 	WfProcessSpecificStateType createProcessSpecificState();
+
+	boolean checkEmpty(PcpChildWfTaskCreationInstruction instruction,
+			WfExpressionEvaluationHelper evaluationHelper, ModelInvocationContext ctx, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException;
 }

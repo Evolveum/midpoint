@@ -79,7 +79,4 @@ public class TestImportReconDeprecated extends TestImportRecon {
 		// Not relevant for deprecated syntax
 	}
 	
-	
-	
-	
 }
