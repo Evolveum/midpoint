@@ -391,6 +391,7 @@ public class PrismMarshaller {
     //endregion
 
     //region Serializing properties - specific functionality
+    @NotNull
     private <T> XNode serializePropertyValue(@NotNull PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, QName typeNameIfNoDefinition) throws SchemaException {
         @Nullable QName typeName = definition != null ? definition.getTypeName() : typeNameIfNoDefinition;
         ExpressionWrapper expression = value.getExpression();
@@ -404,6 +405,22 @@ public class PrismMarshaller {
             return serializePolyString((PolyString) realValue);
         } else if (beanMarshaller.canProcess(typeName)) {
             XNode xnode = beanMarshaller.marshall(realValue);
+            if (xnode == null) {
+            	// Marshaling attempt may process the expression in raw element
+                expression = value.getExpression();
+                if (expression != null) {
+                	// Store expression, not the value. In this case the value (if any) is 
+                	// a transient product of the expression evaluation.
+                	return createExpressionXNode(expression);
+                }
+            	// HACK. Sometimes happens that we have raw value even with a definition
+            	// this is easy to work around
+            	if (value.isRaw()) {
+            		xnode = value.getRawElement().clone();
+            	} else {
+            		throw new SchemaException("Cannot marshall property value "+value+": marshaller returned null");
+            	}
+            }
             if (realValue != null && realValue.getClass().getPackage() != null) {
 				TypeDefinition typeDef = getSchemaRegistry()
 						.findTypeDefinitionByCompileTimeClass(realValue.getClass(), TypeDefinition.class);

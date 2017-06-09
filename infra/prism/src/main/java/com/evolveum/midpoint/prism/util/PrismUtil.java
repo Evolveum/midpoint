@@ -264,7 +264,8 @@ public class PrismUtil {
 		return expressionWrapper;
 	}
 	
-	public static MapXNode serializeExpression(ExpressionWrapper expressionWrapper, BeanMarshaller beanMarshaller) throws SchemaException {
+	@NotNull
+	public static MapXNode serializeExpression(@NotNull ExpressionWrapper expressionWrapper, BeanMarshaller beanMarshaller) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		Object expressionObject = expressionWrapper.getExpression();
 		if (expressionObject == null) {
