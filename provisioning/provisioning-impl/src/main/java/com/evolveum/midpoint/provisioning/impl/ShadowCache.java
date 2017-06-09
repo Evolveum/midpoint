@@ -263,11 +263,12 @@ public abstract class ShadowCache {
 				// This may be OK, e.g. for connectors that have running async add operation.
 				if (canReturnCachedAfterNotFoundOnResource(options, repositoryShadow, resource)) {
 					LOGGER.trace("Object not found on reading of {}, but we can return cached shadow", repositoryShadow);
-					parentResult.muteLastSubresultError();
+					parentResult.deleteLastSubresultIfError();		// we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
 					parentResult.recordSuccess();
 					repositoryShadow.asObjectable().setExists(false);
 					PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
 					applyAttributesDefinition(ctx, resultShadow);
+					LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
 					return resultShadow;
 				} else {
 					throw e;

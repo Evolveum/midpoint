@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -1185,50 +1186,28 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         try {
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 	        	
-		        Collection<DummyAccount> accounts = resource.listAccounts();
-		        for (DummyAccount account : accounts) {
-		        	ConnectorObject co = convertToConnectorObject(account, attributesToGet);
-		        	if (matches(query, co)) {
-						co = filterOutAttributesToGet(co, account, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
+	        	search(objectClass, query, handler, options, 
+	        			resource::listAccounts, resource::getAccountByUsername, resource::getAccountById, this::convertToConnectorObject, null);
 		        
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	        	
-	        	Collection<DummyGroup> groups = resource.listGroups();
-		        for (DummyGroup group : groups) {
-		        	ConnectorObject co = convertToConnectorObject(group, attributesToGet);
-		        	if (matches(query, co)) {
-		        		if (attributesToGetHasAttribute(attributesToGet, DummyGroup.ATTR_MEMBERS_NAME)) {
-		        			resource.recordGroupMembersReadCount();
-		        		}
-		        		co = filterOutAttributesToGet(co, group, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
-		        
+	        	search(objectClass, query, handler, options, 
+	        			resource::listGroups, resource::getGroupByName, resource::getGroupById, this::convertToConnectorObject, 
+	        			object -> {
+	        				if (attributesToGetHasAttribute(attributesToGet, DummyGroup.ATTR_MEMBERS_NAME)) {
+			        			resource.recordGroupMembersReadCount();
+			        		}
+	        			});
+	        			        
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	        	
-	        	Collection<DummyPrivilege> privs = resource.listPrivileges();
-		        for (DummyPrivilege priv : privs) {
-		        	ConnectorObject co = convertToConnectorObject(priv, attributesToGet);
-		        	if (matches(query, co)) {
-		        		co = filterOutAttributesToGet(co, priv, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
-		        
+	        	search(objectClass, query, handler, options, 
+	        			resource::listPrivileges, resource::getPrivilegeByName, resource::getPrivilegeById, this::convertToConnectorObject, null);
+	        			        
 	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
 	        	
-	        	Collection<DummyOrg> orgs = resource.listOrgs();
-		        for (DummyOrg org : orgs) {
-		        	ConnectorObject co = convertToConnectorObject(org, attributesToGet);
-		        	if (matches(query, co)) {
-		        		co = filterOutAttributesToGet(co, org, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
+	        	search(objectClass, query, handler, options, 
+	        			resource::listOrgs, resource::getOrgByName, resource::getOrgById, this::convertToConnectorObject, null);
 	        	
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
@@ -1249,6 +1228,80 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
         
         log.info("executeQuery::end");
+    }
+    
+    private <T extends DummyObject> void search(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options, 
+    		Lister<T> lister, Getter<T> nameGetter, Getter<T> idGetter, Converter<T> converter, Consumer<T> recorder) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+    	Collection<String> attributesToGet = getAttrsToGet(options);
+        log.ok("attributesToGet={0}", attributesToGet);
+        
+        if (isEqualsFilter(query, Name.NAME)) {
+        	Attribute nameAttribute = ((EqualsFilter)query).getAttribute();
+        	String name = (String)nameAttribute.getValue().get(0);
+        	T object = nameGetter.get(name);
+        	if (object != null) {
+        		handleObject(object, handler, options, attributesToGet, converter, recorder);
+        	}
+        	return;
+        }
+        
+        if (isEqualsFilter(query, Uid.NAME)) {
+        	Attribute uidAttribute = ((EqualsFilter)query).getAttribute();
+        	String uid = (String)uidAttribute.getValue().get(0);
+        	T object;
+        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+        		object = nameGetter.get(uid);
+	        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+	        	object = idGetter.get(uid);
+	        } else {
+	        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+	        }
+        	if (object != null) {
+        		handleObject(object, handler, options, attributesToGet, converter, recorder);
+        	}
+        	return;
+        }
+        
+        // Brute force: list all, filter out
+    	Collection<T> allObjects = lister.list();
+        for (T object : allObjects) {
+        	ConnectorObject co = converter.convert(object, attributesToGet);
+        	if (matches(query, co)) {
+        		handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
+        	}
+        }
+    }
+    
+    private <T extends DummyObject> void handleObject(T object, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Converter<T> converter, Consumer<T> recorder) throws SchemaViolationException {
+    	ConnectorObject co = converter.convert(object, attributesToGet);
+    	handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
+    }
+    
+    private <T extends DummyObject> void handleConnectorObject(T object, ConnectorObject co, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Consumer<T> recorder) {
+    	if (recorder != null) {
+			recorder.accept(object);
+		}
+		co = filterOutAttributesToGet(co, object, attributesToGet, options.getReturnDefaultAttributes());
+		handler.handle(co);
+	}
+
+	private boolean isEqualsFilter(Filter icfFilter, String icfAttrname) {
+		return icfFilter != null && (icfFilter instanceof EqualsFilter) && icfAttrname.equals(((EqualsFilter)icfFilter).getName());
+	}
+    
+    @FunctionalInterface
+    interface Lister<T> {
+    	Collection<T> list() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException;
+    }
+    
+    @FunctionalInterface
+    interface Getter<T> {
+    	T get(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException;
+    }
+    
+    @FunctionalInterface
+    interface Converter<T extends DummyObject> {
+    	ConnectorObject convert(T object, Collection<String> attributesToGet) throws SchemaViolationException;
     }
 
 	private boolean shouldRequireBaseContext(ObjectClass objectClass, Filter query,
