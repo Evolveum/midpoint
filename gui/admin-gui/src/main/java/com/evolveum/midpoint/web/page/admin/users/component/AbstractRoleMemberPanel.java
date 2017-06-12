@@ -11,6 +11,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -121,8 +124,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		memberContainer.setOutputMarkupPlaceholderTag(true);
 		form.add(memberContainer);
 
+		PageBase pageBase =  getPageBase();
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
-				ID_MEMBER_TABLE, getDefaultObjectType(), tableId, getSearchOptions(), getPageBase()) {
+				ID_MEMBER_TABLE, ObjectType.class, tableId, getSearchOptions(), pageBase) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -162,6 +166,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			}
 
 			@Override
+			protected Search createSearch() {
+				return SearchFactory.createSearch(getDefaultObjectType(), pageBase);
+			}
+
+			@Override
 			protected ObjectQuery createContentQuery() {
 				ObjectQuery q = super.createContentQuery();
 
@@ -192,7 +201,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 		headerMenuItems.addAll(newMemberInlineMenuItems());
 
-		headerMenuItems.add(new InlineMenuItem());
         headerMenuItems.addAll(createUnassignMemberInlineMenuItems());
         headerMenuItems.addAll(createMemberRecomputeInlineMenuItems());
 
