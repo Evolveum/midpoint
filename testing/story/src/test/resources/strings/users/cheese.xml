@@ -32,6 +32,7 @@
 		<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType" relation="org:manager"/>
 	</assignment>
 	<assignment id="3">
+		<description>a-test-1</description>
 		<targetRef type="RoleType" relation="org:approver">
 			<filter>
 				<q:equal>
@@ -42,6 +43,7 @@
 		</targetRef>
 	</assignment>
 	<assignment id="4">
+		<description>a-test-2a</description>
 		<targetRef type="RoleType" relation="org:approver">
 			<filter>
 				<q:equal>
@@ -52,6 +54,7 @@
 		</targetRef>
 	</assignment>
 	<assignment id="5">
+		<description>a-test-2b</description>
 		<targetRef type="RoleType" relation="org:approver">
 			<filter>
 				<q:equal>
@@ -61,7 +64,8 @@
 			</filter>
 		</targetRef>
 	</assignment>
-		<assignment id="6">
+	<assignment id="6">
+		<description>a-test-4</description>
 		<targetRef type="RoleType" relation="org:approver">
 			<filter>
 				<q:equal>

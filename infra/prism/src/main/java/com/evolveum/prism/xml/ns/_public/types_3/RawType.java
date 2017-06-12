@@ -260,12 +260,24 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
     public static RawType create(String value, PrismContext prismContext) {
         PrimitiveXNode<String> xnode = new PrimitiveXNode<>(value);
-        RawType rv = new RawType(xnode, prismContext);
-        return rv;
+		return new RawType(xnode, prismContext);
     }
 
     public static RawType create(XNode node, PrismContext prismContext) {
 		return new RawType(node, prismContext);
     }
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("RawType: ");
+		if (xnode != null) {
+			sb.append("(raw): ").append(xnode);
+		} else if (parsed != null) {
+			sb.append("(parsed): ").append(parsed);
+		} else {
+			sb.append("(empty)");
+		}
+		return sb.toString();
+	}
 }

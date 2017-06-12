@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2016-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -7,6 +22,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -20,6 +36,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,6 +49,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -45,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -71,7 +90,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 	private static final File SHADOW_CHAPPIE_FILE = new File(TEST_DIR, "shadow-chappie.xml");
 	private static final String SHADOW_CHAPPIE_OID = "shadow00-0000-0000-0000-111111111112";
 	
-	private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector";
+	private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
 	
 	@Autowired
 	MidpointConfiguration midPointConfig;
@@ -106,15 +125,20 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTile(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+		Object[] newRealValue = { sourceFilePath };
         
-        OperationResult result = modelService.testResource(RESOURCE_HR_OID, task);
-        modifyObjectReplaceProperty(ResourceType.class, RESOURCE_HR_OID, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
-				SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")), task, result, sourceFilePath);
+        ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_HR_OID, new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION,
+						SchemaConstants.ICF_CONFIGURATION_PROPERTIES, new QName(NS_RESOURCE_CSV, "filePath")), prismContext, newRealValue);
+        repositoryService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), result);
+        
+        OperationResult hrTestResult = modelService.testResource(RESOURCE_HR_OID, task);
+        TestUtil.assertSuccess("HR resource test result", hrTestResult);
         
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_HR_OID, task);
-        TestUtil.assertSuccess(testResultOpenDj);
+        TestUtil.assertSuccess("OpenDJ resource test result", testResultOpenDj);
         
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         assertNotNull("No system configuration", systemConfiguration);

@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -46,15 +45,12 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPane
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -95,7 +91,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -270,6 +265,9 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         } else if (param.getProperties() != null && param.getProperties().getTargetType() != null) { // render autocomplete box
         	LookupTableType lookup = new LookupTableType();
             panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<>(model, expression, lookup, false), String.class) {
+				
+            	private static final long serialVersionUID = 1L;
+
 				@Override
 				public Iterator<String> getIterator(String input) {
 					return prepareAutoCompleteList(input, lookup, param).iterator();
@@ -343,7 +341,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                 targetType = (Class<O>) Class.forName(pTargetType);
             } catch (ClassNotFoundException e) {
                 error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
-                //e.printStackTrace();
+          
             }
         }
 
@@ -362,13 +360,13 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
                 for (PrismObject<O> o : objects) {
                     Object realKeyValue = null;
-                    PrismProperty labelItem = o.findProperty(label);
+                    PrismProperty<?> labelItem = o.findProperty(label);
 
                     //TODO: e.g. support not only for property, but also ref, container..
                     if (labelItem == null || labelItem.isEmpty()) {
                         continue;
                     }
-                    PrismProperty keyItem = o.findProperty(key);
+                    PrismProperty<?> keyItem = o.findProperty(key);
                     if ("oid".equals(pKey)) {
                         realKeyValue = o.getOid();
                     }
@@ -385,7 +383,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                     realKeyValue = (realKeyValue == null) ? keyItem.getRealValue() : realKeyValue;
 
                     // TODO: take definition into account
-                    QName typeName = labelItem.getDefinition().getTypeName();
+//                    QName typeName = labelItem.getDefinition().getTypeName();
 
                     LookupTableRowType row = new LookupTableRowType();
 
@@ -403,7 +401,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                 return rows;
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 error("Error while creating lookup table for input parameter: " + param.getName() + ", " + e.getClass().getSimpleName() + " (" + e.getMessage() + ")");
-                //e.printStackTrace();
             }
 
         }
@@ -449,55 +446,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         return values;
     }
 
-    private IModel<List<String>> createUserAttributeListModel(Class type) {
-        final List<String> attrList = new ArrayList();
-        PrismObjectDefinition<UserType> userDefinition = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        List<? extends ItemDefinition> itemDefs = userDefinition.getDefinitions();
-
-        for (ItemDefinition id : itemDefs) {
-            if (id instanceof PrismPropertyDefinition
-                    && ((((PrismPropertyDefinition) id).isIndexed() == null)
-                    || (((PrismPropertyDefinition) id).isIndexed() == true))) {
-                if (id.getTypeClass() != null && id.getTypeClass().equals(type)) {
-                    attrList.add(id.getName().getLocalPart());
-                }
-            }
-        }
-
-        return new AbstractReadOnlyModel<List<String>>() {
-
-            @Override
-            public List<String> getObject() {
-                return attrList;
-            }
-
-        };
-    }
-
-    private IModel<List<String>> createResourceListModel() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-        Task task = createSimpleTask(OPERATION_LOAD_RESOURCES);
-        List<PrismObject<ResourceType>> resources = null;
-        final List<String> resourceList = new ArrayList();
-
-        try {
-            resources = getPageBase().getModelService().searchObjects(ResourceType.class, new ObjectQuery(), null, task, result);
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage());
-        }
-
-        for (PrismObject<ResourceType> resource : resources) {
-            resourceList.add(resource.getBusinessDisplayName());
-        }
-
-        return new AbstractReadOnlyModel<List<String>>() {
-
-            @Override
-            public List<String> getObject() {
-                return resourceList;
-            }
-        };
-    }
 
     public Task createSimpleTask(String operation, PrismObject<UserType> owner) {
         Task task = getPageBase().getTaskManager().createTaskInstance(operation);
@@ -521,14 +469,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         MidPointPrincipal user = SecurityUtils.getPrincipalUser();
         return createSimpleTask(operation, user != null ? user.getUser().asPrismObject() : null);
     }
-
-//    private void addFormUpdatingBehavior(FormComponent parent, String id, final IModel<JasperReportParameterDto> model) {
-//        Component c = parent.get(id);
-//        if (c == null) {
-//            return;
-//        }
-//        c.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//    }
 
     private void runConfirmPerformed(AjaxRequestTarget target, IModel<ReportDto> model) {
         ReportDto reportDto = model.getObject();
@@ -596,19 +536,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         runConfirmPerformed(target, reportDto.getObject().asObjectable(), paramContainer);
     }
     
-//    private boolean isMultiValue(JasperReportParameterDto param){
-//    	if (param == null) {
-//    		return false;
-//    	}
-//    	
-//    	if (param.getProperties() == null) {
-//    		return false;
-//    	}
-//    	
-//    	return param.getProperties().getMultivalue();
-//    	
-//    }
-
     private PrismContext getPrismContext() {
         return getPageBase().getPrismContext();
     }

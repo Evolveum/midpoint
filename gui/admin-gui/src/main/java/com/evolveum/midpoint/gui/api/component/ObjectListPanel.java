@@ -23,6 +23,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -32,6 +33,7 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -321,6 +323,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				}
 				return bean;
 			}
+			
+			@Override
+					protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+				List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);		
+				if (customOrdering != null) {
+							return customOrdering;
+						}
+						return super.createObjectOrderings(sortParam);
+					}
 		};
 		if (options == null){
 			if (ResourceType.class.equals(type)) {
@@ -336,6 +347,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		provider.setQuery(getQuery());
 		
 		return provider;
+	}
+	
+	protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
+		return null;
 	}
 	
 	private SearchFormPanel initSearch(String headerId) {

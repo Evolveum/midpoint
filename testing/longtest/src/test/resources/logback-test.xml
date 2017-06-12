@@ -51,6 +51,8 @@
 	<logger name="com.evolveum.midpoint.model.lens.projector.ConsolidationProcessor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="TRACE" />  -->
 	
+	<logger name="org.identityconnectors.framework" level="TRACE" />
+	
 	<logger name="PROFILING" level="INFO" />
 	
 	<root level="WARN">
