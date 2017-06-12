@@ -24,10 +24,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.core.util.lang.PropertyResolver;
+import org.apache.wicket.core.util.lang.PropertyResolverConverter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -264,7 +268,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             panel = new DatePanel(componentId, new PropertyModel<>(model, expression));
         } else if (param.getProperties() != null && param.getProperties().getTargetType() != null) { // render autocomplete box
         	LookupTableType lookup = new LookupTableType();
-            panel = new AutoCompleteTextPanel<String>(componentId, new LookupPropertyModel<>(model, expression, lookup, false), String.class) {
+            panel = new AutoCompleteTextPanel<String>(componentId, new LookupReportPropertyModel(model, expression, lookup, false), String.class) {
 				
             	private static final long serialVersionUID = 1L;
 
@@ -283,7 +287,6 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         panel.setOutputMarkupId(true);
         return panel;
     }
-    
     
     private void addValue(WebMarkupContainer paramValueMarkup, JasperReportParameterDto valueModel, AjaxRequestTarget target) {
     	valueModel.addValue();
@@ -562,6 +565,22 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 	@Override
 	public Component getComponent() {
 		return this;
+	}
+	
+	class LookupReportPropertyModel extends LookupPropertyModel<String> {
+
+		private static final long serialVersionUID = 1L;
+		
+		
+		public LookupReportPropertyModel(IModel<JasperReportValueDto> modelObject, String expression, LookupTableType lookupTable, boolean isStrict) {
+			super(modelObject, expression, lookupTable, isStrict);
+		}
+		
+		@Override
+		public boolean isSupportsDisplayName() {
+			return true;
+		}
+		
 	}
 
 }
