@@ -485,7 +485,7 @@ public class ExpressionUtil {
 			}
 		} else if (filter instanceof FullTextFilter) {
 			ExpressionWrapper expressionWrapper = ((FullTextFilter) filter).getExpression();
-			if (expressionMissing(expressionWrapper, shortDesc)) {
+			if (expressionMissing(expressionWrapper, filter, shortDesc)) {
 				return filter.clone();
 			}
 			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
@@ -531,7 +531,7 @@ public class ExpressionUtil {
 			}
 
 			ExpressionWrapper expressionWrapper = valueFilter.getExpression();
-			if (expressionMissing(expressionWrapper, shortDesc)) {
+			if (expressionMissing(expressionWrapper, filter, shortDesc)) {
 				return valueFilter.clone();
 			}
 			ExpressionType valueExpression = getExpression(expressionWrapper, shortDesc);
@@ -603,9 +603,9 @@ public class ExpressionUtil {
 		}
 	}
 
-	private static boolean expressionMissing(ExpressionWrapper expressionWrapper, String shortDesc) {
+	private static boolean expressionMissing(ExpressionWrapper expressionWrapper, ObjectFilter filter, String shortDesc) {
 		if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
-			LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
+			LOGGER.debug("No valueExpression in filter {} in {}. Returning original filter", filter, shortDesc);
 			return true;
 		}
 		return false;

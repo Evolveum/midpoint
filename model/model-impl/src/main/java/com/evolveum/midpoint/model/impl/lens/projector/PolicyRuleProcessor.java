@@ -623,7 +623,11 @@ public class PolicyRuleProcessor {
 			}
 			for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
 				for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getRoles().getNonNegativeValues()) {
-					if (!target.getAssignmentPath().last().isMatchingOrder()) {
+					if (!target.getAssignmentPath().last().isMatchingOrder() && !target.isDirectlyAssigned()) {
+						// This is to be thought out well. It is of no use to include global policy rules
+						// attached to meta-roles assigned to the role being assigned to the focus. But we certainly need to include rules
+						// attached to all directly assigned roles (because they might be considered for assignment) as
+						// well as all indirectly assigned roles but of the matching order (because of exclusion violation).
 						continue;
 					}
 					if (!repositoryService.selectorMatches(globalPolicyRule.getTargetSelector(),
@@ -635,7 +639,7 @@ public class PolicyRuleProcessor {
 						continue;
 					}
 					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone());
-					boolean direct = target.getAssignmentPath().getFirstOrderChain().size() == 1;
+					boolean direct = target.isDirectlyAssigned() || target.getAssignmentPath().getFirstOrderChain().size() == 1;
 					if (direct) {
 						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);
 					} else {

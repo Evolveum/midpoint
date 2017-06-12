@@ -29,6 +29,7 @@
 		<targetRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
 	</assignment>
 	<c:assignment id="3">
+		<description>Security Approvers</description>
 		<c:targetRef type="c:OrgType">
 			<filter>
 				<q:equal>
@@ -39,6 +40,7 @@
 		</c:targetRef>
 	</c:assignment>
 	<c:assignment id="4">
+		<description>SoD Approvers</description>
 		<c:targetRef type="c:OrgType">
 			<filter>
 				<q:equal>
