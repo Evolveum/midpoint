@@ -146,7 +146,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				refreshSearch(target);
+				refreshSearch();
 				refreshTable(target);
 			}
 		});
@@ -526,7 +526,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName(), ObjectType.class), target);
 	}
 
-	protected void refreshSearch(AjaxRequestTarget target) {
+	protected void refreshSearch() {
 		getMemberTable().resetSearchModel();
 	}
 
