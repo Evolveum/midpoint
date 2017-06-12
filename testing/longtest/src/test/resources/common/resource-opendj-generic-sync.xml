@@ -239,6 +239,7 @@
 	         <cap:password/>
 	      </cap:credentials>
 	      <cap:liveSync/>
+	      <cap:read/>
 	      <cap:testConnection/>
 	      <cap:script>
 	         <cap:host>
