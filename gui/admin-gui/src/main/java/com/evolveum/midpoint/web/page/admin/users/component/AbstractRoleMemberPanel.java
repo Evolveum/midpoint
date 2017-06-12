@@ -192,7 +192,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 		headerMenuItems.addAll(newMemberInlineMenuItems());
 
-		headerMenuItems.add(new InlineMenuItem());
         headerMenuItems.addAll(createUnassignMemberInlineMenuItems());
         headerMenuItems.addAll(createMemberRecomputeInlineMenuItems());
 
