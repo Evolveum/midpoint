@@ -231,11 +231,10 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			try {
 				Task task = parentPage.createSimpleTask(getOperationName(OPERATION_DELETE_OBJECT));
 
-				ObjectDelta delta = new ObjectDelta(objectClass, ChangeType.DELETE, parentPage.getPrismContext());
-				delta.setOid(object.getOid());
-				parentPage.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, subResult);
+				ObjectDelta<F> delta = ObjectDelta.createDeleteDelta(objectClass, object.getOid(), parentPage.getPrismContext());
+				WebModelServiceUtils.save(delta, subResult, task, parentPage);
 				subResult.computeStatus();
-			} catch (CommonException|RuntimeException ex) {
+			} catch (RuntimeException ex) {
 				subResult.recomputeStatus();
 				subResult.recordFatalError("Couldn't delete object.", ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
