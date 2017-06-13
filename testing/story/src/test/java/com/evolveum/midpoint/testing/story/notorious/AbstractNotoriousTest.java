@@ -48,7 +48,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.testing.story.RepoReadInspector;
+import com.evolveum.midpoint.testing.story.CountingInspector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -98,17 +98,19 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		
 	private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
 	
-	protected static final int NUMBER_OF_LEVEL_A_ROLES = 100;
+	protected static final int NUMBER_OF_LEVEL_A_ROLES = 10;
 	protected static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
+	protected static final String ROLE_LEVEL_A_ROLETYPE = "levelA";
 	protected static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
 	
-	protected static final int NUMBER_OF_LEVEL_B_ROLES = 300;
+	protected static final int NUMBER_OF_LEVEL_B_ROLES = 30;
 	protected static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
+	protected static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
 	protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractNotoriousTest.class);
 	
-	protected RepoReadInspector inspector;
+	protected CountingInspector inspector;
 	
 	protected abstract String getNotoriousOid();
 	
@@ -124,17 +126,20 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		
 		generateRoles(NUMBER_OF_LEVEL_A_ROLES, ROLE_LEVEL_A_NAME_FORMAT, ROLE_LEVEL_A_OID_FORMAT,
 				(role,i) -> {
+					role.roleType(ROLE_LEVEL_A_ROLETYPE);
 					role.beginInducement().targetRef(getNotoriousOid(), getNotoriousType()).end();
 				},
 				initResult);
 
-		generateRoles(NUMBER_OF_LEVEL_B_ROLES, ROLE_LEVEL_B_NAME_FORMAT, ROLE_LEVEL_B_OID_FORMAT,
-				null,
-				initResult);
-
 		addNotoriousRole(initResult);
 		
-		inspector = new RepoReadInspector();
+		// Add these using model, so they have proper roleMembershipRef
+		generateRoles(NUMBER_OF_LEVEL_B_ROLES, ROLE_LEVEL_B_NAME_FORMAT, ROLE_LEVEL_B_OID_FORMAT,
+				this::fillLevelBRole,
+				role -> addObject(role, initTask, initResult),
+				initResult);
+		
+		inspector = new CountingInspector();
 		InternalMonitor.setInspector(inspector);
 		
 		InternalMonitor.setTraceRoleEvaluation(true);
@@ -142,9 +147,17 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	
 	protected abstract void addNotoriousRole(OperationResult result) throws Exception;
 	
+	protected void fillLevelBRole(RoleType roleType, int i) {
+		roleType
+			.roleType(ROLE_LEVEL_B_ROLETYPE);
+	}
+	
 	protected void fillNotorious(AbstractRoleType roleType) throws Exception {
 		for(int i=0; i < NUMBER_OF_LEVEL_B_ROLES; i++) {
-			roleType.beginInducement().targetRef(generateRoleOid(ROLE_LEVEL_B_OID_FORMAT, i), RoleType.COMPLEX_TYPE).end();
+			roleType.beginInducement()
+				.targetRef(generateRoleOid(ROLE_LEVEL_B_OID_FORMAT, i), RoleType.COMPLEX_TYPE)
+				.focusType(UserType.COMPLEX_TYPE)
+			.end();
 		}
 	}
 

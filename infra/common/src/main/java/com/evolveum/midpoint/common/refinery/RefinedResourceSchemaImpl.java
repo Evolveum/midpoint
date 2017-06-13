@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,25 +35,33 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
+ * TODO: this whole class would benefit from more refactoring.
+ * TODO: especially the parsing part.
+ * 
  * @author semancik
- *
+ * @author mederly
  */
 public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 	
 	private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName()+".parsedResourceSchema";
 	private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName()+".refinedSchema";
 
-	// TODO really don't remember why we include originalResourceSchema here instead of simply extending ResourceSchemaImpl ...
-	// TODO Maybe that's because we need to create new RefinedResourceSchema(s) based on existing ResourceSchema(s)?
+	// Original resource schema is there to make parsing easier. 
+	// But it is also useful in some cases, e.g. we do not need to pass both refined schema and
+	// original schema as a metod parameter.
 	private ResourceSchema originalResourceSchema;
+	
+	// This object contains the real data of the refined schema
+	private ResourceSchema resourceSchema;
 	
 	private RefinedResourceSchemaImpl(@NotNull ResourceSchema originalResourceSchema) {
 		this.originalResourceSchema = originalResourceSchema;
+		this.resourceSchema = new ResourceSchemaImpl(originalResourceSchema.getNamespace(), originalResourceSchema.getPrismContext());
 	}
 	
 	@Override
 	public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions() {
-		return originalResourceSchema.getDefinitions(RefinedObjectClassDefinition.class);
+		return resourceSchema.getDefinitions(RefinedObjectClassDefinition.class);
 	}
 	
 	@Override
@@ -401,6 +409,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 //		return false;
 //	}
 
+	// TODO: The whole parsing is a big mess. TODO: refactor parsing
 	private static void parseObjectTypeDefsFromSchemaHandling(RefinedResourceSchemaImpl rSchema, ResourceType resourceType,
 			SchemaHandlingType schemaHandling, Collection<ResourceObjectTypeDefinitionType> resourceObjectTypeDefs,
 			ShadowKindType impliedKind, PrismContext prismContext, String contextDescription) throws SchemaException {
@@ -466,106 +475,106 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 	//endregion
 
 	private void add(RefinedObjectClassDefinition rOcDef) {
-		((ResourceSchemaImpl) originalResourceSchema).add(rOcDef);			// TODO FIXME
+		((ResourceSchemaImpl) resourceSchema).add(rOcDef);
 	}
 
 	//region Delegations
 	@Override
 	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName) {
-		return originalResourceSchema.findObjectClassDefinition(objectClassQName);
+		return resourceSchema.findObjectClassDefinition(objectClassQName);
 	}
 
 	@Override
 	public ObjectClassComplexTypeDefinition findObjectClassDefinition(ShadowKindType kind, String intent) {
-		return originalResourceSchema.findObjectClassDefinition(kind, intent);
+		return resourceSchema.findObjectClassDefinition(kind, intent);
 	}
 
 	@Override
 	public ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition(ShadowKindType kind) {
-		return originalResourceSchema.findDefaultObjectClassDefinition(kind);
+		return resourceSchema.findDefaultObjectClassDefinition(kind);
 	}
 
 	@Override
 	public String getNamespace() {
-		return originalResourceSchema.getNamespace();
+		return resourceSchema.getNamespace();
 	}
 
 	@Override
 	@NotNull
 	public Collection<Definition> getDefinitions() {
-		return originalResourceSchema.getDefinitions();
+		return resourceSchema.getDefinitions();
 	}
 
 	@Override
 	@NotNull
 	public <T extends Definition> List<T> getDefinitions(@NotNull Class<T> type) {
-		return originalResourceSchema.getDefinitions(type);
+		return resourceSchema.getDefinitions(type);
 	}
 
 	@Override
 	public PrismContext getPrismContext() {
-		return originalResourceSchema.getPrismContext();
+		return resourceSchema.getPrismContext();
 	}
 
 	@Override
 	@NotNull
 	public Document serializeToXsd() throws SchemaException {
-		return originalResourceSchema.serializeToXsd();
+		return resourceSchema.serializeToXsd();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return originalResourceSchema.isEmpty();
+		return resourceSchema.isEmpty();
 	}
 
 	@NotNull
 	@Override
 	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
 			@NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
-		return originalResourceSchema.findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass);
+		return resourceSchema.findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass);
 	}
 
 	@Nullable
 	@Override
 	public <TD extends TypeDefinition> TD findTypeDefinitionByCompileTimeClass(@NotNull Class<?> compileTimeClass, @NotNull Class<TD> definitionClass) {
-		return originalResourceSchema.findTypeDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
+		return resourceSchema.findTypeDefinitionByCompileTimeClass(compileTimeClass, definitionClass);
 	}
 
 	@Override
 	@Nullable
 	public <TD extends TypeDefinition> TD findTypeDefinitionByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
-		return originalResourceSchema.findTypeDefinitionByType(typeName, definitionClass);
+		return resourceSchema.findTypeDefinitionByType(typeName, definitionClass);
 	}
 
 	@Override
 	public String debugDump() {
-		return originalResourceSchema.debugDump();
+		return resourceSchema.debugDump();
 	}
 
 	@Override
 	public String debugDump(int indent) {
-		return originalResourceSchema.debugDump(indent);
+		return resourceSchema.debugDump(indent);
 	}
 
 	@Nullable
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinitionByType(
 			@NotNull QName typeName, @NotNull Class<ID> definitionType) {
-		return originalResourceSchema.findItemDefinitionByType(typeName, definitionType);
+		return resourceSchema.findItemDefinitionByType(typeName, definitionType);
 	}
 
 	@Override
 	@NotNull
 	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName,
 			@NotNull Class<ID> definitionClass) {
-		return originalResourceSchema.findItemDefinitionsByElementName(elementName, definitionClass);
+		return resourceSchema.findItemDefinitionsByElementName(elementName, definitionClass);
 	}
 
 	@NotNull
 	@Override
 	public <TD extends TypeDefinition> Collection<? extends TD> findTypeDefinitionsByType(@NotNull QName typeName,
 			@NotNull Class<TD> definitionClass) {
-		return originalResourceSchema.findTypeDefinitionsByType(typeName, definitionClass);
+		return resourceSchema.findTypeDefinitionsByType(typeName, definitionClass);
 	}
 
 	//endregion

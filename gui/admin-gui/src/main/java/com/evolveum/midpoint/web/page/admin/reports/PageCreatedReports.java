@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -79,10 +80,6 @@ import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPane
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * @author lazyman
@@ -214,8 +211,13 @@ public class PageCreatedReports extends PageAdminReports {
 			protected List<IColumn<SelectableBean<ReportOutputType>, String>> createColumns() {
 				return PageCreatedReports.this.initColumns(ajaxDownloadBehavior);
 			}
-			
-			@Override
+
+            @Override
+            protected PrismObject<ReportOutputType> getNewObjectListObject(){
+                return (new ReportOutputType()).asPrismObject();
+            }
+
+            @Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ReportOutputType object) {
 				// TODO Auto-generated method stub
 				

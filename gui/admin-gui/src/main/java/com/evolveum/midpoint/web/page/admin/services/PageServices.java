@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.services;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -100,6 +101,11 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 			@Override
 			public void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
 				PageServices.this.serviceDetailsPerformed(target, service);
+			}
+
+			@Override
+			protected PrismObject<ServiceType> getNewObjectListObject(){
+				return (new ServiceType()).asPrismObject();
 			}
 
 			@Override

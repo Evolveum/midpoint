@@ -46,6 +46,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,6 +131,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -468,6 +470,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     	List<PrismObject<O>> users = modelService.searchObjects(type, null, null, task, result);
         if (verbose) display(type.getSimpleName()+"s", users);
         assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfUsers, users.size());
+    }
+    
+    protected <O extends ObjectType> void searchObjectsIterative(Class<O> type, ObjectQuery query, Consumer<PrismObject<O>> handler, Integer expectedNumberOfObjects) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertObjects");
+        OperationResult result = task.getResult();
+        final MutableInt count = new MutableInt(0);
+		// Cannot convert to lambda here. Java does not want to understand the generic types properly.
+		SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(type, query, new ResultHandler<O>() {
+				@Override
+				public boolean handle(PrismObject<O> object, OperationResult oresult) {
+					count.increment();
+					if (handler != null) {
+						handler.accept(object);
+					}
+					return true;
+				}
+			}, null, task, result);
+        if (verbose) display(type.getSimpleName()+"s", count.getValue());
+        assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfObjects, count.getValue());
     }
 
 	protected void assertUserProperty(String userOid, QName propertyName, Object... expectedPropValues) throws ObjectNotFoundException, SchemaException {

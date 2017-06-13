@@ -136,6 +136,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			}
 
 			@Override
+			protected PrismObject<ObjectType> getNewObjectListObject(){
+				return null;
+			}
+
+			@Override
 			protected boolean isClickable(IModel<SelectableBean<ObjectType>> rowModel) {
 				if (rowModel == null || rowModel.getObject() == null
 						|| rowModel.getObject().getValue() == null) {

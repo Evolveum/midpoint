@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -25,4 +26,5 @@ public interface InternalInspector {
 
 	<O extends ObjectType> void inspectRepositoryRead(Class<O> type, String oid);
 	
+	<F extends FocusType> void inspectRoleEvaluation(F target, boolean fullEvaluation);
 }
