@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -45,6 +46,10 @@ public class AdUtils {
 	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
 	public static final QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
 	public static final String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
+	public static final String ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME = "msExchHideFromAddressLists";
+	public static final QName ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
+	
+	public static final QName OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME = new QName(MidPointConstants.NS_RI, "msExchBaseClass");
 	
 	/**
 	 * Returns dashed GUID notation formatted from simple hex-encoded binary.
@@ -85,7 +90,7 @@ public class AdUtils {
         display("Account object class def", accountObjectClassDefinition);
         
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
-        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, 1);
+        PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 0, 1);
         assertTrue("cn read", cnDef.canRead());
         assertTrue("cn modify", cnDef.canModify());
         assertTrue("cn add", cnDef.canAdd());
@@ -96,7 +101,6 @@ public class AdUtils {
         assertTrue("samAccountNameDef read", samAccountNameDef.canRead());
         assertTrue("samAccountNameDef modify", samAccountNameDef.canModify());
         assertTrue("samAccountNameDef add", samAccountNameDef.canAdd());
-
         
         ResourceAttributeDefinition<String> oDef = accountObjectClassDefinition.findAttributeDefinition("o");
         PrismAsserts.assertDefinition(oDef, new QName(MidPointConstants.NS_RI, "o"), DOMUtil.XSD_STRING, 0, -1);
@@ -134,4 +138,21 @@ public class AdUtils {
         
         return accountObjectClassDefinition;
 	}
+	
+	public static void assertExchangeSchema(PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException {
+		
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        
+        ObjectClassComplexTypeDefinition msExchBaseClassObjectClassDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME);
+        assertNotNull("No definition for object class "+OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME, msExchBaseClassObjectClassDefinition);
+        display("Object class "+OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME+" def", msExchBaseClassObjectClassDefinition);
+        
+        ResourceAttributeDefinition<String> msExchHideFromAddressListsDef = msExchBaseClassObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
+        PrismAsserts.assertDefinition(msExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
+        assertTrue("msExchHideFromAddressLists read", msExchHideFromAddressListsDef.canRead());
+        assertTrue("msExchHideFromAddressLists modify", msExchHideFromAddressListsDef.canModify());
+        assertTrue("msExchHideFromAddressLists add", msExchHideFromAddressListsDef.canAdd());
+
+	}
+
 }

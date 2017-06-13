@@ -59,6 +59,11 @@ public class TestDummyIncomplete extends TestDummy {
 	}
 	
 	@Override
+	protected int getExpectedRefinedSchemaDefinitions() {
+		return super.getExpectedRefinedSchemaDefinitions() + 1;
+	}
+	
+	@Override
 	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
 		PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
 		assertNotNull("password native capability not present", passwordCapabilityType);

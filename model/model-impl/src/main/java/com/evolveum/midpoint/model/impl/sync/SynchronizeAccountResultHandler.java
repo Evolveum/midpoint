@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,18 +59,18 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private String resourceOid;
 	private ThreadLocal<ResourceType> resourceWorkingCopy = new ThreadLocal<>();       // because PrismContainer is not thread safe even for reading, each thread must have its own copy
 	private ResourceType resourceReadOnly;				// this is a "master copy", not to be touched by getters - its content is copied into resourceWorkingCopy content when needed
-	private ObjectClassComplexTypeDefinition objectClass;
+	private ObjectClassComplexTypeDefinition objectClassDef;
 	private QName sourceChannel;
 	private boolean forceAdd;
 
-	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClass,
+	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
 			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
 			TaskManager taskManager) {
 		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, taskManager);
 		this.objectChangeListener = objectChangeListener;
 		this.resourceReadOnly = resource;
 		this.resourceOid = resource.getOid();
-		this.objectClass = objectClass;
+		this.objectClassDef = objectClassDef;
 		forceAdd = false;
 		setRecordIterationStatistics(false);		// we do statistics ourselves in handler, because in case of reconciliation
 													// we are not called via AbstractSearchIterativeResultHandler.processRequest
@@ -106,7 +106,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	}
 
 	public ObjectClassComplexTypeDefinition getObjectClass() {
-		return objectClass;
+		return objectClassDef;
 	}
 
 	/*
@@ -139,18 +139,21 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
 	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));
+		}
+		
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
-			LOGGER.trace("{} skipping {} because it is protected", new Object[]{
-					getProcessShortNameCapitalized(), accountShadow});
+			LOGGER.trace("{} skipping {} because it is protected", 
+					getProcessShortNameCapitalized(), accountShadow);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
 			return true;
 		}
 
-		if (objectClass != null && (objectClass instanceof RefinedObjectClassDefinition)
-				&& !((RefinedObjectClassDefinition) objectClass).matches(newShadowType)) {
-			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent", new Object[]{
-					getProcessShortNameCapitalized(), accountShadow});
+		if (objectClassDef != null && !objectClassDef.matches(newShadowType)) {
+			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent specified in {}",
+					getProcessShortNameCapitalized(), accountShadow, objectClassDef);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
 			return true;
 		}

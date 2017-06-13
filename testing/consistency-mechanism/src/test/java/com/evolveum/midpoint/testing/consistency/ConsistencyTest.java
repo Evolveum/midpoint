@@ -40,6 +40,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
@@ -361,7 +362,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test000Integrity() throws Exception {
 		final String TEST_NAME = "test000Integrity";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		assertNotNull(modelWeb);
 		assertNotNull(modelService);
 		assertNotNull(repositoryService);
@@ -1190,7 +1191,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test240AddObjectCommunicationProblemAlreadyExists() throws Exception{
 		final String TEST_NAME = "test240AddObjectCommunicationProblemAlreadyExists";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeRunning();
@@ -1228,7 +1229,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test250ModifyObjectTwoTimesCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test250ModifyObjectTwoTimesCommunicationProblem";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
 		openDJController.assumeStopped();
@@ -1749,7 +1750,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test500AddUserMorganWithAssignment() throws Exception {
 		final String TEST_NAME = "test500AddUserMorganWithAssignment";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
         openDJController.assumeRunning();        
@@ -1766,12 +1767,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
+		display("result", result);
+		assertSuccess(result);
 //		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
@@ -1784,14 +1787,15 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("account shadow (repo)", accountShadow);
         assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("account shadow (model)", accountModel);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        
-        // TODO: check OpenDJ Account        
 	}
+
 	
 	/**
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
@@ -1800,7 +1804,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test501AddUserChuckWithAssignment() throws Exception {
 		final String TEST_NAME = "test501AddUserChuckWithAssignment";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN	
         openDJController.assumeRunning();
@@ -1861,7 +1865,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test502AssignAccountToHerman() throws Exception {
 		final String TEST_NAME = "test502AssignAccountToHerman";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN	
         openDJController.assumeRunning();
@@ -1919,7 +1923,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test510UnlinkAndUnassignAccountMorgan() throws Exception {
 		final String TEST_NAME = "test510UnlinkAndUnassignAccountMorgan";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -1989,7 +1993,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test511AssignAccountMorgan() throws Exception {
 		final String TEST_NAME = "test511AssignAccountMorgan";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2131,7 +2135,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test800Reconciliation() throws Exception {
 		final String TEST_NAME = "test800Reconciliation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         openDJController.assumeRunning();
 
@@ -2207,7 +2211,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test801TestReconciliationRename() throws Exception {
 		final String TEST_NAME = "test801TestReconciliationRename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         openDJController.assumeRunning();
         Task task = createTask(TEST_NAME);

@@ -124,7 +124,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 	private static final Trace LOGGER = TraceManager.getTrace(TestPlentyOfAssignments.class);
 
 	
-	private RepoReadInspector inspector;
+	private CountingInspector inspector;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -158,7 +158,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 //					}
 				}, initResult);
 		
-		inspector = new RepoReadInspector();
+		inspector = new CountingInspector();
 		InternalMonitor.setInspector(inspector);
 	}
 

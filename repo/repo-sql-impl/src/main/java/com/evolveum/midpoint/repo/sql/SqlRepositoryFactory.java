@@ -203,19 +203,13 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.debug("Base dir path in configuration was not defined.");
             if (StringUtils.isNotEmpty(System.getProperty(MIDPOINT_HOME_VARIABLE))) {
                 config.setBaseDir(System.getProperty(MIDPOINT_HOME_VARIABLE));
-
-                LOGGER.info("Using {} with value {} as base dir for configuration.",
-                        new Object[]{MIDPOINT_HOME_VARIABLE, config.getBaseDir()});
+                LOGGER.info("Using {} with value {} as base dir for configuration.", MIDPOINT_HOME_VARIABLE, config.getBaseDir());
             } else if (StringUtils.isNotEmpty(System.getProperty(USER_HOME_VARIABLE))) {
                 config.setBaseDir(System.getProperty(USER_HOME_VARIABLE));
-
-                LOGGER.info("Using {} with value {} as base dir for configuration.",
-                        new Object[]{USER_HOME_VARIABLE, config.getBaseDir()});
+                LOGGER.info("Using {} with value {} as base dir for configuration.", USER_HOME_VARIABLE, config.getBaseDir());
             } else {
                 config.setBaseDir(".");
-
-                LOGGER.info("Using '.' as base dir for configuration ({}, or {} was not defined).",
-                        new Object[]{MIDPOINT_HOME_VARIABLE, USER_HOME_VARIABLE});
+                LOGGER.info("Using '.' as base dir for configuration ({}, or {} was not defined).", MIDPOINT_HOME_VARIABLE, USER_HOME_VARIABLE);
             }
         }
 
@@ -240,7 +234,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             jdbcUrl.append(databaseFile.getAbsolutePath());
         }
         return jdbcUrl.toString();
-
     }
 
     private String getRelativeBaseDirPath(String baseDir) {

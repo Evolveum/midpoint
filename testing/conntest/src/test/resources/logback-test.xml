@@ -17,9 +17,7 @@
 
 <configuration>
 	
-	<!-- !!! WARNING !!! -->
-	<!-- This file is used only for early system init.
-	     The logging config is then taken from system-configuration.xml -->
+	<!-- This file is really used to control at least some logging after all. -->
 
 	<appender name="X" class="ch.qos.logback.core.FileAppender">
 		<file>./target/test.log</file>
@@ -52,6 +50,9 @@
 	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
+	
+	<logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
+	<logger name="com.evolveum.polygon.connector.ldap.schema" level="DEBUG" />
 	
 	<logger name="PROFILING" level="INFO" />
 	

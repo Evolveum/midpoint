@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,7 +196,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	boolean isAuxiliary();
 
 	/**
-	 * TODO
+	 * TODO: THIS SHOULD NOT BE HERE
 	 * @return
 	 */
 	ShadowKindType getKind();
@@ -215,7 +215,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	boolean isDefaultInAKind();
 
 	/**
-	 * TODO
+	 * TODO: THIS SHOULD NOT BE HERE
 	 * @return
 	 */
 	String getIntent();
@@ -237,4 +237,5 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	@NotNull
 	ObjectClassComplexTypeDefinition clone();
 
+	boolean matches(ShadowType shadowType);
 }

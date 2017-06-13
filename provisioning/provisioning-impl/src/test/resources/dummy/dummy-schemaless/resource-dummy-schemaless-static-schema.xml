@@ -127,6 +127,68 @@
 	                  <xsd:element name="members" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
 	               </xsd:sequence>
 	            </xsd:complexType>
+	            <xsd:complexType name="CustomprivilegeObjectClass">
+	               <xsd:annotation>
+	                  <xsd:appinfo>
+	                     <ra:resourceObject/>
+	                     <ra:identifier>icfs:uid</ra:identifier>
+	                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+	                     <ra:nativeObjectClass>privilege</ra:nativeObjectClass>
+	                  </xsd:appinfo>
+	               </xsd:annotation>
+	               <xsd:sequence>
+	                  <xsd:element minOccurs="0" ref="icfs:uid">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayName>ConnId UID</a:displayName>
+	                           <a:displayOrder>100</a:displayOrder>
+	                           <a:access>read</a:access>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	                  <xsd:element ref="icfs:name">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayName>ConnId Name</a:displayName>
+	                           <a:displayOrder>110</a:displayOrder>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	               </xsd:sequence>
+	            </xsd:complexType>
+	            <xsd:complexType name="CustomorgObjectClass">
+	               <xsd:annotation>
+	                  <xsd:appinfo>
+	                     <ra:resourceObject/>
+	                     <ra:identifier>icfs:uid</ra:identifier>
+	                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+	                     <ra:nativeObjectClass>org</ra:nativeObjectClass>
+	                  </xsd:appinfo>
+	               </xsd:annotation>
+	               <xsd:sequence>
+	                  <xsd:element minOccurs="0" ref="icfs:uid">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayName>ConnId UID</a:displayName>
+	                           <a:displayOrder>100</a:displayOrder>
+	                           <a:access>read</a:access>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	                  <xsd:element ref="icfs:name">
+	                     <xsd:annotation>
+	                        <xsd:appinfo>
+	                           <a:displayName>ConnId Name</a:displayName>
+	                           <a:displayOrder>110</a:displayOrder>
+	                        </xsd:appinfo>
+	                     </xsd:annotation>
+	                  </xsd:element>
+	               </xsd:sequence>
+	            </xsd:complexType>
          	</xsd:schema>
       	</definition>
 	</schema>

@@ -34,8 +34,8 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 	private static final long serialVersionUID = 1L;
 
 	protected final String expression;
-    private final LookupTableType lookupTable;
-    private boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
+	protected final LookupTableType lookupTable;
+	protected boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
 
     public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
         super(modelObject);
@@ -49,6 +49,10 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         this.lookupTable = lookupTable;
         this.isStrict = isStrict;
     }
+    
+    public boolean isSupportsDisplayName() {
+		return false;
+	}
 
     /**
      * @see org.apache.wicket.model.AbstractPropertyModel#propertyExpression()
@@ -63,9 +67,17 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
     public T getObject() {
 
         final Object target = getInnermostModelOrObject();
-
         if (target != null) {
-        	Object value = PropertyResolver.getValue(expression, target);
+        	
+        	Object value = null;
+        	if (isSupportsDisplayName()) {
+        		 value = PropertyResolver.getValue("displayName", target);
+        		 if (value != null) {
+        			 return (T) value;
+        		 }
+        	}
+        	
+        	value = PropertyResolver.getValue(expression, target);
         	if (value == null) {
         		return null;
         	}
@@ -80,16 +92,14 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             }
             return (T) key;
         }
-
-        return null;
+    	return null;
     }
-
+    
     @Override
     public void setObject(T object) {
         final String expression = propertyExpression();
 
-        PropertyResolverConverter prc;
-        prc = new PropertyResolverConverter(Application.get().getConverterLocator(),
+        PropertyResolverConverter prc = new PropertyResolverConverter(Application.get().getConverterLocator(),
                 Session.get().getLocale());
 
         if (object instanceof String) {
@@ -107,6 +117,9 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 	                    if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
 	                        key = row.getKey();
 	                        PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
+	                        if (isSupportsDisplayName()) {
+	                        	PropertyResolver.setValue("displayName", getInnermostModelOrObject(), label, prc);
+	                        }
 	                    }
 	                }
                 }

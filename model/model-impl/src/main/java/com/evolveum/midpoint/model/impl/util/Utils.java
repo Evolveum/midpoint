@@ -384,7 +384,7 @@ public final class Utils {
 	        if (kind == null && intent == null && objectclass != null) {
 	        	// Return generic object class definition from resource schema. No kind/intent means that we want
 	        	// to process all kinds and intents in the object class.
-	        	ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(objectclass);
+	        	ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.getOriginalResourceSchema().findObjectClassDefinition(objectclass);
 	        	if (objectClassDefinition == null) {
 	        		throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
 	        	}

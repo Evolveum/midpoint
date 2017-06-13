@@ -409,6 +409,10 @@ public class DummyResource implements DebugDumpable {
 		auxiliaryObjectClassMap.put(name, objectClass);
 	}
 
+	public int getNumberOfObjectclasses() {
+		return 4 + auxiliaryObjectClassMap.size();
+	}
+	
 	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");

@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.apache.commons.lang.StringUtils;
+import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.ConflictException;
@@ -43,6 +44,7 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -297,6 +299,14 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No members create", membersDef.canAdd());
 		assertTrue("No members update", membersDef.canModify());
 		assertTrue("No members read", membersDef.canRead());
+		
+		assertEquals("Unexpected number of schema definitions in "+getName()+" dummy resource", dummyResource.getNumberOfObjectclasses(), resourceSchema.getDefinitions().size());
+		
+		for (Definition def: resourceSchema.getDefinitions()) {
+			if (def instanceof RefinedObjectClassDefinition) {
+				AssertJUnit.fail("Refined definition sneaked into resource schema of "+getName()+" dummy resource: "+def);
+			}
+		}
 	}
 	
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema) {

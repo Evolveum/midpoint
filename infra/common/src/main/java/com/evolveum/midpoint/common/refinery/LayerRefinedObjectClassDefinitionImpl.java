@@ -605,4 +605,10 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		refinedObjectClassDefinition.revive(prismContext);
 	}
 
+	@Override
+	public String toString() {
+		return "LROCDef("+layer+": "
+				+ refinedObjectClassDefinition + ")";
+	}
+
 }

@@ -98,6 +98,7 @@
     <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.FocusValidityScannerTaskHandler" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelController" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ModelInteractionServiceImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="DEBUG" />

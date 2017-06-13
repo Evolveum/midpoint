@@ -86,6 +86,11 @@ public class TestDummyExtra extends TestDummy {
 	}
 	
 	@Override
+	protected int getExpectedRefinedSchemaDefinitions() {
+		return super.getExpectedRefinedSchemaDefinitions() + 1;
+	}
+	
+	@Override
 	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
 		// schema is extended, displayOrders are changed
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 18);
