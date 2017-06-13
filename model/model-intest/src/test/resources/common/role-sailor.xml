@@ -45,7 +45,7 @@
     		</mapping>
     	</focusMappings>
     </inducement>
-    <idempotent>true</idempotent>
+    <idempotence>conservative</idempotence>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#sail</action>
     </authorization>

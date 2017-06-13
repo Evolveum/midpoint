@@ -26,5 +26,5 @@
     	<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
     </assignment>
     <delegable>true</delegable>
-    <idempotent>true</idempotent>
+    <idempotence>conservative</idempotence>
 </role>
