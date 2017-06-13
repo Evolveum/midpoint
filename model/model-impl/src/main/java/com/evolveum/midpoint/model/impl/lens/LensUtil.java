@@ -909,7 +909,7 @@ public class LensUtil {
 			if (segmentSource != null) {
 				mergeExtension(magicAssignmentIdi, segmentSource.asPrismObject());
 			}
-			
+
 			// immediate assignment (use assignment from previous iteration)
 			vars.setImmediateAssignment(vars.getThisAssignment());
 			
@@ -925,11 +925,34 @@ public class LensUtil {
 		AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.first();
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment = focusAssignmentSegment.getAssignmentIdi().clone();
 		vars.setFocusAssignment(focusAssignment);
-		
+
+		// a bit of hack -- TODO reconsider in 3.7
+		convertToLegacy(vars.getMagicAssignment());
+		convertToLegacy(vars.getThisAssignment());
+		convertToLegacy(vars.getFocusAssignment());
+		convertToLegacy(vars.getImmediateAssignment());
+
 		return vars;
     }
-    
-    private static void mergeExtension(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcIdi) throws SchemaException {
+
+	private static void convertToLegacy(
+			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi) {
+		if (idi == null || idi.getDelta() == null || idi.getSubItemDeltas() != null) {
+			return;
+		}
+		// Legacy approach (when adding/removing assignments) was: itemOld+itemNew = value, delta = null
+		// This was recently changed, to provide precise information (add = null->itemNew, delete = itemOld->null).
+		// However, to not break scripts before 3.6 release we provide imitation of old behavior here.
+		// (Moreover, for magic assignment the delta is not correct anyway.)
+		if (idi.getDelta().isAdd() || idi.getDelta().isReplace()) {
+			idi.setItemOld(idi.getItemNew().clone());
+		} else {
+			idi.setItemNew(idi.getItemOld().clone());
+		}
+		idi.setDelta(null);
+	}
+
+	private static void mergeExtension(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcIdi) throws SchemaException {
 		mergeExtension(destIdi.getItemOld(), srcIdi.getItemOld());
 		mergeExtension(destIdi.getItemNew(), srcIdi.getItemNew());
     	if (srcIdi.getDelta() != null || srcIdi.getSubItemDeltas() != null) {
@@ -1077,11 +1100,7 @@ public class LensUtil {
 	}
 	
 	public static AssignmentType getAssignmentType(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, boolean old) {
-		if (old) {
-			return assignmentIdi.getItemOld().getValue(0).asContainerable();
-		} else {
-			return assignmentIdi.getItemNew().getValue(0).asContainerable();
-		}
+		return PrismContainerValue.asContainerable(assignmentIdi.getSingleValue(old));
 	}
 	
 	

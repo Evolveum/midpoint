@@ -150,4 +150,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
 	 * to have class as that is just too much info that is almost anytime pretty obvious anyway.
 	 */
 	void debugDumpShortToString(StringBuilder sb);
+
+	// TODO remove this hack eventually
+	void setMaxOccurs(int maxOccurs);
 }

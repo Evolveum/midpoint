@@ -34,7 +34,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface AssignmentPathSegment extends DebugDumpable {
 
+	// Returns version of the assignment (old/new) that was evaluated
 	AssignmentType getAssignment();
+
+	AssignmentType getAssignment(boolean evaluateOld);
+
+	// Returns 'assignment new' - i.e. the analogous to getAssignment(false)
+	// Until 2017-06-13 the name of this method was 'getAssignment()'
+	// TODO its use is a bit questionable; it might return null, when evaluating negative-mode assignments
+	AssignmentType getAssignmentNew();
 
 	/**
 	 * True if the segment corresponds to assignment. False if it's an inducement.

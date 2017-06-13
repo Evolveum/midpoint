@@ -380,7 +380,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 			ExpressionVariables scriptVariables = new ExpressionVariables();
 			scriptVariables.addVariableDefinitions(sourceVariables);
-			PlusMinusZero valueDestination = null;
+			PlusMinusZero valueDestination;
 			boolean useNew = false;
 			if (hasPlus) {
 				// Pluses and zeroes: Result goes to plus set, use NEW values for variables

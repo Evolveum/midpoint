@@ -124,7 +124,7 @@ public class ExpressionVariables implements DebugDumpable {
     }
     
     public void setRootNode(ObjectReferenceType objectRef) {
-        addVariableDefinition(null, (Object) objectRef);
+        addVariableDefinition(null, objectRef);
     }
 
     public void addVariableDefinition(QName name, Object value) {

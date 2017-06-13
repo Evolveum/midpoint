@@ -108,16 +108,7 @@ public class ScriptExpression {
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;
 
-		} catch (ExpressionEvaluationException ex) {
-			traceExpressionFailure(variables, contextDescription, ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			traceExpressionFailure(variables, contextDescription, ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			traceExpressionFailure(variables, contextDescription, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
+		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | RuntimeException ex) {
 			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
 		} finally {
@@ -135,10 +126,8 @@ public class ScriptExpression {
         		"Relativity mode: {}\n"+
         		"Variables:\n{}\n"+
         		"Code:\n{}\n"+
-        		"Result: {}", new Object[]{
-                shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables), formatCode(),
-                SchemaDebugUtil.prettyPrint(returnValue)
-        });
+        		"Result: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
+				formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
     }
 
     private void traceExpressionFailure(ExpressionVariables variables, String shortDesc, Exception exception) {
@@ -152,10 +141,8 @@ public class ScriptExpression {
         		"Relativity mode: {}\n"+
         		"Variables:\n{}\n"+
         		"Code:\n{}\n"+
-        		"Error: {}", new Object[]{
-                shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables), formatCode(),
-                SchemaDebugUtil.prettyPrint(exception)
-        });
+        		"Error: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
+				formatCode(), SchemaDebugUtil.prettyPrint(exception));
     }
     
     private boolean isTrace() {

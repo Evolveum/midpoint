@@ -596,5 +596,9 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	//endregion
-	
+
+	@Override
+	public void setMaxOccurs(int maxOccurs) {
+		refinedAttributeDefinition.setMaxOccurs(maxOccurs);
+	}
 }

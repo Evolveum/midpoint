@@ -206,7 +206,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         UserType user = findUserByUsername(name).asObjectable();
         display("user " + name, user.asPrismObject());
 
-        //assertEquals("Wrong number of assignments", 4, user.getAssignment().size());
+        //assertEquals("Wrong number of assignments", 4, user.getAssignmentNew().size());
     }
 
     @Test

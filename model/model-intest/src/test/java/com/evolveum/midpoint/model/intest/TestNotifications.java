@@ -2222,7 +2222,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 //
 //        PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
 //        AssignmentType assignmentBlue = createAssignment(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null);
-//		userJack.asObjectable().getAssignment().add(assignmentBlue);
+//		userJack.asObjectable().getAssignmentNew().add(assignmentBlue);
 //
 //        ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(userJack);
 //

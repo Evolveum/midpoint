@@ -105,8 +105,19 @@
     </xsd:simpleType>
     
     <!-- assignment extension -->
-    
-    <xsd:element name="sea" type="xsd:string"/>
+
+	<xsd:complexType name="AssignmentTypeExtensionType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:extension ref="c:AssignmentType"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="tns:sea"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="sea" type="xsd:string"/>
 
     <!-- role extension -->
 

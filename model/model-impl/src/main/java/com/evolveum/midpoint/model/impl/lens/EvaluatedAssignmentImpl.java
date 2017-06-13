@@ -21,17 +21,12 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,6 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
+
 /**
  * Evaluated assignment that contains all constructions and authorizations from the assignment 
  * itself and all the applicable inducements from all the roles referenced from the assignment.
@@ -60,6 +57,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+	private final boolean evaluatedOld;
 	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple = new DeltaSetTriple<>();
 	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple = new DeltaSetTriple<>();
 	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
@@ -86,8 +84,10 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private Collection<String> policySituations = new ArrayList<>();
 
 	public EvaluatedAssignmentImpl(
-			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi) {
+			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+			boolean evaluatedOld) {
 		this.assignmentIdi = assignmentIdi;
+		this.evaluatedOld = evaluatedOld;
 	}
 
 	@NotNull
@@ -100,7 +100,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 */
 	@Override
 	public AssignmentType getAssignmentType() {
-		return assignmentIdi.getItemNew().getValue(0).asContainerable();
+		return asContainerable(assignmentIdi.getSingleValue(evaluatedOld));
 	}
 
 	@Override
@@ -430,6 +430,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
         if (forceRecon) {

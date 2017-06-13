@@ -497,7 +497,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(bill, ROLE_R2_OID);
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
-                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
+                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignmentNew().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
@@ -550,7 +550,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(bill, ROLE_R2_OID);
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
-                //assertEquals("Wrong number of assignments for bill", 3, bill.asObjectable().getAssignment().size());
+                //assertEquals("Wrong number of assignments for bill", 3, bill.asObjectable().getAssignmentNew().size());
                 checkUserApproversForCreate(USER_JACK_OID, new ArrayList<>(), result);
             }
 
@@ -561,7 +561,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(bill, ROLE_R2_OID);
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
-                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
+                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignmentNew().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));

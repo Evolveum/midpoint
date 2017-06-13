@@ -41,8 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  */
 public class SmartAssignmentCollection<F extends FocusType> implements Iterable<SmartAssignmentElement>, DebugDumpable {
 	
-	Map<SmartAssignmentKey,SmartAssignmentElement> aMap = null;
-	Map<Long,SmartAssignmentElement> idMap;
+	private Map<SmartAssignmentKey,SmartAssignmentElement> aMap = null;
+	private Map<Long,SmartAssignmentElement> idMap;
 
 	public void collect(PrismObject<F> objectCurrent, PrismObject<F> objectOld, ContainerDelta<AssignmentType> assignmentDelta) throws SchemaException {
 		PrismContainer<AssignmentType> assignmentContainerCurrent = null;

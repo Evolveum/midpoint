@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.apache.commons.lang3.ObjectUtils;
 
 public class ProfilingLensDebugListener implements LensDebugListener {
 	
@@ -107,8 +108,8 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 
 	@Override
 	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context, Mapping<?,?> evaluatedMapping) {
-		mappingTotalMillis += evaluatedMapping.getEtime();
-		projectorMappingTotalMillis += evaluatedMapping.getEtime();
+		mappingTotalMillis += ObjectUtils.defaultIfNull(evaluatedMapping.getEtime(), 0L);
+		projectorMappingTotalMillis += ObjectUtils.defaultIfNull(evaluatedMapping.getEtime(), 0L);
 		projectorMappingTotalCount++;
 	}
 

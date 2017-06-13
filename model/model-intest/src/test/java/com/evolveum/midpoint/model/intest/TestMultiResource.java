@@ -2297,7 +2297,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		
 		
 		
-//		userBefore.asObjectable().getAssignment().add(cval.asContainerable());
+//		userBefore.asObjectable().getAssignmentNew().add(cval.asContainerable());
 		
 		// this should add user and at the sate time assign the role fight..->
 		// the result of the operation have to be the same as in test 400
