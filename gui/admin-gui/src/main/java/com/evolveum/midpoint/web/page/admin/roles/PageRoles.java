@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,10 +34,7 @@ import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -98,6 +96,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
         add(mainForm);
         
         MainObjectListPanel<RoleType> roleListPanel = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class, TableId.TABLE_ROLES, null, this) {
+            private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
@@ -109,7 +108,12 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 				return PageRoles.this.initColumns();
 			}
 
-			@Override
+            @Override
+            protected PrismObject<RoleType> getNewObjectListObject(){
+                return (new RoleType()).asPrismObject();
+            }
+
+            @Override
             protected IColumn<SelectableBean<RoleType>, String> createActionsColumn() {
                 return PageRoles.this.createActionsColumn();
             }

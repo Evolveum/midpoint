@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -121,8 +122,12 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
-			
+
+			@Override
+			protected PrismObject<TaskType> getNewObjectListObject(){
+				return (new TaskType()).asPrismObject();
+			}
+
 			@Override
 			public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
 				// TODO Auto-generated method stub
