@@ -509,7 +509,7 @@ public class QueryConvertor {
 	
 	private static ExpressionWrapper parseExpression(MapXNode xmap, PrismContext prismContext) throws SchemaException {
 		Entry<QName, XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
-				ELEMENT_VALUE, ELEMENT_MATCHING, ELEMENT_PATH);
+				ELEMENT_VALUE, ELEMENT_MATCHING, ELEMENT_ANCHOR_START, ELEMENT_ANCHOR_END, ELEMENT_PATH);
 		return PrismUtil.parseExpression(expressionEntry, prismContext);
 	}
 
@@ -517,18 +517,12 @@ public class QueryConvertor {
 			throws SchemaException {
 		ItemPath itemPath = getPath(clauseXMap);
 
-		if (itemPath == null || itemPath.isEmpty()){
-			throw new SchemaException("Could not convert query, because query does not contain item path.");	
+		if (itemPath == null || itemPath.isEmpty()) {
+			throw new SchemaException("Could not convert query, because query does not contain item path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
 		QName matchingRule = getMatchingRule(clauseXMap);
 
-		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
-		
-		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
-		
-		Item item = parseItem(new RootXNode(ELEMENT_VALUE, valueXnode), itemName, itemDefinition, prismContext);
-		
 		Boolean anchorStart = clauseXMap.getParsedPrimitiveValue(ELEMENT_ANCHOR_START, DOMUtil.XSD_BOOLEAN);
 		if (anchorStart == null) {
 			anchorStart = false;
@@ -539,21 +533,46 @@ public class QueryConvertor {
 			anchorEnd = false;
 		}
 
-        if (preliminaryParsingOnly) {
-            return null;
-        } else {
-			List values = item.getValues();
-			Object realValue;
-			if (values == null || values.isEmpty()) {
-				realValue = null;		// TODO throw an exception?
-			} else if (values.size() > 1) {
-				throw new IllegalArgumentException("Expected at most 1 value, got " + values);
+		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
+		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
+
+		if (valueXnode != null) {
+
+			Item item = parseItem(new RootXNode(ELEMENT_VALUE, valueXnode), itemName, itemDefinition, prismContext);
+
+			if (preliminaryParsingOnly) {
+				return null;
 			} else {
-				realValue = ((PrismPropertyValue) values.get(0)).getValue();
+				List values = item.getValues();
+				Object realValue;
+				if (values == null || values.isEmpty()) {
+					realValue = null; // TODO throw an exception?
+				} else if (values.size() > 1) {
+					throw new IllegalArgumentException("Expected at most 1 value, got " + values);
+				} else {
+					realValue = ((PrismPropertyValue) values.get(0)).getValue();
+				}
+				return SubstringFilter.createSubstring(itemPath, (PrismPropertyDefinition) itemDefinition, prismContext,
+						matchingRule, realValue, anchorStart, anchorEnd);
+
 			}
-		    return SubstringFilter.createSubstring(itemPath, (PrismPropertyDefinition) itemDefinition,
-					prismContext, matchingRule, realValue, anchorStart, anchorEnd);
-        }
+		} else {
+			ExpressionWrapper expressionWrapper = parseExpression(clauseXMap, prismContext);
+			if (expressionWrapper != null) {
+				if (preliminaryParsingOnly) {
+					return null;
+				} else {
+					return SubstringFilter.createSubstring(itemPath, (PrismPropertyDefinition) itemDefinition, prismContext, matchingRule, expressionWrapper, anchorStart, anchorEnd);
+				}
+			} else {
+				if (preliminaryParsingOnly) {
+					return null;
+				} else {
+					return SubstringFilter.createSubstring(itemPath, (PrismPropertyDefinition) itemDefinition, prismContext, matchingRule,
+							(ExpressionWrapper) null, anchorStart, anchorEnd);
+				}
+			}
+		}
 	}
 
 	private static <C extends Containerable> OrgFilter parseOrgFilter(MapXNode clauseXMap, PrismContainerDefinition<C> pcd, boolean preliminaryParsingOnly, PrismContext prismContext) throws SchemaException {
