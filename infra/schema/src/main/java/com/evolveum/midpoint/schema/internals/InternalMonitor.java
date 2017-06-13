@@ -330,9 +330,9 @@ public class InternalMonitor implements PrismMonitor {
 		if (traceRoleEvaluation) {
 			traceOperation("roleEvaluation", () -> target.toString() , roleEvaluationCount, false);
 		}
-//		if (inspector != null) {
-//			inspector.inspectRepositoryRead(type, oid);
-//		}
+		if (inspector != null) {
+			inspector.inspectRoleEvaluation(target, fullEvaluation);
+		}
 	}
 
 	public static boolean isTraceRoleEvaluation() {

@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -87,6 +88,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -2065,6 +2067,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, OperationResult result) throws Exception {
+		generateRoles(numberOfRoles, nameFormat, oidFormat, mutator, role -> repositoryService.addObject(role, null, result), result);
+	}
+	
+	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, FailableProcessor<PrismObject<RoleType>> adder, OperationResult result) throws Exception {
 		long startMillis = System.currentTimeMillis();
 		
 		PrismObjectDefinition<RoleType> roleDefinition = getRoleDefinition();
@@ -2079,7 +2085,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				mutator.accept(roleType, i);
 			}
 			LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
-			repositoryService.addObject(role, null, result);
+			adder.process(role);
 		}
 		
 		long endMillis = System.currentTimeMillis();
@@ -2117,4 +2123,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 
+	protected S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
+		return QueryBuilder.queryFor(queryClass, prismContext);
+	}
 }
