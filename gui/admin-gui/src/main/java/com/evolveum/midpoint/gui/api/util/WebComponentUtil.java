@@ -39,6 +39,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
@@ -77,6 +79,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
@@ -109,6 +112,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -135,8 +139,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -1933,5 +1939,32 @@ public final class WebComponentUtil {
 		}
 		return true;
 	}
+	
+		public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName, ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
+	    	List<AR> selectedRoles =  new ArrayList<>(); 
+			if (action.getRowModel() == null) {
+				selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
+			} else {
+				selectedRoles.add(((SelectableBean<AR>) action.getRowModel().getObject()).getValue());
+			}
+	    	OperationResult result = new OperationResult("Search Members");
+	    	boolean atLeastOneWithMembers = false;
+	    	for (AR selectedRole : selectedRoles) {
+	    		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext()).item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(ObjectTypeUtil.createObjectRef(selectedRole).asReferenceValue()).maxSize(1).build();
+	    		List<PrismObject<FocusType>> members = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
+	    		if (CollectionUtils.isNotEmpty(members)) {
+	    			atLeastOneWithMembers = true;
+	    			break;
+	    		}
+	    	}
+	    	String members = atLeastOneWithMembers ? ".members" : "";
+	        if (action.getRowModel() == null) {
+	            return pageBase.createStringResource("pageRoles.message.confirmationMessageForMultipleObject" + members,
+	                    actionName, abstractRoleTable.getSelectedObjectsCount() );
+	        } else {
+	            return pageBase.createStringResource("pageRoles.message.confirmationMessageForSingleObject" + members,
+	                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+	        }
+	    }
 
 }

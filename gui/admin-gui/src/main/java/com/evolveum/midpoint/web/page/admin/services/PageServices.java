@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.services;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -156,13 +157,14 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 	}
 
 	private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
-		if (action.getRowModel() == null) {
-			return createStringResource("PageServices.message.confirmationMessageForMultipleObject",
-					actionName, getObjectListPanel().getSelectedObjectsCount() );
-		} else {
-			return createStringResource("PageServices.message.confirmationMessageForSingleObject",
-					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
-		}
+		return WebComponentUtil.createAbstractRoleConfirmationMessage(actionName, action, getObjectListPanel(), this);
+//		if (action.getRowModel() == null) {
+//			return createStringResource("PageServices.message.confirmationMessageForMultipleObject",
+//					actionName, getObjectListPanel().getSelectedObjectsCount() );
+//		} else {
+//			return createStringResource("PageServices.message.confirmationMessageForSingleObject",
+//					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+//		}
 
 	}
 
