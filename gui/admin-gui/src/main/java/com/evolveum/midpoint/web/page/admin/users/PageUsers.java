@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -176,6 +177,11 @@ public class PageUsers extends PageAdminUsers {
 			@Override
 			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
 				return PageUsers.this.initColumns();
+			}
+
+			@Override
+			protected PrismObject<UserType> getNewObjectListObject(){
+				return (new UserType()).asPrismObject();
 			}
 
 			@Override

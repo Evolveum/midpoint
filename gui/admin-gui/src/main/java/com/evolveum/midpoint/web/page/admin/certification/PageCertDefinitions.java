@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -97,6 +98,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 			@Override
 			public void objectDetailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
 				PageCertDefinitions.this.detailsPerformed(target, service);
+			}
+
+			@Override
+			protected PrismObject<AccessCertificationDefinitionType> getNewObjectListObject(){
+				return (new AccessCertificationDefinitionType()).asPrismObject();
 			}
 
 			@Override

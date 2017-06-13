@@ -281,6 +281,12 @@ public class BaseHelper {
 			return true;
 		}
 
+		// this is some recent H2 weirdness (MID-3969)
+		if (getConfiguration().isUsingH2() && sqlException.getMessage() != null
+				&& sqlException.getMessage().contains("Referential integrity constraint violation: \"FK_AUDIT_ITEM: PUBLIC.M_AUDIT_ITEM FOREIGN KEY(RECORD_ID) REFERENCES PUBLIC.M_AUDIT_EVENT(ID)")) {
+			return true;
+		}
+
 		return sqlException.getErrorCode() == 50200
 				|| sqlException.getErrorCode() == 40001
 				|| "40001".equals(sqlException.getSQLState())

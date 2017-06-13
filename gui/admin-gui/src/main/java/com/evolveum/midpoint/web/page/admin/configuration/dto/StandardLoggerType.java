@@ -26,7 +26,9 @@ public enum StandardLoggerType {
     PROJECTOR("com.evolveum.midpoint.model.impl.lens.projector.Projector"),
     PROJECTOR_DETAIL("com.evolveum.midpoint.model.impl.lens.projector"),
     CLOCKWORK("com.evolveum.midpoint.model.impl.lens.Clockwork"),
-    CHANGE_EXECUTOR("com.evolveum.midpoint.model.impl.lens.ChangeExecutor");
+    CHANGE_EXECUTOR("com.evolveum.midpoint.model.impl.lens.ChangeExecutor"),
+    SYNCHRONIZATION("com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl"),
+    AUTHORIZATION("com.evolveum.midpoint.security.impl.SecurityEnforcerImpl");
 
     private final String value;
 
