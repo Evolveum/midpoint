@@ -139,6 +139,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	ResourceShadowDiscriminator getShadowDiscriminator();
 
+	@Override
 	boolean matches(ShadowType shadowType);
 	//endregion
 

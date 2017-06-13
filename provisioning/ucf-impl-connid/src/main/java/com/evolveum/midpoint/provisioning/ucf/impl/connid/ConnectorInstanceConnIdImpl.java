@@ -652,6 +652,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			legacySchema = detectLegacySchema(icfSchema);
 		}
 		LOGGER.trace("Converting resource schema (legacy mode: {})", legacySchema);
+		LOGGER.trace("Generating object classes: {}", generateObjectClasses);
 		
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
 		// Let's convert every objectclass in the ICF schema ...		
@@ -665,7 +666,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				continue;
 			}
 			
-			LOGGER.trace("Convering object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
+			LOGGER.trace("Converting object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
 			
 			// ResourceObjectDefinition is a midPpoint way how to represent an
 			// object class.
@@ -738,7 +739,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				QName attrXsdType = ConnIdUtil.icfTypeToXsdType(attributeInfo.getType(), false);
 				
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Attr conversion ICF: {}({}) -> XSD: {}({})",
+					LOGGER.trace("  attr conversion ConnId: {}({}) -> XSD: {}({})",
 							icfName, attributeInfo.getType().getSimpleName(),
 							PrettyPrinter.prettyPrint(attrXsdName), PrettyPrinter.prettyPrint(attrXsdType));
 				}
@@ -866,6 +867,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			((ObjectClassComplexTypeDefinitionImpl) ocDef).setNamingAttribute(nameDefinition.getName());
 			((ObjectClassComplexTypeDefinitionImpl) ocDef).setAuxiliary(objectClassInfo.isAuxiliary());
 
+			LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);
 		}
 		
 		// This is the default for all resources.

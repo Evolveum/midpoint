@@ -18,7 +18,10 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -191,6 +194,17 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		return createAttributeDefinition(name,typeName);
 	}
 	
+	@Override
+	public boolean matches(ShadowType shadowType) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!QNameUtil.match(getTypeName(), shadowType.getObjectClass())) {
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * This may not be really "clean" as it actually does two steps instead of one. But it is useful.
 	 */

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@ package com.evolveum.midpoint.testing.conntest;
 
 import java.io.File;
 
-import org.testng.annotations.AfterClass;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -31,6 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
+@ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 
 	@Override

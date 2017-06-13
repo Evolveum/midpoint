@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,13 @@ import com.evolveum.midpoint.schema.processor.*;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -68,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * @author semancik
  */
+@Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
 public class TestRefinedSchema {
 
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
@@ -88,8 +91,8 @@ public class TestRefinedSchema {
 	}
 
     @Test
-    public void testParseFromResourceComplex() throws Exception {
-    	final String TEST_NAME = "testParseFromResourceComplex";
+    public void test010ParseFromResourceComplex() throws Exception {
+    	final String TEST_NAME = "test010ParseFromResourceComplex";
     	TestUtil.displayTestTile(TEST_NAME);
     	
         // GIVEN
@@ -128,8 +131,9 @@ public class TestRefinedSchema {
 	}
 
 	@Test
-    public void testParseFromResourceSimple() throws JAXBException, SchemaException, SAXException, IOException {
-    	System.out.println("\n===[ testParseFromResourceSimple ]===\n");
+    public void test020ParseFromResourceSimple() throws Exception {
+		final String TEST_NAME = "test020ParseFromResourceSimple";
+    	TestUtil.displayTestTile(TEST_NAME);
     	
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -151,6 +155,15 @@ public class TestRefinedSchema {
     
     private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, 
     		LayerType sourceLayer, LayerType validationLayer, boolean assertEntitlements) {
+    	
+    	assertEquals("Unexpected number of object classes in refined schema", 2, rSchema.getDefinitions().size());
+    	
+    	for (Definition def: rSchema.getDefinitions()) {
+			if (!(def instanceof RefinedObjectClassDefinition)) {
+				AssertJUnit.fail("Non-refined definition sneaked into resource schema: "+def);
+			}
+		}
+    	
         assertFalse("No account definitions", rSchema.getRefinedDefinitions(ShadowKindType.ACCOUNT).isEmpty());
         
         RefinedObjectClassDefinition rAccountDef = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
@@ -269,8 +282,9 @@ public class TestRefinedSchema {
 	}
 
 	@Test
-    public void testParseAccount() throws JAXBException, SchemaException, SAXException, IOException {
-    	System.out.println("\n===[ testParseAccount ]===\n");
+    public void test100ParseAccount() throws Exception {
+		final String TEST_NAME = "test100ParseAccount";
+    	TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -302,8 +316,9 @@ public class TestRefinedSchema {
     }
     
     @Test
-    public void testApplyAttributeDefinition() throws JAXBException, SchemaException, SAXException, IOException {
-    	System.out.println("\n===[ testApplyAttributeDefinition ]===\n");
+    public void test110ApplyAttributeDefinition() throws Exception {
+    	final String TEST_NAME = "test110ApplyAttributeDefinition";
+    	TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -311,22 +326,24 @@ public class TestRefinedSchema {
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resource, prismContext);
+        System.out.println("Refined schema:");
+        System.out.println(rSchema.debugDump(1));
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
         System.out.println("Refined account definition:");
-        System.out.println(defaultAccountDefinition.debugDump());
+        System.out.println(defaultAccountDefinition.debugDump(1));
 
         PrismObject<ShadowType> accObject = prismContext.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
         PrismContainer<Containerable> attributesContainer = accObject.findContainer(ShadowType.F_ATTRIBUTES);
         System.out.println("Attributes container:");
-        System.out.println(attributesContainer.debugDump());
+        System.out.println(attributesContainer.debugDump(1));
         
         // WHEN
         attributesContainer.applyDefinition((PrismContainerDefinition)defaultAccountDefinition.toResourceAttributeContainerDefinition(), true);
 
         // THEN
         System.out.println("Parsed account:");
-        System.out.println(accObject.debugDump());
+        System.out.println(accObject.debugDump(1));
 
         assertAccountShadow(accObject, resource, prismContext);
     }
@@ -376,8 +393,9 @@ public class TestRefinedSchema {
 	}
 
 	@Test
-    public void testCreateShadow() throws JAXBException, SchemaException, SAXException, IOException {
-    	System.out.println("\n===[ testCreateShadow ]===\n");
+    public void test120CreateShadow() throws Exception {
+		final String TEST_NAME = "test120CreateShadow";
+    	TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -405,8 +423,9 @@ public class TestRefinedSchema {
     }
     
     @Test
-    public void testProtectedAccount() throws JAXBException, SchemaException, SAXException, IOException {
-    	System.out.println("\n===[ testProtectedAccount ]===\n");
+    public void test130ProtectedAccount() throws Exception {
+    	final String TEST_NAME = "test130ProtectedAccount";
+    	TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -531,8 +550,8 @@ public class TestRefinedSchema {
 	}
 
 	@Test
-    public void testParseFromResourcePosix() throws Exception {
-    	final String TEST_NAME = "testParseFromResourcePosix";
+    public void test140ParseFromResourcePosix() throws Exception {
+    	final String TEST_NAME = "test140ParseFromResourcePosix";
     	TestUtil.displayTestTile(TEST_NAME);
     	
         // GIVEN

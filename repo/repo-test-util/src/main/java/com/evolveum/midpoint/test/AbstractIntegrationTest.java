@@ -768,17 +768,35 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				}
 			}
 		} else {
-			ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
-			PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
-			assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
-			if (nameMatchingRule == null) {
-				assertEquals("Unexpected secondary identifier in shadow for "+username, username, idProp.getRealValue());
-			} else {
-				if (requireNormalizedIdentfiers) {
-					assertEquals("Unexpected secondary identifier in shadow for "+username, nameMatchingRule.normalize(username), idProp.getRealValue());
+			boolean found = false;
+			String expected = username;
+			if (requireNormalizedIdentfiers && nameMatchingRule != null) {
+				expected = nameMatchingRule.normalize(username);
+			}
+			List<String> wasValues = new ArrayList<>();
+			for (ResourceAttributeDefinition idSecDef: ocDef.getSecondaryIdentifiers()) {
+				PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+				wasValues.addAll(idProp.getRealValues());
+				assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
+				if (nameMatchingRule == null) {
+					if (username.equals(idProp.getRealValue())) {
+						found = true;
+						break;
+					}
 				} else {
-					PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
+					if (requireNormalizedIdentfiers) {
+						if (expected.equals(idProp.getRealValue())) {
+							found = true;
+							break;
+						}
+					} else if (nameMatchingRule.match(username, idProp.getRealValue())) {
+						found = true;
+						break;
+					}
 				}
+			}
+			if (!found) {
+				fail("Unexpected secondary identifier in shadow for "+username+", expected "+expected+" but was "+wasValues);
 			}
 		}
 	}

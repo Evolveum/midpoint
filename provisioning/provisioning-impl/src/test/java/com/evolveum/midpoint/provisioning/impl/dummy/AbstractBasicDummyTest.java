@@ -52,6 +52,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -145,6 +146,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		
 	protected boolean isAvoidDuplicateValues() {
 		return false;
+	}
+	
+	protected int getExpectedRefinedSchemaDefinitions() {
+		return dummyResource.getNumberOfObjectclasses();
 	}
 		
 	@AfterClass
@@ -531,12 +536,45 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 				accountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 		
 		rememberRefinedResourceSchema(refinedSchema);
+		
+		for (Definition def: refinedSchema.getDefinitions()) {
+			if (!(def instanceof RefinedObjectClassDefinition)) {
+				fail("Non-refined definition sneaked into resource schema: "+def);
+			}
+		}
+		
+		assertEquals("Unexpected number of schema definitions", getExpectedRefinedSchemaDefinitions(), refinedSchema.getDefinitions().size());
+		
 		assertSteadyResource();
 	}
-
+	
+	/**
+	 * Make sure that the refined schema haven't destroyed cached resource schema.
+	 * Also make sure that the caching in object's user data works well.
+	 */
 	@Test
-	public void test024Capabilities() throws Exception {
-		final String TEST_NAME = "test024Capabilities";
+	public void test024ParsedSchemaAgain() throws Exception {
+		final String TEST_NAME = "test024ParsedSchemaAgain";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+
+		// THEN
+		// The returned type should have the schema pre-parsed
+		assertNotNull(RefinedResourceSchemaImpl.hasParsedSchema(resourceType));
+
+		// Also test if the utility method returns the same thing
+		ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
+
+		display("Parsed resource schema", returnedSchema);
+		assertSchemaSanity(returnedSchema, resourceType);
+		
+		assertResourceSchemaUnchanged(returnedSchema);
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test028Capabilities() throws Exception {
+		final String TEST_NAME = "test028Capabilities";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN
@@ -617,8 +655,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	 * Check if the cached native capabilities were properly stored in the repo 
 	 */
 	@Test
-	public void test025CapabilitiesRepo() throws Exception {
-		final String TEST_NAME = "test025CapabilitiesRepo";
+	public void test029CapabilitiesRepo() throws Exception {
+		final String TEST_NAME = "test029CapabilitiesRepo";
 		TestUtil.displayTestTile(TEST_NAME);
 
 		// GIVEN

@@ -67,7 +67,8 @@
             <generateObjectClass>ri:group</generateObjectClass>
             <generateObjectClass>ri:organizationalUnit</generateObjectClass>
             <generateObjectClass>ri:domain</generateObjectClass>
-        </generationConstraints>
+            <generateObjectClass>ri:msExchBaseClass</generateObjectClass>
+        </generationConstraints> 
     </schema>
 
 

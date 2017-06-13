@@ -42,6 +42,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -120,7 +122,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	private static final String GROUP_MELEE_ISLAND_PIRATES_NAME = "Mêlée Island Pirates";
 	private static final String GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION = "swashbuckle and loot";
 	
-	protected static final int NUMBER_OF_ACCOUNTS = 7;
+	protected static final int NUMBER_OF_ACCOUNTS = 17;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 
 	private static final String NS_EXTENSION = "http://whatever.com/my";
@@ -323,7 +325,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		final String TEST_NAME = "test020Schema";
         TestUtil.displayTestTile(this, TEST_NAME);
         
+//        IntegrationTestTools.displayXml("Resource XML", resource);
         accountObjectClassDefinition = AdUtils.assertAdSchema(resource, getAccountObjectClass(), prismContext);
+        AdUtils.assertExchangeSchema(resource, prismContext);
+        
+        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+        assertEquals("Unexpected number of schema definitions (limited by generation constraints)", 5, resourceSchema.getDefinitions().size());
         
         assertLdapConnectorInstances(1);
 	}
