@@ -60,6 +60,7 @@ public class LoggingDto implements Serializable {
 		componentMap.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
 		componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
 		componentMap.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
+		componentMap.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
 	}
 
 	private LoggingLevelType rootLevel;
