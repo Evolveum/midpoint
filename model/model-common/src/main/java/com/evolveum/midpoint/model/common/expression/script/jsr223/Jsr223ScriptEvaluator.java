@@ -44,6 +44,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -106,7 +107,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		
 		Object evalRawResult;
 		try {
-			InternalMonitor.recordScriptExecution();
+			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			evalRawResult = compiledScript.eval(bindings);
 		} catch (Throwable e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
@@ -174,7 +175,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		
 		Object evalRawResult;
 		try {
-			InternalMonitor.recordScriptExecution();
+			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			evalRawResult = compiledScript.eval(bindings);
 		} catch (Throwable e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
@@ -191,7 +192,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			return compiledScript;
 		}
 		try {
-			InternalMonitor.recordScriptCompile();
+			InternalMonitor.recordCount(InternalCounters.SCRIPT_COMPILE_COUNT);
 			compiledScript = ((Compilable)scriptEngine).compile(codeString);
 		} catch (ScriptException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);

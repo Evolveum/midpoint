@@ -19,8 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -151,14 +154,54 @@ public class AssignmentPathImpl implements AssignmentPath {
 				sb.append("\n");
 				DebugUtil.debugDump(sb, segments, indent + 1, false);
 			} else {
-				for (AssignmentPathSegment segment: segments) {
+				for (AssignmentPathSegmentImpl segment: segments) {
 					sb.append("\n");
 					DebugUtil.indentDebugDump(sb, indent + 1);
-					sb.append(segment.toString());
+					segment.shortDump(sb);
 				}
 			}
 		}
 		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		ObjectType previousTarget = null;
+		for (AssignmentPathSegmentImpl segment: segments) {
+			if (previousTarget == null) {
+				sb.append(segment.getSource()).append(" ");
+			}
+//			sb.append("(");
+//			segment.getEvaluationOrder().shortDump(sb);
+//			sb.append("): ");
+			ObjectType target = segment.getTarget();
+			QName relation = segment.getRelation();
+			if (target != null) {
+				sb.append("--");
+				if (segment.isAssignment()) {
+					sb.append("a");
+				} else {
+					sb.append("i");
+				}
+				sb.append("[");
+				if (relation != null) {
+					sb.append(relation.getLocalPart());
+				}
+				sb.append("]--> ");
+				if (target != null) {
+					sb.append(target);
+				}
+			} else {
+				if (segment.isAssignment()) {
+					sb.append("a");
+				} else {
+					sb.append("i");
+				}
+				sb.append("(no target)");
+			}
+			previousTarget = target;
+			sb.append(" ");
+		}
 	}
 
 	@Override

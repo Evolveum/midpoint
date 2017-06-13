@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -120,11 +121,11 @@ public class TestExpression {
     }
     
     protected void rememberScriptExecutionCount() {
-		lastScriptExecutionCount = InternalMonitor.getScriptExecutionCount();
+		lastScriptExecutionCount = InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 	}
 
 	protected void assertScriptExecutionIncrement(int expectedIncrement) {
-		long currentScriptExecutionCount = InternalMonitor.getScriptExecutionCount();
+		long currentScriptExecutionCount = InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 		long actualIncrement = currentScriptExecutionCount - lastScriptExecutionCount;
 		assertEquals("Unexpected increment in script execution count", (long)expectedIncrement, actualIncrement);
 		lastScriptExecutionCount = currentScriptExecutionCount;

@@ -14,13 +14,13 @@
   ~ limitations under the License.
   -->
 
-<org oid="f79fc21a-4d0a-11e7-ad8d-f7fe1a23c68a"
+<org oid="16baebbe-5046-11e7-82a0-eb7b7e3400f6"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Notorious</name>
-    <idempotence>conservative</idempotence>
+    <name>Supernotorious</name>
+    <idempotence>aggressive</idempotence>
     <!-- inducements are generated -->
     
 </org>

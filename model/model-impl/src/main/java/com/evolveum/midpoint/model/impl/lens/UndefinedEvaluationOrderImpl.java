@@ -103,8 +103,8 @@ public class UndefinedEvaluationOrderImpl implements EvaluationOrder {
 	}
 	
 	@Override
-	public String shortDump() {
-		return "UNDEFINED";
+	public void shortDump(StringBuilder sb) {
+		sb.append("UNDEFINED");
 	}
 
 	@Override

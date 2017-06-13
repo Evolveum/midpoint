@@ -67,6 +67,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.CachingStatistics;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
@@ -168,28 +169,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
 	
-	private long lastResourceSchemaFetchCount = 0;
-	private long lastConnectorSchemaParseCount = 0;
-	private long lastConnectorCapabilitiesFetchCount = 0;
-	private long lastConnectorInitializationCount = 0;
-	private long lastResourceSchemaParseCount = 0;
+	private Map<InternalCounters,Long> lastCountMap = new HashMap<>();
+	
 	private CachingStatistics lastResourceCacheStats;
-	private long lastShadowFetchOperationCount = 0;
-	private long lastScriptCompileCount = 0;
-	private long lastScriptExecutionCount = 0;
-	private long lastConnectorOperationCount = 0;
-	private long lastConnectorSimulatedPagingSearchCount = 0;
-	private long lastDummyResourceGroupMembersReadCount = 0;
-	private long lastRepositoryReadCount = 0;
-	private long lastPrismObjectCompareCount = 0;
-	private long lastPrismObjectCloneCount = 0;
-	private long lastRoleEvaluationCount = 0;
-	private long lastProjectorRunCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
 	protected static Set<Class> initializedClasses = new HashSet<Class>();
+	private long lastDummyResourceGroupMembersReadCount;
 
 	@Autowired(required = true)
 	protected TaskManager taskManager;
@@ -205,6 +193,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;
+	
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -887,103 +876,99 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	
+	protected void rememberCounter(InternalCounters counter) {
+		lastCountMap.put(counter, InternalMonitor.getCount(counter));
+	}
+	
+	protected long getLastCount(InternalCounters counter) {
+		Long lastCount = lastCountMap.get(counter);
+		if (lastCount == null) {
+			return 0;
+		} else {
+			return lastCount;
+		}
+	}
+	
+	protected long getCounterIncrement(InternalCounters counter) {
+		return InternalMonitor.getCount(counter) - getLastCount(counter);
+	}
+	
+	protected void assertCounterIncrement(InternalCounters counter, int expectedIncrement) {
+		long currentCount = InternalMonitor.getCount(counter);
+		long actualIncrement = currentCount - getLastCount(counter);
+		assertEquals("Unexpected increment in "+counter.getLabel(), (long)expectedIncrement, actualIncrement);
+		lastCountMap.put(counter, currentCount);
+	}
+	
+	protected void assertCounterIncrement(InternalCounters counter, int expectedIncrementMin, int expectedIncrementMax) {
+		long currentCount = InternalMonitor.getCount(counter);
+		long actualIncrement = currentCount - getLastCount(counter);
+		assertTrue("Unexpected increment in "+counter.getLabel()+". Expected "
+		+expectedIncrementMin+"-"+expectedIncrementMax+" but was "+actualIncrement, 
+		actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax);
+		lastCountMap.put(counter, currentCount);
+	}
+	
+	@Deprecated
 	protected void rememberResourceSchemaFetchCount() {
-		lastResourceSchemaFetchCount = InternalMonitor.getResourceSchemaFetchCount();
+		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 	}
 
+	@Deprecated
 	protected void assertResourceSchemaFetchIncrement(int expectedIncrement) {
-		long currentConnectorSchemaFetchCount = InternalMonitor.getResourceSchemaFetchCount();
-		long actualIncrement = currentConnectorSchemaFetchCount - lastResourceSchemaFetchCount;
-		assertEquals("Unexpected increment in resource schema fetch count", (long)expectedIncrement, actualIncrement);
-		lastResourceSchemaFetchCount = currentConnectorSchemaFetchCount;
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, expectedIncrement);
 	}
 	
+	@Deprecated
 	protected void rememberConnectorSchemaParseCount() {
-		lastConnectorSchemaParseCount = InternalMonitor.getConnectorSchemaParseCount();
+		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
 
+	@Deprecated
 	protected void assertConnectorSchemaParseIncrement(int expectedIncrement) {
-		long currentCount = InternalMonitor.getConnectorSchemaParseCount();
-		long actualIncrement = currentCount - lastConnectorSchemaParseCount;
-		assertEquals("Unexpected increment in connector schema parse count", (long)expectedIncrement, actualIncrement);
-		lastConnectorSchemaParseCount = currentCount;
+		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, expectedIncrement);
 	}
 	
+	@Deprecated
 	protected void rememberConnectorCapabilitiesFetchCount() {
-		lastConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
+		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 	}
 
+	@Deprecated
 	protected void assertConnectorCapabilitiesFetchIncrement(int expectedIncrement) {
-		long currentConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
-		long actualIncrement = currentConnectorCapabilitiesFetchCount - lastConnectorCapabilitiesFetchCount;
-		assertEquals("Unexpected increment in connector capabilities fetch count", (long)expectedIncrement, actualIncrement);
-		lastConnectorCapabilitiesFetchCount = currentConnectorCapabilitiesFetchCount;
+		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, expectedIncrement);
 	}
 
 	protected void rememberConnectorInitializationCount() {
-		lastConnectorInitializationCount  = InternalMonitor.getConnectorInstanceInitializationCount();
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 	}
 
 	protected void assertConnectorInitializationCountIncrement(int expectedIncrement) {
-		long currentConnectorInitializationCount = InternalMonitor.getConnectorInstanceInitializationCount();
-		long actualIncrement = currentConnectorInitializationCount - lastConnectorInitializationCount;
-		assertEquals("Unexpected increment in connector initialization count", (long)expectedIncrement, actualIncrement);
-		lastConnectorInitializationCount = currentConnectorInitializationCount;
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, expectedIncrement);
 	}
 	
 	protected void rememberResourceSchemaParseCount() {
-		lastResourceSchemaParseCount  = InternalMonitor.getResourceSchemaParseCount();
+		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
 
 	protected void assertResourceSchemaParseCountIncrement(int expectedIncrement) {
-		long currentResourceSchemaParseCount = InternalMonitor.getResourceSchemaParseCount();
-		long actualIncrement = currentResourceSchemaParseCount - lastResourceSchemaParseCount;
-		assertEquals("Unexpected increment in resource schema parse count", (long)expectedIncrement, actualIncrement);
-		lastResourceSchemaParseCount = currentResourceSchemaParseCount;
+		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, expectedIncrement);
 	}
-	
-	protected void rememberScriptCompileCount() {
-		lastScriptCompileCount = InternalMonitor.getScriptCompileCount();
-	}
-
-	protected void assertScriptCompileIncrement(int expectedIncrement) {
-		long currentCount = InternalMonitor.getScriptCompileCount();
-		long actualIncrement = currentCount - lastScriptCompileCount;
-		assertEquals("Unexpected increment in script compile count", (long)expectedIncrement, actualIncrement);
-		lastScriptCompileCount = currentCount;
-	}
-	
-	protected void rememberScriptExecutionCount() {
-		lastScriptExecutionCount = InternalMonitor.getScriptExecutionCount();
-	}
-
-	protected void assertScriptExecutionIncrement(int expectedIncrement) {
-		long currentCount = InternalMonitor.getScriptExecutionCount();
-		long actualIncrement = currentCount - lastScriptExecutionCount;
-		assertEquals("Unexpected increment in script execution count", (long)expectedIncrement, actualIncrement);
-		lastScriptExecutionCount = currentCount;
-	}
-	
+			
 	protected void rememberConnectorOperationCount() {
-		lastConnectorOperationCount = InternalMonitor.getConnectorOperationCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 	}
 
 	protected void assertConnectorOperationIncrement(int expectedIncrement) {
-		long currentCount = InternalMonitor.getConnectorOperationCount();
-		long actualIncrement = currentCount - lastConnectorOperationCount;
-		assertEquals("Unexpected increment in connector operationCount count", (long)expectedIncrement, actualIncrement);
-		lastConnectorOperationCount = currentCount;
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, expectedIncrement);
 	}
 	
 	protected void rememberConnectorSimulatedPagingSearchCount() {
-		lastConnectorSimulatedPagingSearchCount = InternalMonitor.getConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 	}
 
 	protected void assertConnectorSimulatedPagingSearchIncrement(int expectedIncrement) {
-		long currentCount = InternalMonitor.getConnectorSimulatedPagingSearchCount();
-		long actualIncrement = currentCount - lastConnectorSimulatedPagingSearchCount;
-		assertEquals("Unexpected increment in connector simulated paged search count", (long)expectedIncrement, actualIncrement);
-		lastConnectorSimulatedPagingSearchCount = currentCount;
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, expectedIncrement);
 	}
 	
 	protected void rememberResourceCacheStats() {
@@ -1009,96 +994,33 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
 		lastStats.setMisses(currentStats.getMisses());
 	}
-	
-	protected void rememberRepositoryReadCount() {
-		lastRepositoryReadCount = InternalMonitor.getRepositoryReadCount();
-	}
-
-	protected void assertRepositoryReadCount(int expectedIncrement) {
-		long currentCount = InternalMonitor.getRepositoryReadCount();
-		long actualIncrement = currentCount - lastRepositoryReadCount;
-		assertEquals("Unexpected increment in repository read count", (long)expectedIncrement, actualIncrement);
-		lastRepositoryReadCount = currentCount;
-	}
-		
-	protected void rememberPrismObjectCompareCount() {
-		lastPrismObjectCompareCount = InternalMonitor.getPrismObjectCompareCount();
-	}
-
-	protected void assertPrismObjectCompareCount(int expectedIncrement) {
-		long currentCount = InternalMonitor.getPrismObjectCompareCount();
-		long actualIncrement = currentCount - lastPrismObjectCompareCount;
-		assertEquals("Unexpected increment in prism object compare count", (long)expectedIncrement, actualIncrement);
-		lastPrismObjectCompareCount = currentCount;
-	}
-	
+				
 	protected void rememberPrismObjectCloneCount() {
-		lastPrismObjectCloneCount = InternalMonitor.getPrismObjectCloneCount();
+		rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 	}
-
-	protected void assertPrismObjectCloneIncrement(int expectedIncrement) {
-		long currentCount = InternalMonitor.getPrismObjectCloneCount();
-		long actualIncrement = currentCount - lastPrismObjectCloneCount;
-		assertEquals("Unexpected increment in prism object clone count", (long)expectedIncrement, actualIncrement);
-		lastPrismObjectCloneCount = currentCount;
-	}
-	
-	protected void assertPrismObjectCloneIncrement(int expectedIncrementMin, int expectedIncrementMax) {
-		long currentCount = InternalMonitor.getPrismObjectCloneCount();
-		long actualIncrement = currentCount - lastPrismObjectCloneCount;
-		assertTrue("Unexpected increment in prism object clone count. Expected "
-		+expectedIncrementMin+"-"+expectedIncrementMax+" but was "+actualIncrement, 
-		actualIncrement >= expectedIncrementMin && actualIncrement <= expectedIncrementMax);
-		lastPrismObjectCloneCount = currentCount;
-	}
-	
-	protected void rememberRoleEvaluationCount() {
-		lastRoleEvaluationCount = InternalMonitor.getRoleEvaluationCount();
-	}
-
-	protected void assertRoleEvaluationCount(int expectedIncrement) {
-		long currentCount = InternalMonitor.getRoleEvaluationCount();
-		long actualIncrement = currentCount - lastRoleEvaluationCount;
-		assertEquals("Unexpected increment in role evaluation count", (long)expectedIncrement, actualIncrement);
-		lastRoleEvaluationCount = currentCount;
-	}
-	
-	protected void rememberProjectorRunCount() {
-		lastProjectorRunCount = InternalMonitor.getProjectorRunCount();
-	}
-
-	protected void assertProjectorRunCount(int expectedIncrement) {
-		long currentCount = InternalMonitor.getProjectorRunCount();
-		long actualIncrement = currentCount - lastProjectorRunCount;
-		assertEquals("Unexpected increment in projector run count", (long)expectedIncrement, actualIncrement);
-		lastProjectorRunCount = currentCount;
-	}
-	
+				
 	protected void assertSteadyResources() {
-		assertResourceSchemaFetchIncrement(0);
-		assertResourceSchemaParseCountIncrement(0);
-		assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-		assertConnectorSchemaParseIncrement(0);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 	
 	protected void rememberSteadyResources() {
-		rememberResourceSchemaFetchCount();
-		rememberResourceSchemaParseCount();
-		rememberConnectorCapabilitiesFetchCount();
-		rememberConnectorInitializationCount();
-		rememberConnectorSchemaParseCount();
+		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
+		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
 	
 	protected void rememberShadowFetchOperationCount() {
-		lastShadowFetchOperationCount  = InternalMonitor.getShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	}
 
 	protected void assertShadowFetchOperationCountIncrement(int expectedIncrement) {
-		long currentCount = InternalMonitor.getShadowFetchOperationCount();
-		long actualIncrement = currentCount - lastShadowFetchOperationCount;
-		assertEquals("Unexpected increment in shadow fetch count", (long)expectedIncrement, actualIncrement);
-		lastShadowFetchOperationCount = currentCount;
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, expectedIncrement);
 	}
 	
 	protected void rememberDummyResourceGroupMembersReadCount(String instanceName) {
@@ -2143,5 +2065,18 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected S_FilterEntryOrEmpty queryFor(Class<? extends Containerable> queryClass) {
 		return QueryBuilder.queryFor(queryClass, prismContext);
+	}
+	
+	protected void displayCounters(InternalCounters... counters) {
+		StringBuilder sb = new StringBuilder();
+		for (InternalCounters counter: counters) {
+			sb
+				.append("  ")
+				.append(counter.getLabel()).append(": ")
+				.append("+").append(getCounterIncrement(counter))
+				.append(" (").append(InternalMonitor.getCount(counter)).append(")")
+				.append("\n");
+		}
+		display("Counters", sb.toString());
 	}
 }

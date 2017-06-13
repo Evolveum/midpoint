@@ -40,8 +40,10 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalInspector;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -98,12 +100,12 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		
 	private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
 	
-	protected static final int NUMBER_OF_LEVEL_A_ROLES = 10;
+	protected static final int NUMBER_OF_LEVEL_A_ROLES = 100;
 	protected static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
 	protected static final String ROLE_LEVEL_A_ROLETYPE = "levelA";
 	protected static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
 	
-	protected static final int NUMBER_OF_LEVEL_B_ROLES = 30;
+	protected static final int NUMBER_OF_LEVEL_B_ROLES = 300;
 	protected static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
 	protected static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
 	protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
@@ -113,6 +115,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	protected CountingInspector inspector;
 	
 	protected abstract String getNotoriousOid();
+	
+	protected abstract File getNotoriousFile();
 	
 	protected abstract QName getNotoriousType();
 	
@@ -142,7 +146,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		inspector = new CountingInspector();
 		InternalMonitor.setInspector(inspector);
 		
-		InternalMonitor.setTraceRoleEvaluation(true);
+		InternalMonitor.setTrace(InternalOperationClasses.ROLE_EVALUATIONS, true);
 	}
 	
 	protected abstract void addNotoriousRole(OperationResult result) throws Exception;
@@ -177,8 +181,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + getNumberOfExtraRoles());
         assertObjects(OrgType.class, getNumberOfExtraOrgs());
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 	}
 	
 	@Test
@@ -189,11 +193,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberProjectorRunCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
+        
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -211,21 +212,13 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, 1);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Projector runs", InternalMonitor.getProjectorRunCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertProjectorRunCount(hackify(1));
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
-        assertPrismObjectCompareCount(0);
-	}
-	
-	private int hackify(int i) {
-		// TODO: projector now runs three times instead of one.
-		return i*3;
+        assertRoleEvaluationCount(1);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 
 	@Test
@@ -236,11 +229,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberProjectorRunCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -258,14 +247,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, 1);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -282,10 +267,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         ObjectDelta<UserType> delta = userBefore.createModifyDelta();
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberProjectorRunCount();
-        rememberRepositoryReadCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -303,15 +285,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, 1);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertProjectorRunCount(1);
-        assertRoleEvaluationCount((NUMBER_OF_LEVEL_B_ROLES + 2)*2);
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 1);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2)*2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -322,10 +300,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -344,14 +319,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 2));        
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));        
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -362,10 +333,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -383,14 +351,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, 5);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -401,11 +365,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberProjectorRunCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -423,14 +383,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, 5);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -441,10 +397,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -463,14 +416,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));        
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));        
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -481,10 +430,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -502,14 +448,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -520,11 +462,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberProjectorRunCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -542,14 +480,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -566,10 +500,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         ObjectDelta<UserType> delta = userBefore.createModifyDelta();
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberProjectorRunCount();
-        rememberRepositoryReadCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -587,15 +518,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertJackRoleMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertProjectorRunCount(1);
-        assertRoleEvaluationCount((NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES)*2);
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 1);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES)*2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -606,10 +533,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
-        rememberRoleEvaluationCount();
+        prepareTest();
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -628,14 +552,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Role evaluations", InternalMonitor.getRoleEvaluationCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
-        display("Inspector", inspector);
+        displayCountersAndInspector();
         
-        assertRoleEvaluationCount(hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));        
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));        
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 
 	private void assignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
@@ -680,6 +600,33 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		}
 		fail("Cannot find membership of role "+roleOid+" in "+user);
 	}
+	
+	protected void assertRoleEvaluationCount(int numberOfLevelAAssignments) {
+		// for subclasses
+	}
 
+	private void prepareTest() {
+		inspector.reset();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
+        rememberCounter(InternalCounters.PROJECTOR_RUN_COUNT);
+        rememberCounter(InternalCounters.ROLE_EVALUATION_COUNT);
+	}
+
+	private void displayCountersAndInspector() {
+		displayCounters(
+        		InternalCounters.REPOSITORY_READ_COUNT, 
+        		InternalCounters.PROJECTOR_RUN_COUNT,
+        		InternalCounters.ROLE_EVALUATION_COUNT,
+        		InternalCounters.ROLE_EVALUATION_SKIP_COUNT,
+        		InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+		display("Inspector", inspector);
+	}
+
+
+	protected int hackify(int i) {
+		// TODO: projector now runs three times instead of one.
+		return i*3;
+	}
 	
 }
