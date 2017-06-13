@@ -57,8 +57,12 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 		List<PrismPropertyValue<T>> values = anyValueToPropertyValueList(prismContext, anyValue);
 		return new SubstringFilter<>(path, itemDefinition, matchingRule, values, null, anchorStart, anchorEnd);
 	}
-
-	// TODO expression based substring filter
+	
+	public static <T> SubstringFilter<T> createSubstring(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
+			 @NotNull PrismContext prismContext,
+			 @Nullable QName matchingRule, ExpressionWrapper expressionWrapper, boolean anchorStart, boolean anchorEnd) {
+		return new SubstringFilter<>(path, itemDefinition, matchingRule, null, expressionWrapper, anchorStart, anchorEnd);
+	}
 
 	public boolean isAnchorStart() {
 		return anchorStart;
