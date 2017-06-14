@@ -172,7 +172,9 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     boolean isVisible = false;
                     try {
                         PrismObject<O> objectToCreate = mainObjectListPanel.getNewObjectListObject();
-                        mainObjectListPanel.adoptNewObject(objectToCreate);
+                        if (objectToCreate != null) {
+                            mainObjectListPanel.adoptNewObject(objectToCreate);
+                        }
                         isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
                                 null, objectToCreate, null, null, null);
                     } catch (Exception ex){
