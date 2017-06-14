@@ -51,7 +51,9 @@ import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -133,11 +135,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		ResourceCarefulAntUtil.initAnts(ants, RESOURCE_DUMMY_FILE, prismContext);
 		descriptionAnt = ants.get(0);
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperations(true);
-		InternalMonitor.setTraceResourceSchemaOperations(true);
+		InternalMonitor.setTrace(InternalOperationClasses.SHADOW_FETCH_OPERATIONS, true);
+		InternalMonitor.setTrace(InternalOperationClasses.RESOURCE_SCHEMA_OPERATIONS, true);
 		InternalsConfig.encryptionChecks = false;
 		
-		InternalMonitor.setTracePrismObjectClone(true);
+		InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
 	}
 	
 	/**
@@ -174,7 +176,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         display("Resource", resource);
         
-        assertPrismObjectCloneIncrement(1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
         
 		assertResourceDummy(resource, false);
         
@@ -223,7 +225,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         display("Resource", resource);
         
-        assertPrismObjectCloneIncrement(1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
         
 		assertResourceDummy(resource, false);
         
@@ -273,7 +275,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         display("Resource", resource);
         
-        assertPrismObjectCloneIncrement(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
         
 		assertResourceDummy(resource, false);
         
@@ -318,7 +320,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("searchObjects result", result);
         
-        assertPrismObjectCloneIncrement(2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
 
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource, false);
@@ -367,7 +369,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("searchObjects result", result);
         
-        assertPrismObjectCloneIncrement(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource, false);
@@ -421,7 +423,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
         
-        assertPrismObjectCloneIncrement(2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
         
         assertResourceSchemaFetchIncrement(0);
         assertResourceSchemaParseCountIncrement(0);
@@ -473,7 +475,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 2, resources.size());
         
-        assertPrismObjectCloneIncrement(2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
         
         assertResourceSchemaFetchIncrement(0);
         assertResourceSchemaParseCountIncrement(0);
@@ -505,7 +507,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
 
-        assertPrismObjectCloneIncrement(4);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
         
         assertResourceDummy(resource, true);
         
@@ -545,7 +547,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
 
-        assertPrismObjectCloneIncrement(1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
         
         assertResourceDummy(resource, true);
         
@@ -767,7 +769,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		TestUtil.displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertPrismObjectCloneIncrement(1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
         
         assertResourceDummy(resource, true);
         
@@ -814,7 +816,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         display("Resource", resource);
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
         
-        assertPrismObjectCloneIncrement(1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
         
 		assertResourceDummy(resource, true);
         
@@ -846,7 +848,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertPrismObjectCloneIncrement(1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
         
         assertResourceDummy(resource, true);
         
@@ -1002,7 +1004,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertPrismObjectCloneIncrement(1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
         
         assertResourceDummy(resource, true);
         

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
@@ -346,7 +347,7 @@ public abstract class ShadowCache {
 			// TODO: is this correct behaviour? don't we really want to record
 			// fetch for protected objects?
 			if (!ShadowUtil.isProtected(resourceShadow)) {
-				InternalMonitor.recordShadowFetchOperation();
+				InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 			}
 		}
@@ -541,7 +542,7 @@ public abstract class ShadowCache {
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notNull(shadow, "Object to add must not be null.");
 
-		InternalMonitor.recordShadowChangeOperation();
+		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start adding shadow object:\n{}", shadow.debugDump());
@@ -640,7 +641,7 @@ public abstract class ShadowCache {
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
 
-		InternalMonitor.recordShadowChangeOperation();
+		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
 		Collection<QName> additionalAuxiliaryObjectClassQNames = new ArrayList<>();
 		ItemPath auxPath = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
@@ -725,7 +726,7 @@ public abstract class ShadowCache {
 		Validate.notNull(shadow, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		InternalMonitor.recordShadowChangeOperation();
+		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
 		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
 		try {
@@ -1212,7 +1213,7 @@ public abstract class ShadowCache {
 		// We need to record the fetch down here. Now it is certain that we are
 		// going to fetch from resource
 		// (we do not have raw/noFetch option)
-		InternalMonitor.recordShadowFetchOperation();
+		InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		ObjectQuery attributeQuery = createAttributeQuery(query);
 
@@ -1620,7 +1621,7 @@ public abstract class ShadowCache {
 					GenericFrameworkException, SchemaException, ConfigurationException,
 					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
-		InternalMonitor.recordShadowOtherOperation();
+		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
 		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
 
@@ -1958,7 +1959,7 @@ public abstract class ShadowCache {
 					SchemaException, ConfigurationException, ExpressionEvaluationException {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		InternalMonitor.recordShadowOtherOperation();
+		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
 		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, null, parentResult);
 

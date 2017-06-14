@@ -971,19 +971,11 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			WebMarkupContainer choiceContainer = new WebMarkupContainer(ID_CHOICE_CONTAINER);
 			choiceContainer.setOutputMarkupId(true);
-			choiceContainer.add(new AttributeAppender("style", new LoadableModel<String>() {
-				private static final long serialVersionUID = 1L;
-				@Override
-				public String load(){
-					PageDebugList page = (PageDebugList) getPage();
-					return page.searchModel.getObject().getSearch().isFullTextSearchEnabled() ?
-							"margin-top: -15px;" : "";
-				}
-			}));
 			searchForm.add(choiceContainer);
 
 			DropDownChoice choice = new DropDownChoice(ID_CHOICE,
 					new PropertyModel(model, DebugSearchDto.F_TYPE), createChoiceModel(renderer), renderer);
+			choice.add(getDropDownStyleAppender());
 			choiceContainer.add(choice);
 			choice.add(new OnChangeAjaxBehavior() {
 
@@ -997,6 +989,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
 					new PropertyModel(model, DebugSearchDto.F_RESOURCE), resourcesModel,
 					createResourceRenderer());
+			resource.add(getDropDownStyleAppender());
 			resource.setNullValid(true);
 			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
@@ -1084,6 +1077,18 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 
 			};
+		}
+
+		private AttributeAppender getDropDownStyleAppender(){
+			return new AttributeAppender("style", new LoadableModel<String>() {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public String load(){
+					PageDebugList page = (PageDebugList) getPage();
+					return page.searchModel.getObject().getSearch().isFullTextSearchEnabled() ?
+							"margin-top: -15px;" : "";
+				}
+			});
 		}
 	}
 }

@@ -361,19 +361,4 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 		}
 	}
-
-	@Override
-	protected List<InlineMenuItem> newMemberInlineMenuItems() {
-		return super.createNewMemberInlineMenuItems();
-	}
-
-	@Override
-	protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
-		return super.createUnassignMemberInlineMenuItems();
-	}
-
-	@Override
-	protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {
-		return super.createMemberRecomputeInlineMenuItems();
-	}
 }

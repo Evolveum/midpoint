@@ -514,7 +514,14 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("AssignmentPathSegment(");
-		sb.append(evaluationOrder);
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		evaluationOrder.shortDump(sb);
 		if (isMatchingOrder()) {			// here is a side effect but most probably it's harmless
 			sb.append("(match)");
 		}
@@ -557,13 +564,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (lastEqualOrderSegmentIndex != null) {
 			sb.append(", lastEqualOrder: ").append(lastEqualOrderSegmentIndex);
 		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override

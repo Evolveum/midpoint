@@ -17,6 +17,8 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
@@ -67,6 +69,13 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
             protected boolean getAssignmentMenuVisibility() {
                 return  !getObjectWrapper().isReadonly();
             }
+
+            @Override
+			protected boolean isShowAllAssignmentsVisible(){
+				PrismContainer assignmentContainer = getObjectWrapper().getObject().findContainer(new ItemPath(FocusType.F_ASSIGNMENT));
+				return assignmentContainer != null && assignmentContainer.getDefinition() != null ?
+						assignmentContainer.getDefinition().canRead() : super.isShowAllAssignmentsVisible();
+			}
 
             @Override
 			protected void showAllAssignments(AjaxRequestTarget target) {

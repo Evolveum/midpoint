@@ -280,22 +280,27 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 					});
 			items.add(item);
 		}
-		item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
-				new InlineMenuItemAction() {
-					private static final long serialVersionUID = 1L;
+		if (isShowAllAssignmentsVisible()) {
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						showAllAssignments(target);
-					}
-				});
-		items.add(item);
-
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							showAllAssignments(target);
+						}
+					});
+			items.add(item);
+		}
 		return items;
 	}
 
 	protected void showAllAssignments(AjaxRequestTarget target) {
 
+	}
+
+	protected boolean isShowAllAssignmentsVisible(){
+		return false;
 	}
 
 	private List<AssignmentEditorDto> getSelectedAssignments() {

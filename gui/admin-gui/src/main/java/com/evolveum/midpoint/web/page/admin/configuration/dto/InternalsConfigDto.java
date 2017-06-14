@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,8 +33,6 @@ public class InternalsConfigDto implements Serializable {
     public static final String F_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     public static final String F_DETAILED_DEBUG_DUMP = "detailedDebugDump";
     public static final String F_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
-    public static final String F_TRACE_REPOSITORY_OPERATIONS = "traceRepositoryOperations";
-    public static final String F_TRACE_SHADOW_FETCH_OPERATIONS = "traceShadowFetchOperations";
 
     //internals config
     private boolean consistencyChecks;
@@ -45,9 +42,6 @@ public class InternalsConfigDto implements Serializable {
     private boolean detailedDebugDump;
     //DOM util
     private boolean tolerateUndeclaredPrefixes;
-    // InternalMonitor
-    private boolean traceShadowFetchOperations;
-    private boolean traceRepositoryOperations;
 
     public InternalsConfigDto() {
         consistencyChecks = InternalsConfig.consistencyChecks;
@@ -56,10 +50,7 @@ public class InternalsConfigDto implements Serializable {
 
         detailedDebugDump = DebugUtil.isDetailedDebugDump();
 
-        tolerateUndeclaredPrefixes = QNameUtil.isTolerateUndeclaredPrefixes();
-        
-        traceRepositoryOperations = InternalMonitor.isTraceRepositoryOperations();
-        traceShadowFetchOperations = InternalMonitor.isTraceShadowFetchOperations();
+        tolerateUndeclaredPrefixes = QNameUtil.isTolerateUndeclaredPrefixes();        
     }
 
     public boolean isConsistencyChecks() {
@@ -86,22 +77,6 @@ public class InternalsConfigDto implements Serializable {
         this.readEncryptionChecks = readEncryptionChecks;
     }
 
-    public boolean isTraceRepositoryOperations() {
-		return traceRepositoryOperations;
-	}
-
-	public void setTraceRepositoryOperations(boolean traceRepositoryOperations) {
-		this.traceRepositoryOperations = traceRepositoryOperations;
-	}
-
-	public boolean isTraceShadowFetchOperations() {
-		return traceShadowFetchOperations;
-	}
-
-	public void setTraceShadowFetchOperations(boolean traceShadowFetchOperations) {
-		this.traceShadowFetchOperations = traceShadowFetchOperations;
-	}
-
 	public boolean isDetailedDebugDump() {
         return detailedDebugDump;
     }
@@ -124,8 +99,6 @@ public class InternalsConfigDto implements Serializable {
         InternalsConfig.encryptionChecks = encryptionChecks;
         InternalsConfig.readEncryptionChecks = readEncryptionChecks;
         QNameUtil.setTolerateUndeclaredPrefixes(tolerateUndeclaredPrefixes);
-        InternalMonitor.setTraceShadowFetchOperations(traceShadowFetchOperations);
-        InternalMonitor.setTraceRepositoryOperations(traceRepositoryOperations);
     }
 
     public void saveDebugUtil() {

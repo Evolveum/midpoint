@@ -116,6 +116,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterprete
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
@@ -2207,7 +2208,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         final boolean useConnectorPaging = pagedSearchCapabilityType != null;
         if (!useConnectorPaging && query != null && query.getPaging() != null && 
         		(query.getPaging().getOffset() != null || query.getPaging().getMaxSize() != null)) {
-        	InternalMonitor.recordConnectorSimulatedPagingSearchCount();
+        	InternalMonitor.recordCount(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
         }
 
         final Holder<Integer> countHolder = new Holder<>(0);

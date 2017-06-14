@@ -83,6 +83,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -126,7 +127,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnecti
  * resource for speed and flexibility.
  * 
  * @author Radovan Semancik
- * 
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -294,11 +294,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 			}
 		}
 		
-		assertConnectorSchemaParseIncrement(1);
-		assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-		assertResourceSchemaFetchIncrement(0);
-		assertResourceSchemaParseCountIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 	}
 	
 	/**
@@ -318,11 +318,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
-		rememberResourceSchemaFetchCount();
-		rememberConnectorSchemaParseCount();
-		rememberConnectorCapabilitiesFetchCount();
-		rememberConnectorInitializationCount();
-		rememberResourceSchemaParseCount();
+		
+		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberResourceCacheStats();
 		
 		// Check that there is no schema before test (pre-condition)
@@ -373,11 +374,11 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		// schema will be checked in next test
 		
-		assertResourceSchemaFetchIncrement(1);
-		assertConnectorSchemaParseIncrement(0);
-		assertConnectorCapabilitiesFetchIncrement(1);
-		assertConnectorInitializationCountIncrement(1);
-		assertResourceSchemaParseCountIncrement(1);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 		// One increment for availablity status, the other for schema
 		assertResourceVersionIncrement(resourceRepoAfter, 2);
 	
@@ -401,7 +402,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		// There may be one parse. Previous test have changed the resource version
 		// Schema for this version will not be re-parsed until getObject is tried
-		assertResourceSchemaParseCountIncrement(1);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 		assertResourceCacheMissesIncrement(1);
 		
 		PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -845,7 +846,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		testResult.computeStatus();
 		TestUtil.assertSuccess("Connector test failed", testResult);
 		
-		assertConnectorInitializationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
 		rememberConnectorInstance(configuredConnectorInstanceAgain);
 		
 		assertSteadyResource();
@@ -1188,7 +1189,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
 				+ "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1200,7 +1201,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1229,7 +1230,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
 				+ "."+TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		GetOperationOptions rootOptions = new GetOperationOptions();
 		rootOptions.setNoFetch(true);
@@ -1246,7 +1247,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		display("Retrieved account shadow", shadow);
 
@@ -1300,7 +1301,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
@@ -1318,7 +1319,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 

@@ -187,6 +187,12 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	@Override
 	public String shortDump() {
 		StringBuilder sb = new StringBuilder();
+		shortDump(sb);
+		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
 			if (entry.getKey() != null) {
 				sb.append(entry.getKey().getLocalPart());
@@ -199,7 +205,6 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		}
 		sb.setLength(sb.length() - 1);
 		sb.append("=").append(getSummaryOrder());
-		return sb.toString();
 	}
 
 	@Override

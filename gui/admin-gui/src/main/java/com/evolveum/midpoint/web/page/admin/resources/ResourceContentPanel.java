@@ -269,6 +269,11 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 
 			@Override
+			protected PrismObject<ShadowType> getNewObjectListObject(){
+				return (new ShadowType()).asPrismObject();
+			}
+
+			@Override
 			protected IColumn<SelectableBean<ShadowType>, String> createActionsColumn(){
 				return new InlineMenuHeaderColumn(createHeaderMenuItems());
 			}

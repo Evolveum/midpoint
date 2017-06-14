@@ -63,6 +63,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -442,7 +443,7 @@ public class ResourceManager {
 		if (retrievedCapabilities == null) {
 			try {
 	
-				InternalMonitor.recordConnectorCapabilitiesFetchCount();
+				InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 				
 				ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
 				retrievedCapabilities = connector.fetchCapabilities(result);
@@ -662,7 +663,7 @@ public class ResourceManager {
 			LOGGER.trace("No connector has schema capability, cannot fetch resource schema");
 			return null;
 		}
-		InternalMonitor.recordResourceSchemaFetch();
+		InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 		List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 		ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
 		LOGGER.trace("Trying to get schema from {}", connectorSpec);
@@ -887,7 +888,7 @@ public class ResourceManager {
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
 
 		try {
-			InternalMonitor.recordConnectorCapabilitiesFetchCount();
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 			Collection<Object> capabilities = connector.fetchCapabilities(capabilitiesResult);
 			capabilityMap.put(connectorSpec.getConnectorName(), capabilities);
 			capabilitiesResult.recordSuccess();

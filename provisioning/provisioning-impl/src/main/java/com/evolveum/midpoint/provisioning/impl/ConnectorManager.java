@@ -52,6 +52,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -215,7 +216,7 @@ public class ConnectorManager {
 			
 			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), result);
 			
-			InternalMonitor.recordConnectorInstanceInitialization();
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 			
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
@@ -270,7 +271,7 @@ public class ConnectorManager {
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
 		if (userDataEntry == null) {
-			InternalMonitor.recordConnectorSchemaParse();
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 			PrismSchema connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorType, prismContext);
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
@@ -285,7 +286,7 @@ public class ConnectorManager {
 		PrismSchema connectorSchema;
 		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
 		if (userDataEntry == null) {
-			InternalMonitor.recordConnectorSchemaParse();
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 			connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorType, prismContext);
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
