@@ -563,13 +563,42 @@ public class TestPolicyRules extends AbstractLensTest {
 		// Contractor: L:approve-any-corp-role, L:notify-exclusion-violations, L:contractor-excludes-employee
 		// Engineer: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor, L:approve-any-corp-role, L:notify-exclusion-violations
 		assertEvaluatedRules(context, 12);
-		EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
-		assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
-		assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, trigger.getConflictingAssignment().getTarget().getOid());
+		EvaluatedExclusionTrigger engineerTrigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
+		assertNotNull("No conflicting assignment in trigger", engineerTrigger.getConflictingAssignment());
+		assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, engineerTrigger.getConflictingAssignment().getTarget().getOid());
 		assertTriggeredRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.ASSIGNMENT, 1, false);
 		assertTriggeredRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.SITUATION, 1, false);
+
+		EvaluatedPolicyRule engineerRule = getTriggeredRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION);
+		display("exclusion rule for Engineer", engineerRule);
+		display("exclusion trigger for Engineer", engineerTrigger);
+		display("Engineer: assignmentPath", engineerRule.getAssignmentPath());
+		display("Engineer: conflictingPath", engineerTrigger.getConflictingPath());
+		assertAssignmentPath(engineerRule.getAssignmentPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID, null);
+		assertAssignmentPath(engineerTrigger.getConflictingPath(), ROLE_CORP_CONTRACTOR_OID);
+
+		EvaluatedPolicyRule contractorRule = getTriggeredRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION);
+		EvaluatedExclusionTrigger contractorTrigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, ROLE_CORP_CONTRACTOR_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
+		display("exclusion rule for Contractor", contractorRule);
+		display("exclusion trigger for Contractor", contractorTrigger);
+		display("Contractor: assignmentPath", contractorRule.getAssignmentPath());
+		display("Contractor: conflictingPath", contractorTrigger.getConflictingPath());
+		assertAssignmentPath(contractorRule.getAssignmentPath(), ROLE_CORP_CONTRACTOR_OID, null);
+		assertAssignmentPath(contractorTrigger.getConflictingPath(), ROLE_CORP_ENGINEER_OID, ROLE_CORP_EMPLOYEE_OID);
 	}
 
+	private void assertAssignmentPath(AssignmentPath path, String... targetOids) {
+		assertEquals("Wrong path size", targetOids.length, path.size());
+		for (int i = 0; i < targetOids.length; i++) {
+			ObjectType target = path.getSegments().get(i).getTarget();
+			if (targetOids[i] == null) {
+				assertNull("Target #" + (i+1) + " should be null; it is: " + target, target);
+			} else {
+				assertNotNull("Target #" + (i+1) + " should not be null", target);
+				assertEquals("Wrong OID in target #" + (i+1), targetOids[i], target.getOid());
+			}
+		}
+	}
 
 	private List<EvaluatedPolicyRule> assertEvaluatedRules(LensContext<UserType> context, int expected) {
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
@@ -605,6 +634,19 @@ public class TestPolicyRules extends AbstractLensTest {
 		});
 		assertEquals("Unexpected number of triggered policy rules in the context", expectedCount, triggers.size());
 		return triggers.get(0);
+	}
+
+	private EvaluatedPolicyRule getTriggeredRule(LensContext<UserType> context, String targetOid, PolicyConstraintKindType expectedConstraintKind) {
+		List<EvaluatedPolicyRule> rules = new ArrayList<>();
+		forEvaluatedRule(context, targetOid, rule -> {
+			if (rule.getTriggers().stream().anyMatch(t -> t.getConstraintKind() == expectedConstraintKind)) {
+				rules.add(rule);
+			}
+		});
+		if (rules.size() != 1) {
+			fail("Wrong # of triggered rules for " + targetOid + ": expected 1, got " + rules.size() + ": " + rules);
+		}
+		return rules.get(0);
 	}
 	
 	private void forTriggeredRule(LensContext<UserType> context, String targetOid, Consumer<EvaluatedPolicyRuleTrigger> handler) {

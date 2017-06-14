@@ -32,6 +32,7 @@
             <ref>
                 <path>c:resourceRef</path>
                 <value xsi:type="t:ObjectReferenceType" oid="oid3" type="c:ResourceType" relation="test"/>
+                <value xsi:type="t:ObjectReferenceType" oid="oid4" type="c:ResourceType" relation="test"/>
             </ref>
         </or>
     </filter>

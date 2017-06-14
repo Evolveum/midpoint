@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.delta.DeltaTriple;

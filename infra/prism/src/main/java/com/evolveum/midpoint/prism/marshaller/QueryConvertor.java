@@ -468,6 +468,12 @@ public class QueryConvertor {
 			}
 		}
 
+		// The reference definition in prism data might be single-valued. However, filters allow to look for multiple values.
+		if (itemDefinition != null && itemDefinition.getMaxOccurs() != -1) {
+			itemDefinition = itemDefinition.clone();
+			itemDefinition.setMaxOccurs(-1);
+		}
+
 		XNode valueXnode = clauseXMap.get(ELEMENT_VALUE);
 		if (valueXnode != null) {
 			if (preliminaryParsingOnly) {
