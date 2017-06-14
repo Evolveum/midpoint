@@ -48,7 +48,9 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
 	PrismObject<?> getTarget();
-	
+
+	AssignmentType getAssignmentType(boolean old);
+
 	QName getRelation();
 
 	boolean isValid();

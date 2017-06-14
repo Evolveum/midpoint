@@ -398,8 +398,16 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
                         for (EvaluatedPolicyRuleTrigger<?> trigger : policyRule.getAllTriggers()) {
                             if (trigger instanceof EvaluatedExclusionTrigger) {
+                                EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
+                                EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
+                                if (conflictingAssignment.getAssignmentType(true) == null) {
+                                    LOGGER.trace("The conflicting assignment is newly added: {}, for evaluated assignment {}",
+                                            conflictingAssignment, evaluatedAssignment);
+                                } else {
+                                    LOGGER.trace("The conflicting assignment is NOT newly added: {}, for evaluated assignment {}",
+                                            conflictingAssignment, evaluatedAssignment);
+                                }
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
-                                EvaluatedAssignment<F> conflictingAssignment = ((EvaluatedExclusionTrigger) trigger).getConflictingAssignment();
                                 PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
                                 AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
                                 boolean isWarning = policyRule.getActions() != null
