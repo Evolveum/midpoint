@@ -208,6 +208,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		this.relation = relation;
 	}
 
+	public PrismReferenceValue relation(QName relation) {
+		setRelation(relation);
+		return this;
+	}
+
 	public String getDescription() {
 		return description;
 	}
