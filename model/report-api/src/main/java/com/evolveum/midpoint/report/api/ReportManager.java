@@ -20,11 +20,18 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -60,5 +67,10 @@ public interface ReportManager {
      * @param parentResult
      * @return
      */
-    InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) throws ObjectNotFoundException;
+	InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException, IOException;
+    
+   
+    void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception;
 }

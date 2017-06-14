@@ -6,12 +6,14 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
@@ -133,6 +135,20 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
                     }));
         }
         return newMemberMenuItems;
+    }
+
+    @Override
+    protected ObjectDelta getDeleteAssignmentDelta(Class classType) throws SchemaException {
+        ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
+                FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(RelationTypes.OWNER.getRelation()));
+        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.APPROVER.getRelation()));
+        delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createMemberAssignmentToModify(RelationTypes.MANAGER.getRelation()));
+        return delta;
+    }
+
+    @Override
+    protected ObjectQuery createAllMemberQuery() {
+        return super.createDirectMemberQuery();
     }
 
     @Override
