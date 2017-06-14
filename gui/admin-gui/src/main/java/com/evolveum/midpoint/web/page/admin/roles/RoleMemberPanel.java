@@ -88,7 +88,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return true;
 	}
 
-	private PrismContext getPrismContext() {
+	protected PrismContext getPrismContext() {
 		return getPageBase().getPrismContext();
 	}
 
@@ -155,7 +155,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
-	private AssignmentType createMemberAssignmentToModify(QName relation) throws SchemaException {
+	protected AssignmentType createMemberAssignmentToModify(QName relation) throws SchemaException {
 		AssignmentType assignmentToModify = createAssignmentToModify(relation);
 
 		DropDownChoice<OrgType> tenantChoice = (DropDownChoice<OrgType>) get(ID_TENANT);
@@ -185,7 +185,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return null;
 	}
 
-	private ObjectQuery createAllMemberQuery() {
+	protected ObjectQuery createAllMemberQuery() {
 		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
 				.ref(createReferenceValuesList()).build();
@@ -293,8 +293,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 					break;
 
 				case REMOVE:
-					delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
+					delta = getDeleteAssignmentDelta(classType);
 					break;
 			}
 		} catch (SchemaException e) {
@@ -302,6 +301,11 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 			result.recordFatalError("Failed to prepare delta for operation " + operation.name(), e);
 		}
 		return delta;
+	}
+
+	protected ObjectDelta getDeleteAssignmentDelta(Class classType) throws SchemaException {
+		return ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
+				FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
 	}
 
 	@Override
@@ -329,7 +333,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		
 	}
 
-	private ObjectQuery createDirectMemberQuery() {
+	protected ObjectQuery createDirectMemberQuery() {
 		ObjectQuery query;
 
 		String oid = getModelObject().getOid();
