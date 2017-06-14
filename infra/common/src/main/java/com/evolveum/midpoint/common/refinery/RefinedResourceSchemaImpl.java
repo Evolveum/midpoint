@@ -17,6 +17,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -337,7 +338,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 						USER_DATA_KEY_PARSED_RESOURCE_SCHEMA+ "in "+resource+", but got "+userDataEntry.getClass());
 			}
 		} else {
-			InternalMonitor.recordResourceSchemaParse();
+			InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 			ResourceSchemaImpl parsedSchema = ResourceSchemaImpl.parse(resourceXsdSchema, "resource schema of "+resource, prismContext);
 			if (parsedSchema == null) {
 				throw new IllegalStateException("Parsed schema is null: most likely an internall error");

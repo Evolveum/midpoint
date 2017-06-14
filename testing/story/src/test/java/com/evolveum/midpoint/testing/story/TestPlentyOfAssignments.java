@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -181,8 +182,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_GENERATED_DUMMY_ROLES + NUMBER_OF_ORDINARY_ROLES);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 	}
 	
 	@Test
@@ -197,8 +198,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("Cheese before", assignmentSummary(cheeseBefore));
         
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -217,15 +218,15 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("Cheese after", assignmentSummary(cheeseAfter));
         assertCheeseRoleMembershipRef(cheeseAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
         
 //        inspector.assertRead(RoleType.class, NUMBER_OF_CHEESE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	
@@ -241,8 +242,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("Cheese before", assignmentSummary(cheeseBefore));
         
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -261,14 +262,14 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("Cheese after", assignmentSummary(cheeseAfter));
         assertCheeseRoleMembershipRef(cheeseAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
         
         display("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
 //        assertRepositoryReadCount(4); // may be influenced by tasks
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
 	@Test
@@ -286,8 +287,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
         
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -306,14 +307,14 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("Cheese after", assignmentSummary(cheeseAfter));
         assertCheeseRoleMembershipRef(cheeseAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
         
         display("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
 //        assertRepositoryReadCount(4); // may be influenced by tasks
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 
 	private PrismObject<UserType> prepareCheese() throws Exception {
@@ -428,8 +429,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User before", assignmentSummary(userBefore));
         
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -448,8 +449,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertBobRoleMembershipRef(userAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
         
@@ -457,7 +458,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS * 3);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
         
         assertBobDummy(NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 	}
@@ -474,8 +475,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         OperationResult result = task.getResult();
                 
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -494,15 +495,15 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertBobRoleMembershipRef(userAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
         
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
         
         assertBobDummy(NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 	}
@@ -519,8 +520,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         OperationResult result = task.getResult();
                 
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -539,15 +540,15 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertBobRoleMembershipRef(userAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
         
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
         
         assertBobDummy(NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 	}
@@ -586,8 +587,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User before", assignmentSummary(userBefore));
         
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -606,8 +607,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertAliceRoleMembershipRef(userAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
         
@@ -615,7 +616,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS * 3);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
         
         assertAliceDummy(NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}
@@ -632,8 +633,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         OperationResult result = task.getResult();
         
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -652,15 +653,15 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertAliceRoleMembershipRef(userAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         display("Inspector", inspector);
         
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
         
         assertAliceDummy(NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}
@@ -677,8 +678,8 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         OperationResult result = task.getResult();
         
         inspector.reset();
-        rememberPrismObjectCompareCount();
-        rememberRepositoryReadCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
         
         // WHEN
@@ -697,15 +698,15 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User after", assignmentSummary(userAfter));
         assertAliceRoleMembershipRef(userAfter);
         
-        display("Repo reads", InternalMonitor.getRepositoryReadCount());
-        display("Object compares", InternalMonitor.getPrismObjectCompareCount());
-
+        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        
         display("Inspector", inspector);
         
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
         
-        assertPrismObjectCompareCount(0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
         
         assertAliceDummy(NUMBER_OF_GENERATED_DUMMY_GROUPS);
 	}

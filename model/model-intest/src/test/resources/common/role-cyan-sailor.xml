@@ -19,7 +19,7 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Cyan Sailor</name>
     <delegable>true</delegable>
-    <idempotent>true</idempotent>
+    <idempotence>conservative</idempotence>
     <inducement id="1111">
     	<construction>
     		<!-- Dummy CYAN -->

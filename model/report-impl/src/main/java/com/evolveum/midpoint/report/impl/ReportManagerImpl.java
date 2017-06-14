@@ -62,6 +62,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -80,7 +82,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     
     private static final Trace LOGGER = TraceManager.getTrace(ReportManagerImpl.class);
     
-    private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class + ".";
+    private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class.getSimpleName() + ".";
     private static final String CLEANUP_REPORT_OUTPUTS = CLASS_NAME_WITH_DOT + "cleanupReportOutputs";
     private static final String DELETE_REPORT_OUTPUT = CLASS_NAME_WITH_DOT + "deleteReportOutput";
     private static final String REPORT_OUTPUT_DATA = CLASS_NAME_WITH_DOT + "getReportOutputData";
@@ -338,7 +340,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         }
     }
     
-    private void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
+    @Override
+    public void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
     	String oid = reportOutput.getOid();
 
     	Task task = taskManager.createTaskInstance(DELETE_REPORT_OUTPUT);
@@ -364,8 +367,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     }
 	
    
+    //TODO re-throw exceptions?
     @Override
-    public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) {
+    public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException {
     	Task task = taskManager.createTaskInstance(REPORT_OUTPUT_DATA);
 
     	OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
@@ -374,8 +378,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     	InputStream reportData = null;
         try {
         	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null,
-                    task, result).asObjectable();
-
+				        task, result).asObjectable();
+			
             String filePath = reportOutput.getFilePath();
             if (StringUtils.isEmpty(filePath)) {
                 parentResult.recordFatalError("Report output file path is not defined.");
@@ -385,13 +389,19 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             reportData = FileUtils.openInputStream(file);
 
             result.recordSuccessIfUnknown();
-        } catch (Exception e) {
-            LOGGER.trace("Cannot read the report data : {}", e.getMessage());
-        	result.recordFatalError("Cannot read the report data.", e);
+        } catch (IOException ex) {
+        	LOGGER.error("Report doesn't exist anymore."); 
+        	result.recordPartialError("Report doesn't exist anymore.");       
+        	throw ex;
+        }  catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
+				| ConfigurationException | ExpressionEvaluationException e) {
+			result.recordFatalError("Problem with reading report outuput. Reson: " + e.getMessage(), e);
+			throw e;
         } finally {
             result.computeStatusIfUnknown();
         }
 
+       
         return reportData;
     }
 }

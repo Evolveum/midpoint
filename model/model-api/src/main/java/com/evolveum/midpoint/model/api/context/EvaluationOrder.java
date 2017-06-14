@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
+
 import org.apache.commons.collections4.MultiSet;
 
 import javax.xml.namespace.QName;
@@ -28,7 +30,7 @@ import java.util.Set;
  * @author semancik
  * @author mederly
  */
-public interface EvaluationOrder extends DebugDumpable, Cloneable {
+public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable {
 
 	int getSummaryOrder();
 
@@ -37,8 +39,6 @@ public interface EvaluationOrder extends DebugDumpable, Cloneable {
 	EvaluationOrder decrease(MultiSet<QName> relations);
 
 	int getMatchingRelationOrder(QName relation);
-
-	String shortDump();
 
 	Collection<QName> getExtraRelations();
 

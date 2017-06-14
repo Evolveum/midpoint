@@ -44,6 +44,7 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -117,7 +118,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlUuid.setResource(resourceDummyUuid);	
 				
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperations(true);
+		InternalMonitor.setTrace(InternalOperationClasses.SHADOW_FETCH_OPERATIONS, true);
 		
 //		DebugUtil.setDetailedDebugDump(true);
 	}

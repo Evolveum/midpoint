@@ -1011,7 +1011,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //	// TODO: currently we check only the direct assignments, we need to implement more complex mechanism
 //	public List<PrismReferenceValue> getGroupsForUser(UserType user) {
 //		List<PrismReferenceValue> retval = new ArrayList<>();
-//		for (AssignmentType assignmentType : user.getAssignment()) {
+//		for (AssignmentType assignmentType : user.getAssignmentNew()) {
 //			ObjectReferenceType ref = assignmentType.getTargetRef();
 //			if (ref != null) {
 //				retval.add(ref.clone().asReferenceValue());

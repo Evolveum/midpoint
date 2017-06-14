@@ -95,7 +95,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSupernotoriousOrg extends TestNotoriousOrg {
-			
+	
+	public static final File ORG_SUPERNOTORIOUS_FILE = new File(TEST_DIR, "org-supernotorious.xml");
+	public static final String ORG_SUPERNOTORIOUS_OID = "16baebbe-5046-11e7-82a0-eb7b7e3400f6";
+	
+	@Override
+	protected String getNotoriousOid() {
+		return ORG_SUPERNOTORIOUS_OID;
+	}
+	
+	@Override
+	protected File getNotoriousFile() {
+		return ORG_SUPERNOTORIOUS_FILE;
+	}
+	
 	@Override
 	protected void fillLevelBRole(RoleType roleType, int i) {
 		super.fillLevelBRole(roleType, i);
@@ -116,5 +129,11 @@ public class TestSupernotoriousOrg extends TestNotoriousOrg {
 				role -> {
 					assertRoleMembershipRef(role, getNotoriousOid());
 				}, NUMBER_OF_LEVEL_B_ROLES);
+	}
+	
+	@Override
+	protected void assertRoleEvaluationCount(int numberOfLevelAAssignments) {
+		// we have aggressive idempotence here
+		inspector.assertRoleEvaluations(getNotoriousOid(), hackify(1));
 	}
 }

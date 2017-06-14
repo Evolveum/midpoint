@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.api.context;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -32,9 +33,17 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  * @author mederly
  */
-public interface AssignmentPathSegment extends DebugDumpable {
+public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable {
 
+	// Returns version of the assignment (old/new) that was evaluated
 	AssignmentType getAssignment();
+
+	AssignmentType getAssignment(boolean evaluateOld);
+
+	// Returns 'assignment new' - i.e. the analogous to getAssignment(false)
+	// Until 2017-06-13 the name of this method was 'getAssignment()'
+	// TODO its use is a bit questionable; it might return null, when evaluating negative-mode assignments
+	AssignmentType getAssignmentNew();
 
 	/**
 	 * True if the segment corresponds to assignment. False if it's an inducement.

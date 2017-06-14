@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -102,8 +103,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(ROLE_FOOL_FILE, initResult);
         
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperations(false);
-		InternalMonitor.setTraceResourceSchemaOperations(false);
+		InternalMonitor.setTrace(InternalOperationClasses.SHADOW_FETCH_OPERATIONS, false);
+		InternalMonitor.setTrace(InternalOperationClasses.RESOURCE_SCHEMA_OPERATIONS, false);
 	}
 	
 	@Test

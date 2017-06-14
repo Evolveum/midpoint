@@ -380,8 +380,12 @@ public class DebugUtil {
 	}
 	
 	public static StringBuilder createTitleStringBuilder(Class<?> titleClass, int indent) {
+		return createTitleStringBuilder(titleClass.getSimpleName(), indent);
+	}
+	
+	public static StringBuilder createTitleStringBuilder(String label, int indent) {
 		StringBuilder sb = createIndentedStringBuilder(indent);
-		sb.append(titleClass.getSimpleName());
+		sb.append(label);
 		return sb;
 	}
 	
@@ -602,6 +606,18 @@ public class DebugUtil {
 			@Override
 			public String toString() {
 				return debugDump(dumpables);
+			}
+		};
+	}
+	
+	public static Object shortDumpLazily(ShortDumpable dumpable) {
+		if (dumpable == null) {
+			return null;
+		}
+		return new Object() {
+			@Override
+			public String toString() {
+				return dumpable.shortDump();
 			}
 		};
 	}

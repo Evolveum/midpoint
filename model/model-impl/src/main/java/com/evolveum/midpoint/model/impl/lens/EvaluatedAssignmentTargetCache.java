@@ -21,10 +21,14 @@ import java.util.Set;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
+import com.evolveum.midpoint.prism.delta.DeltaTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IdempotenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -33,15 +37,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 	
-	// Three sets. Target processed for addition is not necessarily reusable for deletion
-	private Set<Key> processedKeysPlus = new HashSet<>();
-	private Set<Key> processedKeysZero = new HashSet<>();
-	private Set<Key> processedKeysMinus = new HashSet<>();
+	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentTargetCache.class);
+	
+	// Triple. Target processed for addition is not necessarily reusable for deletion
+	// This is indexed by OID and order
+	private DeltaTriple<Set<Key>> processedKeys;
+
+	// This is indexed by OID only
+	private DeltaTriple<Set<String>> processedOids;
+
+	public EvaluatedAssignmentTargetCache() {
+		processedKeys = new DeltaTriple<>(() -> new HashSet<>());
+		processedOids = new DeltaTriple<>(() -> new HashSet<>());
+	}
 	
 	public void reset() {
-		processedKeysPlus = new HashSet<>();
-		processedKeysZero = new HashSet<>();
-		processedKeysMinus = new HashSet<>();
+		processedKeys.foreach(set -> set.clear());
+		processedOids.foreach(set -> set.clear());
 	}
 
 	public void recordProcessing(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
@@ -53,33 +65,45 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 			return;
 		}
 		Key key = new Key(segment);
-		Set<Key> set = getSet(mode);
-		set.add(key);
+		Set<Key> keySet = processedKeys.get(mode);
+		keySet.add(key);
+		
+		if (targetType.getOid() != null) {
+			Set<String> oidSet = processedOids.get(mode);
+			oidSet.add(targetType.getOid());
+		}
 	}
 	
 	private boolean isCacheable(AbstractRoleType targetType) {
-		return BooleanUtils.isTrue(targetType.isIdempotent());
+		IdempotenceType idempotence = targetType.getIdempotence();
+		return idempotence != null && idempotence != IdempotenceType.NONE;
 	}
 
 	public boolean canSkip(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
-		if (!segment.isMatchingOrder()) {
-			// Not sure about this. Just playing safe.
+		ObjectType target = segment.getTarget();
+		if (target == null || !(target instanceof AbstractRoleType)) {
+//			LOGGER.trace("Non-skippable target: {}", target);
 			return false;
 		}
-		Key key = new Key(segment);
-		Set<Key> set = getSet(mode);
-		return set.contains(key);
+		IdempotenceType idempotence = ((AbstractRoleType)target).getIdempotence();
+		if (idempotence == null || idempotence == IdempotenceType.NONE) {
+//			LOGGER.trace("Not idempotent target: {}", target);
+			return false;
+		}
+		if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder()) {
+//			LOGGER.trace("Convervative idempotent and order is not matching: {}", target);
+			return false;
+		}
+		if (idempotence == IdempotenceType.AGGRESSIVE) {
+			Set<String> oidSet = processedOids.get(mode);
+			return oidSet.contains(target.getOid());
+		} else {
+			Key key = new Key(segment);
+			Set<Key> keySet = processedKeys.get(mode);
+			return keySet.contains(key);
+		}
 	}
 	
-	private Set<Key> getSet(PlusMinusZero mode) {
-		switch (mode) {
-			case PLUS: return processedKeysPlus;
-			case ZERO: return processedKeysZero;
-			case MINUS: return processedKeysMinus;
-		}
-		throw new IllegalArgumentException("Wrong mode "+mode);
-	}
-
 	private class Key {
 		private EvaluationOrder evaluationOrder;
 		private String targetOid;
@@ -147,9 +171,11 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilder(EvaluatedAssignmentTargetCache.class, indent);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "plus", processedKeysPlus, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "zero", processedKeysZero, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "minus", processedKeysMinus, indent + 1);
+		DebugUtil.debugDumpLabelLn(sb, "processedKeys", indent + 1);
+		processedKeys.debugDumpNoTitle(sb, indent + 2);
+		sb.append("\n");
+		DebugUtil.debugDumpLabelLn(sb, "processedOids", indent + 1);
+		processedOids.debugDumpNoTitle(sb, indent + 2);
 		return sb.toString();
 	}
 	

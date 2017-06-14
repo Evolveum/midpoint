@@ -198,6 +198,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
+	/**
+	 * evaluateOld: If true, we take the 'old' value from assignmentIdi. If false, we take the 'new' one.
+	 */
 	public EvaluatedAssignmentImpl<F> evaluate(
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
 			PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
@@ -206,11 +209,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assertSourceNotNull(source, assignmentIdi);
 
 		EvaluationContext ctx = new EvaluationContext(
-				new EvaluatedAssignmentImpl<>(assignmentIdi),
+				new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld),
 				new AssignmentPathImpl(),
 				primaryAssignmentMode, evaluateOld, task, result);
 
-		AssignmentPathSegmentImpl segment = new AssignmentPathSegmentImpl(source, sourceDescription, assignmentIdi, true);
+		AssignmentPathSegmentImpl segment = new AssignmentPathSegmentImpl(source, sourceDescription, assignmentIdi, true, evaluateOld);
 		segment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, ctx));
 		segment.setEvaluationOrderForTarget(EvaluationOrderImpl.ZERO);
 		segment.setValidityOverride(true);
@@ -451,9 +454,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
-		// TODO why "assignmentTypeNew" when we retrieve old one in some situations?
-		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
-		ConstructionType constructionType = assignmentTypeNew.getConstruction();
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		ConstructionType constructionType = assignmentType.getConstruction();
 		
 		LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), segment.source);
 
@@ -484,10 +486,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (mode == null) {
 			return;				// null mode (i.e. plus + minus) means 'ignore the payload'
 		}
-		
-		// TODO why "assignmentTypeNew" when we retrieve old one in some situations?
-		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
-		PersonaConstructionType constructionType = assignmentTypeNew.getPersonaConstruction();
+
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		PersonaConstructionType constructionType = assignmentType.getPersonaConstruction();
 		
 		LOGGER.trace("Preparing persona construction '{}' in {}", constructionType.getDescription(), segment.source);
 		
@@ -509,9 +510,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
-		// TODO why "assignmentTypeNew" when we consider also old values?
-		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
-		MappingsType mappingsType = assignmentTypeNew.getFocusMappings();
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		MappingsType mappingsType = assignmentType.getFocusMappings();
 		
 		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)",
 				mappingsType.getDescription(), segment.source, mappingsType.getMapping().size());
@@ -532,9 +532,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private void collectPolicyRule(boolean focusRule, AssignmentPathSegmentImpl segment, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
-		
-		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
-		PolicyRuleType policyRuleType = assignmentTypeNew.getPolicyRule();
+
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		PolicyRuleType policyRuleType = assignmentType.getPolicyRule();
 		
 		LOGGER.trace("Collecting {} policy rule '{}' in {}", focusRule ? "focus" : "target", policyRuleType.getName(), segment.source);
 		
@@ -661,6 +661,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		if (evaluatedAssignmentTargetCache.canSkip(segment, ctx.primaryAssignmentMode)) {
 			LOGGER.trace("Skipping evaluation of segment {} because we have seen the target before", segment);
+			InternalMonitor.recordRoleEvaluationSkip(targetType, true);
 			return;
 		}
 		
@@ -680,7 +681,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 		
+		LOGGER.debug("Evaluating RBAC [{}]", ctx.assignmentPath.shortDumpLazily());
 		InternalMonitor.recordRoleEvaluation(targetType, true);
+		
+		// Cache it immediately, even before evaluation. So if there is a cycle in the role path
+		// then we can detect it and skip re-evaluation of aggressively idempotent roles.
+		evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
 		
 		if (isTargetValid && targetType instanceof AbstractRoleType) {
 			MappingType roleCondition = ((AbstractRoleType)targetType).getCondition();
@@ -707,7 +713,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				targetType.asPrismObject(),
 				segment.isMatchingOrder(),	// evaluateConstructions: exact meaning of this is to be revised
 				ctx.assignmentPath.clone(),
-				segment.getAssignment(),
+				getAssignmentType(segment, ctx),
 				isValid);
 		ctx.evalAssignment.addRole(evalAssignmentTarget, relativeMode);
 
@@ -754,8 +760,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 		
-		evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
-		
 		LOGGER.trace("Evaluating segment target DONE for {}", segment);
 	}
 
@@ -781,7 +785,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		if (ObjectTypeUtil.isDelegationRelation(relation)) {
 			// We have to handle assignments as though they were inducements here.
-			if (!isInducementAllowedByLimitations(segment, roleAssignment)) {
+			if (!isInducementAllowedByLimitations(segment, roleAssignment, ctx)) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Skipping application of delegated assignment {} because it is limited in the delegation",
 							FocusTypeUtil.dumpAssignment(roleAssignment));
@@ -796,11 +800,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			LOGGER.trace("orig EO({}): follow assignment {} {}; new EO({})",
 					segment.getEvaluationOrder().shortDump(), targetType, FocusTypeUtil.dumpAssignment(roleAssignment), nextEvaluationOrder);
 		}
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
-		roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
-		roleAssignmentIdi.recompute();
 		String nextSourceDescription = targetType+" in "+segment.sourceDescription;
-		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, nextSourceDescription, roleAssignmentIdi, true);
+		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, nextSourceDescription, roleAssignment, true);
 		nextSegment.setRelation(nextRelation);
 		nextSegment.setEvaluationOrder(nextEvaluationOrder);
 		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTarget);
@@ -830,26 +831,23 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			return;
 		}
-		if (!isInducementAllowedByLimitations(segment, inducement)) {
+		if (!isInducementAllowedByLimitations(segment, inducement, ctx)) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Skipping application of inducement {} because it is limited", FocusTypeUtil.dumpAssignment(inducement));
 			}
 			return;
 		}
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
-		roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(inducement));
-		roleInducementIdi.recompute();
 		String subSourceDescription = targetType+" in "+segment.sourceDescription;
-		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, roleInducementIdi, false);
-
+		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, inducement, false);
+		// note that 'old' and 'new' values for assignment in nextSegment are the same
 		boolean nextIsMatchingOrder = AssignmentPathSegmentImpl.computeMatchingOrder(
-				segment.getEvaluationOrder(), nextSegment.getAssignment());
+				segment.getEvaluationOrder(), nextSegment.getAssignmentNew());
 		boolean nextIsMatchingOrderForTarget = AssignmentPathSegmentImpl.computeMatchingOrder(
-				segment.getEvaluationOrderForTarget(), nextSegment.getAssignment());
+				segment.getEvaluationOrderForTarget(), nextSegment.getAssignmentNew());
 
 		Holder<EvaluationOrder> nextEvaluationOrderHolder = new Holder<>(segment.getEvaluationOrder().clone());
 		Holder<EvaluationOrder> nextEvaluationOrderForTargetHolder = new Holder<>(segment.getEvaluationOrderForTarget().clone());
-		adjustOrder(nextEvaluationOrderHolder, nextEvaluationOrderForTargetHolder, inducement.getOrderConstraint(), inducement.getOrder(), ctx.assignmentPath, nextSegment);
+		adjustOrder(nextEvaluationOrderHolder, nextEvaluationOrderForTargetHolder, inducement.getOrderConstraint(), inducement.getOrder(), ctx.assignmentPath, nextSegment, ctx);
 		nextSegment.setEvaluationOrder(nextEvaluationOrderHolder.getValue(), nextIsMatchingOrder);
 		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTargetHolder.getValue(), nextIsMatchingOrderForTarget);
 
@@ -875,7 +873,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void adjustOrder(Holder<EvaluationOrder> evaluationOrderHolder, Holder<EvaluationOrder> targetEvaluationOrderHolder,
 			List<OrderConstraintsType> constraints, Integer order, AssignmentPathImpl assignmentPath,
-			AssignmentPathSegmentImpl nextSegment) {
+			AssignmentPathSegmentImpl nextSegment, EvaluationContext ctx) {
 
 		if (constraints.isEmpty()) {
 			if (order == null || order == 1) {
@@ -931,7 +929,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 									assignmentsSeen, assignmentPath.size() - i, segment.getRelation());
 						}
 					} else {
-						AssignmentType inducement = segment.getAssignment();
+						AssignmentType inducement = segment.getAssignment(ctx.evaluateOld);		// for i>0 returns value regardless of evaluateOld
 						for (OrderConstraintsType constraint : inducement.getOrderConstraint()) {
 							if (constraint.getResetOrder() != null && constraint.getRelation() != null) {
 								LOGGER.debug("Going back {}: an inducement with non-summary resetting constraint found"
@@ -1024,7 +1022,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 	private void collectMembershipRefVal(PrismReferenceValue membershipRefVal, Class<? extends ObjectType> targetClass, QName relation, Object targetDesc, EvaluationContext ctx) {
 
-		if (ctx.assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment()))) {
+		if (ctx.assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment(ctx.evaluateOld)))) {
 			addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), ctx.evalAssignment::addDelegationRefVal, membershipRefVal,
 					"delegationRef", targetDesc);
 		} else {
@@ -1091,8 +1089,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return inducementFocusClass.isAssignableFrom(lensContext.getFocusClass());
 	}
 	
-	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement) {
-		AssignmentSelectorType limitation = segment.getAssignment().getLimitTargetContent();
+	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement,
+			EvaluationContext ctx) {
+		AssignmentSelectorType limitation = segment.getAssignment(ctx.evaluateOld).getLimitTargetContent();
 		return limitation == null || FocusTypeUtil.selectorMatches(limitation, roleInducement);
 	}
 
@@ -1115,7 +1114,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private AssignmentType getAssignmentType(AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
-		return LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
+		return segment.getAssignment(ctx.evaluateOld);
 	}
 
 	private void checkSchema(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException {
@@ -1148,7 +1147,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			@NotNull List<PrismObject<O>> targets, EvaluationContext ctx) {
 		assert ctx.evalAssignment.getTarget() == null;
 		if (targets.size() > 1) {
-			throw new UnsupportedOperationException("Multiple targets for direct focus assignment are not supported: " + segment.getAssignment());
+			throw new UnsupportedOperationException("Multiple targets for direct focus assignment are not supported: " + segment.getAssignment(ctx.evaluateOld));
 		} else if (!targets.isEmpty()) {
 			ctx.evalAssignment.setTarget(targets.get(0));
 		}

@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -34,15 +36,23 @@ import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.InternalsConfigDto;
 
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -70,14 +80,16 @@ public class PageInternals extends PageAdminConfiguration {
     private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
     private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
-    private static final String ID_TRACE_SHADOW_FETCH_OPERATIONS = "traceShadowFetchOperations";
-    private static final String ID_TRACE_REPOSITORY_OPERATIONS = "traceRepositoryOperations";
     
-    private static final String ID_REPOSITORY_READ_COUNT = "repositoryReadCount";
-    private static final String ID_PRISM_OBJECT_COMPARE_COUNT = "prismObjectCompareCount";
-    private static final String ID_PRISM_OBJECT_CLONE_COUNT = "prismObjectCloneCount";
-    private static final String ID_PRISM_OBJECT_CLONE_DURATION = "prismObjectCloneDurationMillis";
-
+    private static final String ID_TRACES_FORM = "tracesForm";
+    private static final String ID_TRACES_TABLE = "tracesTable";
+    private static final String ID_TRACE_TOGGLE = "traceToggle";
+    private static final String ID_UPDATE_TRACES = "updateTraces";
+    
+    private static final String ID_COUNTERS_TABLE = "countersTable";
+    private static final String ID_COUNTER_LABEL = "counterLabel";
+    private static final String ID_COUNTER_VALUE = "counterValue";
+    
     private static final String LABEL_SIZE = "col-md-4";
     private static final String INPUT_SIZE = "col-md-8";
 
@@ -86,6 +98,7 @@ public class PageInternals extends PageAdminConfiguration {
 
     private LoadableModel<XMLGregorianCalendar> model;
     private IModel<InternalsConfigDto> internalsModel;
+    private Map<InternalOperationClasses,Boolean> tracesMap;
 
     public PageInternals() {
         model = new LoadableModel<XMLGregorianCalendar>() {
@@ -98,6 +111,10 @@ public class PageInternals extends PageAdminConfiguration {
         };
 
         internalsModel = new Model<>(new InternalsConfigDto());
+        tracesMap = new HashMap<>();
+        for (InternalOperationClasses op: InternalOperationClasses.values()) {
+        	tracesMap.put(op, InternalMonitor.isTrace(op));
+        }
 
         initLayout();
     }
@@ -142,6 +159,7 @@ public class PageInternals extends PageAdminConfiguration {
 
         initDebugUtilForm();
         initInternalsConfigForm();
+        initTraces();
         initCounters();
     }
 
@@ -181,9 +199,7 @@ public class PageInternals extends PageAdminConfiguration {
         form.add(createCheckbox(ID_ENCRYPTION_CHECKS, InternalsConfigDto.F_ENCRYPTION_CHECKS));
         form.add(createCheckbox(ID_READ_ENCRYPTION_CHECKS, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS));
         form.add(createCheckbox(ID_TOLERATE_UNDECLARED_PREFIXES, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES));
-        form.add(createCheckbox(ID_TRACE_SHADOW_FETCH_OPERATIONS, InternalsConfigDto.F_TRACE_SHADOW_FETCH_OPERATIONS));
-        form.add(createCheckbox(ID_TRACE_REPOSITORY_OPERATIONS, InternalsConfigDto.F_TRACE_REPOSITORY_OPERATIONS));
-
+        
         AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
                 createStringResource("PageBase.button.update")) {
 			private static final long serialVersionUID = 1L;
@@ -201,6 +217,53 @@ public class PageInternals extends PageAdminConfiguration {
         form.add(update);
     }
     
+    private void initTraces() {
+        Form form = new Form(ID_TRACES_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
+        
+        ListView<InternalOperationClasses> tracesTable = new ListView<InternalOperationClasses>(ID_TRACES_TABLE, Arrays.asList(InternalOperationClasses.values())) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void populateItem(ListItem<InternalOperationClasses> item) {
+				InternalOperationClasses operationClass = item.getModelObject();
+				CheckFormGroup checkFormGroup = new CheckFormGroup(ID_TRACE_TOGGLE,
+		                new PropertyModel<Boolean>(tracesMap, operationClass.getKey()),
+		                createStringResource("InternalOperationClasses."+operationClass.getKey()), LABEL_SIZE, INPUT_SIZE);
+				item.add(checkFormGroup);
+			}
+        
+        };
+        form.add(tracesTable);
+        
+        AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_TRACES,
+                createStringResource("PageBase.button.update")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                updateTraces(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        form.add(update);
+    }
+    
+    private void updateTraces(AjaxRequestTarget target){
+        for (Entry<InternalOperationClasses, Boolean> entry: tracesMap.entrySet()) {
+        	InternalMonitor.setTrace(entry.getKey(), entry.getValue());
+        }
+
+        LOGGER.trace("Updated traces: {}", tracesMap);
+        success(getString("PageInternals.message.tracesUpdate"));
+        target.add(getFeedbackPanel(), getInternalsConfigForm());
+    }
+    
     private CheckFormGroup createCheckbox(String id, String propName) {
     	return new CheckFormGroup(id,
                 new PropertyModel<Boolean>(internalsModel, propName),
@@ -208,29 +271,31 @@ public class PageInternals extends PageAdminConfiguration {
     }
     
     private void initCounters() {
-    	addCounter(ID_REPOSITORY_READ_COUNT, InternalMonitor::getRepositoryReadCount);
-    	addCounter(ID_PRISM_OBJECT_COMPARE_COUNT, InternalMonitor::getPrismObjectCompareCount);
-    	addCounter(ID_PRISM_OBJECT_CLONE_COUNT, InternalMonitor::getPrismObjectCloneCount);
-    	addCounter(ID_PRISM_OBJECT_CLONE_DURATION, InternalMonitor::getPrismObjectCloneDurationMillis);
-		// TODO
-	}
-
-    private <T> void addCounter(String id, final Producer<T> producer) {
-    	Label label = new Label(id, new AbstractReadOnlyModel<String>() {
+    	
+    	ListView<InternalCounters> countersTable = new ListView<InternalCounters>(ID_COUNTERS_TABLE, Arrays.asList(InternalCounters.values())) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public String getObject() {
-				T val = producer.run();
-				if (val == null) {
-					return "";
-				} else {
-					return val.toString();
-				}
+			protected void populateItem(ListItem<InternalCounters> item) {
+				InternalCounters counter = item.getModelObject();
+				Label label = new Label(ID_COUNTER_LABEL, createStringResource("InternalCounters."+counter.getKey()));
+				item.add(label);
+		    	
+		    	Label valueLabel = new Label(ID_COUNTER_VALUE, new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public String getObject() {
+						long val = InternalMonitor.getCount(counter);
+						return Long.toString(val);
+					}
+				});
+		    	item.add(valueLabel);
 			}
-		});
-    	add(label);
-    }
+    		
+    	};
+    	add(countersTable);
+	}
 
     private Form getMainForm(){
         return (Form) get(ID_MAIN_FORM);

@@ -84,7 +84,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		this.complexTypeDefinition = complexTypeDefinition;
     }
 
-    @Override
+	public static <T extends Containerable> T asContainerable(PrismContainerValue<T> value) {
+    	return value != null ? value.asContainerable() : null;
+	}
+
+	@Override
     public PrismContext getPrismContext() {
         if (prismContext != null) {
             return prismContext;

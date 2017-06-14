@@ -8444,12 +8444,12 @@
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="idempotent" type="xsd:boolean" minOccurs="0" default="false">
+                    <xsd:element name="idempotence" type="tns:IdempotenceType" minOccurs="0" default="none">
                     	<xsd:annotation>
                     		<xsd:documentation>
                     			<p>
                     				<p>
-		                    			True value of this flag indicates, that the evaluation of this role gives the
+		                    			This value indicates, whether the evaluation of this role gives the
 		                    			same results regardless of its position in the assignment/inducement
 		                    			hierarchy. I.e. evaluation of this roles does not depend on the assignment
 		                    			parameters of focus or any of the preceding roles. This flag is used
@@ -8465,7 +8465,8 @@
 	                    				also risks of incorrect evaluation of the roles.
 	                    				If an role is idempotent then is is also assumed that any roles included
 	                    				in this role are also idempotent. Therefore please take care when
-	                    				constructing role hierarchies. This flag has false value by default.
+	                    				constructing role hierarchies. This property has a default value
+	                    				that indicates no idempotency.
 	                    			</p>
 	                    			<p>
 	                    				Rules of the thumb: 
@@ -8656,6 +8657,71 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="abstractRole" type="tns:AbstractRoleType"/>
+
+	<xsd:simpleType name="IdempotenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                This value indicates, whether the evaluation of this role gives the
+       			same results regardless of its position in the assignment/inducement
+       			hierarchy. I.e. evaluation of this roles does not depend on the assignment
+       			parameters of focus or any of the preceding roles. This flag is used
+       			to enable aggresive caching of role evaluation, so idempotent roles
+       			are only evaluated once regardless of their position in the hierarchy
+       			as we can assume that any subsequent eveluation will produce exactly
+       			the same results as the first evaluation. This is a very important
+       			feature that allows efficient evaluation of big role hierarchies.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Role is not idempotent. The role must be evaluated for all situations:
+                        all assignment paths, all orders, etc. 
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="conservative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This value indicates, that the evaluation of this role gives the
+               			same results regardless of its position in the assignment/inducement
+               			hierarchy. I.e. evaluation of this roles does not depend on the assignment
+               			parameters of focus or any of the preceding roles. However, the role
+               			will still be re-evaluated if it is found with assignment path of
+               			different depths or orders (e.g. in meta-role situations).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONSERVATIVE"/>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="aggressive">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This value indicates, that the evaluation of this role gives the
+               			same results regardless of its position in the assignment/inducement
+               			hierarchy including different path lengths and evaluation orders. 
+               			I.e. evaluation of this roles does not depend on the assignment
+               			parameters of focus or any of the preceding roles and it has no
+               			meta-role capability (e.g. higher-order inducements).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AGGRESSIVE"/>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="AuthorizationType">
         <xsd:annotation>

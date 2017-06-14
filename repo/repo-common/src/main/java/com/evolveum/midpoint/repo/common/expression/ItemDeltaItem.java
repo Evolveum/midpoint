@@ -20,15 +20,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PartiallyResolvedItem;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Structured;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -430,7 +422,18 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		DebugUtil.debugDumpWithLabelToString(sb, "residualPath", residualPath, indent + 1);
 		return sb.toString();
 	}
-	
-	
-	
+
+	private V getSingleValue(Item<V, D> item) {
+		if (item == null || item.isEmpty()) {
+			return null;
+		} else if (item.size() == 1) {
+			return item.getValue(0);
+		} else {
+			throw new IllegalStateException("Multiple values where single one was expected: " + item);
+		}
+	}
+
+	public V getSingleValue(boolean evaluateOld) {
+		return getSingleValue(evaluateOld ? itemOld : itemNew);
+	}
 }

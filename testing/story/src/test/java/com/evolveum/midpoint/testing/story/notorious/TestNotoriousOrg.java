@@ -100,6 +100,11 @@ public class TestNotoriousOrg extends AbstractNotoriousTest {
 	protected String getNotoriousOid() {
 		return ORG_NOTORIOUS_OID;
 	}
+	
+	@Override
+	protected File getNotoriousFile() {
+		return ORG_NOTORIOUS_FILE;
+	}
 
 	@Override
 	protected QName getNotoriousType() {
@@ -118,7 +123,7 @@ public class TestNotoriousOrg extends AbstractNotoriousTest {
 
 	@Override
 	protected void addNotoriousRole(OperationResult result) throws Exception {
-		PrismObject<OrgType> org = parseObject(ORG_NOTORIOUS_FILE);
+		PrismObject<OrgType> org = parseObject(getNotoriousFile());
 		OrgType orgType = org.asObjectable();
 		fillNotorious(orgType);
 		LOGGER.info("Adding {}:\n{}", org, org.debugDump(1));

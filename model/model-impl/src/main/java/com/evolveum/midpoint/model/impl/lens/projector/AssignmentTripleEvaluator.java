@@ -15,52 +15,36 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.controller.ModelUtils;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Collection;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
@@ -185,23 +169,24 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
     private void processAssignment(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
     		ObjectDelta<F> focusDelta, ContainerDelta<AssignmentType> assignmentDelta, SmartAssignmentElement assignmentElement)
     				throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
-    	
-    	LensFocusContext<F> focusContext = context.getFocusContext();
-    	PrismContainerValue<AssignmentType> assignmentCVal = assignmentElement.getAssignmentCVal();
-        AssignmentType assignmentType = assignmentCVal.asContainerable();
-        PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
-        PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-        assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
 
-		boolean presentInCurrent = assignmentElement.isCurrent();
-		boolean presentInOld = assignmentElement.isOld();
-        // This really means whether the WHOLE assignment was changed (e.g. added/delted/replaced). It tells nothing
+		final LensFocusContext<F> focusContext = context.getFocusContext();
+    	final PrismContainerValue<AssignmentType> assignmentCVal = assignmentElement.getAssignmentCVal();
+        final PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
+        PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;		// refined later
+
+		final boolean presentInCurrent = assignmentElement.isCurrent();
+		final boolean presentInOld = assignmentElement.isOld();
+        // This really means whether the WHOLE assignment was changed (e.g. added/deleted/replaced). It tells nothing
         // about "micro-changes" inside assignment, these will be processed later.
-        boolean isAssignmentChanged = assignmentElement.isChanged();
+        boolean isAssignmentChanged = assignmentElement.isChanged();			// refined later
+        // TODO what about assignments that are present in old or current objects, and also changed?
+		// TODO They seem to have "old"/"current" flag, not "changed" one. Is that OK?
         boolean forceRecon = false;
-        String assignmentPlacementDesc;
-        
+		final String assignmentPlacementDesc;
+
+		Collection<? extends ItemDelta<?,?>> subItemDeltas = null;
+
         if (isAssignmentChanged) {
         	// Whole assignment added or deleted
         	assignmentPlacementDesc = "delta for "+source;
@@ -210,7 +195,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	Collection<? extends ItemDelta<?,?>> assignmentItemDeltas = getExecutionWaveAssignmentItemDeltas(focusContext, assignmentCVal.getId());
         	if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
         		// Small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted)
-        		assignmentIdi.setSubItemDeltas(assignmentItemDeltas);
+        		subItemDeltas = assignmentItemDeltas;
         		
         		// The subItemDeltas above will handle some changes. But not other.
         		// E.g. a replace of the whole construction will not be handled properly.
@@ -222,9 +207,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
             	assignmentCValNew = assContNew.getValue(assignmentCVal.getId());
         	}
         }
-        
-        assignmentIdi.recompute();
-        
+
         // The following code is using collectToAccountMap() to collect the account constructions to one of the three "delta"
         // sets (zero, plus, minus). It is handling several situations that needs to be handled specially.
         // It is also collecting assignments to evaluatedAssignmentTriple.
@@ -237,7 +220,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
         	}
-        	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
             if (evaluatedAssignment == null) {
             	return;
             }
@@ -261,7 +244,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal, true);
         		if (hadValue && willHaveValue) {
         			// No change
-        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                     if (evaluatedAssignment == null) {
                     	return;
                     }
@@ -270,7 +253,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 					collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (willHaveValue) {
         			// add
-        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                     if (evaluatedAssignment == null) {
                     	return;
                     }
@@ -279,7 +262,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
                     collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
         		} else if (hadValue) {
         			// delete
-        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+        			EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                     if (evaluatedAssignment == null) {
                     	return;
                     }
@@ -311,7 +294,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                		if (LOGGER.isTraceEnabled()) {
 			            		LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                        if (evaluatedAssignment == null) {
 	                        	return;
 	                        }
@@ -322,7 +305,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                		if (LOGGER.isTraceEnabled()) {
 			            		LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                        if (evaluatedAssignment == null) {
 	                        	return;
 	                        }
@@ -336,7 +319,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                	if (LOGGER.isTraceEnabled()) {
 		            		LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 		            	}
-	                	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	                	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                    if (evaluatedAssignment == null) {
 	                    	return;
 	                    }
@@ -353,12 +336,14 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                			assignmentCValOld.asContainerable(), now, activationComputer);
 	                	boolean isValid = LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
 	                			assignmentCValNew.asContainerable(), now, activationComputer);
+						ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
+								createAssignmentIdiInternalChange(assignmentCVal, subItemDeltas);
 	                	if (isValid == isValidOld) {
 	                		// No change in validity -> right to the zero set
 		                	// The change is not significant for assignment applicability. Recon will sort out the details.
 	                		if (LOGGER.isTraceEnabled()) {
-			            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", 
-			            				new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+			            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
+										isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
 	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                        if (evaluatedAssignment == null) {
@@ -370,8 +355,8 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                	} else if (isValid) {
 	                		// Assignment became valid. We need to place it in plus set to initiate provisioning
 	                		if (LOGGER.isTraceEnabled()) {
-			            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", 
-			            				new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+			            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
+										isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
 	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                        if (evaluatedAssignment == null) {
@@ -383,8 +368,8 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                	} else {
 	                		// Assignment became invalid. We need to place is in minus set to initiate deprovisioning
 	                		if (LOGGER.isTraceEnabled()) {
-			            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", 
-			            				new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
+			            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
+										isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
 	                		EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                        if (evaluatedAssignment == null) {
@@ -399,9 +384,9 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	            } else {
 	                // No change in assignment
 	            	if (LOGGER.isTraceEnabled()) {
-	            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
+	            		LOGGER.trace("Processing unchanged assignment {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 	            	}
-	            	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+	            	EvaluatedAssignmentImpl<F> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 	                if (evaluatedAssignment == null) {
 	                	return;
 	                }
@@ -411,8 +396,66 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	            }
         	}
         }
-
     }
+
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(
+			PrismContainerValue<AssignmentType> cval) throws SchemaException {
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
+		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
+		idi.recompute();
+		return idi;
+	}
+
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
+			PrismContainerValue<AssignmentType> cval) throws SchemaException {
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
+		idi.setItemOld(null);
+		@SuppressWarnings({"unchecked", "raw"})
+		ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
+				getDeltaItemFragment(cval)
+						.add(cval.asContainerable().clone())
+						.asItemDelta();
+		idi.setDelta(itemDelta);
+		idi.recompute();
+		return idi;
+	}
+
+	private S_ValuesEntry getDeltaItemFragment(PrismContainerValue<AssignmentType> cval) throws SchemaException {
+		PrismContainerDefinition<AssignmentType> definition = cval.getParent() != null ? cval.getParent().getDefinition() : null;
+		if (definition == null) {
+			// we use custom definition, if available; if not, we find the standard one
+			definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(FocusType.class)
+					.findItemDefinition(FocusType.F_ASSIGNMENT);
+		}
+		definition = definition.clone();
+		definition.setMaxOccurs(1);
+		return DeltaBuilder.deltaFor(FocusType.class, prismContext)
+				.item(new ItemPath(FocusType.F_ASSIGNMENT), definition);
+	}
+
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
+			PrismContainerValue<AssignmentType> cval) throws SchemaException {
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
+		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
+		@SuppressWarnings({"unchecked", "raw"})
+		ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
+				getDeltaItemFragment(cval)
+						.delete(cval.asContainerable().clone())
+						.asItemDelta();
+		idi.setDelta(itemDelta);
+		idi.recompute();
+		return idi;
+	}
+
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiInternalChange(
+			PrismContainerValue<AssignmentType> cval, Collection<? extends ItemDelta<?, ?>> subItemDeltas)
+			throws SchemaException {
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
+		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
+		idi.setSubItemDeltas(subItemDeltas);
+		idi.recompute();
+		return idi;
+	}
 
 	private <F extends FocusType> Collection<? extends ItemDelta<?,?>> getExecutionWaveAssignmentItemDeltas(LensFocusContext<F> focusContext, Long id) throws SchemaException {
         ObjectDelta<? extends FocusType> focusDelta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());

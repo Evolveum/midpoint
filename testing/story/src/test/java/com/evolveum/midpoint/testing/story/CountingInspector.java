@@ -19,6 +19,11 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.testng.AssertJUnit;
+
+import java.util.Set;
 
 import com.evolveum.midpoint.schema.internals.InternalInspector;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -62,6 +67,15 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 		roleEvaluationMap.put(key, i);
 	}
 
+	public <O extends ObjectType> void assertRoleEvaluations(String roleOid, int expectedCount) {
+		for(Entry<NamedObjectKey,Integer> entry: roleEvaluationMap.entrySet()) {
+			if (roleOid.equals(entry.getKey().oid)) {
+				assertEquals("Wrong role evaluation count for role "+roleOid, (Integer)expectedCount, entry.getValue());
+				return;
+			}
+		}
+		AssertJUnit.fail("No evaluation count found for role "+roleOid);
+	}
 
 	public void reset() {
 		readMap = new HashMap<>();
@@ -72,7 +86,7 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		DebugUtil.debugDumpWithLabel(sb, "read", readMap, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "read", readMap, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "roleEvaluation", roleEvaluationMap, indent + 1);
 		return sb.toString();
 	}

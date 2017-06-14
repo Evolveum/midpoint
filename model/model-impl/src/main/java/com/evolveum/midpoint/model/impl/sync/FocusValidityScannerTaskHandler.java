@@ -141,12 +141,10 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	@Override
 	protected ObjectQuery createQuery(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
 		initProcessedOids(coordinatorTask);
-	
+		
 		TimeValidityPolicyConstraintType validtyContraintType = getValidityPolicyConstraint(coordinatorTask);
-		Duration activateOn = null;
-		if (validtyContraintType != null) {
-			activateOn = validtyContraintType.getActivateOn();
-		}
+	
+		Duration activateOn = getActivateOn(validtyContraintType);
 		
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
@@ -161,6 +159,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 				throw new SchemaException("No path defined in the validity constraint.");
 			}
 			thisScanTimestamp.add(activateOn.negate());
+			if (lastScanTimestamp != null) {
+				lastScanTimestamp.add(activateOn.negate());
+			}
 			filter = createFilterFor(path, lastScanTimestamp, thisScanTimestamp);
 			
 		} else {
@@ -169,7 +170,18 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		}
 		
 		query.setFilter(filter);
+		
 		return query;
+	}
+	
+	private Duration getActivateOn(TimeValidityPolicyConstraintType validtyContraintType) {
+		
+		Duration activateOn = null;
+		if (validtyContraintType != null) {
+			activateOn = validtyContraintType.getActivateOn();
+		}
+		
+		return activateOn;
 	}
 	
 	private ObjectFilter createBasicFilter(XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp){
@@ -218,6 +230,13 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	@Override
 	protected void finish(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException {
+		TimeValidityPolicyConstraintType validtyContraintType = getValidityPolicyConstraint(coordinatorTask);
+		
+		Duration activateOn = getActivateOn(validtyContraintType);
+		if (activateOn != null) {
+			handler.getThisScanTimestamp().add(activateOn);
+		}
+		
 		super.finish(handler, runResult, coordinatorTask, opResult);
 		cleanupProcessedOids(coordinatorTask);
 	}

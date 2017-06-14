@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -292,7 +293,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
 		
 		InternalMonitor.reset();
-		InternalMonitor.setTraceShadowFetchOperations(true);
+		InternalMonitor.setTrace(InternalOperationClasses.SHADOW_FETCH_OPERATIONS, true);
 		
 //		DebugUtil.setDetailedDebugDump(true);
 	}

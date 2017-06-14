@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -127,8 +128,8 @@ public class TestScriptCaching {
     }
     	
     private void assertScriptMonitor(int expCompilations, int expExecutions, String desc) {
-		assertEquals("Unexpected number of script compilations after "+desc, expCompilations, InternalMonitor.getScriptCompileCount());
-		assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getScriptExecutionCount());
+		assertEquals("Unexpected number of script compilations after "+desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
+		assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
 	}
 
 	private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
