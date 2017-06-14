@@ -45,6 +45,10 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 		return conflictingAssignment;
 	}
 
+	public AssignmentPath getConflictingPath() {
+		return conflictingPath;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)

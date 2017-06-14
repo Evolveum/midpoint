@@ -127,7 +127,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         targetUserPanel.setOutputMarkupId(true);
         mainForm.add(targetUserPanel);
 
-        TextArea descriptionInput = new TextArea<String>(ID_DESCRIPTION, descriptionModel);
+        TextArea<String> descriptionInput = new TextArea<>(ID_DESCRIPTION, descriptionModel);
         descriptionInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
             @Override
