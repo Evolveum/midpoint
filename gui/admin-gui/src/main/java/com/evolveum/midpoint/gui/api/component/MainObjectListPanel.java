@@ -163,27 +163,28 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     mainObjectListPanel.newObjectPerformed(target);
                 }
             };
-            newObjectIcon.add(new VisibleEnableBehaviour(){
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isVisible(){
-
-                    boolean isVisible = false;
-                    try {
-                        PrismObject<O> objectToCreate = mainObjectListPanel.getNewObjectListObject();
-                        if (objectToCreate != null) {
-                            mainObjectListPanel.adoptNewObject(objectToCreate);
-                        }
-                        isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                                null, objectToCreate, null, null, null);
-                    } catch (Exception ex){
-                        LOGGER.error("Failed to check authorization for ADD action on new object of " + mainObjectListPanel.getType().getSimpleName()
-                                + " type, ", ex);
-                    }
-                    return isVisible;
-                }
-            });
+            //TODO will be fixed in 3.6.1
+//            newObjectIcon.add(new VisibleEnableBehaviour(){
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public boolean isVisible(){
+//
+//                    boolean isVisible = false;
+//                    try {
+//                        PrismObject<O> objectToCreate = mainObjectListPanel.getNewObjectListObject();
+//                        if (objectToCreate != null) {
+//                            mainObjectListPanel.adoptNewObject(objectToCreate);
+//                        }
+//                        isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+//                                null, objectToCreate, null, null, null);
+//                    } catch (Exception ex){
+//                        LOGGER.error("Failed to check authorization for ADD action on new object of " + mainObjectListPanel.getType().getSimpleName()
+//                                + " type, ", ex);
+//                    }
+//                    return isVisible;
+//                }
+//            });
             add(newObjectIcon);
 
             AjaxIconButton importObject = new AjaxIconButton(ID_IMPORT_OBJECT, new Model<>("fa fa-upload"),
