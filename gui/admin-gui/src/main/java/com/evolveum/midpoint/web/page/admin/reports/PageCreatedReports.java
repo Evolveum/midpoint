@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,7 +29,6 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -78,8 +78,13 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto.Operation;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * @author lazyman
@@ -454,7 +459,18 @@ public class PageCreatedReports extends PageAdminReports {
         OperationResult result = new OperationResult(OPERATION_DELETE);
 
         for (ReportOutputType output : objects) {
-            WebModelServiceUtils.deleteObject(ReportOutputType.class, output.getOid(), result, this);
+        	OperationResult subresult = result.createSubresult(OPERATION_DELETE);
+        	subresult.addParam("Report", WebComponentUtil.getName(output));
+        	
+        	try {
+				getReportManager().deleteReportOutput(output, subresult);
+				subresult.recordSuccess();
+			} catch (Exception e) {
+				subresult.recordFatalError("Cannot delete report " + WebComponentUtil.getName(output) + ". Reason: " + e.getMessage(), e);
+				LOGGER.error("Cannot delete report {}. Reason: {}", WebComponentUtil.getName(output), e.getMessage(), e);
+				continue;
+			}
+            //WebModelServiceUtils.deleteObject(ReportOutputType.class, output.getOid(), result, this);
         }
         result.computeStatusIfUnknown();
         
@@ -513,6 +529,9 @@ public class PageCreatedReports extends PageAdminReports {
 		InputStream input = null;
         try {
             input = reportManager.getReportOutputData(report.getOid(), result);
+        } catch (IOException ex) {
+        	LOGGER.error("Report {} doesn't exist anymore.", WebComponentUtil.getName(report));
+        	result.recordPartialError("Report" + WebComponentUtil.getName(report) + " doesn't exist anymore.");
         } catch (Exception e) {
             pageBase.error(pageBase.getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't download report.", e);
