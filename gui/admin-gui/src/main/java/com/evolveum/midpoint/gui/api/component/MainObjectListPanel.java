@@ -174,8 +174,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                         PrismObject<O> objectToCreate = mainObjectListPanel.getNewObjectListObject();
                         mainObjectListPanel.adoptNewObject(objectToCreate);
                         isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                                null, objectToCreate, null, null, null)
-                        && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_UI_USER_URL);
+                                null, objectToCreate, null, null, null);
                     } catch (Exception ex){
                         LOGGER.error("Failed to check authorization for ADD action on new object of " + mainObjectListPanel.getType().getSimpleName()
                                 + " type, ", ex);
