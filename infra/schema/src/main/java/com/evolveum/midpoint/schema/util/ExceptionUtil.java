@@ -55,21 +55,21 @@ public class ExceptionUtil {
 			return false;
 		}
 		if (exception instanceof CommunicationException) {
-			return selector.isNetwork() == Boolean.TRUE;
+			return Boolean.TRUE.equals(selector.isNetwork());
 		}
 		if (exception instanceof SecurityViolationException) {
-			return selector.isSecurity() == Boolean.TRUE;
+			return Boolean.TRUE.equals(selector.isSecurity());
 		}
 		if (exception instanceof PolicyViolationException) {
-			return selector.isPolicy() == Boolean.TRUE;
+			return Boolean.TRUE.equals(selector.isPolicy());
 		}
 		if (exception instanceof SchemaException) {
-			return selector.isSchema() == Boolean.TRUE;
+			return Boolean.TRUE.equals(selector.isSchema());
 		}
 		if (exception instanceof ConfigurationException || exception instanceof ExpressionEvaluationException) {
-			return selector.isConfiguration() == Boolean.TRUE;
+			return Boolean.TRUE.equals(selector.isConfiguration());
 		}
-		return selector.isGeneric() == Boolean.TRUE;
+		return Boolean.TRUE.equals(selector.isGeneric());
 	}
 	
 }
