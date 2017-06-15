@@ -99,27 +99,14 @@ public class ProjectionCredentialsProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProjectionCredentialsProcessor.class);
 
-	@Autowired(required=true)
-	private PrismContext prismContext;
-	
-	@Autowired(required=true)
-    private ContextLoader contextLoader;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ContextLoader contextLoader;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private ValuePolicyProcessor valuePolicyProcessor;
+	@Autowired private Protector protector;
+	@Autowired private OperationalDataManager operationalDataManager;
 
-	@Autowired(required=true)
-	private MappingFactory mappingFactory;
-
-	@Autowired(required=true)
-	private MappingEvaluator mappingEvaluator;
-	
-	@Autowired(required=true)
-	private ValuePolicyProcessor valuePolicyProcessor;
-	
-	@Autowired(required = true)
-	private Protector protector;
-	
-	@Autowired(required = true)
-	private OperationalDataManager operationalDataManager;
-	
 	public <F extends ObjectType> void processProjectionCredentials(LensContext<F> context,
 			LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
@@ -333,6 +320,7 @@ public class ProjectionCredentialsProcessor {
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		
 		if (passwordPolicy == null) {
+			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
 			return;
 		}
 		
@@ -374,11 +362,6 @@ public class ProjectionCredentialsProcessor {
 			accountShadow = projectionContext.getObjectNew();
 		}
 		
-		if (passwordPolicy == null) {
-			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
-			return;
-		}
-
         String passwordValue = determinePasswordValue(password);
        
         boolean isValid = valuePolicyProcessor.validateValue(passwordValue, passwordPolicy, accountShadow, "projection password policy", task, result);
@@ -387,7 +370,6 @@ public class ProjectionCredentialsProcessor {
 			result.computeStatus();
 			throw new PolicyViolationException("Provided password does not satisfy password policies in " + projectionContext.getHumanReadableName() + ": " + result.getMessage());
 		}
-		
 	}
 	
 	private <F extends FocusType> void applyMetadata(LensContext<F> context,
