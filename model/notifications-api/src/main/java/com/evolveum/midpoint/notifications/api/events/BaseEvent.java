@@ -78,7 +78,7 @@ public abstract class BaseEvent implements Event {
 
     @Override
     public String toString() {
-        return "Event{" +
+        return getClass().getSimpleName() + "{" +
                 "id=" + id +
                 ",requester=" + requester +
                 ",requestee=" + requestee +

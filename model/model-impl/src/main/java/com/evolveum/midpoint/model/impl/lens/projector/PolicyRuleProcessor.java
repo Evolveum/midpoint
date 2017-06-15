@@ -402,8 +402,10 @@ public class PolicyRuleProcessor {
 	 */
 	private int getNumberOfAssigneesExceptMyself(AbstractRoleType target, String selfOid, QName relation, OperationResult result)
 			throws SchemaException {
+		// TODO couldn't we simply use .relation(relation) ?
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(target.getOid());
+				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(
+						new PrismReferenceValue(target.getOid()).relation(PrismConstants.Q_ANY));
 		if (selfOid != null) {
 			q = q.and().not().id(selfOid);
 		}

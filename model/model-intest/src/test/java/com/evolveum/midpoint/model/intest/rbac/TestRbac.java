@@ -2029,7 +2029,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
         	TestUtil.displayWhen(TEST_NAME);
-	        assignRole(user.getOid(), ROLE_GOVERNOR_OID, task, result);
+	        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -2111,13 +2111,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test630RappAssignRoleCanibalAsOwner() throws Exception {
+    public void test630RappAssignRoleCannibalAsOwner() throws Exception {
 
 		if (!testMultiplicityConstraintsForNonDefaultRelations()) {
 			return;
 		}
 
-		final String TEST_NAME = "test630RappAssignRoleCanibalAsOwner";
+		final String TEST_NAME = "test630RappAssignRoleCannibalAsOwner";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2142,13 +2142,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	 * We are going to violate minAssignees constraint in cannibal role.
 	 */
 	@Test
-    public void test632RappUnassignRoleCanibalAsOwner() throws Exception {
+    public void test632RappUnassignRoleCannibalAsOwner() throws Exception {
 
 		if (!testMultiplicityConstraintsForNonDefaultRelations()) {
 			return;
 		}
 
-		final String TEST_NAME = "test632RappUnassignRoleCanibalAsOwner";
+		final String TEST_NAME = "test632RappUnassignRoleCannibalAsOwner";
         TestUtil.displayTestTile(this, TEST_NAME);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2161,7 +2161,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
         	TestUtil.displayWhen(TEST_NAME);
-        	// null namespace to test no-namespace "approver" relation
+        	// null namespace to test no-namespace "owner" relation
 	        unassignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, QNameUtil.nullNamespace(SchemaConstants.ORG_OWNER), task, result);
 
 	        AssertJUnit.fail("Unexpected success");
@@ -2174,6 +2174,70 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertFailure(result);
+
+		assertAssignees(ROLE_CANNIBAL_OID, 2);
+		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
+	}
+
+	/**
+	 * Preparing for MID-3979: adding second owner
+	 */
+	@Test
+	public void test634BignoseAssignRoleCannibalAsOwner() throws Exception {
+
+		if (!testMultiplicityConstraintsForNonDefaultRelations()) {
+			return;
+		}
+
+		final String TEST_NAME = "test634BignoseAssignRoleCannibalAsOwner";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		assertAssignees(ROLE_CANNIBAL_OID, 2);
+		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
+
+		// WHEN
+		assignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertAssignees(ROLE_CANNIBAL_OID, 2);
+		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 2);
+	}
+
+	/**
+	 * MID-3979: removing second owner should go well
+	 */
+	@Test
+	public void test636BignoseUnassignRoleCannibalAsOwner() throws Exception {
+
+		if (!testMultiplicityConstraintsForNonDefaultRelations()) {
+			return;
+		}
+
+		final String TEST_NAME = "test636BignoseUnassignRoleCannibalAsOwner";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		assertAssignees(ROLE_CANNIBAL_OID, 2);
+		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 2);
+
+		// WHEN
+		unassignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 
 		assertAssignees(ROLE_CANNIBAL_OID, 2);
 		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
@@ -4359,7 +4423,6 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		assertNotNull("No notification messages", messages);
 		assertEquals("Wrong # of notification messages", 1, messages.size());
 	}
-
 
 	protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
 		return true;
