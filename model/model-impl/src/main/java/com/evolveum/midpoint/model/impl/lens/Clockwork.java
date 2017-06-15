@@ -757,6 +757,9 @@ public class Clockwork {
 
 	private void setOperationContext(OperationExecutionType operation,
 			OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task) {
+		if (task.getParentForLightweightAsynchronousTask() != null) {
+			task = task.getParentForLightweightAsynchronousTask();
+		}
 		if (task.isPersistent()) {
 			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject()));
 		}
