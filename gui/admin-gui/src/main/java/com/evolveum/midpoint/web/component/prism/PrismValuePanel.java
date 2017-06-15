@@ -430,15 +430,15 @@ public class PrismValuePanel extends Panel {
                   return new TextAreaPanel(id, new PropertyModel(valueWrapperModel, baseExpression), null);
               }
 
-              if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
-                  return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
-              } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
-                  return new LockoutStatusPanel(id, valueWrapperModel.getObject(), new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
-              } else {
-                  if (definition.getTypeName().getLocalPart().equals(ActivationStatusType.class.getSimpleName())) {
-                      return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
-                  }
-              }
+//              if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
+//                  return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
+//              } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
+//                  return new LockoutStatusPanel(id, valueWrapperModel.getObject(), new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
+//              } else {
+//                  if (definition.getTypeName().getLocalPart().equals(ActivationStatusType.class.getSimpleName())) {
+//                      return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
+//                  }
+//              }
               
               if (DOMUtil.XSD_DATETIME.equals(valueType)) {
                   panel = new DatePanel(id, new PropertyModel<XMLGregorianCalendar>(valueWrapperModel, baseExpression));
@@ -545,7 +545,10 @@ public class PrismValuePanel extends Panel {
                   });
               } else if (QueryType.COMPLEX_TYPE.equals(valueType) || CleanupPoliciesType.COMPLEX_TYPE.equals(valueType)) {
 				  return new TextAreaPanel(id, new AbstractReadOnlyModel() {
-					  @Override
+					
+					  private static final long serialVersionUID = 1L;
+
+					@Override
 					  public Object getObject() {
 						  if (valueWrapperModel.getObject() == null || valueWrapperModel.getObject().getValue() == null) {
 							  return null;
@@ -577,6 +580,12 @@ public class PrismValuePanel extends Panel {
                   } 
                   
                   if (isEnum(property)) {
+                	  	  Class clazz = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(definition.getTypeName());
+                		  
+                		  if (clazz != null) {
+                			  return  WebComponentUtil.createEnumPanel(clazz, id, new PropertyModel(valueWrapperModel, baseExpression), this);
+                		  }
+                	  
                       return WebComponentUtil.createEnumPanel(definition, id, new PropertyModel<>(valueWrapperModel, baseExpression), this);
                   }
 //                  // default QName validation is a bit weird, so let's treat QNames as strings [TODO finish this - at the parsing side]

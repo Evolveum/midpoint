@@ -64,6 +64,7 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -140,6 +141,7 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -594,8 +596,10 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
-		return new DropDownChoicePanel(id, model, choicesList,
+		return new DropDownChoicePanel(id, model, choicesList, 
 				new IChoiceRenderer<E>() {
+
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public E getObject(String id, IModel<? extends List<? extends E>> choices) {
@@ -623,60 +627,68 @@ public final class WebComponentUtil {
 		final Object o = model.getObject();
 
 		final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
+		
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public List<DisplayableValue> getObject() {
-				List<DisplayableValue> values = null;
-				if (def.getAllowedValues() != null) {
-					values = new ArrayList<>(def.getAllowedValues().size());
-					for (Object v : def.getAllowedValues()) {
-						if (v instanceof DisplayableValue) {
-							values.add(((DisplayableValue) v));
-						}
-					}
-				}
-				return values;
+				return getDisplayableValues(def);
 			}
 
 		};
 
-		return new DropDownChoicePanel(id, model, enumModelValues, new IChoiceRenderer() {
+		return new DropDownChoicePanel(id, model, enumModelValues, new DisplayableValueChoiceRenderer(getDisplayableValues(def)), true);
+		
+		
+//		@Override
+//		public Object getObject(String id, IModel choices) {
+//			if (StringUtils.isBlank(id)) {
+//				return null;
+//			}
+//			return ((List) choices.getObject()).get(Integer.parseInt(id));
+//		}
+//
+//		@Override
+//		public Object getDisplayValue(Object object) {
+//			if (object instanceof DisplayableValue) {
+//				return ((DisplayableValue) object).getLabel();
+//			}
+//			for (DisplayableValue v : enumModelValues.getObject()) {
+//				if (object.equals(v.getValue())) {
+//					return v.getLabel();
+//				}
+//			}
+//			return object;
+//
+//		}
+//
+//		@Override
+//		public String getIdValue(Object object, int index) {
+//            if (object instanceof String && enumModelValues != null && enumModelValues.getObject() != null) {
+//                List<DisplayableValue> enumValues = enumModelValues.getObject();
+//                for (DisplayableValue v : enumValues) {
+//                    if (object.equals(v.getValue())) {
+//                        return String.valueOf(enumValues.indexOf(v));
+//                    }
+//                }
+//            }
+//            return String.valueOf(index);
+//		}
+	}
 
-			@Override
-			public Object getObject(String id, IModel choices) {
-				if (StringUtils.isBlank(id)) {
-					return null;
+	
+
+	private static List<DisplayableValue> getDisplayableValues(PrismPropertyDefinition def) {
+		List<DisplayableValue> values = null;
+		if (def.getAllowedValues() != null) {
+			values = new ArrayList<>(def.getAllowedValues().size());
+			for (Object v : def.getAllowedValues()) {
+				if (v instanceof DisplayableValue) {
+					values.add(((DisplayableValue) v));
 				}
-				return ((List) choices.getObject()).get(Integer.parseInt(id));
 			}
-
-			@Override
-			public Object getDisplayValue(Object object) {
-				if (object instanceof DisplayableValue) {
-					return ((DisplayableValue) object).getLabel();
-				}
-				for (DisplayableValue v : enumModelValues.getObject()) {
-					if (object.equals(v.getValue())) {
-						return v.getLabel();
-					}
-				}
-				return object;
-
-			}
-
-			@Override
-			public String getIdValue(Object object, int index) {
-                if (object instanceof String && enumModelValues != null && enumModelValues.getObject() != null) {
-                    List<DisplayableValue> enumValues = enumModelValues.getObject();
-                    for (DisplayableValue v : enumValues) {
-                        if (object.equals(v.getValue())) {
-                            return String.valueOf(enumValues.indexOf(v));
-                        }
-                    }
-                }
-                return String.valueOf(index);
-			}
-
-		}, true);
+		}
+		return values;
 	}
 
 	public static <T> TextField<T> createAjaxTextField(String id, IModel<T> model) {
