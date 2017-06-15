@@ -33,6 +33,7 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
     private String cssClass = "";
     private boolean enabled;
     private boolean passwordOutbound;
+    private boolean passwordCapabilityEnabled;
     /**
      * true if this DTO represents default midpoint account;
      */
@@ -85,6 +86,14 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
     public void setCssClass(String cssClass) {
         this.cssClass = cssClass;
     }
+    
+    public boolean isPasswordCapabilityEnabled() {
+		return passwordCapabilityEnabled;
+	}
+    
+    public void setPasswordCapabilityEnabled(boolean passwordCapabilityEnabled) {
+		this.passwordCapabilityEnabled = passwordCapabilityEnabled;
+	}
 
     @Override
     public int compareTo(PasswordAccountDto o) {
