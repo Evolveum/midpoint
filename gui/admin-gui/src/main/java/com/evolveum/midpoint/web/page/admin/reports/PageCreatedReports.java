@@ -557,12 +557,16 @@ public class PageCreatedReports extends PageAdminReports {
         ajaxDownloadBehavior.initiate(target);
     }
 
-    private String getReportFileName(){
+    private String getReportFileName() {
+    	return getReportFileName(currentReport);
+    }
+    
+    public static String getReportFileName(ReportOutputType currentReport){
         try {
             OperationResult result = new OperationResult(OPERATION_GET_REPORT_FILENAME);
-            ReportOutputType reportOutput = WebModelServiceUtils.loadObject(ReportOutputType.class, currentReport.getOid(), getPageBase(),
-                    null, result).asObjectable();
-            String fileName = reportOutput.getFilePath();
+//            ReportOutputType reportOutput = WebModelServiceUtils.loadObject(ReportOutputType.class, currentReport.getOid(), getPageBase(),
+//                    null, result).asObjectable();
+            String fileName = currentReport.getFilePath();
             if (fileName.contains("/")) {
                 fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
             }
