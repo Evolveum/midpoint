@@ -74,7 +74,9 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
 				return;
 			}
 		}
-		AssertJUnit.fail("No evaluation count found for role "+roleOid);
+		if (expectedCount != 0) {
+			AssertJUnit.fail("No evaluation count found for role "+roleOid);
+		}
 	}
 
 	public void reset() {

@@ -111,4 +111,9 @@ public class UndefinedEvaluationOrderImpl implements EvaluationOrder {
 	public Collection<QName> getExtraRelations() {
 		return Collections.emptyList();
 	}
+
+	@Override
+	public boolean isOrderOne() {
+		return false; // TODO
+	}
 }

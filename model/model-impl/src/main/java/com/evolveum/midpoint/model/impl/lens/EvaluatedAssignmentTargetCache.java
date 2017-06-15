@@ -89,10 +89,20 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 			return false;
 		}
 		if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder()) {
-//			LOGGER.trace("Convervative idempotent and order is not matching: {}", target);
+//			LOGGER.trace("Conservative idempotent and order is not matching: {}", target);
 			return false;
 		}
 		if (idempotence == IdempotenceType.AGGRESSIVE) {
+			// Aggressive idempotence implies that this is not a meta-role
+			// Therefore we want to skip all evaluation except for order=1
+			// We skip these evaluations even if we have NOT seen this role
+			// before. If we do not skip this evaluation then the role will
+			// be remembered as evaluation and it will not be re-evaluated
+			// in non-meta context.
+			if (!segment.getEvaluationOrder().isOrderOne()) {
+//				LOGGER.trace("Aggressive idempotent and non-one order: {}: {}", segment.getEvaluationOrder(), target);
+				return true;
+			}
 			Set<String> oidSet = processedOids.get(mode);
 			return oidSet.contains(target.getOid());
 		} else {

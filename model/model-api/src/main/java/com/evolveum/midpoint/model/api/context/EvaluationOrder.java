@@ -57,4 +57,6 @@ public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable
 	Set<QName> getRelations();
 
 	boolean isValid();
+
+	boolean isOrderOne();
 }

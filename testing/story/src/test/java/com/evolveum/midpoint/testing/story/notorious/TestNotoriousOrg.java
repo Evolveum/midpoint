@@ -130,4 +130,8 @@ public class TestNotoriousOrg extends AbstractNotoriousTest {
 		repositoryService.addObject(org, null, result);
 	}
 	
+	@Override
+	protected void assertNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
+		assertHasOrg(userAfter, getNotoriousOid());
+	}
 }

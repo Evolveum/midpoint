@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,19 @@ public class InternalsConfig {
 	public static boolean avoidLoggingChange = false;
 	
 	private static boolean prismMonitoring = false;
+	
+	/**
+	 * Non-null value enables alternative code paths used in testing. This adds
+	 * special pieces of code that alter normal behavior of the system. These
+	 * may reverse the normal evaluation ordering, randomize evaluations or
+	 * operation ordering and so on. It is used to make tests more thorough,
+	 * so they have a chance to catch more bugs with the same test code.
+	 * 
+	 * These alternative testing paths may be quite inefficient.
+	 * This is NOT supposed to be used in production. This is only for
+	 * use in testing.
+	 */
+	private static TestingPaths testingPaths = null;
 
 	public static boolean isPrismMonitoring() {
 		return prismMonitoring;
@@ -44,10 +57,31 @@ public class InternalsConfig {
 		InternalsConfig.prismMonitoring = prismMonitoring;
 	}
 
+	public static TestingPaths getTestingPaths() {
+		return testingPaths;
+	}
+
+	public static void setTestingPaths(TestingPaths testingPaths) {
+		InternalsConfig.testingPaths = testingPaths;
+	}
+	
+	public static void resetTestingPaths() {
+		testingPaths = null;
+	}
+	
+	public static void reset() {
+		consistencyChecks = true;
+		encryptionChecks = true;
+		readEncryptionChecks = false;
+		avoidLoggingChange = false;
+		testingPaths = null;
+	}
+
 	public static void setDevelopmentMode() {
 		consistencyChecks = true;
 		encryptionChecks = true;
 		prismMonitoring = true;
+		prismMonitoring = false;
 	}
 	
 	public static void turnOffAllChecks() {
