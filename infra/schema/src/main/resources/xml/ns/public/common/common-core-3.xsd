@@ -2966,6 +2966,14 @@
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If it is required to change password. E.g. there are situation when you set first password
+                        for the user, but after the user fist log in to the system, he/she has to change his/her password.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>

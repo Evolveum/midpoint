@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.xml.security.encryption.EncryptedData;
 
@@ -270,7 +272,9 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
         PasswordAccountDto passwordAccountDto = new PasswordAccountDto(account.getOid(), WebComponentUtil.getName(account),
                 resourceName, WebComponentUtil.isActivationEnabled(account));
+        
         passwordAccountDto.setPasswordOutbound(getPasswordOutbound(account));
+        passwordAccountDto.setPasswordCapabilityEnabled(hasPasswordCapability(account));
         return passwordAccountDto;
     }
 
@@ -419,6 +423,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
                     shadow.asObjectable().getResource().asPrismObject(),
                     AuthorizationPhaseType.REQUEST);
+            
             if (rOCDef != null && rOCDef.getPasswordOutbound() != null ){
                 return true;
             }
@@ -426,6 +431,13 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
         }
         return false;
+    }
+
+    
+    private boolean hasPasswordCapability(PrismObject<ShadowType> shadow) {
+        
+         return ResourceTypeUtil.isPasswordCapabilityEnabled(shadow.asObjectable().getResource());
+        
     }
 
     public PrismObject<UserType> getUser() {
