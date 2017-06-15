@@ -611,6 +611,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			rv.setTargetDisplayName(ObjectTypeUtil.getDisplayName(target));
 		}
 		rv.setMatchingOrder(isMatchingOrder());
+		rv.setIsAssignment(isAssignment);
 		return rv;
 	}
 

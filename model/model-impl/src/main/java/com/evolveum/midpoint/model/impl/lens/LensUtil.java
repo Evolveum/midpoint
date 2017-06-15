@@ -923,10 +923,10 @@ public class LensUtil {
 		}
 		
 		AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.first();
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment = focusAssignmentSegment.getAssignmentIdi().clone();
-		vars.setFocusAssignment(focusAssignment);
+		vars.setFocusAssignment(focusAssignmentSegment.getAssignmentIdi().clone());
 
 		// a bit of hack -- TODO reconsider in 3.7
+		// objects are already cloned
 		convertToLegacy(vars.getMagicAssignment());
 		convertToLegacy(vars.getThisAssignment());
 		convertToLegacy(vars.getFocusAssignment());

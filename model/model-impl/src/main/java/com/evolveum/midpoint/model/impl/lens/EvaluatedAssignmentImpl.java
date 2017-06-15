@@ -104,6 +104,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@Override
+	public AssignmentType getAssignmentType(boolean old) {
+		return asContainerable(assignmentIdi.getSingleValue(old));
+	}
+
+	@Override
 	public QName getRelation() {
 		AssignmentType assignmentType = getAssignmentType();
 		if (assignmentType == null) {

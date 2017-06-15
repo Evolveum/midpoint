@@ -597,12 +597,12 @@ public class TestQueryConvertor {
 	public void test365RefTwoWay() throws Exception {
 		final String TEST_NAME = "test365RefTwoWay";
 		displayTestTitle(TEST_NAME);
-		PrismReferenceValue reference3 = new PrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE);
-		reference3.setRelation(new QName("test"));
+		PrismReferenceValue reference3 = new PrismReferenceValue("oid3", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
+		PrismReferenceValue reference4 = new PrismReferenceValue("oid4", ResourceType.COMPLEX_TYPE).relation(new QName("test"));
 		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, getPrismContext())
 				.item(ShadowType.F_RESOURCE_REF).ref("oid1")
 				.or().item(ShadowType.F_RESOURCE_REF).ref("oid2", ResourceType.COMPLEX_TYPE)
-				.or().item(ShadowType.F_RESOURCE_REF).ref(reference3)
+				.or().item(ShadowType.F_RESOURCE_REF).ref(reference3, reference4)
 				.build();
 		checkQueryRoundtripFile(ShadowType.class, q, TEST_NAME);
 	}

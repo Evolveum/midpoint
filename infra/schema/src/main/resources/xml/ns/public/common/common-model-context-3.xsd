@@ -555,6 +555,7 @@
 			<xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" />
 			<xsd:element name="targetDisplayName" type="t:PolyStringType" minOccurs="0" />
 			<xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0" />
+			<xsd:element name="isAssignment" type="xsd:boolean" minOccurs="0" />
 			<!-- TODO maybe also evaluation order -->
 		</xsd:sequence>
 	</xsd:complexType>
