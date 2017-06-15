@@ -660,7 +660,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		segment.setRelation(relation);			// probably not needed
 		
 		if (evaluatedAssignmentTargetCache.canSkip(segment, ctx.primaryAssignmentMode)) {
-			LOGGER.trace("Skipping evaluation of segment {} because we have seen the target before", segment);
+			LOGGER.trace("Skipping evaluation of segment {} because it is idempotent and we have seen the target before", segment);
 			InternalMonitor.recordRoleEvaluationSkip(targetType, true);
 			return;
 		}

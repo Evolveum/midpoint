@@ -15,15 +15,20 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.internals.TestingPaths;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -166,7 +171,15 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 
 	@Override
 	public Iterator<SmartAssignmentElement> iterator() {
-		return aMap.values().iterator();
+		if (InternalsConfig.getTestingPaths() == TestingPaths.REVERSED) {
+			Collection<SmartAssignmentElement> values = aMap.values();
+			List<SmartAssignmentElement> valuesList = new ArrayList<>(values.size());
+			valuesList.addAll(values);
+			Collections.reverse(valuesList);
+			return valuesList.iterator();
+		} else {
+			return aMap.values().iterator();
+		}
 	}
 		
 	@Override

@@ -457,10 +457,10 @@ public class ReconciliationProcessor {
 //				LOGGER.trace("{}", sb.toString());	
 //			}
 		 
-		ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition,
-				matchingRuleRegistry);
+		ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
 
-		boolean hasValue = false;
+		T realValueToReplace = null;
+		boolean hasRealValueToReplace = false;
 		for (ItemValueWithOrigin<? extends PrismPropertyValue<T>,PrismPropertyDefinition<T>> shouldBePvwo : shouldBePValues) {
 			PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBePvwo.getMapping();
 			if (shouldBeMapping == null) {
@@ -473,25 +473,34 @@ public class ReconciliationProcessor {
 				// value. Skip it.
 				// we cannot override it as it might have been legally
 				// changed directly on the projection resource object
-				LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: the mapping is not strong" , shouldBeRealValue, attributeDefinition.getName().getLocalPart());
+				LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: the mapping is not strong", shouldBeRealValue, attributeDefinition.getName().getLocalPart());
 				continue;
 			}
 			if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
 				if (attributeDefinition.isSingleValue()) {
-					if (hasValue) {
-						throw new SchemaException(
-								"Attempt to set more than one value for single-valued attribute "
-										+ attrName + " in " + projCtx.getResourceShadowDiscriminator());
+					// It is quite possible that there are more shouldBePValues with equivalent real values but different 'context'.
+					// We don't want to throw an exception if real values are in fact equivalent.
+					// TODO generalize this a bit (e.g. also for multivalued items)
+					if (hasRealValueToReplace) {
+						if (matchValue(shouldBeRealValue, realValueToReplace, valueMatcher)) {
+							LOGGER.trace("Value to replace for {} is already set, skipping it: {}", attrName, realValueToReplace);
+							continue;
+						} else {
+							String message = "Attempt to set more than one value for single-valued attribute "
+									+ attrName + " in " + projCtx.getResourceShadowDiscriminator();
+							LOGGER.debug("{}: value to be added: {}, existing value to replace: {}", message, shouldBeMapping, realValueToReplace);
+							throw new SchemaException(message);
+						}
 					}
+					hasRealValueToReplace = true;
+					realValueToReplace = shouldBeRealValue;
 					recordDelta(valueMatcher, projCtx, SchemaConstants.PATH_ATTRIBUTES, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue,
 							shouldBePvwo.getSource(), "it is given by a mapping");
 				} else {
 					recordDelta(valueMatcher, projCtx, SchemaConstants.PATH_ATTRIBUTES, attributeDefinition, ModificationType.ADD, shouldBeRealValue,
 							shouldBePvwo.getSource(), "it is given by a mapping");
 				}
-				hasValue = true;
 			}
-
 		}
 		
 		decideIfTolerate(projCtx, attributeDefinition, arePValues, shouldBePValues, valueMatcher);
