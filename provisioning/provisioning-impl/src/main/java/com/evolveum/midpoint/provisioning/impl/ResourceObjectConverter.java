@@ -511,6 +511,13 @@ public class ResourceObjectConverter {
 				// This must go after the skip check above. Otherwise the scripts would be executed even if there is no need to.
 				addExecuteScriptOperation(operations, ProvisioningOperationTypeType.MODIFY, scripts, ctx.getResource(), result);
 				
+				if (InternalsConfig.isSanityChecks()) {
+					// MID-3964
+					if (MiscUtil.hasDuplicates(operations)) {
+						throw new SchemaException("Duplicated changes: "+operations);
+					}
+				}
+				
 				// Execute primary ICF operation on this shadow
 				sideEffectOperations = executeModify(ctx, preReadShadow, identifiers, operations, result);
 				
@@ -1572,6 +1579,7 @@ public class ResourceObjectConverter {
 		if (operations == null) {
 			operations = new ArrayList<Operation>();
 		}
+		boolean activationProcessed = false;
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		for (ItemDelta itemDelta : objectChange) {
 			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
@@ -1593,10 +1601,13 @@ public class ResourceObjectConverter {
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
 				}
-			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())){
-				Collection<Operation> activationOperations = determineActivationChange(ctx, shadow.asObjectable(), objectChange, result);
-				if (activationOperations != null){
-					operations.addAll(activationOperations);
+			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())) {
+				if (!activationProcessed) {
+					Collection<Operation> activationOperations = determineActivationChange(ctx, shadow.asObjectable(), objectChange, result);
+					if (activationOperations != null){
+						operations.addAll(activationOperations);
+					}
+					activationProcessed = true;
 				}
 			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
 				if (itemDelta instanceof ContainerDelta) {

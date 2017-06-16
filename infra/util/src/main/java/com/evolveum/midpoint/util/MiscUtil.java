@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -589,5 +589,18 @@ public class MiscUtil {
 
 	public static String emptyIfNull(String s) {
 		return s == null ? "" : s;
+	}
+
+	/**
+	 * Returns true if the collection contains at leat one pair of equals elements.
+	 */
+	public static <T> boolean hasDuplicates(Collection<T> collection) {
+		Set<T> set = new HashSet<>();
+		for (T e: collection) {
+			if (!set.add(e)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

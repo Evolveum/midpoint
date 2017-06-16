@@ -21,7 +21,15 @@ package com.evolveum.midpoint.schema.internals;
  */
 public class InternalsConfig {
 	
+	/**
+	 * Checks for consistency of data structures (e.g. prism objects, containers, contexts).
+	 */
 	public static boolean consistencyChecks = true;
+	
+	/**
+	 * Additional checks that method arguments make sense (e.g. deltas are not duplicated)
+	 */
+	private static boolean sanityChecks = true;
 	
 	public static boolean encryptionChecks = true;
 	
@@ -57,6 +65,46 @@ public class InternalsConfig {
 		InternalsConfig.prismMonitoring = prismMonitoring;
 	}
 
+	public static boolean isConsistencyChecks() {
+		return consistencyChecks;
+	}
+
+	public static void setConsistencyChecks(boolean consistencyChecks) {
+		InternalsConfig.consistencyChecks = consistencyChecks;
+	}
+
+	public static boolean isSanityChecks() {
+		return sanityChecks;
+	}
+
+	public static void setSanityChecks(boolean sanityChecks) {
+		InternalsConfig.sanityChecks = sanityChecks;
+	}
+
+	public static boolean isEncryptionChecks() {
+		return encryptionChecks;
+	}
+
+	public static void setEncryptionChecks(boolean encryptionChecks) {
+		InternalsConfig.encryptionChecks = encryptionChecks;
+	}
+
+	public static boolean isReadEncryptionChecks() {
+		return readEncryptionChecks;
+	}
+
+	public static void setReadEncryptionChecks(boolean readEncryptionChecks) {
+		InternalsConfig.readEncryptionChecks = readEncryptionChecks;
+	}
+
+	public static boolean isAvoidLoggingChange() {
+		return avoidLoggingChange;
+	}
+
+	public static void setAvoidLoggingChange(boolean avoidLoggingChange) {
+		InternalsConfig.avoidLoggingChange = avoidLoggingChange;
+	}
+
 	public static TestingPaths getTestingPaths() {
 		return testingPaths;
 	}
@@ -71,6 +119,7 @@ public class InternalsConfig {
 	
 	public static void reset() {
 		consistencyChecks = true;
+		sanityChecks = false;
 		encryptionChecks = true;
 		readEncryptionChecks = false;
 		avoidLoggingChange = false;
@@ -79,6 +128,7 @@ public class InternalsConfig {
 
 	public static void setDevelopmentMode() {
 		consistencyChecks = true;
+		sanityChecks = true;
 		encryptionChecks = true;
 		prismMonitoring = true;
 		prismMonitoring = false;
@@ -86,6 +136,7 @@ public class InternalsConfig {
 	
 	public static void turnOffAllChecks() {
 		consistencyChecks = false;
+		sanityChecks = false;
 		encryptionChecks = false;
 		readEncryptionChecks = false;
 		prismMonitoring = false;
@@ -93,6 +144,7 @@ public class InternalsConfig {
 
 	public static void turnOnAllChecks() {
 		consistencyChecks = true;
+		sanityChecks = true;
 		encryptionChecks = true;
 		encryptionChecks = true;
 		prismMonitoring = true;
