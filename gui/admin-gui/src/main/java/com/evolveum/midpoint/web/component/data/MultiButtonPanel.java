@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -60,7 +62,9 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         for (int id = 0; id < numberOfButtons; id++) {
             final int finalId = getButtonId(id);
             AjaxButton button = new AjaxButton(String.valueOf(finalId), createStringResource(getCaption(finalId))) {
-                @Override
+              
+            	private static final long serialVersionUID = 1L;
+				@Override
                 public void onClick(AjaxRequestTarget target) {
                     clickPerformed(finalId, target, MultiButtonPanel.this.getModel());
                 }
@@ -69,7 +73,13 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
                     super.updateAjaxAttributes(attributes);
                     attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
                 }
-                @Override
+                
+            };
+            
+            button.add(new VisibleEnableBehaviour() {
+            	
+            	private static final long serialVersionUID = 1L;
+            	@Override
                 public boolean isEnabled(){
                     return MultiButtonPanel.this.isButtonEnabled(finalId, MultiButtonPanel.this.getModel());
                 }
@@ -77,8 +87,11 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
                 public boolean isVisible(){
                     return MultiButtonPanel.this.isButtonVisible(finalId, MultiButtonPanel.this.getModel());
                 }
-            };
-            button.add(new AttributeAppender("class", getButtonCssClass(finalId)));
+            });
+            button.add(AttributeAppender.append("class", getButtonCssClass(finalId)));
+            if (!isButtonEnabled(finalId, getModel())) {
+            	button.add(AttributeAppender.append("class", "disabled"));
+            }
             button.add(new AttributeAppender("title", getButtonTitle(finalId)));
             buttons.add(button);
             buttons.add(new Label("label"+finalId, " "));
