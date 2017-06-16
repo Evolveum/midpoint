@@ -157,10 +157,9 @@ public class PageResources extends PageAdminResources {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
-				.createCollection(GetOperationOptions.createNoFetch());
-		options.add(SelectorOptions.create(ResourceType.F_CONNECTOR_REF,
-				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+		Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(ResourceType.F_CONNECTOR);
+		options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
+		
 
 		MainObjectListPanel<ResourceType> resourceListPanel = new MainObjectListPanel<ResourceType>(ID_TABLE,
 				ResourceType.class, TableId.TABLE_RESOURCES, options, this) {
@@ -195,8 +194,9 @@ public class PageResources extends PageAdminResources {
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				navigateToNext(PageResourceWizard.class);
-
+				
 			}
+			
 		};
 		resourceListPanel.setOutputMarkupId(true);
 		resourceListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);

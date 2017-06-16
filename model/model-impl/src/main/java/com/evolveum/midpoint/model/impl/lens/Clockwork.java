@@ -597,6 +597,7 @@ public class Clockwork {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		try {
+			LOGGER.trace("recordOperationExecution starting; task = {}, clockworkException = {}", task, clockworkException);
 			recordFocusOperationExecution(context, now, clockworkException, task, result);
 			for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 				recordProjectionOperationExecution(context, projectionContext, now, task, result);
@@ -613,6 +614,7 @@ public class Clockwork {
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null || focusContext.isDelete()) {
+			LOGGER.trace("focusContext is null or 'delete', not recording focus operation execution");
 			return;
 		}
 		PrismObject<F> objectNew = focusContext.getObjectNew();
@@ -635,6 +637,7 @@ public class Clockwork {
 			odo.setExecutionResult(result);		// we rely on the fact that 'result' already contains record of the exception
 			executedDeltas.add(odo);
 		}
+		LOGGER.trace("recordFocusOperationExecution: executedDeltas: {}", executedDeltas.size());
 		recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(), task, result);
 	}
 
@@ -666,6 +669,7 @@ public class Clockwork {
 			}
 		}
 		if (oid == null) {        // e.g. if there is an exception in provisioning.addObject method
+			LOGGER.trace("recordOperationExecution: skipping because oid is null for object = {}", object);
 			return;
 		}
 		summaryResult.computeStatus();
@@ -753,6 +757,9 @@ public class Clockwork {
 
 	private void setOperationContext(OperationExecutionType operation,
 			OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task) {
+		if (task.getParentForLightweightAsynchronousTask() != null) {
+			task = task.getParentForLightweightAsynchronousTask();
+		}
 		if (task.isPersistent()) {
 			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject()));
 		}

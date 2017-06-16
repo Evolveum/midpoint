@@ -224,4 +224,9 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	public boolean isValid() {
 		return orderMap.values().stream().allMatch(c -> c >= 0);
 	}
+
+	@Override
+	public boolean isOrderOne() {
+		return getSummaryOrder() == 1;
+	}
 }

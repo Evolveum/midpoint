@@ -111,6 +111,11 @@ public class TestNotoriousRole extends AbstractNotoriousTest {
 	}
 
 	@Override
+	protected QName getAltRelation() {
+		return SchemaConstants.ORG_OWNER;
+	}
+	
+	@Override
 	protected int getNumberOfExtraRoles() {
 		return 1;
 	}
@@ -129,4 +134,15 @@ public class TestNotoriousRole extends AbstractNotoriousTest {
 		repositoryService.addObject(role, null, result);
 	}
 	
+	// Owner relation is non-evaluated
+	@Override
+	protected int getTest15xRoleEvaluationIncrement() {
+		return 1 + NUMBER_OF_LEVEL_B_ROLES;
+	}
+	
+	// Owner relation is non-evaluated, therefore the B-level roles are not in roleMembershipRef here
+	@Override
+	protected void assertTest158RoleMembershipRef(PrismObject<UserType> userAfter) {
+		assertRoleMembershipRef(userAfter, getAltRelation(), getNotoriousOid());
+	}
 }

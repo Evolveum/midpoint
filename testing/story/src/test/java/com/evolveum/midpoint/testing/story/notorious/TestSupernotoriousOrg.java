@@ -132,8 +132,7 @@ public class TestSupernotoriousOrg extends TestNotoriousOrg {
 	}
 	
 	@Override
-	protected void assertRoleEvaluationCount(int numberOfLevelAAssignments) {
-		// we have aggressive idempotence here
-		inspector.assertRoleEvaluations(getNotoriousOid(), hackify(1));
+	protected void assertRoleEvaluationCount(int numberOfNotoriousAssignments, int numberOfOtherAssignments) {
+		inspector.assertRoleEvaluations(getNotoriousOid(), hackify(numberOfNotoriousAssignments));
 	}
 }

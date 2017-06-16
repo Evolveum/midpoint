@@ -32,12 +32,15 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.core.util.lang.PropertyResolver;
 import org.apache.wicket.core.util.lang.PropertyResolverConverter;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -79,6 +82,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
@@ -110,6 +114,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
     private static final String ID_MAIN_FORM = "mainForm";
 
     private static final String ID_RUN = "runReport";
+    private static final String ID_POPUP_FEEDBACK = "popupFeedback";
 
     private static final Integer AUTO_COMPLETE_BOX_SIZE = 10;
     
@@ -141,8 +146,8 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
     	Form<?> mainForm = new Form<>(ID_MAIN_FORM);
     	add(mainForm);
-
-        
+    	
+    	        
         ListView<JasperReportParameterDto> paramListView = new ListView<JasperReportParameterDto>(ID_PARAMETERS, new PropertyModel<>(reportModel, "jasperReportDto.parameters")) {
 
         	private static final long serialVersionUID = 1L;
@@ -156,9 +161,28 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 		paramListView.setOutputMarkupId(true);
 		mainForm.add(paramListView);
 		
+		FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);
+		feedback.setFilter(new ComponentFeedbackMessageFilter(paramListView){
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean accept(FeedbackMessage message) {
+				return true;
+			}
+		});
+        feedback.setOutputMarkupId(true);
+        mainForm.add(feedback);
+		
         AjaxSubmitButton addButton = new AjaxSubmitButton(ID_RUN,
                 createStringResource("runReportPopupContent.button.run")) {
         	private static final long serialVersionUID = 1L;
+        	
+        	@Override
+        			protected void onError(AjaxRequestTarget target, Form<?> form) {
+        				FeedbackAlerts feedback = (FeedbackAlerts) form.get(ID_POPUP_FEEDBACK);
+        				target.add(feedback);
+        			}
 
         	@Override
         	protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -284,6 +308,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         for (FormComponent component : components) {
                 component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
+        
         panel.setOutputMarkupId(true);
         return panel;
     }

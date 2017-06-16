@@ -561,6 +561,7 @@ public final class Utils {
 
         variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
 		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadow);
+		variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow);
 		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
 		

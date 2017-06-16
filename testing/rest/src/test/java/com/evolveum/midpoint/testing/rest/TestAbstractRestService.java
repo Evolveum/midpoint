@@ -27,6 +27,9 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 import com.evolveum.midpoint.util.exception.*;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.annotations.Test;
@@ -51,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsType;
@@ -108,6 +112,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	private static final String MODIFICATION_ENABLE = "modification-enable"; 
 	private static final String MODIFICATION_ASSIGN_ROLE_MODIFIER = "modification-assign-role-modifier";
 	private static final String MODIFICATION_REPLACE_ANSWER = "modification-replace-answer";
+	private static final String MODIFICATION_FORCE_PASSWORD_CHANGE = "modification-force-password-change";
 
 	
 	protected abstract File getRepoFile(String fileBaseName);
@@ -1174,16 +1179,49 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 		
 	}
 	
-	private <O extends ObjectType> O loadObject(Class<O> type, String oid)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
-			ConfigurationException, ExpressionEvaluationException {
-		Task task = getTaskManager().createTaskInstance("loadObject");
-		OperationResult result = task.getResult();
-		
-		PrismObject<O> object = getModelService().getObject(type, oid, null, task, result);
-		return object.asObjectable();
-	}
+	
+	@Test
+	public void test601modifyPasswordForceChange() throws Exception {
+		final String TEST_NAME = "test601modifyPasswordForceChange";
+		displayTestTile(this, TEST_NAME);
 
+		WebClient client = prepareClient();
+		client.path("/users/" + USER_DARTHADDER_OID);
+		
+		getDummyAuditService().clear();
+
+		TestUtil.displayWhen(TEST_NAME);
+		Response response = client.post(getRequestFile(MODIFICATION_FORCE_PASSWORD_CHANGE));
+
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		traceResponse(response);
+		
+		assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
+		
+		
+		IntegrationTestTools.display("Audit", getDummyAuditService());
+		getDummyAuditService().assertRecords(4);
+		getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
+		getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
+		
+		TestUtil.displayWhen(TEST_NAME);
+		response = client.get();
+		
+		TestUtil.displayThen(TEST_NAME);
+		displayResponse(response);
+		
+		assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		UserType userDarthadder = response.readEntity(UserType.class);
+		CredentialsType credentials = userDarthadder.getCredentials();
+		assertNotNull("No credentials in user. Something is wrong.", credentials);
+		PasswordType passwordType = credentials.getPassword();
+		assertNotNull("No password defined for user. Something is wrong.", passwordType);
+		assertNotNull("No value for password defined for user. Something is wrong.", passwordType.getValue());
+		assertTrue(BooleanUtils.isTrue(passwordType.isForceChange()));
+		
+	}
+	
 	private WebClient prepareClient() {
 		return prepareClient(USER_ADMINISTRATOR_USERNAME, USER_ADMINISTRATOR_PASSWORD);
 	}

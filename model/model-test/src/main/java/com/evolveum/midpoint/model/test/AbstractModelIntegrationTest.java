@@ -316,6 +316,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		dummyResourceCollection = new DummyResourceCollection(modelService);
 		startResources();
 		dummyAuditService = DummyAuditService.getInstance();
+		InternalsConfig.reset();
 		// Make sure the checks are turned on
 		InternalsConfig.turnOnAllChecks();
         // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.

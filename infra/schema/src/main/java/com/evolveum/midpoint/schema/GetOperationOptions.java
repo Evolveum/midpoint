@@ -170,14 +170,83 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options;
 	}
 
+	/**
+	 * Specifies whether to return specific items. It is used for optimizations.
+	 * Some requests only needs a subset of items therefore fetching them all is a waste
+	 * of resources. Other requests may need expensive data that are not normally returned by default.
+	 * <p>
+	 * If no retrieve option is set in the entire options set then it
+	 * means that the whole object with a default set of properties has to be
+	 * returned. This is equivalent to specifying DEFAULT retrieve root option.
+	 * <p>
+	 * If there is at least one retrieve option in the set then the following rules apply:
+	 * <ul>
+	 *   <li>Items marked as INCLUDE will be returned.</li>
+	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
+	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *       behave in the same way as superitem. E.g. if a superitem is marked as
+	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
+	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
+	 *   <li>For items that are not marked in any way and for which the superitem is also not marked the "I do not care" behavior is assumed.
+	 *       This means that they may be returned or they may be not. The implementation will return them if their retrieval is cheap
+	 *       but they will be most likely omitted from the result.</li>
+	 *  </ul>
+	 */
 	public static GetOperationOptions createRetrieve() {
 		return createRetrieve(RetrieveOption.INCLUDE);
 	}
 
+	/**
+	 * Specifies whether to return specific items. It is used for optimizations.
+	 * Some requests only needs a subset of items therefore fetching them all is a waste
+	 * of resources. Other requests may need expensive data that are not normally returned by default.
+	 * <p>
+	 * If no retrieve option is set in the entire options set then it
+	 * means that the whole object with a default set of properties has to be
+	 * returned. This is equivalent to specifying DEFAULT retrieve root option.
+	 * <p>
+	 * If there is at least one retrieve option in the set then the following rules apply:
+	 * <ul>
+	 *   <li>Items marked as INCLUDE will be returned.</li>
+	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
+	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *       behave in the same way as superitem. E.g. if a superitem is marked as
+	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
+	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
+	 *   <li>For items that are not marked in any way and for which the superitem is also not marked the "I do not care" behavior is assumed.
+	 *       This means that they may be returned or they may be not. The implementation will return them if their retrieval is cheap
+	 *       but they will be most likely omitted from the result.</li>
+	 *  </ul>
+	 */
 	public static GetOperationOptions createDontRetrieve() {
 		return createRetrieve(RetrieveOption.EXCLUDE);
 	}
 
+	/**
+	 * Specifies whether to return specific items. It is used for optimizations.
+	 * Some requests only needs a subset of items therefore fetching them all is a waste
+	 * of resources. Other requests may need expensive data that are not normally returned by default.
+	 * <p>
+	 * If no retrieve option is set in the entire options set then it
+	 * means that the whole object with a default set of properties has to be
+	 * returned. This is equivalent to specifying DEFAULT retrieve root option.
+	 * <p>
+	 * If there is at least one retrieve option in the set then the following rules apply:
+	 * <ul>
+	 *   <li>Items marked as INCLUDE will be returned.</li>
+	 *   <li>Any item marked as EXCLUDE may not be returned. (Note: Excluded items may still be returned if their retrieval is cheap.)</li>
+	 *   <li>Items marked as DEFAULT will be returned if they would also be returned without any options (by default).</li>
+	 *   <li>Items that are not marked (have no option or have null retrieve option) but their superitem is marked (have retrieve option) 
+	 *       behave in the same way as superitem. E.g. if a superitem is marked as
+	 *       INCLUDE they will also be included in the result. This also applies transitively (e.g. superitem of superitem).
+	 *   <li>If a superitem is marked as EXCLUDE and subitem is marked as INCLUDE then the behavior is undefined. Do not do this. Strange things may happen.</li>
+	 *   <li>For items that are not marked in any way and for which the superitem is also not marked the "I do not care" behavior is assumed.
+	 *       This means that they may be returned or they may be not. The implementation will return them if their retrieval is cheap
+	 *       but they will be most likely omitted from the result.</li>
+	 *  </ul>
+	 */
     public static GetOperationOptions createRetrieve(RelationalValueSearchQuery query) {
         GetOperationOptions options = new GetOperationOptions();
         options.retrieve = RetrieveOption.INCLUDE;
@@ -203,6 +272,9 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options.resolve;
 	}
 	
+	/**
+	 * Resolve the object reference. This only makes sense with a (path-based) selector.
+	 */
 	public static GetOperationOptions createResolve() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setResolve(true);
@@ -256,6 +328,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options.noFetch;
 	}
 	
+	 /**
+		 * No not fetch any information from external sources, e.g. do not fetch account data from resource,
+		 * do not fetch resource schema, etc.
+		 * Such operation returns only the data stored in midPoint repository.
+		 */
 	public static GetOperationOptions createNoFetch() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setNoFetch(true);
@@ -293,6 +370,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options.resolveNames;
 	}
 	
+	/**
+     * Resolve the object reference names. (Currently applicable only as a top-level option.)
+     *
+     * EXPERIMENTAL.
+     */
 	public static GetOperationOptions createResolveNames() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setResolveNames(true);
@@ -317,6 +399,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.tolerateRawData;
     }
 
+    /**
+	 * Tolerate "raw" data in returned object. In some cases, raw data are tolerated by default (e.g. if raw=true
+	 * and the object is ResourceType or ShadowType). But generally, toleration of raw data can be explicitly requested
+	 * by setting this flag to TRUE.
+	 */
     public static GetOperationOptions createTolerateRawData() {
         GetOperationOptions opts = new GetOperationOptions();
         opts.setTolerateRawData(true);
@@ -341,16 +428,29 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.raw;
     }
 
+    /**
+	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
+	 * any expressions, etc.
+	 */
     public static GetOperationOptions createRaw() {
         GetOperationOptions opts = new GetOperationOptions();
         opts.setRaw(true);
         return opts;
     }
 
+    /**
+	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
+	 * any expressions, etc.
+	 */
 	public static Collection<SelectorOptions<GetOperationOptions>> createRawCollection() {
 		return SelectorOptions.createCollection(createRaw());
 	}
 
+	 /**
+		 * No not fetch any information from external sources, e.g. do not fetch account data from resource,
+		 * do not fetch resource schema, etc.
+		 * Such operation returns only the data stored in midPoint repository.
+		 */
 	public static Collection<SelectorOptions<GetOperationOptions>> createNoFetchCollection() {
 		return SelectorOptions.createCollection(createNoFetch());
 	}
@@ -373,12 +473,23 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options.doNotDiscovery;
 	}
 	
+	/**
+	 * Force to get object from the resource even if some of the error occurred.
+	 * If the any copy of the shadow is fetched, we can't delete this object
+	 * from the gui, for example
+	 */
 	public static GetOperationOptions createDoNotDiscovery() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setDoNotDiscovery(true);
 		return opts;
 	}
 	
+	/**
+	 * This flag indicated if the "object not found" error is critical for
+	 * processing the original request. If it is not, we just ignore it and
+	 * don't log it. In other cases, error in logs may lead to misleading
+	 * information..
+	 */
 	public static GetOperationOptions createAllowNotFound() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setAllowNotFound(true);
@@ -403,6 +514,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options.allowNotFound;
 	}
 	
+	/**
+	 * Return read-only object. The returned object will be only read by the client. The client will not modify it.
+	 * Immutable object is returned if it is possible.
+	 * This option allows to turn on internal optimization (e.g. avoid cloning the values). It should be used
+	 * at all times when the client do not plan to modify the returned object.
+	 */
 	public static GetOperationOptions createReadOnly() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setReadOnly(true);
@@ -435,6 +552,16 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.pointInTimeType = pointInTimeType;
 	}
 	
+	/**
+	 * Specifies the point in time for the returned data. This option controls whether fresh or cached data will
+	 * be returned or whether future data projection will be returned. MidPoint usually deals with fresh data
+	 * that describe situation at the current point in time. But the client code may want to get data from the
+	 * cache that may be possibly stale. Or the client code may want a projection about the future state of the
+	 * data (e.g. taking running asynchronous operation into consideration).
+	 * If this option is not specified then the current point in time is the default if no staleness option is
+	 * specified or if it is zero. If non-zero staleness option is specified then this option defaults to cached
+	 * data.
+	 */
 	public static GetOperationOptions createPointInTimeType(PointInTimeType pit) {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setPointInTimeType(pit);
@@ -459,6 +586,12 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.staleness = staleness;
 	}
 	
+	/**
+	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods. 
+	 * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
+	 * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
+	 * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
+	 */
 	public static GetOperationOptions createStaleness(Long staleness) {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setStaleness(staleness);
@@ -503,6 +636,16 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return options.distinct;
 	}
 
+	/**
+	 * Should the results be made distinct.
+	 * Not all providers support this option.
+	 *
+	 * BEWARE:
+	 *  - may bring a potentially huge performance penalty
+	 *  - may interfere with paging (!)
+	 *
+	 * So please consider this option an EXPERIMENTAL, for now.
+	 */
 	public static GetOperationOptions createDistinct() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setDistinct(true);

@@ -67,6 +67,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
     public static final String SELECTED_ACCOUNT_ICON_CSS = "fa fa-check-square-o";
     public static final String DESELECTED_ACCOUNT_ICON_CSS = "fa fa-square-o";
     public static final String PROPAGATED_ACCOUNT_ICON_CSS = "fa fa-sign-out";
+    public static final String NO_CAPABILITY_ICON_CSS = "fa fa-square";
     private static final int HELP_MODAL_WIDTH = 400;
     private static final int HELP_MODAL_HEIGH = 600;
 
@@ -163,6 +164,8 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                         if (item.getCssClass() == null || item.getCssClass().trim().equals("")) {
                             if (item.isMidpoint()) {
                                 item.setCssClass(SELECTED_ACCOUNT_ICON_CSS);
+                            } else if (!item.isPasswordCapabilityEnabled()){
+                            	item.setCssClass(NO_CAPABILITY_ICON_CSS);
                             } else if (item.isPasswordOutbound()) {
                                 item.setCssClass(PROPAGATED_ACCOUNT_ICON_CSS);
                             } else {
@@ -181,7 +184,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 final ImagePanel imagePanel = (ImagePanel) item.get(0);
 
                 final PasswordAccountDto passwordAccountDto = rowModel.getObject();
-
+                
                 imagePanel.add(new AjaxEventBehavior("click") {
                 	private static final long serialVersionUID = 1L;
                 	
@@ -214,6 +217,16 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                                    }
                                }
                 );
+                
+                imagePanel.add(new VisibleEnableBehaviour() {
+                	
+                	private static final long serialVersionUID = 1L;
+
+					@Override
+                	public boolean isEnabled() {
+                		return passwordAccountDto.getCssClass() != NO_CAPABILITY_ICON_CSS;
+                	}
+                });
             }
         };
         columns.add(column);
