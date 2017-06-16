@@ -70,7 +70,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageRequestRole.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentsList.class);
     private static final String DOT_CLASS = PageAssignmentsList.class.getName() + ".";
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
     private static final String OPERATION_WF_TASK_CREATED = "com.evolveum.midpoint.wf.impl.WfHook.invoke";
