@@ -183,6 +183,10 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 				}
 			}
 
+			@Override
+			public boolean isButtonEnabled(int id, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
+				return id != 0 || !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc());
+			}
 		};
 		columns.add(column);
 
@@ -207,7 +211,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
 		try {
 			Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
-			getCertificationService().createCampaign(definition.getOid(), task, result);
+			if (!Boolean.TRUE.equals(definition.isAdHoc())) {
+				getCertificationService().createCampaign(definition.getOid(), task, result);
+			} else {
+				result.recordWarning("Definition '" + definition.getName() + "' is for ad-hoc campaigns that cannot be started manually.");
+			}
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
