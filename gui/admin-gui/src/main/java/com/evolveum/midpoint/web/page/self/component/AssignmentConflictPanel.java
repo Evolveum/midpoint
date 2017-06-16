@@ -2,24 +2,21 @@ package com.evolveum.midpoint.web.page.self.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
+import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
-import java.util.List;
-
 /**
  * Created by honchar.
  */
-public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
+public class AssignmentConflictPanel extends BasePanel<ConflictDto> {
     private static final String ID_STATUS_ICON = "statusIcon";
     private static final String ID_EXISTING_ASSIGNMENT = "existingAssignment";
     private static final String ID_ADDED_ASSIGNMENT = "addedAssignment";
@@ -31,7 +28,7 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
     private static final String STATUS_WARNING = GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_WARNING_COLORED + " fa-lg";
     private static final String STATUS_ERROR = GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_FATAL_ERROR_COLORED + " fa-lg";
 
-    public AssignmentConflictPanel(String id, IModel<AssignmentConflictDto> model) {
+    public AssignmentConflictPanel(String id, IModel<ConflictDto> model) {
         super(id, model);
         initLayout();
     }
@@ -50,8 +47,8 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
             @Override
             public String getObject() {
                 return getModelObject() != null ?
-                        (getModelObject().isSolved() ? STATUS_FIXED :
-                                (getModelObject().isError() ? STATUS_ERROR : STATUS_WARNING)) : STATUS_ERROR;
+                        (getModelObject().isResolved() ? STATUS_FIXED :
+                                (getModelObject().isWarning() ? STATUS_WARNING : STATUS_ERROR)) : STATUS_ERROR;
             }
         }));
         container.add(statusIconLabel);
@@ -63,10 +60,11 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
                     @Override
                     public String getObject() {
                         if (getModelObject() != null) {
-                            String name = getModelObject().getExistingAssignmentTargetObj().asObjectable().getName() != null ?
-                                    getModelObject().getExistingAssignmentTargetObj().asObjectable().getName().getOrig() :
-                                    getModelObject().getExistingAssignmentTargetObj().getOid();
-                            return name + " " + createStringResource("AssignmentConflictPanel.existingAssignmentLabelMessage").getString();
+                            String name = getModelObject().getAssignment1().getAssignmentTargetObject().asObjectable().getName() != null ?
+                                    getModelObject().getAssignment1().getAssignmentTargetObject().asObjectable().getName().getOrig() :
+                                    getModelObject().getAssignment1().getAssignmentTargetObject().getOid();
+                            return name + " " +
+                                    getMessageLabel(getModelObject().getAssignment1().isOldAssignment());
                         }
                         return "";
                     }
@@ -76,7 +74,7 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
 
             @Override
             public String getObject() {
-                return getModelObject() != null && getModelObject().isRemovedOld() ? "text-decoration: line-through;" : "";
+                return getModelObject() != null && getModelObject().getAssignment1().isResolved() ? "text-decoration: line-through;" : "";
             }
         }));
         container.add(existingAssignment);
@@ -88,10 +86,11 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
                     @Override
                     public String getObject() {
                         if (getModelObject() != null) {
-                            String name = getModelObject().getAddedAssignmentTargetObj().asObjectable().getName() != null ?
-                                    getModelObject().getAddedAssignmentTargetObj().asObjectable().getName().getOrig() :
-                                    getModelObject().getAddedAssignmentTargetObj().getOid();
-                            return name + " " + createStringResource("AssignmentConflictPanel.addedAssignmentLabelMessage").getString();
+                            String name = getModelObject().getAssignment2().getAssignmentTargetObject().asObjectable().getName() != null ?
+                                    getModelObject().getAssignment2().getAssignmentTargetObject().asObjectable().getName().getOrig() :
+                                    getModelObject().getAssignment2().getAssignmentTargetObject().getOid();
+                            return name + " " + getMessageLabel(getModelObject().getAssignment2().isOldAssignment());
+
                         }
                         return "";
                     }
@@ -101,7 +100,7 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
 
             @Override
             public String getObject() {
-                return getModelObject() != null && getModelObject().isUnassignedNew() ? "text-decoration: line-through;" : "";
+                return getModelObject() != null && getModelObject().getAssignment2().isResolved() ? "text-decoration: line-through;" : "";
             }
         }));
         container.add(addedAssignment);
@@ -111,7 +110,7 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
 
             @Override
             public String getObject() {
-                return getModelObject().isRemovedOld() ?
+                return getModelObject().getAssignment1().isResolved() ?
                         createStringResource("AssignmentConflictPanel.undoAction").getString() :
                         createStringResource("AssignmentConflictPanel.removeButton").getString();
             }
@@ -119,7 +118,7 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
         AjaxSubmitButton removeButton = new AjaxSubmitButton(ID_REMOVE_BUTTON, removeButtonTitleModel) {
             @Override
             public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                AssignmentConflictPanel.this.removeAssignmentPerformed(target);
+                AssignmentConflictPanel.this.removeAssignmentPerformed(getModelObject().getAssignment1(), target);
             }
         };
         removeButton.add(new VisibleEnableBehaviour() {
@@ -132,7 +131,7 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
 
             @Override
             public boolean isEnabled() {
-                return !getModelObject().isUnassignedNew();
+                return !getModelObject().getAssignment2().isResolved();
             }
         });
         container.add(removeButton);
@@ -142,16 +141,16 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
 
             @Override
             public String getObject() {
-                return getModelObject().isUnassignedNew() ?
+                return getModelObject().getAssignment2().isResolved() ?
                         createStringResource("AssignmentConflictPanel.undoAction").getString() :
-                        createStringResource("AssignmentConflictPanel.unselectButton").getString();
+                        createStringResource("AssignmentConflictPanel.removeButton").getString();
             }
         };
         AjaxSubmitButton unselectButton = new AjaxSubmitButton(ID_UNSELECT_BUTTON,
                 unselectButtonTitleModel) {
             @Override
             public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                AssignmentConflictPanel.this.unselectAssignmentPerformed(target);
+                AssignmentConflictPanel.this.removeAssignmentPerformed(getModelObject().getAssignment2(), target);
             }
         };
         unselectButton.add(new VisibleEnableBehaviour() {
@@ -164,20 +163,19 @@ public class AssignmentConflictPanel extends BasePanel<AssignmentConflictDto> {
 
             @Override
             public boolean isEnabled() {
-                return !getModelObject().isRemovedOld();
+                return !getModelObject().getAssignment1().isResolved();
             }
         });
         container.add(unselectButton);
     }
 
-    private void unselectAssignmentPerformed(AjaxRequestTarget target) {
-        getModelObject().setUnassignedNew(!getModelObject().isUnassignedNew());
+    private void removeAssignmentPerformed(AssignmentConflictDto dto, AjaxRequestTarget target) {
+        dto.setResolved(!dto.isResolved());
         target.add(get(ID_PANEL_CONTAINER));
     }
 
-    private void removeAssignmentPerformed(AjaxRequestTarget target) {
-        getModelObject().setRemovedOld(!getModelObject().isRemovedOld());
-        target.add(get(ID_PANEL_CONTAINER));
+    private String getMessageLabel(boolean isOldAssignment){
+        return isOldAssignment ? createStringResource("AssignmentConflictPanel.existingAssignmentLabelMessage").getString() :
+                createStringResource("AssignmentConflictPanel.addedAssignmentLabelMessage").getString();
     }
-
 }

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
+import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -168,7 +169,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         requestAssignments.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isEnabled(){
-                return getSessionStorage().getRoleCatalog().isMultiUserRequest() || areConflictsResolved();
+                return getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
+                        onlyWarnings() || areConflictsResolved();
             }
         });
         mainForm.add(requestAssignments);
@@ -368,13 +370,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         }
     }
 
-    private List<AssignmentConflictDto> getAssignmentConflicts(){
+    private List<ConflictDto> getAssignmentConflicts(){
         ModelContext<UserType> modelContext = null;
 
         ObjectDelta<UserType> delta;
         OperationResult result = new OperationResult(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         Task task = createSimpleTask(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
-        List<AssignmentConflictDto> conflictsList = new ArrayList<>();
+        List<ConflictDto> conflictsList = new ArrayList<>();
         try {
             PrismObject<UserType> user = getTargetUser();
             delta = user.createModifyDelta();
@@ -392,7 +394,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple
                     .getPlusSet();
-            Map<String, AssignmentConflictDto> conflictOidsMap = new HashMap<>();
+            Map<String, String> conflictOidsMap = new HashMap<>();
             if (addedAssignments != null) {
                 for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
                     for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
@@ -400,23 +402,19 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                             if (trigger instanceof EvaluatedExclusionTrigger) {
                                 EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
                                 EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
-                                if (conflictingAssignment.getAssignmentType(true) == null) {
-                                    LOGGER.trace("The conflicting assignment is newly added: {}, for evaluated assignment {}",
-                                            conflictingAssignment, evaluatedAssignment);
-                                } else {
-                                    LOGGER.trace("The conflicting assignment is NOT newly added: {}, for evaluated assignment {}",
-                                            conflictingAssignment, evaluatedAssignment);
-                                }
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
                                 PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
-                                AssignmentConflictDto dto = new AssignmentConflictDto(exclusionTargetObj, addedAssignmentTargetObj);
+
+                                AssignmentConflictDto dto1 = new AssignmentConflictDto(exclusionTargetObj,
+                                        conflictingAssignment.getAssignmentType(true) == null ? false : true);
+                                AssignmentConflictDto dto2 = new AssignmentConflictDto(addedAssignmentTargetObj,
+                                        evaluatedAssignment.getAssignmentType(true) == null ? false : true);
                                 boolean isWarning = policyRule.getActions() != null
                                         && policyRule.getActions().getApproval() != null;
-                                    dto.setError(!isWarning);
-                                if (conflictOidsMap.containsKey(exclusionTargetObj.getOid()) && isWarning){
-                                    conflictOidsMap.replace(exclusionTargetObj.getOid(), dto);
-                                } else {
-                                    conflictOidsMap.put(exclusionTargetObj.getOid(), dto);
+                                ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
+                                if (!isCreatedConflict(conflictOidsMap, exclusionTargetObj.getOid(), addedAssignmentTargetObj.getOid())){
+                                    conflictOidsMap.put(exclusionTargetObj.getOid(), addedAssignmentTargetObj.getOid());
+                                    conflictsList.add(conflict);
                                 }
                             }
                         }
@@ -424,7 +422,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     }
                 }
             }
-            conflictsList.addAll(conflictOidsMap.values());
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
             error("Couldn't get assignments conflicts. Reason: " + e);
@@ -432,13 +429,20 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         return conflictsList;
     }
 
-    private boolean areConflictsResolved(){
-        List<AssignmentConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
-        for (AssignmentConflictDto dto : list){
-            if (!dto.isError()){
-                continue;
+    private boolean onlyWarnings(){
+        List<ConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
+        for (ConflictDto dto : list){
+            if (!dto.isWarning()){
+                return false;
             }
-            if (!dto.isSolved()){
+        }
+        return true;
+    }
+
+    private boolean areConflictsResolved(){
+        List<ConflictDto> list = getSessionStorage().getRoleCatalog().getConflictsList();
+        for (ConflictDto dto : list){
+            if (!dto.isResolved()){
                 return false;
             }
         }
@@ -496,11 +500,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private List<AssignmentEditorDto> getAssignmentsToRemoveList(UserType user){
-        List<AssignmentConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
+        List<ConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
         List<String> assignmentsToRemoveOids = new ArrayList<>();
-        for (AssignmentConflictDto dto : conflicts){
-            if (dto.isRemovedOld()){
-                assignmentsToRemoveOids.add(dto.getExistingAssignmentTargetObj().getOid());
+        for (ConflictDto dto : conflicts){
+            if (dto.isResolved()){
+                if (dto.getAssignment1().isResolved() && dto.getAssignment1().isOldAssignment()){
+                    assignmentsToRemoveOids.add(dto.getAssignment1().getAssignmentTargetObject().getOid());
+                } else if (dto.getAssignment2().isResolved() && dto.getAssignment2().isOldAssignment()){
+                    assignmentsToRemoveOids.add(dto.getAssignment2().getAssignmentTargetObject().getOid());
+                }
             }
         }
 
@@ -533,4 +541,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         return true;
     }
 
+    private boolean isCreatedConflict(Map<String, String> oidsMap, String oid1, String oid2){
+        if ((oidsMap.containsKey(oid1) && oidsMap.get(oid1).equals(oid2))
+                || (oidsMap.containsKey(oid2) && oidsMap.get(oid2).equals(oid1))){
+            return true;
+        }
+        return false;
+    }
 }

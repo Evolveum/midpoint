@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
+import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -52,7 +53,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private AssignmentViewType viewType = null;      //the current view type
     private List<PrismObject<UserType>> targetUserList = new ArrayList<>();
     private PrismObject<UserType> assignmentsUserOwner = null;
-    private List<AssignmentConflictDto> conflictsList;
+    private List<ConflictDto> conflictsList;
     private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
 
@@ -137,11 +138,11 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.collapsedItem = collapsedItem;
     }
 
-    public List<AssignmentConflictDto> getConflictsList() {
+    public List<ConflictDto> getConflictsList() {
         return conflictsList == null ? new ArrayList<>() : conflictsList;
     }
 
-    public void setConflictsList(List<AssignmentConflictDto> conflictsList) {
+    public void setConflictsList(List<ConflictDto> conflictsList) {
         this.conflictsList = conflictsList;
     }
 

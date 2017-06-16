@@ -10,6 +10,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.component.AssignmentConflictPanel;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
+import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,8 +52,8 @@ public class PageAssignmentConflicts extends PageSelf {
         RepeatingView conflictsPanel = new RepeatingView(ID_CONFLICTS_PANEL);
         conflictsPanel.setOutputMarkupId(true);
 
-        List<AssignmentConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
-        for (AssignmentConflictDto dto : conflicts) {
+        List<ConflictDto> conflicts = getSessionStorage().getRoleCatalog().getConflictsList();
+        for (ConflictDto dto : conflicts) {
             AssignmentConflictPanel panel = new AssignmentConflictPanel(conflictsPanel.newChildId(), Model.of(dto));
             conflictsPanel.add(panel);
         }
@@ -82,17 +83,29 @@ public class PageAssignmentConflicts extends PageSelf {
     }
 
     private void processConflictDecisions(){
-        List<AssignmentConflictDto> conflictsList = getSessionStorage().getRoleCatalog().getConflictsList();
+        List<ConflictDto> conflictsList = getSessionStorage().getRoleCatalog().getConflictsList();
+        for (ConflictDto conflictDto : conflictsList){
+            if (!conflictDto.isResolved()){
+                continue;
+            }
+            if (conflictDto.getAssignment1().isResolved() && !conflictDto.getAssignment1().isOldAssignment()){
+                deselectNewAssignment(conflictDto.getAssignment1().getAssignmentTargetObject().getOid());
+            } else if (conflictDto.getAssignment2().isResolved() && !conflictDto.getAssignment2().isOldAssignment()){
+                deselectNewAssignment(conflictDto.getAssignment2().getAssignmentTargetObject().getOid());
+            }
+        }
+    }
+
+    private void deselectNewAssignment(String oid){
+        if (oid == null){
+            return;
+        }
         List<AssignmentEditorDto> assignmentsList = getSessionStorage().getRoleCatalog().getAssignmentShoppingCart();
-        for (AssignmentConflictDto conflictDto : conflictsList){
-            if (conflictDto.isUnassignedNew()){
-                Iterator<AssignmentEditorDto> it = assignmentsList.iterator();
-                while (it.hasNext()){
-                    AssignmentEditorDto assignment = it.next();
-                    if (conflictDto.getAddedAssignmentTargetObj().getOid().equals(assignment.getTargetRef().getOid())){
-                        it.remove();
-                    }
-                }
+        Iterator<AssignmentEditorDto> it = assignmentsList.iterator();
+        while (it.hasNext()){
+            AssignmentEditorDto assignment = it.next();
+            if (oid.equals(assignment.getTargetRef().getOid())){
+                it.remove();
             }
         }
     }
