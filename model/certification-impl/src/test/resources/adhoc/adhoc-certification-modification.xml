@@ -32,4 +32,5 @@
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
         </reviewerSpecification>
     </stageDefinition>
+    <adHoc>true</adHoc>
 </accessCertificationDefinition>

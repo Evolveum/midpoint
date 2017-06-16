@@ -110,11 +110,13 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         return true;
     }
 
-
     protected String getButtonCssClass(int id) {
         StringBuilder sb = new StringBuilder();
         sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
         sb.append(getButtonColorCssClass(id)).append(" ").append(getButtonSizeCssClass(id));
+        if (!isButtonEnabled(id, getModel())) {
+            sb.append(" disabled");
+        }
         return sb.toString();
     }
 
