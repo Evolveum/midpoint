@@ -101,8 +101,6 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 					throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 						ConfigurationException;
 	
-	// TODO: operations to check ticket state
-	
 	@Override
 	public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(
 			PrismObject<? extends ShadowType> object, Collection<Operation> additionalOperations,
