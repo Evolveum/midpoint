@@ -126,6 +126,8 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	
 	protected abstract int getNumberOfExtraOrgs();
 	
+	protected abstract QName getAltRelation();
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -835,9 +837,342 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 	}
 	
-	// TODO: ...
+	@Test
+    public void test144UnassignRa0FromJack() throws Exception {
+		final String TEST_NAME = "test144UnassignRa0FromJack";
+        displayTestTile(TEST_NAME);
 
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertRoleMembershipRef(userAfter, generateRoleBOid(0));
+        assertNoNotoriousParentOrgRef(userAfter);
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(1, 1);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
 	
+	@Test
+    public void test149UnassignRb0FromJack() throws Exception {
+		final String TEST_NAME = "test149UnassignRb0FromJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Rb0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertNoAssignments(userAfter);
+        assertRoleMembershipRefs(userAfter, 0);
+        assertNoNotoriousParentOrgRef(userAfter);
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(0, 1);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
+	
+	/**
+	 * Assign notorious role to Jack directly. That should behave correctly.
+	 * No special expectations here.
+	 */
+	@Test
+    public void test150AssignNotoriousDefaultToJack() throws Exception {
+		final String TEST_NAME = "test150AssignNotoriousDefaultToJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyFocusAssignment(UserType.class, USER_JACK_OID, 
+        		getNotoriousOid(), getNotoriousType(), null, task, null, null, true, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Notorious relation=default assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertJackRoleAMembershipRef(userAfter, 0);
+        assertNotoriousParentOrgRef(userAfter);
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(1, 0);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1 + NUMBER_OF_LEVEL_B_ROLES));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
+
+	/**
+	 * Assign notorious role to Jack directly. This time use alternative relation
+	 * (manager or owner). Make sure that both relations are reflected in
+	 * parentOrgRef and roleMembershipRef.
+	 */
+	@Test
+    public void test152AssignNotoriousAltRelationToJack() throws Exception {
+		final String TEST_NAME = "test152AssignNotoriousAltRelationToJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyFocusAssignment(UserType.class, USER_JACK_OID, 
+        		getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, true, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        
+		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
+		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
+		assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
+		
+		assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
+        
+        assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT, getAltRelation());
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(2, 0);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(2*(1 + NUMBER_OF_LEVEL_B_ROLES)));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
+	
+	@Test
+    public void test154RecomputeJack() throws Exception {
+		final String TEST_NAME = "test154RecomputeJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        
+		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
+		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
+		assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
+		
+		assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
+        
+        assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT, getAltRelation());
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(2, 0);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
+	
+	protected int getTest15xRoleEvaluationIncrement() {
+		return 2*(1 + NUMBER_OF_LEVEL_B_ROLES);
+	}
+	
+	@Test
+    public void test156RecomputeJackAlt() throws Exception {
+		final String TEST_NAME = "test156RecomputeJackAlt";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        InternalsConfig.setTestingPaths(TestingPaths.REVERSED);
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Notorious relation="+getAltRelation().getLocalPart()+" unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        
+		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
+		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
+		assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
+		
+		assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
+        
+        assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT, getAltRelation());
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(2, 0);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
+	
+	@Test
+    public void test158UnassignNotoriousDefaultFromJack() throws Exception {
+		final String TEST_NAME = "test156UnassignNotoriousDefaultFromJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyFocusAssignment(UserType.class, USER_JACK_OID, 
+        		getNotoriousOid(), getNotoriousType(), null, task, null, null, false, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Notorious relation=default unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertTest158RoleMembershipRef(userAfter);
+        assertNotoriousParentOrgRefRelations(userAfter, getAltRelation());
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(2, 1);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
+	
+	protected void assertTest158RoleMembershipRef(PrismObject<UserType> userAfter) {
+		assertJackRoleAMembershipRef(userAfter, 0, getAltRelation());
+	}
+
+	@Test
+    public void test159UnassignNotoriousAltRelationFromJack() throws Exception {
+		final String TEST_NAME = "test159UnassignNotoriousAltRelationFromJack";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        prepareTest();
+        
+        long startMillis = System.currentTimeMillis();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyFocusAssignment(UserType.class, USER_JACK_OID, 
+        		getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, false, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        long endMillis = System.currentTimeMillis();
+        assertSuccess(result);
+        
+        display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", assignmentSummary(userAfter));
+        assertNoAssignments(userAfter);
+        assertRoleMembershipRefs(userAfter, 0);
+        assertNoNotoriousParentOrgRef(userAfter);
+        
+        displayCountersAndInspector();
+        
+        assertRoleEvaluationCount(1, 0);
+        
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify((1 + NUMBER_OF_LEVEL_B_ROLES)));
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
+	}
 
 	private void assignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
 		modifyJackARolesAssignment(numberOfRoles, true, task, result);
@@ -856,26 +1191,30 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 		
 		executeChanges(delta, null, task, result);
 	}
-
+	
 	private void assertJackRoleAMembershipRef(PrismObject<UserType> user, int numberOfLevelARoles) {
+		assertJackRoleAMembershipRef(user, numberOfLevelARoles, SchemaConstants.ORG_DEFAULT);
+	}
+
+	private void assertJackRoleAMembershipRef(PrismObject<UserType> user, int numberOfLevelARoles, QName notoriousRelation) {
 		
-		assertRoleMembershipRefs(user, ROLE_LEVEL_A_OID_FORMAT, numberOfLevelARoles);
-		assertRoleMembershipRefNonExclusive(user, getNotoriousOid(), getNotoriousType());
-		assertRoleMembershipRefs(user, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES);
+		assertRoleMembershipRefs(user, ROLE_LEVEL_A_OID_FORMAT, numberOfLevelARoles, SchemaConstants.ORG_DEFAULT);
+		assertRoleMembershipRefNonExclusive(user, getNotoriousOid(), getNotoriousType(), notoriousRelation);
+		assertRoleMembershipRefs(user, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
 		
 		assertRoleMembershipRefs(user, numberOfLevelARoles + 1 + NUMBER_OF_LEVEL_B_ROLES);
 	}
 
-	private void assertRoleMembershipRefs(PrismObject<UserType> user, String oidFormat, int num) {
+	private void assertRoleMembershipRefs(PrismObject<UserType> user, String oidFormat, int num, QName relation) {
 		for (int i = 0; i < num; i++) {
-			assertRoleMembershipRefNonExclusive(user, generateRoleOid(oidFormat, i), RoleType.COMPLEX_TYPE);
+			assertRoleMembershipRefNonExclusive(user, generateRoleOid(oidFormat, i), RoleType.COMPLEX_TYPE, relation);
 		}
 	}
 	
-	private void assertRoleMembershipRefNonExclusive(PrismObject<UserType> user, String roleOid, QName roleType) {
+	private void assertRoleMembershipRefNonExclusive(PrismObject<UserType> user, String roleOid, QName roleType, QName relation) {
 		List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
 		for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {
-			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, roleType, SchemaConstants.ORG_DEFAULT)) {
+			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, roleType, relation)) {
 				return;
 			}
 		}
@@ -891,6 +1230,10 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	}
 	
 	protected void assertNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
+		assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT);
+	}
+	
+	protected void assertNotoriousParentOrgRefRelations(PrismObject<UserType> userAfter, QName... relations) {
 		// for subclasses
 	}
 

@@ -112,6 +112,11 @@ public class TestNotoriousOrg extends AbstractNotoriousTest {
 	}
 	
 	@Override
+	protected QName getAltRelation() {
+		return SchemaConstants.ORG_MANAGER;
+	}
+	
+	@Override
 	protected int getNumberOfExtraRoles() {
 		return 0;
 	}
@@ -131,7 +136,9 @@ public class TestNotoriousOrg extends AbstractNotoriousTest {
 	}
 	
 	@Override
-	protected void assertNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
-		assertHasOrg(userAfter, getNotoriousOid());
+	protected void assertNotoriousParentOrgRefRelations(PrismObject<UserType> userAfter, QName... relations) {
+		for (QName relation: relations) {
+			assertHasOrg(userAfter, getNotoriousOid(), relation);
+		}
 	}
 }

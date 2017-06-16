@@ -2054,9 +2054,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		for (ObjectReferenceType ref: user.asObjectable().getRoleMembershipRef()) {
 			relationToMap(memRelations, ref);
 		}
+		Map<String,Integer> parents = new HashMap<>();
+		for (ObjectReferenceType ref: user.asObjectable().getParentOrgRef()) {
+			relationToMap(parents, ref);
+		}
 		return "User "+user
 				+"\n  "+user.asObjectable().getAssignment().size()+" assignments\n    "+assignmentRelations
-				+"\n  "+user.asObjectable().getRoleMembershipRef().size()+" roleMembershipRefs\n    "+memRelations;
+				+"\n  "+user.asObjectable().getRoleMembershipRef().size()+" roleMembershipRefs\n    "+memRelations
+				+"\n  "+user.asObjectable().getParentOrgRef().size()+" parentOrgRefs\n    "+parents;
 	}
 
 	private void relationToMap(Map<String, Integer> map, ObjectReferenceType ref) {
