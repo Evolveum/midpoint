@@ -555,8 +555,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		}
 	}
 
-	protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
-		return null;
+	private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
+			return SelectorOptions
+					.createCollection(GetOperationOptions.createDistinct());
 	}
 
 	protected Class getDefaultObjectType(){

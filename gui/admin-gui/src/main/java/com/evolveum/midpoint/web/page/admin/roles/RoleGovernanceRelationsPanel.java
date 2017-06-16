@@ -212,12 +212,6 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return relations.toString();
     }
 
-    @Override
-    protected Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
-        return SelectorOptions
-                .createCollection(GetOperationOptions.createDistinct());
-    }
-
     private void initLoadableModels(){
         approverRelationObjects = new LoadableModel<List<String>>(false) {
             @Override
