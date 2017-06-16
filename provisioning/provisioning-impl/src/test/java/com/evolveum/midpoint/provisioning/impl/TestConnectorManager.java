@@ -53,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-	private static final String CONNID_FRAMEWORK_VERSION = "1.4.2.29";
+	private static final String CONNID_FRAMEWORK_VERSION = "1.4.2.35";
 
 	@Autowired
 	private ProvisioningService provisioningService;

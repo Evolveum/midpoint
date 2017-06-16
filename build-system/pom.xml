@@ -41,7 +41,6 @@
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
-
         <git.describe>${describe}</git.describe>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
@@ -81,7 +80,7 @@
         <activiti-spring.version>5.22.0</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.6</xmlsec.version>
-        <connid.version>1.4.2.29</connid.version>
+        <connid.version>1.4.2.35</connid.version>
         <jasper.version>6.4.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.8.0</wro4j.version>
