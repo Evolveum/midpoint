@@ -240,7 +240,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_JUDGE_TITLE = "Honorable Justice";
 	protected static final String ROLE_JUDGE_DRINK = "tea";
 	protected static final String ROLE_JUDGE_DESCRIPTION = "Role with role exclusions";
-	protected static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
+	protected static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_PREFIX = "criminal exclusion: ";
 
 	protected static final File ROLE_JUDGE_DEPRECATED_FILE = new File(COMMON_DIR, "role-judge-deprecated.xml");
 	protected static final String ROLE_JUDGE_DEPRECATED_OID = "12345111-1111-2222-1111-d21212111111";
