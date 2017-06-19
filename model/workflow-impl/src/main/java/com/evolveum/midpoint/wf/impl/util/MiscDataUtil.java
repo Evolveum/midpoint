@@ -82,27 +82,13 @@ public class MiscDataUtil {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(MiscDataUtil.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private TaskManager taskManager;
-    
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    private WfConfiguration wfConfiguration;
-
-    @Autowired
-    private ActivitiEngine activitiEngine;
-
-	@Autowired
-	private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private WfConfiguration wfConfiguration;
+	@Autowired private ActivitiEngine activitiEngine;
+	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
 
     public static ObjectReferenceType toObjectReferenceType(LightweightObjectRef ref) {
 		if (ref != null) {
@@ -353,7 +339,14 @@ public class MiscDataUtil {
         List<IdentityLink> identityLinks;
         try {
             TaskService taskService = activitiEngine.getTaskService();
-            identityLinks = taskService.getIdentityLinksForTask(taskId);
+            // working around activiti bug, see MID-3799.6 (the NPE when task does not exist)
+			org.activiti.engine.task.Task task = taskService.createTaskQuery()
+					.taskId(taskId)
+					.singleResult();
+			if (task == null) {
+				return false;
+			}
+			identityLinks = taskService.getIdentityLinksForTask(taskId);
         } catch (ActivitiException e) {
             throw new SystemException("Couldn't determine user authorization, because the task candidate users and groups couldn't be retrieved: " + e.getMessage(), e);
         }
