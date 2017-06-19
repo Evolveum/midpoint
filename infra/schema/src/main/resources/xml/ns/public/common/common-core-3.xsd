@@ -14340,6 +14340,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="nodeRef" type="c:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Node where the generated report is stored.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:NodeType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
         		</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
