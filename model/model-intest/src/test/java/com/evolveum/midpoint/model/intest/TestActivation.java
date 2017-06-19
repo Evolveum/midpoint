@@ -265,6 +265,59 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test056RecomputeUserJackEffectiveEnable() throws Exception {
+		final String TEST_NAME = "test056RecomputeUserJackEffectiveEnable";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+                
+        PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+		display("User after change execution", userJackBefore);
+		assertUserJack(userJackBefore, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJackBefore);
+		assertValidity(userJackBefore, null);
+		assertEffectiveStatus(userJackBefore, ActivationStatusType.ENABLED);
+		assertEnableTimestampFocus(userJackBefore, null, start);
+        
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.DISABLED);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertValidity(userJack, null);
+		assertEffectiveStatus(userJack, ActivationStatusType.DISABLED);
+        
+		recomputeUser(USER_JACK_OID, task, result);
+        
+		// THEN
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+		display("User after change execution", userJackAfter);
+		assertUserJack(userJackAfter, "Jack Sparrow");
+        
+		assertAdministrativeStatusEnabled(userJackAfter);
+		assertValidity(userJackAfter, null);
+		assertEffectiveStatus(userJackAfter, ActivationStatusType.ENABLED);
+		
+		
+		TestUtil.assertModifyTimestamp(userJackAfter, start, end);
+		
+		
+		
+	}
+	
+	@Test
     public void test060ModifyUserJackLifecycleActive() throws Exception {
 		final String TEST_NAME = "test060ModifyUserJackLifecycleActive";
         TestUtil.displayTestTile(this, TEST_NAME);
