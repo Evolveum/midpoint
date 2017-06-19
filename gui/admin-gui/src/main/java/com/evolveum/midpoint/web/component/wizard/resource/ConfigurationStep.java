@@ -270,6 +270,7 @@ public class ConfigurationStep extends WizardStep {
 			for (ContainerWrapper wrapper : wrappers) {
 				wrapper.collectModifications(delta);
 			}
+			parentPage.getPrismContext().adopt(delta);
 			if (!delta.isEmpty()) {
 				parentPage.logDelta(delta);
 				WebModelServiceUtils.save(delta, result, parentPage);
