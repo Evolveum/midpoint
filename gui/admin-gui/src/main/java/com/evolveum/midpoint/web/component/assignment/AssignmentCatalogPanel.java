@@ -164,7 +164,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         initViewSelector(headerPanel);
         initUserSelectionPanel(headerPanel);
         initCartButton(headerPanel);
-        initSearchPanel(headerPanel);
+        addOrReplaceSearchPanel(headerPanel);
     }
     public void addOrReplaceLayout(AjaxRequestTarget target, WebMarkupContainer panelContainer) {
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
@@ -309,11 +309,30 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             }
         };
 
-        searchModel = new LoadableModel<Search>(false) {
+        searchModel = new LoadableModel<Search>(true) {
             private static final long serialVersionUID = 1L;
             @Override
             public Search load() {
-                Search search = SearchFactory.createSearch(AbstractRoleType.class, pageBase);
+                Class searchType;
+                AssignmentViewType viewType =  viewModel.getObject();
+                switch (viewType){
+                    case ROLE_TYPE:
+                        searchType = RoleType.class;
+                        break;
+                    case SERVICE_TYPE:
+                        searchType = ServiceType.class;
+                        break;
+                    case ORG_TYPE:
+                        searchType = OrgType.class;
+                        break;
+                    case ROLE_CATALOG_VIEW:
+                    case USER_TYPE:
+                        searchType = AbstractRoleType.class;
+                        break;
+                    default:
+                        searchType = AbstractRoleType.class;
+                }
+                Search search = SearchFactory.createSearch(searchType, pageBase);
                 return search;
             }
         };
@@ -339,6 +358,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                     initUserViewSelectionPopup(createStringResource("AssignmentCatalogPanel.selectAssignmentsUserOwner"),
                             target);
                 } else {
+                    AssignmentCatalogPanel.this.addOrReplaceSearchPanel(getHeaderPanel());
                     AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
                     target.add(getCatalogItemsPanelContainer());
                     target.add(getHeaderPanel());
@@ -362,9 +382,8 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         return (DropDownChoice)getHeaderPanel().get(ID_VIEW_TYPE);
     }
 
-    private void initSearchPanel(WebMarkupContainer headerPanel) {
+    private void addOrReplaceSearchPanel(WebMarkupContainer headerPanel) {
         final Form searchForm = new Form(ID_SEARCH_FORM);
-        headerPanel.add(searchForm);
         searchForm.add(new VisibleEnableBehaviour() {
             public boolean isVisible() {
                 return !isCatalogOidEmpty()
@@ -382,7 +401,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             }
         };
         searchForm.add(search);
-
+        headerPanel.addOrReplace(searchForm);
     }
 
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
