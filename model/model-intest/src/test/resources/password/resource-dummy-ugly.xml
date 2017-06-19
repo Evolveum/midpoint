@@ -77,7 +77,7 @@
 							</script>
 						</expression>
                     </outbound>
-                    <passwordPolicyRef oid="cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee"/>
+                    <passwordPolicyRef oid="cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee" type="ValuePolicyType"/>
                 </password>
             </credentials>
 		</objectType>

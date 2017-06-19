@@ -46,6 +46,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -456,7 +457,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
-		
+	
+	
 	/**
 	 * Add red and ugly dummy resource to the mix. This would be fun.
 	 */
@@ -498,6 +500,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
      	
      	assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
+	
 	
 	/**
 	 * Modify both user and account password. Red dummy has a strong password mapping. User change should override account
@@ -553,6 +556,27 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 	}
+	
+	@Test
+    public void test122ModifyAccountUglyJackPasswordBad() throws Exception {
+		final String TEST_NAME = "test122ModifyAccountUglyJackPasswordBad";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+	    
+        try {
+        	modifyAccountChangePassword(accountJackUglyOid, "#badPassword!", task, result);
+        	fail("Expected policy violation because password doesn't satisfy password policy but didn't get one.");
+        } catch (PolicyViolationException ex) {
+        	assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
+        }
+        
+
+	}
+		
 	
 	/**
 	 * Jack employee number is mapped to ugly resource password.

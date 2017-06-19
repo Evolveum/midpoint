@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -110,11 +111,11 @@ public class TestRefinedSchema {
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
         System.out.println(rSchema.debugDump());
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, true);
+        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, true, true);
         
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, true);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL, true);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, true, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL, true, true);
+        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.PRESENTATION, true, true);
         
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
         RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
@@ -123,11 +124,11 @@ public class TestRefinedSchema {
     }
 
 	private void assertLayerRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, LayerType sourceLayer,
-			LayerType validationLayer, boolean assertEntitlements) {
+			LayerType validationLayer, boolean assertEntitlements, boolean assertPasswordPolicy) {
 		System.out.println("Refined schema: layer="+sourceLayer);
 		LayerRefinedResourceSchema lrSchema = rSchema.forLayer(sourceLayer);
         System.out.println(lrSchema.debugDump());
-        assertRefinedSchema(resourceType, lrSchema, sourceLayer, validationLayer, assertEntitlements);
+        assertRefinedSchema(resourceType, lrSchema, sourceLayer, validationLayer, assertEntitlements, assertPasswordPolicy);
 	}
 
 	@Test
@@ -149,12 +150,12 @@ public class TestRefinedSchema {
         System.out.println("Refined schema");
         System.out.println(rSchema.debugDump());
         
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.SCHEMA, false);
+        assertRefinedSchema(resourceType, rSchema, null, LayerType.SCHEMA, false, false);
 
     }
     
     private void assertRefinedSchema(ResourceType resourceType, RefinedResourceSchema rSchema, 
-    		LayerType sourceLayer, LayerType validationLayer, boolean assertEntitlements) {
+    		LayerType sourceLayer, LayerType validationLayer, boolean assertEntitlements, boolean assertPasswordPolicy) {
     	
     	assertEquals("Unexpected number of object classes in refined schema", 2, rSchema.getDefinitions().size());
     	
@@ -199,6 +200,11 @@ public class TestRefinedSchema {
         assertNotNull("Null propertyDefinitions", propertyDefinitions);
         assertFalse("Empty propertyDefinitions", propertyDefinitions.isEmpty());
         assertEquals("Unexpected number of propertyDefinitions", 55, propertyDefinitions.size());
+        
+        if (assertPasswordPolicy) {
+	        ObjectReferenceType passwordPolicyRef = rAccountDef.getPasswordPolicy();
+	        assertNotNull("Expected password policy for account definition not found", passwordPolicyRef);
+        }
         
         if (assertEntitlements) {        	
 	        assertFalse("No entitlement definitions", rSchema.getRefinedDefinitions(ShadowKindType.ENTITLEMENT).isEmpty());
@@ -295,6 +301,7 @@ public class TestRefinedSchema {
         RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.parse(resourceType, prismContext);
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
+        
 
         PrismObject<ShadowType> accObject = prismContext.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 

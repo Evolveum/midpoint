@@ -1135,14 +1135,23 @@ public class ContextLoader {
 		//Determine refined schema and password policies for account type
 		RefinedObjectClassDefinition structuralObjectClassDef = projContext.getStructuralObjectClassDefinition();
 		if (structuralObjectClassDef != null) {
+			LOGGER.trace("Finishing loading of projection context: password policy");
 			ObjectReferenceType passwordPolicyRef = structuralObjectClassDef.getPasswordPolicy();
 			if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {
+				LOGGER.trace("Loading password policy {} for projection contex: {}", passwordPolicyRef, projContext);
 				PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(
 						ValuePolicyType.class, passwordPolicyRef.getOid(), null, result);
 				if (passwordPolicy != null) {
+					LOGGER.trace("Found password policy: {}", passwordPolicy);
 					projContext.setAccountPasswordPolicy(passwordPolicy.asObjectable());
+				} else {
+					LOGGER.trace("No password policy found for projection context");
 				}
+			} else {
+				LOGGER.trace("Password policy not defined for the projection context.");
 			}
+		} else {
+			LOGGER.trace("No structural object class definition, skipping determining password policy");
 		}
 		
 		//set limitation, e.g. if this projection context should be recomputed and processed by projector
