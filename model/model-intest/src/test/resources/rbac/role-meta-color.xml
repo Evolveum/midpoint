@@ -21,17 +21,47 @@
     <description>Excludes all color roles, efficiently creating a SoD class</description>
     <inducement>
     	<policyRule>
-    		<name>color exclusion</name>
+    		<name>color exclusion red</name>
     		<policyConstraints>
 		    	<exclusion>
 			    	<targetRef oid="eaa4ec3e-df28-11e6-9cca-336e0346d5cc" type="RoleType"/> <!-- Red -->
 		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<prune/>
+		    </policyActions>
+		</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+    		<name>color exclusion green</name>
+    		<policyConstraints>
 		    	<exclusion>
 			    	<targetRef oid="2fd9e8f4-df29-11e6-9605-cfcedd703b9e" type="RoleType"/> <!-- Green -->
 		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<prune/>
+		    </policyActions>
+		</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+    		<name>color exclusion blue</name>
+    		<policyConstraints>
 		    	<exclusion>
 			    	<targetRef oid="553e8df2-df29-11e6-a7ca-cb7c1f38d89f" type="RoleType"/> <!-- Blue -->
 		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<prune/>
+		    </policyActions>
+		</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+    		<name>color exclusion none</name>
+    		<policyConstraints>
 		    	<exclusion>
 			    	<targetRef oid="662a997e-df2b-11e6-9bb3-5f235d1a8e60" type="RoleType"/> <!-- None -->
 		    	</exclusion>
