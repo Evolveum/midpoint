@@ -24,7 +24,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -83,6 +85,12 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
             @Override
             public void onClick(AjaxRequestTarget target) {
                  changeOptionPerformed(target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
             }
         };
 

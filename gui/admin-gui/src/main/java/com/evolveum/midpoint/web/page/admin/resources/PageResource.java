@@ -367,38 +367,7 @@ public class PageResource extends PageAdminResources {
                         refreshStatus(target);
                     }
 
-//                    @Override
-//                    protected void initOnFocusBehavior() {
-//                        setOnFocusBehavior(new AjaxEventBehavior("focus") {
-//
-//                        	private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            protected void onEvent(AjaxRequestTarget target) {
-//                                removeOnFocusBehavior(getOkButton());
-//                                OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
-//                                List<OpResult>  resultsDto = new ArrayList<>();
-//                                try {
-//                                    Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
-//                                    result = getModelService().testResource(dto.getOid(), task);
-//                                    resultsDto = WebComponentUtil.getTestConnectionResults(result,(PageBase) getPage());
-//
-//                                    getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
-//                                } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-//                                        | CommunicationException | ConfigurationException e) {
-//                                    result.recordFatalError("Failed to test resource connection", e);
-//                                }
-//
-//                                if (result.isSuccess()) {
-//                                    result.recomputeStatus();
-//                                }
-//                                setModelObject(resultsDto);
-//                                initResultsPanel((RepeatingView) getResultsComponent(), getPage());
-//                                setWaitForResults(false);
-//                                target.add(getContentPanel());
-//                            }
-//                        });
-//                    }
+
                 };
         testConnectionPanel.setOutputMarkupId(true);
 
@@ -407,15 +376,12 @@ public class PageResource extends PageAdminResources {
 
             @Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                return false;
+            	refreshStatus(target);
+                return true;
             }
         });
 
         showMainPopup(testConnectionPanel, target);
-//        if (!testConnectionPanel.isFocusSet()) {
-//            testConnectionPanel.setFocusSet(true);
-//            testConnectionPanel.setFocusOnComponent(testConnectionPanel.getOkButton(), target);
-//        }
 
 	}
 	
