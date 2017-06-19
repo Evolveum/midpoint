@@ -221,7 +221,13 @@ public class PolicyRuleProcessor {
 					if (!targetB.appliesToFocus() || allowedTargetOids.contains(targetB.getOid())) {
 						continue;
 					}
-					for (ExclusionPolicyConstraintType exclusionConstraint : policyRule.getPolicyConstraints().getExclusion()) {
+					List<ExclusionPolicyConstraintType> exclusionConstraints = policyRule.getPolicyConstraints().getExclusion();
+					// TODO: implement proper AND logic between multiple constraints (MID-3959)
+					if (exclusionConstraints.size() > 1) {
+						throw new UnsupportedOperationException("Multiple exclusion constraints in the same policy rules are not supported yet.");
+					}
+					if (!exclusionConstraints.isEmpty()) {
+						ExclusionPolicyConstraintType exclusionConstraint = exclusionConstraints.iterator().next();
 						if (excludes(exclusionConstraint, targetB)) {
 							triggerExclusionConstraintViolation(assignmentA, assignmentB, targetB, exclusionConstraint, policyRule);
 						}

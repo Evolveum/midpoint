@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,12 +21,22 @@
     <description>Role with role exclusions</description>
     <assignment>
     	<policyRule>
-    		<name>criminal exclusion</name>
+    		<name>criminal exclusion: Pirate</name>
     		<policyConstraints>
 		    	<exclusion>
 			    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
 			    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
 		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<enforcement/>
+		    </policyActions>
+    	</policyRule>
+    </assignment>    
+    <assignment>
+    	<policyRule>
+    		<name>criminal exclusion: Thief</name>
+    		<policyConstraints>
 		    	<exclusion>
 			    	<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
 		    	</exclusion>

@@ -162,9 +162,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test112SimpleExclusion1Deprecated() throws Exception {
 		final String TEST_NAME = "test112SimpleExclusion1Deprecated";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // This should go well
@@ -190,9 +190,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test120SimpleExclusion2() throws Exception {
 		final String TEST_NAME = "test120SimpleExclusion2";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // This should go well
@@ -217,9 +217,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test122SimpleExclusion2Deprecated() throws Exception {
 		final String TEST_NAME = "test122SimpleExclusion2Deprecated";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // This should go well
@@ -241,9 +241,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test130SimpleExclusionBoth1() throws Exception {
 		final String TEST_NAME = "test130SimpleExclusionBoth1";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -266,9 +266,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test132SimpleExclusionBoth1Deprecated() throws Exception {
 		final String TEST_NAME = "test132SimpleExclusionBoth1Deprecated";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -291,9 +291,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test140SimpleExclusionBoth2() throws Exception {
 		final String TEST_NAME = "test140SimpleExclusionBoth2";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -316,9 +316,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test142SimpleExclusionBoth2Deprecated() throws Exception {
 		final String TEST_NAME = "test142SimpleExclusionBoth2Deprecated";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -341,9 +341,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test150SimpleExclusionBothBidirectional1() throws Exception {
 		final String TEST_NAME = "test150SimpleExclusionBothBidirectional1";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -365,9 +365,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test160SimpleExclusionBothBidirectional2() throws Exception {
 		final String TEST_NAME = "test160SimpleExclusionBothBidirectional2";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
@@ -389,21 +389,21 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test171SimpleExclusion1WithPolicyException() throws Exception {
 		final String TEST_NAME = "test171SimpleExclusion1WithPolicyException";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
         assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
         
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
@@ -411,12 +411,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test172SimpleExclusion2WithPolicyException() throws Exception {
 		final String TEST_NAME = "test172SimpleExclusion2WithPolicyException";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         
@@ -425,7 +425,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
@@ -433,21 +433,21 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test173SimpleExclusion3WithPolicyException() throws Exception {
 		final String TEST_NAME = "test173SimpleExclusion3WithPolicyException";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
         assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
                 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
-        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
@@ -455,12 +455,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test174SimpleExclusion4WithPolicyException() throws Exception {
 		final String TEST_NAME = "test174SimpleExclusion4WithPolicyException";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
 
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
@@ -469,7 +469,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
-        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(), task, result);
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
@@ -482,14 +482,14 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test180JudgeExceptionalPirateAndThief() throws Exception {
 		final String TEST_NAME = "test180JudgeExceptionalPirateAndThief";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestSegregationOfDuties.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         PrismObject<UserType> userJackIn = getUser(USER_JACK_OID);
         assertAssignedRoles(userJackIn, ROLE_JUDGE_OID, ROLE_PIRATE_OID);
@@ -506,15 +506,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         // Cleanup
         
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(), task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, null, getJudgeExceptionBlock(ROLE_PIRATE_NAME), task, result);
         
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
 
-	Consumer<AssignmentType> getJudgeExceptionBlock() {
+	Consumer<AssignmentType> getJudgeExceptionBlock(String excludedRoleName) {
 		return assignment -> {
 			PolicyExceptionType policyException = new PolicyExceptionType();
-			policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME);
+			policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_PREFIX + excludedRoleName);
 			assignment.getPolicyException().add(policyException);
 		};
 	}
@@ -525,7 +525,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test200GuybrushAssignRoleGold() throws Exception {
 		final String TEST_NAME = "test200GuybrushAssignRoleGold";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -559,7 +559,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test202GuybrushAssignRoleSilver() throws Exception {
 		final String TEST_NAME = "test202GuybrushAssignRoleSilver";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -594,7 +594,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test204GuybrushAssignRoleSailor() throws Exception {
 		final String TEST_NAME = "test204GuybrushAssignRoleSailor";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -630,7 +630,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test206GuybrushAssignRoleBronze() throws Exception {
 		final String TEST_NAME = "test206GuybrushAssignRoleBronze";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -665,7 +665,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test208GuybrushUnassignRoleBronze() throws Exception {
 		final String TEST_NAME = "test209GuybrushUnassignRoleSilver";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -698,7 +698,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test209GuybrushUnassignRoleSailor() throws Exception {
 		final String TEST_NAME = "test209GuybrushUnassignRoleSailor";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -758,7 +758,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test212GuybrushAssignRoleGreen() throws Exception {
 		final String TEST_NAME = "test212GuybrushAssignRoleGreen";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -791,7 +791,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test214GuybrushAssignRoleColorNone() throws Exception {
 		final String TEST_NAME = "test214GuybrushAssignRoleColorNone";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -822,7 +822,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test216GuybrushAssignRoleBlue() throws Exception {
 		final String TEST_NAME = "test216GuybrushAssignRoleBlue";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
