@@ -123,7 +123,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected void initSearch(Form form) {
 
 		/// TODO: move to utils class??
-		List<ObjectTypes> objectTypes = Arrays.asList(ObjectTypes.values());
+		List<ObjectTypes> objectTypes = new ArrayList<>(Arrays.asList(ObjectTypes.values()));
+		objectTypes.remove(ObjectTypes.SHADOW);
 		Collections.sort(objectTypes, new Comparator<ObjectTypes>() {
 
 			@Override
