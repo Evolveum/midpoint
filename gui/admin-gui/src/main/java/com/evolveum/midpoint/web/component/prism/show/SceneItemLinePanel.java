@@ -139,10 +139,10 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 						getModelObject().getNewValue().getSourceValue() != null;
 			}
 		});
-		newValueImagePanel.add(new AttributeAppender("style",
-				!getModelObject().isDelta() && getModelObject().isDeltaScene() ?
-						"float: left; margin-right: 5px; width: 30%; position: absolute;"
-						: "float: left; margin-right: 5px;"));
+//		newValueImagePanel.add(new AttributeAppender("style",
+//				!getModelObject().isDelta() && getModelObject().isDeltaScene() ?
+//						""
+//						: "float: left; margin-right: 5px;"));
 		newValueCell.add(newValueImagePanel);
 
 		add(newValueCell);

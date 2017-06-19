@@ -44,6 +44,8 @@ public class InternalsConfig {
 	
 	private static boolean prismMonitoring = false;
 	
+	private static boolean allowClearDataLogging = false;
+	
 	/**
 	 * Non-null value enables alternative code paths used in testing. This adds
 	 * special pieces of code that alter normal behavior of the system. These
@@ -113,6 +115,14 @@ public class InternalsConfig {
 		InternalsConfig.testingPaths = testingPaths;
 	}
 	
+	public static boolean isAllowClearDataLogging() {
+		return allowClearDataLogging;
+	}
+	
+	public static void setAllowClearDataLogging(boolean allowClearDataLogging) {
+		InternalsConfig.allowClearDataLogging = allowClearDataLogging;
+	}
+	
 	public static void resetTestingPaths() {
 		testingPaths = null;
 	}
@@ -123,6 +133,7 @@ public class InternalsConfig {
 		encryptionChecks = true;
 		readEncryptionChecks = false;
 		avoidLoggingChange = false;
+		allowClearDataLogging = false;
 		testingPaths = null;
 	}
 
@@ -131,7 +142,7 @@ public class InternalsConfig {
 		sanityChecks = true;
 		encryptionChecks = true;
 		prismMonitoring = true;
-		prismMonitoring = false;
+		allowClearDataLogging = true;
 	}
 	
 	public static void turnOffAllChecks() {
@@ -140,6 +151,7 @@ public class InternalsConfig {
 		encryptionChecks = false;
 		readEncryptionChecks = false;
 		prismMonitoring = false;
+		allowClearDataLogging = false;
 	}
 
 	public static void turnOnAllChecks() {
@@ -148,5 +160,6 @@ public class InternalsConfig {
 		encryptionChecks = true;
 		encryptionChecks = true;
 		prismMonitoring = true;
+		allowClearDataLogging = true;
 	}
 }

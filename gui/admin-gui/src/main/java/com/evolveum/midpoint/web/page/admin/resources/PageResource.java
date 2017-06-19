@@ -235,7 +235,7 @@ public class PageResource extends PageAdminResources {
 		parameters.add(OnePageParameterEncoder.PARAMETER, resourceModel.getObject().getOid());		// compatibility with PageAdminResources
 		parameters.add(PageResourceWizard.PARAM_CONFIG_ONLY, configOnly);
 		parameters.add(PageResourceWizard.PARAM_READ_ONLY, readOnly);
-		setResponsePage(new PageResourceWizard(parameters));
+		navigateToNext(new PageResourceWizard(parameters));
 	}
 
 	private ResourceSummaryPanel createResourceSummaryPanel(){

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -387,7 +388,11 @@ public class SchemaDebugUtil {
 
 		if (protectedStringType.getClearValue() != null) {
 			sb.append("\"");
-			sb.append(protectedStringType.getClearValue());
+			if (InternalsConfig.isAllowClearDataLogging()) {
+				sb.append(protectedStringType.getClearValue());
+			} else {
+				sb.append("[clear data]");
+			}
 			sb.append("\"");
 		}
 

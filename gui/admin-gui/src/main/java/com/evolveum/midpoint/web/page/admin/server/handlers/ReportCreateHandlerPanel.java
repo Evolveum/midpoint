@@ -55,14 +55,12 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 
 	private void initLayout(final PageTaskEdit parentPage) {
 		
-		final ReportOutputType reportObject = getReportOutput(parentPage);
-		
 		final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected InputStream initStream() {
-				
+				ReportOutputType reportObject = getReportOutput(parentPage);
 				if (reportObject != null) {
 					return PageCreatedReports.createReport(reportObject, this, parentPage);
 				} else {
@@ -73,6 +71,7 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 			
 			@Override
 			public String getFileName() {
+				ReportOutputType reportObject = getReportOutput(parentPage);
 				return PageCreatedReports.getReportFileName(reportObject);
 			}
 		};
@@ -101,6 +100,7 @@ public class ReportCreateHandlerPanel extends DefaultHandlerPanel<ReportCreateHa
 			
 			@Override
 			public boolean isVisible() {
+				ReportOutputType reportObject = getReportOutput(parentPage);
 				return getModelObject().getReportOutputOid() != null && reportObject != null;
 			}
 		});
