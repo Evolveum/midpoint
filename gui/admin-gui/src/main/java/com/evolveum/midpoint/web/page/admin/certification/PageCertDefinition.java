@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -40,8 +41,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
-import com.evolveum.midpoint.web.page.admin.certification.dto.DefinitionScopeDto;
-import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -89,8 +88,6 @@ public class PageCertDefinition extends PageAdminCertification {
 	private LoadableModel<CertDefinitionDto> definitionModel;
 	private String definitionOid;
 
-	CertDecisionHelper helper = new CertDecisionHelper();
-
 	public PageCertDefinition(PageParameters parameters) {
 		definitionOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		initModels();
@@ -118,16 +115,13 @@ public class PageCertDefinition extends PageAdminCertification {
 	private CertDefinitionDto loadDefinition(String definitionOid) {
 		Task task = createSimpleTask(OPERATION_LOAD_DEFINITION);
 		OperationResult result = task.getResult();
-		AccessCertificationDefinitionType definition = null;
 		CertDefinitionDto definitionDto = null;
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
 			PrismObject<AccessCertificationDefinitionType> definitionObject =
 					WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
 							PageCertDefinition.this, task, result);
-			if (definitionObject != null) {
-				definition = definitionObject.asObjectable();
-			}
+			AccessCertificationDefinitionType definition = PrismObjectValue.asObjectable(definitionObject);
 			definitionDto = new CertDefinitionDto(definition, this, getPrismContext());
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
@@ -150,9 +144,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		stage.setNumber(1);
 		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
 		definition.getStageDefinition().add(stage);
-		CertDefinitionDto definitionDto = new CertDefinitionDto(definition, PageCertDefinition.this,
-				getPrismContext());
-		return definitionDto;
+		return new CertDefinitionDto(definition, this, getPrismContext());
 	}
 	//endregion
 
