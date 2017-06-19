@@ -1,11 +1,25 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.datatype.Duration;
@@ -32,6 +46,7 @@ public class StageDefinitionDto implements Serializable {
     private String name;
     private String description;
     private String duration;
+    private DeadlineRoundingType deadlineRounding;
     private String notifyBeforeDeadline;
     private boolean notifyOnlyWhenNoDecision;
     private AccessCertificationReviewerDto reviewerDto;
@@ -39,6 +54,7 @@ public class StageDefinitionDto implements Serializable {
     private AccessCertificationResponseType outcomeIfNoReviewers;
     private List<AccessCertificationResponseType> stopReviewOnRaw;
     private List<AccessCertificationResponseType> advanceToNextStageOnRaw;
+    private List<WorkItemTimedActionsType> timedActionsTypes;
 	
 	public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, PrismContext prismContext) throws SchemaException {
 		if (stageDefObj != null) {
@@ -48,6 +64,7 @@ public class StageDefinitionDto implements Serializable {
 			if (stageDefObj.getDuration() != null) {
 				setDuration(stageDefObj.getDuration().toString());
 			}
+			setDeadlineRounding(stageDefObj.getDeadlineRounding());
 			setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
 			setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
 			setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), prismContext));
@@ -55,18 +72,15 @@ public class StageDefinitionDto implements Serializable {
 			setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
 			setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
 			setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
+			setTimedActionsTypes(new ArrayList<>(stageDefObj.getTimedActions()));
 		} else {
 			setReviewerDto(new AccessCertificationReviewerDto(null, prismContext));
 		}
 	}
 
 	private String convertDurationListToString(List<Duration> list){
-		String result = StringUtils.join(list, ", ");
-		return result;
+		return StringUtils.join(list, ", ");
 	}
-
-
-
 
 	public int getNumber() {
         return number;
@@ -100,7 +114,15 @@ public class StageDefinitionDto implements Serializable {
         this.duration = duration;
     }
 
-    public String getNotifyBeforeDeadline() {
+	public DeadlineRoundingType getDeadlineRounding() {
+		return deadlineRounding;
+	}
+
+	public void setDeadlineRounding(DeadlineRoundingType deadlineRounding) {
+		this.deadlineRounding = deadlineRounding;
+	}
+
+	public String getNotifyBeforeDeadline() {
         return notifyBeforeDeadline;
     }
 
@@ -162,4 +184,12 @@ public class StageDefinitionDto implements Serializable {
     public void setAdvanceToNextStageOnRaw(List<AccessCertificationResponseType> advanceToNextStageOnRaw) {
         this.advanceToNextStageOnRaw = advanceToNextStageOnRaw;
     }
+
+	public List<WorkItemTimedActionsType> getTimedActionsTypes() {
+		return timedActionsTypes;
+	}
+
+	public void setTimedActionsTypes(List<WorkItemTimedActionsType> timedActionsTypes) {
+		this.timedActionsTypes = timedActionsTypes;
+	}
 }
