@@ -174,7 +174,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * <p/>
  * This class implements the ConnectorInstance interface. The methods are
  * converting the data from the "midPoint semantics" as seen by the
- * ConnectorInstance interface to the "ConnId semantics" as seen by the ICF
+ * ConnectorInstance interface to the "ConnId semantics" as seen by the ConnId
  * framework.
  * 
  * @author Radovan Semancik
@@ -261,7 +261,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			configurationCloned.applyDefinition(getConfigurationContainerDefinition());
 
 			ConnIdConfigurationTransformer configTransformer = new ConnIdConfigurationTransformer(connectorType, cinfo, protector);
-			// Transform XML configuration from the resource to the ICF connector configuration
+			// Transform XML configuration from the resource to the ConnId connector configuration
 			try {
 				apiConfig = configTransformer.transformConnectorConfiguration(configurationCloned);
 			} catch (SchemaException e) {
@@ -656,10 +656,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		LOGGER.trace("Generating object classes: {}", generateObjectClasses);
 		
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
-		// Let's convert every objectclass in the ICF schema ...		
+		// Let's convert every objectclass in the ConnId schema ...		
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
-			// "Flat" ICF object class names needs to be mapped to QNames
+			// "Flat" ConnId object class names needs to be mapped to QNames
 			QName objectClassXsdName = connIdNameMapper.objectClassToQname(new ObjectClass(objectClassInfo.getType()), getSchemaNamespace(), legacySchema);
 
 			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
@@ -676,7 +676,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			ObjectClassComplexTypeDefinition ocDef = ((ResourceSchemaImpl) resourceSchema)
 					.createObjectClassDefinition(objectClassXsdName);
 
-			// The __ACCOUNT__ objectclass in ICF is a default account
+			// The __ACCOUNT__ objectclass in ConnId is a default account
 			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
 				((ObjectClassComplexTypeDefinitionImpl) ocDef).setKind(ShadowKindType.ACCOUNT);
@@ -841,7 +841,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 
 			if (uidDefinition == null) {
-				// Every object has UID in ICF, therefore add a default definition if no other was specified
+				// Every object has UID in ConnId, therefore add a default definition if no other was specified
 				uidDefinition = new ResourceAttributeDefinitionImpl<>(
 						SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
 				// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
@@ -852,7 +852,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				// Set a default display name
 				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
 				((ResourceAttributeDefinitionImpl) uidDefinition).setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-				// Uid is a primary identifier of every object (this is the ICF way)
+				// Uid is a primary identifier of every object (this is the ConnId way)
 			}
 			if (!hasUidDefinition) {
 				((ObjectClassComplexTypeDefinitionImpl) ocDef).add(uidDefinition);
@@ -1074,7 +1074,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		ConnectorObject co = null;
 		try {
 
-			// Invoke the ICF connector
+			// Invoke the ConnId connector
 			co = fetchConnectorObject(reporter, objectClassDefinition, icfObjectClass, uid, options,
 					result);
 
@@ -1151,7 +1151,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		ConnectorObject co = null;
 		try {
 
-			// Invoke the ICF connector
+			// Invoke the ConnId connector
 			InternalMonitor.recordConnectorOperation("getObject");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET, objectClassDefinition, uid);
 			co = connIdConnectorFacade.getObject(icfObjectClass, uid, options);
@@ -1160,7 +1160,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 		} catch (Throwable ex) {
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET, objectClassDefinition, ex, uid);
-			String desc = this.getHumanReadableName() + " while getting object identified by ICF UID '"+uid.getUidValue()+"'";
+			String desc = this.getHumanReadableName() + " while getting object identified by ConnId UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			icfResult.computeStatus("Add object failed");
 
@@ -1342,7 +1342,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("ICF attributes after conversion:\n{}", ConnIdUtil.dump(attributes));
+				LOGGER.trace("ConnId attributes after conversion:\n{}", ConnIdUtil.dump(attributes));
 			}
 		} catch (SchemaException | RuntimeException ex) {
 			result.recordFatalError(
@@ -1384,7 +1384,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		Uid uid = null;
 		try {
 
-			// CALL THE ICF FRAMEWORK
+			// CALL THE ConnId FRAMEWORK
 			InternalMonitor.recordConnectorOperation("create");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_CREATE, ocDef, null);		// TODO provide object name
 			uid = connIdConnectorFacade.create(icfObjectClass, attributes, options);
@@ -1421,9 +1421,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 
 		if (uid == null || uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
-			connIdResult.recordFatalError("ICF did not returned UID after create");
+			connIdResult.recordFatalError("ConnId did not returned UID after create");
 			result.computeStatus("Add object failed");
-			throw new GenericFrameworkException("ICF did not returned UID after create");
+			throw new GenericFrameworkException("ConnId did not returned UID after create");
 		}
 
 		
@@ -1698,7 +1698,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(
-							"Invoking ICF addAttributeValues(), objectclass={}, uid={}, attributes: {}",
+							"Invoking ConnId addAttributeValues(), objectclass={}, uid={}, attributes: {}",
 							new Object[] { objClass, uid, dumpAttributes(attributesToAdd) });
 				}
 
@@ -1713,7 +1713,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 		} catch (Throwable ex) {
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
-			String desc = this.getHumanReadableName() + " while adding attribute values to object identified by ICF UID '"+uid.getUidValue()+"'";
+			String desc = this.getHumanReadableName() + " while adding attribute values to object identified by ConnId UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, connIdResult);
 			result.computeStatus("Adding attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -1777,12 +1777,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 	
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Invoking ICF update(), objectclass={}, uid={}, attributes: {}", new Object[] {
+					LOGGER.trace("Invoking ConnId update(), objectclass={}, uid={}, attributes: {}", new Object[] {
 							objClass, uid, dumpAttributes(attributesToUpdate) });
 				}
 	
 				try {
-					// Call ICF
+					// Call ConnId
 					InternalMonitor.recordConnectorOperation("update");
 					recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
 					uid = connIdConnectorFacade.update(objClass, uid, attributesToUpdate, options);
@@ -1791,7 +1791,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					connIdResult.recordSuccess();
 				} catch (Throwable ex) {
 					recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
-					String desc = this.getHumanReadableName() + " while updating object identified by ICF UID '"+uid.getUidValue()+"'";
+					String desc = this.getHumanReadableName() + " while updating object identified by ConnId UID '"+uid.getUidValue()+"'";
 					Throwable midpointEx = processIcfException(ex, desc, connIdResult);
 					result.computeStatus("Update failed");
 					// Do some kind of acrobatics to do proper throwing of checked
@@ -1834,7 +1834,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(
-							"Invoking ICF removeAttributeValues(), objectclass={}, uid={}, attributes: {}",
+							"Invoking ConnId removeAttributeValues(), objectclass={}, uid={}, attributes: {}",
 							new Object[] { objClass, uid, dumpAttributes(attributesToRemove) });
 				}
 
@@ -1846,7 +1846,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 		} catch (Throwable ex) {
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
-			String desc = this.getHumanReadableName() + " while removing attribute values from object identified by ICF UID '"+uid.getUidValue()+"'";
+			String desc = this.getHumanReadableName() + " while removing attribute values from object identified by ConnId UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, connIdResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -1960,7 +1960,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		} catch (Throwable ex) {
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_DELETE, objectClass, ex, uid);
-			String desc = this.getHumanReadableName() + " while deleting object identified by ICF UID '"+uid.getUidValue()+"'";
+			String desc = this.getHumanReadableName() + " while deleting object identified by ConnId UID '"+uid.getUidValue()+"'";
 			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -2216,7 +2216,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
-				// Convert ICF-specific connector object to a generic
+				// Convert ConnId-specific connector object to a generic
 				// ResourceObject
 				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
                 int count = countHolder.getValue();
@@ -2514,7 +2514,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             filter = interpreter.interpret(query.getFilter(), connIdNameMapper);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("ICF filter: {}", ConnIdUtil.dump(filter));
+                LOGGER.trace("ConnId filter: {}", ConnIdUtil.dump(filter));
             }
         }
         return filter;
@@ -2545,7 +2545,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	/**
 	 * Looks up ConnId Uid identifier in a (potentially multi-valued) set of
-	 * identifiers. Handy method to convert midPoint identifier style to an ICF
+	 * identifiers. Handy method to convert midPoint identifier style to an ConnId
 	 * identifier style.
 	 * 
 	 * @param identifiers
@@ -3024,7 +3024,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationStart(operation, objectClassDefinition, uid==null?null:uid.getUidValue());
 		} else {
-			LOGGER.warn("Couldn't record ICF operation start as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation start as reporter is null.");
 		}
 	}
 
@@ -3032,7 +3032,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationStart(operation, objectClassDefinition, null);
 		} else {
-			LOGGER.warn("Couldn't record ICF operation start as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation start as reporter is null.");
 		}
 	}
 
@@ -3040,7 +3040,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationResume(operation, objectClassDefinition);
 		} else {
-			LOGGER.warn("Couldn't record ICF operation resume as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation resume as reporter is null.");
 		}
 	}
 
@@ -3048,7 +3048,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationSuspend(operation, objectClassDefinition);
 		} else {
-			LOGGER.warn("Couldn't record ICF operation suspension as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation suspension as reporter is null.");
 		}
 	}
 
@@ -3056,7 +3056,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, null, uid==null?null:uid.getUidValue());
 		} else {
-			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation end as reporter is null.");
 		}
 	}
 
@@ -3064,7 +3064,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, ex, null);
 		} else {
-			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation end as reporter is null.");
 		}
 	}
 
@@ -3072,7 +3072,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, ex, uid==null?null:uid.getUidValue());
 		} else {
-			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation end as reporter is null.");
 		}
 	}
 
@@ -3081,7 +3081,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (reporter != null) {
 			reporter.recordIcfOperationEnd(operation, objectClassDefinition, null, null);
 		} else {
-			LOGGER.warn("Couldn't record ICF operation end as reporter is null.");
+			LOGGER.warn("Couldn't record ConnId operation end as reporter is null.");
 		}
 	}
 	
