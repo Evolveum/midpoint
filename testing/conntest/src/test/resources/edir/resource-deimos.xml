@@ -97,7 +97,7 @@
 				<attribute>
 					<ref>ri:cn</ref>
 					<limitations>
-						<minOccurs>0</minOccurs>
+						<maxOccurs>1</maxOccurs>
 					</limitations>
 					<outbound>
 						<source>
