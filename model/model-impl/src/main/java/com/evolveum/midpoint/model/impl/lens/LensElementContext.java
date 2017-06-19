@@ -608,15 +608,29 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         // note: objectTypeClass is already converted (used in the constructor)
     }
 
-	protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected void fixProvisioningTypeInDelta(ObjectDelta<O> delta, Objectable object, Task task, OperationResult result)  {
         if (delta != null && delta.getObjectTypeClass() != null && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass()) || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
-            lensContext.getProvisioningService().applyDefinition(delta, object, task, result);
+            try {
+				lensContext.getProvisioningService().applyDefinition(delta, object, task, result);
+			} catch (Exception e) {
+				LOGGER.warn("Error applying provisioning definitions to delta {}: {}", delta, e.getMessage());
+				// In case of error just go on. Maybe we do not have correct definition here. But at least we can
+				// display the GUI pages and maybe we can also salvage the operation.
+				result.recordWarning(e);
+			}
         }
     }
 
-    private void fixProvisioningTypeInObject(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void fixProvisioningTypeInObject(PrismObject<O> object, Task task, OperationResult result)  {
         if (object != null && object.getCompileTimeClass() != null && (ShadowType.class.isAssignableFrom(object.getCompileTimeClass()) || ResourceType.class.isAssignableFrom(object.getCompileTimeClass()))) {
-            lensContext.getProvisioningService().applyDefinition(object, task, result);
+            try {
+				lensContext.getProvisioningService().applyDefinition(object, task, result);
+			} catch (Exception e) {
+				LOGGER.warn("Error applying provisioning definitions to object {}: {}", object, e.getMessage());
+				// In case of error just go on. Maybe we do not have correct definition here. But at least we can
+				// display the GUI pages and maybe we can also salvage the operation.
+				result.recordWarning(e);
+			}
         }
     }
 
