@@ -17,7 +17,7 @@
 
 <!-- yellow resource - almost same as resource-dummy but with strong asIs administrativeStatus mapping 
                        also has a modified synchronization section: just correlation but no reactions.
-                       also it has minimum password length constraint
+                       also it has minimum password length constraint (resource-enforced, not midPoint password policy)
                        also it is using some constants in the configuration and expressions. -->
 
 <resource oid="10000000-0000-0000-0000-000000000704"
