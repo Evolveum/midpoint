@@ -140,7 +140,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             if (workItems.size() > 1) {
                 throw new SystemException("More than one work item with ID of " + taskId);
             } else if (workItems.size() == 0) {
-                throw new SystemException("No work item with ID of " + taskId);
+                throw new ObjectNotFoundException("No work item with ID of " + taskId);
             }
 			final WorkItemType workItem = workItems.get(0);
 
@@ -172,13 +172,17 @@ public class PageWorkItem extends PageAdminWorkItems {
 			workItemDto = new WorkItemDto(workItem, taskType, relatedTasks);
 			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task, result);
             result.recordSuccessIfUnknown();
+        } catch (ObjectNotFoundException ex) {
+			result.recordFatalError(getString("PageWorkItem.couldNotGetWorkItem"), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item because it does not exist. (It might have been already completed or deleted.)", ex);
         } catch (CommonException|RuntimeException ex) {
             result.recordFatalError("Couldn't get work item.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
         }
         showResult(result, false);
         if (!result.isSuccess()) {
-            throw getRestartResponseException(PageDashboard.class);
+        	throw redirectBackViaRestartResponseException();
+            //throw getRestartResponseException(PageDashboard.class);
         }
         return workItemDto;
     }
