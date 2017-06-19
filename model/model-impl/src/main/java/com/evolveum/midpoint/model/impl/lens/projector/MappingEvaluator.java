@@ -629,6 +629,7 @@ public class MappingEvaluator {
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
+		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
 
 		Collection<V> targetValues = computeTargetValues(mappingType.getTarget(), defaultTargetObject, variables, mappingFactory.getObjectResolver(), contextDesc, task, result);
 

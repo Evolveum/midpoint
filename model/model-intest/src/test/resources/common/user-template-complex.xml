@@ -88,7 +88,10 @@
 	    	</source>
 	    	<expression>
 	            <script>
-	            	<code>'High Seas/' + locality</code>
+	            	<code>
+	            		assert operation != null // MID-3992
+	            		'High Seas/' + locality
+	            	</code>
 	            </script>
 	    	</expression>
 	    </mapping>
