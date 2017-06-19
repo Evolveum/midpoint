@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageDefinitionType;
@@ -59,7 +60,7 @@ import java.util.List;
  */
 public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
-    //private static final Trace LOGGER = TraceManager.getTrace(WorkItemPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(WorkItemPanel.class);
 
     private static final String ID_PRIMARY_INFO_COLUMN = "primaryInfoColumn";
     private static final String ID_ADDITIONAL_INFO_COLUMN = "additionalInfoColumn";
@@ -212,12 +213,22 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
 				new PropertyModel<>(getModel(), WorkItemDto.F_ADDITIONAL_INFORMATION));
 		add(additionalInformation);
-		WorkItemDto dto = getModelObject();
-		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(dto.getWorkflowContext());
-		
-		WebMarkupContainer additionalAttribues = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);
-		add(additionalAttribues);
-		additionalAttribues.add(new VisibleEnableBehaviour() {
+
+		WorkItemDto dto = null;
+		try {
+			dto = getModelObject();
+		} catch (Throwable t) {
+			// We don't want to process the exception in the constructor (e.g. because breadcrumbs are not initialized,
+			// so we are not able to return to the previous page, etc - see MID-3799.9). But we need to have the object
+			// here, if at all possible, to include dynamic form. So the hack is: if there's an error, just ignore it here.
+			// It will repeat when trying to draw the page. And then we will process it correctly.
+			LOGGER.debug("Ignoring getModelObject exception because we're in constructor. It will occur later and will be correctly processed then.", t);
+			getSession().getFeedbackMessages().clear();
+		}
+		ApprovalStageDefinitionType level = dto != null ? WfContextUtil.getCurrentStageDefinition(dto.getWorkflowContext()) : null;
+		WebMarkupContainer additionalAttributes = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);
+		add(additionalAttributes);
+		additionalAttributes.add(new VisibleEnableBehaviour() {
 		
 			private static final long serialVersionUID = 1L;
 
@@ -235,9 +246,9 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			Task task = pageBase.createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
 			DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
 					focus.asPrismObject(), formOid, mainForm, task, pageBase, false);
-			additionalAttribues.add(customForm);
+			additionalAttributes.add(customForm);
 		} else {
-			additionalAttribues.add(new Label(ID_CUSTOM_FORM));
+			additionalAttributes.add(new Label(ID_CUSTOM_FORM));
 		}
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));

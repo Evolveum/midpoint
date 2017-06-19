@@ -1877,7 +1877,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // assignments are not active due to lifecycle, there should
         // be no roles in roleMembershipRef
         // MID-3741
-//        assertRoleMembershipRef(userAfter);
+        assertRoleMembershipRef(userAfter);
         
         assertLinks(userAfter, 0);
         
@@ -1919,7 +1919,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // assignments are not active due to lifecycle, there should
         // be no roles in roleMembershipRef
         // MID-3741
-//        assertRoleMembershipRef(userAfter);
+        assertRoleMembershipRef(userAfter);
         
         assertLinks(userAfter, 0);
         
@@ -1960,7 +1960,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // assignments are not active due to lifecycle, there should
         // be no roles in roleMembershipRef
         // MID-3741
-//        assertRoleMembershipRef(userAfter);
+        assertRoleMembershipRef(userAfter);
         
         assertNoDummyAccount(USER_RAPP_USERNAME);
 	}
@@ -2042,7 +2042,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // assignments are not active due to lifecycle, there should
         // be no roles in roleMembershipRef
         // MID-3741
-//        assertRoleMembershipRef(userAfter);
+        assertRoleMembershipRef(userAfter);
         
         assertNoDummyAccount(USER_RAPP_USERNAME);
 	}
