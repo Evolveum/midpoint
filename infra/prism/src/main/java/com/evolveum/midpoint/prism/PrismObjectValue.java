@@ -166,4 +166,8 @@ public class PrismObjectValue<O extends Objectable> extends PrismContainerValue<
 	public PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
 		throw new UnsupportedOperationException("Not supported for PrismObjectValue yet.");
 	}
+
+	public static <T extends Objectable> T asObjectable(PrismObject<T> object) {
+		return object != null ? object.asObjectable() : null;
+	}
 }

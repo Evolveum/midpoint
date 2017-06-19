@@ -52,11 +52,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -71,11 +74,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.fill.JRAbstractLRUVirtualizer;
@@ -110,15 +115,6 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
     @Autowired
     private PrismContext prismContext;
-//
-//	
-//	
-//	
-//	 @Autowired(required=true)
-//	    private ExpressionFactory expressionFactory;
-//	 
-//	 @Autowired(required=true)
-//	    private AuditService auditService;
 
     @Autowired(required = true)
     private ReportService reportService;
@@ -481,6 +477,20 @@ public class ReportCreateTaskHandler implements TaskHandler {
         reportOutputType.setName(new PolyStringType(reportOutputName));
         reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
         reportOutputType.setExportType(reportType.getExport());
+        
+        
+        SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, QueryBuilder.queryFor(NodeType.class, prismContext).item(NodeType.F_NODE_IDENTIFIER).eq(task.getNode()).build(), null, task, parentResult);
+        if (nodes == null || nodes.isEmpty()) {
+        	LOGGER.error("Could not found node for storing the report.");
+        	throw new ObjectNotFoundException("Could not find node where to save report");
+        }
+        
+        if (nodes.size() > 1) {
+        	LOGGER.error("Found more than one node with ID {}.", task.getNode());
+        	throw new IllegalStateException("Found more than one node with ID " + task.getNode());
+        }
+        
+        reportOutputType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next()));
 
         ObjectDelta<ReportOutputType> objectDelta = null;
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();

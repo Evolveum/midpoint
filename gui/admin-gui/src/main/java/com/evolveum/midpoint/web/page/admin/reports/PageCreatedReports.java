@@ -282,9 +282,9 @@ public class PageCreatedReports extends PageAdminReports {
             final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
         List<IColumn<SelectableBean<ReportOutputType>, String>> columns = new ArrayList<>();
 
-         IColumn<SelectableBean<ReportOutputType>, String>      column = new PropertyColumn<>(createStringResource("pageCreatedReports.table.description"), "value.description");
+         IColumn<SelectableBean<ReportOutputType>, String> column = new PropertyColumn<>(createStringResource("pageCreatedReports.table.description"), "value.description");
         columns.add(column);
-
+        
         column = new AbstractColumn<SelectableBean<ReportOutputType>, String>(
                 createStringResource("pageCreatedReports.table.time"),
                 "createTimestamp") {
