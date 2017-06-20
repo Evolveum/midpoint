@@ -105,6 +105,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 	private String definitionOid;
 
 	public PageCertCampaigns(PageParameters parameters) {
+		getPageParameters().overwriteWith(parameters);
 		definitionOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
 		initLayout();
 	}
