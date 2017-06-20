@@ -124,6 +124,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		/// TODO: move to utils class??
 		List<ObjectTypes> objectTypes = new ArrayList<>(Arrays.asList(ObjectTypes.values()));
+		//fix for MID-3629 (we don't know the resource to search shadows on)
 		objectTypes.remove(ObjectTypes.SHADOW);
 		Collections.sort(objectTypes, new Comparator<ObjectTypes>() {
 

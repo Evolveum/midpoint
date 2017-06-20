@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -377,6 +378,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         OperationResult result = new OperationResult(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         Task task = createSimpleTask(OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS);
         List<ConflictDto> conflictsList = new ArrayList<>();
+        Map<String, ConflictDto> conflictsMap = new HashedMap();
         try {
             PrismObject<UserType> user = getTargetUser();
             delta = user.createModifyDelta();
@@ -394,7 +396,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     .getEvaluatedAssignmentTriple();
             Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple
                     .getPlusSet();
-            Map<String, String> conflictOidsMap = new HashMap<>();
             if (addedAssignments != null) {
                 for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
                     for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
@@ -405,16 +406,27 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
                                 PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
 
-                                AssignmentConflictDto dto1 = new AssignmentConflictDto(exclusionTargetObj,
-                                        conflictingAssignment.getAssignmentType(true) == null ? false : true);
-                                AssignmentConflictDto dto2 = new AssignmentConflictDto(addedAssignmentTargetObj,
-                                        evaluatedAssignment.getAssignmentType(true) == null ? false : true);
-                                boolean isWarning = policyRule.getActions() != null
-                                        && policyRule.getActions().getApproval() != null;
+                                AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
+                                        conflictingAssignment.getAssignmentType(true) != null);
+                                AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
+                                        evaluatedAssignment.getAssignmentType(true) != null);
+                                // everything other than 'enforce' is a warning
+                                boolean isWarning = policyRule.getActions() == null
+                                        || policyRule.getActions().getEnforcement() == null;
                                 ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
-                                if (!isCreatedConflict(conflictOidsMap, exclusionTargetObj.getOid(), addedAssignmentTargetObj.getOid())){
-                                    conflictOidsMap.put(exclusionTargetObj.getOid(), addedAssignmentTargetObj.getOid());
-                                    conflictsList.add(conflict);
+                                String oid1 = exclusionTargetObj.getOid();
+                                String oid2 = addedAssignmentTargetObj.getOid();
+                                if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
+                                    conflictsMap.put(oid1 + oid2, conflict);
+                                } else if (!isWarning) {
+                                    // error is stronger than warning, so we replace (potential) warnings with this error
+                                    // TODO Kate please review this
+                                    if (conflictsMap.containsKey(oid1 + oid2)) {
+                                        conflictsMap.replace(oid1 + oid2, conflict);
+                                    }
+                                    if (conflictsMap.containsKey(oid2 + oid1)) {
+                                        conflictsMap.replace(oid2 + oid1, conflict);
+                                    }
                                 }
                             }
                         }
@@ -426,6 +438,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", e);
             error("Couldn't get assignments conflicts. Reason: " + e);
         }
+        conflictsList.addAll(conflictsMap.values());
         return conflictsList;
     }
 

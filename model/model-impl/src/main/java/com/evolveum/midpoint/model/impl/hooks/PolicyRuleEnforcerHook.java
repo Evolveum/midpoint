@@ -63,9 +63,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	@PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("PolicyRuleEnforcerHook registered.");
-        }
+		LOGGER.trace("PolicyRuleEnforcerHook registered.");
     }
 
 	/* (non-Javadoc)
