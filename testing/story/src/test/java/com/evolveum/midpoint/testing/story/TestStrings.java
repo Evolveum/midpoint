@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
@@ -58,6 +59,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -153,15 +155,7 @@ public class TestStrings extends AbstractStoryTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		// copy rules from the file into live system config object
-		PrismObject<SystemConfigurationType> rules = prismContext.parserFor(CONFIG_WITH_GLOBAL_RULES_FILE).parse();
-		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
-						.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(
-								rules.asObjectable().getGlobalPolicyRule().stream()
-										.map(r -> r.clone().asPrismContainerValue())
-										.collect(Collectors.toList()))
-						.asItemDeltas(), initResult);
+		transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_FILE, initTask, initResult);
 
 		// we prefer running trigger scanner by hand
 		resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, initResult);
