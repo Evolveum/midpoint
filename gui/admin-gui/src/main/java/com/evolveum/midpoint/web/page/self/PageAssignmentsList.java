@@ -406,12 +406,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                                 PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
                                 PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
 
-                                AssignmentConflictDto dto1 = new AssignmentConflictDto(exclusionTargetObj,
-                                        conflictingAssignment.getAssignmentType(true) == null ? false : true);
-                                AssignmentConflictDto dto2 = new AssignmentConflictDto(addedAssignmentTargetObj,
-                                        evaluatedAssignment.getAssignmentType(true) == null ? false : true);
-                                boolean isWarning = policyRule.getActions() != null
-                                        && policyRule.getActions().getApproval() != null;
+                                AssignmentConflictDto<F> dto1 = new AssignmentConflictDto<>(exclusionTargetObj,
+                                        conflictingAssignment.getAssignmentType(true) != null);
+                                AssignmentConflictDto<F> dto2 = new AssignmentConflictDto<>(addedAssignmentTargetObj,
+                                        evaluatedAssignment.getAssignmentType(true) != null);
+                                // everything other than 'enforce' is a warning
+                                boolean isWarning = policyRule.getActions() == null
+                                        || policyRule.getActions().getEnforcement() == null;
                                 ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
                                 String oid1 = exclusionTargetObj.getOid();
                                 String oid2 = addedAssignmentTargetObj.getOid();
