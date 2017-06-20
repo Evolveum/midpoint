@@ -416,12 +416,15 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                                 ConflictDto conflict = new ConflictDto(dto1, dto2, isWarning);
                                 String oid1 = exclusionTargetObj.getOid();
                                 String oid2 = addedAssignmentTargetObj.getOid();
-                                if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)){
+                                if (!conflictsMap.containsKey(oid1 + oid2) && !conflictsMap.containsKey(oid2 + oid1)) {
                                     conflictsMap.put(oid1 + oid2, conflict);
-                                } else if (isWarning) {
-                                    if (conflictsMap.containsKey(oid1 + oid2)){
+                                } else if (!isWarning) {
+                                    // error is stronger than warning, so we replace (potential) warnings with this error
+                                    // TODO Kate please review this
+                                    if (conflictsMap.containsKey(oid1 + oid2)) {
                                         conflictsMap.replace(oid1 + oid2, conflict);
-                                    } else {
+                                    }
+                                    if (conflictsMap.containsKey(oid2 + oid1)) {
                                         conflictsMap.replace(oid2 + oid1, conflict);
                                     }
                                 }
