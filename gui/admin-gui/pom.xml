@@ -392,7 +392,7 @@
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>3.6-SNAPSHOT</version>
-            <scope>runtime</scope>
+<!--             <scope>runtime</scope> -->
             <exclusions>
             	<exclusion>
             		<artifactId>jaxb-impl</artifactId>
@@ -495,7 +495,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-ldap</artifactId>
-            <scope>runtime</scope>
+<!--             <scope>runtime</scope> -->
         </dependency>
 
         <!--  WICKET DEPENDENCIES -->
