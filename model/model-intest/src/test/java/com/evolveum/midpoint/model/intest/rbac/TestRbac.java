@@ -755,16 +755,6 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertEvaluatedRole(evaluatedRoles, ROLE_PIRATE_OID);
         
 	}
-	
-	private void assertEvaluatedRole(Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles,
-			String expectedRoleOid) {
-		for (EvaluatedAssignmentTarget evalRole: evaluatedRoles) {
-			if (expectedRoleOid.equals(evalRole.getTarget().getOid())) {
-				return;
-			}
-		}
-		AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
-	}
 
 	@Test
     public void test136JackUnAssignRoleAdriaticPirate() throws Exception {

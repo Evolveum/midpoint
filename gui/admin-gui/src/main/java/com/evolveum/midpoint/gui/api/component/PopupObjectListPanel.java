@@ -15,8 +15,11 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -43,9 +46,9 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 		
 	}
 
-	public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect,
-								PageBase parentPage, List<O> selectedObjectsList) {
-		super(id, defaultType, multiselect, parentPage, selectedObjectsList);
+	public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
+								boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
+		super(id, defaultType, options, multiselect, parentPage, selectedObjectsList);
 
 	}
 

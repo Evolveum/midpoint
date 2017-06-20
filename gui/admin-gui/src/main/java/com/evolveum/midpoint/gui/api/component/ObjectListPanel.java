@@ -110,11 +110,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		initLayout();
 	}
 
-	public ObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect,
-						   PageBase parentPage, List<O> selectedObjectsList) {
+	public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
+						   boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
 		super(id);
 		this.type = defaultType;
 		this.parentPage = parentPage;
+		this.options = options;
 		this.multiselect = multiselect;
 		this.selectedObjects = selectedObjectsList;
 		initLayout();
