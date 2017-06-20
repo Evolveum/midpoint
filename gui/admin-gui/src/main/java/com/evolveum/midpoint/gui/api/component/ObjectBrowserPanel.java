@@ -16,13 +16,19 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -42,7 +48,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> implements Popupable{
+public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> implements Popupable {
 
 	private static final long serialVersionUID = 1L;
 	private static final String ID_TYPE = "type";
@@ -61,7 +67,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	 * @param defaultType specifies type of the object that will be selected by default
 	 */
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
-			PageBase parentPage) {
+							  PageBase parentPage) {
 		this(id, defaultType, supportedTypes, multiselect, parentPage, null);
 	}
 
@@ -69,15 +75,15 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	 * @param defaultType specifies type of the object that will be selected by default
 	 */
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
-			PageBase parentPage, ObjectFilter queryFilter) {
+							  PageBase parentPage, ObjectFilter queryFilter) {
 		this(id, defaultType, supportedTypes, multiselect, parentPage, null, new ArrayList<O>());
 	}
 
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
-			PageBase parentPage, ObjectFilter queryFilter, List<O> selectedData) {
+							  PageBase parentPage, ObjectFilter queryFilter, List<O> selectedData) {
 		super(id);
 		this.parentPage = parentPage;
-        this.queryFilter = queryFilter;
+		this.queryFilter = queryFilter;
 		this.selectedObjectsList = selectedData;
 		typeModel = new LoadableModel<QName>(false) {
 			private static final long serialVersionUID = 1L;
@@ -98,6 +104,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 		typePanel.setOutputMarkupId(true);
 		typePanel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return supportedTypes.size() != 1;
@@ -129,6 +136,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 				createStringResource("userBrowserDialog.button.addButton")) {
 
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<O> selected = ((PopupObjectListPanel) getParent().get(ID_TABLE)).getSelectedObjects();
@@ -159,25 +167,26 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
 	private ObjectListPanel<O> createObjectListPanel(Class<? extends O> type, final boolean multiselect) {
 
-		PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_TABLE, type, multiselect,
-				parentPage, selectedObjectsList) {
+		PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_TABLE, type, getOptions(),
+				multiselect, parentPage, selectedObjectsList) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void onSelectPerformed(AjaxRequestTarget target, O object) {
 				ObjectBrowserPanel.this.onSelectPerformed(target, object);
 			}
 
-            @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                if (queryFilter != null){
-                    if (query == null){
-                        query = new ObjectQuery();
-                    }
-                    query.addFilter(queryFilter);
-                }
-                return query;
-            }
-        };
+			@Override
+			protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+				if (queryFilter != null) {
+					if (query == null) {
+						query = new ObjectQuery();
+					}
+					query.addFilter(queryFilter);
+				}
+				return query;
+			}
+		};
 		listPanel.setOutputMarkupId(true);
 		return listPanel;
 	}
@@ -188,6 +197,14 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
 	private Class qnameToCompileTimeClass(QName typeName) {
 		return parentPage.getPrismContext().getSchemaRegistry().getCompileTimeClassForObjectType(typeName);
+	}
+
+	private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+		if (ObjectTypes.SHADOW.getTypeQName().equals(typeModel.getObject())) {
+			return SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw());
+		}
+		return null;
+
 	}
 
 	private QName compileTimeClassToQName(Class<? extends O> type) {
