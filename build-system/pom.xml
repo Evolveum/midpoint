@@ -25,7 +25,7 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
-        <version>3.5.1-SNAPSHOT</version>
+        <version>3.5.2-SNAPSHOT</version>
     </parent>
     <pluginRepositories>
         <pluginRepository>
@@ -437,6 +437,22 @@
                 <version>9.5.1-6</version>
             </dependency>
             <dependency>
+	            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                  	 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+	                 Therefore explicitly use the custom version. -->
+	            <groupId>org.apache.httpcomponents</groupId>
+	            <artifactId>httpclient</artifactId>
+	            <version>4.5.3.e1</version>
+            </dependency>
+            <dependency>
+	            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                  	 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+	                 Therefore explicitly use the custom version. -->
+	            <groupId>org.apache.httpcomponents</groupId>
+	            <artifactId>httpcore</artifactId>
+	            <version>4.4.6</version>
+			</dependency>
+            <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-core</artifactId>
                 <version>${cxf.version}</version>
@@ -492,6 +508,22 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-transports-http</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+                    <exclusion>
+                    	<!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                    	     As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+	                         Therefore explicitly use the custom version. -->
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpclient</artifactId>
+                    </exclusion>
+                    <exclusion>
+                    	<!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                    	     As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+	                         Therefore explicitly use the custom version. -->
+                        <groupId>org.apache.httpcomponents</groupId>
+                        <artifactId>httpcore</artifactId>
+                    </exclusion>
+				</exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -620,7 +652,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>1.4.3</version>
+                <version>1.4.4</version>
                 <exclusions>
 					<exclusion> <!-- Version in dependency of org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j conflicts with xalan. Can be removed when connector version is bumped beyond 1.4.2.17 -->
                         <groupId>xml-apis</groupId>

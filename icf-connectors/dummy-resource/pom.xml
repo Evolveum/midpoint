@@ -20,12 +20,12 @@
 	<name>Dummy Resource</name>
 	<groupId>com.evolveum.icf</groupId>
 	<artifactId>dummy-resource</artifactId>
-	<version>3.5.1-SNAPSHOT</version>
+	<version>3.5.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>icf-connectors</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.5.1-SNAPSHOT</version>
+		<version>3.5.2-SNAPSHOT</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -36,7 +36,7 @@
 		<dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.5.1-SNAPSHOT</version>
+            <version>3.5.2-SNAPSHOT</version>
         </dependency>
         <dependency>
 			<groupId>commons-lang</groupId>
