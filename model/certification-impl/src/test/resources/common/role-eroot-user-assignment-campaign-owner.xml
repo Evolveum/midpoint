@@ -50,4 +50,5 @@
             <type>UserType</type>
         </object>
     </authorization>
+    <delegable>true</delegable>
 </role>
