@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -83,6 +85,10 @@ public class SummarizeDecisionsInStage implements JavaDelegate {
 				if (outcomes.size() > 1) {
 					LOGGER.warn("Ambiguous outcome with firstDecides strategy in {}: {} response(s), providing outcomes of {}",
 							WfContextUtil.getBriefDiagInfo(wfc), itemEvents.size(), outcomes);
+					itemEvents.sort(Comparator.nullsLast(Comparator.comparing(event -> XmlTypeConverter.toMillis(event.getTimestamp()))));
+					WorkItemCompletionEventType first = itemEvents.get(0);
+					approved = ApprovalUtils.isApproved(first.getOutput());
+					LOGGER.warn("Possible race condition, so taking the first one: {} ({})", approved, first);
 				}
 			}
 		}
