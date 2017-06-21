@@ -1132,7 +1132,70 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 			valuesToDelete = null;
 		}
 	}
+	
+	public Collection<V> getValueChanges(PlusMinusZero mode) {
+		Collection<V> out = new ArrayList<>();
+		
+		if (isReplace()) {
+			switch (mode) {
+				case PLUS:
+					setSubtract(out, valuesToReplace, estimatedOldValues);
+					break;
+				case MINUS:
+					setSubtract(out, estimatedOldValues, valuesToReplace);
+					break;
+				case ZERO:
+					setIntersection(out, valuesToReplace, estimatedOldValues);
+			}
+		} else {
+			switch (mode) {
+				case PLUS:
+					setAddAll(out, valuesToAdd);
+					break;
+				case MINUS:
+					setAddAll(out, valuesToDelete);
+					break;
+				case ZERO:
+					setAddAll(out, estimatedOldValues);
+					break;
+			}
+		}
+		
+		return out;
+	}
 
+	private void setSubtract(Collection<V> out, Collection<V> subtrahend, Collection<V> minuend) {
+		if (subtrahend == null) {
+			return;
+		}
+		for (V sube: subtrahend) {
+			if (minuend == null) {
+				out.add(sube);
+			} else {
+				if (!minuend.contains(sube)) {
+					out.add(sube);
+				}
+			}
+		}
+	}
+
+	private void setIntersection(Collection<V> out, Collection<V> a, Collection<V> b) {
+		if (a == null || b == null) {
+			return;
+		}
+		for (V ae: a) {
+			if (b.contains(ae)) {
+				out.add(ae);
+			}
+		}
+	}
+	
+	private void setAddAll(Collection<V> out, Collection<V> in) {
+		if (in != null) {
+			out.addAll(in);
+		}
+	}
+	
 	/**
 	 * Transforms the delta to the simplest (and safest) form. E.g. it will transform add delta for
 	 * single-value properties to replace delta. 

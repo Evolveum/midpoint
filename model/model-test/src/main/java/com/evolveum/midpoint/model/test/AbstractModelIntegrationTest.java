@@ -1787,6 +1787,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <F extends FocusType> void assertAssignedOrg(PrismObject<F> focus, String orgOid) {
 		MidPointAsserts.assertAssignedOrg(focus, orgOid);
 	}
+	
+	protected <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> focus, String orgOid) {
+		MidPointAsserts.assertNotAssignedOrg(focus, orgOid);
+	}
 
 	protected void assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {
 		MidPointAsserts.assertAssignedOrg(user, org.getOid());

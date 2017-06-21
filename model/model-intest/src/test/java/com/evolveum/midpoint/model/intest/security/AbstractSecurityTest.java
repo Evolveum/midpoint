@@ -294,6 +294,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_READ_ROLE_MEMBERS_NONE_FILE = new File(TEST_DIR, "role-read-role-members-none.xml");
 	protected static final String ROLE_READ_ROLE_MEMBERS_NONE_OID = "9e93dfb2-3eff-11e7-b56b-1b0e35f837fc";
 	
+	protected static final File ROLE_READ_SELF_MODIFY_ORGUNIT_FILE = new File(TEST_DIR, "role-read-self-modify-orgunit.xml");
+	protected static final String ROLE_READ_SELF_MODIFY_ORGUNIT_OID = "97cc13ac-5660-11e7-8687-d76f3a88c78d";
+	
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
 	
@@ -304,6 +307,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final String TASK_USELESS_JACK_OID = "642d8174-30c8-11e7-b338-c3cf3a6c548a";
 	protected static final String TASK_USELESS_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/useless/handler-3";
 
+	protected static final File USER_TEMPLATE_SECURITY_FILE = new File(TEST_DIR,"user-template-security.xml");
+	protected static final String USER_TEMPLATE_SECURITY_OID = "b3a8f244-565a-11e7-8802-7b2586c1ce99";
+	
 	protected static final String TASK_T1_OID = "a46459b8-30e4-11e7-bd37-7bba86e91983";
 	protected static final String TASK_T2_OID = "a4ab296a-30e4-11e7-a3fd-7f34286d17fa";
 	protected static final String TASK_T3_OID = "a4cfec28-30e4-11e7-946f-07f8d55b4498";
@@ -323,7 +329,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_ALL_ROLES = 73;
+	protected static final int NUMBER_OF_ALL_ROLES = 74;
 	protected static final int NUMBER_OF_ALL_ORGS = 10;
 	
 	protected String userRumRogersOid;
@@ -396,13 +402,15 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_WRONG_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_ROLE_MEMBERS_NONE_FILE, initResult);
-
+		repoAddObjectFromFile(ROLE_READ_SELF_MODIFY_ORGUNIT_FILE, initResult);
+		
 		repoAddObjectFromFile(ORG_REQUESTABLE_FILE, initResult);
 		
 		repoAddObjectFromFile(TASK_USELESS_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(TASK_USELESS_JACK_FILE, initResult);
 
 		repoAddObjectFromFile(OBJECT_TEMPLATE_PERSONA_ADMIN_FILE, initResult);
+		repoAddObjectFromFile(USER_TEMPLATE_SECURITY_FILE, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		assignOrg(RoleType.class, ROLE_BUSINESS_3_OID, ORG_MINISTRY_OF_RUM_OID, initTask, initResult);
