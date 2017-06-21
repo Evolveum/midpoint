@@ -1404,7 +1404,7 @@
 						<midpoint.home>target/midpoint-home</midpoint.home>
 						<java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
 					</systemPropertyVariables>
-					<argLine>-Xms1024m -Xmx2048m</argLine>
+					<argLine>-Xms1024m -Xmx4096m</argLine>
 					<!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot 
 						-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine> -->
 
