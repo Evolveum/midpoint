@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
+import com.evolveum.midpoint.web.component.prism.PrismValuePanel;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -90,5 +91,36 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
         if (input.getInput() == null || input.getInput().trim().equals("")){
             model.setObject(input.getInput());
         }
+        if (getIterator(input.getInput()).hasNext() && getIterator(input.getInput()).next() instanceof String) {
+            Iterator<String> lookupTableValuesIterator = (Iterator<String>) getIterator(input.getInput());
+
+            String value = input.getInput();
+            boolean isValueExist = false;
+            String existingValue = "";
+            if (value != null) {
+                if (value.trim().equals("")) {
+                    isValueExist = true;
+                } else {
+                    while (lookupTableValuesIterator.hasNext()) {
+                        String lookupTableValue = lookupTableValuesIterator.next();
+                        if (value.trim().equalsIgnoreCase(lookupTableValue)) {
+                            isValueExist = true;
+                            existingValue = lookupTableValue;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (isValueExist) {
+                input.setModelValue(new String[]{existingValue});
+                updateFeedbackPanel(input, false, target);
+            } else {
+                updateFeedbackPanel(input, true, target);
+            }
+        }
+    }
+
+    protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError, AjaxRequestTarget target){
+
     }
 }
