@@ -570,7 +570,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		
 		try {
 			
@@ -618,7 +618,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
 		// THEN
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
