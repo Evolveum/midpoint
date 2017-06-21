@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.testng.AssertJUnit;
 import org.testng.IHookCallBack;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
@@ -76,6 +78,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+	
+	protected static final int NUMBER_OF_GLOBAL_POLICY_RULES = 3;
 	
 	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
@@ -650,5 +654,15 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userBefore = getUser(userOid);
         display("User before", userBefore);
+	}
+    
+	protected void assertEvaluatedRole(Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles,
+			String expectedRoleOid) {
+		for (EvaluatedAssignmentTarget evalRole: evaluatedRoles) {
+			if (expectedRoleOid.equals(evalRole.getTarget().getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
 	}
 }

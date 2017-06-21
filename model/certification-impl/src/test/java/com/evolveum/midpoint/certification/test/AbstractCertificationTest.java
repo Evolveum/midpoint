@@ -185,17 +185,13 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 					"looks like the previous test haven't cleaned it up", e);
 		}
 
-		repoAddObjectsFromFile(ORGS_AND_USERS_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_DEPUTY_FULL_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_DEPUTY_NO_ASSIGNMENTS_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_DEPUTY_NO_PRIVILEGES_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_ADMINISTRATOR_DEPUTY_NONE_FILE, UserType.class, initResult);
+		// Administrator
+		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult).asObjectable();
+		login(userAdministrator.asPrismObject());
 
 		// roles
 		repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
-		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
 		roleCeo = repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult).asObjectable();
 		roleCoo = repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult).asObjectable();
 		roleCto = repoAddObjectFromFile(ROLE_CTO_FILE, RoleType.class, initResult).asObjectable();
@@ -204,10 +200,14 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 		repoAddObjectFromFile(ORG_SECURITY_TEAM_FILE, OrgType.class, initResult).asObjectable();
 
-		// Administrator
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult).asObjectable();
-		login(userAdministrator.asPrismObject());
-		
+		repoAddObjectsFromFile(ORGS_AND_USERS_FILE, RoleType.class, initResult);
+		addAndRecompute(USER_BOB_FILE, initTask, initResult);
+		addAndRecompute(USER_BOB_DEPUTY_FULL_FILE, initTask, initResult);
+		addAndRecompute(USER_BOB_DEPUTY_NO_ASSIGNMENTS_FILE, initTask, initResult);
+		addAndRecompute(USER_BOB_DEPUTY_NO_PRIVILEGES_FILE, initTask, initResult);
+		addAndRecompute(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_FILE, initTask, initResult);
+		addAndRecompute(USER_ADMINISTRATOR_DEPUTY_NONE_FILE, initTask, initResult);
+
 		// Users
 		userJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
 		userElaine = getUser(USER_ELAINE_OID).asObjectable();

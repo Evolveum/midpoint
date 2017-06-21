@@ -21,7 +21,7 @@
 	</bean>
 
 	<bean id="midPointAuthenticationProvider"
-		class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+		class="com.evolveum.midpoint.model.impl.security.MidPointLdapAuthenticationProvider">
 		<constructor-arg>
 			<bean
 				class="org.springframework.security.ldap.authentication.BindAuthenticator">
@@ -32,7 +32,7 @@
 					</list>
 				</property>
 				<!--  OPTIONAL -->
-				<!--  <property name="userSearch" ref="userSearch" /> -->
+<!-- 				 <property name="userSearch" ref="userSearch" /> -->
 			</bean>
 		</constructor-arg>
 		<property name="userDetailsContextMapper" ref="userDetailsService" />
@@ -45,5 +45,5 @@
 		<constructor-arg index="2" ref="contextSource" />
 		<property name="searchSubtree" value="${auth.ldap.search.subtree}" />
 	</bean>
-
+	
 </beans>
