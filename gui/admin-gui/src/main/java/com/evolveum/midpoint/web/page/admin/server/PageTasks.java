@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -67,9 +68,13 @@ import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.event.Broadcast;
+import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -92,6 +97,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ResourceStreamResource;
 import org.apache.wicket.util.resource.IResourceStream;
@@ -230,7 +236,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		options.setUseClusterInformation(true);
 		options.setResolveObjectRef(true);
         TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options) {
-
+        	private static final long serialVersionUID = 1L;
             @Override
             protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
                 TasksStorage storage = getSessionStorage().getTasks();
@@ -247,26 +253,33 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         };
 
         provider.setQuery(createTaskQuery());
-        BoxedTablePanel<TaskDto> taskTable = new BoxedTablePanel(ID_TASK_TABLE, provider, taskColumns,
+        BoxedTablePanel<TaskDto> taskTable = new BoxedTablePanel<TaskDto>(ID_TASK_TABLE, provider, taskColumns,
                 UserProfileStorage.TableId.PAGE_TASKS_PANEL,
                 (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_TASKS_PANEL)) {
 
-            @Override
+          	private static final long serialVersionUID = 1L;
+
+			@Override
             protected WebMarkupContainer createHeader(String headerId) {
                 return new SearchFragment(headerId, ID_TABLE_HEADER, PageTasks.this, searchModel);
             }
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                String fileName = "TaskType_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-                CSVDataExporter csvDataExporter = new CSVDataExporter();
-                ResourceStreamResource resource = (new ResourceStreamResource() {
-                    protected IResourceStream getResourceStream() {
-                        return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getTaskTable().getDataTable());
-                    }
-                }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
-                AbstractLink exportDataLink = (new ResourceLink(id, resource)).setBody(csvDataExporter.getDataFormatNameModel());
-                exportDataLink.add(new AttributeAppender("class", " btn btn-primary btn-sm"));
+            	CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id) {
+					
+            		private static final long serialVersionUID = 1L;
+            		@Override
+            		protected DataTable<?, ?> getDataTable() {
+            			return getTaskTable().getDataTable();
+            		}
+            		
+            		@Override
+            		protected String getFilename() {
+            			return "TaskType_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            		}
+					
+				};
                 return exportDataLink;
             }
         };
@@ -278,8 +291,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
         mainForm.add(taskTable);
 
         List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        BoxedTablePanel nodeTable = new BoxedTablePanel(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this) {
+        BoxedTablePanel<NodeDto> nodeTable = new BoxedTablePanel<NodeDto>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this) {
 
+        	private static final long serialVersionUID = 1L;
             @Override
             public NodeDto createNodeDto(PrismObject<NodeType> node) {
                 NodeDto dto = super.createNodeDto(node);

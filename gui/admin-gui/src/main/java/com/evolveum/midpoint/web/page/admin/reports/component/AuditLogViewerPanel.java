@@ -17,9 +17,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.event.Broadcast;
+import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
@@ -41,11 +47,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.component.IRequestablePage;
 import org.apache.wicket.request.resource.ResourceStreamResource;
 import org.apache.wicket.util.resource.IResourceStream;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -461,22 +469,21 @@ public class AuditLogViewerPanel extends BasePanel {
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                String fileName = "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-                CSVDataExporter csvDataExporter = new CSVDataExporter(){
-                    @Override
-                    public <T> void exportData(IDataProvider<T> dataProvider, List<IExportableColumn<T, ?>> columns, OutputStream outputStream) throws IOException {
-                        ((AuditEventRecordProvider) dataProvider).setExportSize(true);
-                        super.exportData(dataProvider, columns, outputStream);
-                        ((AuditEventRecordProvider) dataProvider).setExportSize(false);
-                    }
-                };
-                ResourceStreamResource resource = (new ResourceStreamResource() {
-                    protected IResourceStream getResourceStream() {
-                        return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, getAuditLogViewerTable().getDataTable());
-                    }
-                }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
-                AbstractLink exportDataLink = (new ResourceLink(id, resource)).setBody(csvDataExporter.getDataFormatNameModel());
-                exportDataLink.add(new AttributeAppender("class", " btn btn-primary btn-sm"));
+            	CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id,true) {
+					
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected String getFilename() {
+						return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+					}
+					
+					@Override
+					protected DataTable<?, ?> getDataTable() {
+						return getAuditLogViewerTable().getDataTable();
+					}
+				};
+                
                 return exportDataLink;
             }
 

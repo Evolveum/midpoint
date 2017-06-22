@@ -15,45 +15,46 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.event.Broadcast;
+import org.apache.wicket.event.IEventSink;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.component.IRequestablePage;
+import org.apache.wicket.util.resource.IResourceStream;
 
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.request.resource.ResourceStreamResource;
-import org.apache.wicket.util.resource.IResourceStream;
 
 /**
  * @author katkav
@@ -217,18 +218,56 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 }
             });
             add(importObject);
+            
+            CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(ID_EXPORT_DATA) {
+				
+            	private static final long serialVersionUID = 1L;
 
-            String fileName = mainObjectListPanel.getType().getSimpleName() +
-                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
-            CSVDataExporter csvDataExporter = new CSVDataExporter();
-            ResourceStreamResource resource = (new ResourceStreamResource() {
-                protected IResourceStream getResourceStream() {
-                    return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, mainObjectListPanel.getTable().getDataTable());
-                }
-            }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
-            AbstractLink exportDataLink = (new ResourceLink(ID_EXPORT_DATA, resource)).setBody(csvDataExporter.getDataFormatNameModel());
+				@Override
+            	protected DataTable<?, ?> getDataTable() {
+            		return mainObjectListPanel.getTable().getDataTable();
+            	}
+            	
+            	@Override
+            	protected String getFilename() {
+            		return mainObjectListPanel.getType().getSimpleName() +
+		                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
+            	}
+				
+			};
+			
+			add(exportDataLink);
 
-            add(exportDataLink);
+//            CSVDataExporter csvDataExporter = new CSVDataExporter();
+//            final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
+//            	private static final long serialVersionUID = 1L;
+//				
+//				@Override
+//				public IResourceStream getResourceStream() {
+//					return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, mainObjectListPanel.getTable().getDataTable());
+//				}
+//				
+//				public String getFileName() {
+//					return mainObjectListPanel.getType().getSimpleName() +
+//		                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
+//				}
+//			}; 
+//			
+//            add(ajaxDownloadBehavior);
+//            
+//            AjaxIconButton exportDataLink = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
+//                    mainObjectListPanel.createStringResource("MainObjectListPanel.export")) {
+//
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public void onClick(AjaxRequestTarget target) {
+//                    ajaxDownloadBehavior.initiate(target);
+//                }
+//            };
+//            
+//
+//            add(exportDataLink);
 
         }
     }

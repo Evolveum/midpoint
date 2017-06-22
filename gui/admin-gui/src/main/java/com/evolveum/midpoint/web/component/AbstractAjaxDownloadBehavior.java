@@ -30,51 +30,56 @@ import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
 import org.apache.wicket.util.time.Duration;
 
-public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloadBehavior {
+public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior {
 
 	private static final long serialVersionUID = 1L;
 	private boolean addAntiCache;
 	private String contentType = "text";
 	private String fileName = null;
 
-	
-	public AjaxDownloadBehaviorFromStream() {
+	public AbstractAjaxDownloadBehavior() {
+		this(true);
+	}
+
+	public AbstractAjaxDownloadBehavior(boolean addAntiCache) {
 		super();
-	}
-	
-	public AjaxDownloadBehaviorFromStream(boolean addAntiCache) {
-		super(addAntiCache);
-		
+		this.addAntiCache = addAntiCache;
 	}
 
+	/**
+	 * Call this method to initiate the download.
+	 */
+	public void initiate(AjaxRequestTarget target) {
+		String url = getCallbackUrl().toString();
 
-	@Override
-	public IResourceStream getResourceStream() {
-		final InputStream byteStream = initStream();
+		if (addAntiCache) {
+			url = url + (url.contains("?") ? "&" : "?");
+			url = url + "antiCache=" + System.currentTimeMillis();
+		}
+
+		// the timeout is needed to let Wicket release the channel
+		target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
+	}
+
+	public void onRequest() {
 		
-		IResourceStream resourceStream = new AbstractResourceStream(){
-
-			private static final long serialVersionUID = 1L;
-			@Override
-			public String getContentType() {
-				return contentType;
-			}
-
-			@Override
-			public InputStream getInputStream() throws ResourceStreamNotFoundException {
-			    return byteStream;
+		IResourceStream resourceStream = getResourceStream();
+        ResourceStreamRequestHandler reqHandler = new ResourceStreamRequestHandler(resourceStream) {
+            @Override
+            public void respond(IRequestCycle requestCycle) {
+                super.respond(requestCycle);
             }
-
-			@Override
-			public void close() throws IOException {
-				byteStream.close();
-			}
-			
-		};
-		return resourceStream;
+        }.setContentDisposition(ContentDisposition.ATTACHMENT)
+                .setCacheDuration(Duration.ONE_SECOND);
+        if (StringUtils.isNotEmpty(getFileName())){
+            reqHandler.setFileName(getFileName());
+        }
+		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(reqHandler);
 	}
 	
-    protected abstract InputStream initStream();
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
 
     public String getFileName() {
         return fileName;
@@ -83,4 +88,6 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+    
+    public abstract IResourceStream getResourceStream();
 }
