@@ -19,8 +19,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -118,6 +121,11 @@ public class ResourceObjectIdentification implements Serializable {
 			}
 		}
 		return new ResourceObjectIdentification(objectClassDefinition, primaryIdentifiers, secondaryIdentifiers);
+	}
+	
+	public static ResourceObjectIdentification createFromShadow(ObjectClassComplexTypeDefinition objectClassDefinition, 
+			ShadowType shadowType) throws SchemaException {
+		return createFromAttributes(objectClassDefinition, ShadowUtil.getAttributes(shadowType));
 	}
 	
 	public void validatePrimaryIdenfiers() {

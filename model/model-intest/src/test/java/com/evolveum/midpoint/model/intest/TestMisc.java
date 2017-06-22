@@ -59,6 +59,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	
 	public static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
+	
+	private static final String USER_CLEAN_NAME = "clean";
+	private static final String USER_CLEAN_GIVEN_NAME = "John";
+	private static final String USER_CLEAN_FAMILY_NAME = "Clean";
+	
+	private String userCleanOid;
 		
 	public TestMisc() throws JAXBException {
 		super();
@@ -151,14 +157,39 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         }
         
 	}
+
+	/**
+	 * Just to make sure Jack is clean and that the next text will
+	 * start from a clean state.
+	 */
+	@Test
+    public void test300RecomputeJack() throws Exception {
+		final String TEST_NAME = "test300RecomputeJack";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+           
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+	}
 	
 	/**
 	 * Modify custom binary property.
 	 * MID-3999
 	 */
 	@Test
-    public void test300UpdateKey() throws Exception {
-		final String TEST_NAME = "test300UpdateKey";
+    public void test302UpdateKeyJack() throws Exception {
+		final String TEST_NAME = "test302UpdateKeyJack";
         displayTestTile(TEST_NAME);
 
         // GIVEN
@@ -176,6 +207,57 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_KEY), KEY);
+	}
+	
+	@Test
+    public void test310AddUserClean() throws Exception {
+		final String TEST_NAME = "test310AddUserClean";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = createUser(USER_CLEAN_NAME, USER_CLEAN_GIVEN_NAME, USER_CLEAN_FAMILY_NAME, true);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        addObject(userBefore, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		userCleanOid = userBefore.getOid();
+
+        PrismObject<UserType> userAfter = getUser(userCleanOid);
+        display("User after", userAfter);
+	}
+	
+	/**
+	 * Modify custom binary property.
+	 * MID-3999
+	 */
+	@Test(enabled=false) // MID-3999
+    public void test312UpdateBinaryIdClean() throws Exception {
+		final String TEST_NAME = "test312UpdateBinaryIdClean";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+           
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(userCleanOid, getExtensionPath(PIRACY_BINARY_ID), task, result, KEY);
+        
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(userCleanOid);
+        display("User after", userAfter);
+        PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_BINARY_ID), KEY);
 	}
 
 }

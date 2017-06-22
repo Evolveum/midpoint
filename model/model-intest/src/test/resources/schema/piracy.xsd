@@ -84,6 +84,17 @@
             		<xsd:appinfo>
             			<a:displayName>Treasure Key</a:displayName>
 						<a:displayOrder>888</a:displayOrder>
+						<a:indexed>false</a:indexed>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="binaryId" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>MID-3999</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:displayName>Binary identifier</a:displayName>
+						<a:displayOrder>890</a:displayOrder>
+						<a:indexed>true</a:indexed>
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>

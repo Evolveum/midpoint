@@ -733,25 +733,23 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	} else if (requireDefinitions && !isRaw()) {
     		throw new IllegalStateException("No definition in item "+this+" ("+path+" in "+rootItem+")");
     	}
-    	if (values != null) {
-    		for(V val: values) {
-    			if (prohibitRaw && val.isRaw()) {
-    				throw new IllegalStateException("Raw value "+val+" in item "+this+" ("+path+" in "+rootItem+")");
-    			}
-    			if (val == null) {
-    				throw new IllegalStateException("Null value in item "+this+" ("+path+" in "+rootItem+")");
-    			}
-    			if (val.getParent() == null) {
-    				throw new IllegalStateException("Null parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+")");
-    			}
-    			if (val.getParent() != this) {
-    				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"), "+
-    						"bad parent: " + val.getParent());
-    			}
-    			val.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
-    		}
-    	}
-    }
+		for (V val: values) {
+			if (prohibitRaw && val.isRaw()) {
+				throw new IllegalStateException("Raw value "+val+" in item "+this+" ("+path+" in "+rootItem+")");
+			}
+			if (val == null) {
+				throw new IllegalStateException("Null value in item "+this+" ("+path+" in "+rootItem+")");
+			}
+			if (val.getParent() == null) {
+				throw new IllegalStateException("Null parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+")");
+			}
+			if (val.getParent() != this) {
+				throw new IllegalStateException("Wrong parent for value "+val+" in item "+this+" ("+path+" in "+rootItem+"), "+
+						"bad parent: " + val.getParent());
+			}
+			val.checkConsistenceInternal(rootItem, requireDefinitions, prohibitRaw, scope);
+		}
+	}
     
 	protected abstract void checkDefinition(D def);
 	
