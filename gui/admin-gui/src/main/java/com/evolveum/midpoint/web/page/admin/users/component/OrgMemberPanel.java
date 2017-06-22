@@ -381,38 +381,53 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		getPageBase().showMainPopup(confirmDelete, target);
 	}
 	
-	
 	@Override
-	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.addAll(newMemberInlineMenuItems());
+	protected boolean isAuthorizedToUnassignMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI);
+	}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_URI)) {
-			headerMenuItems.addAll(super.createUnassignMemberInlineMenuItems());
-		}
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI)) {
-			headerMenuItems.addAll(super.createMemberRecomputeInlineMenuItems());
-		}
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_URI)) {
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteMember"),
-					false, new HeaderMenuAction(this) {
+	@Override
+	protected boolean isAuthorizedToAssignMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI);
+	}
 
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					deleteMemberPerformed(QueryScope.SELECTED, null, target, "TreeTablePanel.menu.deleteMember.confirm");
-				}
-			}));
+	@Override
+	protected boolean isAuthorizedToDeleteMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_ORG_MEMBER_ACTION_URI);
+	}
 
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteAllMembers"),
-					false, new HeaderMenuAction(this) {
+	@Override
+	protected boolean isAuthorizedToRecomputeMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI);
+	}
 
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					deleteMemberPerformed(QueryScope.ALL, null, target, "TreeTablePanel.menu.deleteAllMembers.confirm");
-				}
-			}));
-		}
-		return headerMenuItems;
+	@Override
+	protected boolean isAuthorizedToCreateMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI);
+	}
+
+	@Override
+	protected List<InlineMenuItem> createMemberDeleteInlineMenuItems() {
+		List<InlineMenuItem> deleteMenuItems = new ArrayList<>();
+
+		deleteMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteMember"),
+				false, new HeaderMenuAction(this) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				deleteMemberPerformed(QueryScope.SELECTED, null, target, "TreeTablePanel.menu.deleteMember.confirm");
+			}
+		}));
+
+		deleteMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteAllMembers"),
+				false, new HeaderMenuAction(this) {
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				deleteMemberPerformed(QueryScope.ALL, null, target, "TreeTablePanel.menu.deleteAllMembers.confirm");
+			}
+		}));
+		return deleteMenuItems;
 	}
 
 	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
@@ -478,7 +493,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
 					false, new HeaderMenuAction(this) {
 				private static final long serialVersionUID = 1L;
@@ -503,7 +518,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 					}));
 		}
 
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_URI)) {
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_ORG_MEMBER_ACTION_URI)) {
 			headerMenuItems
 					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteManagersAll"),
 							false, new HeaderMenuAction(this) {

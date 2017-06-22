@@ -227,6 +227,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 }
             }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
             AbstractLink exportDataLink = (new ResourceLink(ID_EXPORT_DATA, resource)).setBody(csvDataExporter.getDataFormatNameModel());
+            exportDataLink.add(new VisibleEnableBehaviour(){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isVisible(){
+                    return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
+                }
+            });
 
             add(exportDataLink);
 

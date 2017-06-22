@@ -41,7 +41,6 @@ import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
