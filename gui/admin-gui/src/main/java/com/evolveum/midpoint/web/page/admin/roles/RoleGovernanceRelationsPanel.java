@@ -58,83 +58,71 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     }
 
     @Override
-    protected List<InlineMenuItem> newMemberInlineMenuItems() {
-        List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
+    protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
+        List<InlineMenuItem> createMemberMenuItems = new ArrayList<>();
 
-        boolean isAuthorizedToCreate = WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI);
-        boolean isAuthorizedToAssign = WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_URI);
-        if (isAuthorizedToCreate) {
-            newMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createApprover"),
-                    false, new HeaderMenuAction(this) {
-                private static final long serialVersionUID = 1L;
+        createMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createApprover"),
+                false, new HeaderMenuAction(this) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    createFocusMemberPerformed(RelationTypes.APPROVER.getRelation(), target);
-                }
-            }));
-        }
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                createFocusMemberPerformed(RelationTypes.APPROVER.getRelation(), target);
+            }
+        }));
+        createMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createOwner"),
+                false, new HeaderMenuAction(this) {
+            private static final long serialVersionUID = 1L;
 
-        if (isAuthorizedToAssign) {
-            newMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.assignApprovers"), false,
-                    new HeaderMenuAction(this) {
-                        private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                createFocusMemberPerformed(RelationTypes.OWNER.getRelation(), target);
+            }
+        }));
+        createMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
+                false, new HeaderMenuAction(this) {
+            private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            addMembers(RelationTypes.APPROVER.getRelation(), target);
-                        }
-                    }));
-        }
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                createFocusMemberPerformed(RelationTypes.MANAGER.getRelation(), target);
+            }
+        }));
+        return createMemberMenuItems;
+    }
 
-        if (isAuthorizedToCreate) {
-            newMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createOwner"),
-                    false, new HeaderMenuAction(this) {
-                private static final long serialVersionUID = 1L;
+    @Override
+    protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
+        List<InlineMenuItem> assignMemberMenuItems = new ArrayList<>();
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    createFocusMemberPerformed(RelationTypes.OWNER.getRelation(), target);
-                }
-            }));
-        }
+        assignMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.assignApprovers"), false,
+                new HeaderMenuAction(this) {
+                    private static final long serialVersionUID = 1L;
 
-        if (isAuthorizedToAssign) {
-            newMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.assignOwners"), false,
-                    new HeaderMenuAction(this) {
-                        private static final long serialVersionUID = 1L;
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addMembers(RelationTypes.APPROVER.getRelation(), target);
+                    }
+                }));
+        assignMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.assignOwners"), false,
+                new HeaderMenuAction(this) {
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            addMembers(RelationTypes.OWNER.getRelation(), target);
-                        }
-                    }));
-        }
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addMembers(RelationTypes.OWNER.getRelation(), target);
+                    }
+                }));
+        assignMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
+                new HeaderMenuAction(this) {
+                    private static final long serialVersionUID = 1L;
 
-        if (isAuthorizedToCreate) {
-            newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
-                    false, new HeaderMenuAction(this) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    createFocusMemberPerformed(RelationTypes.MANAGER.getRelation(), target);
-                }
-            }));
-        }
-
-        if (isAuthorizedToAssign) {
-            newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
-                    new HeaderMenuAction(this) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            addMembers(RelationTypes.MANAGER.getRelation(), target);
-                        }
-                    }));
-        }
-        return newMemberMenuItems;
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        addMembers(RelationTypes.MANAGER.getRelation(), target);
+                    }
+                }));
+        return assignMemberMenuItems;
     }
 
     @Override
@@ -152,12 +140,18 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     }
 
     @Override
-    protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
-        List<InlineMenuItem> menuItems = new ArrayList<>();
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_URI)){
-            menuItems.addAll(super.createUnassignMemberInlineMenuItems());
-        }
-        return menuItems;
+    protected boolean isAuthorizedToUnassignMembers(){
+        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_URI);
+    }
+
+    @Override
+    protected boolean isAuthorizedToAssignMembers(){
+        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_URI);
+    }
+
+    @Override
+    protected boolean isAuthorizedToCreateMembers(){
+        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI);
     }
 
     @Override

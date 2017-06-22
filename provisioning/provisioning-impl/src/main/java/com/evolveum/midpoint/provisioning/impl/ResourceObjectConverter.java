@@ -261,7 +261,9 @@ public class ResourceObjectConverter {
 			result.recordFatalError(e);
 			throw e;
 		}
-
+		
+		checkForAddConflicts(ctx, shadow, result);
+		
 		Collection<Operation> additionalOperations = new ArrayList<Operation>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
 				result);
@@ -316,6 +318,49 @@ public class ResourceObjectConverter {
 		computeResultStatus(result);
 		
 		return AsynchronousOperationReturnValue.wrap(shadow, result);
+	}
+
+	/**
+	 * Special case for multi-connectors (e.g. semi-manual connectors). There is a possibility that the object
+	 * which we want to add is already present in the backing store. In case of manual provisioning the resource
+	 * itself will not indicate "already exist" error. We have to explicitly check for that.
+	 */
+	private void checkForAddConflicts(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+		PrismObject<ShadowType> existingObject = null;
+		ConnectorInstance readConnector = null;
+		try {
+			ConnectorInstance createConnector = ctx.getConnector(CreateCapabilityType.class, result);
+			readConnector = ctx.getConnector(ReadCapabilityType.class, result);
+			if (readConnector == createConnector) {
+				// Same connector for reading and creating. We assume that the connector can check uniqueness itself. 
+				// No need to check explicitly. We will gladly skip the check, as the check may be additional overhead
+				// that we normally do not need or want.
+				return;
+			}
+			ResourceObjectIdentification identification = ResourceObjectIdentification.createFromShadow(ctx.getObjectClassDefinition(), shadow.asObjectable());
+		
+			existingObject = readConnector.fetchObject(ShadowType.class, identification, null, ctx, result);
+		} catch (ObjectNotFoundException e) {
+			// This is OK
+			result.muteLastSubresultError();
+			return;
+		} catch (CommunicationException ex) {
+			result.recordFatalError(
+					"Could not create object on the resource. Error communicating with the connector " + readConnector + ": " + ex.getMessage(), ex);
+			throw new CommunicationException("Error communicating with the connector " + readConnector + ": "
+					+ ex.getMessage(), ex);
+		} catch (GenericFrameworkException ex) {
+			result.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
+			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+		} catch (Throwable e){
+			result.recordFatalError(e);
+			throw e;
+		}
+		if (existingObject != null) {
+			ObjectAlreadyExistsException e = new ObjectAlreadyExistsException("Object "+shadow+" already exists in the backing store of resource "+ctx.getResource());
+			result.recordFatalError(e);
+			throw e;
+		}
 	}
 
 	public AsynchronousOperationResult deleteResourceObject(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 

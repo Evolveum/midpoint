@@ -19,7 +19,9 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,14 +36,20 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,7 +57,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -57,6 +69,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManual extends AbstractManualResourceTest {
 	
 	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
@@ -98,6 +111,225 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	protected int getNumberOfAccountAttributeDefinitions() {
 		return 5;
 	}
+	
+	/**
+	 * MID-4002
+	 */
+	@Test
+	public void test700AssignAccountJackExisting() throws Exception {
+		final String TEST_NAME = "test700AssignAccountJack";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		if (accountJackOid != null) {
+			PrismObject<ShadowType> shadowRepoBefore = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+			display("Repo shadow before", shadowRepoBefore);
+			assertPendingOperationDeltas(shadowRepoBefore, 0);
+		}
+		
+		backingStoreAddJack();
+		
+		clock.overrideDuration("PT5M");
+		
+		accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(USER_JACK_OID, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		assertSuccess(result);
+		assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
+
+		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		accountJackOid = getSingleLinkOid(userAfter);
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+		display("Repo shadow", shadowRepo);
+		assertPendingOperationDeltas(shadowRepo, 0);
+		assertShadowExists(shadowRepo, true);
+		assertNoShadowPassword(shadowRepo);
+			
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+				accountJackOid, null, task, result);
+		
+		display("Model shadow", shadowModel);
+		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
+		assertShadowName(shadowModel, USER_JACK_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_JACK_USERNAME);
+		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_JACK_FULL_NAME);
+		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowModel, true);
+		
+		assertPendingOperationDeltas(shadowModel, 0);		
+	}
+	
+	/**
+	 * MID-4002
+	 */
+	@Test
+	public void test710UnassignAccountJack() throws Exception {
+		final String TEST_NAME = "test710UnassignAccountJack";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clock.overrideDuration("PT5M");
+		
+		accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignAccount(USER_JACK_OID, getResourceOid(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		jackLastCaseOid = assertInProgress(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		accountJackOid = getSingleLinkOid(userAfter);
+		
+		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+		display("Repo shadow", shadowRepo);
+		
+		assertPendingOperationDeltas(shadowRepo, 1);
+		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, 
+				OperationResultStatusType.IN_PROGRESS, null);
+		assertPendingOperation(shadowRepo, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
+		assertNotNull("No ID in pending operation", pendingOperation.getId());
+			
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+				accountJackOid, null, task, result);
+		
+		display("Model shadow", shadowModel);
+		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
+		assertShadowName(shadowModel, USER_JACK_USERNAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertShadowPassword(shadowModel);
+
+		assertPendingOperationDeltas(shadowModel, 1);
+		pendingOperation = findPendingOperation(shadowModel, 
+				OperationResultStatusType.IN_PROGRESS, null);
+		assertPendingOperation(shadowModel, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
+		
+		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
+				accountJackOid, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Model shadow (future)", shadowModelFuture);
+		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
+		assertShadowDead(shadowModelFuture);
+		assertShadowPassword(shadowModelFuture);
+		
+		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+	}
+	
+	/**
+	 * MID-4002
+	 */
+	@Test
+	public void test712CloseCaseAndRecomputeJack() throws Exception {
+		final String TEST_NAME = "test712CloseCaseAndRecomputeJack";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		backingStoreDeleteJack();
+		
+		closeCase(jackLastCaseOid);
+		
+		accountJackCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		// We need reconcile and not recompute here. We need to fetch the updated case status.
+		reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		assertSuccess(result);
+		
+		accountJackCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+		display("Repo shadow", shadowRepo);
+		assertSinglePendingOperation(shadowRepo, 
+				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
+		assertShadowDead(shadowRepo);
+			
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+				accountJackOid, null, task, result);
+		
+		display("Model shadow", shadowModel);
+		ShadowType shadowTypeModel = shadowModel.asObjectable();
+		assertShadowName(shadowModel, USER_JACK_USERNAME);
+		assertEquals("Wrong kind (model)", ShadowKindType.ACCOUNT, shadowTypeModel.getKind());
+		assertShadowDead(shadowModel);
+
+		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, 
+				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
+				OperationResultStatusType.SUCCESS,
+				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
+		
+		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
+				accountJackOid, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Model shadow (future)", shadowModelFuture);
+		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
+		assertShadowDead(shadowModelFuture);
+		
+		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	/**
+	 * MID-4002
+	 */
+	@Test
+	public void test719RecomputeJackAfter30min() throws Exception {
+		final String TEST_NAME = "test719RecomputeJackAfter30min";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clock.overrideDuration("PT30M");
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		// We need reconcile and not recompute here. We need to fetch the updated case status.
+		reconcileUser(USER_JACK_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+		assertLinks(userAfter, 0);
+		assertNoShadow(accountJackOid);
+		
+		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
 
 	@Override
 	protected void backingStoreAddWill() throws IOException {
@@ -119,9 +351,17 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	protected void backingStoreDeleteWill() throws IOException {
 		deleteInCsv(USER_WILL_NAME);
 	}
+	
+	protected void backingStoreAddJack() throws IOException {
+		appendToCsv(new String[]{USER_JACK_USERNAME, USER_JACK_FULL_NAME, ACCOUNT_JACK_DESCRIPTION_MANUAL, "", "false", USER_JACK_PASSWORD_OLD});
+	}
+	
+	protected void backingStoreDeleteJack() throws IOException {
+		deleteInCsv(USER_JACK_USERNAME);
+	}
 
 	private void appendToCsv(String[] data) throws IOException {
-		String line = formatCsvLine(data) + "\n";
+		String line = formatCsvLine(data);
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), line.getBytes(), StandardOpenOption.APPEND);
 	}
 	
@@ -134,7 +374,8 @@ public class TestSemiManual extends AbstractManualResourceTest {
 				lines.set(i, formatCsvLine(data));
 			}
 		}
-		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines, StandardOpenOption.WRITE);
+		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines,
+				StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 	
 	private void deleteInCsv(String username) throws IOException {
@@ -147,11 +388,16 @@ public class TestSemiManual extends AbstractManualResourceTest {
 				iterator.remove();
 			}
 		}
-		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines, StandardOpenOption.WRITE);
+		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines,
+				StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 
 	private String formatCsvLine(String[] data) {
 		return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(","));
+	}
+	
+	protected String dumpCsv() throws IOException {
+		return StringUtils.join(Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath())), "\n");
 	}
 
 	@Override

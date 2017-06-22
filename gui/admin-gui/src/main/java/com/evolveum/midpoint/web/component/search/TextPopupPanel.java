@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.apache.commons.lang.StringUtils;
@@ -79,21 +80,35 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
     }
 
     private TextField initTextField() {
-        IModel data = new PropertyModel(getModel(), SearchValue.F_VALUE);
+//        IModel data = new PropertyModel(getModel(), SearchValue.F_VALUE);
 
         if (lookup == null) {
-            return new TextField(ID_TEXT_INPUT, data);
+            return new TextField(ID_TEXT_INPUT, new PropertyModel(getModel(), SearchValue.F_VALUE));
         }
+        
+        LookupPropertyModel<String> lookupPropertyModel = new LookupPropertyModel<String>(getModel(), SearchValue.F_VALUE, lookup.asObjectable()) {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public boolean isSupportsDisplayName() {
+        		return true;
+        	}
+        };
 
         AutoCompleteSettings settings = new AutoCompleteSettings();
         settings.setShowListOnEmptyInput(true);
 
-        return new AutoCompleteTextField(ID_TEXT_INPUT, data, settings) {
+        return new AutoCompleteTextField<String>(ID_TEXT_INPUT, lookupPropertyModel, settings) {
 
+        	private static final long serialVersionUID = 1L;
             @Override
-            protected Iterator getChoices(String input) {
+            protected Iterator<String> getChoices(String input) {
                 return prepareAutoCompleteList(input).iterator();
             }
+
+            
+            
         };
     }
 

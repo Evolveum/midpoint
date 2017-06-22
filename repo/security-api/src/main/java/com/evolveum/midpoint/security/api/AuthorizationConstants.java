@@ -352,22 +352,23 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_ADMIN_UNASSIGN_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassign");
     public static final String AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_ACTION_QNAME);
-    
+
+	//VERY! VERY! EXPERIMENTAL CODE!
+	//all ui authorizations for menu items are supposed to be reworked in the future
+	// (to use adminGuiConfig instead for setting up visibility for menu items and other gui elements)
 	//ui authorizations for menu items on the org members/managers panel
+	//Members tab on the  AbstractRole edit page
 	public static final QName AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAssignMember");
     public static final String AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_QNAME);
 
-	public static final QName AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignMember");
-    public static final String AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME);
-
 	public static final QName AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAddMember");
-    public static final String AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_QNAME);
+	public static final String AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_QNAME);
 
-	public static final QName AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminDeleteMember");
-    public static final String AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_QNAME);
+	public static final QName AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignMember");
+	public static final String AUTZ_UI_ADMIN_UNASSIGN_MEMBER_TAB_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME);
 
 	public static final QName AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminRecomputeMember");
-    public static final String AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_QNAME);
+	public static final String AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_QNAME);
 
 	//ui authorizations for menu items on the Governance members tab of Role type object
 	public static final QName AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAssignGovernance");
@@ -378,5 +379,25 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAddGovernance");
 	public static final String AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_QNAME);
+
+	//ui authorizations for Org member panel (applied for both Managers && Members panels)
+	public static final QName AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAssignOrgMember");
+	public static final String AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignOrgMember");
+	public static final String AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_ADMIN_DELETE_ORG_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminDeleteOrgMember");
+    public static final String AUTZ_UI_ADMIN_DELETE_ORG_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_DELETE_ORG_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAddOrgMember");
+    public static final String AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_QNAME);
+
+	public static final QName AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminRecomputeOrgMember");
+    public static final String AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_QNAME);
+
+	//ui authorization for CSV export button (will be applied everywhere over mp)
+	public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
+	public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
 
 }

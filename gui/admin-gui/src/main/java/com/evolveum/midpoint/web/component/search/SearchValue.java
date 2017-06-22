@@ -33,6 +33,7 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
 
     private T value;
     private String label;
+    private String displayName;
 
     public SearchValue() {
         this(null, null);
@@ -59,8 +60,13 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
 
     @Override
     public String getLabel() {
-        if (label == null && value != null) {
+        if (label == null){
+        	if (displayName != null) {
+        		return displayName;
+        	} else if (value != null){
+        
             return value.toString();
+        	}
         }
 
         return label;
@@ -79,6 +85,14 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
             setLabel(dv.getLabel());
         }
     }
+    
+    public String getDisplayName() {
+		return displayName;
+	}
+    
+    public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
 
     @Override
     public String toString() {

@@ -77,9 +77,9 @@
  	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.consistency" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.consistency" level="TRACE" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression.Expression" level="DEBUG" />
@@ -94,7 +94,7 @@
     <logger name="com.evolveum.midpoint.security.impl.SecurityEnforcerImpl" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.security" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.sync.FocusValidityScannerTaskHandler" level="DEBUG" />
