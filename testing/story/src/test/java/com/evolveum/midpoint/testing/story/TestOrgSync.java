@@ -211,6 +211,8 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final File SCABB_OU_LDIF_FILE = new File(TEST_DIR, "scabb.ldif");
 	private static final File BOOTY_OU_LDIF_FILE = new File(TEST_DIR, "booty.ldif");
 	private static final File BOOTY_LOOKOUT_OU_LDIF_FILE = new File(TEST_DIR, "booty-lookout.ldif");
+	
+	protected static final int TASK_WAIT_TIMEOUT = 40000;
 
 	@Autowired(required = true)
 	private ReconciliationTaskHandler reconciliationTaskHandler;
@@ -1057,7 +1059,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 
-		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
 		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
@@ -1098,7 +1100,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 
-		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
 		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
@@ -1191,7 +1193,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 
-		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
 		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
