@@ -235,39 +235,16 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             	}
 				
 			};
-			
-			add(exportDataLink);
+            exportDataLink.add(new VisibleEnableBehaviour(){
+                private static final long serialVersionUID = 1L;
 
-//            CSVDataExporter csvDataExporter = new CSVDataExporter();
-//            final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
-//            	private static final long serialVersionUID = 1L;
-//				
-//				@Override
-//				public IResourceStream getResourceStream() {
-//					return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, mainObjectListPanel.getTable().getDataTable());
-//				}
-//				
-//				public String getFileName() {
-//					return mainObjectListPanel.getType().getSimpleName() +
-//		                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
-//				}
-//			}; 
-//			
-//            add(ajaxDownloadBehavior);
-//            
-//            AjaxIconButton exportDataLink = new AjaxIconButton(ID_EXPORT_DATA, new Model<>("fa fa-download"),
-//                    mainObjectListPanel.createStringResource("MainObjectListPanel.export")) {
-//
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                public void onClick(AjaxRequestTarget target) {
-//                    ajaxDownloadBehavior.initiate(target);
-//                }
-//            };
-//            
-//
-//            add(exportDataLink);
+                @Override
+                public boolean isVisible(){
+                    return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
+                }
+            });
+
+            add(exportDataLink);
 
         }
     }
