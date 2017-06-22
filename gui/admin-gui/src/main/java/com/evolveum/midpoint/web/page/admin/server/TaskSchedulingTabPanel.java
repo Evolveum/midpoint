@@ -41,6 +41,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -330,14 +331,19 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(schedulingTable);
 			}
+			
+			@Override
+			   public boolean isEnabled() {
+				   return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_RECURRENCE);
+			   }
 		};
 		recurringCheck.setOutputMarkupId(true);
-		recurringCheck.add(new VisibleEnableBehaviour() {
-							   @Override
-							   public boolean isEnabled() {
-								   return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_RECURRENCE);
-							   }
-						   });
+//		recurringCheck.add(new VisibleEnableBehaviour() {
+//							   @Override
+//							   public boolean isEnabled() {
+//								   return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_RECURRENCE);
+//							   }
+//						   });
 		recurringContainer.add(recurringCheck);
 
 		WebMarkupContainer suspendReqRecurring = new WebMarkupContainer(ID_SUSPEND_REQ_RECURRING);
@@ -354,13 +360,18 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(schedulingTable);
 			}
-		};
-		bound.add(new VisibleEnableBehaviour() {
+			
 			@Override
 			public boolean isEnabled() {
 				return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_BINDING);
 			}
-		});
+		};
+//		bound.add(new VisibleEnableBehaviour() {
+//			@Override
+//			public boolean isEnabled() {
+//				return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_BINDING);
+//			}
+//		});
 		boundContainer.add(bound);
 
 		WebMarkupContainer suspendReqBound = new WebMarkupContainer(ID_SUSPEND_REQ_BOUND);
@@ -382,7 +393,14 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		intervalContainer.setOutputMarkupId(true);
 		schedulingTable.add(intervalContainer);
 
-		TextField<Integer> interval = new TextField<>(ID_INTERVAL, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_INTERVAL));
+		TextField<Integer> interval = new TextField<Integer>(ID_INTERVAL, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_INTERVAL)) {
+			@Override
+			public boolean isEnabled() {
+				return parentPage.isEdit() && (!parentPage.getTaskDto().isRunnableOrRunning() || !boundCheckModel.getObject())
+						&& parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
+			}
+		};
+		
 		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		interval.add(enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable);
 		intervalContainer.add(interval);
