@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -66,6 +67,8 @@ public class ValueDisplayUtil {
             } else {
                 return "";
             }
+        } else if (value instanceof ScheduleType) {
+        	return SchemaDebugUtil.prettyPrint((ScheduleType) value);
         } else if (value instanceof ApprovalSchemaType) {
             ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) value;
             return approvalSchemaType.getName() + (approvalSchemaType.getDescription() != null ? (": " + approvalSchemaType.getDescription()) : "") + " (...)";
