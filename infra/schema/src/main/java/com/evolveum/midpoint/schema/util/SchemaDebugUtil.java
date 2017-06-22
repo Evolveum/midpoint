@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -334,7 +335,42 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-
+	
+	public static String prettyPrint(ScheduleType scheduleType) {
+		if (scheduleType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ScheduleType(");
+		if (scheduleType.getCronLikePattern() != null) {
+			sb.append("cronLikePattern:");
+			sb.append(scheduleType.getCronLikePattern());
+		}
+		
+		if (scheduleType.getEarliestStartTime() != null) {
+			sb.append("earliestStartTime:");
+			sb.append(prettyPrint(scheduleType.getEarliestStartTime()));
+		}
+		if (scheduleType.getInterval() != null) {
+			sb.append("interval:");
+			sb.append(prettyPrint(scheduleType.getInterval()));
+		}
+		if (scheduleType.getLatestStartTime() != null) {
+			sb.append("latestStartTime:");
+			sb.append(prettyPrint(scheduleType.getLatestStartTime()));
+		}
+		if (scheduleType.getLatestFinishTime() != null) {
+			sb.append("latestFinishTime:");
+			sb.append(prettyPrint(scheduleType.getLatestFinishTime()));
+		}
+		if (scheduleType.getMisfireAction() != null) {
+			sb.append("misfireAction:");
+			sb.append(prettyPrint(scheduleType.getMisfireAction()));
+		}
+		
+		sb.append(")");
+		return sb.toString();
+	}
+	
 	public static String prettyPrint(ObjectReferenceType ref) {
 		if (ref == null) {
 			return "null";
