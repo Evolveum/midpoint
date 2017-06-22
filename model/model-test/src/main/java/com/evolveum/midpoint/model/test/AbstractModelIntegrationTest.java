@@ -1787,6 +1787,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <F extends FocusType> void assertAssignedOrg(PrismObject<F> focus, String orgOid) {
 		MidPointAsserts.assertAssignedOrg(focus, orgOid);
 	}
+	
+	protected <F extends FocusType> void assertNotAssignedOrg(PrismObject<F> focus, String orgOid) {
+		MidPointAsserts.assertNotAssignedOrg(focus, orgOid);
+	}
 
 	protected void assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {
 		MidPointAsserts.assertAssignedOrg(user, org.getOid());
@@ -4157,6 +4161,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected String getTopOrgOid() {
 		return null;
+	}
+
+	protected void transplantGlobalPolicyRulesAdd(File configWithGlobalRulesFile, Task task, OperationResult parentResult) throws SchemaException, IOException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		// copy rules from the file into live system config object
+		PrismObject<SystemConfigurationType> rules = prismContext.parserFor(configWithGlobalRulesFile).parse();
+		ObjectDelta<SystemConfigurationType> delta = (ObjectDelta<SystemConfigurationType>) DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+				.item(SystemConfigurationType.F_GLOBAL_POLICY_RULE).add(
+					rules.asObjectable().getGlobalPolicyRule().stream()
+							.map(r -> r.clone().asPrismContainerValue())
+							.collect(Collectors.toList()))
+				.asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, parentResult);
 	}
 
 }

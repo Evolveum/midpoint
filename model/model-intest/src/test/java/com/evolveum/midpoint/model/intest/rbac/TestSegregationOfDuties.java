@@ -15,11 +15,12 @@
  */
 package com.evolveum.midpoint.model.intest.rbac;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -28,17 +29,37 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -107,6 +128,23 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	protected static final File ROLE_CONTROLLING_2_FILE = new File(TEST_DIR, "role-controlling-2.xml");
 	protected static final String ROLE_CONTROLLING_2_OID = "d20aefe6-3ecf-11e7-8068-5f346db1cc02";
 	
+	protected static final File ROLE_CITIZEN_SK_FILE = new File(TEST_DIR, "role-citizen-sk.xml");
+	protected static final String ROLE_CITIZEN_SK_OID = "88420574-5596-11e7-80e9-7f28005e6b39";
+
+	protected static final File ROLE_CITIZEN_US_FILE = new File(TEST_DIR, "role-citizen-us.xml");
+	protected static final String ROLE_CITIZEN_US_OID = "a58c5940-5596-11e7-a3a0-dba800ea7966";
+
+	protected static final File ROLE_MINISTER_FILE = new File(TEST_DIR, "role-minister.xml");
+	protected static final String ROLE_MINISTER_OID = "95565b4a-55a3-11e7-918a-3f59a532dbfc";
+
+	protected static final File ROLE_CRIMINAL_FILE = new File(TEST_DIR, "role-criminal.xml");
+	protected static final String ROLE_CRIMINAL_OID = "f6deb182-55a3-11e7-b519-27bdcd6d9490";
+
+	private static final File CONFIG_WITH_GLOBAL_RULES_EXCLUSION_FILE = new File(TEST_DIR, "global-policy-rules-exclusion.xml");
+	private static final File CONFIG_WITH_GLOBAL_RULES_SOD_APPROVAL_FILE = new File(TEST_DIR, "global-policy-rules-sod-approval.xml");
+	
+	private static final String GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME = "exclusion-global-sod-approval";
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -127,7 +165,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		repoAddObjectFromFile(ROLE_META_CONTROLLING_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CONTROLLING_1_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CONTROLLING_2_FILE, initResult);
-		
+		repoAddObjectFromFile(ROLE_CITIZEN_SK_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CITIZEN_US_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MINISTER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CRIMINAL_FILE, initResult);
 	}
 		
 	@Test
@@ -848,7 +889,34 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, ROLE_COLOR_BLUE_SHIP);
 	}
-	
+
+	@Test
+    public void test219GuybrushUnassignRoleBlue() throws Exception {
+		final String TEST_NAME = "test219GuybrushUnassignRoleBlue";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_COLOR_BLUE_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_RED_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_GREEN_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_BLUE_OID);
+        assertNotAssignedRole(userAfter, ROLE_COLOR_NONE_OID);
+        assertAssignments(userAfter, 0);
+        
+        assertNoDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
 	
 	/**
 	 * MID-3694
@@ -886,26 +954,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-                
-        try {
-	        // WHEN
-        	
-	        displayWhen(TEST_NAME);
-	        assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+
+        // WHEN    
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
         
-	        assertNotReached();
-	        
-        } catch (PolicyViolationException e) {
-        	
-        	// THEN
-        	displayThen(TEST_NAME);
-        	assertFailure(result);
-        }
-	                
-        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
-        display("User after", userAfter);
+    	// THEN
         assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);   
-        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
 	}
 	
 	/**
@@ -945,28 +999,14 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-                
-        try {
-	        // WHEN
-        	
-	        displayWhen(TEST_NAME);
-	        assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_2_OID, task, result);
+
+        // WHEN    
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CONTROLLING_2_OID, task, result);
         
-	        assertNotReached();
-	        
-        } catch (PolicyViolationException e) {
-        	
-        	// THEN
-        	displayThen(TEST_NAME);
-        	assertFailure(result);
-        }
-	                
-        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
-        display("User after", userAfter);
+    	// THEN
         assertAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
         assertAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
         assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
-        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
 	}
 
 	/**
@@ -1005,27 +1045,13 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-                
-        try {
-	        // WHEN
-        	
-	        displayWhen(TEST_NAME);
-	        assignRole(USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
         
-	        assertNotReached();
-	        
-        } catch (PolicyViolationException e) {
-        	
-        	// THEN
-        	displayThen(TEST_NAME);
-        	assertFailure(result);
-        }
-	                
-        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
-        display("User after", userAfter);
+        // WHEN    
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CONTROLLING_1_OID, task, result);
+        
+    	// THEN
         assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
         assertAssignedRole(userAfter, ROLE_EXECUTIVE_2_OID);
-        assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
         assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
 	}
 	
@@ -1093,26 +1119,12 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-                
-        try {
-	        // WHEN
-        	
-	        displayWhen(TEST_NAME);
-	        assignRole(USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
         
-	        assertNotReached();
-	        
-        } catch (PolicyViolationException e) {
-        	
-        	// THEN
-        	displayThen(TEST_NAME);
-        	assertFailure(result);
-        }
-	                
-        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
-        display("User after", userAfter);
+        // WHEN
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_EXECUTIVE_1_OID, task, result);
+            	
+    	// THEN	                
         assertAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);   
-        assertNotAssignedRole(userAfter, ROLE_EXECUTIVE_1_OID);
 	}
 	
 	/**
@@ -1142,4 +1154,429 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_CONTROLLING_1_OID);
         assertNotAssignedRole(userAfter, ROLE_CONTROLLING_2_OID);
 	}
+	
+	@Test
+    public void test800ApplyGlobalPolicyRulesExclusion() throws Exception {
+		final String TEST_NAME = "test800ApplyGlobalPolicyRulesExclusion";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_EXCLUSION_FILE, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        List<GlobalPolicyRuleType> globalPolicyRules = getSystemConfiguration().getGlobalPolicyRule();
+        display("Global policy rules", globalPolicyRules);
+        assertEquals("Wrong number of global policy rules", NUMBER_OF_GLOBAL_POLICY_RULES + 1, globalPolicyRules.size());
+	}
+
+	@Test
+    public void test810GuybrushAssignRoleCitizenSk() throws Exception {
+		final String TEST_NAME = "test810GuybrushAssignRoleCitizenSk";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_CITIZEN_SK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CITIZEN_SK_OID);        
+	}
+
+	@Test
+    public void test812GuybrushAssignRoleCitizenUs() throws Exception {
+		final String TEST_NAME = "test812GuybrushAssignRoleCitizenUs";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+            
+        // WHEN
+        PrismObject<UserType> userAfter = assignRolePolicyFailure(TEST_NAME, USER_GUYBRUSH_OID, ROLE_CITIZEN_US_OID, task, result);
+            	
+    	// THEN
+        assertAssignedRole(userAfter, ROLE_CITIZEN_SK_OID);   
+	}
+	
+	/**
+	 * Assign non-citizen role. This should go smoothly.
+	 */
+	@Test
+    public void test814GuybrushAssignRoleEmpty() throws Exception {
+		final String TEST_NAME = "test814GuybrushAssignRoleEmpty";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_EMPTY_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CITIZEN_SK_OID);
+        assertAssignedRole(userAfter, ROLE_EMPTY_OID);
+	}
+	
+	@Test
+    public void test818GuybrushUnassignRoleCitizenSk() throws Exception {
+		final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_CITIZEN_SK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_CITIZEN_SK_OID);
+        assertNotAssignedRole(userAfter, ROLE_CITIZEN_US_OID);
+        assertAssignedRole(userAfter, ROLE_EMPTY_OID);
+        assertAssignments(userAfter, 1);
+	}
+
+	@Test
+    public void test819GuybrushUnassignRoleEmpty() throws Exception {
+		final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_EMPTY_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+	}
+
+	/**
+	 * Minister and Criminal are mutually exclusive. But there is not enforcement for
+	 * this (yet).
+	 */
+	@Test
+    public void test820GuybrushAssignRoleCriminal() throws Exception {
+		final String TEST_NAME = "test820GuybrushAssignRoleCriminal";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CRIMINAL_OID);        
+	}
+
+	/**
+	 * Minister and Criminal are mutually exclusive. But there is not enforcement for
+	 * this (yet). So the assignment should go smoothly. Policy situation should be indicated.
+	 */
+	@Test
+    public void test822GuybrushAssignRoleMinister() throws Exception {
+		final String TEST_NAME = "test822GuybrushAssignRoleMinister";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_MINISTER_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CRIMINAL_OID);
+        assertAssignedRole(userAfter, ROLE_MINISTER_OID);
+        
+        assertPolicySituation(userAfter, ROLE_MINISTER_OID, SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION);
+	}
+
+	@Test
+    public void test826GuybrushUnassignRoleCriminal() throws Exception {
+		final String TEST_NAME = "test826GuybrushUnassignRoleCriminal";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_CRIMINAL_OID);
+        assertAssignedRole(userAfter, ROLE_MINISTER_OID);        
+	}
+
+	@Test
+    public void test829GuybrushUnassignRoleMinister() throws Exception {
+		final String TEST_NAME = "test829GuybrushUnassignRoleMinister";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_MINISTER_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_CRIMINAL_OID);
+        assertNotAssignedRole(userAfter, ROLE_MINISTER_OID);        
+	}
+	
+	@Test
+    public void test900ApplyGlobalPolicyRulesSoDApproval() throws Exception {
+		final String TEST_NAME = "test900ApplyGlobalPolicyRulesSoDApproval";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        transplantGlobalPolicyRulesAdd(CONFIG_WITH_GLOBAL_RULES_SOD_APPROVAL_FILE, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        List<GlobalPolicyRuleType> globalPolicyRules = getSystemConfiguration().getGlobalPolicyRule();
+        assertEquals("Wrong number of global policy rules", NUMBER_OF_GLOBAL_POLICY_RULES + 2, globalPolicyRules.size());
+	}
+	
+
+	/**
+	 * Minister and Criminal are mutually exclusive. There is not enforcement for
+	 * this in the roles. But now there is a global policy rule that drives this through
+	 * an approval. This should NOT be triggered yet, so this assignment should go smoothly.
+	 */
+	@Test
+    public void test920GuybrushAssignRoleCriminal() throws Exception {
+		final String TEST_NAME = "test920GuybrushAssignRoleCriminal";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_CRIMINAL_OID);
+        assertAssignments(userAfter, 1);
+	}
+
+	/**
+	 * Minister and Criminal are mutually exclusive. There is not enforcement for
+	 * this in the roles. But now there is a global policy rule that drives this through
+	 * an approval. This should NOT be triggered yet. We do not want to deal with the
+	 * complexities of approval in this test. So we are only interested in whether the
+	 * preview works correctly - that it indicates that the rule was triggered.
+	 */
+	@Test
+    public void test922GuybrushPreviewAssignRoleMinister() throws Exception {
+		final String TEST_NAME = "test922GuybrushPreviewAssignRoleMinister";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectDelta<UserType> delta = createAssignmentFocusDelta(UserType.class, USER_GUYBRUSH_OID, 
+        		ROLE_MINISTER_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        display("Preview context", modelContext);
+        
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+        
+        Collection<? extends EvaluatedAssignment> evaluatedAssignmentsZero = evaluatedAssignmentTriple.getZeroSet();
+        assertEquals("Wrong number of evaluated assignments (zero)", 1, evaluatedAssignmentsZero.size());
+        
+        PrismAsserts.assertTripleNoMinus(evaluatedAssignmentTriple);
+        
+        Collection<? extends EvaluatedAssignment> evaluatedAssignmentsPlus = evaluatedAssignmentTriple.getPlusSet();
+        assertEquals("Wrong number of evaluated assignments (plus)", 1, evaluatedAssignmentsPlus.size());
+        EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignmentsPlus.iterator().next();
+        DeltaSetTriple<? extends EvaluatedAssignmentTarget> rolesTriple = evaluatedAssignment.getRoles();
+        PrismAsserts.assertTripleNoPlus(rolesTriple);
+        PrismAsserts.assertTripleNoMinus(rolesTriple);
+        Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = rolesTriple.getZeroSet();
+        assertEquals("Wrong number of evaluated role", 1, evaluatedRoles.size());
+        assertEvaluatedRole(evaluatedRoles, ROLE_MINISTER_OID);
+        Collection<EvaluatedPolicyRule> allTargetsPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+        display("Evaluated policy rules", allTargetsPolicyRules);
+        assertEquals("Wrong number of evaluated policy rules", 2, allTargetsPolicyRules.size());
+        EvaluatedPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
+        EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
+        display("Own trigger", sodTrigger);
+        assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
+        EvaluatedPolicyRuleTrigger situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
+        display("Situation trigger", situationTrigger);
+        PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
+        display("Actions", sodActions);
+        assertPolicyActionApproval(evaluatedSodPolicyRule);
+	}
+
+	private void assertPolicyActionApproval(EvaluatedPolicyRule evaluatedPolicyRule) {
+		PolicyActionsType actions = evaluatedPolicyRule.getActions();
+		assertNotNull("No policy actions in "+evaluatedPolicyRule);
+		assertNotNull("No approval action in "+evaluatedPolicyRule, actions.getApproval());
+	}
+
+	private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
+			Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
+		assertEquals("Wrong number of triggers in evaluated policy rule "+evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
+	}
+
+	private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		assertEvaluatedPolicyRuleTriggers(evaluatedPolicyRule, triggers, 1);
+		return triggers.iterator().next();
+	}
+	
+	private EvaluatedPolicyRuleTrigger getEvaluatedPolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule,
+			Collection<EvaluatedPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
+		return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
+	}
+
+
+	private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
+		return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
+	}
+
+	@Test
+    public void test929GuybrushUnassignRoleCriminal() throws Exception {
+		final String TEST_NAME = "test929GuybrushUnassignRoleCriminal";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+                
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_GUYBRUSH_OID, ROLE_CRIMINAL_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, ROLE_CRIMINAL_OID);
+        assertNotAssignedRole(userAfter, ROLE_MINISTER_OID);
+	}
+	
+	private PrismObject<UserType> assignRolePolicyFailure(String TEST_NAME, String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, SecurityViolationException {
+		try {
+	        // WHEN
+        	
+	        displayWhen(TEST_NAME);
+	        assignRole(userOid, roleOid, task, result);
+        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	
+        	// THEN
+        	displayThen(TEST_NAME);
+        	assertFailure(result);
+        }
+		
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertNotAssignedRole(userAfter, roleOid);
+        return userAfter;
+	}
+	
+	private void assertPolicySituation(PrismObject<UserType> user, String targetOid, String... expectedPolicySituation) {
+		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null && targetOid.equals(targetRef.getOid())) {
+				PrismAsserts.assertSets("Wrong policy situation for target "+targetOid+" in "+user, assignment.getPolicySituation(), expectedPolicySituation);
+			}
+		}		
+	}
+
+
 }

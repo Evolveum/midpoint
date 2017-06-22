@@ -20,16 +20,21 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -59,6 +64,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 
 
@@ -697,6 +704,143 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * User template will assign organizations to this user. However, the user
+	 * does not have request authorization for organizations. Check that this
+	 * proceeds smoothly.
+	 * MID-3996
+	 */
+	@Test
+    public void test200AutzJackModifyOrgunit() throws Exception {
+		final String TEST_NAME = "test200AutzJackModifyOrgunit";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        // This is supposed to fail. Jack does not have authorization for org assignment
+        assertDeny("assign org to jack", 
+        		(task, result) -> assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result));
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 1);
+        
+        // ... but this should work. Indirect assignment in object template is OK.
+        assertModifyAllow(UserType.class, USER_JACK_OID, 
+        		UserType.F_ORGANIZATIONAL_UNIT, createPolyString(ORG_SCUMM_BAR_NAME));
+
+        user = getUser(USER_JACK_OID);
+        display("Jack in medias res", user);
+        assertAssignments(user, 2);
+        assertAssignedOrg(user, ORG_SCUMM_BAR_OID);
+         
+        assertModifyAllow(UserType.class, USER_JACK_OID, 
+        		UserType.F_ORGANIZATIONAL_UNIT, createPolyString(ORG_MINISTRY_OF_RUM_NAME));
+
+        user = getUser(USER_JACK_OID);
+        display("Jack in medias res", user);
+        assertAssignments(user, 2);
+        assertAssignedOrg(user, ORG_MINISTRY_OF_RUM_OID);
+        
+        assertModifyAllow(UserType.class, USER_JACK_OID, 
+        		UserType.F_ORGANIZATIONAL_UNIT);
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 1);
+                
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * User template will assign organizations to this user. However, the user
+	 * does not have request authorization for organizations. Check that this
+	 * proceeds smoothly.
+	 * Similar to the previous test, we just try to confuse midPoint by assigning
+	 * (requestable) role and modifying the orgunit at the same time.
+	 * MID-3996
+	 */
+	@Test
+    public void test202AutzJackModifyOrgunitAndAssignRole() throws Exception {
+		final String TEST_NAME = "test202AutzJackModifyOrgunitAndAssignRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);        
+        assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
+        assignRole(USER_JACK_OID, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        // This is supposed to fail. Jack does not have authorization for org assignment
+        assertDeny("assign org to jack", 
+        		(task, result) -> assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result));
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        
+        assertAllow("doing the thing", 
+        		(task, result) -> {
+        			ObjectDelta<UserType> focusDelta = createAssignmentFocusDelta(UserType.class, USER_JACK_OID,
+        					ROLE_BUSINESS_1_OID, RoleType.COMPLEX_TYPE, null, null, true);
+        			focusDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT, createPolyString(ORG_SCUMM_BAR_NAME));
+        			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
+        			modelService.executeChanges(deltas, null, task, result);
+        		});
+        
+        user = getUser(USER_JACK_OID);
+        display("Jack in medias res", user);
+        assertAssignments(user, 4);
+        assertAssignedOrg(user, ORG_SCUMM_BAR_OID);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+         
+        assertModifyAllow(UserType.class, USER_JACK_OID, 
+        		UserType.F_ORGANIZATIONAL_UNIT, createPolyString(ORG_MINISTRY_OF_RUM_NAME));
+
+        user = getUser(USER_JACK_OID);
+        display("Jack in medias res", user);
+        assertAssignments(user, 4);
+        assertAssignedOrg(user, ORG_MINISTRY_OF_RUM_OID);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+        
+        assertModifyAllow(UserType.class, USER_JACK_OID, 
+        		UserType.F_ORGANIZATIONAL_UNIT);
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_BUSINESS_1_OID);
+        assertNotAssignedOrg(user, ORG_MINISTRY_OF_RUM_OID);
+                
+        assertAllow("unassign role from jack", 
+        		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, task, result));
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertNotAssignedRole(user, ROLE_BUSINESS_1_OID);
+        
         assertGlobalStateUntouched();
 	}
     

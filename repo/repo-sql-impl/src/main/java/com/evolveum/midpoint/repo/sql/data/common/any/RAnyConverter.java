@@ -245,7 +245,8 @@ public class RAnyConverter {
             return (T) object;
         }
 
-        throw new IllegalStateException("Can't extract value for saving from prism property value\n" + value);
+        throw new IllegalStateException("Can't extract value for saving from prism property value " + value + " expected return type " + returnType
+        		+", actual type "+(object == null ? null : object.getClass()));
     }
 
     private static ValueType getValueType(QName qname) {

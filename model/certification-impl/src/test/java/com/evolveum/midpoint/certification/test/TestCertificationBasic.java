@@ -176,7 +176,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         }
     }
 
-    @Test(enabled = false)      // https://jira.evolveum.com/browse/MID-3878
+    @Test
     public void test010CreateCampaignAllowedForDeputy() throws Exception {
         final String TEST_NAME = "test010CreateCampaignAllowedForDeputy";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -204,10 +204,14 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaign", campaign);
         assertAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
+
+        // delete the campaign to keep other tests working
+        login(userAdministrator.asPrismObject());
+        deleteObject(AccessCertificationCampaignType.class, campaignOid);
     }
 
     @Test
-    public void test010CreateCampaignAllowed() throws Exception {
+    public void test011CreateCampaignAllowed() throws Exception {
         final String TEST_NAME = "test010CreateCampaignAllowed";
         TestUtil.displayTestTile(this, TEST_NAME);
 
@@ -347,7 +351,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     public void test031SearchAllCasesDeniedLimitedDeputy() throws Exception {
         final String TEST_NAME = "test031SearchAllCasesDeniedLimitedDeputy";
         TestUtil.displayTestTile(this, TEST_NAME);
-        login(getUserFromRepo(USER_BOB_DEPUTY_NO_PRIVILEGES_OID));
+        login(getUserFromRepo(USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
     }

@@ -517,10 +517,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 				}
 			}
 			if (multiline) {
-				sb.append("\n");
-				Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
-				while(iterator.hasNext()) {
-					PrismPropertyValue<T> value = iterator.next();
+				
+				for (PrismPropertyValue<T> value: getValues()) {
+					sb.append("\n");
 					if (value.isRaw()) {
 						sb.append(formatRawValueForDump(value.getRawElement()));
 						sb.append(" (raw)");
@@ -535,12 +534,9 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismPropertyDe
 							if (DebugUtil.isDetailedDebugDump()) {
 								sb.append(PrettyPrinter.prettyPrint(value));
 							} else {
-								PrismPropertyValue.debugDumpValue(sb, indent + 1, value.getValue(), prismContext);
+								PrismPropertyValue.debugDumpValue(sb, indent + 1, realValue, prismContext);
 							}
 						}
-					}
-					if (iterator.hasNext()) {
-						sb.append("\n");
 					}
 				}
 			} else {

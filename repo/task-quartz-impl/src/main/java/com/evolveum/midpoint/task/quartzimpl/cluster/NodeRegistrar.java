@@ -19,6 +19,7 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -76,7 +77,7 @@ public class NodeRegistrar {
      *
      * @param result Node prism to be used for periodic re-registrations.
      */
-    PrismObject<NodeType> createNodeObject(OperationResult result) throws TaskManagerInitializationException {
+    void createNodeObject(OperationResult result) throws TaskManagerInitializationException {
 
         nodePrism = createNodePrism(taskManager.getConfiguration());
         NodeType node = nodePrism.asObjectable();
@@ -90,12 +91,32 @@ public class NodeRegistrar {
             throw new TaskManagerInitializationException("Node registration failed because of schema exception", e);
         }
 
+        if (nodes.size() == 1) {
+            PrismObject<NodeType> currentNode = nodes.get(0);
+            ObjectDelta<NodeType> nodeDelta = currentNode.diff(nodePrism, false, true);
+            LOGGER.debug("Applying delta to existing node object:\n{}", nodeDelta.debugDumpLazily());
+            try {
+                getRepositoryService().modifyObject(NodeType.class, currentNode.getOid(), nodeDelta.getModifications(), result);
+                LOGGER.debug("Node was successfully updated in the repository.");
+                nodePrism.setOid(currentNode.getOid());
+                return;
+            } catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update node object on system initialization; will re-create the node", e);
+            }
+        }
+
+        // either there is no node, more nodes, or there was some problem during updating the node
+
+        if (nodes.size() > 1) {
+            LOGGER.warn("More than one node with the name of {}: removing all of them.", node.getName());
+        }
+
         for (PrismObject<NodeType> n : nodes) {
-            LOGGER.trace("Removing existing NodeType with oid = {}, name = {}", n.getOid(), n.getElementName());
+            LOGGER.debug("Removing existing NodeType with oid = {}, name = {}", n.getOid(), n.getName());
             try {
                 getRepositoryService().deleteObject(NodeType.class, n.getOid(), result);
             } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Cannot remove NodeType with oid = {}, name = {}, because it does not exist.", e, n.getOid(), n.getElementName());
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot remove NodeType with oid = {}, name = {}, because it does not exist.", e, n.getOid(), n.getElementName());
                 // continue, because the error is not that severe (we hope so)
             }
         }
@@ -111,8 +132,7 @@ public class NodeRegistrar {
             throw new TaskManagerInitializationException("Cannot register this node because of schema exception", e);
         }
 
-        LOGGER.trace("Node was successfully registered in the repository.");
-        return nodePrism;
+        LOGGER.debug("Node was successfully registered (created) in the repository.");
     }
 
     private PrismObject<NodeType> createNodePrism(TaskManagerConfiguration configuration) {
@@ -178,28 +198,6 @@ public class NodeRegistrar {
         return PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_LAST_CHECK_IN_TIME, getCurrentTime());
     }
 
-
-    /**
-     * Removes current node from the repository (currently not used; recordNodeShutdown is used instead).
-     *
-     * @param result
-     */
-    @Deprecated
-    void removeNodeObject(OperationResult result) {
-
-        String oid = nodePrism.getOid();
-        String name = nodePrism.asObjectable().getNodeIdentifier();
-
-        LOGGER.trace("Removing this node from the repository (name {}, oid {})", name, oid);
-        try {
-            getRepositoryService().deleteObject(NodeType.class, oid, result);
-            LOGGER.trace("Node successfully unregistered (removed).");
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Cannot unregister (remove) this node (name {}, oid {}), because it does not exist.", e,
-                    name, oid);
-        }
-
-    }
 
     /**
      * Registers the node going down (sets running attribute to false).

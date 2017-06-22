@@ -236,13 +236,10 @@ public class PrettyPrinter {
 			printlen = BYTE_ARRAY_MAX_LEN;
 		}
 		for(int i=0; i < printlen; i++) {
-			sb.append(Byte.toString(value[i]));
-			if (i < printlen) {
-				sb.append(',');
-			}
+			sb.append(String.format("%02x", value[i] & 0xff));
 		}
 		if (value.length > BYTE_ARRAY_MAX_LEN) {
-			sb.append(",... ");
+			sb.append("... ");
 			sb.append(value.length);
 			sb.append(" bytes total");
 		}
