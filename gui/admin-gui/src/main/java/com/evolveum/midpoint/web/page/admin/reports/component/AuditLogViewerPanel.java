@@ -186,9 +186,9 @@ public class AuditLogViewerPanel extends BasePanel {
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-        feedback.setOutputMarkupId(true);
-        mainForm.add(feedback);
+//        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+//        feedback.setOutputMarkupId(true);
+//        mainForm.add(feedback);
 
         initParametersPanel(mainForm);
         addOrReplaceTable(mainForm);
@@ -347,14 +347,14 @@ public class AuditLogViewerPanel extends BasePanel {
                 auditLogStorage.setPageNumber(0);
                 Form mainForm = (Form) getParent().getParent();
                 addOrReplaceTable(mainForm);
-                getFeedbackPanel().getFeedbackMessages().clear();
-                target.add(getFeedbackPanel());
+                pageBase.getFeedbackPanel().getFeedbackMessages().clear();
+                target.add(pageBase.getFeedbackPanel());
                 target.add(mainForm);
             }
 
             @Override
         protected void onError(AjaxRequestTarget target, Form<?> form){
-                target.add(getFeedbackPanel());
+                target.add(pageBase.getFeedbackPanel());
             }
         };
         
@@ -624,7 +624,7 @@ public class AuditLogViewerPanel extends BasePanel {
         item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
     }
 
-    public WebMarkupContainer getFeedbackPanel() {
-        return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
-    }
+//    public WebMarkupContainer getFeedbackPanel() {
+//        return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
+//    }
 }
