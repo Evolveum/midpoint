@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -130,7 +131,7 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                                 sb.append("fa fa-circle-o");
                                 break;
                             case 1:
-                                sb.append("fa fa-file-text-o");
+                                sb.append(GuiStyleConstants.CLASS_FILE_TEXT);
                                 break;
                         }
                         return sb.toString();

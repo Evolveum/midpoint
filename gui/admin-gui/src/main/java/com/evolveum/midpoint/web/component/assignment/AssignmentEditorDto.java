@@ -24,6 +24,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
@@ -36,13 +38,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,6 +49,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import org.apache.cxf.common.util.StringUtils;
 
 /**
  * TODO: unify with AssignmentItemDto
@@ -219,7 +215,12 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			return AssignmentEditorDtoType.getType(assignment.getTarget().getClass());
 		} else if (assignment.getTargetRef() != null) {
 			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
-		} // account assignment through account construction
+		}
+		if (assignment.asPrismContainerValue() != null
+				&& assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null){
+			return AssignmentEditorDtoType.POLICY_RULE;
+		}
+		// account assignment through account construction
 		return AssignmentEditorDtoType.CONSTRUCTION;
 
 	}
@@ -396,6 +397,16 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			return null;
 		}
 
+		if (AssignmentEditorDtoType.POLICY_RULE.equals(type)){
+			PrismContainer<PolicyRuleType> policyRuleContainer = (PrismContainer<PolicyRuleType>)assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE);
+			PrismProperty policyRuleNameProperty = policyRuleContainer != null && policyRuleContainer.getValue() != null ?
+					(PrismProperty)policyRuleContainer.getValue().find(new ItemPath(PolicyRuleType.F_NAME)) : null;
+			String policyRuleName = policyRuleNameProperty != null ?
+					policyRuleNameProperty.getValue().getValue().toString() : "";
+			return pageBase.createStringResource("AssignmentEditorDto.policyRuleTitle").getString() +
+					(StringUtils.isEmpty(policyRuleName) ? "" : " - " + policyRuleName);
+
+		}
 		StringBuilder sb = new StringBuilder();
 
 		if (assignment.getConstruction() != null) {

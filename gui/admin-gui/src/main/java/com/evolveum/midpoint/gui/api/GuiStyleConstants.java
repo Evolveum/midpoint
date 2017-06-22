@@ -145,4 +145,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_MINUS_CIRCLE = "fa fa-minus-circle";
 	public static final String CLASS_MINUS_CIRCLE_DANGER = CLASS_MINUS_CIRCLE + " text-danger";
 	public static final String CLASS_CIRCLE_FULL = "fa fa-circle";
+
+	public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
+
 }
