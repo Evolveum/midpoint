@@ -85,4 +85,27 @@
 			</filter>
 		</targetSelector>
 	</globalPolicyRule>
+	<globalPolicyRule>
+		<policyConstraints>
+			<assignment>
+				<operation>add</operation>
+				<relation>q:any</relation>
+			</assignment>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+			<filter>
+				<q:equal>
+					<q:path>name</q:path>
+					<q:value>Role15</q:value>
+				</q:equal>
+			</filter>
+		</targetSelector>
+	</globalPolicyRule>
 </systemConfiguration>

@@ -109,11 +109,11 @@ public class TestPasswordDefault extends AbstractPasswordTest {
         
         // Check account in dummy resource (red)
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
+        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
         
         // User and default dummy account should have unchanged passwords
-        assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
-     	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_A_CLEAR);
+        assertUserPassword(userAfter, USER_PASSWORD_AA_CLEAR);
+     	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);

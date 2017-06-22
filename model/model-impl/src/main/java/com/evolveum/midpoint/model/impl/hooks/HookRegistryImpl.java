@@ -15,9 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.hooks;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import org.springframework.stereotype.Component;
@@ -40,8 +38,11 @@ public class HookRegistryImpl implements HookRegistry {
     }
 
     @Override
-    public Collection<ChangeHook> getAllChangeHooks() {
-        return changeHookMap.values();
+    public List<ChangeHook> getAllChangeHooks() {
+        List<ChangeHook> rv = new ArrayList<>();
+        rv.addAll(changeHookMap.values());
+        rv.sort(Comparator.comparing(ChangeHook::getPriority));
+        return rv;
     }
 
     @Override

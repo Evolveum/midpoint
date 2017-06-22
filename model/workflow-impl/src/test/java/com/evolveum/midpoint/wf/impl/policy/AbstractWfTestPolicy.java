@@ -99,6 +99,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_LEAD2_FILE = new File(TEST_RESOURCE_DIR, "user-lead2.xml");
 	protected static final File USER_LEAD3_FILE = new File(TEST_RESOURCE_DIR, "user-lead3.xml");
 	protected static final File USER_LEAD10_FILE = new File(TEST_RESOURCE_DIR, "user-lead10.xml");
+	protected static final File USER_LEAD15_FILE = new File(TEST_RESOURCE_DIR, "user-lead15.xml");
 	protected static final File USER_SECURITY_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver.xml");
 	protected static final File USER_SECURITY_APPROVER_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy.xml");
 	protected static final File USER_SECURITY_APPROVER_DEPUTY_LIMITED_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy-limited.xml");
@@ -124,6 +125,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File ROLE_ROLE10_FILE = new File(TEST_RESOURCE_DIR, "role-role10.xml");
 	protected static final File ROLE_ROLE10A_FILE = new File(TEST_RESOURCE_DIR, "role-role10a.xml");
 	protected static final File ROLE_ROLE10B_FILE = new File(TEST_RESOURCE_DIR, "role-role10b.xml");
+	protected static final File ROLE_ROLE15_FILE = new File(TEST_RESOURCE_DIR, "role-role15.xml");
 	protected static final File ROLE_FOCUS_ASSIGNMENT_MAPPING = new File(TEST_RESOURCE_DIR, "role-focus-assignment-mapping.xml");
 
 	protected static final File USER_TEMPLATE_ASSIGNING_ROLE_1A = new File(TEST_RESOURCE_DIR, "user-template-assigning-role1a.xml");
@@ -137,7 +139,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String userLead1Deputy2Oid;
 	protected String userLead2Oid;
 	protected String userLead3Oid;
-	protected String userLead10Oid;
+	protected String userLead10Oid;			// imported later
+	protected String userLead15Oid;
 	protected String userSecurityApproverOid;
 	protected String userSecurityApproverDeputyOid;
 	protected String userSecurityApproverDeputyLimitedOid;
@@ -162,6 +165,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String roleRole10Oid;
 	protected String roleRole10aOid;
 	protected String roleRole10bOid;
+	protected String roleRole15Oid;
 	protected String roleFocusAssignmentMapping;
 
 	protected String userTemplateAssigningRole1aOid;
@@ -225,11 +229,13 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		roleRole10Oid = repoAddObjectFromFile(ROLE_ROLE10_FILE, initResult).getOid();
 		roleRole10aOid = repoAddObjectFromFile(ROLE_ROLE10A_FILE, initResult).getOid();
 		roleRole10bOid = repoAddObjectFromFile(ROLE_ROLE10B_FILE, initResult).getOid();
+		roleRole15Oid = repoAddObjectFromFile(ROLE_ROLE15_FILE, initResult).getOid();
 		roleFocusAssignmentMapping = repoAddObjectFromFile(ROLE_FOCUS_ASSIGNMENT_MAPPING, initResult).getOid();
 
 		userLead1Oid = addAndRecomputeUser(USER_LEAD1_FILE, initTask, initResult);
 		userLead2Oid = addAndRecomputeUser(USER_LEAD2_FILE, initTask, initResult);
 		userLead3Oid = addAndRecomputeUser(USER_LEAD3_FILE, initTask, initResult);
+		userLead15Oid = addAndRecomputeUser(USER_LEAD15_FILE, initTask, initResult);
 		// LEAD10 will be imported later!
 		userSecurityApproverOid = addAndRecomputeUser(USER_SECURITY_APPROVER_FILE, initTask, initResult);
 		userSecurityApproverDeputyOid = addAndRecomputeUser(USER_SECURITY_APPROVER_DEPUTY_FILE, initTask, initResult);

@@ -396,6 +396,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File PASSWORD_POLICY_GLOBAL_FILE = new File(COMMON_DIR,  "password-policy-global.xml");
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
+	protected static final File PASSWORD_POLICY_BENEVOLENT_FILE = new File(COMMON_DIR,  "password-policy-benevolent.xml");
+	protected static final String PASSWORD_POLICY_BENEVOLENT_OID = "ed8026dc-569a-11e7-abdf-4fce56706755";
+	
 	protected static final File ORG_MONKEY_ISLAND_FILE = new File(COMMON_DIR, "org-monkey-island.xml");
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
@@ -404,6 +407,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
     protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
 	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
+	protected static final String ORG_MINISTRY_OF_RUM_NAME = "F0004";
 	protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";
 	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
 	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
@@ -459,6 +463,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
 	protected static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
 	protected static final QName PIRACY_MARK = new QName(NS_PIRACY, "mark");
+	protected static final QName PIRACY_KEY = new QName(NS_PIRACY, "key");
 
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 

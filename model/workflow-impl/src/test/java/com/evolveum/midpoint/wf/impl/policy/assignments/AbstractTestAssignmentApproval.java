@@ -494,6 +494,11 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	}
 
 	@Test
+	public void test300ApprovalAndEnforce() throws Exception {
+		// ignored by default (put here so that zzzMarkAsNotInitialized() will be executed after this one!)
+	}
+
+	@Test
 	public void zzzMarkAsNotInitialized() {
 		display("Setting class as not initialized");
 		unsetSystemInitialized();

@@ -39,6 +39,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
 import javax.xml.namespace.QName;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -198,7 +200,15 @@ public class PrismUtil {
 			return false;
 		}
 		if (matchingRule == null) {
-			return a.equals(b);
+			if (a instanceof byte[]) {
+				if (b instanceof byte[]) {
+					return Arrays.equals((byte[])a, (byte[])b);
+				} else {
+					return false;
+				}
+			} else {
+				return a.equals(b);
+			}
 		} else {
 			return matchingRule.match(a, b);
 		}

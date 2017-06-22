@@ -16,9 +16,18 @@
 
 package com.evolveum.midpoint.wf.impl.policy.assignments.global;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.List;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Shouldn't be used, as global policy rules for assignments are not implemented yet.
@@ -58,6 +67,28 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 			case 10: return "Role10";
 			default: throw new IllegalArgumentException("Wrong role number: " + number);
 		}
+	}
+
+	/**
+	 * MID-3836
+	 */
+	public void test300ApprovalAndEnforce() throws Exception {
+		final String TEST_NAME = "test300ApprovalAndEnforce";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		task.setOwner(userAdministrator);
+		OperationResult result = task.getResult();
+
+		try {
+			assignRole(userJackOid, roleRole15Oid, task, result);
+		} catch (PolicyViolationException e) {
+			// ok
+			System.out.println("Got expected exception: " + e);
+		}
+		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		display("current work items", currentWorkItems);
+		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
 	}
 
 }

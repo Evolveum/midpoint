@@ -124,7 +124,7 @@ public class ProjectionCredentialsProcessor {
 		}
 	}
 	
-	public <F extends FocusType> void processProjectionCredentialsFocus(LensContext<F> context,
+	private <F extends FocusType> void processProjectionCredentialsFocus(LensContext<F> context,
 			LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {

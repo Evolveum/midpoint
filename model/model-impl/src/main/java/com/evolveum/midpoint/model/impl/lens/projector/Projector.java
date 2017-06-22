@@ -419,9 +419,10 @@ public class Projector {
 						throw e;
 					}
 				} else {
-					if (ExceptionUtil.isSelected(errorSelector, e)) {
+					if (ExceptionUtil.isSelected(errorSelector, e, true)) {
 						throw e;
 					} else {
+						LOGGER.warn("Exception {} selected as non-critical in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
 						// Just continue evaluation. The error is recorded in the result.
 					}
 				}

@@ -1162,8 +1162,9 @@ public class Clockwork {
 				sb.toString());
 	}
 	
-	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException {
+	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
 		OperationResult result = parentResult.createMinorSubresult(Clockwork.class.getName()+".authorizeRequest");
+		LOGGER.trace("Authorizing request");
 		try {
 			
 			final LensFocusContext<F> focusContext = context.getFocusContext();
@@ -1177,14 +1178,16 @@ public class Clockwork {
 			context.setRequestAuthorized(true);
 			result.recordSuccess();
 			
-		} catch (SecurityViolationException | SchemaException | RuntimeException | Error e) {
+			LOGGER.trace("Request authorized");
+			
+		} catch (Throwable e) {
 			result.recordFatalError(e);
 			throw e;
 		}
 	}
 	
 	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,
-			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
@@ -1211,7 +1214,9 @@ public class Clockwork {
 							operationUrl, getRequestAuthorizationPhase(context));
 					if (assignmentItemDecision == AuthorizationDecisionType.ALLOW) {
 						// Nothing to do, operation is allowed for all values
+						LOGGER.debug("Allow assignment/unassignment to {} becasue access to assignment container is explicitly allowed", object);
 					} else if (assignmentItemDecision == AuthorizationDecisionType.DENY) {
+						LOGGER.debug("Deny assignment/unassignment to {} becasue access to assignment container is explicitly denied", object);
 						throw new AuthorizationException("Access denied");
 					} else {
 						AuthorizationDecisionType actionDecision = securityConstraints.getActionDecision(operationUrl, getRequestAuthorizationPhase(context));
@@ -1221,16 +1226,14 @@ public class Clockwork {
 							throw new AuthorizationException("Access denied");
 						} else {
 							// No explicit decision for assignment modification yet
-							// process each assignment individually
-							DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-							
+							// process each assignment individually							
 							authorizeAssignmentRequest(context, ModelAuthorizationAction.ASSIGN.getUrl(), 
-									object, ownerResolver, evaluatedAssignmentTriple.getPlusSet(), true, result);
+									object, ownerResolver, PlusMinusZero.PLUS, true, task, result);
 							
 							// We want to allow unassignment even if there are policies. Otherwise we would not be able to get
 							// rid of that assignment
 							authorizeAssignmentRequest(context, ModelAuthorizationAction.UNASSIGN.getUrl(), 
-									object, ownerResolver, evaluatedAssignmentTriple.getMinusSet(), false, result);
+									object, ownerResolver,PlusMinusZero.MINUS, false, task, result);
 						}
 					}
 					// assignments were authorized explicitly. Therefore we need to remove them from primary delta to avoid another
@@ -1309,32 +1312,63 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType,O extends ObjectType> void authorizeAssignmentRequest(LensContext<F> context, String assignActionUrl, PrismObject<O> object,
-			OwnerResolver ownerResolver, Collection<EvaluatedAssignmentImpl<?>> evaluatedAssignments, boolean prohibitPolicies, OperationResult result) throws SecurityViolationException, SchemaException {
-		if (evaluatedAssignments == null) {
+			OwnerResolver ownerResolver, PlusMinusZero plusMinusZero, boolean prohibitPolicies, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
+		// This is *request* authorization. Therefore we care only about primary delta.
+		ObjectDelta<F> focusPrimaryDelta = context.getFocusContext().getPrimaryDelta();
+		if (focusPrimaryDelta == null) {
 			return;
 		}
-		for (EvaluatedAssignment<?> evaluatedAssignment: evaluatedAssignments) {
-			PrismObject target = evaluatedAssignment.getTarget();
+		ContainerDelta<AssignmentType> focusAssignmentDelta = focusPrimaryDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
+		if (focusAssignmentDelta == null) {
+			return;
+		}
+		Collection<PrismContainerValue<AssignmentType>> changedAssignmentValues = focusAssignmentDelta.getValueChanges(plusMinusZero);
+		for (PrismContainerValue<AssignmentType> changedAssignmentValue: changedAssignmentValues) {
+			AssignmentType changedAssignment = changedAssignmentValue.getRealValue();
+			ObjectReferenceType targetRef = changedAssignment.getTargetRef();
+			if (targetRef == null || targetRef.getOid() == null) {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("{} of non-target assignment denied", 
+							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1));
+				}
+				securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), object, null, null, result);
+			}
+			// We do not worry about performance here too much. The target was already evaluated. This will be retrieved from repo cache anyway.
+			PrismObject<ObjectType> target = objectResolver.resolve(targetRef.asReferenceValue(), "resolving assignment target", task, result);
+			
 			if (prohibitPolicies) {
-				AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
-				if (assignmentType.getPolicyRule() != null || !assignmentType.getPolicyException().isEmpty() || !assignmentType.getPolicySituation().isEmpty()) {
+				if (changedAssignment.getPolicyRule() != null || !changedAssignment.getPolicyException().isEmpty() || !changedAssignment.getPolicySituation().isEmpty()) {
 					securityEnforcer.failAuthorization("with assignment because of policies in the assignment", getRequestAuthorizationPhase(context), object, null, target, result);
 				}
 			}
+			
 			ObjectDelta<O> assignmentObjectDelta = object.createModifyDelta();
 			ContainerDelta<AssignmentType> assignmentDelta = assignmentObjectDelta.createContainerModification(FocusType.F_ASSIGNMENT);
 			// We do not care if this is add or delete. All that matters for authorization is that it is in a delta.
-			assignmentDelta.addValuesToAdd(evaluatedAssignment.getAssignmentType().asPrismContainerValue().clone());
+			assignmentDelta.addValuesToAdd(changedAssignment.asPrismContainerValue().clone());
 			if (securityEnforcer.isAuthorized(assignActionUrl, getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver)) {
-				LOGGER.trace("Operation authorized with {} authorization", assignActionUrl);
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("{} of target {} to {} allowed with {} authorization", 
+							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
+							target, object, assignActionUrl);
+				}
 				continue;
 			}
-			QName relation = evaluatedAssignment.getRelation();
+			QName relation = targetRef.getRelation();
 			if (ObjectTypeUtil.isDelegationRelation(relation)) {
 				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), object, assignmentObjectDelta, target, ownerResolver)) {
-					LOGGER.trace("Operation authorized with {} authorization", ModelAuthorizationAction.DELEGATE.getUrl());
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("{} of target {} to {} allowed with {} authorization", 
+							assignActionUrl.substring(assignActionUrl.lastIndexOf('#') + 1),
+							target, object, ModelAuthorizationAction.DELEGATE.getUrl());
+					}
 					continue;
 				}
+			}
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("{} of target {} to {} denied", 
+						assignActionUrl.substring(assignActionUrl.lastIndexOf('#')),
+						target, object);
 			}
 			securityEnforcer.failAuthorization("with assignment", getRequestAuthorizationPhase(context), object, null, target, result);
 		}

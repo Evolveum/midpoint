@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -77,6 +77,15 @@
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="mark" type="tns:MarkType" minOccurs="0" maxOccurs="1">
+            </xsd:element>
+            <xsd:element name="key" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+            	<xsd:annotation>
+            		<xsd:documentation>MID-3999</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:displayName>Treasure Key</a:displayName>
+						<a:displayOrder>888</a:displayOrder>
+            		</xsd:appinfo>
+            	</xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // THEN
         display("User jack", userJack);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertUserJack(userJack);
         
         result.computeStatus();
@@ -163,7 +163,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // THEN
         display("User barbossa", userBarbossa);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertUser(userBarbossa, USER_BARBOSSA_OID, "barbossa", "Hector Barbossa", "Hector", "Barbossa");
         
         result.computeStatus();
@@ -193,7 +193,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // the following modifies nothing but it is used to produce a user-level notification (LINK_REF by itself causes no such notification)
         PropertyDelta<String> attributeDelta = PropertyDelta.createReplaceDeltaOrEmptyDelta(getUserDefinition(), UserType.F_TELEPHONE_NUMBER, "555-1234");
         userDelta.addModification(attributeDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         getDummyResource().setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
 
@@ -203,7 +203,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // THEN
         result.computeStatus();
         TestUtil.assertFailure(result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         // Check accountRef
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -260,7 +260,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -343,7 +343,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         jackDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "The best pirate captain ever");
         jackDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, "cold");
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
 		// WHEN
 		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountJackOid, null , task, result);
@@ -351,7 +351,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		display("Account", account);
 		display("Account def", account.getDefinition());
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
@@ -407,7 +407,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		display("Account", account);
 		display("Account def", account.getDefinition());
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
@@ -435,7 +435,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		display("Account", account);
 		display("Account def", account.getDefinition());
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 		display("Account attributes def", accountContainer.getDefinition());
 		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
@@ -458,12 +458,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// get weapon attribute definition
 		PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(dummyResource, prismContext);
-		assertResourceSchemaParseCountIncrement(1);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
 		QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
 		ObjectClassComplexTypeDefinition accountObjectClassDefinition = resourceSchema.findObjectClassDefinition(accountObjectClassQName);
 		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
-		ItemDefinition weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
+		ResourceAttributeDefinition<String> weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
 
 		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -490,7 +490,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// create weapon attribute definition - NOT SUPPORTED, use only when you know what you're doing!
 		QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
 		QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
-		PrismPropertyDefinition weaponFakeDef = new PrismPropertyDefinitionImpl(weaponQName, DOMUtil.XSD_STRING, prismContext);
+		PrismPropertyDefinition<String> weaponFakeDef = new PrismPropertyDefinitionImpl<>(weaponQName, DOMUtil.XSD_STRING, prismContext);
 
 		ObjectQuery q = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
@@ -522,7 +522,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		try {
 			
@@ -540,7 +540,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 			assertMessageContains(message, "default");
 		}
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		// Check audit
         display("Audit", dummyAuditService);
@@ -570,7 +570,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		accountRefVal.setObject(account);
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		
 		try {
 			
@@ -618,7 +618,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
 		// THEN
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());

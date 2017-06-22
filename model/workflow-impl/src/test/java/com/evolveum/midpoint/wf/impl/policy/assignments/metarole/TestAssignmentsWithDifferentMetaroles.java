@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,7 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * A special test dealing with assigning roles that have different metarole-induced approval policies.
@@ -64,18 +66,22 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	protected static final File ROLE_ROLE21_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role21-standard.xml");
 	protected static final File ROLE_ROLE22_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role22-special.xml");
 	protected static final File ROLE_ROLE23_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role23-special-and-security.xml");
+	protected static final File ROLE_ROLE24_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role24-approval-and-enforce.xml");
 
 	protected static final File USER_LEAD21_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead21.xml");
 	protected static final File USER_LEAD22_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead22.xml");
 	protected static final File USER_LEAD23_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead23.xml");
+	protected static final File USER_LEAD24_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead24.xml");
 
 	protected String roleRole21Oid;
 	protected String roleRole22Oid;
 	protected String roleRole23Oid;
+	protected String roleRole24Oid;
 
 	protected String userLead21Oid;
 	protected String userLead22Oid;
 	protected String userLead23Oid;
+	protected String userLead24Oid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -84,10 +90,12 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		roleRole21Oid = repoAddObjectFromFile(ROLE_ROLE21_FILE, initResult).getOid();
 		roleRole22Oid = repoAddObjectFromFile(ROLE_ROLE22_FILE, initResult).getOid();
 		roleRole23Oid = repoAddObjectFromFile(ROLE_ROLE23_FILE, initResult).getOid();
+		roleRole24Oid = repoAddObjectFromFile(ROLE_ROLE24_FILE, initResult).getOid();
 
 		userLead21Oid = addAndRecomputeUser(USER_LEAD21_FILE, initTask, initResult);
 		userLead22Oid = addAndRecomputeUser(USER_LEAD22_FILE, initTask, initResult);
 		userLead23Oid = addAndRecomputeUser(USER_LEAD23_FILE, initTask, initResult);
+		userLead24Oid = addAndRecomputeUser(USER_LEAD24_FILE, initTask, initResult);
 	}
 
 	@Test
@@ -237,6 +245,29 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		login(userAdministrator);
 
 		executeUnassignRoles123ToJack(TEST_NAME, false, true, true, true);
+	}
+
+	/**
+	 * MID-3836
+	 */
+	@Test
+	public void test300ApprovalAndEnforce() throws Exception {
+		final String TEST_NAME = "test300ApprovalAndEnforce";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		task.setOwner(userAdministrator);
+		OperationResult result = task.getResult();
+
+		try {
+			assignRole(userJackOid, roleRole24Oid, task, result);
+		} catch (PolicyViolationException e) {
+			// ok
+			System.out.println("Got expected exception: " + e);
+		}
+		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		display("current work items", currentWorkItems);
+		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
 	}
 
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate,

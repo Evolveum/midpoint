@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
   ~ limitations under the License.
   -->
 
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <wicket:child/>
-    <form class="clearfix" wicket:id="mainForm" style="margin: 5px;">
-        <div wicket:id="table"/>
-    </form>
-
-    <wicket:fragment wicket:id="buttonBar">
-        <a wicket:id="newObject" class="btn btn-success btn-sm"/>
-        <a wicket:id="refresh" class="btn btn-default btn-sm"/>
-        <a wicket:id="importObject" class="btn btn-primary btn-sm"/>
-        <span wicket:id="exportData"/>
-    </wicket:fragment>
-</wicket:panel>
+<user oid="00000001-d34d-b33f-f00d-L00000000015">
+	<name>lead15</name>
+	<assignment> <!-- approver -->
+		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+	</assignment>
+	<assignment> <!-- role15 -->
+		<targetRef oid="00000001-d34d-b33f-f00d-000000000015" type="RoleType" relation="approver"/>
+	</assignment>
+	<fullName>Lead15</fullName>
+	<familyName>Lead15</familyName>
+</user>
