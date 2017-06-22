@@ -84,6 +84,10 @@ public class RAnyConverter {
 			return rValues;
 		}
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Converting any values of item {}; definition: {}", item, definition);
+		}
+		
         try {
             RAnyValue rValue;
             List<PrismValue> values = item.getValues();
