@@ -641,7 +641,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         List<PrismObject<ShadowType>> existingShadows = valueMap.get(identifierValue);
         if (existingShadows == null) {
             // all is well
-            existingShadows = new ArrayList();
+            existingShadows = new ArrayList<>();
             existingShadows.add(shadow);
             valueMap.put(identifierValue, existingShadows);
         } else {

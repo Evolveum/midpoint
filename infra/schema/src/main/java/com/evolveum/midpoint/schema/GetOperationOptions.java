@@ -371,9 +371,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	}
 	
 	/**
-     * Resolve the object reference names. (Currently applicable only as a top-level option.)
-     *
-     * EXPERIMENTAL.
+     * Resolve the object reference names.
      */
 	public static GetOperationOptions createResolveNames() {
 		GetOperationOptions opts = new GetOperationOptions();

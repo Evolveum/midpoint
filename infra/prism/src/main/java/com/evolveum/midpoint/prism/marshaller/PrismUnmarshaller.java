@@ -30,7 +30,6 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class PrismUnmarshaller {
 
@@ -274,7 +272,8 @@ public class PrismUnmarshaller {
                         // an error. We positively know that it is not in the schema.
                         pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (schema present, in container "
                                 + containerDef + ")" + "while parsing " + map.debugDump());
-                        continue;
+                        // we can go along this item (at least show it in repository pages) - MID-3249
+                        // TODO make this configurable
                     } else {
                         // No definition for item, but the schema is runtime. the definition may come later.
                         // Null is OK here. The item will be parsed as "raw"

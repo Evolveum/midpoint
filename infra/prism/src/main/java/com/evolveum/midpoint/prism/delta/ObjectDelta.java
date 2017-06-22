@@ -473,23 +473,22 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	if (objectToAdd != null) {
     		objectToAdd.normalize();
     	}
-    	if (modifications != null) {
-    		Iterator<? extends ItemDelta> iterator = modifications.iterator();
-    		while (iterator.hasNext()) {
-    			ItemDelta<?,?> modification = iterator.next();
-    			modification.normalize();
-    			if (modification.isEmpty()) {
-    				iterator.remove();
-    			}
-    		}
-    	}
-    }
-    
-    public void applyDefinition(PrismObjectDefinition<T> definition) throws SchemaException {
+		Iterator<? extends ItemDelta> iterator = modifications.iterator();
+		while (iterator.hasNext()) {
+			ItemDelta<?,?> modification = iterator.next();
+			modification.normalize();
+			if (modification.isEmpty()) {
+				iterator.remove();
+			}
+		}
+	}
+
+	// TODO better name
+    public void applyDefinitionIfPresent(PrismObjectDefinition<T> definition, boolean tolerateNoDefinition) throws SchemaException {
     	if (objectToAdd != null) {
-    		objectToAdd.applyDefinition(definition);
+    		objectToAdd.applyDefinition(definition);			// TODO tolerateNoDefinition
     	}
-    	ItemDelta.applyDefinition(getModifications(), definition);
+    	ItemDelta.applyDefinitionIfPresent(getModifications(), definition, tolerateNoDefinition);
     }
 
     /**
@@ -1419,14 +1418,12 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	if (objectToAdd != null) {
     		objectToAdd.applyDefinition(objectDefinition, force);
     	}
-    	if (modifications != null) {
-    		for (ItemDelta modification: modifications) {
-    			ItemPath path = modification.getPath();
-    			ItemDefinition itemDefinition = objectDefinition.findItemDefinition(path);
-    			modification.applyDefinition(itemDefinition, force);
-    		}
-    	}
-    }
+		for (ItemDelta modification: modifications) {
+			ItemPath path = modification.getPath();
+			ItemDefinition itemDefinition = objectDefinition.findItemDefinition(path);
+			modification.applyDefinition(itemDefinition, force);
+		}
+	}
 
     @Override
 	public int hashCode() {

@@ -33,7 +33,6 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -759,7 +758,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 if (objDef == null) {
                     throw new SchemaException("No definition for delta object type class: " + delta.getObjectTypeClass());
                 }
-				delta.applyDefinition(objDef);
+                boolean tolerateNoDefinition = ModelExecuteOptions.isRaw(options);
+				delta.applyDefinitionIfPresent(objDef, tolerateNoDefinition);
 			}
 		}
 	}
@@ -787,7 +787,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		
 		query = preProcessQuerySecurity(type, query);
 		if (isFilterNone(query, result)) {
-			return new SearchResultList(new ArrayList<>());
+			return new SearchResultList<>(new ArrayList<>());
 		}
 
 		SearchResultList<PrismObject<T>> list;
@@ -823,7 +823,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 
 			if (list == null) {
-				list = new SearchResultList(new ArrayList<PrismObject<T>>());
+				list = new SearchResultList<>(new ArrayList<PrismObject<T>>());
 			}
 
             for (PrismObject<T> object : list) {
@@ -892,7 +892,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		}
 
 		if (isFilterNone(query, result)) {
-			return new SearchResultList(new ArrayList<>());
+			return new SearchResultList<>(new ArrayList<>());
 		}
 
 		SearchResultList<T> list;
@@ -923,7 +923,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 
 			if (list == null) {
-				list = new SearchResultList(new ArrayList<>());
+				list = new SearchResultList<>(new ArrayList<>());
 			}
 
 			for (T object : list) {
@@ -1201,7 +1201,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		RepositoryCache.enter();
 
-		PrismObject<UserType> user = null;
+		PrismObject<UserType> user;
 		
 		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{accountOid});
 
@@ -1216,13 +1216,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
 			result.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
 			throw ex;
-		} catch (RuntimeException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-					+ " for account with oid {}", ex, accountOid);
-			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
-					+ accountOid + "'.", ex);
-			throw ex;
-		} catch (Error ex) {
+		} catch (RuntimeException | Error ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, accountOid);
 			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
@@ -1261,8 +1255,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		RepositoryCache.enter();
 
-		PrismObject<? extends FocusType> focus = null;
-		
+		PrismObject<? extends FocusType> focus;
+
 		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{shadowOid});
 
 		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
@@ -1272,13 +1266,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			
 			focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
 			result.recordSuccess();
-		} catch (RuntimeException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-					+ " for account with oid {}", ex, shadowOid);
-			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
-					+ shadowOid + "'.", ex);
-			throw ex;
-		} catch (Error ex) {
+		} catch (RuntimeException | Error ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, shadowOid);
 			result.recordFatalError("Couldn't list account shadow owner for account with oid '"
@@ -1321,13 +1309,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		RepositoryCache.enter();
 
-		List<PrismObject<? extends ShadowType>> list = null;
+		List<PrismObject<? extends ShadowType>> list;
 
 		try {
 			LOGGER.trace(
 					"Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
-					new Object[] { objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
-							paging.getOrderBy(), paging.getDirection() });
+					objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
+					paging.getOrderBy(), paging.getDirection());
 
 			OperationResult result = parentResult.createSubresult(LIST_RESOURCE_OBJECTS);
 			result.addParams(new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
@@ -1345,7 +1333,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			result.cleanupResult();
 
 			if (list == null) {
-				list = new ArrayList<PrismObject<? extends ShadowType>>();
+				list = new ArrayList<>();
 			}
 		} finally {
 			RepositoryCache.exit();
@@ -1365,22 +1353,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		RepositoryCache.enter();
 		LOGGER.trace("Testing resource OID: {}", new Object[]{resourceOid});
 
-		OperationResult testResult = null;
+		OperationResult testResult;
 		try {
 			testResult = provisioning.testResource(resourceOid, task);
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[] { resourceOid,
-					ex.getMessage(), ex });
+			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", resourceOid, ex.getMessage(), ex);
 			RepositoryCache.exit();
 			throw ex;
 		} catch (SystemException ex) {
-			LOGGER.error("Error testing resource OID: {}: Object not found: {} ", new Object[] { resourceOid,
-					ex.getMessage(), ex });
+			LOGGER.error("Error testing resource OID: {}: {} ", resourceOid, ex.getMessage(), ex);
 			RepositoryCache.exit();
 			throw ex;
 		} catch (Exception ex) {
-			LOGGER.error("Error testing resource OID: {}: {} ", new Object[] { resourceOid, ex.getMessage(),
-					ex });
+			LOGGER.error("Error testing resource OID: {}: {} ", resourceOid, ex.getMessage(), ex);
 			RepositoryCache.exit();
 			throw new SystemException(ex.getMessage(), ex);
 		}
@@ -1416,7 +1401,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		// TODO: add context to the result
 
 		// Fetch resource definition from the repo/provisioning
-		ResourceType resource = null;
+		ResourceType resource;
 		try {
 			resource = getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
 
@@ -1457,7 +1442,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	
 	@Override
 	public void importFromResource(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notNull(shadowOid, "Shadow OID must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -1721,15 +1706,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return;
 		}
 		final List<ItemPath> operationalItems = new ArrayList<>();
-		object.accept(new Visitor() {
-			@Override
-			public void visit(Visitable visitable) {
-				if (visitable instanceof Item) {
-					Item item = ((Item) visitable);
-					if (item.getDefinition() != null && item.getDefinition().isOperational()) {
-						operationalItems.add(item.getPath());
-						// it would be nice if we could stop visiting children here but that's not possible now
-					}
+		object.accept(visitable -> {
+			if (visitable instanceof Item) {
+				Item item = ((Item) visitable);
+				if (item.getDefinition() != null && item.getDefinition().isOperational()) {
+					operationalItems.add(item.getPath());
+					// it would be nice if we could stop visiting children here but that's not possible now
 				}
 			}
 		});
@@ -1879,12 +1861,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return;
 		}
 		for (String oid : oids) {
-			PrismObject existingObject = null;
-			try {
-				existingObject = cacheRepositoryService.getObject(TaskType.class, oid, null, parentResult);
-			} catch (ObjectNotFoundException|SchemaException e) {
-				throw e;
-			}
+			PrismObject existingObject = cacheRepositoryService.getObject(TaskType.class, oid, null, parentResult);
 			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, parentResult);
 		}
 	}
@@ -1894,19 +1871,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return;
 		}
 		for (String identifier : identifiers) {
-			PrismObject existingObject = null;
-			try {
-				ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, identifier);
-				List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, null, parentResult);
-				if (nodes.isEmpty()) {
-					throw new ObjectNotFoundException("Node with identifier '" + identifier + "' couldn't be found.");
-				} else if (nodes.size() > 1) {
-					throw new SystemException("Multiple nodes with identifier '" + identifier + "'");
-				}
-				existingObject = nodes.get(0);
-			} catch (ObjectNotFoundException|SchemaException e) {
-				throw e;
+			PrismObject existingObject;
+			ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, identifier);
+			List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, null, parentResult);
+			if (nodes.isEmpty()) {
+				throw new ObjectNotFoundException("Node with identifier '" + identifier + "' couldn't be found.");
+			} else if (nodes.size() > 1) {
+				throw new SystemException("Multiple nodes with identifier '" + identifier + "'");
 			}
+			existingObject = nodes.get(0);
 			securityEnforcer.authorize(action.getUrl(), null, existingObject, null, null, null, parentResult);
 		}
 	}
@@ -2067,15 +2040,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			result.computeStatus();
 			return deltas;
 			
-		} catch (ObjectNotFoundException | SchemaException | ConfigurationException
-				| ObjectAlreadyExistsException | ExpressionEvaluationException | CommunicationException
-				| PolicyViolationException | SecurityViolationException e) {
+		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException | RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
-        } catch (RuntimeException | Error e) {
-			ModelUtils.recordFatalError(result, e);
-			throw e;
-		} finally {
+        } finally {
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
 			RepositoryCache.exit();
 		}

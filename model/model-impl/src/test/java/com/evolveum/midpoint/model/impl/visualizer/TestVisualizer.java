@@ -48,8 +48,6 @@ import java.util.List;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.util.TestUtil.*;
 import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 import static org.testng.AssertJUnit.*;
 
@@ -280,7 +278,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 				.item(UserType.F_ASSIGNMENT).add(ass1)
 				.asObjectDelta(USER_JACK_OID);
 
-		delta.applyDefinition(jack.getDefinition());
+		delta.applyDefinitionIfPresent(jack.getDefinition(), false);
 
 		/// WHEN
 		displayWhen(TEST_NAME);

@@ -270,15 +270,16 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 		}
 	}
 
-	public static void applyDefinition(Collection<? extends ItemDelta> deltas,
-			PrismObjectDefinition definition) throws SchemaException {
+	public static void applyDefinitionIfPresent(Collection<? extends ItemDelta> deltas,
+			PrismObjectDefinition definition, boolean tolerateNoDefinition) throws SchemaException {
 		for (ItemDelta itemDelta : deltas) {
 			ItemPath path = itemDelta.getPath();
 			ItemDefinition itemDefinition = definition.findItemDefinition(path, ItemDefinition.class);
-            if (itemDefinition == null) {
-                throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + new XPathHolder(path).getXPathWithDeclarations(false));
-            }
-			itemDelta.applyDefinition(itemDefinition);
+            if (itemDefinition != null) {
+				itemDelta.applyDefinition(itemDefinition);
+			} else if (!tolerateNoDefinition) {
+				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + new XPathHolder(path).getXPathWithDeclarations(false));
+			}
 		}
 	}
 	
