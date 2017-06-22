@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
   ~ limitations under the License.
   -->
 
-<!-- Black dummy resource for testing tolerant attributes -->
+<!-- Black dummy resource for testing tolerant attributes
+     also there is a resource password policy
+     also this resource has lower connector error criticality -->
 
 <resource oid="10000000-0000-0000-0000-000000000305"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -171,8 +173,23 @@
             		</outbound>
             	</validTo>
             </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                    <!-- MID-3682 -->
+                    <passwordPolicyRef oid="ed8026dc-569a-11e7-abdf-4fce56706755"/> <!-- Benevolent password policy -->
+                </password>
+            </credentials>
 		</objectType>
 	</schemaHandling>
+	
+	<consistency>
+		<!-- MID-3682 -->
+		<connectorErrorCriticality>
+			<network>false</network>
+			<schema>false</schema>
+		</connectorErrorCriticality>
+	</consistency>
 	
 	<synchronization>
 		<objectSynchronization>

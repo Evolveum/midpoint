@@ -1071,7 +1071,7 @@ public class ContextLoader {
 									throw e;
 								}
 							} else {
-								if (ExceptionUtil.isSelected(errorSelector, e)) {
+								if (ExceptionUtil.isSelected(errorSelector, e, true)) {
 									throw e;
 								} else {
 									return;
