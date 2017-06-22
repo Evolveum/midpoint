@@ -169,4 +169,9 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		// Nothing to do
 	}
 
+	// Must be executed first, see MID-3836
+	@Override
+	public int getPriority() {
+		return 0;
+	}
 }

@@ -66,4 +66,8 @@ public interface ChangeHook {
      * the background. (This could change in the future.)
      */
     void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result);
+
+    default int getPriority() {
+        return Integer.MAX_VALUE;
+    }
 }
