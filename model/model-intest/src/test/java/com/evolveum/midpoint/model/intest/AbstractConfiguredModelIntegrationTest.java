@@ -396,6 +396,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File PASSWORD_POLICY_GLOBAL_FILE = new File(COMMON_DIR,  "password-policy-global.xml");
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
+	protected static final File PASSWORD_POLICY_BENEVOLENT_FILE = new File(COMMON_DIR,  "password-policy-benevolent.xml");
+	protected static final String PASSWORD_POLICY_BENEVOLENT_OID = "ed8026dc-569a-11e7-abdf-4fce56706755";
+	
 	protected static final File ORG_MONKEY_ISLAND_FILE = new File(COMMON_DIR, "org-monkey-island.xml");
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";

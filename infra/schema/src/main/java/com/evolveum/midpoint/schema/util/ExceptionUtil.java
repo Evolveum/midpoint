@@ -50,26 +50,34 @@ public class ExceptionUtil {
 		return null;
 	}
 	
-	public static boolean isSelected(ErrorSelectorType selector, Throwable exception) {
+	public static boolean isSelected(ErrorSelectorType selector, Throwable exception, boolean defaultValue) {
 		if (selector == null) {
-			return false;
+			return defaultValue;
 		}
 		if (exception instanceof CommunicationException) {
-			return Boolean.TRUE.equals(selector.isNetwork());
+			return isSelected(selector.isNetwork(), defaultValue);
 		}
 		if (exception instanceof SecurityViolationException) {
-			return Boolean.TRUE.equals(selector.isSecurity());
+			return isSelected(selector.isSecurity(), defaultValue);
 		}
 		if (exception instanceof PolicyViolationException) {
-			return Boolean.TRUE.equals(selector.isPolicy());
+			return isSelected(selector.isPolicy(), defaultValue);
 		}
 		if (exception instanceof SchemaException) {
-			return Boolean.TRUE.equals(selector.isSchema());
+			return isSelected(selector.isSchema(), defaultValue);
 		}
 		if (exception instanceof ConfigurationException || exception instanceof ExpressionEvaluationException) {
-			return Boolean.TRUE.equals(selector.isConfiguration());
+			return isSelected(selector.isConfiguration(), defaultValue);
 		}
-		return Boolean.TRUE.equals(selector.isGeneric());
+		return isSelected(selector.isGeneric(), defaultValue);
+	}
+
+	private static boolean isSelected(Boolean value, boolean defaultValue) {
+		if (value == null) {
+			return defaultValue;
+		} else {
+			return value;
+		}
 	}
 	
 }

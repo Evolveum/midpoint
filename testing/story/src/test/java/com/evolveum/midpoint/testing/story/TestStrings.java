@@ -150,6 +150,8 @@ public class TestStrings extends AbstractStoryTest {
 	private static final String DUMMY_WORK_ITEM_ALLOCATION = "dummy:workItemAllocation";
 	private static final String DUMMY_WORK_ITEM_CUSTOM = "dummy:workItemCustom";
 	private static final String DUMMY_PROCESS = "dummy:process";
+	
+	protected static final int TASK_WAIT_TIMEOUT = 40000;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1096,7 +1098,7 @@ public class TestStrings extends AbstractStoryTest {
 		// record #3: finishing process execution
 
 		Task rootTask = taskManager.getTaskByIdentifier(wfTask.asObjectable().getParent(), result);
-		waitForTaskCloseOrSuspend(rootTask.getOid());
+		waitForTaskCloseOrSuspend(rootTask.getOid(), TASK_WAIT_TIMEOUT);
 		assertAssignedRole(getUser(userBobOid), roleATest4Oid);
 	}
 

@@ -81,6 +81,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 		initDummyResourcePirate(RESOURCE_DUMMY_BLACK_NAME, RESOURCE_DUMMY_BLACK_FILE, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
         
 		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+		repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
 		
         repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, true, initResult);

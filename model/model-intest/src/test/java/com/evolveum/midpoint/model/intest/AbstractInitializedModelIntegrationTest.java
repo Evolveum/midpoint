@@ -273,6 +273,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		// Services
 		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, initResult);
+		
+		repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
 
 	}
 	
