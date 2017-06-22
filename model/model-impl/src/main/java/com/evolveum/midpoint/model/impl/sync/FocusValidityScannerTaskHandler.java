@@ -162,7 +162,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			if (lastScanTimestamp != null) {
 				lastScanTimestamp.add(activateOn.negate());
 			}
-			filter = createFilterFor(path, lastScanTimestamp, thisScanTimestamp);
+			filter = createFilterFor(getType(coordinatorTask), path, lastScanTimestamp, thisScanTimestamp);
 			
 		} else {
 		
@@ -213,14 +213,14 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		
 	}
 	
-	private ObjectFilter createFilterFor(ItemPath path, XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp){
+	private ObjectFilter createFilterFor(Class type, ItemPath path, XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp){
 		if (lastScanTimestamp == null) {
-			return QueryBuilder.queryFor(FocusType.class, prismContext)
+			return QueryBuilder.queryFor(type, prismContext)
 					.item(path).le(thisScanTimestamp)
 					.buildFilter();
 		}
 		
-		return QueryBuilder.queryFor(FocusType.class, prismContext)
+		return QueryBuilder.queryFor(type, prismContext)
 					.item(path).gt(lastScanTimestamp)
 						.and().item(path).le(thisScanTimestamp)
 					.buildFilter();
