@@ -132,12 +132,17 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 	private ObjectQuery createQueryByIcfName(ShadowType shadow) throws SchemaException {
 		// TODO: error handling TODO TODO TODO set matching rule instead of null in equlas filter
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-		
 		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
-		// secondary identifiers connected by 'or' clause
 		q = q.block();
-		for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
-			q = q.itemAs(secondaryIdentifier).or();
+		if (secondaryIdentifiers.isEmpty()) {
+			for (ResourceAttribute<?> primaryIdentifier: ShadowUtil.getPrimaryIdentifiers(shadow)) {
+				q = q.itemAs(primaryIdentifier).or();
+			}
+		} else {
+			// secondary identifiers connected by 'or' clause
+			for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
+				q = q.itemAs(secondaryIdentifier).or();
+			}
 		}
 		q = q.none().endBlock().and();
 		// resource + object class

@@ -130,6 +130,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected static final String USER_WILL_PASSWORD_OLD = "3lizab3th";
 	protected static final String USER_WILL_PASSWORD_NEW = "ELIZAbeth";
 	
+	protected static final String ACCOUNT_JACK_DESCRIPTION_MANUAL = "Manuel";
+	protected static final String USER_JACK_PASSWORD_OLD = "deadM3NtellN0tales";
+	
 	private static final File TASK_SHADOW_REFRESH_FILE = new File(TEST_DIR, "task-shadow-refresh.xml");
 	private static final String TASK_SHADOW_REFRESH_OID = "eb8f5be6-2b51-11e7-848c-2fd84a283b03";
 
@@ -2104,6 +2107,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	
 	// TODO: let grace period expire without updating the backing store (semi-manual-only)
 	
+	// Tests 7xx are in the subclasses
+	
 	/**
 	 * The 8xx tests is similar routine as 1xx,2xx,3xx, but this time
 	 * with automatic updates using refresh task.
@@ -2310,7 +2315,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 	
-	private void assertAccountJackAfterAssign(final String TEST_NAME) throws Exception {
+	protected void assertAccountJackAfterAssign(final String TEST_NAME) throws Exception {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -2382,18 +2387,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	
-	private void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
+	protected void assertPendingOperationDeltas(PrismObject<ShadowType> shadow, int expectedNumber) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
 		assertEquals("Wroung number of pending operations in "+shadow, expectedNumber, pendingOperations.size());
 	}
 
-	private PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow, 
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow, 
 			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd) {
 		return assertSinglePendingOperation(shadow, requestStart, requestEnd, 
 				OperationResultStatusType.IN_PROGRESS, null, null);
 	}
 	
-	private PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow, 
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow, 
 			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
 			OperationResultStatusType expectedStatus,
 			XMLGregorianCalendar completionStart, XMLGregorianCalendar completionEnd) {
@@ -2402,14 +2407,14 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				requestStart, requestEnd, expectedStatus, completionStart, completionEnd);
 	}
 	
-	private PendingOperationType assertPendingOperation(
+	protected PendingOperationType assertPendingOperation(
 			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation, 
 			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd) {
 		return assertPendingOperation(shadow, pendingOperation, requestStart, requestEnd, 
 				OperationResultStatusType.IN_PROGRESS, null, null);
 	}
 	
-	private PendingOperationType assertPendingOperation(
+	protected PendingOperationType assertPendingOperation(
 			PrismObject<ShadowType> shadow, PendingOperationType pendingOperation,
 			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd,
 			OperationResultStatusType expectedStatus,
@@ -2432,7 +2437,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		return pendingOperation;
 	}
 	
-	private PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow, 
+	protected PendingOperationType findPendingOperation(PrismObject<ShadowType> shadow, 
 			OperationResultStatusType expectedResult, ItemPath itemPath) {
 		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
 		for (PendingOperationType pendingOperation: pendingOperations) {

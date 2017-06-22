@@ -134,4 +134,39 @@
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 	</consistency>
 	
+	<synchronization>
+		<objectSynchronization>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<path>$projection/attributes/username</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+    </synchronization>
+	
 </resource>
