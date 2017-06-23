@@ -23,14 +23,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -39,7 +32,6 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -51,49 +43,23 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author mederly
  */
 public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
 
-    static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckResultHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckResultHandler.class);
 
     private static final String CLASS_DOT = ShadowIntegrityCheckResultHandler.class.getName() + ".";
     private static final String DEFAULT_DUPLICATE_SHADOWS_RESOLVER_CLASS_NAME = DefaultDuplicateShadowsResolver.class.getName();
@@ -144,16 +110,16 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private Statistics statistics = new Statistics();
 
-    DuplicateShadowsResolver duplicateShadowsResolver;
+    private DuplicateShadowsResolver duplicateShadowsResolver;
     private Set<String> duplicateShadowsDetected = new HashSet<>();
     private Set<String> duplicateShadowsDeleted = new HashSet<>();
 
     public ShadowIntegrityCheckResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
-                                             String contextDesc, TaskManager taskManager, PrismContext prismContext,
-                                             ProvisioningService provisioningService, MatchingRuleRegistry matchingRuleRegistry,
-                                             RepositoryService repositoryService, SynchronizationService synchronizationService,
-                                             SystemObjectCache systemObjectCache,
-                                             OperationResult result) {
+            String contextDesc, TaskManager taskManager, PrismContext prismContext,
+            ProvisioningService provisioningService, MatchingRuleRegistry matchingRuleRegistry,
+            RepositoryService repositoryService, SynchronizationService synchronizationService,
+            SystemObjectCache systemObjectCache,
+            OperationResult result) {
         super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
         this.prismContext = prismContext;
         this.provisioningService = provisioningService;
@@ -379,7 +345,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         PrismObject<ShadowType> fetchedShadow = null;
         if (checkFetch) {
-            fetchedShadow = fetchShadow(checkResult, shadow, resource, workerTask, result);
+            fetchedShadow = fetchShadow(checkResult, shadow, workerTask, result);
             if (fetchedShadow != null) {
                 shadow.setUserData(KEY_EXISTS_ON_RESOURCE, "true");
             }
@@ -519,12 +485,12 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
     }
 
-    private PrismObject<ShadowType> fetchShadow(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task, OperationResult result) {
+    private PrismObject<ShadowType> fetchShadow(ShadowCheckResult checkResult, PrismObject<ShadowType> shadow,
+			Task task, OperationResult result) {
         try {
-            PrismObject<ShadowType> fullShadow = provisioningService.getObject(ShadowType.class, shadow.getOid(),
-                    SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
-                    task, result);
-            return fullShadow;
+			return provisioningService.getObject(ShadowType.class, shadow.getOid(),
+					SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+					task, result);
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
             checkResult.recordError(Statistics.CANNOT_FETCH_RESOURCE_OBJECT, new SystemException("The resource object couldn't be fetched", e));
             return null;
@@ -535,7 +501,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         PrismObject<ShadowType> fullShadow;
 
         if (!checkFetch) {
-            fullShadow = fetchShadow(checkResult, shadow, resource, task, result);
+            fullShadow = fetchShadow(checkResult, shadow, task, result);
         } else {
             fullShadow = fetchedShadow;
         }
@@ -633,40 +599,37 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
     private void addIdentifierValue(ShadowCheckResult checkResult, ObjectTypeContext context, QName identifierName, String identifierValue, PrismObject<ShadowType> shadow) {
 
-        Map<String, List<PrismObject<ShadowType>>> valueMap = context.getIdentifierValueMap().get(identifierName);
-        if (valueMap == null) {
-            valueMap = new HashMap<>();
-            context.getIdentifierValueMap().put(identifierName, valueMap);
-        }
-        List<PrismObject<ShadowType>> existingShadows = valueMap.get(identifierValue);
-        if (existingShadows == null) {
+        Map<String, Set<String>> valueMap = context.getIdentifierValueMap()
+                .computeIfAbsent(identifierName, k -> new HashMap<>());
+        Set<String> existingShadowOids = valueMap.get(identifierValue);
+        if (existingShadowOids == null) {
             // all is well
-            existingShadows = new ArrayList<>();
-            existingShadows.add(shadow);
-            valueMap.put(identifierValue, existingShadows);
+            existingShadowOids = new HashSet<>();
+            existingShadowOids.add(shadow.getOid());
+            valueMap.put(identifierValue, existingShadowOids);
         } else {
             // duplicate shadows statistics are collected in a special way
             duplicateShadowsDetected.add(shadow.getOid());
             LOGGER.error("Multiple shadows with the value of identifier attribute {} = {}: existing one(s): {}, duplicate: {}",
-                    identifierName, identifierValue, shortDumpList(existingShadows), ObjectTypeUtil.toShortString(shadow.asObjectable()));
-            existingShadows.add(shadow);
+                    identifierName, identifierValue, existingShadowOids, ObjectTypeUtil.toShortString(shadow.asObjectable()));
+            existingShadowOids.add(shadow.getOid());
         }
     }
 
-    private String shortDumpList(List<PrismObject<ShadowType>> list) {
-        StringBuilder sb = new StringBuilder();
-        sb.append('[');
-        boolean first = true;
-        for (PrismObject<ShadowType> object : list) {
-            if (first) {
-                first = false;
-            } else {
-                sb.append(", ");
-            }
-            sb.append(ObjectTypeUtil.toShortString(object.asObjectable()));
-        }
-        return sb.toString();
-    }
+//    private String shortDumpList(List<PrismObject<ShadowType>> list) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append('[');
+//        boolean first = true;
+//        for (PrismObject<ShadowType> object : list) {
+//            if (first) {
+//                first = false;
+//            } else {
+//                sb.append(", ");
+//            }
+//            sb.append(ObjectTypeUtil.toShortString(object.asObjectable()));
+//        }
+//        return sb.toString();
+//    }
 
     public Statistics getStatistics() {
         return statistics;
@@ -686,12 +649,12 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                 LOGGER.error("No resource for {}", resourceOid);        // should not happen
                 continue;
             }
-            for (Map.Entry<QName, Map<String, List<PrismObject<ShadowType>>>> idValEntry : ctx.getIdentifierValueMap().entrySet()) {
+            for (Map.Entry<QName, Map<String, Set<String>>> idValEntry : ctx.getIdentifierValueMap().entrySet()) {
                 QName identifier = idValEntry.getKey();
                 boolean first = true;
-                for (Map.Entry<String, List<PrismObject<ShadowType>>> valListEntry : idValEntry.getValue().entrySet()) {
-                    List<PrismObject<ShadowType>> shadows = valListEntry.getValue();
-                    if (shadows.size() <= 1) {
+                for (Map.Entry<String, Set<String>> valListEntry : idValEntry.getValue().entrySet()) {
+					Set<String> shadowsOids = valListEntry.getValue();
+                    if (shadowsOids.size() <= 1) {
                         continue;
                     }
                     if (first) {
@@ -700,22 +663,35 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                         details.append(", identifier = ").append(identifier).append(":\n");
                         first = false;
                     }
-                    details.append(" - value: ").append(valListEntry.getKey()).append(", shadows: ").append(shadows.size()).append("\n");
+                    details.append(" - value: ").append(valListEntry.getKey()).append(", shadows: ").append(shadowsOids.size()).append("\n");
                     List<PrismObject<ShadowType>> shadowsToConsider = new ArrayList<>();
-                    for (PrismObject<ShadowType> shadow : shadows) {
-                        details.append("   - ").append(ObjectTypeUtil.toShortString(shadow));
-                        details.append("; sync situation = ").append(shadow.asObjectable().getSynchronizationSituation()).append("\n");
-                        PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-                        if (attributesContainer != null && !attributesContainer.isEmpty()) {
-                            for (Item item : attributesContainer.getValue().getItems()) {
-                                details.append("     - ").append(item.getElementName().getLocalPart()).append(" = ");
-                                details.append(item.getRealValues());
-                                details.append("\n");
-                            }
-                        }
-                        if (duplicateShadowsDeleted.contains(shadow.getOid())) {
-                            details.append("     (already deleted)\n");
-                        } else {
+                    for (String shadowOid : shadowsOids) {
+						PrismObject<ShadowType> shadow = null;
+						try {
+							shadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+						} catch (ObjectNotFoundException e) {
+							LOGGER.debug("Couldn't fetch shadow with OID {}, it was probably already deleted", shadowOid, e);
+						} catch (SchemaException e) {
+							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't fetch shadow with OID {} from the repository", e, shadowOid);
+							continue;
+						}
+						details.append("   - ").append(shadow != null ? ObjectTypeUtil.toShortString(shadow) : shadowOid);
+						if (shadow != null) {
+							details.append("; sync situation = ").append(shadow.asObjectable().getSynchronizationSituation()).append("\n");
+							PrismContainer<ShadowAttributesType> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+							if (attributesContainer != null && !attributesContainer.isEmpty()) {
+								for (Item item : attributesContainer.getValue().getItems()) {
+									details.append("     - ").append(item.getElementName().getLocalPart()).append(" = ");
+									details.append(item.getRealValues());
+									details.append("\n");
+								}
+							}
+						}
+                        if (duplicateShadowsDeleted.contains(shadowOid)) {
+							details.append("     (already deleted)\n");
+						} else if (shadow == null) {
+							details.append("     (inaccessible)\n");
+						} else {
                             shadowsToConsider.add(shadow);
                         }
                     }
