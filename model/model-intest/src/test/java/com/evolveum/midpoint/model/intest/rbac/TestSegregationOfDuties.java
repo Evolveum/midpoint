@@ -72,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSegregationOfDuties extends AbstractInitializedModelIntegrationTest {
 	
-	protected static final File TEST_DIR = new File("src/test/resources", "rbac");
+	protected static final File TEST_DIR = new File("src/test/resources/rbac/sod");
 	
 	// Gold, silver and bronze: mutual exclusion (prune), directly in the roles
 	

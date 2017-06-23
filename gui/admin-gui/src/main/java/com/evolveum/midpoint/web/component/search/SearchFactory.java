@@ -72,6 +72,7 @@ public class SearchFactory {
                 new ItemPath(UserType.F_LOCALITY)));
         SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
                 new ItemPath(RoleType.F_NAME),
+                new ItemPath(RoleType.F_DISPLAY_NAME),
                 new ItemPath(RoleType.F_ROLE_TYPE)));
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
                 new ItemPath(ServiceType.F_NAME),
