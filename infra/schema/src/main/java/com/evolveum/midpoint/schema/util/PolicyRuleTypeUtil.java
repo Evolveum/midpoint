@@ -16,15 +16,23 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author mederly
  */
 public class PolicyRuleTypeUtil {
+
+	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleTypeUtil.class);
 
 	private static Map<String, String> CONSTRAINT_NAMES = new HashMap<>();
 	static {
@@ -102,5 +110,124 @@ public class PolicyRuleTypeUtil {
 			case SITUATION: return "sit";
 			default: return constraintKind.toString();
 		}
+	}
+
+	public static void visit(List<EvaluatedPolicyRuleTriggerType> triggers, Consumer<EvaluatedPolicyRuleTriggerType> visitor) {
+		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+			visitor.accept(trigger);
+			if (trigger instanceof EvaluatedSituationTriggerType) {
+				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+					visit(sourceRule.getTrigger(), visitor);
+				}
+			}
+		}
+	}
+
+	// Generates identifiers and references for triggers.
+	// Cannot modify original objects!
+	public static List<EvaluatedPolicyRuleTriggerType> pack(List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
+		List<EvaluatedPolicyRuleTriggerType> rv = new ArrayList<>();
+		Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap = new HashMap<>();
+		int id = 1;
+		for (EvaluatedPolicyRuleTriggerType trigger : baseTriggers) {
+			EvaluatedPolicyRuleTriggerType clone = trigger.clone();
+			clone.setTriggerId(id);
+			rv.add(clone);
+			identifierMap.put(trigger, id);
+			id++;
+		}
+		for (EvaluatedPolicyRuleTriggerType trigger : rv) {
+			if (trigger instanceof EvaluatedSituationTriggerType) {
+				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+					pack(sourceRule.getTrigger(), identifierMap);
+				}
+			}
+		}
+		return rv;
+	}
+
+	private static void pack(List<EvaluatedPolicyRuleTriggerType> triggers, Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap) {
+		List<EvaluatedPolicyRuleTriggerType> packed = new ArrayList<>();
+		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+			packed.add(pack(trigger, identifierMap));
+			if (trigger instanceof EvaluatedSituationTriggerType) {
+				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+					pack(sourceRule.getTrigger(), identifierMap);
+				}
+			}
+		}
+		triggers.clear();
+		triggers.addAll(packed);
+	}
+
+	private static EvaluatedPolicyRuleTriggerType pack(EvaluatedPolicyRuleTriggerType trigger, Map<EvaluatedPolicyRuleTriggerType, Integer> identifierMap) {
+		Integer identifier = identifierMap.get(trigger);
+		if (identifier != null) {
+			return new EvaluatedPolicyRuleTriggerType().ref(identifier);
+		} else {
+			LOGGER.warn("Problem while packing evaluated trigger {}: it is not present within base triggers", trigger);
+			return trigger;
+		}
+	}
+
+	// Replaces referenced triggers by actual values. Deletes all identifiers, so the triggers could be compared.
+	// Cannot modify original objects!
+	public static List<EvaluatedPolicyRuleTriggerType> unpack(List<EvaluatedPolicyRuleTriggerType> triggers) {
+		List<EvaluatedPolicyRuleTriggerType> rv = CloneUtil.cloneCollectionMembers(triggers);
+		unpack(rv, triggers);
+		rv.forEach(t -> t.setTriggerId(null));
+		return rv;
+	}
+
+	private static void unpack(List<EvaluatedPolicyRuleTriggerType> triggers,
+			List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
+		List<EvaluatedPolicyRuleTriggerType> hydrated = new ArrayList<>();
+		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+			hydrated.add(unpack(trigger, baseTriggers));
+			if (trigger instanceof EvaluatedSituationTriggerType) {
+				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+					unpack(sourceRule.getTrigger(), baseTriggers);
+				}
+			}
+		}
+		triggers.clear();
+		triggers.addAll(hydrated);
+	}
+
+	private static EvaluatedPolicyRuleTriggerType unpack(EvaluatedPolicyRuleTriggerType trigger,
+			List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
+		if (trigger.getRef() == null) {
+			return trigger;
+		}
+		EvaluatedPolicyRuleTriggerType found = findByIdentifier(baseTriggers, trigger.getRef());
+		if (found == null) {
+			LOGGER.warn("Problem while unpacking evaluated trigger {}: referenced trigger with id {} is not present among base triggers",
+					trigger, trigger.getRef());
+			return trigger;
+		} else {
+			return found;
+		}
+	}
+
+	public static boolean canBePacked(List<EvaluatedPolicyRuleTriggerType> triggers) {
+		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
+			if (trigger instanceof EvaluatedSituationTriggerType) {
+				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+					if (sourceRule.getTrigger().stream().anyMatch(t -> t.getRef() != null)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private static EvaluatedPolicyRuleTriggerType findByIdentifier(List<EvaluatedPolicyRuleTriggerType> triggers, int identifier) {
+		return triggers.stream().filter(t -> t.getTriggerId() != null && t.getTriggerId() == identifier).findFirst().orElse(null);
 	}
 }

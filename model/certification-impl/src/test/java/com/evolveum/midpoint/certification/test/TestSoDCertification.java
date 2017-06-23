@@ -36,8 +36,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayContainerablesCollection;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
@@ -91,9 +89,66 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		assignRole(USER_JACK_OID, roleATest2cOid);
 		assignRole(USER_JACK_OID, roleATest3aOid);
 		assignRole(USER_JACK_OID, roleATest3bOid);
-		display("jack", getUser(USER_JACK_OID));
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		display("jack", jack);
+
+		AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
+		display("assignment 2a", a2a);
 
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+	}
+
+	// TODO move a test like this into model-intest
+	@Test
+	public void test001Triggers() throws Exception {
+		final String TEST_NAME = "test001Triggers";
+		TestUtil.displayTestTile(this, TEST_NAME);
+
+		// GIVEN, WHEN
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		display("jack", jack);
+
+		// THEN
+		AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
+		display("assignment 2a", a2a);
+		assertPacked(a2a, 2, 1);
+		AssignmentType a2b = findAssignmentByTargetRequired(jack, roleATest2bOid);
+		display("assignment 2b", a2b);
+		assertPacked(a2b, 2, 1);
+		AssignmentType a2c = findAssignmentByTargetRequired(jack, roleATest2cOid);
+		display("assignment 2c", a2c);
+		assertPacked(a2c, 2, 1);
+		AssignmentType a3a = findAssignmentByTargetRequired(jack, roleATest3aOid);
+		display("assignment 3a", a3a);
+		assertPacked(a3a, 1, 1);
+		AssignmentType a3b = findAssignmentByTargetRequired(jack, roleATest3bOid);
+		display("assignment 3b", a3b);
+		assertPacked(a3b, 1, 1);
+	}
+
+	private void assertPacked(AssignmentType assignment, int exclusionExpected, int situationExpected) {
+		int exclusion = 0, situation = 0;
+		for (EvaluatedPolicyRuleTriggerType trigger : assignment.getTrigger()) {
+			assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
+			if (trigger instanceof EvaluatedSituationTriggerType) {
+				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+				int sourceTriggers = 0;
+				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+					for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
+						sourceTriggers++;
+						assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
+					}
+				}
+				assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
+				situation++;
+			} else if (trigger instanceof EvaluatedExclusionTriggerType) {
+				exclusion++;
+			} else {
+				fail("Unexpected trigger: " + trigger);
+			}
+		}
+		assertEquals("Wrong # of exclusion triggers", exclusionExpected, exclusion);
+		assertEquals("Wrong # of situation triggers", situationExpected, situation);
 	}
 
 	@Test
