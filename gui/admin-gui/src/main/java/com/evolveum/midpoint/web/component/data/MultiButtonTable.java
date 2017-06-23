@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -243,22 +244,27 @@ public class MultiButtonTable extends BasePanel<List<AssignmentEditorDto>> {
 
     }
 
-    private IModel<String> getAlreadyAssignedIconTitleModel(AssignmentEditorDto dto){
-        List<RelationTypes> assignedRelations = dto.getAssignedRelationsList();
-        if (assignedRelations != null && assignedRelations.size() > 0){
-            String relations = createStringResource("MultiButtonPanel.alreadyAssignedIconTitle").getString() + " ";
-            for (RelationTypes relation : assignedRelations){
-                String relationName = createStringResource(relation).getString();
-                if (!relations.contains(relationName)) {
-                    if (assignedRelations.indexOf(relation) > 0){
-                        relations = relations + ", ";
+    private IModel<String> getAlreadyAssignedIconTitleModel(AssignmentEditorDto dto) {
+        return new LoadableModel<String>(false) {
+            @Override
+            protected String load() {
+                List<RelationTypes> assignedRelations = dto.getAssignedRelationsList();
+                String relations = "";
+                if (assignedRelations != null && assignedRelations.size() > 0) {
+                    relations = createStringResource("MultiButtonPanel.alreadyAssignedIconTitle").getString() + " ";
+                    for (RelationTypes relation : assignedRelations) {
+                        String relationName = createStringResource(relation).getString();
+                        if (!relations.contains(relationName)) {
+                            if (assignedRelations.indexOf(relation) > 0) {
+                                relations = relations + ", ";
+                            }
+                            relations = relations + createStringResource(relation).getString();
+                        }
                     }
-                    relations = relations + createStringResource(relation).getString();
                 }
+                return relations;
             }
-            return Model.of(relations);
-        }
-        return Model.of("");
+        };
     }
 
     private boolean canAssign(final AssignmentEditorDto assignment) {
