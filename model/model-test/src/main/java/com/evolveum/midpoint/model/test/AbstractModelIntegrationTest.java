@@ -2426,7 +2426,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				OperationResult result = task.getResult();
 				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+task+": "+TestUtil.getErrorMessage(result);
-				assert !isUknown(result, checkSubresult) : "Unknown result in "+task+": "+TestUtil.getErrorMessage(result);
+				assert !isUnknown(result, checkSubresult) : "Unknown result in "+task+": "+TestUtil.getErrorMessage(result);
 				return !isInProgress(result, checkSubresult);
 			}
 			@Override
@@ -2507,10 +2507,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 						AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
 					}
 				}
-				if (isUknown(result, checkSubresult)) {
+				if (isUnknown(result, checkSubresult)) {
 					return false;
 				}
-//				assert !isUknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+//				assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
 				return !isInProgress(result, checkSubresult);
 			}
 			@Override
@@ -2543,7 +2543,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				OperationResult result = freshTask.getResult();
 				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+TestUtil.getErrorMessage(result);
-				if (isUknown(result, checkSubresult)) {
+				if (isUnknown(result, checkSubresult)) {
 					return false;
 				}
 				return freshTask.getLastRunStartTimestamp() != null;
@@ -2627,7 +2627,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				if (isError(taskResult, checkSubresult)) {
                     return true;
                 }
-				if (isUknown(taskResult, checkSubresult)) {
+				if (isUnknown(taskResult, checkSubresult)) {
 					return false;
 				}
 				if (freshTask.getLastRunFinishTimestamp() == null) {
@@ -2682,7 +2682,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return subresult != null ? subresult.isError() : false;
 	}
 	
-	private boolean isUknown(OperationResult result, boolean checkSubresult) {
+	private boolean isUnknown(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
 		return subresult != null ? subresult.isUnknown() : false;			// TODO or return true?
 	}
