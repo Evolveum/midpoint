@@ -35,7 +35,7 @@ public class SmartAssignmentKey {
 		this.assignmentCVal = assignmentCVal;
 	}
 
-	// This is a key to an assignment hasmap.
+	// This is a key to an assignment hashmap.
 	// hashCode() and equals() are very important here. 
 	// Especially equals(). We want to make the comparison reliable, but reasonably quick.
 
