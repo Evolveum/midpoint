@@ -42,7 +42,7 @@
 							</expression>
 						</q:equal>
 					</filter>
-					<relation>org:manager</relation>
+					<relation>manager</relation>
 				</assignmentTargetSearch>
 			</expression>
 			<target>
