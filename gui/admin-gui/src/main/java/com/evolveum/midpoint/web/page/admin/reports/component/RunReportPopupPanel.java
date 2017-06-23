@@ -292,7 +292,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             panel = new DatePanel(componentId, new PropertyModel<>(model, expression));
         } else if (param.getProperties() != null && param.getProperties().getTargetType() != null) { // render autocomplete box
         	LookupTableType lookup = new LookupTableType();
-            panel = new AutoCompleteTextPanel<String>(componentId, new LookupReportPropertyModel(model, expression, lookup, false), String.class) {
+            panel = new AutoCompleteTextPanel<String>(componentId, new LookupReportPropertyModel(model, expression, lookup, true), String.class) {
 				
             	private static final long serialVersionUID = 1L;
 

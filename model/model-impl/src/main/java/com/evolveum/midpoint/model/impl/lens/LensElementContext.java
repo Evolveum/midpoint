@@ -565,8 +565,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setObjectOld(objectOld != null ? objectOld.asObjectable() : null);
         lensElementContextType.setObjectNew(objectNew != null ? objectNew.asObjectable() : null);
         lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
-        for (LensObjectDeltaOperation executedDelta : executedDeltas) {
-            lensElementContextType.getExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
+        for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
+            lensElementContextType.getExecutedDeltas().add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
         }
         lensElementContextType.setObjectTypeClass(objectTypeClass != null ? objectTypeClass.getName() : null);
         lensElementContextType.setOid(oid);

@@ -1,0 +1,825 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Contributed by Chris Woods
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<lookupTable oid="878fa8fc-57ee-11e7-bbd8-b75f54e22d1d"
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+
+	<name>All Languages</name>
+	
+	<description>
+		Lookup table for all languages.
+		This table is supposed to list all known languages, even those
+		that are not supported by midPoint GUI.
+	</description>
+
+   <row id="1">
+      <key>ar_AE</key>
+      <label>العربية (الإمارات)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.438+02:00</lastChangeTimestamp>
+   </row>
+   <row id="2">
+      <key>ar_JO</key>
+      <label>العربية (الأردن)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.441+02:00</lastChangeTimestamp>
+   </row>
+   <row id="3">
+      <key>ar_SY</key>
+      <label>العربية (سوريا)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.443+02:00</lastChangeTimestamp>
+   </row>
+   <row id="4">
+      <key>hr_HR</key>
+      <label>hrvatski (Hrvatska)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.450+02:00</lastChangeTimestamp>
+   </row>
+   <row id="5">
+      <key>fr_BE</key>
+      <label>français (Belgique)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.451+02:00</lastChangeTimestamp>
+   </row>
+   <row id="6">
+      <key>es_PA</key>
+      <label>español (Panamá)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.452+02:00</lastChangeTimestamp>
+   </row>
+   <row id="7">
+      <key>mt_MT</key>
+      <label>Malti (Malta)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.454+02:00</lastChangeTimestamp>
+   </row>
+   <row id="8">
+      <key>es_VE</key>
+      <label>español (Venezuela)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.454+02:00</lastChangeTimestamp>
+   </row>
+   <row id="9">
+      <key>bg</key>
+      <label>български</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.455+02:00</lastChangeTimestamp>
+   </row>
+   <row id="10">
+      <key>zh_TW</key>
+      <label>中文 (台灣)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.456+02:00</lastChangeTimestamp>
+   </row>
+   <row id="11">
+      <key>it</key>
+      <label>italiano</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.456+02:00</lastChangeTimestamp>
+   </row>
+   <row id="12">
+      <key>ko</key>
+      <label>한국어</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.457+02:00</lastChangeTimestamp>
+   </row>
+   <row id="13">
+      <key>uk</key>
+      <label>українська</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.457+02:00</lastChangeTimestamp>
+   </row>
+   <row id="14">
+      <key>lv</key>
+      <label>Latviešu</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.457+02:00</lastChangeTimestamp>
+   </row>
+   <row id="15">
+      <key>da_DK</key>
+      <label>Dansk (Danmark)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.458+02:00</lastChangeTimestamp>
+   </row>
+   <row id="16">
+      <key>es_PR</key>
+      <label>español (Puerto Rico)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.458+02:00</lastChangeTimestamp>
+   </row>
+   <row id="17">
+      <key>vi_VN</key>
+      <label>Tiếng Việt (Việt Nam)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.459+02:00</lastChangeTimestamp>
+   </row>
+   <row id="18">
+      <key>en_US</key>
+      <label>English (United States)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.459+02:00</lastChangeTimestamp>
+   </row>
+   <row id="19">
+      <key>sr_ME</key>
+      <label>Српски (Montenegro)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.460+02:00</lastChangeTimestamp>
+   </row>
+   <row id="20">
+      <key>sv_SE</key>
+      <label>svenska (Sverige)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.461+02:00</lastChangeTimestamp>
+   </row>
+   <row id="21">
+      <key>es_BO</key>
+      <label>español (Bolivia)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.461+02:00</lastChangeTimestamp>
+   </row>
+   <row id="22">
+      <key>en_SG</key>
+      <label>English (Singapore)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.463+02:00</lastChangeTimestamp>
+   </row>
+   <row id="23">
+      <key>ar_BH</key>
+      <label>العربية (البحرين)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.463+02:00</lastChangeTimestamp>
+   </row>
+   <row id="24">
+      <key>pt</key>
+      <label>português</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.465+02:00</lastChangeTimestamp>
+   </row>
+   <row id="25">
+      <key>ar_SA</key>
+      <label>العربية (السعودية)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.465+02:00</lastChangeTimestamp>
+   </row>
+   <row id="26">
+      <key>sk</key>
+      <label>Slovenčina</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.466+02:00</lastChangeTimestamp>
+   </row>
+   <row id="27">
+      <key>ar_YE</key>
+      <label>العربية (اليمن)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.466+02:00</lastChangeTimestamp>
+   </row>
+   <row id="28">
+      <key>hi_IN</key>
+      <label>हिंदी (भारत)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.466+02:00</lastChangeTimestamp>
+   </row>
+   <row id="29">
+      <key>ga</key>
+      <label>Gaeilge</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.467+02:00</lastChangeTimestamp>
+   </row>
+   <row id="30">
+      <key>en_MT</key>
+      <label>English (Malta)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.467+02:00</lastChangeTimestamp>
+   </row>
+   <row id="31">
+      <key>fi_FI</key>
+      <label>suomi (Suomi)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.468+02:00</lastChangeTimestamp>
+   </row>
+   <row id="32">
+      <key>et</key>
+      <label>Eesti</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.468+02:00</lastChangeTimestamp>
+   </row>
+   <row id="33">
+      <key>sv</key>
+      <label>svenska</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.469+02:00</lastChangeTimestamp>
+   </row>
+   <row id="34">
+      <key>cs</key>
+      <label>čeština</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.469+02:00</lastChangeTimestamp>
+   </row>
+   <row id="35">
+      <key>sr_BA_#Latn</key>
+      <label>Srpski (Latin,Bosna i Hercegovina)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.470+02:00</lastChangeTimestamp>
+   </row>
+   <row id="36">
+      <key>el</key>
+      <label>Ελληνικά</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.470+02:00</lastChangeTimestamp>
+   </row>
+   <row id="37">
+      <key>uk_UA</key>
+      <label>українська (Україна)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.471+02:00</lastChangeTimestamp>
+   </row>
+   <row id="38">
+      <key>hu</key>
+      <label>magyar</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.471+02:00</lastChangeTimestamp>
+   </row>
+   <row id="39">
+      <key>fr_CH</key>
+      <label>français (Suisse)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.472+02:00</lastChangeTimestamp>
+   </row>
+   <row id="40">
+      <key>in</key>
+      <label>Bahasa Indonesia</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.476+02:00</lastChangeTimestamp>
+   </row>
+   <row id="41">
+      <key>es_AR</key>
+      <label>español (Argentina)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.477+02:00</lastChangeTimestamp>
+   </row>
+   <row id="42">
+      <key>ar_EG</key>
+      <label>العربية (مصر)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.478+02:00</lastChangeTimestamp>
+   </row>
+   <row id="43">
+      <key>ja_JP_JP_#u-ca-japanese</key>
+      <label>日本語 (日本,JP)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.479+02:00</lastChangeTimestamp>
+   </row>
+   <row id="44">
+      <key>es_SV</key>
+      <label>español (El Salvador)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.479+02:00</lastChangeTimestamp>
+   </row>
+   <row id="45">
+      <key>pt_BR</key>
+      <label>português (Brasil)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.480+02:00</lastChangeTimestamp>
+   </row>
+   <row id="46">
+      <key>be</key>
+      <label>беларускі</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.481+02:00</lastChangeTimestamp>
+   </row>
+   <row id="47">
+      <key>is_IS</key>
+      <label>íslenska (Ísland)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.482+02:00</lastChangeTimestamp>
+   </row>
+   <row id="48">
+      <key>cs_CZ</key>
+      <label>čeština (Česká republika)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.483+02:00</lastChangeTimestamp>
+   </row>
+   <row id="49">
+      <key>es</key>
+      <label>español</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.483+02:00</lastChangeTimestamp>
+   </row>
+   <row id="50">
+      <key>pl_PL</key>
+      <label>polski (Polska)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.484+02:00</lastChangeTimestamp>
+   </row>
+   <row id="51">
+      <key>tr</key>
+      <label>Türkçe</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.484+02:00</lastChangeTimestamp>
+   </row>
+   <row id="52">
+      <key>ca_ES</key>
+      <label>català (Espanya)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.485+02:00</lastChangeTimestamp>
+   </row>
+   <row id="53">
+      <key>sr_CS</key>
+      <label>Српски (Србија и Црна Гора)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.486+02:00</lastChangeTimestamp>
+   </row>
+   <row id="54">
+      <key>ms_MY</key>
+      <label>Bahasa Melayu (Malaysia)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.486+02:00</lastChangeTimestamp>
+   </row>
+   <row id="55">
+      <key>hr</key>
+      <label>hrvatski</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.487+02:00</lastChangeTimestamp>
+   </row>
+   <row id="56">
+      <key>lt</key>
+      <label>Lietuvių</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.488+02:00</lastChangeTimestamp>
+   </row>
+   <row id="57">
+      <key>es_ES</key>
+      <label>español (España)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.489+02:00</lastChangeTimestamp>
+   </row>
+   <row id="58">
+      <key>es_CO</key>
+      <label>español (Colombia)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.490+02:00</lastChangeTimestamp>
+   </row>
+   <row id="59">
+      <key>bg_BG</key>
+      <label>български (България)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.491+02:00</lastChangeTimestamp>
+   </row>
+   <row id="60">
+      <key>sq</key>
+      <label>shqip</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.491+02:00</lastChangeTimestamp>
+   </row>
+   <row id="61">
+      <key>fr</key>
+      <label>français</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.492+02:00</lastChangeTimestamp>
+   </row>
+   <row id="62">
+      <key>ja</key>
+      <label>日本語</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.493+02:00</lastChangeTimestamp>
+   </row>
+   <row id="63">
+      <key>sr_BA</key>
+      <label>Српски (Босна и Херцеговина)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.493+02:00</lastChangeTimestamp>
+   </row>
+   <row id="64">
+      <key>is</key>
+      <label>íslenska</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.494+02:00</lastChangeTimestamp>
+   </row>
+   <row id="65">
+      <key>es_PY</key>
+      <label>español (Paraguay)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.494+02:00</lastChangeTimestamp>
+   </row>
+   <row id="66">
+      <key>de</key>
+      <label>Deutsch</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.495+02:00</lastChangeTimestamp>
+   </row>
+   <row id="67">
+      <key>es_EC</key>
+      <label>español (Ecuador)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.496+02:00</lastChangeTimestamp>
+   </row>
+   <row id="68">
+      <key>es_US</key>
+      <label>español (Estados Unidos)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.496+02:00</lastChangeTimestamp>
+   </row>
+   <row id="69">
+      <key>ar_SD</key>
+      <label>العربية (السودان)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.497+02:00</lastChangeTimestamp>
+   </row>
+   <row id="70">
+      <key>en</key>
+      <label>English</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.498+02:00</lastChangeTimestamp>
+   </row>
+   <row id="71">
+      <key>ro_RO</key>
+      <label>română (România)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.499+02:00</lastChangeTimestamp>
+   </row>
+   <row id="72">
+      <key>en_PH</key>
+      <label>English (Philippines)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.499+02:00</lastChangeTimestamp>
+   </row>
+   <row id="73">
+      <key>ca</key>
+      <label>català</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.500+02:00</lastChangeTimestamp>
+   </row>
+   <row id="74">
+      <key>ar_TN</key>
+      <label>العربية (تونس)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.501+02:00</lastChangeTimestamp>
+   </row>
+   <row id="75">
+      <key>sr_ME_#Latn</key>
+      <label>Srpski (Latin,Crna Gora)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.501+02:00</lastChangeTimestamp>
+   </row>
+   <row id="76">
+      <key>es_GT</key>
+      <label>español (Guatemala)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.502+02:00</lastChangeTimestamp>
+   </row>
+   <row id="77">
+      <key>sl</key>
+      <label>Slovenščina</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.505+02:00</lastChangeTimestamp>
+   </row>
+   <row id="78">
+      <key>ko_KR</key>
+      <label>한국어 (대한민국)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.506+02:00</lastChangeTimestamp>
+   </row>
+   <row id="79">
+      <key>el_CY</key>
+      <label>Ελληνικά (Κύπρος)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.507+02:00</lastChangeTimestamp>
+   </row>
+   <row id="80">
+      <key>es_MX</key>
+      <label>español (México)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.508+02:00</lastChangeTimestamp>
+   </row>
+   <row id="81">
+      <key>ru_RU</key>
+      <label>русский (Россия)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.513+02:00</lastChangeTimestamp>
+   </row>
+   <row id="82">
+      <key>es_HN</key>
+      <label>español (Honduras)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.514+02:00</lastChangeTimestamp>
+   </row>
+   <row id="83">
+      <key>zh_HK</key>
+      <label>中文 (香港)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.515+02:00</lastChangeTimestamp>
+   </row>
+   <row id="84">
+      <key>no_NO_NY</key>
+      <label>norsk (Norge,nynorsk)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.516+02:00</lastChangeTimestamp>
+   </row>
+   <row id="85">
+      <key>hu_HU</key>
+      <label>magyar (Magyarország)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.516+02:00</lastChangeTimestamp>
+   </row>
+   <row id="86">
+      <key>th_TH</key>
+      <label>ไทย (ประเทศไทย)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.517+02:00</lastChangeTimestamp>
+   </row>
+   <row id="87">
+      <key>ar_IQ</key>
+      <label>العربية (العراق)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.517+02:00</lastChangeTimestamp>
+   </row>
+   <row id="88">
+      <key>es_CL</key>
+      <label>español (Chile)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.518+02:00</lastChangeTimestamp>
+   </row>
+   <row id="89">
+      <key>fi</key>
+      <label>suomi</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.518+02:00</lastChangeTimestamp>
+   </row>
+   <row id="90">
+      <key>ar_MA</key>
+      <label>العربية (المغرب)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.519+02:00</lastChangeTimestamp>
+   </row>
+   <row id="91">
+      <key>ga_IE</key>
+      <label>Gaeilge (Éire)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.520+02:00</lastChangeTimestamp>
+   </row>
+   <row id="92">
+      <key>mk</key>
+      <label>македонски</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.520+02:00</lastChangeTimestamp>
+   </row>
+   <row id="93">
+      <key>tr_TR</key>
+      <label>Türkçe (Türkiye)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.521+02:00</lastChangeTimestamp>
+   </row>
+   <row id="94">
+      <key>et_EE</key>
+      <label>Eesti (Eesti)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.521+02:00</lastChangeTimestamp>
+   </row>
+   <row id="95">
+      <key>ar_QA</key>
+      <label>العربية (قطر)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.522+02:00</lastChangeTimestamp>
+   </row>
+   <row id="96">
+      <key>sr__#Latn</key>
+      <label>Srpski (Latin)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.523+02:00</lastChangeTimestamp>
+   </row>
+   <row id="97">
+      <key>pt_PT</key>
+      <label>português (Portugal)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.525+02:00</lastChangeTimestamp>
+   </row>
+   <row id="98">
+      <key>fr_LU</key>
+      <label>français (Luxembourg)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.528+02:00</lastChangeTimestamp>
+   </row>
+   <row id="99">
+      <key>ar_OM</key>
+      <label>العربية (سلطنة عمان)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.532+02:00</lastChangeTimestamp>
+   </row>
+   <row id="100">
+      <key>th</key>
+      <label>ไทย</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.533+02:00</lastChangeTimestamp>
+   </row>
+   <row id="101">
+      <key>sq_AL</key>
+      <label>shqip (Shqipëria)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.534+02:00</lastChangeTimestamp>
+   </row>
+   <row id="102">
+      <key>es_DO</key>
+      <label>español (República Dominicana)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.535+02:00</lastChangeTimestamp>
+   </row>
+   <row id="103">
+      <key>es_CU</key>
+      <label>español (Cuba)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.535+02:00</lastChangeTimestamp>
+   </row>
+   <row id="104">
+      <key>ar</key>
+      <label>العربية</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.536+02:00</lastChangeTimestamp>
+   </row>
+   <row id="105">
+      <key>ru</key>
+      <label>русский</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.537+02:00</lastChangeTimestamp>
+   </row>
+   <row id="106">
+      <key>en_NZ</key>
+      <label>English (New Zealand)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.537+02:00</lastChangeTimestamp>
+   </row>
+   <row id="107">
+      <key>sr_RS</key>
+      <label>Српски (Serbia)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.538+02:00</lastChangeTimestamp>
+   </row>
+   <row id="108">
+      <key>de_CH</key>
+      <label>Deutsch (Schweiz)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.539+02:00</lastChangeTimestamp>
+   </row>
+   <row id="109">
+      <key>es_UY</key>
+      <label>español (Uruguay)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.541+02:00</lastChangeTimestamp>
+   </row>
+   <row id="110">
+      <key>ms</key>
+      <label>Bahasa Melayu</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.542+02:00</lastChangeTimestamp>
+   </row>
+   <row id="111">
+      <key>el_GR</key>
+      <label>Ελληνικά (Ελλάδα)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.542+02:00</lastChangeTimestamp>
+   </row>
+   <row id="112">
+      <key>iw_IL</key>
+      <label>עברית (ישראל)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.543+02:00</lastChangeTimestamp>
+   </row>
+   <row id="113">
+      <key>en_ZA</key>
+      <label>English (South Africa)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.544+02:00</lastChangeTimestamp>
+   </row>
+   <row id="114">
+      <key>th_TH_TH_#u-nu-thai</key>
+      <label>ไทย (ประเทศไทย,TH)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.545+02:00</lastChangeTimestamp>
+   </row>
+   <row id="115">
+      <key>hi</key>
+      <label>हिंदी</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.545+02:00</lastChangeTimestamp>
+   </row>
+   <row id="116">
+      <key>fr_FR</key>
+      <label>français (France)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.546+02:00</lastChangeTimestamp>
+   </row>
+   <row id="117">
+      <key>de_AT</key>
+      <label>Deutsch (Österreich)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.548+02:00</lastChangeTimestamp>
+   </row>
+   <row id="118">
+      <key>nl</key>
+      <label>Nederlands</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.549+02:00</lastChangeTimestamp>
+   </row>
+   <row id="119">
+      <key>no_NO</key>
+      <label>norsk (Norge)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.549+02:00</lastChangeTimestamp>
+   </row>
+   <row id="120">
+      <key>en_AU</key>
+      <label>English (Australia)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.550+02:00</lastChangeTimestamp>
+   </row>
+   <row id="121">
+      <key>vi</key>
+      <label>Tiếng Việt</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.551+02:00</lastChangeTimestamp>
+   </row>
+   <row id="122">
+      <key>nl_NL</key>
+      <label>Nederlands (Nederland)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.551+02:00</lastChangeTimestamp>
+   </row>
+   <row id="123">
+      <key>fr_CA</key>
+      <label>français (Canada)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.552+02:00</lastChangeTimestamp>
+   </row>
+   <row id="124">
+      <key>lv_LV</key>
+      <label>Latviešu (Latvija)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.552+02:00</lastChangeTimestamp>
+   </row>
+   <row id="125">
+      <key>de_LU</key>
+      <label>Deutsch (Luxemburg)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.553+02:00</lastChangeTimestamp>
+   </row>
+   <row id="126">
+      <key>es_CR</key>
+      <label>español (Costa Rica)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.554+02:00</lastChangeTimestamp>
+   </row>
+   <row id="127">
+      <key>ar_KW</key>
+      <label>العربية (الكويت)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.556+02:00</lastChangeTimestamp>
+   </row>
+   <row id="128">
+      <key>sr</key>
+      <label>Српски</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.556+02:00</lastChangeTimestamp>
+   </row>
+   <row id="129">
+      <key>ar_LY</key>
+      <label>العربية (ليبيا)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.557+02:00</lastChangeTimestamp>
+   </row>
+   <row id="130">
+      <key>mt</key>
+      <label>Malti</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.558+02:00</lastChangeTimestamp>
+   </row>
+   <row id="131">
+      <key>it_CH</key>
+      <label>italiano (Svizzera)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.559+02:00</lastChangeTimestamp>
+   </row>
+   <row id="132">
+      <key>da</key>
+      <label>Dansk</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.562+02:00</lastChangeTimestamp>
+   </row>
+   <row id="133">
+      <key>de_DE</key>
+      <label>Deutsch (Deutschland)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.563+02:00</lastChangeTimestamp>
+   </row>
+   <row id="134">
+      <key>ar_DZ</key>
+      <label>العربية (الجزائر)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.564+02:00</lastChangeTimestamp>
+   </row>
+   <row id="135">
+      <key>sk_SK</key>
+      <label>Slovenčina (Slovenská republika)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.564+02:00</lastChangeTimestamp>
+   </row>
+   <row id="136">
+      <key>lt_LT</key>
+      <label>Lietuvių (Lietuva)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.565+02:00</lastChangeTimestamp>
+   </row>
+   <row id="137">
+      <key>it_IT</key>
+      <label>italiano (Italia)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.566+02:00</lastChangeTimestamp>
+   </row>
+   <row id="138">
+      <key>en_IE</key>
+      <label>English (Ireland)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.566+02:00</lastChangeTimestamp>
+   </row>
+   <row id="139">
+      <key>zh_SG</key>
+      <label>中文 (新加坡)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.567+02:00</lastChangeTimestamp>
+   </row>
+   <row id="140">
+      <key>ro</key>
+      <label>română</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.568+02:00</lastChangeTimestamp>
+   </row>
+   <row id="141">
+      <key>en_CA</key>
+      <label>English (Canada)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.568+02:00</lastChangeTimestamp>
+   </row>
+   <row id="142">
+      <key>nl_BE</key>
+      <label>Nederlands (België)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.569+02:00</lastChangeTimestamp>
+   </row>
+   <row id="143">
+      <key>no</key>
+      <label>norsk</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.570+02:00</lastChangeTimestamp>
+   </row>
+   <row id="144">
+      <key>pl</key>
+      <label>polski</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.570+02:00</lastChangeTimestamp>
+   </row>
+   <row id="145">
+      <key>zh_CN</key>
+      <label>中文 (中国)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.571+02:00</lastChangeTimestamp>
+   </row>
+   <row id="146">
+      <key>ja_JP</key>
+      <label>日本語 (日本)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.571+02:00</lastChangeTimestamp>
+   </row>
+   <row id="147">
+      <key>de_GR</key>
+      <label>Deutsch (Griechenland)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.572+02:00</lastChangeTimestamp>
+   </row>
+   <row id="148">
+      <key>sr_RS_#Latn</key>
+      <label>Srpski (Latin,Srbija)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.572+02:00</lastChangeTimestamp>
+   </row>
+   <row id="149">
+      <key>iw</key>
+      <label>עברית</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.573+02:00</lastChangeTimestamp>
+   </row>
+   <row id="150">
+      <key>en_IN</key>
+      <label>English (India)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.573+02:00</lastChangeTimestamp>
+   </row>
+   <row id="151">
+      <key>ar_LB</key>
+      <label>العربية (لبنان)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.574+02:00</lastChangeTimestamp>
+   </row>
+   <row id="152">
+      <key>es_NI</key>
+      <label>español (Nicaragua)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.574+02:00</lastChangeTimestamp>
+   </row>
+   <row id="153">
+      <key>zh</key>
+      <label>中文</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.576+02:00</lastChangeTimestamp>
+   </row>
+   <row id="154">
+      <key>mk_MK</key>
+      <label>македонски (Македонија)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.576+02:00</lastChangeTimestamp>
+   </row>
+   <row id="155">
+      <key>be_BY</key>
+      <label>беларускі (Беларусь)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.577+02:00</lastChangeTimestamp>
+   </row>
+   <row id="156">
+      <key>sl_SI</key>
+      <label>Slovenščina (Slovenija)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.577+02:00</lastChangeTimestamp>
+   </row>
+   <row id="157">
+      <key>es_PE</key>
+      <label>español (Perú)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.578+02:00</lastChangeTimestamp>
+   </row>
+   <row id="158">
+      <key>in_ID</key>
+      <label>Bahasa Indonesia (Indonesia)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.578+02:00</lastChangeTimestamp>
+   </row>
+   <row id="159">
+      <key>en_GB</key>
+      <label>English (United Kingdom)</label>
+      <lastChangeTimestamp>2017-05-31T22:59:47.579+02:00</lastChangeTimestamp>
+   </row>
+
+</lookupTable>

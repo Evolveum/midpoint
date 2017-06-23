@@ -31,6 +31,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import org.apache.cxf.common.util.StringUtils;
 
 /**
  * TODO: unify with AssignmentItemDto

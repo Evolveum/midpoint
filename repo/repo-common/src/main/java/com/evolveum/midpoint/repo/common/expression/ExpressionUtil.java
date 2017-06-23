@@ -833,8 +833,7 @@ public class ExpressionUtil {
 		throw new IllegalStateException("notreached");
 	}
 
-	public static void addActorVariable(ExpressionVariables scriptVariables,
-			SecurityEnforcer securityEnforcer) {
+	public static void addActorVariable(ExpressionVariables scriptVariables, SecurityEnforcer securityEnforcer) {
 		// There can already be a value, because for mappings, we create the
 		// variable before parsing sources.
 		// For other scripts we do it just before the execution, to catch all
