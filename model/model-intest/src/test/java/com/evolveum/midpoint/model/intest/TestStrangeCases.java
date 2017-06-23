@@ -15,37 +15,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -53,10 +25,12 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -70,14 +44,28 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRaw;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createTolerateRawData;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -1278,11 +1266,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     
     /**
      * Store value in extension/ship. Then remove extension/ship definition from the schema.
-     * The next read should NOT fail.
+     * The next read should NOT fail, because of the 'tolerate raw data' mode.
      */
     @Test
-    public void test520ShipReadBad() throws Exception {
-		final String TEST_NAME = "test520ShipReadBad";
+    public void test520ShipReadBadTolerateRawData() throws Exception {
+		final String TEST_NAME = "test520ShipReadBadTolerateRawData";
         displayTestTile(TEST_NAME);
 
         // GIVEN
@@ -1295,27 +1283,92 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         		task, result, "The Pink Lady");
         result.computeStatus();
         assertSuccess(result);
-        
-        PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
-        List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
-		for (ItemDefinition itemDefinition : extensionDefs) {
-			if (itemDefinition.getName().equals(PIRACY_SHIP)) {
-				//iterator.remove();	// not possible as the collection is unmodifiable
-				((ItemDefinitionImpl) itemDefinition).setName(new QName(NS_PIRACY, "ship-broken"));
-			}
-		}
+
+		changeDefinition(PIRACY_SHIP, PIRACY_SHIP_BROKEN);
         
         // WHEN
-        modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        modelService.getObject(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(createTolerateRawData()), task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         assertSuccess(result);
     }
-    
+
+	private void changeDefinition(QName piracyShip, QName piracyShipBroken) {
+		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(UserType.class);
+		PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
+		List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
+		for (ItemDefinition itemDefinition : extensionDefs) {
+			if (itemDefinition.getName().equals(piracyShip)) {
+				//iterator.remove();	// not possible as the collection is unmodifiable
+				((ItemDefinitionImpl) itemDefinition).setName(piracyShipBroken);
+			}
+		}
+	}
+
+	/**
+	 * Read guybrush again.
+     * The operation should fail, because the raw mode itself does not allow raw data (except for some objects).
+	 *
+	 * TODO reconsider this eventually, and change the test
+     */
+    @Test
+    public void test522ShipReadBadRaw() throws Exception {
+		final String TEST_NAME = "test522ShipReadBadRaw";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+
+        Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+		// WHEN + THEN
+		try {
+			modelService.getObject(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(createRaw()), task, result);
+			fail("unexpected success");
+		} catch (Throwable t) {
+			System.out.println("Got expected exception: " + t);
+		}
+    }
+
     /**
+	 * Read guybrush again.
+     * The operation should fail, because of the plain mode.
+	 *
+ 	 * TODO reconsider this eventually, and change the test
+	 */
+    @Test
+    public void test524ShipReadBadPlain() throws Exception {
+		final String TEST_NAME = "test524ShipReadBadPlain";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+
+        Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        // WHEN + THEN
+		try {
+			modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+			fail("unexpected success");
+		} catch (Throwable t) {
+			System.out.println("Got expected exception: " + t);
+		}
+    }
+
+	@Test
+	public void test529FixSchema() throws Exception {
+		final String TEST_NAME = "test529FixSchema";
+		displayTestTile(TEST_NAME);
+
+		changeDefinition(PIRACY_SHIP_BROKEN, PIRACY_SHIP);
+	}
+
+	/**
      * Circus resource has a circular dependency. It should fail, but it should
      * fail with a proper error.
      * MID-3522
