@@ -48,6 +48,7 @@ import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -920,6 +921,8 @@ public class ReconciliationProcessor {
 		} else {
 			throw new IllegalArgumentException("Unknown change type " + changeType);
 		}
+		
+		LensUtil.setDeltaOldValue(projCtx, attrDelta);
 
 		projCtx.swallowToSecondaryDelta(attrDelta);
 	}
@@ -963,6 +966,7 @@ public class ReconciliationProcessor {
         } else {
             throw new IllegalArgumentException("Unknown change type " + changeType);
         }
+        LensUtil.setDeltaOldValue(accCtx, assocDelta);
 
         accCtx.swallowToSecondaryDelta(assocDelta);
     }
