@@ -164,7 +164,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // (see shutdown() method)
     private static final long WAIT_ON_SHUTDOWN = 2000;
 
-    //region Initialization and shutdown
+	private List<String> PURGE_SUCCESSFUL_RESULT_FOR = Collections.singletonList(TaskCategory.WORKFLOW);
+
+	//region Initialization and shutdown
     // ********************* INITIALIZATION AND SHUTDOWN *********************
 
     /**
@@ -1645,6 +1647,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public void closeTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         try {
             // todo do in one modify operation
+			// todo deduplicate
+			if (shouldPurgeResult(task)) {
+				task.setResultImmediate(OperationResult.keepRootOnly(task.getResult()), parentResult);
+			}
             ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);
             ((TaskQuartzImpl) task).setCompletionTimestampImmediate(System.currentTimeMillis(), parentResult);
         } finally {
@@ -1654,8 +1660,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
     }
 
-    // do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
+	private boolean shouldPurgeResult(Task task) {
+		return PURGE_SUCCESSFUL_RESULT_FOR.contains(task.getCategory()) &&
+				task.getResultStatus() == OperationResultStatusType.SUCCESS || task.getResultStatus() == OperationResultStatusType.IN_PROGRESS;
+	}
+
+	// do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
+		// todo deduplicate
+		if (shouldPurgeResult(task)) {
+			task.setResult(OperationResult.keepRootOnly(task.getResult()));
+		}
         ((TaskQuartzImpl) task).setExecutionStatus(TaskExecutionStatus.CLOSED);
         ((TaskQuartzImpl) task).setCompletionTimestamp(System.currentTimeMillis());
         executionManager.removeTaskFromQuartz(task.getOid(), parentResult);

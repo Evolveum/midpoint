@@ -23,7 +23,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
@@ -786,16 +785,11 @@ public class Clockwork {
 	private <F extends ObjectType> LensObjectDeltaOperation<F> simplifyOperation(ObjectDeltaOperation<F> operation) {
 		LensObjectDeltaOperation<F> rv = new LensObjectDeltaOperation<>();
 		rv.setObjectDelta(simplifyDelta(operation.getObjectDelta()));
-		rv.setExecutionResult(simplifyResult(operation.getExecutionResult()));
+		rv.setExecutionResult(OperationResult.keepRootOnly(operation.getExecutionResult()));
 		rv.setObjectName(operation.getObjectName());
 		rv.setResourceName(operation.getResourceName());
 		rv.setResourceOid(operation.getResourceOid());
 		return rv;
-	}
-
-	// TODO move to better place
-	static OperationResult simplifyResult(OperationResult result) {
-		return new OperationResult(result.getOperation(), result.getStatus(), result.getMessageCode(), result.getMessage());
 	}
 
 	private <F extends ObjectType> ObjectDelta<F> simplifyDelta(ObjectDelta<F> delta) {

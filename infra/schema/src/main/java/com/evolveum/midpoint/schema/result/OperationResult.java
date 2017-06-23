@@ -197,6 +197,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this.details = new ArrayList<>();
 	}
 
+	public static OperationResult keepRootOnly(OperationResult result) {
+		return result != null ? result.keepRootOnly() : null;
+	}
+
+	public OperationResult keepRootOnly() {
+		return new OperationResult(getOperation(), getStatus(), getMessageCode(), getMessage());
+	}
+
 	public OperationResult createSubresult(String operation) {
 		OperationResult subresult = new OperationResult(operation);
 		addSubresult(subresult);
