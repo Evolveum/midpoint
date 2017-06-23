@@ -1729,8 +1729,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         Date deleteTasksClosedUpTo = new Date();
         duration.addTo(deleteTasksClosedUpTo);
 
-        LOGGER.info("Starting cleanup for closed tasks deleting up to {} (duration '{}').",
-                new Object[]{deleteTasksClosedUpTo, duration});
+        LOGGER.info("Starting cleanup for closed tasks deleting up to {} (duration '{}').", deleteTasksClosedUpTo, duration);
 
         XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteTasksClosedUpTo.getTime());
 
