@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -301,8 +302,12 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		
 		// We need to add actor variable before we switch user identity (runAs)
 		ExpressionUtil.addActorVariable(newVariables, securityEnforcer);
+		boolean actorDefined = newVariables.get(ExpressionConstants.VAR_ACTOR) != null;
 		
-		for(Entry<QName,Object> entry: variables.entrySet()) {
+		for (Entry<QName,Object> entry: variables.entrySet()) {
+			if (ExpressionConstants.VAR_ACTOR.equals(entry.getKey()) && actorDefined) {
+				continue;			// avoid pointless warning about redefined value of actor
+			}
 			newVariables.addVariableDefinition(entry.getKey(), entry.getValue());
 		}
 		
