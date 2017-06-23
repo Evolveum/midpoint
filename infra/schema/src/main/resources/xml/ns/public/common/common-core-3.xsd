@@ -1043,6 +1043,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="ipAddress" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                IP addresses of the node (both IPv4 and IPv6 addresses in textual notation)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="jmxPort" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
