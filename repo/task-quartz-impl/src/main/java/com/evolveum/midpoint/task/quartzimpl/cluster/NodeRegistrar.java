@@ -46,6 +46,8 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.*;
 
@@ -78,7 +80,7 @@ public class NodeRegistrar {
      * @param result Node prism to be used for periodic re-registrations.
      */
     void createNodeObject(OperationResult result) throws TaskManagerInitializationException {
-
+    	
         nodePrism = createNodePrism(taskManager.getConfiguration());
         NodeType node = nodePrism.asObjectable();
 
@@ -149,7 +151,8 @@ public class NodeRegistrar {
 
         node.setNodeIdentifier(configuration.getNodeId());
         node.setName(new PolyStringType(configuration.getNodeId()));
-        node.setHostname(getMyAddress());
+        node.setHostname(getMyHostname());
+        node.getIpAddress().addAll(getMyIPAdresses());
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
         node.setRunning(true);
@@ -230,15 +233,14 @@ public class NodeRegistrar {
 
     /**
      * Updates registration of this node (runs periodically within ClusterManager thread).
-     *
-     * @param result
      */
     void updateNodeObject(OperationResult result) {
 
         LOGGER.trace("Updating this node registration (name {}, oid {})", nodePrism.asObjectable().getName(), nodePrism.getOid());
 
         List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
-        modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_HOSTNAME, getMyAddress()));
+        modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_HOSTNAME, getMyHostname()));
+        modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_IP_ADDRESS, getMyIPAdresses().toArray(new String[0])));
         modifications.add(createCheckInTimeDelta());
 
         try {
@@ -265,7 +267,8 @@ public class NodeRegistrar {
         }
     }
 
-    /**
+
+	/**
      * Checks whether this Node object was not overwritten by another node (implying there is duplicate node ID in cluster).
      *
      * @param result
@@ -391,20 +394,95 @@ public class NodeRegistrar {
         LOGGER.warn("Scheduler stopped, please check your cluster configuration as soon as possible; kind of error = " + status);
     }
 
-    private String getMyAddress() {
+    private String getMyHostname() {
 
         if (taskManager.getConfiguration().getJmxHostName() != null) {
             return taskManager.getConfiguration().getJmxHostName();
         } else {
             try {
-                InetAddress address = InetAddress.getLocalHost();
-                return address.getHostAddress();
+            	// Not entirely correct. But we have no other option here
+            	// other than go native or execute a "hostname" shell command.
+            	// We do not want to do neither.
+            	InetAddress localHost = InetAddress.getLocalHost();
+            	
+            	if (localHost == null) {
+            		// Unix
+                	String hostname = System.getenv("HOSTNAME");
+                	if (hostname != null && !hostname.isEmpty()) {
+                		return hostname;
+                	}
+                	
+                	// Windows
+                	hostname = System.getenv("COMPUTERNAME");
+                	if (hostname != null && !hostname.isEmpty()) {
+                		return hostname;
+                	}
+                	
+            		LOGGER.error("Cannot get local IP address");
+            		// Make sure this has special characters so it cannot be inerpreted as valid hostname
+                    return "(unknown-host)";
+            	}
+            	
+            	String hostname = localHost.getCanonicalHostName();
+            	if (hostname != null && !hostname.isEmpty()) {
+            		return hostname;
+            	}
+            	
+            	hostname = localHost.getHostName();
+            	if (hostname != null && !hostname.isEmpty()) {
+            		return hostname;
+            	}
+                return localHost.getHostAddress();
             } catch (UnknownHostException e) {
-                LoggingUtils.logException(LOGGER, "Cannot get local IP address", e);
-                return "unknown-host";
+                LoggingUtils.logException(LOGGER, "Cannot get local hostname address", e);
+                // Make sure this has special characters so it cannot be inerpreted as valid hostname
+                return "(unknown-host)";
             }
         }
     }
+    
+    private List<String> getMyIPAdresses() {
+    	List<String> addresses = new ArrayList<>();
+    	Enumeration<NetworkInterface> nets;
+		try {
+			nets = NetworkInterface.getNetworkInterfaces();
+			for (NetworkInterface netint : Collections.list(nets)) {
+				for (InetAddress inetAddres: Collections.list(netint.getInetAddresses())) {
+					String hostAddress = inetAddres.getHostAddress();
+					String normalizedAddress = normalizeAddress(hostAddress);
+					if (!isLocalAddress(normalizedAddress)) {
+						addresses.add(normalizedAddress);
+					}
+				}
+			}
+		} catch (SocketException e) {
+			LoggingUtils.logException(LOGGER, "Cannot get local IP address", e);
+			return addresses;
+		}
+		return addresses;
+	}
+
+	private String normalizeAddress(String hostAddress) {
+		int i = hostAddress.indexOf('%');
+		if (i < 0) {
+			return hostAddress;
+		} else {
+			return hostAddress.substring(0, i);
+		}
+	}
+	
+	private boolean isLocalAddress(String addr) {
+		if (addr.startsWith("127.")) {
+			return true;
+		}
+		if (addr.equals("0:0:0:0:0:0:0:1")) {
+			return true;
+		}
+		if (addr.equals("::1")) {
+			return true;
+		}
+		return false;
+	}
 
     public PrismObject<NodeType> getNodePrism() {
         return nodePrism;
