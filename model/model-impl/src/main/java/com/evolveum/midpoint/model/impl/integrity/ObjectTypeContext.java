@@ -19,12 +19,11 @@ package com.evolveum.midpoint.model.impl.integrity;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import javax.xml.namespace.QName;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Checker context related to one object type (resource + kind).
@@ -35,7 +34,7 @@ class ObjectTypeContext {
 
     private PrismObject<ResourceType> resource;
     private RefinedObjectClassDefinition objectClassDefinition;
-    private Map<QName, Map<String, List<PrismObject<ShadowType>>>> identifierValueMap = new HashMap<>();
+    private Map<QName, Map<String, Set<String>>> identifierValueMap = new HashMap<>();
 
     public PrismObject<ResourceType> getResource() {
         return resource;
@@ -53,11 +52,7 @@ class ObjectTypeContext {
         this.objectClassDefinition = objectClassDefinition;
     }
 
-    public Map<QName, Map<String, List<PrismObject<ShadowType>>>> getIdentifierValueMap() {
+    public Map<QName, Map<String, Set<String>>> getIdentifierValueMap() {
         return identifierValueMap;
-    }
-
-    public void setIdentifierValueMap(Map<QName, Map<String, List<PrismObject<ShadowType>>>> identifierValueMap) {
-        this.identifierValueMap = identifierValueMap;
     }
 }
