@@ -793,7 +793,8 @@ public class Clockwork {
 		return rv;
 	}
 
-	private OperationResult simplifyResult(OperationResult result) {
+	// TODO move to better place
+	static OperationResult simplifyResult(OperationResult result) {
 		return new OperationResult(result.getOperation(), result.getStatus(), result.getMessageCode(), result.getMessage());
 	}
 

@@ -1070,11 +1070,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		lensContextType.setStats(stats);
 		lensContextType.setRequestMetadata(requestMetadata);
 
-		for (LensObjectDeltaOperation executedDelta : rottenExecutedDeltas) {
-			lensContextType.getRottenExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
+		for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
+			lensContextType.getRottenExecutedDeltas().add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
 		}
 
 		return lensContextTypeContainer;
+	}
+
+	static <T extends ObjectType> LensObjectDeltaOperation<T> simplifyExecutedDelta(LensObjectDeltaOperation<T> executedDelta) {
+		LensObjectDeltaOperation<T> rv = executedDelta.clone();	// TODO something more optimized (no need to clone things deeply, just create new object with replaced operation result)
+		rv.setExecutionResult(Clockwork.simplifyResult(executedDelta.getExecutionResult()));
+		return rv;
 	}
 
 	@SuppressWarnings({"unchecked", "raw"})
