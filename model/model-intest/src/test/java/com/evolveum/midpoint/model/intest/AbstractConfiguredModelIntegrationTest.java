@@ -455,6 +455,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	protected static final QName PIRACY_SHIP = new QName(NS_PIRACY, "ship");
+	protected static final QName PIRACY_SHIP_BROKEN = new QName(NS_PIRACY, "ship-broken");
 	protected static final QName PIRACY_TALES = new QName(NS_PIRACY, "tales");
 	protected static final QName PIRACY_WEAPON = new QName(NS_PIRACY, "weapon");
 	protected static final QName PIRACY_LOOT = new QName(NS_PIRACY, "loot");

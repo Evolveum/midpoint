@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.controller;
 
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -113,7 +114,11 @@ public class ModelOperationTaskHandler implements TaskHandler {
 				}
                 clockwork.run(context, task, result);
 
-				task.setModelOperationContext(context.toLensContextType());
+                if (context.getState() != ModelState.FINAL) {
+					task.setModelOperationContext(context.toLensContextType());
+				} else {
+                	task.setModelOperationContext(null);			// won't be needed any more
+				}
                 task.savePendingModifications(result);
 
                 if (result.isUnknown()) {

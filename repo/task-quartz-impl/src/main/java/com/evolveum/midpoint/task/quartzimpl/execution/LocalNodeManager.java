@@ -126,12 +126,14 @@ public class LocalNodeManager {
             quartzProperties.put("org.quartz.threadPool.makeThreadsDaemons", "true");
         }
 
+        LOGGER.info("Initializing Quartz scheduler (but not starting it yet).");
         // initialize the scheduler (without starting it)
         try {
             LOGGER.trace("Quartz scheduler properties: {}", quartzProperties);
             StdSchedulerFactory sf = new StdSchedulerFactory();
             sf.initialize(quartzProperties);
             getGlobalExecutionManager().setQuartzScheduler(sf.getScheduler());
+            LOGGER.info("... Quartz scheduler initialized.");
         } catch (SchedulerException e) {
             throw new TaskManagerInitializationException("Cannot initialize the Quartz scheduler", e);
         }
