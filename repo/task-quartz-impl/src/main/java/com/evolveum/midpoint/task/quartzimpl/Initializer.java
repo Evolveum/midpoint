@@ -104,7 +104,7 @@ public class Initializer {
         }
 
         // populate the scheduler with jobs (if RAM-based), or synchronize with midPoint repo
-        if (taskManager.getExecutionManager().synchronizeJobStores(result) == false) {
+        if (!taskManager.getExecutionManager().synchronizeJobStores(result)) {
             if (!configuration.isJdbcJobStore()) {
                 LOGGER.error("Some or all tasks could not be imported from midPoint repository to Quartz job store. They will therefore not be executed.");
             } else {
