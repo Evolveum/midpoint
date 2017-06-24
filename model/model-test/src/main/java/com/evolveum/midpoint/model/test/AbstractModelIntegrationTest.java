@@ -885,7 +885,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void unassignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignRole");
+		Task task = createTask("unassignRole");
 		OperationResult result = task.getResult();
 		unassignRole(userOid, roleOid, task, result);
 		result.computeStatus();
@@ -977,6 +977,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignOrg(focusType, focusOid, orgOid, null, task, result);
 	}
 	
+	protected void assignOrg(String userOid, String orgOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		assignOrg(userOid, orgOid,  SchemaConstants.ORG_DEFAULT);
+	}
+	
 	protected void assignOrg(String userOid, String orgOid, QName relation) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
@@ -1002,12 +1006,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyFocusAssignment(focusType, focusOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, true, result);
 	}
 
+	protected void unassignOrg(String userOid, String orgOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		unassignOrg(userOid, orgOid, SchemaConstants.ORG_DEFAULT);
+	}
+	
 	protected void unassignOrg(String userOid, String orgOid, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		unassignOrg(userOid, orgOid, null, task, result);
 	}
+	
+	protected void unassignOrg(String userOid, String orgOid, QName relation) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignOrg");
+		OperationResult result = task.getResult();
+		unassignOrg(userOid, orgOid, relation, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	
 	protected void unassignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
