@@ -317,6 +317,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		startResources();
 		dummyAuditService = DummyAuditService.getInstance();
 		InternalsConfig.reset();
+		InternalsConfig.setAvoidLoggingChange(true);
 		// Make sure the checks are turned on
 		InternalsConfig.turnOnAllChecks();
         // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.
@@ -3042,6 +3043,38 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
         }
     }
+    
+    protected void assertSingleDummyTransportMessage(String name, String expectedBody) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        if (messages.size() != 1) {
+        	fail("Invalid number of messages recorded in dummy transport '" + name + "', expected: 1, actual: "+messages.size());
+        }
+        Message message = messages.get(0);
+        assertEquals("Unexpected notifier "+name+" message body", expectedBody, message.getBody());
+    }
+    
+    protected String getDummyTransportMessageBody(String name, int index) {
+    	List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+    	Message message = messages.get(index);
+    	return message.getBody();
+    }
+    
+    protected void assertHasDummyTransportMessage(String name, String expectedBody) {
+        List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+        assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
+        for (Message message: messages) {
+        	if (expectedBody.equals(message.getBody())) {
+        		return;
+        	}
+        }
+        fail("Notifier "+name+" message body " + expectedBody + " not found");
+    }
+    
+    protected void displayNotifications(String name) {
+    	List<Message> messages = dummyTransport.getMessages("dummy:" + name);
+    	display("Notification messages", messages);
+    }
 
     private void logNotifyMessages(List<Message> messages) {
 		for (Message message: messages) {
@@ -3889,6 +3922,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		DummyAccount account = getDummyAccount(instance, userId);
 		assertNotNull("No dummy account "+userId, account);
 		assertEquals("Wrong password in dummy '"+instance+"' account "+userId, expectedClearPassword, account.getPassword());
+	}
+	
+	protected void assertDummyPasswordNotEmpty(String instance, String userId) throws SchemaViolationException, ConflictException {
+		DummyAccount account = getDummyAccount(instance, userId);
+		assertNotNull("No dummy account "+userId, account);
+		String actualPassword = account.getPassword();
+		if (actualPassword == null || actualPassword.isEmpty()) {
+			fail("Empty password in dummy '"+instance+"' account "+userId);
+		}
 	}
 
 	protected void reconcileUser(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {

@@ -63,7 +63,7 @@ public class LoggingConfigurationManager {
 
 		OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
 		
-		if (InternalsConfig.avoidLoggingChange) {
+		if (InternalsConfig.isAvoidLoggingChange()) {
 			LOGGER.info("IGNORING change of logging configuration (current config version: {}, new version {}) because avoidLoggingChange=true", currentlyUsedVersion, version);
 			res.recordNotApplicableIfUnknown();
 			return;

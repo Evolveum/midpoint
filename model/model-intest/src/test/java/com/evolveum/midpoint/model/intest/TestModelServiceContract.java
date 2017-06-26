@@ -226,7 +226,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         getDummyResource().resetBreakMode();
 
         // Check notifications
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);        // actually I don't know why provisioning does not report unsupported operation as a failure...
@@ -303,7 +303,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -789,7 +789,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -862,7 +862,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);          // there's no password for that account
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);          // there's no password for that account
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -928,7 +928,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -995,7 +995,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1052,7 +1052,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1174,7 +1174,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1267,7 +1267,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1333,7 +1333,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1393,7 +1393,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1473,7 +1473,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1558,7 +1558,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1636,7 +1636,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1713,7 +1713,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1778,7 +1778,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1844,7 +1844,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1925,7 +1925,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -1992,7 +1992,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2058,7 +2058,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2331,7 +2331,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2522,7 +2522,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2586,7 +2586,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2734,7 +2734,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2820,7 +2820,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 1);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2904,7 +2904,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 1);
         checkDummyTransportMessages("userPasswordNotifier", 1);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -2987,7 +2987,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check notifications
         notificationManager.setDisabled(true);
-        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
@@ -3094,7 +3094,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
         
@@ -3107,15 +3107,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                   
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userJackAfter);
@@ -3124,12 +3124,13 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackBlueOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, resourceDummyBlueType);
+        assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackBlueOid, null, task, result);
-        assertShadowModel(accountModel, accountJackBlueOid, USER_JACK_USERNAME, resourceDummyBlueType, getAccountObjectClass(resourceDummyBlueType));
+        assertShadowModel(accountModel, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME), 
+        		getAccountObjectClass(getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME)));
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
         // Check account in dummy resource
@@ -3165,9 +3166,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountJackBlueOid, dummyResourceCtlBlue.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
+        		accountJackBlueOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributeFullnamePath(), prismContext, 
+        		"Cpt. Jack Sparrow");
         accountDelta.addModificationReplaceProperty(
-        		dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		"Queen Anne's Revenge");
         deltas.add(accountDelta);
                 
@@ -3190,12 +3192,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, resourceDummyBlueType);
+        assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
         
         // Check account
         // All the changes should be reflected to the account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
-        assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, resourceDummyBlueType);
+        assertAccountShadowRepo(accountShadow, accountJackBlueOid, USER_JACK_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
@@ -3209,7 +3211,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(0, 1);
         dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertOldValue(0, ChangeType.MODIFY, ShadowType.class, 
-        		dummyResourceCtlBlue.getAttributeFullnamePath(), "Jack Sparrow");
+        		getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributeFullnamePath(), "Jack Sparrow");
 //        dummyAuditService.assertOldValue(0, ChangeType.MODIFY, ShadowType.class, 
 //        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
                 

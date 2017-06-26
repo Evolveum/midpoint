@@ -237,7 +237,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
 	}
 	
 	@Override
-	public void accept(SimpleVisitor<Entry<K, V>> visitor) {
+	public void simpleAccept(SimpleVisitor<Entry<K, V>> visitor) {
 		acceptMap(visitor, zeroMap);
 		acceptMap(visitor, plusMap);
 		acceptMap(visitor, minusMap);

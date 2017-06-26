@@ -494,6 +494,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName AUTZ_SAIL_QNAME = new QName(NS_TEST_AUTZ, "sail");
 	protected static final String AUTZ_SAIL_URL = QNameUtil.qNameToUri(AUTZ_SAIL_QNAME);
 	
+	protected static final String NOTIFIER_ACCOUNT_PASSWORD_NAME = "accountPasswordNotifier";
+	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	
 	protected PrismObject<UserType> userAdministrator;
@@ -506,7 +508,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		// We want logging config from logback-test.xml and not from system config object
-		InternalsConfig.avoidLoggingChange = true;
+		InternalsConfig.setAvoidLoggingChange(true);
 		super.initSystem(initTask, initResult);
 			
 		modelService.postInit(initResult);
@@ -671,5 +673,53 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 			}
 		}
 		AssertJUnit.fail("Role "+expectedRoleOid+" no present in evaluated roles "+evaluatedRoles);
+	}
+	
+	protected void assertSinglePasswordNotification(String dummyResourceName, String username,
+			String password) {
+		assertPasswordNotifications(1);
+        assertSingleDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME, 
+        		getExpectedPasswordNotificationBody(dummyResourceName, username, password));
+	}
+
+	protected void assertPasswordNotifications(int expected) {
+		checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, expected);
+	}
+	
+	protected void assertNoPasswordNotifications() {
+		checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
+	}
+	
+	protected void assertHasPasswordNotification(String dummyResourceName, String username,
+			String password) {
+        assertHasDummyTransportMessage(NOTIFIER_ACCOUNT_PASSWORD_NAME, 
+        		getExpectedPasswordNotificationBody(dummyResourceName, username, password));
+	}
+	
+	protected void assertSinglePasswordNotificationGenerated(String dummyResourceName, String username) {
+		assertPasswordNotifications(1);
+		String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
+		String expectedPrefix = getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username);
+		if (!body.startsWith(expectedPrefix)) {
+			fail("Expected that "+dummyResourceName+" dummy password notification message starts with prefix '"+expectedPrefix+"', but it was: "+body);
+		}
+		String suffix = body.substring(expectedPrefix.length());
+		if (suffix.isEmpty()) {
+			fail("Empty password in "+dummyResourceName+" dummy password notification message");
+		}
+	}
+	
+	protected String getExpectedPasswordNotificationBody(String dummyResourceName, String username,
+			String password) {
+		return getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username) + password;
+	}
+	
+	protected String getExpectedPasswordNotificationBodyPrefix(String dummyResourceName, String username) {
+		String resourceName = getDummyResourceType(dummyResourceName).getName().getOrig();
+		return "Password for account "+username+" on "+resourceName+" is: ";
+	}
+
+	protected void displayPasswordNotifications() {
+		displayNotifications(NOTIFIER_ACCOUNT_PASSWORD_NAME);
 	}
 }

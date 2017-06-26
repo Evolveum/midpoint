@@ -1763,6 +1763,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		final DummyAccount newAccount = new DummyAccount(userName);
 		
 		Boolean enabled = null;
+		boolean hasPassword = false;
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
 				throw new IllegalArgumentException("UID explicitly specified in the account attributes");
@@ -1772,6 +1773,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 				changePassword(newAccount,attr);
+				hasPassword = true;
 				
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
 				enabled = getBoolean(attr);
@@ -1806,6 +1808,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 					throw new IllegalArgumentException(e.getMessage(),e);
 				}
 			}
+		}
+		
+		if (!hasPassword) {
+			checkPasswordPolicies(null);
 		}
 		
 		if (configuration.getRequireExplicitEnable() && enabled == null) {
@@ -1980,16 +1986,27 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			((GuardedString)passwdObject).access(new Accessor() {
 				@Override
 				public void access(char[] passwdChars) {
-					if (configuration.getMinPasswordLength() != null && passwdChars.length < configuration.getMinPasswordLength()) {
-						throw new InvalidAttributeValueException("Password too short");
-					}
-					passwdArray[0] = new String(passwdChars);
+					String password = new String(passwdChars);
+					checkPasswordPolicies(password);
+					passwdArray[0] = password;
 				}
 			});
 		} else {
 			// empty password => null
+			checkPasswordPolicies(null);
 		}
 		account.setPassword(passwdArray[0]);
+	}
+	
+	private void checkPasswordPolicies(String password) {
+		if (configuration.getMinPasswordLength() != null) {
+			if (password == null || password.isEmpty()) {
+				throw new InvalidAttributeValueException("No password");
+			}
+			if (password.length() < configuration.getMinPasswordLength()) {
+				throw new InvalidAttributeValueException("Password too short");
+			}
+		}
 	}
 	
 	private boolean attributesToGetHasAttribute(Collection<String> attributesToGet, String attrName) {
