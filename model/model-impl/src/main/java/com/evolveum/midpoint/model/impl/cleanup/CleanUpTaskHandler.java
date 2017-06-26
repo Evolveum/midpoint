@@ -47,25 +47,17 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class CleanUpTaskHandler implements TaskHandler{
+public class CleanUpTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
 
-    @Autowired(required=true)
-	private TaskManager taskManager;
-	
-	@Autowired(required=true)
-	private RepositoryService repositoryService;
-
-    @Autowired(required=true)
-    private AuditService auditService;
+    @Autowired private TaskManager taskManager;
+	@Autowired private RepositoryService repositoryService;
+    @Autowired private AuditService auditService;
+	@Autowired private PrismContext prismContext;
 
     @Autowired(required = false)
     private ReportManager reportManager;
-	
-	@Autowired(required=true)
-	private PrismContext prismContext;
-	
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(CleanUpTaskHandler.class);
 
@@ -117,7 +109,7 @@ public class CleanUpTaskHandler implements TaskHandler{
 			cleanupPolicies = systemConfigType.getCleanupPolicy();
 		}
 		
-		if (cleanupPolicies == null){
+		if (cleanupPolicies == null) {
 			LOGGER.trace("Cleanup: No clean up polices specified. Finishing clean up task.");
 			opResult.computeStatus();
 			runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);

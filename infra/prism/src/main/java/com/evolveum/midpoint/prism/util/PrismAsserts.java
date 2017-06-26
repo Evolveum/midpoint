@@ -552,7 +552,11 @@ public class PrismAsserts {
 	public static <T> void assertOrigin(ObjectDelta<?> objectDelta, final OriginType... expectedOriginTypes) {
 		assertOrigin(objectDelta, null, expectedOriginTypes);
 	}
-	
+
+	public static <T> void assertOrigin(ItemDelta<?, ?> itemDelta, final OriginType... expectedOriginTypes) {
+		assertOrigin(itemDelta, null, expectedOriginTypes);
+	}
+
 	public static <T> void assertOrigin(Visitable visitableItem, final OriginType... expectedOriginTypes) {
 		assertOrigin(visitableItem, null, expectedOriginTypes);
 	}
@@ -562,6 +566,11 @@ public class PrismAsserts {
 		objectDelta.accept(visitor, false);
 	}
 	
+	public static void assertOrigin(ItemDelta<?, ?> itemDelta, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
+		Visitor visitor = createOriginVisitor(itemDelta, expectedOriginObject, expectedOriginTypes);
+		itemDelta.accept(visitor, false);
+	}
+
 	public static <T> void assertOrigin(Visitable visitableItem, final Objectable expectedOriginObject, final OriginType... expectedOriginTypes) {
 		Visitor visitor = createOriginVisitor(visitableItem, expectedOriginObject, expectedOriginTypes);
 		visitableItem.accept(visitor);
@@ -573,7 +582,7 @@ public class PrismAsserts {
 					PrismValue pval = (PrismValue)visitable;
 					
 					assert MiscUtil.contains(pval.getOriginType(), expectedOriginTypes) : "Wrong origin type in "+visitable+" in "+visitableItem+
-							"; expected "+expectedOriginTypes+", was "+pval.getOriginType();
+							"; expected "+Arrays.asList(expectedOriginTypes)+", was "+pval.getOriginType();
 					if (expectedOriginObject != null) {
 						assert pval.getOriginObject() == expectedOriginObject : "Wrong origin object in "+visitable+" in "+visitableItem+
 								"; expected "+expectedOriginObject+", was "+pval.getOriginObject();

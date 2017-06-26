@@ -486,6 +486,8 @@
     
     <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
         <xsd:sequence>
+            <xsd:element name="ref" type="xsd:int" minOccurs="0" />
+            <xsd:element name="triggerId" type="xsd:int" minOccurs="0" />       <!-- not 'id' to avoid collisions with container identifiers -->
             <xsd:element name="ruleName" type="xsd:string" minOccurs="0" />
             <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
             <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0" />

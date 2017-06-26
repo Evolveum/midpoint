@@ -503,7 +503,7 @@ public class TestStrings extends AbstractStoryTest {
 		display("wfTask after 4th approval", wfTask);
 
 		Task parent = getParentTask(wfTask, result);
-		waitForTaskFinish(parent, true, 60000);
+		waitForTaskFinish(parent, false, 60000);
 
 		assertAssignedRole(getUser(userBobOid), roleATest1Oid);
 

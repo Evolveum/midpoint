@@ -1079,7 +1079,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	static <T extends ObjectType> LensObjectDeltaOperation<T> simplifyExecutedDelta(LensObjectDeltaOperation<T> executedDelta) {
 		LensObjectDeltaOperation<T> rv = executedDelta.clone();	// TODO something more optimized (no need to clone things deeply, just create new object with replaced operation result)
-		rv.setExecutionResult(Clockwork.simplifyResult(executedDelta.getExecutionResult()));
+		rv.setExecutionResult(OperationResult.keepRootOnly(executedDelta.getExecutionResult()));
 		return rv;
 	}
 

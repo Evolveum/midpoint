@@ -885,7 +885,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void unassignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignRole");
+		Task task = createTask("unassignRole");
 		OperationResult result = task.getResult();
 		unassignRole(userOid, roleOid, task, result);
 		result.computeStatus();
@@ -977,6 +977,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignOrg(focusType, focusOid, orgOid, null, task, result);
 	}
 	
+	protected void assignOrg(String userOid, String orgOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		assignOrg(userOid, orgOid,  SchemaConstants.ORG_DEFAULT);
+	}
+	
 	protected void assignOrg(String userOid, String orgOid, QName relation) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
@@ -1002,12 +1006,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyFocusAssignment(focusType, focusOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, (Consumer<AssignmentType>)null, true, result);
 	}
 
+	protected void unassignOrg(String userOid, String orgOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		unassignOrg(userOid, orgOid, SchemaConstants.ORG_DEFAULT);
+	}
+	
 	protected void unassignOrg(String userOid, String orgOid, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		unassignOrg(userOid, orgOid, null, task, result);
 	}
+	
+	protected void unassignOrg(String userOid, String orgOid, QName relation) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignOrg");
+		OperationResult result = task.getResult();
+		unassignOrg(userOid, orgOid, relation, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	
 	protected void unassignOrg(String userOid, String orgOid, QName relation, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
@@ -2426,7 +2443,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				OperationResult result = task.getResult();
 				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+task+": "+TestUtil.getErrorMessage(result);
-				assert !isUknown(result, checkSubresult) : "Unknown result in "+task+": "+TestUtil.getErrorMessage(result);
+				assert !isUnknown(result, checkSubresult) : "Unknown result in "+task+": "+TestUtil.getErrorMessage(result);
 				return !isInProgress(result, checkSubresult);
 			}
 			@Override
@@ -2507,10 +2524,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 						AssertJUnit.fail("Error in "+freshTask+": "+TestUtil.getErrorMessage(result));
 					}
 				}
-				if (isUknown(result, checkSubresult)) {
+				if (isUnknown(result, checkSubresult)) {
 					return false;
 				}
-//				assert !isUknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
+//				assert !isUnknown(result, checkSubresult) : "Unknown result in "+freshTask+": "+IntegrationTestTools.getErrorMessage(result);
 				return !isInProgress(result, checkSubresult);
 			}
 			@Override
@@ -2543,7 +2560,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				OperationResult result = freshTask.getResult();
 				if (verbose) display("Check result", result);
 				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+TestUtil.getErrorMessage(result);
-				if (isUknown(result, checkSubresult)) {
+				if (isUnknown(result, checkSubresult)) {
 					return false;
 				}
 				return freshTask.getLastRunStartTimestamp() != null;
@@ -2627,7 +2644,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				if (isError(taskResult, checkSubresult)) {
                     return true;
                 }
-				if (isUknown(taskResult, checkSubresult)) {
+				if (isUnknown(taskResult, checkSubresult)) {
 					return false;
 				}
 				if (freshTask.getLastRunFinishTimestamp() == null) {
@@ -2682,7 +2699,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return subresult != null ? subresult.isError() : false;
 	}
 	
-	private boolean isUknown(OperationResult result, boolean checkSubresult) {
+	private boolean isUnknown(OperationResult result, boolean checkSubresult) {
 		OperationResult subresult = getSubresult(result, checkSubresult);
 		return subresult != null ? subresult.isUnknown() : false;			// TODO or return true?
 	}

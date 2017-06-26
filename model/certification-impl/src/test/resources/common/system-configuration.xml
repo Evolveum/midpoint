@@ -45,5 +45,22 @@
 			<redirectToFile>target/mail-notifications.log</redirectToFile>
 		</mail>
 	</notificationConfiguration>
+	<globalPolicyRule>
+		<name>sod-approval</name>
+		<policyConstraints>
+			<situation>
+				<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+			</situation>
+		</policyConstraints>
+		<policyActions>
+			<!-- empty; just to test policy rules stored in assignments -->
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+		</targetSelector>
+	</globalPolicyRule>
 
 </systemConfiguration>

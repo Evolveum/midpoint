@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -48,6 +50,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
@@ -64,6 +67,9 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 public class TestDiffEquals {
 
+	public static final File TEST_DIR = new File("src/test/resources/diff");
+	private static final File ROLE_COMPARE_FILE = new File(TEST_DIR, "role-compare.xml");
+	
     private static final String NS_TEST_RI = "http://midpoint.evolveum.com/xml/ns/test/ri-1";
     
     private static final Trace LOGGER = TraceManager.getTrace(TestDiffEquals.class);
@@ -117,8 +123,8 @@ public class TestDiffEquals {
     }
 
     @Test
-    public void testAssignmentEquals() throws Exception {
-    	System.out.println("\n\n===[ testAssignmentEquals ]===\n");
+    public void testAssignmentEquals1() throws Exception {
+    	System.out.println("\n\n===[ testAssignmentEquals1 ]===\n");
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	
         AssignmentType a1a = new AssignmentType();
@@ -175,6 +181,28 @@ public class TestDiffEquals {
         assertTrue(a1e.equals(a1a));
         assertTrue(a1e.equals(a1b));
         assertTrue(a1e.equals(a1m));
+    }
+    
+    @Test(enabled=false) // MID-3966
+    public void testAssignmentEquals2() throws Exception {
+    	System.out.println("\n\n===[ testAssignmentEquals2 ]===\n");
+    	PrismContext prismContext = PrismTestUtil.getPrismContext();
+    	
+    	PrismObject<RoleType> roleCompare = prismContext.parseObject(ROLE_COMPARE_FILE);
+    	PrismContainer<AssignmentType> inducementContainer = roleCompare.findContainer(RoleType.F_INDUCEMENT);
+    	AssignmentType a1 = inducementContainer.findValue(1L).asContainerable();
+    	AssignmentType a2 = inducementContainer.findValue(2L).asContainerable();
+    	AssignmentType a3 = inducementContainer.findValue(3L).asContainerable();   	
+        
+        // WHEN
+        assertFalse(a1.equals(a3));
+        assertFalse(a2.equals(a3));
+        
+        assertTrue(a1.equals(a1));
+        assertTrue(a1.equals(a2));
+        assertTrue(a2.equals(a1));
+        assertTrue(a2.equals(a2));
+        assertTrue(a3.equals(a3));
     }
     
     @Test

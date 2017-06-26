@@ -81,7 +81,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
 	private boolean presentInCurrentObject;
 	private boolean presentInOldObject;
-	private Collection<String> policySituations = new ArrayList<>();
+	private Collection<String> policySituations = new HashSet<>();
 
 	public EvaluatedAssignmentImpl(
 			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,

@@ -111,7 +111,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		}
 
 		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
-		waitForTaskFinish(parent.getOid(), true);
+		waitForTaskFinish(parent.getOid(), false);
 
 		assertAssignedRole(userJackOid, roleRole2Oid, task, result);
 	}
@@ -151,7 +151,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		workflowManager.completeWorkItem(workItem.getExternalId(), true, null, null, null, result);
 		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
 		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
-		waitForTaskFinish(parent.getOid(), true);
+		waitForTaskFinish(parent.getOid(), false);
 
 		assertNotAssignedRole(userJackOid, roleRole2Oid, task, result);			// should be pruned without approval
 	}

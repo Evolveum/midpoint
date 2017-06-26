@@ -69,7 +69,7 @@
  	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
- 	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
+ 	<logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="TRACE" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
  	<logger name="com.evolveum.midpoint.model.impl.controller.SchemaTransformer" level="DEBUG" />

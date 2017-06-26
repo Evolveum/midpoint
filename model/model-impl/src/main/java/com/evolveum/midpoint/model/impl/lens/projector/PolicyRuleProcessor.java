@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -538,7 +539,7 @@ public class PolicyRuleProcessor {
 		CollectionUtils.addIgnoreNull(deltas, createSituationDelta(
 				new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_POLICY_SITUATION), currentSituations, newSituations));
 		Set<EvaluatedPolicyRuleTriggerType> currentTriggers = new HashSet<>(evaluatedAssignment.getAssignmentType().getTrigger());
-		Set<EvaluatedPolicyRuleTriggerType> newTriggers = new HashSet<>(triggers);
+		Set<EvaluatedPolicyRuleTriggerType> newTriggers = new HashSet<>(PolicyRuleTypeUtil.pack(triggers));
 		CollectionUtils.addIgnoreNull(deltas, createTriggerDelta(
 				new ItemPath(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGER), currentTriggers, newTriggers));
 		return deltas;
@@ -546,8 +547,12 @@ public class PolicyRuleProcessor {
 
 	private <F extends FocusType> boolean shouldSituationBeUpdated(EvaluatedAssignment<F> evaluatedAssignment,
 			List<EvaluatedPolicyRuleTriggerType> triggers) {
+		if (PolicyRuleTypeUtil.canBePacked(evaluatedAssignment.getAssignmentType().getTrigger())) {
+			return true;
+		}
 		Set<String> currentSituations = new HashSet<>(evaluatedAssignment.getAssignmentType().getPolicySituation());
-		Set<EvaluatedPolicyRuleTriggerType> currentTriggers = new HashSet<>(evaluatedAssignment.getAssignmentType().getTrigger());
+		Set<EvaluatedPolicyRuleTriggerType> currentTriggers = new HashSet<>(
+				PolicyRuleTypeUtil.unpack(evaluatedAssignment.getAssignmentType().getTrigger()));
 		// if the current situations different from the ones in the old assignment => update
 		// (provided that the situations in the assignment were _not_ changed directly via a delta!!!) TODO check this
 		if (!currentSituations.equals(new HashSet<>(evaluatedAssignment.getPolicySituations()))) {
@@ -807,7 +812,7 @@ public class PolicyRuleProcessor {
 		targetAssignment.getPolicySituation().clear();
 		targetAssignment.getPolicySituation().addAll(evaluatedAssignment.getPolicySituations());
 		targetAssignment.getTrigger().clear();
-		targetAssignment.getTrigger().addAll(triggers);
+		targetAssignment.getTrigger().addAll(PolicyRuleTypeUtil.pack(triggers));
 	}
 
 	public <O extends ObjectType> ObjectDelta<O> applyAssignmentSituation(LensContext<O> context, ObjectDelta<O> focusDelta)
