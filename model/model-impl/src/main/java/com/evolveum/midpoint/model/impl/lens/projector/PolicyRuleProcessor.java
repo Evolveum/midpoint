@@ -551,15 +551,14 @@ public class PolicyRuleProcessor {
 			return true;
 		}
 		Set<String> currentSituations = new HashSet<>(evaluatedAssignment.getAssignmentType().getPolicySituation());
-		Set<EvaluatedPolicyRuleTriggerType> currentTriggers = new HashSet<>(
-				PolicyRuleTypeUtil.unpack(evaluatedAssignment.getAssignmentType().getTrigger()));
+		List<EvaluatedPolicyRuleTriggerType> currentTriggersUnpacked = PolicyRuleTypeUtil.unpack(evaluatedAssignment.getAssignmentType().getTrigger());
 		// if the current situations different from the ones in the old assignment => update
 		// (provided that the situations in the assignment were _not_ changed directly via a delta!!!) TODO check this
 		if (!currentSituations.equals(new HashSet<>(evaluatedAssignment.getPolicySituations()))) {
 			LOGGER.trace("computed policy situations are different from the current ones");
 			return true;
 		}
-		if (!currentTriggers.equals(new HashSet<>(triggers))) {
+		if (!PolicyRuleTypeUtil.triggerCollectionsEqual(triggers, currentTriggersUnpacked)) {
 			LOGGER.trace("computed policy rules triggers are different from the current ones");
 			return true;
 		}
