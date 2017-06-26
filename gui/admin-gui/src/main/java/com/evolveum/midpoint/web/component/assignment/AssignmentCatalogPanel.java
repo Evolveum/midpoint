@@ -92,7 +92,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private PageBase pageBase;
     private IModel<String> selectedTreeItemOidModel;
     private String rootOid;
-    private IModel<Search> searchModel;
+    private LoadableModel<Search> searchModel;
     private IModel<AssignmentViewType> viewModel;
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> objectProvider;
     private int itemsPerRow = 4;
@@ -309,7 +309,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             }
         };
 
-        searchModel = new LoadableModel<Search>(true) {
+        searchModel = new LoadableModel<Search>(false) {
             private static final long serialVersionUID = 1L;
             @Override
             public Search load() {
@@ -358,6 +358,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                     initUserViewSelectionPopup(createStringResource("AssignmentCatalogPanel.selectAssignmentsUserOwner"),
                             target);
                 } else {
+                    searchModel.reset();
                     AssignmentCatalogPanel.this.addOrReplaceSearchPanel(getHeaderPanel());
                     AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
                     target.add(getCatalogItemsPanelContainer());
