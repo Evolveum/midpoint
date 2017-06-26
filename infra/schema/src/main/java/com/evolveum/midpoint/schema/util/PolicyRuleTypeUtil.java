@@ -218,7 +218,7 @@ public class PolicyRuleTypeUtil {
 			if (trigger instanceof EvaluatedSituationTriggerType) {
 				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
 				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-					if (sourceRule.getTrigger().stream().anyMatch(t -> t.getRef() != null)) {
+					if (sourceRule.getTrigger().stream().anyMatch(t -> t.getRef() == null)) {
 						return true;
 					}
 				}
