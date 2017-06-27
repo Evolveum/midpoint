@@ -112,7 +112,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		}
 		
 		StringBuilder compositeMessageSb = new StringBuilder();
-		evaluatedAssignmentTriple.accept(assignment -> {
+		evaluatedAssignmentTriple.simpleAccept(assignment -> {
 			enforceTriggeredRules(compositeMessageSb, assignment.getFocusPolicyRules());
 			enforceTriggeredRules(compositeMessageSb, assignment.getAllTargetsPolicyRules());
 		});

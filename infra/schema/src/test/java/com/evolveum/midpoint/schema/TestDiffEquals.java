@@ -16,51 +16,33 @@
 
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -415,5 +397,52 @@ public class TestDiffEquals {
     	PrismAsserts.assertModifications(delta, 3);
     }
 
-    
+	@Test
+	public void testTriggerCollectionsEqual() throws Exception {
+		EvaluatedPolicyRuleTriggerType trigger1 = new EvaluatedPolicyRuleTriggerType()
+				.triggerId(100)
+				.directOwnerDisplayName("owner100")
+				.ruleName("rule100");
+		EvaluatedPolicyRuleTriggerType trigger2 = new EvaluatedPolicyRuleTriggerType()
+				.triggerId(200)
+				.directOwnerDisplayName("owner200")
+				.ruleName("rule200");
+		EvaluatedPolicyRuleType sourceRule1 = new EvaluatedPolicyRuleType()
+				.trigger(trigger1);
+		EvaluatedPolicyRuleType sourceRule2 = new EvaluatedPolicyRuleType()
+				.trigger(trigger2);
+		List<EvaluatedPolicyRuleTriggerType> triggerListA = Arrays.asList(
+				new EvaluatedSituationTriggerType()
+						.triggerId(1)
+						.directOwnerDisplayName("owner1")
+						.sourceRule(sourceRule1)
+						.sourceRule(sourceRule2),
+				trigger1,
+				trigger2);
+		List<EvaluatedPolicyRuleTriggerType> triggerListB = Arrays.asList(
+				trigger1,
+				trigger2,
+				new EvaluatedSituationTriggerType()
+						.triggerId(1)
+						.directOwnerDisplayName("owner1")
+						.sourceRule(sourceRule2)
+						.sourceRule(sourceRule1)
+				);
+		List<EvaluatedPolicyRuleTriggerType> triggerListC = Arrays.asList(
+				trigger1,
+				trigger2,
+				new EvaluatedSituationTriggerType()
+						.triggerId(1)
+						.directOwnerDisplayName("owner123")
+						.sourceRule(sourceRule2)
+						.sourceRule(sourceRule1)
+				);
+
+		assertEquals("Wrong comparison A-A", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListA));
+		assertEquals("Wrong comparison A-B", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListB));
+		assertEquals("Wrong comparison B-A", true, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListA));
+		assertEquals("Wrong comparison A-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListA, triggerListC));
+		assertEquals("Wrong comparison B-C", false, PolicyRuleTypeUtil.triggerCollectionsEqual(triggerListB, triggerListC));
+	}
+
 }

@@ -22,13 +22,31 @@
 	<processInstanceId>1</processInstanceId>
 	<processName>a</processName>
 	<processInstanceName>b</processInstanceName>
+	<processorSpecificState xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+							xsi:type="c:WfPrimaryChangeProcessorStateType">
+		<changeAspect>com.evolveum.midpoint.wf.impl.processors.primary.policy.PolicyRuleBasedAspect</changeAspect>
+		<!-- TODO enable this and fix it (MID-4018) -->
+		<!--<deltasToProcess>-->
+			<!--<focusPrimaryDelta>-->
+				<!--<t:changeType>modify</t:changeType>-->
+				<!--<t:objectType>c:UserType</t:objectType>-->
+				<!--<t:oid>469fd663-4492-4c24-8ce3-3907df7ac7ec</t:oid>-->
+				<!--<t:itemDelta>-->
+					<!--<t:modificationType>add</t:modificationType>-->
+					<!--<t:path>c:assignment</t:path>-->
+					<!--<t:value>-->
+						<!--<targetRef oid="0daa49bc-6f5b-4746-8461-2e1a633070e3" type="c:RoleType">-->
+							<!--<description>Approved by managers, security and role approvers (all)</description>-->
+						<!--</targetRef>-->
+					<!--</t:value>-->
+				<!--</t:itemDelta>-->
+			<!--</focusPrimaryDelta>-->
+		<!--</deltasToProcess>-->
+	</processorSpecificState>
 	<event xsi:type="c:WorkItemCompletionEventType">
 		<timestamp>2017-02-03T15:59:40.015+01:00</timestamp>
 		<initiatorRef oid="00000000-d34d-b33f-f00d-111111111111" type="c:UserType">
-			<targetName>
-				<t:orig>test</t:orig>
-				<t:norm>test</t:norm>
-			</targetName>
+			<targetName>test</targetName>
 		</initiatorRef>
 		<stageNumber>1</stageNumber>
 		<workItemId>116</workItemId>

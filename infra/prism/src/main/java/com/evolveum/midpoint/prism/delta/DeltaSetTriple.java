@@ -381,7 +381,7 @@ public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVis
 	}
 
 	@Override
-	public void accept(SimpleVisitor<T> visitor) {
+	public void simpleAccept(SimpleVisitor<T> visitor) {
 		acceptSet(visitor, zeroSet);
 		acceptSet(visitor, plusSet);
 		acceptSet(visitor, minusSet);

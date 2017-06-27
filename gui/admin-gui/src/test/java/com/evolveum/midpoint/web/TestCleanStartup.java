@@ -56,7 +56,7 @@ public class TestCleanStartup extends AbstractModelIntegrationTest {
 
 	public TestCleanStartup() {
 		super();
-		InternalsConfig.avoidLoggingChange = true;
+		InternalsConfig.setAvoidLoggingChange(true);
 	}
 
 	@Override

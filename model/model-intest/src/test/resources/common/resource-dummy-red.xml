@@ -76,10 +76,7 @@
 				    </source>
 					<expression>
 						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>
-								concat($name, $iterationToken)
-							</code>
+							<code>name + iterationToken</code>
 						</script>
 					</expression>
 				</outbound>

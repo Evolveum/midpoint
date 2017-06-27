@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -79,20 +80,6 @@ class AdditionalInformationGenerator {
 	@SuppressWarnings("unused")
 	private void generateAssignmentMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
 		// Nothing to do here. The information about assignments to be added/removed is obvious from the delta.
-
-//		if (triggers.isEmpty()) {
-//			return;
-//		}
-//		InformationType info = new InformationType();
-//		info.setTitle("New assignment(s) to be approved");
-//		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
-//			InformationPartType part = new InformationPartType();
-//			// Note: this is the name of role that has the respective policy directly assigned. (Currently it is the same
-//			// as the target of the assignment being approved.)
-//			part.setText("Assignment of " + getObjectTypeAndName(trigger.getDirectOwnerRef(), trigger.getDirectOwnerDisplayName()) + " is to be approved.");
-//			info.getPart().add(part);
-//		}
-//		infoList.add(info);
 	}
 
 	private void generateExclusionMessages(List<InformationType> infoList, List<EvaluatedPolicyRuleTriggerType> triggers) {
@@ -100,19 +87,19 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle("Exclusions to be approved");
+		info.setTitle(LocalizationUtil.resolve("AdditionalInformationGenerator.exclusionsTitle"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			EvaluatedExclusionTriggerType exclusion = (EvaluatedExclusionTriggerType) trigger;
 			InformationPartType part = new InformationPartType();
 			StringBuilder sb = new StringBuilder();
-			sb.append("Assignment of ")
-					.append(getObjectTypeAndName(exclusion.getDirectOwnerRef(), exclusion.getDirectOwnerDisplayName()));
+			sb.append(LocalizationUtil.resolve("AdditionalInformationGenerator.assignmentOf",
+					getObjectTypeAndName(exclusion.getDirectOwnerRef(), exclusion.getDirectOwnerDisplayName())));
 			String thisPathInfo = getObjectPathIfRelevant(exclusion.getAssignmentPath());
 			if (thisPathInfo != null) {
 				sb.append(" (").append(thisPathInfo).append(")");
 			}
-			sb.append(" is in conflict with assignment of ")
-					.append(getObjectTypeAndName(exclusion.getConflictingObjectRef(), exclusion.getConflictingObjectDisplayName()));
+			sb.append(" ").append(LocalizationUtil.resolve("AdditionalInformationGenerator.isInConflictWithAssignmentOf",
+					getObjectTypeAndName(exclusion.getConflictingObjectRef(), exclusion.getConflictingObjectDisplayName())));
 			String conflictingPathInfo = getObjectPathIfRelevant(exclusion.getConflictingObjectPath());
 			if (conflictingPathInfo != null) {
 				sb.append(" (").append(conflictingPathInfo).append(")");
@@ -130,7 +117,7 @@ class AdditionalInformationGenerator {
 			return;
 		}
 		InformationType info = new InformationType();
-		info.setTitle("Notes");
+		info.setTitle(LocalizationUtil.resolve("AdditionalInformationGenerator.notes"));
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
 			InformationPartType part = new InformationPartType();
 			part.setText(trigger.getMessage());

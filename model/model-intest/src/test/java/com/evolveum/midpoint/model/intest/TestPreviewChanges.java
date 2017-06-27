@@ -1419,7 +1419,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceAttributeDelta(
-        		ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, resourceDummyBlue, 
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
@@ -1454,7 +1454,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("No account primary delta", accountPrimaryDelta);
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
 		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
-				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Elaine Threepwood");
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
@@ -1477,7 +1477,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("elaine blue account before", getDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_ELAINE_DUMMY_BLUE_USERNAME));
         
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowEmptyDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID);
-        PropertyDelta<String> fullnameDelta = createAttributeAddDelta(resourceDummyBlue,
+        PropertyDelta<String> fullnameDelta = createAttributeAddDelta(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine Threepwood");
         fullnameDelta.addValueToDelete(new PrismPropertyValue<String>("Elaine Marley"));
         accountDelta.addModification(fullnameDelta);
@@ -1514,10 +1514,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("No account primary delta", accountPrimaryDelta);
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
 		PrismAsserts.assertPropertyAdd(accountPrimaryDelta,
-				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Elaine Threepwood");
 		PrismAsserts.assertPropertyDelete(accountPrimaryDelta,
-				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Elaine Marley");
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
@@ -1614,7 +1614,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertModifications(accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyDelete(accountSecondaryDelta, 
-				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
 				"null -- Elaine Marley");
 	}
 	
@@ -1641,7 +1641,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 //        		ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, resourceDummyRed, 
 //        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
         ObjectDelta<ShadowType> accountDeltaBlue = createModifyAccountShadowReplaceAttributeDelta(
-        		ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, resourceDummyBlue, 
+        		ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Elaine LeChuck");
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta,
 				accountDeltaBlue);
@@ -1715,13 +1715,13 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNotNull("No account primary delta (blue)", accountPrimaryDelta);
 		PrismAsserts.assertModifications(accountPrimaryDelta, 1);
 		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, 
-				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Elaine LeChuck");
 		
         accountSecondaryDelta = accContext.getSecondaryDelta();
         PrismAsserts.assertModifications("account secondary delta (blue)", accountSecondaryDelta, 1);
         PrismAsserts.assertPropertyDelete(accountSecondaryDelta, 
-				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME),
 				"null -- Elaine Marley");
 	}
 	
@@ -1809,7 +1809,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
 		PrismAsserts.assertModifications(accountSecondaryDelta, 10);
 		PrismAsserts.assertNoItemDelta(accountSecondaryDelta,
-				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
+				getAttributePath(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 		assertPasswordDelta(accountSecondaryDelta);	
 	}
 
@@ -1923,7 +1923,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<ShadowType> accountDeltaDefault = createModifyAccountShadowReplaceDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_OID, 
         		getDummyResourceObject(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
         ObjectDelta<ShadowType> accountDeltaBlue = createModifyAccountShadowReplaceDelta(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID, 
-        		resourceDummyBlue, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
+        		getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDeltaDefault, accountDeltaBlue);
 		display("Input deltas: ", deltas);
                 

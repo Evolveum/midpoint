@@ -17,14 +17,14 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.util.HeteroComparator;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -178,15 +178,14 @@ public class PolicyRuleTypeUtil {
 	public static List<EvaluatedPolicyRuleTriggerType> unpack(List<EvaluatedPolicyRuleTriggerType> triggers) {
 		List<EvaluatedPolicyRuleTriggerType> rv = CloneUtil.cloneCollectionMembers(triggers);
 		unpack(rv, triggers);
-		rv.forEach(t -> t.setTriggerId(null));
 		return rv;
 	}
 
 	private static void unpack(List<EvaluatedPolicyRuleTriggerType> triggers,
 			List<EvaluatedPolicyRuleTriggerType> baseTriggers) {
-		List<EvaluatedPolicyRuleTriggerType> hydrated = new ArrayList<>();
+		List<EvaluatedPolicyRuleTriggerType> unpacked = new ArrayList<>();
 		for (EvaluatedPolicyRuleTriggerType trigger : triggers) {
-			hydrated.add(unpack(trigger, baseTriggers));
+			unpacked.add(unpack(trigger, baseTriggers));
 			if (trigger instanceof EvaluatedSituationTriggerType) {
 				EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
 				for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
@@ -195,7 +194,8 @@ public class PolicyRuleTypeUtil {
 			}
 		}
 		triggers.clear();
-		triggers.addAll(hydrated);
+		triggers.addAll(unpacked);
+		triggers.forEach(t -> t.setTriggerId(null));
 	}
 
 	private static EvaluatedPolicyRuleTriggerType unpack(EvaluatedPolicyRuleTriggerType trigger,
@@ -229,5 +229,29 @@ public class PolicyRuleTypeUtil {
 
 	private static EvaluatedPolicyRuleTriggerType findByIdentifier(List<EvaluatedPolicyRuleTriggerType> triggers, int identifier) {
 		return triggers.stream().filter(t -> t.getTriggerId() != null && t.getTriggerId() == identifier).findFirst().orElse(null);
+	}
+
+	public static boolean triggerCollectionsEqual(Collection<EvaluatedPolicyRuleTriggerType> triggers,
+			Collection<EvaluatedPolicyRuleTriggerType> currentTriggersUnpacked) {
+		HeteroComparator<EvaluatedPolicyRuleTriggerType, EvaluatedPolicyRuleTriggerType> comparator = (t1, t2) -> {
+			if (!(t1 instanceof EvaluatedSituationTriggerType) || !(t2 instanceof EvaluatedSituationTriggerType)) {
+				return Objects.equals(t1, t2);
+			}
+			EvaluatedSituationTriggerType st1 = (EvaluatedSituationTriggerType) t1;
+			EvaluatedSituationTriggerType st2 = (EvaluatedSituationTriggerType) t2;
+			// TODO deduplicate this (against standard equals) somehow
+			// Until that is done, update after each change to triggers beans structure
+			return Objects.equals(st1.getRef(), st2.getRef())
+					&& Objects.equals(st1.getTriggerId(), st2.getTriggerId())
+					&& Objects.equals(st1.getRuleName(), st2.getRuleName())
+					&& Objects.equals(st1.getConstraintKind(), st2.getConstraintKind())
+					&& Objects.equals(st1.getConstraint(), st2.getConstraint())
+					&& Objects.equals(st1.getMessage(), st2.getMessage())
+					&& Objects.equals(st1.getAssignmentPath(), st2.getAssignmentPath())
+					&& Objects.equals(st1.getDirectOwnerRef(), st2.getDirectOwnerRef())
+					&& Objects.equals(st1.getDirectOwnerDisplayName(), st2.getDirectOwnerDisplayName())
+					&& MiscUtil.unorderedCollectionEquals(st1.getSourceRule(), st2.getSourceRule());
+		};
+		return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, comparator);
 	}
 }

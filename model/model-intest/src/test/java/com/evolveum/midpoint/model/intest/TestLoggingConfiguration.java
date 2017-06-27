@@ -66,7 +66,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		InternalsConfig.avoidLoggingChange = false;
+		InternalsConfig.setAvoidLoggingChange(false);
 		// DO NOT call super.initSystem() as this will install system config. We do not want that here.
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);

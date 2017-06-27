@@ -483,7 +483,8 @@
     		<xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
-    
+
+	<!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
     <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
         <xsd:sequence>
             <xsd:element name="ref" type="xsd:int" minOccurs="0" />
@@ -513,6 +514,7 @@
 	</xsd:complexType>
 	<xsd:element name="evaluatedExclusionTrigger" type="tns:EvaluatedExclusionTriggerType" />
 
+	<!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
 	<xsd:complexType name="EvaluatedSituationTriggerType">
 		<xsd:complexContent>
 			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">

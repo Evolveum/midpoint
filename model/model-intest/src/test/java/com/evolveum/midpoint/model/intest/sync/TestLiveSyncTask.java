@@ -41,7 +41,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 		
 		dummyResourceGreen.setSyncStyle(DummySyncStyle.SMART);
 		getDummyResource().setSyncStyle(DummySyncStyle.DUMB);
-		dummyResourceBlue.setSyncStyle(DummySyncStyle.SMART);
+		getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.SMART);
 		
 	}
 	
@@ -49,7 +49,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
 		if (resource == resourceDummyGreen) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME);
-		} else if (resource == resourceDummyBlue) {
+		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME);
 		} else if (resource == getDummyResourceObject()) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_FILENAME);
@@ -62,7 +62,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
 		if (resource == resourceDummyGreen) {
 			return TASK_LIVE_SYNC_DUMMY_GREEN_OID;
-		} else if (resource == resourceDummyBlue) {
+		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			return TASK_LIVE_SYNC_DUMMY_BLUE_OID;
 		} else if (resource == getDummyResourceObject()) {
 			return TASK_LIVE_SYNC_DUMMY_OID;

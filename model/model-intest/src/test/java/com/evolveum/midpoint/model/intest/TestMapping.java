@@ -141,24 +141,24 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyBlueType);
+        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyBlueType);
+        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "SystemConfiguration");
-        DummyAccount accountJackBlue = dummyResourceBlue.getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
+        DummyAccount accountJackBlue = getDummyResource(RESOURCE_DUMMY_BLUE_NAME).getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
         String drinkBlue = accountJackBlue.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
         assertNotNull("No blue drink", drinkBlue);
         UUID drinkUuidBlue = UUID.fromString(drinkBlue);
         assertNotNull("No drink UUID", drinkUuidBlue);
         display("Drink UUID", drinkUuidBlue.toString());
         
-        assertAccountShip(userJack, ACCOUNT_JACK_DUMMY_FULLNAME, null, dummyResourceCtlBlue, task);
+        assertAccountShip(userJack, ACCOUNT_JACK_DUMMY_FULLNAME, null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, 
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Jack Sparrow");
         
@@ -196,7 +196,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 		
 		// 'quote' is non-tolerant attribute. As the source of the mapping is changed, the current
 		// value is no longer legal and the reconciliation has to remove it.
@@ -238,7 +238,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Jack Sparrow", null, dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 		
 		// The quote attribute was empty before this operation. So the weak mapping kicks in
 		// and sets a new value.
@@ -277,7 +277,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -305,7 +305,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Flying Dutchman");
         deltas.add(accountDelta);
 
@@ -319,7 +319,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Jack Sparrow", "Flying Dutchman", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "Flying Dutchman", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -350,7 +350,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
         deltas.add(accountDelta);
 
@@ -364,7 +364,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -391,7 +391,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "HMS Dauntless");
         deltas.add(accountDelta);
 
@@ -405,7 +405,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Jack Sparrow", "HMS Dauntless", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "HMS Dauntless", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -436,7 +436,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
-        		accountOid, dummyResourceCtlBlue.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "HMS Dauntless");
         deltas.add(accountDelta);
 
@@ -450,7 +450,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", dummyResourceCtlBlue, task);
+		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -581,7 +581,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Captain Jack Sparrow", null, dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -615,7 +615,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -643,7 +643,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, dummyResourceCtlRed.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Flying Dutchman");
         deltas.add(accountDelta);
 
@@ -665,7 +665,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -696,7 +696,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-        		accountOid, dummyResourceCtlRed.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
         deltas.add(accountDelta);
         
@@ -710,7 +710,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
  		display("User after change execution", userJack);
  		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
  		
- 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+ 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
  		
          // Check audit
          display("Audit", dummyAuditService);
@@ -737,7 +737,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
-        		accountOid, dummyResourceCtlRed.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+        		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext, "Black Pearl");
         deltas.add(accountDelta);
 
@@ -759,7 +759,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -796,7 +796,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -851,7 +851,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		XMLGregorianCalendar disableTimestamp = accountRed.asObjectable().getActivation().getDisableTimestamp();
 		TestUtil.assertBetween("Wrong disableTimestamp", start, end, disableTimestamp);
 
-		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", false, dummyResourceCtlRed, task);
+		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", false, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
                 
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
