@@ -661,7 +661,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	private void forEvaluatedRule(LensContext<UserType> context, String targetOid, Consumer<EvaluatedPolicyRule> handler) {
 		DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple = 
         		(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
-        evaluatedAssignmentTriple.accept(assignment -> {
+        evaluatedAssignmentTriple.simpleAccept(assignment -> {
         	if (targetOid == null || assignment.getTarget() != null && targetOid.equals(assignment.getTarget().getOid())) {
 				assignment.getAllTargetsPolicyRules().forEach(handler::accept);
 			}

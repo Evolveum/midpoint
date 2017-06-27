@@ -88,13 +88,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeElaine;
 	
 	protected DummyResourceContoller dummyResourceCtl;	
-	protected DummyResourceContoller dummyResourceCtlRed;
 	
-	protected DummyResource dummyResourceBlue;
-	protected DummyResourceContoller dummyResourceCtlBlue;
-	protected ResourceType resourceDummyBlueType;
-	protected PrismObject<ResourceType> resourceDummyBlue;
-
 	protected DummyResource dummyResourceCyan;
 	protected DummyResourceContoller dummyResourceCtlCyan;
 	protected ResourceType resourceDummyCyanType;
@@ -147,8 +141,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 				},
 				initTask, initResult);
 		
-		dummyResourceCtlRed = initDummyResourcePirate(RESOURCE_DUMMY_RED_NAME, 
+		initDummyResourcePirate(RESOURCE_DUMMY_RED_NAME, 
 				RESOURCE_DUMMY_RED_FILE, RESOURCE_DUMMY_RED_OID, initTask, initResult);
+		
+		initDummyResourcePirate(RESOURCE_DUMMY_BLUE_NAME, 
+				getResourceDummyBlueFile(), RESOURCE_DUMMY_BLUE_OID, initTask, initResult);
 		
 		initDummyResourcePirate(RESOURCE_DUMMY_YELLOW_NAME, 
 				RESOURCE_DUMMY_YELLOW_FILE, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
@@ -158,15 +155,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		initDummyResourcePirate(RESOURCE_DUMMY_RELATIVE_NAME, 
 				RESOURCE_DUMMY_RELATIVE_FILE, RESOURCE_DUMMY_RELATIVE_OID, initTask, initResult);
-		
-		dummyResourceCtlBlue = DummyResourceContoller.create(RESOURCE_DUMMY_BLUE_NAME, resourceDummyBlue);
-		dummyResourceCtlBlue.extendSchemaPirate();
-		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
-		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, getResourceDummyBlueFile(), RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
-		resourceDummyBlueType = resourceDummyBlue.asObjectable();
-		dummyResourceCtlBlue.setResource(resourceDummyBlue);
-		
-		dummyResourceCtlCyan = DummyResourceContoller.create(RESOURCE_DUMMY_CYAN_NAME, resourceDummyBlue);
+				
+		dummyResourceCtlCyan = DummyResourceContoller.create(RESOURCE_DUMMY_CYAN_NAME, resourceDummyCyan);
 		dummyResourceCtlCyan.extendSchemaPirate();
 		dummyResourceCyan = dummyResourceCtlCyan.getDummyResource();
 		resourceDummyCyan = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_CYAN_FILE, RESOURCE_DUMMY_CYAN_OID, initTask, initResult); 
@@ -223,8 +213,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtl.addAccount(ACCOUNT_CALYPSO_DUMMY_USERNAME, "Tia Dalma", "Pantano River");
 		
 		dummyResourceCtl.addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
-		dummyResourceCtlRed.addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
-		dummyResourceCtlBlue.addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
+		getDummyResourceController(RESOURCE_DUMMY_RED_NAME).addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
+		getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).addAccount(ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", "Melee Island");
 		
 		repoAddObjectFromFile(LOOKUP_LANGUAGES_FILE, initResult);
 		

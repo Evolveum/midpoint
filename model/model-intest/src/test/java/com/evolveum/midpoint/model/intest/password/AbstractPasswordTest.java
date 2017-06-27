@@ -40,6 +40,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
@@ -64,6 +65,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -123,6 +125,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		InternalsConfig.setAvoidLoggingChange(true);
 		super.initSystem(initTask, initResult);
 		
 		importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
@@ -191,9 +194,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         
@@ -293,7 +296,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         
@@ -314,7 +317,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// Check shadow
         PrismObject<ShadowType> accountShadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
         display("Repo shadow", accountShadowRepo);
-        assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, "jack");
+        assertDummyAccountShadowRepo(accountShadowRepo, accountJackOid, USER_JACK_USERNAME);
         // MID-3860
         assertShadowPasswordMetadata(accountShadowRepo, startCal, endCal, false, true);
         assertShadowLifecycle(accountShadowRepo, false);
@@ -322,7 +325,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // Check account
         PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
         display("Model shadow", accountShadowModel);
-        assertDummyAccountShadowModel(accountShadowModel, accountJackOid, "jack", "Jack Sparrow");
+        assertDummyAccountShadowModel(accountShadowModel, accountJackOid, USER_JACK_USERNAME, USER_JACK_FULL_NAME);
         assertShadowPasswordMetadata(accountShadowModel, startCal, endCal, false, true);
         assertShadowLifecycle(accountShadowModel, false);
         
@@ -330,6 +333,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         
         assertDummyPasswordConditional(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
+        
+        assertSinglePasswordNotificationConditional(null, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
 	}
 
 	/**
@@ -343,7 +348,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
                         
@@ -378,6 +383,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccountShadowModel(accountShadowModel, accountJackOid, "jack", "Jack Sparrow");
         assertShadowPasswordMetadata(accountShadowModel, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
         assertShadowLifecycle(accountShadowModel, false);
+        
+        assertSinglePasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_2_CLEAR);
 	}
 	
 	/**
@@ -391,7 +398,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
 		// WHEN
         modifyAccountChangePassword(accountJackOid, USER_PASSWORD_3_CLEAR, task, result);
@@ -410,6 +417,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_3_CLEAR);
 		
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+		
+		assertSinglePasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_3_CLEAR);
 	}
 	
 	/**
@@ -424,7 +433,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         ProtectedStringType userPasswordPs4 = new ProtectedStringType();
         userPasswordPs4.setClearValue(USER_PASSWORD_4_CLEAR);
@@ -458,6 +467,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_5_CLEAR);
 		
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+		
+		assertSinglePasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_5_CLEAR);
 	}
 	
 	
@@ -472,7 +483,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
 		// WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
@@ -498,12 +509,19 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// User and default dummy account should have unchanged passwords
         assertUserPassword(userJack, USER_PASSWORD_4_CLEAR);
-     	assertDummyPassword("jack", USER_PASSWORD_5_CLEAR);
+     	assertDummyPassword(USER_JACK_USERNAME, USER_PASSWORD_5_CLEAR);
      	
      	assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+     	
+     	if (isPasswordEncryption()) {
+	     	assertPasswordNotifications(2);
+	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_4_CLEAR);
+	     	assertHasPasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
+     	} else {
+     		assertSinglePasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
+     	}
 	}
-	
-	
+
 	/**
 	 * Modify both user and account password. Red dummy has a strong password mapping. User change should override account
 	 * change.
@@ -516,7 +534,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         ProtectedStringType userPasswordPs1 = new ProtectedStringType();
         userPasswordPs1.setClearValue(USER_PASSWORD_1_CLEAR);
@@ -557,8 +575,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userJack, 3);
 		
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+		
+		displayPasswordNotifications();
+		assertPasswordNotifications(2);
+		assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
+     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
 	}
-	
+
 	/**
 	 * MID-3682
 	 */
@@ -566,6 +589,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
     public void test122ModifyAccountUglyJackPasswordBad() throws Exception {
 		final String TEST_NAME = "test122ModifyAccountUglyJackPasswordBad";
         displayTestTile(TEST_NAME);
+        prepareTest();
 
         // GIVEN
         Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
@@ -583,6 +607,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         	assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER);
         }
 
+        assertNoPasswordNotifications();
 	}
 		
 	
@@ -599,6 +624,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
                
         try {
 			// WHEN
@@ -626,6 +652,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userJack, 3);
 		
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+		
+		assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -641,6 +669,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
                         
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, 
@@ -662,6 +691,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertLinks(userJack, 3);
 		
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
+		
+		assertSinglePasswordNotification(RESOURCE_DUMMY_UGLY_NAME, USER_JACK_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 	}
 	
 	/**
@@ -675,7 +706,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
 		// WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
@@ -702,6 +733,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 		
 		assertPasswordHistoryEntries(userJack);
+		
+		assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_BLACK_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
 	}
 	
 	/**
@@ -715,6 +748,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
 	    
         try {
         	// WHEN
@@ -727,6 +761,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         	displayThen(TEST_NAME);
         	assertDummyPasswordConditional(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
         }
+        
+        assertNoPasswordNotifications();
 	}
 	
 	@Test
@@ -737,7 +773,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
 		// WHEN
         unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
@@ -763,6 +799,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 		
 		assertPasswordHistoryEntries(userJack);
+		
+		assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -777,14 +815,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
 		// WHEN
+        displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+		assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -792,8 +831,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         accountJackYellowOid = getLinkRefOid(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
         // Check account in dummy resource (yellow)
-        assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyPasswordConditional(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
+        DummyAccount dummyAccountYellow = assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        display("Yellow dummy account", dummyAccountYellow);
+        assertDummyPasswordConditionalGenerated(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
         
         // Other resources should have unchanged passwords
         assertUserPassword(userJack, USER_PASSWORD_1_CLEAR);
@@ -805,6 +845,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertPasswordMetadata(userJack, false, lastPasswordChangeStart, lastPasswordChangeEnd);
 		
 		assertPasswordHistoryEntries(userJack);
+
+		displayPasswordNotifications();
+		assertSinglePasswordNotificationConditionalGenerated(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
 	}
 	
 	/**
@@ -819,14 +862,16 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
+        displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_AA_CLEAR, task, result);
 		
 		// THEN
+        displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertPartialError(result);
 		
@@ -852,6 +897,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 		
 		assertPasswordHistoryEntries(userJack);
+		
+		displayPasswordNotifications();
+		assertPasswordNotifications(2);
+		assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
+     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_AA_CLEAR);
 	}
 	
 	@Test
@@ -862,11 +912,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
 		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE);
 		
 		// WHEN
+		displayWhen(TEST_NAME);
 		modifyObjectReplaceReference(SecurityPolicyType.class, getSecurityPolicyOid(),
 				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF),
         		task, result, passPolicyRef);
@@ -875,8 +926,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         		task, result, 3);
 		
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 	}
 	
 	// test202 is in subclasses. Different behavior for encryption and hashing
@@ -893,6 +944,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
@@ -903,11 +955,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountJackRedOid, prismContext);
 		
 		// WHEN
+		displayWhen(TEST_NAME);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta, shadowDelta), null, task, result);
 		
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
         
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
@@ -928,6 +981,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 		
 		assertPasswordHistoryEntries(userAfter);
+		
+		assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -943,6 +998,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
@@ -971,6 +1027,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
 		
 		assertPasswordHistoryEntries(userAfter);
+		
+		assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -994,6 +1052,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
 		// WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -1017,6 +1076,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
 		// WHEN
         recomputeUser(USER_JACK_OID, task, result);
@@ -1050,7 +1110,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         ProtectedStringType userPasswordPs = new ProtectedStringType();
 		userPasswordPs.setClearValue(USER_PASSWORD_1_CLEAR);
@@ -1176,7 +1236,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
                         
@@ -1190,6 +1250,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
         
         assertJackPasswordsWithHistory(newPassword, expectedPasswordHistory);
+        
+        displayPasswordNotifications();
+		assertPasswordNotifications(2);
+		assertHasPasswordNotification(null, USER_JACK_USERNAME, newPassword);
+     	assertHasPasswordNotification(RESOURCE_DUMMY_YELLOW_NAME, USER_JACK_USERNAME, newPassword);
 	}
 	
 	private void doTestModifyUserJackPasswordFailureWithHistory(final String TEST_NAME, 
@@ -1199,7 +1264,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareTest();
         
         try {
 			// WHEN
@@ -1217,6 +1282,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         TestUtil.assertFailure(result);
         
         assertJackPasswordsWithHistory(oldPassword, expectedPasswordHistory);
+        
+        assertNoPasswordNotifications();
 	}
 	
 	private void assertJackPasswordsWithHistory(String expectedCurrentPassword, String... expectedPasswordHistory) throws Exception {
@@ -1253,7 +1320,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		prepareTest();
 
 		assignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, null);
 		assignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
@@ -1300,6 +1367,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		
+		assertNoPasswordNotifications();
 	}
 
 	/**
@@ -1314,7 +1383,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		prepareTest();
 
 		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, null, task, result);
@@ -1352,6 +1421,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		
+		if (isPasswordEncryption()) {
+			assertPasswordNotifications(2);
+	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_1);
+	     	assertHasPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_1);
+
+		} else {
+			assertNoPasswordNotifications();
+		}
 	}
 	
 	@Test
@@ -1362,7 +1440,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		prepareTest();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1393,6 +1471,19 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		
+		displayPasswordNotifications();
+		if (isPasswordEncryption()) {
+			assertPasswordNotifications(2);
+			assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+	     	// not BLUE, it already has a password
+		} else {
+			assertPasswordNotifications(3);
+			assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+	     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+	     	assertHasPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_2);
+		}
 	}
 	
 	protected abstract void assert31xBluePasswordAfterAssignment(PrismObject<UserType> userAfter) throws Exception;
@@ -1410,17 +1501,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
-		unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, null, task, result);
-		unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER, task, result);
-		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, task, result);
+		prepareTest();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task, result);
+		modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task, result /*, no value */);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1447,6 +1532,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		
+		assertNoPasswordNotifications();
 	}
 	
 	/*
@@ -1461,7 +1548,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		prepareTest();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1494,6 +1581,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		
+		displayPasswordNotifications();
+		assertNoPasswordNotifications();
 	}
 
 	/**
@@ -1508,7 +1598,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		prepareTest();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1537,6 +1627,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
+		
+		displayPasswordNotifications();
+		assertPasswordNotifications(2);
+		assertHasPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_3);
+     	// not BLUE, it already has a password
 	}
 	
 	@Test
@@ -1547,7 +1643,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		prepareTest();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1568,6 +1664,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp0000");
+		
+		assertSinglePasswordNotification(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "emp0000");
 	}
 
 	@Test
@@ -1578,7 +1676,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		prepareTest();
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1599,6 +1697,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
 
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, null);
+		
+		assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -1647,6 +1747,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // Check account in dummy resource
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        assertSinglePasswordNotification(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 	}
 	
 	/**
@@ -1660,15 +1762,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_RAPP_OID, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
@@ -1686,6 +1788,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // Check account in dummy resource
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -1699,18 +1803,18 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		assignAccount(USER_RAPP_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
@@ -1746,6 +1850,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 	}
 	
 	/**
@@ -1759,18 +1865,18 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_RAPP_OID, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
@@ -1806,6 +1912,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -1819,6 +1927,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
@@ -1873,6 +1982,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 	}
 
 	/**
@@ -1886,6 +1997,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
@@ -1933,6 +2045,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -1946,6 +2060,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
@@ -1980,6 +2095,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        
+        assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 	}
 	
 	@Test
@@ -1990,6 +2107,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
@@ -2053,6 +2171,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
         assertShadowLifecycle(accountShadow, null);
+        
+        assertSingleInitializationPasswordNotification(RESOURCE_DUMMY_LIFECYCLE_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
 
 	}
 
@@ -2064,18 +2184,18 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_RAPP_OID, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
@@ -2123,6 +2243,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
         assertShadowLifecycle(accountShadow, null);
 
+        assertNoPasswordNotifications();
 	}
 
 	@Test
@@ -2133,18 +2254,18 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		prepareTest();
 		
 		PrismObject<UserType> userBefore = getUser(USER_RAPP_OID);
 		display("User before", userBefore);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_RAPP_OID, UserType.F_EMPLOYEE_TYPE, task, result, "WRECK");
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
@@ -2191,6 +2312,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountDefaultOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountDefaultOid, USER_RAPP_USERNAME);
         assertShadowLifecycle(accountShadow, null);
+        
+        assertNoPasswordNotifications();
 
 	}
 	// TODO: employeeType->WRECK
@@ -2200,17 +2323,43 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 	
 	protected void assertDummyPasswordConditional(String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
-		if (getPasswordStorageType() == CredentialsStorageTypeType.ENCRYPTION) {
+		if (isPasswordEncryption()) {
 			assertDummyPassword(null, userId, expectedClearPassword);
 		}
 	}
 	
 	protected void assertDummyPasswordConditional(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
-		if (getPasswordStorageType() == CredentialsStorageTypeType.ENCRYPTION) {
+		if (isPasswordEncryption()) {
 			super.assertDummyPassword(instance, userId, expectedClearPassword);
 		}
 	}
 	
+	protected void assertDummyPasswordConditionalGenerated(String instance, String userId, String expectedClearPassword) throws SchemaViolationException, ConflictException {
+		if (isPasswordEncryption()) {
+			super.assertDummyPassword(instance, userId, expectedClearPassword);
+		} else {
+			assertDummyPasswordNotEmpty(instance, userId);
+		}
+	}
+	
+	protected void assertSinglePasswordNotificationConditional(String dummyResourceName, String username, String password) {
+		if (isPasswordEncryption()) {
+			assertSinglePasswordNotification(dummyResourceName, username, password);
+		}
+	}
+	
+	protected void assertSinglePasswordNotificationConditionalGenerated(String dummyResourceName, String username, String password) {
+		if (isPasswordEncryption()) {
+			assertSinglePasswordNotification(dummyResourceName, username, password);
+		} else {
+			assertSinglePasswordNotificationGenerated(dummyResourceName, username);
+		}
+	}
+	
+	private void assertSingleInitializationPasswordNotification(String dummyResourceName, String username, String password) {
+		assertSinglePasswordNotification(dummyResourceName, username, password);
+	}
+		
 	protected abstract void assertShadowLifecycle(PrismObject<ShadowType> shadow, boolean focusCreated);
 	
 	protected void assertShadowLifecycle(PrismObject<ShadowType> shadow, String expectedLifecycle) {
@@ -2243,6 +2392,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
                         
@@ -2259,6 +2409,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after", userAfter);
         
 		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+		
+		displayPasswordNotifications();
+		assertPasswordNotifications(3);
+		assertHasPasswordNotification(null, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
+     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
+     	assertHasPasswordNotification(RESOURCE_DUMMY_BLUE_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_1);
 	}
 	
 	@Test
@@ -2269,6 +2425,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
 		// WHEN
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
@@ -2284,6 +2441,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismAsserts.assertPropertyValue(securityPolicy, 
 				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE), 
 				XmlTypeConverter.createDuration("PT10M"));
+		
+		assertNoPasswordNotifications();
 	}
 	
 	/**
@@ -2298,6 +2457,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
         try {
         	
@@ -2318,6 +2478,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after", userAfter);
         
 		assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
+		
+		assertNoPasswordNotifications();
 	}
 	
 	@Test
@@ -2328,6 +2490,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        prepareTest();
         
         clock.overrideDuration("PT15M");
         
@@ -2345,6 +2508,18 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User after", userAfter);
         
 		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
+		
+		displayPasswordNotifications();
+		assertPasswordNotifications(2);
+		assertHasPasswordNotification(null, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_3);
+     	assertHasPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, USER_PASSWORD_VALID_3);
+     	// BLUE resource already has a password
+
+	}
+	
+	protected void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        prepareNotifications();
 	}
 	
 	protected PrismObject<ShadowType> getBlueShadow(PrismObject<UserType> userAfter) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -2358,6 +2533,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		TestUtil.assertSuccess("getObject(Account) result not success", result);
 		display("Blue shadow", shadow);
 		return shadow;
+	}
+	
+	protected boolean isPasswordEncryption() {
+		return getPasswordStorageType() == CredentialsStorageTypeType.ENCRYPTION;
 	}
 
 }

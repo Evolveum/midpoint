@@ -94,6 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefin
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -292,7 +293,8 @@ public class MappingEvaluator {
 				LOGGER.trace("Output triple of mapping {}\n{}", mapping.getContextDescription(),
 						mappingOutputTriple==null?null:mappingOutputTriple.debugDump(1));
 			}
-			if (mappingOutputTriple != null) {
+			
+			if (isMeaningful(mappingOutputTriple)) {
 
 				MappingOutputStruct<V> mappingOutputStruct = outputTripleMap.get(mappingOutputPath);
 				if (mappingOutputStruct == null) {
@@ -317,6 +319,11 @@ public class MappingEvaluator {
 					mappingOutputStruct.setOutputTriple(mappingOutputTriple);
 				} else {
 					outputTriple.merge(mappingOutputTriple);
+				}
+				
+			} else {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Output triple of mapping {} is NOT meaningful", mapping.getContextDescription());
 				}
 			}
 			
@@ -344,7 +351,7 @@ public class MappingEvaluator {
 				PrismValueDeltaSetTriple<V> outputTriple = mappingOutputStruct.getOutputTriple();
 				if (outputTriple != null) {
 					// Previous mapping produced output. We do not need to evaluate weak mapping.
-					// TODO: this is not entirelly correct. Previous mapping might have deleted all
+					// TODO: this is not entirely correct. Previous mapping might have deleted all
 					// values. Also we may need the output of the weak mapping to correctly process
 					// non-tolerant values (to avoid removing the value that weak mapping produces).
 					// MID-3847
@@ -540,7 +547,52 @@ public class MappingEvaluator {
 		}
 	}
 
-    private boolean hasNoValue(Item aPrioriTargetItem) {
+    private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {
+		if (mappingOutputTriple == null) {
+			// this means: mapping not applicable
+			return false;
+		}
+		if (mappingOutputTriple.isEmpty()) {
+			// this means: no value produced
+			return true;
+		}
+		if (mappingOutputTriple.getMinusSet() != null && 
+				(mappingOutputTriple.getZeroSet() == null || mappingOutputTriple.getZeroSet().isEmpty()) &&
+				(mappingOutputTriple.getPlusSet() == null || mappingOutputTriple.getPlusSet().isEmpty())) {
+			// Minus deltas are always meaningful, even with hashing (see below)
+			// This may be used e.g. to remove existing password.
+			return true;
+		}
+		if (hasNoOrHashedValuesOnly(mappingOutputTriple.getMinusSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getZeroSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getPlusSet())) {
+			// Used to skip application of mapping that produces only hashed protected values. 
+			// Those values are useless, e.g. to set new password. If we would consider them as
+			// meaningful then a normal mapping with such values may prohibit application of
+			// a weak mapping. We want weak mapping in this case, e.g. to set a randomly-generated password.
+			// Not entirely correct. Maybe we need to filter this out in some other way?
+			return false;
+		}
+		return true;
+	}
+
+    // Not entirely correct. Maybe we need to filter this out in some other way?
+    private <V extends PrismValue> boolean hasNoOrHashedValuesOnly(Collection<V> set) {
+    	if (set == null) {
+			return true;
+		}
+		for (V pval: set) {
+			Object val = pval.getRealValue();
+			if (val instanceof ProtectedStringType) {
+				if (!((ProtectedStringType)val).isHashed()) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		return true;
+    }
+    
+	private boolean hasNoValue(Item aPrioriTargetItem) {
 		return aPrioriTargetItem == null 
 				|| (aPrioriTargetItem.isEmpty() && !aPrioriTargetItem.isIncomplete());
 	}

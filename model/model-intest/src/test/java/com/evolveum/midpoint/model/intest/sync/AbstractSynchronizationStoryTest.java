@@ -210,12 +210,12 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        importSyncTask(resourceDummyBlue);
+        importSyncTask(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        waitForSyncTaskStart(resourceDummyBlue);
+        waitForSyncTaskStart(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 	}
 
     /**
@@ -284,24 +284,25 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        dummyResourceCtlBlue.addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
+        getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).addAccount(ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", "Scabb Island");
         
         // Wait for sync task to pick up the change
         // However, blue is not authoritative regarding creating new users, so wally will not be created at this time
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 
         // Make sure that the "kickback" sync cycle of the other resource runs to completion
         // We want to check the state after it gets stable
         // and it could spoil the next test
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
 
         PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally Feed");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
+        		getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
         assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
 
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -344,16 +345,16 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        dummyResourceCtlBlue.addAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", "Melee Island");
+        getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).addAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", "Melee Island");
         
         // Wait for sync task to pick up the change
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         
         // Make sure that the "kickback" sync cycle of the other resource runs to completion
         // We want to check the state after it gets stable
         // and it could spoil the next test
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -441,14 +442,14 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         // Make sure we have steady state
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
         
         PrismObject<ShadowType> accountWallyDefault = checkWallyAccount(getDummyResourceObject(), getDummyResource(),
         		"default", "Wally Feed");
         assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, 
-        		"blue", "Wally Feed");
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
+        		getDummyResource(RESOURCE_DUMMY_BLUE_NAME),  "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, 
         		"green", "Wally Feed");
@@ -493,7 +494,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 ////        // Make sure that the "kickback" sync cycle of the other resource runs to completion
 ////        // We want to check the state after it gets stable
 ////        // and it could spoil the next test
-//        waitForSyncTaskNextRun(resourceDummyBlue);
+//        waitForSyncTaskNextRun(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 //        waitForSyncTaskNextRun(resourceDummyGreen);
 ////        // Make sure we have steady state
 //        waitForSyncTaskNextRun(resourceDummy);
@@ -555,7 +556,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // Make sure that the "kickback" sync cycle of the other resource runs to completion
         // We want to check the state after it gets stable
         // and it could spoil the next test
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
         // Make sure we have steady state
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
@@ -568,7 +569,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally B. Feed", null, "Wally B. Feed from Sync");
         
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
+        		getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Wally B. Feed");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
@@ -628,7 +630,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         // Wait for sync tasks to pick up the change and have some chance to screw things
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
 
         // Run green recon twice here. If the recon already searched for current state of the
@@ -646,7 +648,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
                
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
+        		getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
@@ -693,7 +696,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         // Wait for sync tasks to pick up the change and have some chance to screw things
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
 
         // Run green recon twice here. If the recon already searched for current state of the
@@ -712,7 +715,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
         PrismAsserts.assertPropertyValue(userWally, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Plunder island"));
                
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
+        		getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
@@ -769,7 +773,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         // Make sure we have steady state
      	waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
-        waitForSyncTaskNextRunAssertSuccess(resourceDummyBlue);
+        waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
         
         // THEN
@@ -778,7 +782,8 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject(), task, result);
         
-        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(resourceDummyBlue, dummyResourceBlue, "blue", "Wally Feed");
+        PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), 
+        		getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyBlue, SynchronizationSituationType.LINKED);
         PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(resourceDummyGreen, dummyResourceGreen, "green", "Bloodnose");
         if (allwaysCheckTimestamp) assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
@@ -827,7 +832,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		
      	// Make sure we have steady state
      	waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
-        OperationResult takResultBlue = waitForSyncTaskNextRun(resourceDummyBlue);
+        OperationResult takResultBlue = waitForSyncTaskNextRun(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         waitForSyncTaskNextRunAssertSuccess(resourceDummyGreen);
      	
         // THEN
@@ -865,13 +870,13 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // So, if that happens we will just wait for the next recon run and check that it
         // sorts it out.
         
-        ObjectQuery wallyBlueAccountsQuery = createAccountShadowQuery(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue);
+        ObjectQuery wallyBlueAccountsQuery = createAccountShadowQuery(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 		List<PrismObject<ShadowType>> wallyBlueAccounts = repositoryService.searchObjects(ShadowType.class, wallyBlueAccountsQuery, null, result);
 		if (!wallyBlueAccounts.isEmpty()) {
-			waitForSyncTaskNextRun(resourceDummyBlue);
+			waitForSyncTaskNextRun(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
 		}
 		
-		assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, resourceDummyBlue, task, result);
+		assertNoShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), task, result);
         
         assertUsers(6 + getNumberOfExtraDummyUsers());
 
@@ -933,7 +938,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         
         assertUsers(7 + getNumberOfExtraDummyUsers());
         
-//        sync = ResourceTypeUtil.determineSynchronization(resourceDummyBlue.asObjectable(), UserType.class);
+//        sync = ResourceTypeUtil.determineSynchronization(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME).asObjectable(), UserType.class);
 //        if (sync != null){
 //        	sync.setObjectTemplateRef(null);
 //        }

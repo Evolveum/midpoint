@@ -140,7 +140,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 		super.initSystem(initTask, initResult);
 		
 		// We want logging config from logback-test.xml and not from system config object
-		InternalsConfig.avoidLoggingChange = true;
+		InternalsConfig.setAvoidLoggingChange(true);
 		
 		mockClockworkHook = new MockClockworkHook();
 		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);

@@ -657,7 +657,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 			String dummyResourceName, String userName, String userFullName) throws Exception {
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         getDummyResource().resetBreakMode();
@@ -668,6 +668,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
 		user.asObjectable().setActivation(activationType);
+		setPassword(user, "blablabla");
         addObject(user);
         
         // precondition

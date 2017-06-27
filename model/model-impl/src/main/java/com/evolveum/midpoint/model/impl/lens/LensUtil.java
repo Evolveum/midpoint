@@ -218,7 +218,7 @@ public class LensUtil {
 				itemHasStrongMutable.setValue(true);
 			}
 		};
-		triple.accept(visitor);
+		triple.simpleAccept(visitor);
         boolean ignoreNormalMappings = itemHasStrongMutable.booleanValue() && isExclusiveStrong;
         
         // We will process each value individually. I really mean each value. This whole method deals with
