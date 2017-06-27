@@ -23,6 +23,7 @@ import com.evolveum.midpoint.notifications.api.events.BaseEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -117,8 +118,9 @@ public class NotificationManagerImpl implements NotificationManager {
             processEvent(event, event.getAdHocHandler(), task, result);
         }
 
+        boolean errorIfNotFound = !SchemaConstants.CHANNEL_GUI_INIT_URI.equals(task.getChannel());
         SystemConfigurationType systemConfigurationType = NotificationFunctionsImpl
-				.getSystemConfiguration(cacheRepositoryService, result);
+				.getSystemConfiguration(cacheRepositoryService, errorIfNotFound, result);
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }
