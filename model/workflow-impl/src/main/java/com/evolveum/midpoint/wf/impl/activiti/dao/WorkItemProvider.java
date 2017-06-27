@@ -416,16 +416,16 @@ public class WorkItemProvider {
 			wi.setDeadline(XmlTypeConverter.createXMLGregorianCalendar(task.getDueDate()));
 
 			String taskOid = ActivitiUtil.getRequiredVariable(variables, CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class, null);
-			com.evolveum.midpoint.task.api.Task mpTask = null;
+			com.evolveum.midpoint.task.api.Task mpTask;
 			try {
 				mpTask = taskManager.getTask(taskOid, result);
+				if (mpTask.getWorkflowContext() == null) {
+					throw new IllegalStateException("No workflow context in task " + mpTask + " that owns " + wi);
+				}
+				mpTask.getWorkflowContext().getWorkItem().add(wi);
 			} catch (ObjectNotFoundException|SchemaException e) {
-				throw new SystemException("Couldn't retrieve owning task for " + wi + ": " + e.getMessage(), e);		// TODO more gentle treatment
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve owning task for {}", e, wi);
 			}
-			if (mpTask.getWorkflowContext() == null) {
-				throw new IllegalStateException("No workflow context in task " + mpTask + " that owns " + wi);
-			}
-			mpTask.getWorkflowContext().getWorkItem().add(wi);
 
 			// assignees
 			wi.getAssigneeRef().addAll(getMidpointAssignees(task));
