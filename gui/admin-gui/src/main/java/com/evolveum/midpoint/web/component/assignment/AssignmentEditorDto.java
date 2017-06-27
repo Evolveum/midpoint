@@ -206,6 +206,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		AssignmentType assignment = new AssignmentType();
 		assignment.setTargetRef(targetRef);
+		assignment.setTarget(object);
 
 		return new AssignmentEditorDto(status, assignment, pageBase);
 	}

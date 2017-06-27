@@ -98,6 +98,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private int itemsPerRow = 4;
     private List<AssignmentEditorDto> listProviderData;
     List<AssignmentViewType> viewTypeList = new ArrayList<>();
+    private PrismObject<UserType> selfUser;
 
     public AssignmentCatalogPanel(String id) {
         super(id);
@@ -121,6 +122,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
                 @Override
                 public AssignmentEditorDto createDataObjectWrapper(PrismObject<AbstractRoleType> obj) {
+
                     AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, pageBase);
                     if (! getRoleCatalogStorage().isMultiUserRequest()) {
                         dto.setAlreadyAssigned(isAlreadyAssigned(obj, dto));
@@ -336,6 +338,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 return search;
             }
         };
+        selfUser = pageBase.loadUserSelf(pageBase);
     }
 
     private void initUserSelectionPanel(WebMarkupContainer headerPanel){
@@ -611,7 +614,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private PrismObject<UserType> getTargetUser(){
         if (getRoleCatalogStorage().isSelfRequest()){
-            return pageBase.loadUserSelf(pageBase);
+            return selfUser == null ? pageBase.loadUserSelf(pageBase) : selfUser;
         }
         return getRoleCatalogStorage().getTargetUserList().get(0);
     }
