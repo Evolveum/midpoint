@@ -53,6 +53,7 @@
             <icfcldap:winRmAuthenticationScheme>credssp</icfcldap:winRmAuthenticationScheme>
             <icfcldap:winRmPort>5986</icfcldap:winRmPort>
             <icfcldap:winRmUseHttps>true</icfcldap:winRmUseHttps>
+            <icfcldap:powershellArgumentStyle>variables</icfcldap:powershellArgumentStyle>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -709,14 +710,24 @@
 		<script>
 			<host>resource</host>
 			<language>powerhell</language>
-			<code>Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) ADD`n" }</code>
+			<argument>
+		      <path>$focus/name</path>
+		      <name>username</name>
+		   </argument>
+			<!-- Single-line command, but parameters in variable. This may make it multi-line. -->
+			<code>$T = Get-Date -format u; $M = $T + " (CredSSP) ADD " + $username +"`n"; write-host $M; $block = $ExecutionContext.InvokeCommand.NewScriptBlock("Add-Content c:\conn.txt `""+$M+"`""); Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock $block</code>
 			<operation>add</operation>
 			<order>before</order>
 		</script>
 		<script>
 			<host>resource</host>
 			<language>powerhell</language>
-			<code>Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }</code>
+			<!-- Make sure that this is a multi-line command. -->
+			<code>
+				write-host "before"
+				Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }
+				write-host "after"
+			</code>
 			<operation>modify</operation>
 			<order>before</order>
 		</script>
