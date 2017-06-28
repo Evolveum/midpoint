@@ -362,14 +362,26 @@ public class WfContextUtil {
 		return (WfContextType) parentReal;
 	}
 
+	@Nullable
+	public static String getTaskOid(WorkItemType workItem) {
+		TaskType task = getTask(workItem);
+		return task != null ? task.getOid() : null;
+	}
+
+	@Nullable
 	public static TaskType getTask(WorkItemType workItem) {
 		return getTask(getWorkflowContext(workItem));
 	}
 
+	@Nullable
 	public static TaskType getTask(WfContextType wfc) {
+		if (wfc == null) {
+			return null;
+		}
 		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(wfc.asPrismContainerValue());
 		if (parent == null) {
-			throw new IllegalStateException("No containing task for " + wfc);
+			LOGGER.error("No containing task for " + wfc);
+			return null;
 		}
 		Containerable parentReal = parent.asContainerable();
 		if (!(parentReal instanceof TaskType)) {
