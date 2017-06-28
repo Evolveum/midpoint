@@ -16,6 +16,21 @@
 
 @import "midpoint-theme-variables.less";
 
+body.hold-transition {
+	.content-wrapper,
+	.right-side,
+	.main-footer,
+	.main-sidebar,
+	.left-side,
+	.main-header .navbar,
+	.main-header .logo {
+		-webkit-transition: none !important;
+		-moz-transition: none !important;
+		-ms-transition: none !important;
+		-o-transition: none !important;
+	}
+}
+
 .skin-blue-light .main-header {
   & .logo {
     //background-color: red;
