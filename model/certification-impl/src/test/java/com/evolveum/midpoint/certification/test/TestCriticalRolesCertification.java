@@ -999,6 +999,9 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
+//        AccessCertificationCampaignType campaignWithCases = getCampaignWithCases(campaignOid);
+//        display("campaignWithCases", campaignWithCases);
+
         display("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());

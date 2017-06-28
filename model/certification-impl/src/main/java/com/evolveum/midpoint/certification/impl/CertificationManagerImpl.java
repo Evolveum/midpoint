@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -47,10 +48,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 
 /**
  * All operations carried out by CertificationManager have to be authorized by it. ModelController does NOT execute
@@ -474,55 +475,24 @@ public class CertificationManagerImpl implements CertificationManager {
 
         OperationResult result = parentResult.createSubresult(OPERATION_GET_CAMPAIGN_STATISTICS);
         try {
-            AccessCertificationCasesStatisticsType stat = new AccessCertificationCasesStatisticsType(prismContext);
+			AccessCertificationCampaignType campaign;
+			try {
+				campaign = modelService.getObject(AccessCertificationCampaignType.class, campaignOid, null, task, parentResult).asObjectable();
+			} catch (CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+				throw new SystemException("Unexpected exception while getting campaign object: " + e.getMessage(), e);
+			}
 
-            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(F_CASE, GetOperationOptions.createRetrieve());
-            AccessCertificationCampaignType campaign;
-            try {
-                campaign = modelService.getObject(AccessCertificationCampaignType.class, campaignOid, options, task, parentResult).asObjectable();
-            } catch (CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
-                throw new SystemException("Unexpected exception while getting campaign object: " + e.getMessage(), e);
-            }
+			Integer stage = currentStageOnly ? campaign.getStageNumber() : null;
 
-            int accept=0, revoke=0, revokeRemedied=0, reduce=0, reduceRemedied=0, noDecision=0, noResponse=0;
-            for (AccessCertificationCaseType _case : campaign.getCase()) {
-                AccessCertificationResponseType outcome;
-                if (currentStageOnly) {
-                    if (_case.getStageNumber() == campaign.getStageNumber()) {
-                        outcome = OutcomeUtils.fromUri(_case.getCurrentStageOutcome());
-                    } else {
-                        continue;
-                    }
-                } else {
-                    outcome = OutcomeUtils.fromUri(_case.getOutcome());
-                }
-                if (outcome == null) {
-                    outcome = AccessCertificationResponseType.NO_RESPONSE;
-                }
-                switch (outcome) {
-                    case ACCEPT: accept++; break;
-                    case REVOKE: revoke++;
-                                 if (_case.getRemediedTimestamp() != null) {
-                                     revokeRemedied++;
-                                 }
-                                 break;
-                    case REDUCE: reduce++;
-                                 if (_case.getRemediedTimestamp() != null) {
-                                    reduceRemedied++;       // currently not possible
-                                 }
-                                 break;
-                    case NOT_DECIDED: noDecision++; break;
-                    case NO_RESPONSE: noResponse++; break;
-                    default: throw new IllegalStateException("Unexpected outcome: "+outcome);
-                }
-            }
-            stat.setMarkedAsAccept(accept);
-            stat.setMarkedAsRevoke(revoke);
-            stat.setMarkedAsRevokeAndRemedied(revokeRemedied);
-            stat.setMarkedAsReduce(reduce);
-            stat.setMarkedAsReduceAndRemedied(reduceRemedied);
-            stat.setMarkedAsNotDecide(noDecision);
-            stat.setWithoutResponse(noResponse);
+			AccessCertificationCasesStatisticsType stat = new AccessCertificationCasesStatisticsType(prismContext);
+
+			stat.setMarkedAsAccept(getCount(campaignOid, stage, AccessCertificationResponseType.ACCEPT, false, task, result));
+			stat.setMarkedAsRevoke(getCount(campaignOid, stage, AccessCertificationResponseType.REVOKE, false, task, result));
+			stat.setMarkedAsRevokeAndRemedied(getCount(campaignOid, stage, AccessCertificationResponseType.REVOKE, true, task, result));
+			stat.setMarkedAsReduce(getCount(campaignOid, stage, AccessCertificationResponseType.REDUCE, false, task, result));
+			stat.setMarkedAsReduceAndRemedied(getCount(campaignOid, stage, AccessCertificationResponseType.REDUCE, true, task, result));
+			stat.setMarkedAsNotDecide(getCount(campaignOid, stage, AccessCertificationResponseType.NOT_DECIDED, false, task, result));
+			stat.setWithoutResponse(getCount(campaignOid, stage, AccessCertificationResponseType.NO_RESPONSE, false, task, result));
             return stat;
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't get campaign statistics: unexpected exception: " + e.getMessage(), e);
@@ -532,7 +502,36 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
-    @Override
+	private int getCount(String campaignOid, Integer stage, AccessCertificationResponseType response, boolean onlyRemedied, Task task,
+			OperationResult result) throws SchemaException, SecurityViolationException {
+		QName outcomeItem;
+		String responseUri = OutcomeUtils.toUri(response);
+		S_FilterEntry entry;
+		if (stage != null) {
+			outcomeItem = AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME;
+			entry = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+					.item(AccessCertificationCaseType.F_STAGE_NUMBER).eq(stage)
+					.and();
+		} else {
+			outcomeItem = AccessCertificationCaseType.F_OUTCOME;
+			entry = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext);
+		}
+		S_AtomicFilterExit exit;
+		if (response == AccessCertificationResponseType.NO_RESPONSE) {
+			exit = entry.item(outcomeItem).isNull().or().item(outcomeItem).eq(responseUri);
+		} else {
+			exit = entry.item(outcomeItem).eq(responseUri);
+		}
+		if (onlyRemedied) {
+			exit = exit.and().not().item(AccessCertificationCaseType.F_REMEDIED_TIMESTAMP).isNull();
+		}
+		exit = exit.and().ownerId(campaignOid);
+		ObjectQuery query = exit.build();
+		return modelService.countContainers(AccessCertificationCaseType.class, query, null, task, result);
+	}
+
+
+	@Override
     public void registerCertificationEventListener(AccessCertificationEventListener listener) {
         eventHelper.registerEventListener(listener);
     }
