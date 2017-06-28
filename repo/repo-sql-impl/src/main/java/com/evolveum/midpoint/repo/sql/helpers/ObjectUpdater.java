@@ -300,8 +300,7 @@ public class ObjectUpdater {
         return oid;
     }
 
-
-    public <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
+    public <T extends ObjectType> Object deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         LOGGER_PERFORMANCE.debug("> delete object {}, oid={}", new Object[]{type.getSimpleName(), oid});
         Session session = null;
@@ -338,6 +337,7 @@ public class ObjectUpdater {
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
+        return null;            // just because of executeAttempts wrapper
     }
 
     public <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,

@@ -143,6 +143,10 @@ public interface AccessCertificationService {
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
 
+    int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
+
     /**
      * Records a particular decision of a reviewer.
      *

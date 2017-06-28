@@ -101,6 +101,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         display("campaign", campaign);
         assertAfterCampaignStart(campaign, assignmentCertificationDefinition, 1);		// beware, maybe not all details would match (in the future) - then adapt this test
         assertPercentComplete(campaign, 0, 0, 0);      // no cases, no problems
+		assertCases(campaign.getOid(), 1);
 	}
 
     @Test

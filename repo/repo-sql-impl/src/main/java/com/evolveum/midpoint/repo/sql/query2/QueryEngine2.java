@@ -43,8 +43,8 @@ public class QueryEngine2 {
     }
 
     public RQuery interpret(ObjectQuery query, Class<? extends Containerable> type,
-                            Collection<SelectorOptions<GetOperationOptions>> options,
-                            boolean countingObjects, Session session) throws QueryException {
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            boolean countingObjects, Session session) throws QueryException {
 
         QueryInterpreter2 interpreter = new QueryInterpreter2(repoConfiguration);
         RootHibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, countingObjects, session);

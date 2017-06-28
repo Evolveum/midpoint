@@ -325,10 +325,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 					AccessCertificationService acs = getCertificationService();
 					Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
 					OperationResult result = task.getResult();
-					List<AccessCertificationWorkItemType> certWorkItems = acs.searchOpenWorkItems(new ObjectQuery(),
-							true, null, task, result);
-
-					return certWorkItems == null ? 0 : certWorkItems.size();
+					return acs.countOpenWorkItems(new ObjectQuery(), true, null, task, result);
 				} catch (SchemaException|SecurityViolationException|ObjectNotFoundException
 						|ConfigurationException|CommunicationException e) {
 					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);

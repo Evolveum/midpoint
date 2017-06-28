@@ -27,4 +27,5 @@ public interface ResultStyle {
 	ResultTransformer getResultTransformer();
 	List<String> getIdentifiers(String basePath);
 	List<String> getContentAttributes(String basePath);
+	String getCountString(String basePath);
 }

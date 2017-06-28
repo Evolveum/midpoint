@@ -41,6 +41,11 @@ public class GetObjectResult implements Serializable {
         }
 
         @Override
+        public String getCountString(String rootAlias) {
+            return rootAlias + ".oid";
+        }
+
+        @Override
         public List<String> getContentAttributes(String rootAlias) {
             return Arrays.asList(
                     rootAlias + ".fullObject",

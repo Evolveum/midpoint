@@ -336,10 +336,37 @@ public class ObjectRetriever {
         return count;
     }
 
+    public <C extends Containerable> int countContainersAttempt(Class<C> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+		boolean cases = AccessCertificationCaseType.class.equals(type);
+		boolean workItems = AccessCertificationWorkItemType.class.equals(type);
+		if (!cases && !workItems) {
+			throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
+		}
+
+		LOGGER_PERFORMANCE.debug("> count containers {}", type.getSimpleName());
+		Session session = null;
+		try {
+			session = baseHelper.beginReadOnlyTransaction();
+
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			RQuery rQuery = engine.interpret(query, type, options, true, session);
+			Number longCount = (Number) rQuery.uniqueResult();
+			LOGGER.trace("Found {} objects.", longCount);
+
+			session.getTransaction().commit();
+			return longCount != null ? longCount.intValue() : 0;
+		} catch (QueryException | RuntimeException ex) {
+			baseHelper.handleGeneralException(ex, session, result);
+			throw new AssertionError("Shouldn't get here; previous method call should throw an exception.");
+		} finally {
+			baseHelper.cleanupSessionAndResult(session, result);
+		}
+    }
+
 	@NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
-                                                                                        Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                                        OperationResult result) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
         LOGGER_PERFORMANCE.debug("> search objects {}", new Object[]{type.getSimpleName()});
         Session session = null;
         try {

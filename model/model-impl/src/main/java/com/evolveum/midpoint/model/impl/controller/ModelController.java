@@ -855,6 +855,32 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return list;
 	}
 
+	private class ContainerOperationContext<T extends Containerable> {
+		final boolean isCase;
+		final boolean isWorkItem;
+		final ObjectTypes.ObjectManager manager;
+		final ObjectQuery refinedQuery;
+
+		ContainerOperationContext(Class<T> type, ObjectQuery query) throws SchemaException, SecurityViolationException {
+			isCase = AccessCertificationCaseType.class.equals(type);
+			isWorkItem = WorkItemType.class.equals(type);
+
+			if (!isCase && !isWorkItem) {
+				throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and WorkItemType classes");
+			}
+
+			if (isCase) {
+				refinedQuery  = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
+				manager = ObjectTypes.ObjectManager.REPOSITORY;
+			} else if (isWorkItem) {
+				refinedQuery = preProcessWorkItemSecurity(query);
+				manager = ObjectTypes.ObjectManager.WORKFLOW;
+			} else {
+				throw new IllegalStateException();
+			}
+		}
+	}
+
 	@Override
 	public <T extends Containerable> SearchResultList<T> searchContainers(
 			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -866,12 +892,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
-		final boolean isCase = AccessCertificationCaseType.class.equals(type);
-		final boolean isWorkItem = WorkItemType.class.equals(type);
-
-		if (!isCase && !isWorkItem) {
-			throw new UnsupportedOperationException("searchContainers method is currently supported only for AccessCertificationCaseType and WorkItemType classes");
-		}
+		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query);
 
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
@@ -879,17 +900,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addParams(new String[] { "type", "query", "paging" },
 				type, query, (query != null ? query.getPaging() : "undefined"));
 
-
-		final ObjectTypes.ObjectManager manager;
-		if (isCase) {
-			query = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
-			manager = ObjectTypes.ObjectManager.REPOSITORY;
-		} else if (isWorkItem) {
-			query = preProcessWorkItemSecurity(query);
-			manager = ObjectTypes.ObjectManager.WORKFLOW;
-		} else {
-			throw new IllegalStateException();
-		}
+		query = ctx.refinedQuery;
 
 		if (isFilterNone(query, result)) {
 			return new SearchResultList<>(new ArrayList<>());
@@ -905,7 +916,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
 					QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
 				}
-				switch (manager) {
+				switch (ctx.manager) {
 					case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
 					case WORKFLOW: list = workflowManager.searchContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
@@ -913,7 +924,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				result.computeStatus();
 				result.cleanupResult();
 			} catch (SchemaException|RuntimeException e) {
-				processSearchException(e, rootOptions, manager, result);
+				processSearchException(e, rootOptions, ctx.manager, result);
 				throw e;
 			} finally {
 				QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
@@ -934,10 +945,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			RepositoryCache.exit();
 		}
 
-		if (isCase) {
+		if (ctx.isCase) {
 			list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
 					AccessCertificationCampaignType.F_CASE, rootOptions, null, task, result);
-		} else if (isWorkItem) {
+		} else if (ctx.isWorkItem) {
 			// TODO implement security post processing for WorkItems
 		} else {
 			throw new IllegalStateException();
@@ -954,25 +965,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
-		final boolean isWorkItem = WorkItemType.class.equals(type);
-
-		if (!isWorkItem) {
-			throw new UnsupportedOperationException("countContainers method is currently supported only for WorkItemType classes");
-		}
+		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query);
 
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
 		result.addParams(new String[] { "type", "query"}, type, query);
 
-
-		final ObjectTypes.ObjectManager manager;
-		if (isWorkItem) {
-			query = preProcessWorkItemSecurity(query);
-			manager = ObjectTypes.ObjectManager.WORKFLOW;
-		} else {
-			throw new IllegalStateException();
-		}
+		query = ctx.refinedQuery;
 
 		if (isFilterNone(query, result)) {
 			return 0;
@@ -985,15 +985,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			logQuery(query);
 
 			try {
-				switch (manager) {
-					//case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
+				switch (ctx.manager) {
+					case REPOSITORY: count = cacheRepositoryService.countContainers(type, query, options, result); break;
 					case WORKFLOW: count = workflowManager.countContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
 				}
 				result.computeStatus();
 				result.cleanupResult();
 			} catch (SchemaException|RuntimeException e) {
-				processSearchException(e, rootOptions, manager, result);
+				processSearchException(e, rootOptions, ctx.manager, result);
 				throw e;
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
@@ -1992,6 +1992,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Override
 	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
 		return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
+	}
+
+	@Deprecated
+	@Override
+	public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		return getCertificationManagerChecked().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
 	}
 
 	@Override

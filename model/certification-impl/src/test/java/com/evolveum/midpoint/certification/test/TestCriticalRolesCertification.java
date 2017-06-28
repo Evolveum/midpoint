@@ -212,6 +212,7 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, ACCEPT, ACCEPT, null);
 
         assertPercentComplete(campaignOid, 100, 100, 100);
+        assertCases(campaignOid, 6);
     }
 
     @Test
@@ -249,6 +250,7 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 1);
 
         assertPercentComplete(campaignOid, 100, 100, 100);
+        assertCases(campaignOid, 6);
     }
 
     @Test
@@ -311,6 +313,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
         assertPercentComplete(campaignOid, 17, 17, 0);
+        assertCases(campaignOid, 6);
     }
 
     @Test

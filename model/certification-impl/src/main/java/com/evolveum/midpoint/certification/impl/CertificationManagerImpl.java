@@ -93,6 +93,7 @@ public class CertificationManagerImpl implements CertificationManager {
     public static final String OPERATION_CLOSE_CURRENT_STAGE = INTERFACE_DOT + "closeCurrentStage";
     public static final String OPERATION_RECORD_DECISION = INTERFACE_DOT + "recordDecision";
     public static final String OPERATION_SEARCH_OPEN_WORK_ITEMS = INTERFACE_DOT + "searchOpenWorkItems";
+    public static final String OPERATION_COUNT_OPEN_WORK_ITEMS = INTERFACE_DOT + "countOpenWorkItems";
     public static final String OPERATION_CLOSE_CAMPAIGN = INTERFACE_DOT + "closeCampaign";
     public static final String OPERATION_DELEGATE_WORK_ITEMS = INTERFACE_DOT + "delegateWorkItems";
     public static final String OPERATION_GET_CAMPAIGN_STATISTICS = INTERFACE_DOT + "getCampaignStatistics";
@@ -375,6 +376,26 @@ public class CertificationManagerImpl implements CertificationManager {
                     null, null, null, null, result);
 
             return queryHelper.searchOpenWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, result);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+
+        OperationResult result = parentResult.createSubresult(OPERATION_COUNT_OPEN_WORK_ITEMS);
+
+        try {
+            securityEnforcer.authorize(ModelAuthorizationAction.READ_OWN_CERTIFICATION_DECISIONS.getUrl(), null,
+                    null, null, null, null, result);
+
+            return queryHelper.countOpenWorkItems(baseWorkItemsQuery, SecurityUtil.getPrincipal(), notDecidedOnly, options, result);
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't search for certification work items: unexpected exception: " + e.getMessage(), e);
             throw e;

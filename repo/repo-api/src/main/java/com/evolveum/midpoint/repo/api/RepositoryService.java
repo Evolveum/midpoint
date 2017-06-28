@@ -129,6 +129,7 @@ public interface RepositoryService {
     String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
 	String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
+	String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
     String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
@@ -189,6 +190,9 @@ public interface RepositoryService {
 	 */
 	<T extends ObjectType> String getVersion(Class<T> type,String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
+
+	<T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
 
 	/**
 	 * <p>Add new object.</p>
