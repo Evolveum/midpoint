@@ -45,27 +45,32 @@ public class AccountActivationNotifier extends ConfirmationNotifier {
 	}
 	
 	@Override
+	protected Trace getLogger() {
+		return LOGGER;
+	}
+
+	@Override
 	protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType,
 			OperationResult result) {
 		if (!event.isSuccess()) {
-			LOGGER.trace("Operation was not successful, exiting.");
+			logNotApplicable(event, "operation was not successful");
 			return false;
 		}
 
 		ModelEvent modelEvent = (ModelEvent) event;
 		if (modelEvent.getFocusDeltas().isEmpty()) {
-			LOGGER.trace("No user deltas in event, exiting.");
+			logNotApplicable(event, "no user deltas in event");
 			return false;
 		}
 		
 		List<ShadowType> shadows = getShadowsToActivate(modelEvent);
 		
 		if (shadows.isEmpty()) { 
-			LOGGER.trace("No shadows to activate found in model context. Skip sending notifications.");
+			logNotApplicable(event, "no shadows to activate found in model context");
 			return false;
 		} 
 		
-		LOGGER.trace("Found shadows to activate: {}. Skip sending notifications.", shadows);
+		LOGGER.trace("Found shadows to activate: {}. Processing notifications.", shadows);
 		return true;
 	}
 	

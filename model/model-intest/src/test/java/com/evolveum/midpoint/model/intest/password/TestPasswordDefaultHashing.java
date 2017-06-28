@@ -135,5 +135,17 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 		assertIncompleteShadowPassword(shadow);
 	}
 
+	@Override
+	protected void assertAccountActivationNotification(String dummyResourceName, String username) {
+		checkDummyTransportMessages(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 1);
+		String body = getDummyTransportMessageBody(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 0);
+		String expectedPrefix = getExpectedPasswordNotificationBodyPrefix(dummyResourceName, username);
+		if (!body.contains("activat")) {
+			fail("Activation not mentioned in "+dummyResourceName+" dummy account activation notification message : "+body);
+		}
+		if (!body.contains("activate/accounts")) {
+			fail("Link seems to be missing in "+dummyResourceName+" dummy account activation notification message : "+body);
+		}
+	}
 	
 }

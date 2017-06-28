@@ -42,4 +42,8 @@ public interface DebugDumpable {
 	default Object debugDumpLazily() {
 		return DebugUtil.debugDumpLazily(this);
 	}
+	
+	default Object debugDumpLazily(int index) {
+		return DebugUtil.debugDumpLazily(this, index);
+	}
 }

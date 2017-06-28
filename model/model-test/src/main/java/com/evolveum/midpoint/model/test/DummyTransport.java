@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * @author mederly
@@ -82,6 +84,10 @@ public class DummyTransport implements Transport, DebugDumpable {
 
     public List<Message> getMessages(String transportName) {
         return messages.get(transportName);
+    }
+    
+    public Map<String,List<Message>> getMessages() {
+    	return messages;
     }
 
     public void clearMessages() {

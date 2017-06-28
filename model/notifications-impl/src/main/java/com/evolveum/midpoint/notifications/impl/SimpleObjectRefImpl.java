@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.impl;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -29,6 +30,7 @@ import org.apache.commons.lang.Validate;
  * @author mederly
  */
 public class SimpleObjectRefImpl implements SimpleObjectRef {
+	
     private String oid;
     private ObjectType objectType;
     private NotificationFunctionsImpl functions;        // used to resolve object refs
@@ -96,4 +98,12 @@ public class SimpleObjectRefImpl implements SimpleObjectRef {
     public static SimpleObjectRef create(NotificationFunctionsImpl functions, ObjectReferenceType ref) {
         return ref != null ? new SimpleObjectRefImpl(functions, ref) : null;
     }
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "oid", oid, indent + 1);
+		DebugUtil.debugDumpWithLabelToString(sb, "objectType", objectType, indent + 1);
+		return sb.toString();
+	}
 }
