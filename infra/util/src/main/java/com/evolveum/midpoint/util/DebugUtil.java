@@ -379,6 +379,12 @@ public class DebugUtil {
 		return sb;
 	}
 	
+	public static StringBuilder createTitleStringBuilderLn(Class<?> titleClass, int indent) {
+		StringBuilder sb = createTitleStringBuilder(titleClass, indent);
+		sb.append("\n");
+		return sb;
+	}
+	
 	public static StringBuilder createTitleStringBuilder(Class<?> titleClass, int indent) {
 		return createTitleStringBuilder(titleClass.getSimpleName(), indent);
 	}
@@ -575,13 +581,17 @@ public class DebugUtil {
 	}
 
 	public static Object debugDumpLazily(DebugDumpable dumpable) {
+		return debugDumpLazily(dumpable, 0);
+	}
+	
+	public static Object debugDumpLazily(DebugDumpable dumpable, int index) {
 		if (dumpable == null) {
 			return null;
 		}
 		return new Object() {
 			@Override
 			public String toString() {
-				return dumpable.debugDump();
+				return dumpable.debugDump(index);
 			}
 		};
 	}

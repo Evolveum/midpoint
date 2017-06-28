@@ -3077,9 +3077,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         fail("Notifier "+name+" message body " + expectedBody + " not found");
     }
     
+    protected void displayAllNotifications() {
+    	for (java.util.Map.Entry<String,List<Message>> entry: dummyTransport.getMessages().entrySet()) {
+    		List<Message> messages = entry.getValue();
+    		if (messages != null && !messages.isEmpty()) {
+    			display("Notification messages: "+entry.getKey(), messages);
+    		}
+    	}
+    }
+    
     protected void displayNotifications(String name) {
     	List<Message> messages = dummyTransport.getMessages("dummy:" + name);
-    	display("Notification messages", messages);
+    	display("Notification messages: "+name, messages);
     }
 
     private void logNotifyMessages(List<Message> messages) {

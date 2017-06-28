@@ -135,4 +135,11 @@ public class TestPasswordDefault extends AbstractPasswordTest {
 		PrismObject<ShadowType> shadow = getBlueShadow(userAfter);
 		assertIncompleteShadowPassword(shadow);
 	}
+
+	@Override
+	protected void assertAccountActivationNotification(String dummyResourceName, String username) {
+		// We have passwords here. We are not doing initialization.
+		checkDummyTransportMessages(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 0);
+	}
+	
 }

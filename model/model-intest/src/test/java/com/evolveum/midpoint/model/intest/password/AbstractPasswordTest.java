@@ -28,6 +28,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -114,6 +115,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
+	protected static final String USER_RAPP_EMAIL = "rapp.scallion@evolveum.com";
 	
 	protected String accountJackOid;
 	protected String accountJackRedOid;
@@ -141,6 +143,26 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 	
 	protected abstract String getSecurityPolicyOid();
+	
+	@Test
+    public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+        displayTestTile(TEST_NAME);
+
+        AccountActivationNotifierType accountActivationNotifier = null;
+        SystemConfigurationType systemConfig = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value()).asObjectable();
+        IntegrationTestTools.displayXml("system config", systemConfig.asPrismObject());
+        for (EventHandlerType handler: systemConfig.getNotificationConfiguration().getHandler()) {
+        	display("Handler: ", handler);
+        	List<AccountActivationNotifierType> accountActivationNotifiers = handler.getAccountActivationNotifier();
+        	if (!accountActivationNotifiers.isEmpty()) {
+        		accountActivationNotifier = accountActivationNotifiers.get(0);
+        	}
+        }
+        
+        display("Account activation notifier", accountActivationNotifier);
+        assertNotNull("No accountActivationNotifier", accountActivationNotifier);
+	}
 
 	@Test
     public void test010AddPasswordPolicy() throws Exception {
@@ -201,13 +223,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_1_CLEAR, task, result);
 		
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        displayThen(TEST_NAME);
+		assertSuccess(result);
         
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         
@@ -1717,7 +1738,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_RAPP_FILE);
 		AssignmentType assignmentType = createConstructionAssignment(RESOURCE_DUMMY_OID, null, null);
 		UserType userBeforeType = userBefore.asObjectable();
-		userBeforeType.setFullName(createPolyStringType(USER_RAPP_FULLNAME));
+		userBeforeType
+			.fullName(createPolyStringType(USER_RAPP_FULLNAME))
+			.emailAddress(USER_RAPP_EMAIL); // Make sure Rapp has e-mail address otherwise the notifications will not be sent to transport
 		userBeforeType.getAssignment().add(assignmentType);
 		setPassword(userBefore, USER_PASSWORD_VALID_1);
 		display("User before", userBefore);
@@ -1850,8 +1873,10 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertUserPassword(userAfter, USER_PASSWORD_VALID_1);
         assertDefaultDummyAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, true);
         assertDummyPassword(null, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
-        
+                
+        displayAllNotifications();
         assertSinglePasswordNotificationConditional(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME, USER_PASSWORD_VALID_1);
+        assertAccountActivationNotification(RESOURCE_DUMMY_RED_NAME, USER_RAPP_USERNAME);
 	}
 	
 	/**
@@ -2359,7 +2384,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	private void assertSingleInitializationPasswordNotification(String dummyResourceName, String username, String password) {
 		assertSinglePasswordNotification(dummyResourceName, username, password);
 	}
-		
+	
+	protected abstract void assertAccountActivationNotification(String dummyResourceName, String username);
+	
 	protected abstract void assertShadowLifecycle(PrismObject<ShadowType> shadow, boolean focusCreated);
 	
 	protected void assertShadowLifecycle(PrismObject<ShadowType> shadow, String expectedLifecycle) {

@@ -112,7 +112,7 @@ public class NotificationManagerImpl implements NotificationManager {
 			((BaseEvent) event).setNotificationFunctions(notificationFunctions);
 		}
 
-		LOGGER.trace("NotificationManager processing event {}", event);
+		LOGGER.trace("NotificationManager processing event:\n{}", event.debugDumpLazily(1));
 
         if (event.getAdHocHandler() != null) {
             processEvent(event, event.getAdHocHandler(), task, result);

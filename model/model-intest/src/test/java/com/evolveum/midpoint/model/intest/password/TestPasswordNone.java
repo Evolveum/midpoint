@@ -88,4 +88,10 @@ public class TestPasswordNone extends AbstractPasswordTest {
 		assertIncompleteShadowPassword(shadow);
 	}
 
+	@Override
+	protected void assertAccountActivationNotification(String dummyResourceName, String username) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
