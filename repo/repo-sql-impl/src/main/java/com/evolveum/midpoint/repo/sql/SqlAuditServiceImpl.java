@@ -413,7 +413,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 					return;
 				} catch (RuntimeException ex) {
 					attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
-					pm.registerOperationNewTrial(opHandle, attempt);
+					pm.registerOperationNewAttempt(opHandle, attempt);
 				}
 			}
 		} finally {
@@ -465,7 +465,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 					return;
 				} catch (RuntimeException ex) {
 					attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, parentResult);
-					pm.registerOperationNewTrial(opHandle, attempt);
+					pm.registerOperationNewAttempt(opHandle, attempt);
 				}
 			}
 		} finally {

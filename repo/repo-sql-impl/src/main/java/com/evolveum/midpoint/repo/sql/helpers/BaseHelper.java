@@ -211,8 +211,8 @@ public class BaseHelper {
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
-					+ "{}ms (this was attempt {} of {})\n{}: {}", new Object[]{operation, oid, waitTime,
-					attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage()});
+					+ "{} ms (this was attempt {} of {})\n{}: {}", operation, oid, waitTime,
+					attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage());
 		}
 
 		if (attempt >= LOCKING_MAX_ATTEMPTS) {

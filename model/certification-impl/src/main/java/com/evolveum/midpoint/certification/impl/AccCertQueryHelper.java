@@ -89,50 +89,41 @@ public class AccCertQueryHelper {
     public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
 			boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
+		ObjectQuery newQuery = createQueryForOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly);
 
-        // enhance filter with reviewerRef + enabled
-        ObjectQuery newQuery;
+		// retrieve cases, filtered
+		return repositoryService.searchContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
+    }
 
-        ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(principal);
+	private ObjectQuery createQueryForOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
+			boolean notDecidedOnly) throws SchemaException {
+		// enhance filter with reviewerRef + enabled
+		ObjectQuery newQuery;
 
-        ObjectFilter filterToAdd;
-        if (notDecidedOnly) {
-            ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+		ObjectFilter reviewerAndEnabledFilter = getReviewerAndEnabledFilterForWI(principal);
+
+		ObjectFilter filterToAdd;
+		if (notDecidedOnly) {
+			ObjectFilter noResponseFilter = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
 					.item(F_OUTPUT, F_OUTCOME).isNull()
 					.buildFilter();
-            filterToAdd = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
-        } else {
-            filterToAdd = reviewerAndEnabledFilter;
-        }
-        newQuery = replaceFilter(baseWorkItemsQuery, filterToAdd);
+			filterToAdd = AndFilter.createAnd(reviewerAndEnabledFilter, noResponseFilter);
+		} else {
+			filterToAdd = reviewerAndEnabledFilter;
+		}
+		newQuery = replaceFilter(baseWorkItemsQuery, filterToAdd);
+		return newQuery;
+	}
 
-        // retrieve cases, filtered
-        List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
+    // principal == null => take all work items
+	int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, MidPointPrincipal principal,
+			boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
 
-//        // campaigns already loaded
-//        Map<String,AccessCertificationCampaignType> campaigns = new HashMap<>();
-//
-//        // add campaignRef
-//        for (AccessCertificationWorkItemType workItem : workItems) {
-//            if (workItem.getCampaignRef() == null) {
-//                LOGGER.warn("AccessCertificationCaseType {} has no campaignRef -- skipping it", workItem);
-//                continue;
-//            }
-//            // obtain campaign object
-//            String campaignOid = workItem.getCampaignRef().getOid();
-//            AccessCertificationCampaignType campaign = campaigns.get(campaignOid);
-//            if (campaign == null) {
-//                campaign = repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();    // TODO error checking
-//                campaigns.put(campaignOid, campaign);
-//            }
-//
-//            PrismObject<AccessCertificationCampaignType> campaignObject = campaign.asPrismObject();
-//            ObjectReferenceType campaignRef = ObjectTypeUtil.createObjectRef(campaignObject);
-//            workItem.setCampaignRef(campaignRef);
-//            workItem.getCampaignRef().asReferenceValue().setObject(campaignObject);    // has to be done AFTER setCampaignRef in order to preserve the value!
-//        }
+        // enhance filter with reviewerRef + enabled
+		ObjectQuery newQuery = createQueryForOpenWorkItems(baseWorkItemsQuery, principal, notDecidedOnly);
 
-        return workItems;
+        return repositoryService.countContainers(AccessCertificationWorkItemType.class, newQuery, options, result);
     }
 
     private ObjectFilter getReviewerAndEnabledFilter(String reviewerOid) throws SchemaException {

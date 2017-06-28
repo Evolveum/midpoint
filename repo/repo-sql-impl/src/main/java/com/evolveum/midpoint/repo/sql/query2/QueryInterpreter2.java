@@ -120,7 +120,7 @@ public class QueryInterpreter2 {
 		if (countingObjects) {
 			interpretPagingAndSorting(context, query, true);
         	RootHibernateQuery hibernateQuery = context.getHibernateQuery();
-			hibernateQuery.addProjectionElement(new CountProjectionElement(resultStyle.getIdentifiers(rootAlias), distinct));
+			hibernateQuery.addProjectionElement(new CountProjectionElement(resultStyle.getCountString(rootAlias), distinct));
 			return hibernateQuery;
         }
 

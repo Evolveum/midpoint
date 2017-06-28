@@ -253,7 +253,11 @@ public class WorkItemManager {
 
 			WorkItemOperationKindType operationKind = escalation != null ? ESCALATE : DELEGATE;
 
-			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(WfContextUtil.getTask(workItem).getOid(), result);
+			String taskOid = WfContextUtil.getTaskOid(workItem);
+			if (taskOid == null) {
+				throw new ObjectNotFoundException("No task for workItem " + workItem);
+			}
+			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(taskOid, result);
 			WorkItemAllocationChangeOperationInfo operationInfoBefore =
 					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesBefore, null);
 			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);

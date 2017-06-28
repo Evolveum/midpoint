@@ -47,6 +47,11 @@ public class GetCertificationWorkItemResult implements Serializable {
 		}
 
 		@Override
+		public String getCountString(String basePath) {
+			return "*";
+		}
+
+		@Override
 		public List<String> getContentAttributes(String basePath) {
 			return Collections.emptyList();
 		}

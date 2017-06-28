@@ -850,6 +850,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
 	}
+	
+	protected void unassignRole(String userOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, false, result);
+	}
 
 	protected void assignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
@@ -3071,9 +3077,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         fail("Notifier "+name+" message body " + expectedBody + " not found");
     }
     
+    protected void displayAllNotifications() {
+    	for (java.util.Map.Entry<String,List<Message>> entry: dummyTransport.getMessages().entrySet()) {
+    		List<Message> messages = entry.getValue();
+    		if (messages != null && !messages.isEmpty()) {
+    			display("Notification messages: "+entry.getKey(), messages);
+    		}
+    	}
+    }
+    
     protected void displayNotifications(String name) {
     	List<Message> messages = dummyTransport.getMessages("dummy:" + name);
-    	display("Notification messages", messages);
+    	display("Notification messages: "+name, messages);
     }
 
     private void logNotifyMessages(List<Message> messages) {

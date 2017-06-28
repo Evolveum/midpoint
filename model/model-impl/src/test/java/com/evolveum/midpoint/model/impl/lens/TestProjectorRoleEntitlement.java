@@ -117,7 +117,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         
         assertNull("Unexpected focus primary changes "+context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
-        assertFalse("No entitlement changes", context.getProjectionContexts().isEmpty());
+        assertFalse("No projection contexts", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());

@@ -68,8 +68,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_WORK_ITEM;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType.F_OUTPUT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -581,9 +583,14 @@ public class CertificationTest extends BaseSQLRepoTest {
         }
         AccessCertificationCampaignType campaign = getFullCampaign(oid, result).asObjectable();
         PrismAsserts.assertEqualsCollectionUnordered("list of cases is different", cases, campaign.getCase().toArray(new AccessCertificationCaseType[0]));
+
+        int count = repositoryService.countContainers(AccessCertificationCaseType.class, query, null, result);
+        if (expected != null) {
+			assertEquals("Wrong # of certification cases", expected.intValue(), count);
+		}
     }
 
-    private void checkWorkItemsForCampaign(String oid, Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
 				.exists(T_PARENT)
 				.block()
@@ -592,9 +599,12 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .build();
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, query, null, result);
 		assertWorkItemsCount(expected, workItems, " for " + oid);
+
+		int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, query, null, result);
+		assertEquals("Wrong # of certification work items", expected, count);
     }
 
-    private void checkWorkItemsForCampaignAndCase(String oid, long caseId, Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
 				.exists(T_PARENT)
 				.block()
@@ -604,13 +614,19 @@ public class CertificationTest extends BaseSQLRepoTest {
                 .build();
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, query, null, result);
 		assertWorkItemsCount(expected, workItems, " for " + oid + ":" + caseId);
-    }
 
-    private void checkCasesTotal(Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+		int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, query, null, result);
+		assertEquals("Wrong # of certification work items", expected, count);
+	}
+
+    private void checkCasesTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
 		assertCasesFound(expected, cases, "");
+
+		int count = repositoryService.countContainers(AccessCertificationCaseType.class, null, null, result);		// intentionally query==null
+		assertEquals("Wrong # of certification cases", expected, count);
     }
 
 	private void assertCasesFound(Integer expected, List<AccessCertificationCaseType> cases, String desc) {
@@ -620,10 +636,12 @@ public class CertificationTest extends BaseSQLRepoTest {
 		}
 	}
 
-	private void checkWorkItemsTotal(Integer expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void checkWorkItemsTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, null, null, result);
 		assertWorkItemsCount(expected, workItems, "");
-    }
+		int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, null, null, result);
+		assertEquals("Wrong # of certification work items", expected, count);
+	}
 
 	private void assertWorkItemsCount(Integer expected, List<AccessCertificationWorkItemType> workItems, String desc) {
 		System.out.println("Work items found" + desc + ": " + workItems.size());

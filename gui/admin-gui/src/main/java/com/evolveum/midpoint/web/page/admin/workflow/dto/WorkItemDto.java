@@ -143,7 +143,6 @@ public class WorkItemDto extends Selectable {
 	@Nullable
 	private TaskType getTaskType() {
     	if (taskType == null) {
-			//taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
 			taskType = WfContextUtil.getTask(workItem);
 		}
 		return taskType;
@@ -182,11 +181,15 @@ public class WorkItemDto extends Selectable {
     }
 
     public Date getStartedDate() {
-        return XmlTypeConverter.toDate(getWorkflowContext().getStartTimestamp());		// TODO NPE?
+		WfContextType wfc = getWorkflowContext();
+		return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
     }
 
     public String getStartedFormattedFull() {
-        return WebComponentUtil.getLocalizedDate(getWorkflowContext().getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		WfContextType wfc = getWorkflowContext();
+		return wfc != null
+				? WebComponentUtil.getLocalizedDate(wfc.getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE)
+				: null;
     }
 
     // TODO

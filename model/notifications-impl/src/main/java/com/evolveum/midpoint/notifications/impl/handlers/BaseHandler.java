@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,15 +83,31 @@ public abstract class BaseHandler implements EventHandler {
 
     protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType, Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Starting processing event " + event + " with handler " +
-                    eventHandlerType.getClass() + " (name: " + eventHandlerType.getName() +
-                    (additionalData != null ? (", parameters: " + additionalData) :
-                                             (", configuration: " + eventHandlerType)) +
-                    ")");
+            LOGGER.trace("Starting processing event " + event.shortDump() + " with handler " +
+            		getHumanReadableHandlerDescription(eventHandlerType) + "\n  parameters: " +
+            		(additionalData != null ? ("\n  parameters: " + additionalData) :
+                        ("\n  configuration: " + eventHandlerType)));
+                    
         }
     }
+    
+    protected void logNotApplicable(Event event, String reason) {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(
+				"{} is not applicable for event {}, continuing in the handler chain; reason: {}",
+				this.getClass().getSimpleName(), event.shortDump(), reason);
+		}
+	}
 
-    public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
+    protected String getHumanReadableHandlerDescription(EventHandlerType eventHandlerType) {
+    	if (eventHandlerType.getName() != null) {
+    		return eventHandlerType.getName();
+    	} else {
+    		return eventHandlerType.getClass().getSimpleName();
+    	}
+	}
+
+	public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Starting processing event " + event + " with handler " +
                     description +

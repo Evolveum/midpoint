@@ -555,10 +555,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test109ModifyUserAddAccountAgain() throws Exception {
-        TestUtil.displayTestTile(this, "test109ModifyUserAddAccountAgain");
+		final String TEST_NAME = "test109ModifyUserAddAccountAgain";
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test109ModifyUserAddAccountAgain");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -589,7 +590,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		assertNoProvisioningScripts();
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		// Check audit
         display("Audit", dummyAuditService);
@@ -3309,7 +3310,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.clear();
         prepareNotifications();
         purgeScriptHistory();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	}
 
 }

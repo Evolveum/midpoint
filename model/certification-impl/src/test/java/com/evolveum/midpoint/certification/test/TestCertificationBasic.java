@@ -110,6 +110,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         campaign = getCampaignWithCases(roleInducementCampaignOid);
         display("campaign", campaign);
         assertAfterCampaignCreate(campaign, roleInducementCertDefinition);
+        assertCases(campaign.getOid(), 0);
     }
 
     @Test

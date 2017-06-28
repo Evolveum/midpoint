@@ -224,7 +224,7 @@ public class SqlPerformanceMonitor {
         outstandingOperations.remove(threadId);
     }
 
-    public void registerOperationNewTrial(long opHandle, int attempt) {
+    void registerOperationNewAttempt(long opHandle, int attempt) {
 
         if (level <= LEVEL_NONE) {
             return;
@@ -234,11 +234,11 @@ public class SqlPerformanceMonitor {
         OperationRecord operation = outstandingOperations.get(threadId);
 
         if (operation == null) {
-            LOGGER.warn("Attempted to record new trial event for unregistered operation: handle = " + opHandle + ", attempt = " + attempt + ", ignoring the request.");
+            LOGGER.warn("Attempted to record new attempt event for unregistered operation: handle = " + opHandle + ", attempt = " + attempt + ", ignoring the request.");
             return;
         }
         if (operation.handle != opHandle) {
-            LOGGER.error("Attempted to record new trial event with unexpected operation handle: handle = " + opHandle + ", stored outstanding operation for this thread = " + operation);
+            LOGGER.error("Attempted to record new attempt event with unexpected operation handle: handle = " + opHandle + ", stored outstanding operation for this thread = " + operation);
             outstandingOperations.remove(threadId);
             return;
         }

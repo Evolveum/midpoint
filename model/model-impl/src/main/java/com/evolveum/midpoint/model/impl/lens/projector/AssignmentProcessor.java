@@ -327,8 +327,7 @@ public class AssignmentProcessor {
             	projectionContext.setAssigned(true);
                 projectionContext.setAssignedOld(false);
             	projectionContext.setLegalOld(false);
-            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
-            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
+            	if (projectionContext.getAssignmentPolicyEnforcementType() != AssignmentPolicyEnforcementType.NONE) {
             		LOGGER.trace("Projection {} legal: assigned (valid)", desc);
             		projectionContext.setLegal(true);
             	}
@@ -347,10 +346,15 @@ public class AssignmentProcessor {
                 	projectionContext = LensUtil.getOrCreateProjectionContext(context, key);
                 }
             	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
-            	projectionContext.setLegal(true);
-            	projectionContext.setLegalOld(true);
             	projectionContext.setAssigned(true);
                 projectionContext.setAssignedOld(true);
+                if (projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.NONE) {
+                	projectionContext.setLegalOld(null);
+                	projectionContext.setLegal(null);
+                } else {
+                	projectionContext.setLegalOld(true);
+                	projectionContext.setLegal(true);
+                }
 			}
 			
 			@Override
@@ -370,6 +374,14 @@ public class AssignmentProcessor {
             	projectionContext.setLegalOld(false);
             	projectionContext.setAssigned(false);
                 projectionContext.setAssignedOld(false);
+                if (projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.NONE
+                		|| projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.POSITIVE) {
+                	projectionContext.setLegalOld(null);
+                	projectionContext.setLegal(null);
+                } else {
+                	projectionContext.setLegalOld(false);
+                	projectionContext.setLegal(false);
+                }
 			}
 
 			@Override
@@ -392,9 +404,12 @@ public class AssignmentProcessor {
             				|| assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
             			LOGGER.trace("Projection {} illegal: unassigned", desc);
 	                	projectionContext.setLegal(false);
-            		} else {
+            		} else if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.POSITIVE) {
             			LOGGER.trace("Projection {} legal: unassigned, but allowed by policy ({})", desc, assignmentPolicyEnforcement);
 	                	projectionContext.setLegal(true);
+            		} else {
+            			LOGGER.trace("Projection {} legal: unassigned, policy decision postponed ({})", desc, assignmentPolicyEnforcement);
+	                	projectionContext.setLegal(null);
             		}
             	} else {
 
@@ -587,14 +602,16 @@ public class AssignmentProcessor {
 	 */
 	private <F extends FocusType> void finishLegalDecisions(LensContext<F> context) throws PolicyViolationException, SchemaException {
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+		
+			String desc = projectionContext.toHumanReadableString();
 			
 			if (projectionContext.isLegal() != null) {
 				// already have decision
+				LOGGER.trace("Projection {} legal={} (predetermined)", desc, projectionContext.isLegal());
 				propagateLegalDecisionToHigherOrders(context, projectionContext);
 				continue;
 			}
 		
-			String desc = projectionContext.toHumanReadableString();
 			if (projectionContext.isLegalize()){
 				LOGGER.trace("Projection {} legal: legalized", desc);
 				createAssignmentDelta(context, projectionContext);

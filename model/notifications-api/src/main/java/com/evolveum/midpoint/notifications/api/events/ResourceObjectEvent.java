@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
@@ -167,5 +168,17 @@ public class ResourceObjectEvent extends BaseEvent {
 
 	public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
 		return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
+	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+		debugDumpCommon(sb, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "operationStatus", operationStatus, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "accountOperationDescription", accountOperationDescription, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "changeType", changeType, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "activationRequested", activationRequested, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "deactivationRequested", deactivationRequested, indent + 1);
+		return sb.toString();
 	}
 }

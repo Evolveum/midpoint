@@ -104,7 +104,6 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
         throw new RestartResponseException(PageError.class);
     }
 
-    // TODO replace searchDecisions with countDecisions (when it will be available)
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
@@ -114,9 +113,7 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             AccessCertificationService acs = getPage().getCertificationService();
             ObjectQuery query = getQuery().clone();
-            query.setPaging(null);          // when counting decisions we need to exclude offset+size (and sorting info is irrelevant)
-            List<AccessCertificationWorkItemType> workItems = acs.searchOpenWorkItems(query, notDecidedOnly, null, task, result);
-            count = workItems.size();
+            count = acs.countOpenWorkItems(query, notDecidedOnly, null, task, result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);

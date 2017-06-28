@@ -224,6 +224,13 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
+	public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+		log("Cache: PASS countContainers ({})", type.getSimpleName());
+		return repository.countContainers(type, query, options, parentResult);
+	}
+
+	@Override
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException {
