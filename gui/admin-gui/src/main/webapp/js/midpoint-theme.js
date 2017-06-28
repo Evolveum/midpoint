@@ -16,6 +16,11 @@
 
 window.onload = initAjaxStatusSigns;
 
+$(window).load(function() {
+    //dom not only ready, but everything is loaded MID-3668
+    $("body").removeClass("custom-hold-transition");
+});
+
 function clickFuncWicket6(eventData) {
     var clickedElement = (window.event) ? event.srcElement : eventData.target;
     if ((clickedElement.tagName.toUpperCase() == 'BUTTON' 
