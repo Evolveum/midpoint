@@ -517,7 +517,7 @@ public class MiscDataUtil {
 					}
 				} else {
 					// "execute immediately"
-					if (childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
+					if (childTask.getModelOperationContext() == null || childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
 						recordResultingChanges(rv.getApplied(), wfc, prismContext);
 					} else if (!containsHandler(childTask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
 						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
