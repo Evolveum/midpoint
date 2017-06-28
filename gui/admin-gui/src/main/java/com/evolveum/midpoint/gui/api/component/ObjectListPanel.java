@@ -458,17 +458,17 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			((SelectableBeanObjectDataProvider<O>) provider).setType(newType);
 		}
 
-		if (newType != null && !this.type.equals(newType)) {
-			this.type = newType;
-			resetSearchModel();
-		} else {
-			saveSearchModel();
-		}
-
 		BoxedTablePanel<SelectableBean<O>> table = getTable();
 
 		((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-		table.setCurrentPage(null);
+		if (newType != null && !this.type.equals(newType)) {
+			this.type = newType;
+			resetSearchModel();
+			table.setCurrentPage(null);
+		} else {
+			saveSearchModel(getCurrentTablePaging());
+		}
+
 		target.add((Component) table);
 		target.add(parentPage.getFeedbackPanel());
 
@@ -478,13 +478,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		searchModel.reset();
 	}
 
-	private void saveSearchModel() {
+	private void saveSearchModel(ObjectPaging paging) {
 		String storageKey = getStorageKey();
 		if (StringUtils.isNotEmpty(storageKey)) {
 			PageStorage storage = getPageStorage(storageKey);
 			if (storage != null) {
 				storage.setSearch(searchModel.getObject());
-				storage.setPaging(null);
+				storage.setPaging(paging);
 			}
 		}
 
@@ -558,5 +558,17 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	private String getItemDisplayName(GuiObjectColumnType column){
 		return parentPage.getPrismContext().getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(type).findItemDefinition(column.getPath().getItemPath()).getDisplayName();
+	}
+
+	public ObjectPaging getCurrentTablePaging(){
+		String storageKey = getStorageKey();
+		if (StringUtils.isEmpty(storageKey)){
+			return null;
+		}
+		PageStorage storage = getPageStorage(storageKey);
+		if (storage == null) {
+			return null;
+		}
+		return storage.getPaging();
 	}
 }
