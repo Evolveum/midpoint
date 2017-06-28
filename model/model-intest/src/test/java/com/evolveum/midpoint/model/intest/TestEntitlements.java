@@ -1486,6 +1486,35 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
+	
+	/**
+	 * MID-4021
+	 */
+	@Test
+    public void test805ReconcileJackNone() throws Exception {
+		final String TEST_NAME = "test805ReconcileJackNone";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_JACK_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_SWASHBUCKLER_OID);
+        assertAssignments(userAfter, 1);
+
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
 
 	/**
 	 * MID-4021
@@ -1551,8 +1580,37 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	 * MID-4021
 	 */
 	@Test
-    public void test819UnAssignRoleSwashbucklerFromJackPositive() throws Exception {
-		final String TEST_NAME = "test819UnAssignRoleSwashbucklerFromJackPositive";
+    public void test815ReconcileJackPositive() throws Exception {
+		final String TEST_NAME = "test815ReconcileJackPositive";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_JACK_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_SWASHBUCKLER_OID);
+        assertAssignments(userAfter, 1);
+
+        assertJackAccountSwashbuckler();
+	}
+	
+	/**
+	 * MID-4021
+	 */
+	@Test
+    public void test817UnAssignRoleSwashbucklerFromJackPositive() throws Exception {
+		final String TEST_NAME = "test817UnAssignRoleSwashbucklerFromJackPositive";
         displayTestTile(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1573,6 +1631,37 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 0);
 
         assertJackAccountSwashbuckler();
+	}
+	
+	/**
+	 * MID-4021
+	 */
+	@Test
+    public void test819ReconcileJackPositive() throws Exception {
+		final String TEST_NAME = "test819ReconcileJackPositive";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_JACK_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+
+        // Group association is non-tolerant. 
+        // So, account should remain, but the group should be gone
+        // (removed by reconciliation)
+        assertJackAccountNoSwashbuckler();
 	}
 	
 	/**
@@ -1644,8 +1733,37 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	 * MID-4021
 	 */
 	@Test
-    public void test829UnAssignRoleSwashbucklerFromJackFull() throws Exception {
-		final String TEST_NAME = "test829UnAssignRoleSwashbucklerFromJackFull";
+    public void test825ReconcileJackFull() throws Exception {
+		final String TEST_NAME = "test825ReconcileJackFull";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_JACK_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignedRole(userAfter, ROLE_SWASHBUCKLER_OID);
+        assertAssignments(userAfter, 1);
+
+        assertJackAccountSwashbuckler();
+	}
+	
+	/**
+	 * MID-4021
+	 */
+	@Test
+    public void test827UnAssignRoleSwashbucklerFromJackFull() throws Exception {
+		final String TEST_NAME = "test827UnAssignRoleSwashbucklerFromJackFull";
         displayTestTile(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1656,6 +1774,34 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+
+        assertJackNoAccountNoSwashbuckler();
+	}
+	
+	/**
+	 * MID-4021
+	 */
+	@Test
+    public void test829ReconcileJackFull() throws Exception {
+		final String TEST_NAME = "test829ReconcileJackFull";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
         displayThen(TEST_NAME);
