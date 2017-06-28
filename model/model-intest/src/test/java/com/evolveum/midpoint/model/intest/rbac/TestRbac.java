@@ -1456,11 +1456,12 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
   				EXISTING_GOSSIP);
         
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Isla de Muerta"));
+  		displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString("Isla de Muerta"));
         
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -1473,7 +1474,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "cutlass");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
-        		"Jack Sparrow is the best pirate Isla de Muerta has ever seen", EXISTING_GOSSIP);
+        		"Jack Sparrow is the best pirate Isla de Muerta has ever seen",
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", // Positive enforcement. This vales are not removed.
+        		EXISTING_GOSSIP);
 	}
 	
 	/**
@@ -1499,7 +1502,10 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
 		assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "location", "Isla de Muerta");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, EXISTING_GOSSIP);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        		"Jack Sparrow is the best pirate Isla de Muerta has ever seen", // Positive enforcement. This vales are not removed.
+        		"Jack Sparrow is the best pirate Tortuga has ever seen", // Positive enforcement. This vales are not removed.
+        		EXISTING_GOSSIP);
 	}
 	
 	/**
