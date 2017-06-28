@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -41,6 +42,8 @@ import java.util.stream.Collectors;
  * @author mederly
  */
 public class WfContextUtil {
+
+	private static final Trace LOGGER = TraceManager.getTrace(WfContextUtil.class);
 
 	@Nullable
 	public static String getStageInfo(WfContextType wfc) {
@@ -348,7 +351,9 @@ public class WfContextUtil {
 	public static WfContextType getWorkflowContext(WorkItemType workItem) {
 		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(workItem.asPrismContainerValue());
 		if (parent == null) {
-			throw new IllegalStateException("No containing workflow context for " + workItem);
+			LOGGER.error("No workflow context for workItem {}", workItem);
+			// this is only a workaround, FIXME MID-4030
+			return new WfContextType(workItem.asPrismContainerValue().getPrismContext());
 		}
 		Containerable parentReal = parent.asContainerable();
 		if (!(parentReal instanceof WfContextType)) {
