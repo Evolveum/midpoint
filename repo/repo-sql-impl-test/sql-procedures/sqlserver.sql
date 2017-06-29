@@ -12,6 +12,7 @@ AS
   BEGIN
     SET NOCOUNT ON;
 
+    DELETE FROM m_object_text_info;
     DELETE FROM m_operation_execution;
     DELETE FROM m_sequence;
     DELETE FROM m_acc_cert_wi_reference;
@@ -19,6 +20,8 @@ AS
     DELETE FROM m_acc_cert_case;
     DELETE FROM m_acc_cert_campaign;
     DELETE FROM m_acc_cert_definition;
+    DELETE FROM m_audit_ref_value;
+    DELETE FROM m_audit_prop_value;
     DELETE FROM m_audit_delta;
     DELETE FROM m_audit_item;
     DELETE FROM m_audit_event;
