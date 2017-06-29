@@ -72,8 +72,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManual extends AbstractManualResourceTest {
 	
-	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
-	private static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
+	protected static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
+	protected static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
 	
@@ -206,8 +206,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		display("Repo shadow", shadowRepo);
 		
 		assertPendingOperationDeltas(shadowRepo, 1);
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, 
-				OperationResultStatusType.IN_PROGRESS, null);
+		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowRepo, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 			
@@ -221,8 +220,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		assertShadowPassword(shadowModel);
 
 		assertPendingOperationDeltas(shadowModel, 1);
-		pendingOperation = findPendingOperation(shadowModel, 
-				OperationResultStatusType.IN_PROGRESS, null);
+		pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowModel, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 		
 		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
@@ -231,8 +229,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 				task, result);
 		display("Model shadow (future)", shadowModelFuture);
 		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
-		assertShadowDead(shadowModelFuture);
-		assertShadowPassword(shadowModelFuture);
+		assertUnassignedFuture(shadowModelFuture, true);
 		
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
@@ -272,7 +269,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
 				OperationResultStatusType.SUCCESS,
 				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
-		assertShadowDead(shadowRepo);
+		assertUnassignedShadow(shadowRepo, null);
 			
 		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
 				accountJackOid, null, task, result);
@@ -281,7 +278,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 		ShadowType shadowTypeModel = shadowModel.asObjectable();
 		assertShadowName(shadowModel, USER_JACK_USERNAME);
 		assertEquals("Wrong kind (model)", ShadowKindType.ACCOUNT, shadowTypeModel.getKind());
-		assertShadowDead(shadowModel);
+		assertUnassignedShadow(shadowModel, ActivationStatusType.DISABLED);
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel, 
 				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
@@ -294,7 +291,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 				task, result);
 		display("Model shadow (future)", shadowModelFuture);
 		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
-		assertShadowDead(shadowModelFuture);
+		assertUnassignedFuture(shadowModelFuture, false);
 		
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -303,8 +300,8 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	 * MID-4002
 	 */
 	@Test
-	public void test719RecomputeJackAfter30min() throws Exception {
-		final String TEST_NAME = "test719RecomputeJackAfter30min";
+	public void test717RecomputeJackAfter30min() throws Exception {
+		final String TEST_NAME = "test717RecomputeJackAfter30min";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -324,15 +321,24 @@ public class TestSemiManual extends AbstractManualResourceTest {
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
-		assertLinks(userAfter, 0);
-		assertNoShadow(accountJackOid);
+		assertDeprovisionedTimedOutUser(userAfter, accountJackOid);
 		
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
-
+	/**
+	 * Put everything in a clean state so we can start over.
+	 */
+	@Test
+	public void test719CleanUp() throws Exception {
+		final String TEST_NAME = "test719CleanUp";
+		displayTestTile(TEST_NAME);
+		
+		cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
+	}
+	
 	@Override
-	protected void backingStoreAddWill() throws IOException {
+	protected void backingStoreProvisionWill() throws IOException {
 		appendToCsv(new String[]{USER_WILL_NAME, USER_WILL_FULL_NAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", USER_WILL_PASSWORD_OLD});
 	}
 	
@@ -348,8 +354,8 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	}
 	
 	@Override
-	protected void backingStoreDeleteWill() throws IOException {
-		deleteInCsv(USER_WILL_NAME);
+	protected void backingStoreDeprovisionWill() throws IOException {
+		deprovisionInCsv(USER_WILL_NAME);
 	}
 	
 	protected void backingStoreAddJack() throws IOException {
@@ -357,28 +363,65 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	}
 	
 	protected void backingStoreDeleteJack() throws IOException {
-		deleteInCsv(USER_JACK_USERNAME);
+		deprovisionInCsv(USER_JACK_USERNAME);
+	}
+	
+	protected void deprovisionInCsv(String username) throws IOException {
+		deleteInCsv(username);
 	}
 
-	private void appendToCsv(String[] data) throws IOException {
+	protected void disableInCsv(String username) throws IOException {
+		String[] data = readFromCsv(username);
+		data[4] = "true";
+		replaceInCsv(data);
+	}
+	
+	protected String[] readFromCsv(String username) throws IOException {
+		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
+		for (int i = 0; i < lines.size(); i++) {
+			String line = lines.get(i);
+			String[] cols = line.split(",");
+			if (cols[0].matches("\""+username+"\"")) {
+				return unescape(cols);
+			}
+		}
+		return null;
+	}
+	
+	private String[] unescape(String[] cols) {
+		String[] out = new String[cols.length];
+		for (int i = 0; i < cols.length; i++) {
+			if (cols[i] != null && !cols[i].isEmpty()) {
+				out[i] = cols[i].substring(1, cols[i].length() - 1);
+			}
+		}
+		return out;
+	}
+
+	protected void appendToCsv(String[] data) throws IOException {
 		String line = formatCsvLine(data);
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), line.getBytes(), StandardOpenOption.APPEND);
 	}
 	
-	private void replaceInCsv(String[] data) throws IOException {
+	protected void replaceInCsv(String[] data) throws IOException {
 		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
+		boolean found = false;
 		for (int i = 0; i < lines.size(); i++) {
 			String line = lines.get(i);
 			String[] cols = line.split(",");
 			if (cols[0].matches("\""+data[0]+"\"")) {
 				lines.set(i, formatCsvLine(data));
+				found = true;
 			}
+		}
+		if (!found) {
+			throw new IllegalStateException("Not found in CSV: "+data[0]);
 		}
 		Files.write(Paths.get(CSV_TARGET_FILE.getPath()), lines,
 				StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
 	
-	private void deleteInCsv(String username) throws IOException {
+	protected void deleteInCsv(String username) throws IOException {
 		List<String> lines = Files.readAllLines(Paths.get(CSV_TARGET_FILE.getPath()));
 		Iterator<String> iterator = lines.iterator();
 		while (iterator.hasNext()) {
@@ -394,6 +437,11 @@ public class TestSemiManual extends AbstractManualResourceTest {
 
 	private String formatCsvLine(String[] data) {
 		return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(","));
+	}
+	
+	@Override
+	protected void displayBackingStore() throws IOException {
+		display("CSV", dumpCsv());
 	}
 	
 	protected String dumpCsv() throws IOException {

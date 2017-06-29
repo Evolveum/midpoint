@@ -304,8 +304,8 @@ public class ProvisioningUtil {
 		}
 		LOGGER.trace("Narrowing attr def={}, matchingRule={} ({})", propertyDef, matchingRule, matchingRuleQName);
 		PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, matchingRule);
-		if (LOGGER.isTraceEnabled() && !filteredDelta.equals(propertyDelta)) {
-			LOGGER.trace("Narrowed delta: {}", filteredDelta.debugDump());
+		if (LOGGER.isTraceEnabled() && (filteredDelta == null || !filteredDelta.equals(propertyDelta))) {
+			LOGGER.trace("Narrowed delta: {}", filteredDelta==null?null:filteredDelta.debugDump());
 		}
 		return filteredDelta;
 	}
