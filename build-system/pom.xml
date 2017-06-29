@@ -593,12 +593,22 @@
                         <groupId>org.apache.geronimo.specs</groupId>
 	            		<artifactId>geronimo-javamail_1.4_spec</artifactId>
                     </exclusion>
+                    <exclusion> <!-- conflict with jasper -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
                 </exclusions>
 	        </dependency>
 	        <dependency>
 	            <groupId>org.apache.wss4j</groupId>
 	            <artifactId>wss4j-ws-security-dom</artifactId>
 	            <version>${wss4j.version}</version>
+                <exclusions>
+                    <exclusion> <!-- conflict with jasper -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                </exclusions>
 	        </dependency>
 	        <dependency>
 	            <groupId>org.cryptacular</groupId>
