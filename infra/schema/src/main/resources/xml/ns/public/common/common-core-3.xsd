@@ -10942,6 +10942,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="subresultStripThreshold" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+						When aggregation of the same subresults (same operation and status) is to be applied,
+						during operation result "summarize" operation.
+                        (Default: 10.)
+
+						TEMPORARY/EXPERIMENTAL. We plan to provide more elaborate operation result aggregation strategies.
+						This is just a quick way how to reduce large operation results for some deployments.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     

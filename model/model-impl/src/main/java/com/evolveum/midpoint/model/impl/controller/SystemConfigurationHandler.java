@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -134,6 +135,7 @@ public class SystemConfigurationHandler implements ChangeHook {
             applyLoggingConfiguration(ProfilingConfigurationManager.checkSystemProfilingConfiguration(config), config.asObjectable().getVersion(), result);
 
 			cacheRepositoryService.applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
+            SystemConfigurationTypeUtil.applyOperationResultHandling(config.asObjectable());
 
             result.recordSuccessIfUnknown();
 

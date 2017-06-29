@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -1042,5 +1043,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 		}
 		applyFullTextSearchConfiguration(systemConfiguration.getFullTextSearch());
+        SystemConfigurationTypeUtil.applyOperationResultHandling(systemConfiguration);
 	}
 }

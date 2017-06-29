@@ -65,8 +65,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
      * This constant provides count threshold for same subresults (same operation and
      * status) during summarize operation.
      */
-    private static final int SUBRESULT_STRIP_THRESHOLD = 10;
-	
+    private static final int DEFAULT_SUBRESULT_STRIP_THRESHOLD = 10;
+
+    private static int subresultStripThreshold = DEFAULT_SUBRESULT_STRIP_THRESHOLD;
+
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	public static final String CONTEXT_PROGRESS = "progress";
 	public static final String CONTEXT_OID = "oid";
@@ -1144,7 +1146,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			if (recordsCounters.containsKey(key)) {
 				OperationStatusCounter counter = recordsCounters.get(key);
 				if (!sr.representsHiddenRecords()) {
-					if (counter.shownRecords < SUBRESULT_STRIP_THRESHOLD) {
+					if (counter.shownRecords < subresultStripThreshold) {
 						counter.shownRecords++;
 						counter.shownCount += sr.count;
 					} else {
@@ -1500,5 +1502,12 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         return clone;
     }
 
+	public static int getSubresultStripThreshold() {
+		return subresultStripThreshold;
+	}
 
+	// null means default value
+	public static void setSubresultStripThreshold(Integer value) {
+		subresultStripThreshold = value != null ? value : DEFAULT_SUBRESULT_STRIP_THRESHOLD;
+	}
 }

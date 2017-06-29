@@ -83,7 +83,7 @@ public class AccountOperationListener implements ResourceOperationListener {
     @Override
     public void notifySuccess(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         if (notificationsEnabled()) {
-            notifyAny(OperationStatus.SUCCESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifySuccess"));
+            notifyAny(OperationStatus.SUCCESS, operationDescription, task, parentResult.createMinorSubresult(DOT_CLASS + "notifySuccess"));
         }
     }
 
@@ -99,14 +99,14 @@ public class AccountOperationListener implements ResourceOperationListener {
     @Override
     public void notifyInProgress(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         if (notificationsEnabled()) {
-            notifyAny(OperationStatus.IN_PROGRESS, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifyInProgress"));
+            notifyAny(OperationStatus.IN_PROGRESS, operationDescription, task, parentResult.createMinorSubresult(DOT_CLASS + "notifyInProgress"));
         }
     }
 
     @Override
     public void notifyFailure(ResourceOperationDescription operationDescription, Task task, OperationResult parentResult) {
         if (notificationsEnabled()) {
-            notifyAny(OperationStatus.FAILURE, operationDescription, task, parentResult.createSubresult(DOT_CLASS + "notifyFailure"));
+            notifyAny(OperationStatus.FAILURE, operationDescription, task, parentResult.createMinorSubresult(DOT_CLASS + "notifyFailure"));
         }
     }
 
