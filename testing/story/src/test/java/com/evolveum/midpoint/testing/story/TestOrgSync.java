@@ -1043,7 +1043,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task,
 				result);
@@ -1088,7 +1088,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		assertUsers(18);
 		reconciliationTaskResultListener.clear();
@@ -1125,7 +1125,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task,
 				result);
