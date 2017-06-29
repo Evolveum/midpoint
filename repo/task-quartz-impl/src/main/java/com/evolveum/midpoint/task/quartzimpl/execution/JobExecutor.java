@@ -19,6 +19,7 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -644,12 +645,7 @@ mainCycle:
 
     	TaskRunResult runResult;
     	try {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Executing handler " + handler.getClass().getName());
-            }
-            if (task.getResult() == null) {
-                task.setResult(new OperationResult("run"));
-            }
+			LOGGER.trace("Executing handler {}", handler.getClass().getName());
     		runResult = handler.run(task);
     		if (runResult == null) {				// Obviously an error in task handler
                 LOGGER.error("Unable to record run finish: task returned null result");
@@ -706,8 +702,10 @@ mainCycle:
                 task.setCategory(task.getCategoryFromHandler());
             }
             task.setNode(taskManagerImpl.getNodeId());
+            OperationResult newResult = new OperationResult("run");
+			newResult.setStatus(OperationResultStatus.IN_PROGRESS);
+            task.setResult(newResult);										// MID-4033
             task.savePendingModifications(result);
-
         } catch (Exception e) {	// TODO: implement correctly after clarification
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run start for task {}", e, task);
 		}
