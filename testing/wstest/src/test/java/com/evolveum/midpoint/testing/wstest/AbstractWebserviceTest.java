@@ -152,11 +152,17 @@ public abstract class AbstractWebserviceTest {
  	public static final String USER_NOPASSWORD_USERNAME = "nopassword";
 
  	public static final File ROLE_WS_FILE = new File(COMMON_DIR, "role-ws.xml");
+ 	
 	public static final File ROLE_READER_FILE = new File(COMMON_DIR, "role-reader.xml");
+	public static final String ROLE_READER_OID = "eb243068-d48d-11e4-a83a-001e8c717e5b";
+	
 	public static final File ROLE_ADDER_FILE = new File(COMMON_DIR, "role-adder.xml");
 	
 	public static final File ROLE_MODIFIER_FILE = new File(COMMON_DIR, "role-modifier.xml");
 	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
+	
+	public static final File ROLE_WHATEVER_FILE = new File(COMMON_DIR, "role-whatever.xml");
+	public static final String ROLE_WHATEVER_OID = "7385820e-5cb3-11e7-96a3-1ba6f1dc6281";
 	
 	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -479,6 +485,14 @@ public abstract class AbstractWebserviceTest {
 
 	protected void displayTestTitle(String testName) {		
 		TestUtil.displayTestTile(testName);
+	}
+	
+	protected void displayWhen(String testName) {		
+		TestUtil.displayWhen(testName);
+	}
+	
+	protected void displayThen(String testName) {		
+		TestUtil.displayThen(testName);
 	}
 
 	protected void display(String msg) {
