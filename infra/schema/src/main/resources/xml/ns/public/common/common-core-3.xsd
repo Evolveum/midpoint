@@ -15884,12 +15884,24 @@
 					<xsd:documentation>
 						Hostname that will be used as a public hostname for the midPoint deployment.
 						E.g. it will be used in URLs that point to the midPoint in notification mails.
-						DEPRECATED. Use infrastructure/defaultHostname instead.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<a:since>3.5</a:since>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="intraClusterHttpUrlPattern" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Pattern for HTTP/HTTPS communication inside midPoint cluster.
+						This is specifies the URLs that ure used by midPoint cluster nodes
+						when they need to communicate with each other. The pattern is in fact
+						an URL prefix pointing to root URL of the application. Specific paths
+						will be appended to the URL. 
+						Example: https://$host/midpoint
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>

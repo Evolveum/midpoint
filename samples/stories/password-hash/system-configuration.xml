@@ -19,10 +19,7 @@
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>SystemConfiguration</name>
-    <!--         <globalAccountSynchronizationSettings> -->
-    <!--         <assignmentPolicyEnforcement>relative</assignmentPolicyEnforcement> -->
-    <!--         </globalAccountSynchronizationSettings> -->
-    <globalSecurityPolicyRef oid="00000000-0000-0000-0000-000000000120"/>
+    <globalSecurityPolicyRef oid="24bd8e70-5cc5-11e7-b20d-67ebcbf174d3"/>
     <logging>
         <classLogger>
             <level>ERROR</level>
@@ -97,6 +94,47 @@
             <details>false</details>
         </auditing>
     </logging>
+    <notificationConfiguration>
+		<handler>
+            <accountActivationNotifier>
+                <recipientExpression>
+					<script>
+						<code>requestee.getEmailAddress()</code>
+					</script>
+				</recipientExpression>
+                <transport>mail</transport>
+                <confirmationMethod>link</confirmationMethod>
+            </accountActivationNotifier>
+        </handler>
+        <handler>
+            <accountPasswordNotifier>
+                <recipientExpression>
+                    <value>accountPasswordNotifier@evolveum.com</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </accountPasswordNotifier>
+        </handler>
+        <handler>
+            <userPasswordNotifier>
+                <recipientExpression>
+                    <value>userPasswordNotifier@evolveum.com</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </userPasswordNotifier>
+        </handler>
+        <handler>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>simpleResourceObjectNotifier@evolveum.com</value>
+                </recipientExpression>
+                <transport>mail</transport>
+            </simpleResourceObjectNotifier>
+        </handler>
+        <mail>
+            <redirectToFile>/var/opt/midpoint-hash/mail.log</redirectToFile>
+        </mail>
+    </notificationConfiguration>
     <cleanupPolicy>
         <auditRecords>
             <maxAge>P3M</maxAge>

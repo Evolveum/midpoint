@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,16 +13,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<role oid="7385820e-5cb3-11e7-96a3-1ba6f1dc6281"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Whatever</name>    
 
-<securityPolicy oid="00000000-0000-0000-0000-000000000120" 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-	<name>Default Security Policy</name>
-	<credentials>
-		<password>
-			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
-			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
-			<lockoutDuration>PT15M</lockoutDuration>
-			<valuePolicyRef oid="00000000-0000-0000-0000-000000000003"/>
-		</password>
-	</credentials>
-</securityPolicy>
+</role>

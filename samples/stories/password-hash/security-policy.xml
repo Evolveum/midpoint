@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2016 Evolveum
+  ~ Copyright (c) 2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,15 +15,18 @@
   ~ limitations under the License.
   -->
 
-<securityPolicy oid="00000000-0000-0000-0000-000000000120" 
+<securityPolicy oid="24bd8e70-5cc5-11e7-b20d-67ebcbf174d3" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-	<name>Default Security Policy</name>
+	<name>Security Policy: Hasing</name>
 	<credentials>
 		<password>
 			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
 			<valuePolicyRef oid="00000000-0000-0000-0000-000000000003"/>
+			<storageMethod>
+				<storageType>hashing</storageType>
+			</storageMethod>
 		</password>
 	</credentials>
 </securityPolicy>
