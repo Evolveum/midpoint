@@ -84,7 +84,10 @@
 						<cap:enableValue>false</cap:enableValue>
 						<cap:disableValue>true</cap:disableValue>
 					</cap:status>
-				</cap:activation>				
+				</cap:activation>
+<!-- 				<cap:addRemoveAttributeValues>
+					<cap:enabled>false</cap:enabled>
+				</cap:addRemoveAttributeValues>  -->
 			</configured>
 		</capabilities>
 	</additionalConnector>
@@ -152,6 +155,21 @@
             
 		</objectType>
 	</schemaHandling>
+	
+	<capabilities>
+		<configured>
+			<cap:activation>
+				<cap:status>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:status>
+			</cap:activation>
+<!-- 			<cap:addRemoveAttributeValues>
+				<cap:enabled>false</cap:enabled>
+			</cap:addRemoveAttributeValues>  -->
+		</configured>
+	</capabilities>
 	
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
