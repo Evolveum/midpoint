@@ -2156,13 +2156,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				null, null);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		
-		pendingOperation = findPendingOperation(shadowRepo, 
-				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.DELETE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.IN_PROGRESS,
-				null, null);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
+		assertWillUnassignPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
 		
 		// Still old data in the repo. The operation is not completed yet.
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
@@ -2201,6 +2195,26 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 	
+	protected void assertWillUnassignPendingOperation(PrismObject<ShadowType> shadowRepo, OperationResultStatusType expectedStatus) {
+		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, 
+				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.DELETE);
+		if (expectedStatus == OperationResultStatusType.IN_PROGRESS) {
+			assertPendingOperation(shadowRepo, pendingOperation,
+					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
+					OperationResultStatusType.IN_PROGRESS,
+					null, null);
+		} else {
+			pendingOperation = findPendingOperation(shadowRepo, 
+					OperationResultStatusType.SUCCESS, ChangeTypeType.DELETE);
+			assertPendingOperation(shadowRepo, pendingOperation,
+					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
+					OperationResultStatusType.SUCCESS,
+					accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+			assertNotNull("No ID in pending operation", pendingOperation.getId());
+		}
+		assertNotNull("No ID in pending operation", pendingOperation.getId());
+	}
+
 	/**
 	 * Close both cases at the same time.
 	 * MID-4037
@@ -2243,13 +2257,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 		assertNotNull("No ID in pending operation", pendingOperation.getId());
 		
-		pendingOperation = findPendingOperation(shadowRepo, 
-				OperationResultStatusType.SUCCESS, ChangeTypeType.DELETE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
+		assertWillUnassignPendingOperation(shadowRepo, OperationResultStatusType.SUCCESS);
 		
 		assertUnassignedShadow(shadowRepo, null);
 			
@@ -2703,14 +2711,14 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			if (pendingOperation.getResultStatus() != expectedResult) {
 				continue;
 			}
-			if (itemPath == null) {
-				return pendingOperation;
-			}
 			ObjectDeltaType delta = pendingOperation.getDelta();
 			if (expectedChangeType != null) {
 				if (!expectedChangeType.equals(delta.getChangeType())) {
 					continue;
 				}
+			}
+			if (itemPath == null) {
+				return pendingOperation;
 			}
 			assertNotNull("No delta in pending operation in "+shadow, delta);
 			for (ItemDeltaType itemDelta: delta.getItemDelta()) {

@@ -68,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -121,7 +122,28 @@ public class TestSemiManualDisable extends TestSemiManual {
 		display("Model shadow", shadowModel);
 		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
 	}
-		
+	
+	@Override
+	protected void assertWillUnassignPendingOperation(PrismObject<ShadowType> shadowRepo, OperationResultStatusType expectedStatus) {
+		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, 
+				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+		if (expectedStatus == OperationResultStatusType.IN_PROGRESS) {
+			assertPendingOperation(shadowRepo, pendingOperation,
+					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
+					OperationResultStatusType.IN_PROGRESS,
+					null, null);
+		} else {
+			pendingOperation = findPendingOperation(shadowRepo, 
+					OperationResultStatusType.SUCCESS, ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			assertPendingOperation(shadowRepo, pendingOperation,
+					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
+					OperationResultStatusType.SUCCESS,
+					accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
+			assertNotNull("No ID in pending operation", pendingOperation.getId());
+		}
+		assertNotNull("No ID in pending operation", pendingOperation.getId());
+	}
+	
 	@Override
 	protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
 		
