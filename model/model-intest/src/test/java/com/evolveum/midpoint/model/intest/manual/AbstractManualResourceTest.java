@@ -118,6 +118,15 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected static final File RESOURCE_SEMI_MANUAL_DISABLE_FILE = new File(TEST_DIR, "resource-semi-manual-disable.xml");
 	protected static final String RESOURCE_SEMI_MANUAL_DISABLE_OID = "5e497cb0-5cdb-11e7-9cfe-4bfe0342d181";
 
+	protected static final File ROLE_ONE_MANUAL_FILE = new File(TEST_DIR, "role-one-manual.xml");
+	protected static final String ROLE_ONE_MANUAL_OID = "9149b3ca-5da1-11e7-8e84-130a91fb5876";
+	
+	protected static final File ROLE_ONE_SEMI_MANUAL_FILE = new File(TEST_DIR, "role-one-semi-manual.xml");
+	protected static final String ROLE_ONE_SEMI_MANUAL_OID = "29eab2c8-5da2-11e7-85d3-c78728e05ca3";
+	
+	protected static final File ROLE_ONE_SEMI_MANUAL_DISABLE_FILE = new File(TEST_DIR, "role-one-semi-manual-disable.xml");
+	protected static final String ROLE_ONE_SEMI_MANUAL_DISABLE_OID = "3b8cb17a-5da2-11e7-b260-a760972b54fb";
+	
 	public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
@@ -146,8 +155,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected static final String ATTR_FULLNAME = "fullname";
 	protected static final QName ATTR_FULLNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_FULLNAME);
 	
+	protected static final String ATTR_INTERESTS = "interests";
+	protected static final QName ATTR_INTERESTS_QNAME = new QName(MidPointConstants.NS_RI, ATTR_INTERESTS);
+	
 	protected static final String ATTR_DESCRIPTION = "description";
 	protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
+
+	protected static final String INTEREST_ONE = "one";
 
 
 	protected PrismObject<ResourceType> resource;
@@ -190,6 +204,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		importObjectFromFile(getResourceFile(), initResult);
 		
+		importObjectFromFile(getRoleOneFile(), initResult);
+		
 		addObject(USER_JACK_FILE);
 		
 		PrismObject<UserType> userWill = createUserWill();
@@ -216,6 +232,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected abstract File getResourceFile();
 	
 	protected abstract String getResourceOid();
+	
+	protected abstract File getRoleOneFile();
+	
+	protected abstract String getRoleOneOid();
 	
 	protected boolean supportsBackingStore() {
 		return false;
@@ -415,8 +435,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	@Test
-	public void test100AssignAccountWill() throws Exception {
-		assignAccountWill("test100AssignAccountWill", USER_WILL_FULL_NAME);
+	public void test100AssignWillRoleOne() throws Exception {
+		assignWillRoleOne("test100AssignWillRoleOne", USER_WILL_FULL_NAME);
 	}
 
 	@Test
@@ -443,6 +463,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
 		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
+		assertAttribute(shadowModel, ATTR_INTERESTS_QNAME, INTEREST_ONE);
 		assertNoAttribute(shadowModel, ATTR_DESCRIPTION_QNAME);
 		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowModel, true);
@@ -471,6 +492,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertSinglePendingOperation(shadowRepo, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_WILL_NAME);
 		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
+		assertAttributeFromCache(shadowRepo, ATTR_INTERESTS_QNAME, INTEREST_ONE);
 		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowRepo);
@@ -485,6 +507,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
 		assertAttributeFromCache(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
+		assertAttributeFromCache(shadowModel, ATTR_INTERESTS_QNAME, INTEREST_ONE);
 		assertNoAttribute(shadowModel, ATTR_DESCRIPTION_QNAME);
 		assertShadowActivationAdministrativeStatusFromCache(shadowModel, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowModel);
@@ -502,7 +525,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		backingStoreProvisionWill();
+		backingStoreProvisionWill(INTEREST_ONE);
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -940,7 +963,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_OLD);
+		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_OLD);
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1327,7 +1350,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, ActivationStatusType.DISABLED, USER_WILL_PASSWORD_OLD);
+		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.DISABLED, USER_WILL_PASSWORD_OLD);
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1560,7 +1583,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_NEW);
+		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_NEW);
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1761,7 +1784,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(userWillOid, getResourceOid(), null, task, result);
+		unassignRole(userWillOid, getRoleOneOid(), task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -2113,8 +2136,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	 * MID-4037
 	 */
 	@Test
-	public void test500AssignAccountWill() throws Exception {
-		assignAccountWill("test500AssignAccountWill", USER_WILL_FULL_NAME_PIRATE);
+	public void test500AssignWillRoleOne() throws Exception {
+		assignWillRoleOne("test500AssignWillRoleOne", USER_WILL_FULL_NAME_PIRATE);
 	}
 	
 	/**
@@ -2124,8 +2147,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	 * MID-4037
 	 */
 	@Test
-	public void test510UnassignAccountWill() throws Exception {
-		final String TEST_NAME = "test510UnassignAccountWill";
+	public void test510UnassignWillRoleOne() throws Exception {
+		final String TEST_NAME = "test510UnassignWillRoleOne";
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2135,7 +2158,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(userWillOid, getResourceOid(), null, task, result);
+		unassignRole(userWillOid, getRoleOneOid(), task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -2190,6 +2213,76 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertNoAssignments(userAfter);
 		
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+	}
+	
+	/**
+	 * Just make sure recon does not ruin anything.
+	 * MID-4037
+	 */
+	@Test
+	public void test512ReconcileWill() throws Exception {
+		final String TEST_NAME = "test512ReconcileWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(userWillOid, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		assertSuccess(result);
+						
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
+		display("Repo shadow", shadowRepo);
+		assertPendingOperationDeltas(shadowRepo, 2);
+		
+		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, 
+				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.ADD);
+		assertPendingOperation(shadowRepo, pendingOperation,
+				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
+				OperationResultStatusType.IN_PROGRESS,
+				null, null);
+		assertNotNull("No ID in pending operation", pendingOperation.getId());
+		
+		assertWillUnassignPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
+		
+		// Still old data in the repo. The operation is not completed yet.
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_WILL_NAME);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+			
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+				accountWillOid, null, task, result);
+		
+		display("Model shadow", shadowModel);
+		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
+		assertShadowName(shadowModel, USER_WILL_NAME);
+		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
+
+		assertPendingOperationDeltas(shadowModel, 2);
+		
+		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
+				accountWillOid, 
+				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
+				task, result);
+		display("Model shadow (future)", shadowModelFuture);
+		assertShadowName(shadowModelFuture, USER_WILL_NAME);
+		assertWillUnassignedFuture(shadowModelFuture, false);
+		
+		// Make sure that the account is still linked
+		PrismObject<UserType> userAfter = getUser(userWillOid);
+		display("User after", userAfter);
+		String accountWillOidAfter = getSingleLinkOid(userAfter);
+		assertEquals(accountWillOid, accountWillOidAfter);
+		assertNoAssignments(userAfter);
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
@@ -2360,7 +2453,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME));
 		
 		// WHEN
-		assignAccountWill(TEST_NAME, USER_WILL_FULL_NAME);
+		assignWillRoleOne(TEST_NAME, USER_WILL_FULL_NAME);
 		
 		// THEN
 		restartTask(TASK_SHADOW_REFRESH_OID);
@@ -2441,7 +2534,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		backingStoreProvisionWill();
+		backingStoreProvisionWill(INTEREST_ONE);
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2476,11 +2569,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertShadowExists(shadowRepo, true);
 	}
 	
-	protected void backingStoreProvisionWill() throws IOException {
+	protected void backingStoreProvisionWill(String interest) throws IOException {
 		// nothing to do here
 	}
 	
-	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
+	protected void backingStoreUpdateWill(String newFullName, String interest, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
 		// nothing to do here
 	}
 	
@@ -2492,7 +2585,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		// Nothing to do here
 	}
 	
-	private void assignAccountWill(final String TEST_NAME, String expectedFullName) throws Exception {
+	private void assignWillRoleOne(final String TEST_NAME, String expectedFullName) throws Exception {
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2502,7 +2595,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(userWillOid, getResourceOid(), null, task, result);
+		assignRole(userWillOid, getRoleOneOid(), task, result);
 
 		// THEN
 		displayThen(TEST_NAME);

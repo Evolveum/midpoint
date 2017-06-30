@@ -98,6 +98,16 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	}
 	
 	@Override
+	protected String getRoleOneOid() {
+		return ROLE_ONE_SEMI_MANUAL_OID;
+	}
+	
+	@Override
+	protected File getRoleOneFile() {
+		return ROLE_ONE_SEMI_MANUAL_FILE;
+	}
+	
+	@Override
 	protected boolean supportsBackingStore() {
 		return true;
 	}
@@ -338,19 +348,19 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	}
 	
 	@Override
-	protected void backingStoreProvisionWill() throws IOException {
-		appendToCsv(new String[]{USER_WILL_NAME, USER_WILL_FULL_NAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", USER_WILL_PASSWORD_OLD});
+	protected void backingStoreProvisionWill(String interest) throws IOException {
+		appendToCsv(new String[]{USER_WILL_NAME, USER_WILL_FULL_NAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, interest, "false", USER_WILL_PASSWORD_OLD});
 	}
 	
 	@Override
-	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
+	protected void backingStoreUpdateWill(String newFullName, String interest, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
 		String disabled;
 		if (newAdministrativeStatus == ActivationStatusType.ENABLED) {
 			disabled = "false";
 		} else {
 			disabled = "true";
 		}
-		replaceInCsv(new String[]{USER_WILL_NAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", disabled, password});
+		replaceInCsv(new String[]{USER_WILL_NAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, interest, disabled, password});
 	}
 	
 	@Override
