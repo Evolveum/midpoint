@@ -547,7 +547,7 @@ public class ResourceObjectConverter {
 				LOGGER.trace("Pre-reading resource shadow");
 				preReadShadow = preReadShadow(ctx, identifiers, operations, true, result);  // yes, we need associations here
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Pre-read object:\n{}", preReadShadow.debugDump());
+					LOGGER.trace("Pre-read object:\n{}", preReadShadow==null?null:preReadShadow.debugDump());
 				}
 			}
 			
@@ -650,6 +650,7 @@ public class ResourceObjectConverter {
 		return sideEffectDeltas;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private Collection<PropertyModificationOperation> executeModify(ProvisioningContext ctx, 
 			PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, 
 			Collection<Operation> operations, OperationResult parentResult) 
@@ -684,34 +685,43 @@ public class ResourceObjectConverter {
 					currentShadow = preReadShadow(ctx, identifiers, operations, false, parentResult);
 				}
 				
-				Collection<Operation> filteredOperations = new ArrayList(operations.size());
-				for (Operation origOperation: operations) {
-					if (origOperation instanceof PropertyModificationOperation) {
-						PropertyModificationOperation modificationOperation = (PropertyModificationOperation)origOperation;
-						PropertyDelta<?> propertyDelta = modificationOperation.getPropertyDelta();
-						PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow,
-								modificationOperation.getMatchingRuleQName(), matchingRuleRegistry);
-						if (filteredDelta != null && !filteredDelta.isEmpty()) {
-							if (propertyDelta == filteredDelta) {
-								filteredOperations.add(origOperation);
+				if (currentShadow == null) {
+					
+					LOGGER.debug("We do not have pre-read shadow, skipping duplicate filtering");
+					
+				} else {
+					
+					LOGGER.trace("Filtering out duplicate values");
+				
+					Collection<Operation> filteredOperations = new ArrayList<>(operations.size());
+					for (Operation origOperation: operations) {
+						if (origOperation instanceof PropertyModificationOperation) {
+							PropertyModificationOperation modificationOperation = (PropertyModificationOperation)origOperation;
+							PropertyDelta<?> propertyDelta = modificationOperation.getPropertyDelta();
+							PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow,
+									modificationOperation.getMatchingRuleQName(), matchingRuleRegistry);
+							if (filteredDelta != null && !filteredDelta.isEmpty()) {
+								if (propertyDelta == filteredDelta) {
+									filteredOperations.add(origOperation);
+								} else {
+									PropertyModificationOperation newOp = new PropertyModificationOperation<>(filteredDelta);
+									newOp.setMatchingRuleQName(modificationOperation.getMatchingRuleQName());
+									filteredOperations.add(newOp);
+								}
 							} else {
-								PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
-								newOp.setMatchingRuleQName(modificationOperation.getMatchingRuleQName());
-								filteredOperations.add(newOp);
+								LOGGER.trace("Filtering out modification {} because it has empty delta after narrow", propertyDelta);
 							}
-						} else {
-							LOGGER.trace("Filtering out modification {} because it has empty delta after narrow", propertyDelta);
+						} else if (origOperation instanceof ExecuteProvisioningScriptOperation) {
+							filteredOperations.add(origOperation);					
 						}
-					} else if (origOperation instanceof ExecuteProvisioningScriptOperation){
-						filteredOperations.add(origOperation);					
 					}
+					if (filteredOperations.isEmpty()) {
+						LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
+						parentResult.recordSuccess();
+						return new ArrayList<>(0);
+					}
+					operations = filteredOperations;
 				}
-				if (filteredOperations.isEmpty()) {
-					LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
-					parentResult.recordSuccess();
-					return new ArrayList<>(0);
-				}
-				operations = filteredOperations;
 			}
 			
 			if (LOGGER.isDebugEnabled()) {
@@ -807,6 +817,7 @@ public class ResourceObjectConverter {
 		return sideEffectChanges;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private PrismObject<ShadowType> preReadShadow(ProvisioningContext ctx, 
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			Collection<Operation> operations, boolean fetchEntitlements, OperationResult parentResult) 
@@ -822,8 +833,15 @@ public class ResourceObjectConverter {
 
 		AttributesToReturn attributesToReturn = new AttributesToReturn();
 		attributesToReturn.setAttributesToReturn(neededExtraAttributes);
-		currentShadow = fetchResourceObject(ctx, identifiers, 
+		try {
+			currentShadow = fetchResourceObject(ctx, identifiers, 
 				attributesToReturn, fetchEntitlements, parentResult);
+		} catch (ObjectNotFoundException e) {
+			// This may happen for semi-manual connectors that are not yet up to date.
+			// No big deal. We will have to work without it.
+			LOGGER.warn("Cannot pre-read shadow {}, it is probably not present in the {}. Skipping pre-read.", identifiers, ctx.getResource());
+			return null;
+		}
 		return currentShadow;
 	}
 

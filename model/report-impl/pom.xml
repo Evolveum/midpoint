@@ -143,7 +143,7 @@
 			<version>20060411</version>
 			<scope>runtime</scope>
 		</dependency>
-  		
+
   		<dependency>
    			<groupId>org.apache.cxf</groupId>
    			<artifactId>cxf-core</artifactId>
@@ -165,8 +165,23 @@
    			<groupId>javax.annotation</groupId>
    			<artifactId>javax.annotation-api</artifactId>
   		</dependency>
-  		
-        <!-- Test -->
+
+		<!-->Dependency definnition added, client to fetch reports <-->
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.4.6</version>
+		</dependency>
+
+
+		<!-- Test -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
@@ -281,5 +296,5 @@
 		    <version>1.2.1</version>
             <scope>test</scope>
 		</dependency>
-    </dependencies>
+	</dependencies>
 </project>

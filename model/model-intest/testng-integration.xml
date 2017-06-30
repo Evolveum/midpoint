@@ -116,6 +116,7 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
         </classes>
     </test>
     <test name="Security" preserve-order="true" parallel="false" verbose="10">

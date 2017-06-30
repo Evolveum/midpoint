@@ -397,6 +397,10 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
     	return false;
     }
     
+    public boolean valuesExactMatch(Collection<V> matchValues, Comparator<V> comparator) {
+    	return MiscUtil.unorderedCollectionCompare(values, matchValues, comparator );
+    }
+    
     public int size() {
     	return values.size();
     }
