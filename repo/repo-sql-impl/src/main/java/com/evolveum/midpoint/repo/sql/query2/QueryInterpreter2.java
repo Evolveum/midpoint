@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -146,8 +147,11 @@ public class QueryInterpreter2 {
 			wrapperQuery.setResultTransformer(resultStyle.getResultTransformer());
 			wrapperQuery.addProjectionElementsFor(resultStyle.getIdentifiers(wrappedRootAlias));
 			wrapperQuery.addProjectionElementsFor(resultStyle.getContentAttributes(wrappedRootAlias));
-			wrapperQuery.getConditions().add(
-						wrapperQuery.createIn(wrapperQuery.getPrimaryEntityAlias() + ".oid", subqueryText));
+			List<String> inVariablesList = resultStyle.getIdentifiers(wrapperQuery.getPrimaryEntityAlias());
+			String inVariablesString = inVariablesList.size() != 1
+					? "(" + StringUtils.join(inVariablesList, ", ") + ")"
+					: inVariablesList.get(0);
+			wrapperQuery.getConditions().add(wrapperQuery.createIn(inVariablesString, subqueryText));
 			wrapperQuery.addParametersFrom(hibernateQuery.getParameters());
 			return wrapperQuery;
 		} else {
