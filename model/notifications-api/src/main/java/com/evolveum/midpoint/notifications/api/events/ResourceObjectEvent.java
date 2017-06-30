@@ -17,6 +17,9 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -105,6 +108,11 @@ public class ResourceObjectEvent extends BaseEvent {
             return ShadowKindType.ACCOUNT.equals(shadowKindType);
         }
     }
+
+    public ShadowType getShadow() {
+		PrismObject<? extends ShadowType> shadow = accountOperationDescription.getCurrentShadow();
+		return shadow != null ? shadow.asObjectable() : null;
+	}
 
     public boolean isShadowIntent(String intent) {
         if (StringUtils.isNotEmpty(intent)) {
