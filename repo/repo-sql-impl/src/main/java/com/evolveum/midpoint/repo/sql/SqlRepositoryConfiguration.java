@@ -48,7 +48,7 @@ public class SqlRepositoryConfiguration {
     enum Database {
 
     	// we might include other dialects if needed (but the ones listed here are the recommended ones)
-        H2(DRIVER_H2, MidPointMySQLDialect.class.getName()),
+        H2(DRIVER_H2, H2Dialect.class.getName()),
 		MYSQL(DRIVER_MYSQL, MidPointMySQLDialect.class.getName()),
 		POSTGRESQL(DRIVER_POSTGRESQL, MidPointPostgreSQLDialect.class.getName()),
 		SQLSERVER(DRIVER_SQLSERVER, UnicodeSQLServer2008Dialect.class.getName()),
