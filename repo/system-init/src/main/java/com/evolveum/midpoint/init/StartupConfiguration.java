@@ -120,7 +120,7 @@ public class StartupConfiguration implements MidpointConfiguration {
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
-                LOGGER.debug("    {} = {}", key, sub.getString(key));
+                LOGGER.debug("    {} = {}", key, sub.getProperty(key));
             }
         }
         return sub;
