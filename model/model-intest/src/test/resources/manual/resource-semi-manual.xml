@@ -130,6 +130,18 @@
 		</objectType>
 	</schemaHandling>
 	
+	<capabilities>
+		<configured>
+			<cap:activation>
+				<cap:status>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:status>
+			</cap:activation>
+		</configured>
+	</capabilities>
+	
 	<consistency>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 	</consistency>
