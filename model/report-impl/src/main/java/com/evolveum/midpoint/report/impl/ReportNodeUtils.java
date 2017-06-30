@@ -59,28 +59,7 @@ public class ReportNodeUtils {
         try {
             if (intraClusterHttpUrlPattern != null && !(intraClusterHttpUrlPattern.isEmpty())) {
                 LOGGER.trace("The cluster uri pattern: {} ", intraClusterHttpUrlPattern);
-//
-//                if (!(splitted.length > 3)) { // https://$host/midpoint
-//                    StringBuilder errorBuilder = new StringBuilder("Non valid IntraClusterHttpUrlPattern parameter value: ").append(intraClusterHttpUrlPattern);
-//                    throw new ConfigurationException(errorBuilder.toString());
-//                }
-//                URIBuilder ubilder = new URIBuilder();
-//                String scheme = splitted[0].substring(0, splitted[0].length() - 1);
-//                ubilder.setScheme(scheme).setHost(host);
-//                String hostPart = splitted[2];
-//
-//                String[] hostAndPort = hostPart.split("\\:");//host:port
-//                if (hostAndPort.length > 1) {
-//                    String port = hostAndPort[1];
-//                    if (NumberUtils.isDigits(port)) {
-//                        ubilder.setPort(Integer.parseInt(port));
-//                    }
-//                } else {
-//                    ubilder.setPort(DEFAULTPORT);
-//                }
-//                ubilder.setPath(path.toString()).setParameter(FILENAMEPARAMETER,
-//                        fileName);
-//                URI requestUri = ubilder.build();
+
                 String path = intraClusterHttpUrlPattern.replace("$host", host) + ENDPOINTURIPATH;
                 URIBuilder ubilder = new URIBuilder(path);
                 ubilder.setParameter(FILENAMEPARAMETER, fileName);
