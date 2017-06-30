@@ -138,7 +138,7 @@ public class ValueDisplayUtil {
         } else if (value instanceof byte[]) {
             return "(binary data)";
         } else {
-            return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
+            return "(a value of type " + value.getClass().getSimpleName() + ")";  // todo i18n
         }
     }
 
