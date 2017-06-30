@@ -17,15 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query2.hqm;
 
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.NotCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.PropertyPropertyComparisonCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.SimpleComparisonCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.Query;
@@ -220,6 +212,10 @@ public class RootHibernateQuery extends HibernateQuery {
 
     public Condition createIn(String propertyPath, String subqueryText) {
         return new InCondition(this, propertyPath, subqueryText);
+    }
+
+    public Condition createExists(String subqueryText, String linkingCondition) {
+        return new ExistsCondition(this, subqueryText, linkingCondition);
     }
 
     public Condition createCompareXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {

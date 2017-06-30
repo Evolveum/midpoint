@@ -219,6 +219,11 @@ public abstract class HibernateQuery {
         return getPrimaryEntity().getAlias();
     }
 
+    // use with care!
+    public void setPrimaryEntityAlias(String alias) {
+        getPrimaryEntity().setAlias(alias);
+    }
+
     public void addOrdering(String propertyPath, OrderDirection direction) {
         orderingList.add(new Ordering(propertyPath, direction));
     }
