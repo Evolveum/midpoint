@@ -27,17 +27,13 @@
 	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.expression" level="INFO" />
     <logger name="com.evolveum.midpoint.model.controller.ModelOperationTaskHandler" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model" level="TRACE" />
-	<!-- Projector "TRACE" is just too much info ... -->
-	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
-	<!-- ... and expression trace as well -->
+	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.wf" level="TRACE" />
+    <logger name="com.evolveum.midpoint.wf" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
-	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-    <logger name="com.evolveum.midpoint.task" level="TRACE" />
+    <logger name="com.evolveum.midpoint.task" level="DEBUG" />
     <!--<logger name="org.activiti" level="TRACE" />-->
     <!--<logger name="org.springframework" level="DEBUG" />-->
 
