@@ -41,7 +41,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
-
 public class ReportNodeUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportNodeUtils.class);
@@ -52,7 +51,7 @@ public class ReportNodeUtils {
     private static String FILENAMEPARAMETER = "fname";
     private static final Integer DEFAULTPORT = 80;
 
-    public InputStream executeOperation(String host, String fileName, String intraClusterHttpUrlPattern, String operation) throws CommunicationException, SecurityViolationException, ObjectNotFoundException, ConfigurationException, IOException {
+    public static InputStream executeOperation(String host, String fileName, String intraClusterHttpUrlPattern, String operation) throws CommunicationException, SecurityViolationException, ObjectNotFoundException, ConfigurationException, IOException {
         fileName = fileName.replaceAll("\\s", SPACE);
         InputStream inputStream = null;
         InputStream entityContent = null;
@@ -62,9 +61,9 @@ public class ReportNodeUtils {
                 LOGGER.trace("The cluster uri pattern: {} ", intraClusterHttpUrlPattern);
 
                 String path = intraClusterHttpUrlPattern.replace("$host", host) + ENDPOINTURIPATH;
-                URIBuilder ubilder = new URIBuilder(path);
-                ubilder.setParameter(FILENAMEPARAMETER, fileName);
-                URI requestUri = ubilder.build();
+                URIBuilder uriBuilder = new URIBuilder(path);
+                uriBuilder.setParameter(FILENAMEPARAMETER, fileName);
+                URI requestUri = uriBuilder.build();
                 fileName = URLDecoder.decode(fileName, URLENCODING);
                 LOGGER.debug("Sending request to the following uri: {} ", requestUri);
                 HttpRequestBase httpRequest = buildHttpRequest(operation);
@@ -76,7 +75,7 @@ public class ReportNodeUtils {
                     Integer statusCode = response.getStatusLine().getStatusCode();
 
                     if (statusCode == HttpStatus.SC_OK) {
-                        LOGGER.info("Response OK, the file successfully returned by the cluster peer. ");
+                        LOGGER.debug("Response OK, the file successfully returned by the cluster peer. ");
                         if (entity != null) {
                             entityContent = entity.getContent();
                             ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
@@ -121,7 +120,7 @@ public class ReportNodeUtils {
         return inputStream;
     }
 
-    public HttpRequestBase buildHttpRequest(String typeOfRequest) {
+    private static HttpRequestBase buildHttpRequest(String typeOfRequest) {
         HttpRequestBase httpRequest;
 
         if (HttpDelete.METHOD_NAME.equals(typeOfRequest)) {
