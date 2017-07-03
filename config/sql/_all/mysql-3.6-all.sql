@@ -62,8 +62,7 @@ CREATE TABLE m_acc_cert_case (
   validTo                  DATETIME(6),
   validityChangeTimestamp  DATETIME(6),
   validityStatus           INTEGER,
-  currentStageNumber       INTEGER,
-  currentStageOutcome      INTEGER,
+  currentStageOutcome      VARCHAR(255),
   fullObject               LONGBLOB,
   objectRef_relation       VARCHAR(157),
   objectRef_targetOid      VARCHAR(36),
@@ -71,10 +70,11 @@ CREATE TABLE m_acc_cert_case (
   orgRef_relation          VARCHAR(157),
   orgRef_targetOid         VARCHAR(36),
   orgRef_type              INTEGER,
-  overallOutcome           INTEGER,
+  outcome                  VARCHAR(255),
   remediedTimestamp        DATETIME(6),
   reviewDeadline           DATETIME(6),
   reviewRequestedTimestamp DATETIME(6),
+  stageNumber              INTEGER,
   targetRef_relation       VARCHAR(157),
   targetRef_targetOid      VARCHAR(36),
   targetRef_type           INTEGER,
@@ -82,36 +82,6 @@ CREATE TABLE m_acc_cert_case (
   tenantRef_targetOid      VARCHAR(36),
   tenantRef_type           INTEGER,
   PRIMARY KEY (id, owner_oid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
-
-CREATE TABLE m_acc_cert_case_reference (
-  owner_id        INTEGER      NOT NULL,
-  owner_owner_oid VARCHAR(36)  NOT NULL,
-  reference_type  INTEGER      NOT NULL,
-  relation        VARCHAR(157) NOT NULL,
-  targetOid       VARCHAR(36)  NOT NULL,
-  containerType   INTEGER,
-  PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
-)
-  DEFAULT CHARACTER SET utf8
-  COLLATE utf8_bin
-  ENGINE = InnoDB;
-
-CREATE TABLE m_acc_cert_decision (
-  id                    INTEGER     NOT NULL,
-  owner_id              INTEGER     NOT NULL,
-  owner_owner_oid       VARCHAR(36) NOT NULL,
-  reviewerComment       VARCHAR(255),
-  response              INTEGER,
-  reviewerRef_relation  VARCHAR(157),
-  reviewerRef_targetOid VARCHAR(36),
-  reviewerRef_type      INTEGER,
-  stageNumber           INTEGER     NOT NULL,
-  timestamp             DATETIME(6),
-  PRIMARY KEY (id, owner_id, owner_owner_oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -128,6 +98,36 @@ CREATE TABLE m_acc_cert_definition (
   ownerRef_type                INTEGER,
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_acc_cert_wi (
+  id                     INTEGER     NOT NULL,
+  owner_id               INTEGER     NOT NULL,
+  owner_owner_oid        VARCHAR(36) NOT NULL,
+  closeTimestamp         DATETIME(6),
+  outcome                VARCHAR(255),
+  outputChangeTimestamp  DATETIME(6),
+  performerRef_relation  VARCHAR(157),
+  performerRef_targetOid VARCHAR(36),
+  performerRef_type      INTEGER,
+  stageNumber            INTEGER,
+  PRIMARY KEY (id, owner_id, owner_owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_acc_cert_wi_reference (
+  owner_id              INTEGER      NOT NULL,
+  owner_owner_id        INTEGER      NOT NULL,
+  owner_owner_owner_oid VARCHAR(36)  NOT NULL,
+  relation              VARCHAR(157) NOT NULL,
+  targetOid             VARCHAR(36)  NOT NULL,
+  targetType            INTEGER,
+  PRIMARY KEY (owner_id, owner_owner_id, owner_owner_owner_oid, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -302,7 +302,7 @@ CREATE TABLE m_assignment_reference (
   reference_type  INTEGER      NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
-  containerType   INTEGER,
+  targetType      INTEGER,
   PRIMARY KEY (owner_id, owner_owner_oid, reference_type, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
@@ -338,8 +338,10 @@ CREATE TABLE m_audit_event (
   initiatorName     VARCHAR(255),
   initiatorOid      VARCHAR(36),
   message           VARCHAR(1024),
+  nodeIdentifier    VARCHAR(255),
   outcome           INTEGER,
   parameter         VARCHAR(255),
+  remoteHostAddress VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
   targetName        VARCHAR(255),
@@ -360,6 +362,41 @@ CREATE TABLE m_audit_item (
   changedItemPath VARCHAR(255) NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (changedItemPath, record_id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_audit_prop_value (
+  id        BIGINT NOT NULL,
+  name      VARCHAR(255),
+  record_id BIGINT,
+  value     VARCHAR(1024),
+  PRIMARY KEY (id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_audit_ref_value (
+  id              BIGINT NOT NULL,
+  name            VARCHAR(255),
+  oid             VARCHAR(255),
+  record_id       BIGINT,
+  targetName_norm VARCHAR(255),
+  targetName_orig VARCHAR(255),
+  type            VARCHAR(255),
+  PRIMARY KEY (id)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_case (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -446,6 +483,16 @@ CREATE TABLE m_focus_photo (
 CREATE TABLE m_focus_policy_situation (
   focus_oid       VARCHAR(36) NOT NULL,
   policySituation VARCHAR(255)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_form (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -628,6 +675,32 @@ CREATE TABLE m_object_template (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 
+CREATE TABLE m_object_text_info (
+  owner_oid VARCHAR(36)  NOT NULL,
+  text      VARCHAR(255) NOT NULL,
+  PRIMARY KEY (owner_oid, text)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
+CREATE TABLE m_operation_execution (
+  id                     INTEGER     NOT NULL,
+  owner_oid              VARCHAR(36) NOT NULL,
+  initiatorRef_relation  VARCHAR(157),
+  initiatorRef_targetOid VARCHAR(36),
+  initiatorRef_type      INTEGER,
+  status                 INTEGER,
+  taskRef_relation       VARCHAR(157),
+  taskRef_targetOid      VARCHAR(36),
+  taskRef_type           INTEGER,
+  timestampValue         DATETIME(6),
+  PRIMARY KEY (id, owner_oid)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
+
 CREATE TABLE m_org (
   costCenter       VARCHAR(255),
   displayOrder     INTEGER,
@@ -666,7 +739,7 @@ CREATE TABLE m_reference (
   reference_type INTEGER      NOT NULL,
   relation       VARCHAR(157) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
-  containerType  INTEGER,
+  targetType     INTEGER,
   PRIMARY KEY (owner_oid, reference_type, relation, targetOid)
 )
   DEFAULT CHARACTER SET utf8
@@ -778,6 +851,7 @@ CREATE TABLE m_shadow (
   name_norm                    VARCHAR(255),
   name_orig                    VARCHAR(255),
   objectClass                  VARCHAR(157),
+  pendingOperationCount        INTEGER,
   resourceRef_relation         VARCHAR(157),
   resourceRef_targetOid        VARCHAR(36),
   resourceRef_type             INTEGER,
@@ -950,13 +1024,10 @@ CREATE INDEX iCaseTenantRefTargetOid ON m_acc_cert_case (tenantRef_targetOid);
 
 CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid);
 
-CREATE INDEX iCaseReferenceTargetOid ON m_acc_cert_case_reference (targetOid);
-
-ALTER TABLE m_acc_cert_decision
-ADD CONSTRAINT uc_case_stage_reviewer UNIQUE (owner_owner_oid, owner_id, stageNumber, reviewerRef_targetOid);
-
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm);
+
+CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid);
 
 CREATE INDEX iAssignmentAdministrative ON m_assignment (administrativeStatus);
 
@@ -988,12 +1059,24 @@ CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
 
 CREATE INDEX iChangedItemPath ON m_audit_item (changedItemPath);
 
+CREATE INDEX iAuditPropValRecordId
+  ON m_audit_prop_value (record_id);
+
+CREATE INDEX iAuditRefValRecordId
+  ON m_audit_ref_value (record_id);
+
+ALTER TABLE m_case
+  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
 
 CREATE INDEX iFocusAdministrative ON m_focus (administrativeStatus);
 
 CREATE INDEX iFocusEffective ON m_focus (effectiveStatus);
+
+ALTER TABLE m_form
+  ADD CONSTRAINT uc_form_name UNIQUE (name_norm);
 
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
@@ -1044,6 +1127,15 @@ CREATE INDEX iExtensionStringDef ON m_object_ext_string (owner_oid, ownerType);
 ALTER TABLE m_object_template
 ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm);
 
+CREATE INDEX iOpExecTaskOid
+  ON m_operation_execution (taskRef_targetOid);
+
+CREATE INDEX iOpExecInitiatorOid
+  ON m_operation_execution (initiatorRef_targetOid);
+
+CREATE INDEX iOpExecStatus
+  ON m_operation_execution (status);
+
 ALTER TABLE m_org
 ADD CONSTRAINT uc_org_name UNIQUE (name_norm);
 
@@ -1079,6 +1171,18 @@ ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm);
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid);
 
 CREATE INDEX iShadowDead ON m_shadow (dead);
+
+CREATE INDEX iShadowKind ON m_shadow (kind);
+
+CREATE INDEX iShadowIntent ON m_shadow (intent);
+
+CREATE INDEX iShadowObjectClass ON m_shadow (objectClass);
+
+CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
+
+CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
+
+CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
@@ -1128,22 +1232,22 @@ ALTER TABLE m_acc_cert_campaign
 ALTER TABLE m_acc_cert_case
 ADD CONSTRAINT fk_acc_cert_case_owner
 FOREIGN KEY (owner_oid)
-REFERENCES m_object (oid);
-
-ALTER TABLE m_acc_cert_case_reference
-ADD CONSTRAINT fk_acc_cert_case_ref_owner
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_acc_cert_case (id, owner_oid);
-
-ALTER TABLE m_acc_cert_decision
-ADD CONSTRAINT fk_acc_cert_decision_owner
-FOREIGN KEY (owner_id, owner_owner_oid)
-REFERENCES m_acc_cert_case (id, owner_oid);
+REFERENCES m_acc_cert_campaign (oid);
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT fk_acc_cert_definition
     FOREIGN KEY (oid)
     REFERENCES m_object (oid);
+
+ALTER TABLE m_acc_cert_wi
+  ADD CONSTRAINT fk_acc_cert_wi_owner
+FOREIGN KEY (owner_id, owner_owner_oid)
+REFERENCES m_acc_cert_case (id, owner_oid);
+
+ALTER TABLE m_acc_cert_wi_reference
+  ADD CONSTRAINT fk_acc_cert_wi_ref_owner
+FOREIGN KEY (owner_id, owner_owner_id, owner_owner_owner_oid)
+REFERENCES m_acc_cert_wi (id, owner_id, owner_owner_oid);
 
 ALTER TABLE m_assignment
 ADD CONSTRAINT fk_assignment_owner
@@ -1200,6 +1304,21 @@ ALTER TABLE m_audit_item
 FOREIGN KEY (record_id)
 REFERENCES m_audit_event (id);
 
+ALTER TABLE m_audit_prop_value
+  ADD CONSTRAINT fk_audit_prop_value
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event (id);
+
+ALTER TABLE m_audit_ref_value
+  ADD CONSTRAINT fk_audit_ref_value
+FOREIGN KEY (record_id)
+REFERENCES m_audit_event (id);
+
+ALTER TABLE m_case
+  ADD CONSTRAINT fk_case
+FOREIGN KEY (oid)
+REFERENCES m_object (oid);
+
 ALTER TABLE m_connector
 ADD CONSTRAINT fk_connector
 FOREIGN KEY (oid)
@@ -1234,6 +1353,11 @@ ALTER TABLE m_focus_policy_situation
   ADD CONSTRAINT fk_focus_policy_situation
 FOREIGN KEY (focus_oid)
 REFERENCES m_focus (oid);
+
+ALTER TABLE m_form
+  ADD CONSTRAINT fk_form
+FOREIGN KEY (oid)
+REFERENCES m_object (oid);
 
 ALTER TABLE m_generic_object
 ADD CONSTRAINT fk_generic_object
@@ -1288,6 +1412,16 @@ REFERENCES m_object (oid);
 ALTER TABLE m_object_template
 ADD CONSTRAINT fk_object_template
 FOREIGN KEY (oid)
+REFERENCES m_object (oid);
+
+ALTER TABLE m_object_text_info
+  ADD CONSTRAINT fk_object_text_info_owner
+FOREIGN KEY (owner_oid)
+REFERENCES m_object (oid);
+
+ALTER TABLE m_operation_execution
+  ADD CONSTRAINT fk_op_exec_owner
+FOREIGN KEY (owner_oid)
 REFERENCES m_object (oid);
 
 ALTER TABLE m_org
