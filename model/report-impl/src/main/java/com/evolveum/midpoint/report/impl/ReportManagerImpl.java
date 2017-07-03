@@ -334,22 +334,24 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         String filePath = reportOutput.getFilePath();
         result.addParam("oid", oid);
         try {
-            File reportFile = new File(filePath);
+			File reportFile = new File(filePath);
 
-          if(reportFile.exists()){
-              reportFile.delete();
-          }else {
-              ObjectReferenceType nodeRef =reportOutput.getNodeRef();
-              String nodeOid= nodeRef.getOid();
-              NodeType node = modelService.getObject(NodeType.class, nodeOid,null,null,parentResult).asObjectable();
-              SystemConfigurationType systemConfig = modelService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),null,task,result).asObjectable();
-              String icUrlPattern =  systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
-              String hostName = node.getHostname();;
-              ReportNodeUtils nodeUtils = new ReportNodeUtils();
-              String [] splitted = filePath.split("/");
-              String filename= splitted[splitted.length-1];
-              nodeUtils.executeOperation(hostName,filename,icUrlPattern,"DELETE");
-          }
+			if (reportFile.exists()) {
+				reportFile.delete();
+			} else {
+				// TODO deduplicate this code
+				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
+				String nodeOid = nodeRef.getOid();
+				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
+				String hostName = node.getHostname();
+				SystemConfigurationType systemConfig = modelService
+						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
+								result).asObjectable();
+				String icUrlPattern = systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
+				String[] splitted = filePath.split("/");
+				String filename = splitted[splitted.length - 1];
+				ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "DELETE");
+			}
 
 			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
@@ -384,37 +386,35 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 return null;
             }
             File file = new File(filePath);
-            if(file.exists()){
-
+            if (file.exists()) {
                 reportData = FileUtils.openInputStream(file);
-
-            }else{
-                ObjectReferenceType nodeRef =reportOutput.getNodeRef();
-                String nodeOid= nodeRef.getOid();
-                NodeType node =   modelService.getObject(NodeType.class, nodeOid,null,null,parentResult).asObjectable();
-                String hostName = node.getHostname();
-
-                SystemConfigurationType systemConfig =   modelService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),null,task,result).asObjectable();
-                String icUrlPattern =  systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
-                ReportNodeUtils nodeUtils = new ReportNodeUtils();
-                String [] splitted = filePath.split("/");
-                String filename=  splitted[splitted.length-1];
-                reportData = nodeUtils.executeOperation(hostName,filename,icUrlPattern,"GET");
-            }
+            } else {
+            	// TODO deduplicate this code
+				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
+				String nodeOid = nodeRef.getOid();
+				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
+				String hostName = node.getHostname();
+				SystemConfigurationType systemConfig = modelService
+						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
+								result).asObjectable();
+				String icUrlPattern = systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
+				String[] splitted = filePath.split("/");
+				String filename = splitted[splitted.length - 1];
+				reportData = ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "GET");
+			}
             result.recordSuccessIfUnknown();
         } catch (IOException ex) {
-        	LOGGER.error("Error while fetching file. File might not exist on the corresponding file system");
-        	result.recordPartialError("Error while fetching file. File might not exist on the corresponding file system.");
+        	LoggingUtils.logException(LOGGER, "Error while fetching file. File might not exist on the corresponding file system", ex);
+        	result.recordPartialError("Error while fetching file. File might not exist on the corresponding file system. Reason: " + ex.getMessage(), ex);
         	throw ex;
         }  catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
 				| ConfigurationException | ExpressionEvaluationException e) {
-			result.recordFatalError("Problem with reading report outuput. Reson: " + e.getMessage(), e);
+			result.recordFatalError("Problem with reading report output. Reason: " + e.getMessage(), e);
 			throw e;
         } finally {
             result.computeStatusIfUnknown();
         }
 
-       
         return reportData;
     }
 }

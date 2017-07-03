@@ -17,17 +17,15 @@
 package com.evolveum.midpoint.gui.impl.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.ServletContext;
@@ -47,9 +45,9 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
     private static final long serialVersionUID = 7612750211021974750L;
     private static String MIDPOINT_HOME = System.getProperty("midpoint.home");
     private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
-    private static String HEADER_USERAGENT = "mp-cluser-peer-client";
+    private static String HEADER_USERAGENT = "mp-cluster-peer-client";          // TODO deduplicate w.r.t. ReportNodeUtils
     private static String DEFAULTMIMETYPE = "application/octet-stream";
-    private static String FILENAMEPARAMETER = "fname";
+    private static String FILENAMEPARAMETER = "fname";                          // TODO deduplicate w.r.t. ReportNodeUtils
     private static String URLENCODING = "UTF-8";
 
     private static final String INTERCEPTOR_CLASS = ReportPeerQueryInterceptor.class.getName() + ".";
@@ -61,17 +59,18 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String userAgent = request.getHeader("User-Agent");
-        String remoteName = request.getRemoteHost();
+        String remoteHost = request.getRemoteHost();
+        String remoteAddress = request.getRemoteAddr();
         String fileName = request.getParameter(FILENAMEPARAMETER);
         fileName = URLDecoder.decode(fileName, URLENCODING);
         if (!HEADER_USERAGENT.equals(userAgent)) {
             LOGGER.debug("Invalid user-agent: {}", userAgent);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } else if (!isKnownNode(remoteName, "File retrieval")) {
-            LOGGER.debug("Unknown node, host: {} ", remoteName);
+        } else if (!isKnownNode(remoteHost, remoteAddress, "File retrieval")) {
+            LOGGER.debug("Unknown node, host: {} ", remoteHost);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } else if (containsProhibitedQueryString(fileName)) {
-            LOGGER.debug("Query parameter containst a probited character sequence. The parameter: {} ", fileName);
+            LOGGER.debug("Query parameter contains a prohibited character sequence. The parameter: {} ", fileName);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } else {
             StringBuilder buildfilePath = new StringBuilder(EXPORT_DIR).append(fileName);
@@ -117,14 +116,14 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
-
         String userAgent = request.getHeader("User-Agent");
-        String remoteName = request.getRemoteHost();
+        String remoteHost = request.getRemoteHost();
+        String remoteAddress = request.getRemoteAddr();
         if (!HEADER_USERAGENT.equals(userAgent)) {
             LOGGER.debug("Invalid user-agent: {}", userAgent);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } else if (!isKnownNode(remoteName, "File deletion")) {
-            LOGGER.debug("Unknown node, host: {} ", remoteName);
+        } else if (!isKnownNode(remoteHost, remoteAddress, "File deletion")) {
+            LOGGER.debug("Unknown node, host: {} ", remoteHost);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } else {
             String fileName = request.getParameter(FILENAMEPARAMETER);
@@ -135,7 +134,6 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
             if (!reportFile.exists()) {
                 LOGGER.warn("Delete operation not successful. The file: {} was not found on the filesystem.", fileName);
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
-
             } else if (reportFile.isDirectory()) {
                 LOGGER.warn("Delete operation not successful. Attempt to Delete a directory with the name: {}. This operation is prohibited.", fileName);
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -147,34 +145,33 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
         }
     }
 
-    protected RepositoryService getRepositoryService() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getRepositoryService();
+    private RepositoryService getRepositoryService() {
+        return MidPointApplication.get().getRepositoryService();
     }
 
     protected TaskManager getTaskManager() {
-        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getTaskManager();
+        return MidPointApplication.get().getTaskManager();
     }
 
-    protected Boolean isKnownNode(String remoteName, String operation) {
-
-        LOGGER.info("Checking if {} is a known node", remoteName);
+    private Boolean isKnownNode(String remoteName, String remoteAddress, String operation) {
+        LOGGER.debug("Checking if {} is a known node", remoteName);
         OperationResult result = new OperationResult(OPERATION_LIST_NODES);
         try {
-            ObjectQuery query = new ObjectQuery();
-            TypeFilter filter = TypeFilter.createType(NodeType.COMPLEX_TYPE, null);
-            query.addFilter(filter);
             List<PrismObject<NodeType>> knownNodes = getRepositoryService().searchObjects(NodeType.class, null, null, result);
             for (PrismObject<NodeType> node : knownNodes) {
                 NodeType actualNode = node.asObjectable();
-                if (remoteName.equals(actualNode.getHostname())) {
-                    LOGGER.trace("The node {} was recognized as a known node. Attempting to execute the requested operation: {} ", actualNode.getHostname(), operation);
+                if (remoteName != null && remoteName.equalsIgnoreCase(actualNode.getHostname())) {
+                    LOGGER.trace("The node {} was recognized as a known node (remote host name {} matched). Attempting to execute the requested operation: {} ",
+                            actualNode.getName(), actualNode.getHostname(), operation);
+                    return true;
+                }
+                if (actualNode.getIpAddress().contains(remoteAddress)) {
+                    LOGGER.trace("The node {} was recognized as a known node (remote host address {} matched). Attempting to execute the requested operation: {} ",
+                            actualNode.getName(), remoteAddress, operation);
                     return true;
                 }
             }
-
-        } catch (Exception e) {
+        } catch (RuntimeException|SchemaException e) {
             LOGGER.error("Unhandled exception when listing nodes");
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing nodes", e);
         }
@@ -182,7 +179,6 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
     }
 
     protected Boolean containsProhibitedQueryString(String queryParameter) {
-
         if (queryParameter.contains("/../")) {
             return true;
         }
