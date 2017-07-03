@@ -39,6 +39,7 @@
 	<logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
 	
 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
+	<logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
 	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
 	<!-- <logger name="com.evolveum.midpoint.repo" level="TRACE" />  -->
 	

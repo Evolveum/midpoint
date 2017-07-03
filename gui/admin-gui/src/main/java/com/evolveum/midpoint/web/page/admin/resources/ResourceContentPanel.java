@@ -30,16 +30,14 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -628,6 +626,11 @@ public abstract class ResourceContentPanel extends Panel {
 				};
 			}
 
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<ShadowType>> rowModel) {
+                return Model.of(getResultLabel(rowModel));
+            }
+
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
 				OperationResultType resultType = getResult(rowModel);
@@ -642,6 +645,22 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 		});
 
+		IColumn<SelectableBean<ShadowType>, String> isProtectedAccountColumn =
+				new AbstractExportableColumn<SelectableBean<ShadowType>, String>(createStringResource("pageContentAccounts.isProtected")) {
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
+                                             String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                        Boolean isProtected = rowModel.getObject().getValue().isProtectedObject();
+                        cellItem.add(new Label(componentId, isProtected != null ? Boolean.toString(isProtected) : Boolean.toString(false)));
+
+                    }
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<ShadowType>> rowModel) {
+                        Boolean isProtected = rowModel.getObject().getValue().isProtectedObject();
+                        return Model.of(isProtected != null ? Boolean.toString(isProtected) : Boolean.toString(false));
+                    }
+                };
+		columns.add(isProtectedAccountColumn);
 		return columns;
 	}
 

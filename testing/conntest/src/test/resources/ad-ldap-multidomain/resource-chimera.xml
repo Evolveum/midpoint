@@ -46,6 +46,7 @@
             <icfcldap:servers>host=hydra.ad.evolveum.com; baseContext=DC=sub,DC=ad,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com</icfcldap:servers>
             <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
+            <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:winRmUsername>midpoint</icfcldap:winRmUsername>
@@ -225,6 +226,28 @@
 					<source>
 						<path>extension/showInAdvancedViewOnly</path>
 					</source>
+				</outbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:msExchHideFromAddressLists</ref>
+				<description>MID-4041</description>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>activation/effectiveStatus</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								if (effectiveStatus == com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED) {
+									return 'TRUE'
+								} else {
+									return 'FALSE'
+								}
+							</code>
+						</script>
+					</expression>
 				</outbound>
 			</attribute>
 			
