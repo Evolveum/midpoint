@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
@@ -45,7 +46,7 @@ public class ReportNodeUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportNodeUtils.class);
     private static final String SPACE = "%20";
-    private static final String HEADER_USERAGENT = "mp-cluser-peer-client";
+    private static final String HEADER_USERAGENT = "mp-cluster-peer-client";
     private static final String ENDPOINTURIPATH = "/report";
     private static String URLENCODING = "UTF-8";
     private static String FILENAMEPARAMETER = "fname";
@@ -57,7 +58,7 @@ public class ReportNodeUtils {
         InputStream entityContent = null;
         LOGGER.trace("About to initiate connection with {}", host);
         try {
-            if (intraClusterHttpUrlPattern != null && !(intraClusterHttpUrlPattern.isEmpty())) {
+            if (StringUtils.isNotEmpty(intraClusterHttpUrlPattern)) {
                 LOGGER.trace("The cluster uri pattern: {} ", intraClusterHttpUrlPattern);
 
                 String path = intraClusterHttpUrlPattern.replace("$host", host) + ENDPOINTURIPATH;
@@ -91,31 +92,25 @@ public class ReportNodeUtils {
                         if (HttpDelete.METHOD_NAME.equals(operation)) {
                             LOGGER.info("Deletion of the file {} was successful.", fileName);
                         }
-
                     } else if (statusCode == HttpStatus.SC_FORBIDDEN) {
-
-                        StringBuilder errorBuilder = new StringBuilder("The access to the report ").append(fileName)
-                                .append(" is forbidden.");
                         LOGGER.error("The access to the report with the name {} is forbidden.", fileName);
-                        throw new SecurityViolationException(errorBuilder.toString());
+                        String error = "The access to the report " + fileName + " is forbidden.";
+                        throw new SecurityViolationException(error);
                     } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
-                        StringBuilder errorBuilder = new StringBuilder("The report file ").append(fileName)
-                                .append(" was not found on the originating nodes filesystem.");
-                        throw new ObjectNotFoundException(errorBuilder.toString());
+                        String error = "The report file " + fileName + " was not found on the originating nodes filesystem.";
+                        throw new ObjectNotFoundException(error);
                     }
                 } catch (ClientProtocolException e) {
-
-                    StringBuilder errorBuilder = new StringBuilder("An exception with the communication protocol has occurred during a query to the cluster peer. ")
-                            .append(e.getLocalizedMessage());
-                    throw new CommunicationException(errorBuilder.toString());
+                    String error = "An exception with the communication protocol has occurred during a query to the cluster peer. " +
+                                    e.getLocalizedMessage();
+                    throw new CommunicationException(error);
                 }
             } else {
                 LOGGER.error("Cluster pattern parameters is empty, please refer to the documentation and set up the parameter value accordingly");
                 throw new ConfigurationException("Cluster pattern parameters is empty, please refer to the documentation and set up the parameter value accordingly");
             }
         } catch (URISyntaxException e1) {
-            StringBuilder errorBuilder = new StringBuilder("Invalid uri syntax: ").append(e1.getLocalizedMessage());
-            throw new CommunicationException(errorBuilder.toString());
+            throw new CommunicationException("Invalid uri syntax: " + e1.getLocalizedMessage());
         } catch (UnsupportedEncodingException e) {
             LOGGER.error("Unhandled exception when listing nodes");
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing nodes", e);
@@ -131,7 +126,6 @@ public class ReportNodeUtils {
 
         if (HttpDelete.METHOD_NAME.equals(typeOfRequest)) {
             httpRequest = new HttpDelete();
-
         } else {
             httpRequest = new HttpGet();
         }

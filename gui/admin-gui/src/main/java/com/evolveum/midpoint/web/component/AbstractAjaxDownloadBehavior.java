@@ -64,6 +64,10 @@ public abstract class AbstractAjaxDownloadBehavior extends AbstractAjaxBehavior 
 	public void onRequest() {
 		
 		IResourceStream resourceStream = getResourceStream();
+		if (resourceStream == null) {
+			return;		// We hope the error was already processed and will be shown.
+		}
+
         ResourceStreamRequestHandler reqHandler = new ResourceStreamRequestHandler(resourceStream) {
             @Override
             public void respond(IRequestCycle requestCycle) {

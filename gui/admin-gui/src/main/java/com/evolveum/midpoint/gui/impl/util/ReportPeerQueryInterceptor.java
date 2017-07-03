@@ -47,7 +47,7 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
     private static final long serialVersionUID = 7612750211021974750L;
     private static String MIDPOINT_HOME = System.getProperty("midpoint.home");
     private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
-    private static String HEADER_USERAGENT = "mp-cluser-peer-client";
+    private static String HEADER_USERAGENT = "mp-cluster-peer-client";
     private static String DEFAULTMIMETYPE = "application/octet-stream";
     private static String FILENAMEPARAMETER = "fname";
     private static String URLENCODING = "UTF-8";
@@ -71,7 +71,7 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
             LOGGER.debug("Unknown node, host: {} ", remoteName);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } else if (containsProhibitedQueryString(fileName)) {
-            LOGGER.debug("Query parameter containst a probited character sequence. The parameter: {} ", fileName);
+            LOGGER.debug("Query parameter contains a prohibited character sequence. The parameter: {} ", fileName);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } else {
             StringBuilder buildfilePath = new StringBuilder(EXPORT_DIR).append(fileName);
