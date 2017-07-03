@@ -167,6 +167,9 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         try {
             ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPageBase().getPrismContext());
             list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);
+            // Sort org roots by displayOrder, if not set push the org to the end
+            list.sort((o1, o2) -> (o1.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o1.getRealValue().getDisplayOrder())
+                    - (o2.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o2.getRealValue().getDisplayOrder()));
 
             if (list.isEmpty()) {
                 warn(getString("PageOrgTree.message.noOrgStructDefined"));
