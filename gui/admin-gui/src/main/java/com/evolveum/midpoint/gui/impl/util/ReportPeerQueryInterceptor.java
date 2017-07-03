@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.gui.impl.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,28 +62,27 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
             throws ServletException, IOException {
         String userAgent = request.getHeader("User-Agent");
         String remoteName = request.getRemoteHost();
+        String fileName = request.getParameter(FILENAMEPARAMETER);
+        fileName = URLDecoder.decode(fileName, URLENCODING);
         if (!HEADER_USERAGENT.equals(userAgent)) {
             LOGGER.debug("Invalid user-agent: {}", userAgent);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } else if (!isKnownNode(remoteName, "File retrieval")) {
             LOGGER.debug("Unknown node, host: {} ", remoteName);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        } else if (containsProhibitedQueryString(fileName)) {
+            LOGGER.debug("Query parameter containst a probited character sequence. The parameter: {} ", fileName);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } else {
-            String fileName = request.getParameter(FILENAMEPARAMETER);
-            fileName = URLDecoder.decode(fileName, URLENCODING);
             StringBuilder buildfilePath = new StringBuilder(EXPORT_DIR).append(fileName);
             String filePath = buildfilePath.toString();
 
             File loadedFile = new File(filePath);
             if (!loadedFile.exists()) {
-                StringBuilder errorBuilder = new StringBuilder("Download operation not successful. The file: ")
-                        .append(fileName).append(" was not found on the filesystem");
-                LOGGER.warn(errorBuilder.toString());
+                LOGGER.warn("Download operation not successful. The file: {} was not found on the filesystem", fileName);
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             } else if (loadedFile.isDirectory()) {
-                StringBuilder errorBuilder = new StringBuilder("Download operation not successful. Attempt to download a directory with the name:  ")
-                        .append(fileName).append(" this operation is prohibited.");
-                LOGGER.warn(errorBuilder.toString());
+                LOGGER.warn("Download operation not successful. Attempt to download a directory with the name: {} this operation is prohibited", fileName);
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             } else {
                 FileInputStream fileInputStream = new FileInputStream(filePath);
@@ -118,15 +133,11 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
             String filePath = buildfilePath.toString();
             File reportFile = new File(filePath);
             if (!reportFile.exists()) {
-                StringBuilder errorBuilder = new StringBuilder("Delete operation not successful. The file: ").append(fileName)
-                        .append(" was not found on the filesystem.");
-                LOGGER.warn(errorBuilder.toString());
+                LOGGER.warn("Delete operation not successful. The file: {} was not found on the filesystem.", fileName);
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
 
             } else if (reportFile.isDirectory()) {
-                StringBuilder errorBuilder = new StringBuilder("Delete operation not successful. Attempt to Delete a directory with the name:  ")
-                        .append(fileName).append(" This operation is prohibited.");
-                LOGGER.warn(errorBuilder.toString());
+                LOGGER.warn("Delete operation not successful. Attempt to Delete a directory with the name: {}. This operation is prohibited.", fileName);
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             } else {
                 reportFile.delete();
@@ -166,6 +177,14 @@ public class ReportPeerQueryInterceptor extends HttpServlet {
         } catch (Exception e) {
             LOGGER.error("Unhandled exception when listing nodes");
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing nodes", e);
+        }
+        return false;
+    }
+
+    protected Boolean containsProhibitedQueryString(String queryParameter) {
+
+        if (queryParameter.contains("/../")) {
+            return true;
         }
         return false;
     }

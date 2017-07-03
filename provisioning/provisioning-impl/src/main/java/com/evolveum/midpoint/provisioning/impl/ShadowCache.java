@@ -226,7 +226,7 @@ public abstract class ShadowCache {
 		}
 		
 		if (canReturnCached(options, repositoryShadow, resource)) {
-			PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
+			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, resource);
 			applyAttributesDefinition(ctx, resultShadow);
 			return resultShadow;
 		}
@@ -267,7 +267,7 @@ public abstract class ShadowCache {
 					parentResult.deleteLastSubresultIfError();		// we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
 					parentResult.recordSuccess();
 					repositoryShadow.asObjectable().setExists(false);
-					PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
+					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, resource);
 					applyAttributesDefinition(ctx, resultShadow);
 					LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
 					return resultShadow;
@@ -318,7 +318,7 @@ public abstract class ShadowCache {
 				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
 			}
 
-			resultShadow = futurizeShadow(resultShadow, options, resource);
+			resultShadow = futurizeShadow(ctx, resultShadow, options, resource);
 			parentResult.recordSuccess();
 			return resultShadow;
 
@@ -382,14 +382,14 @@ public abstract class ShadowCache {
 			shadowDelta.applyTo(repositoryShadow);
 		}
 		
-		PrismObject<ShadowType> resultShadow = futurizeShadow(repositoryShadow, options, resource);
+		PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, resource);
 		applyAttributesDefinition(ctx, resultShadow);
 		
 		return resultShadow;
 	}
 
-	private PrismObject<ShadowType> futurizeShadow(PrismObject<ShadowType> shadow,
-			Collection<SelectorOptions<GetOperationOptions>> options, ResourceType resource) throws SchemaException {
+	private PrismObject<ShadowType> futurizeShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+			Collection<SelectorOptions<GetOperationOptions>> options, ResourceType resource) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
 		if (pit != PointInTimeType.FUTURE) {
 			return shadow;
@@ -417,11 +417,17 @@ public abstract class ShadowCache {
 			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
 			if (pendingDelta.isAdd()) {
 				if (Boolean.FALSE.equals(resultShadowType.isExists())) {
+					ShadowType shadowType = shadow.asObjectable();
 					resultShadow = pendingDelta.getObjectToAdd().clone();
 					resultShadow.setOid(shadow.getOid());
 					resultShadowType = resultShadow.asObjectable();
 					resultShadowType.setExists(true);
-					resultShadowType.setName(shadow.asObjectable().getName());
+					resultShadowType.setName(shadowType.getName());
+					List<PendingOperationType> newPendingOperations = resultShadowType.getPendingOperation();
+					for (PendingOperationType pendingOperation2: shadowType.getPendingOperation()) {
+						newPendingOperations.add(pendingOperation2.clone());
+					}
+					applyAttributesDefinition(ctx, resultShadow);
 				}
 			}
 			if (pendingDelta.isModify()) {

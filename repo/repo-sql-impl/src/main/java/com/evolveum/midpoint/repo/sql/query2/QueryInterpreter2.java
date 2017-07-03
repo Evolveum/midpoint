@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -142,12 +143,31 @@ public class QueryInterpreter2 {
 			InterpretationContext wrapperContext = new InterpretationContext(this, type, prismContext, session);
 			interpretPagingAndSorting(wrapperContext, query, false);
 			RootHibernateQuery wrapperQuery = wrapperContext.getHibernateQuery();
-			String wrappedRootAlias = wrapperQuery.getPrimaryEntityAlias();
-			wrapperQuery.setResultTransformer(resultStyle.getResultTransformer());
-			wrapperQuery.addProjectionElementsFor(resultStyle.getIdentifiers(wrappedRootAlias));
-			wrapperQuery.addProjectionElementsFor(resultStyle.getContentAttributes(wrappedRootAlias));
-			wrapperQuery.getConditions().add(
-						wrapperQuery.createIn(wrapperQuery.getPrimaryEntityAlias() + ".oid", subqueryText));
+			if (repoConfiguration.isUsingSQLServer() && resultStyle.getIdentifiers("").size() > 1) {
+				// using 'where exists' clause
+				// FIXME refactor this ugly code
+				String wrappedRootAlias = "_" + wrapperQuery.getPrimaryEntityAlias();	// to distinguish from the same alias in inner query
+				wrapperQuery.setPrimaryEntityAlias(wrappedRootAlias);
+				wrapperQuery.setResultTransformer(resultStyle.getResultTransformer());
+				wrapperQuery.addProjectionElementsFor(resultStyle.getIdentifiers(wrappedRootAlias));
+				wrapperQuery.addProjectionElementsFor(resultStyle.getContentAttributes(wrappedRootAlias));
+				StringBuilder linkingCondition = new StringBuilder();
+				for (String id : resultStyle.getIdentifiers(wrappedRootAlias)) {
+					linkingCondition.append(" and ").append(id).append(" = ").append(id.substring(1));
+				}
+				wrapperQuery.getConditions().add(wrapperQuery.createExists(subqueryText, linkingCondition.toString()));
+			} else {
+				// using 'in' clause (multi-column only for Oracle)
+				String wrappedRootAlias = wrapperQuery.getPrimaryEntityAlias();
+				wrapperQuery.setResultTransformer(resultStyle.getResultTransformer());
+				wrapperQuery.addProjectionElementsFor(resultStyle.getIdentifiers(wrappedRootAlias));
+				wrapperQuery.addProjectionElementsFor(resultStyle.getContentAttributes(wrappedRootAlias));
+				List<String> inVariablesList = resultStyle.getIdentifiers(wrapperQuery.getPrimaryEntityAlias());
+				String inVariablesString = inVariablesList.size() != 1
+						? "(" + StringUtils.join(inVariablesList, ", ") + ")"
+						: inVariablesList.get(0);
+				wrapperQuery.getConditions().add(wrapperQuery.createIn(inVariablesString, subqueryText));
+			}
 			wrapperQuery.addParametersFrom(hibernateQuery.getParameters());
 			return wrapperQuery;
 		} else {

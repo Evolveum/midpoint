@@ -97,6 +97,16 @@ public class TestSemiManualDisable extends TestSemiManual {
 	}
 	
 	@Override
+	protected String getRoleOneOid() {
+		return ROLE_ONE_SEMI_MANUAL_DISABLE_OID;
+	}
+	
+	@Override
+	protected File getRoleOneFile() {
+		return ROLE_ONE_SEMI_MANUAL_DISABLE_FILE;
+	}
+	
+	@Override
 	protected void deprovisionInCsv(String username) throws IOException {
 		disableInCsv(username);
 	}

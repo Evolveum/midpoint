@@ -1,4 +1,21 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.report.impl;
+
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,7 +29,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
@@ -30,44 +46,26 @@ public class ReportNodeUtils {
     private static final Trace LOGGER = TraceManager.getTrace(ReportNodeUtils.class);
     private static final String SPACE = "%20";
     private static final String HEADER_USERAGENT = "mp-cluser-peer-client";
-    private static final String ENDPOINTURIPATH = "midpoint/report";
+    private static final String ENDPOINTURIPATH = "/report";
     private static String URLENCODING = "UTF-8";
     private static String FILENAMEPARAMETER = "fname";
     private static final Integer DEFAULTPORT = 80;
 
     public InputStream executeOperation(String host, String fileName, String intraClusterHttpUrlPattern, String operation) throws CommunicationException, SecurityViolationException, ObjectNotFoundException, ConfigurationException, IOException {
         fileName = fileName.replaceAll("\\s", SPACE);
-        StringBuilder path = new StringBuilder(ENDPOINTURIPATH);
         InputStream inputStream = null;
         InputStream entityContent = null;
         LOGGER.trace("About to initiate connection with {}", host);
         try {
             if (intraClusterHttpUrlPattern != null && !(intraClusterHttpUrlPattern.isEmpty())) {
-                LOGGER.trace("The cluster uri pattern: {} ", intraClusterHttpUrlPattern.toString());
-                String[] splitted = intraClusterHttpUrlPattern.split("/");
-                if (!(splitted.length > 3)) { // https://$host/midpoint
-                    StringBuilder errorBuilder = new StringBuilder("Non valid IntraClusterHttpUrlPattern parameter value: ").append(intraClusterHttpUrlPattern);
-                    throw new ConfigurationException(errorBuilder.toString());
-                }
-                URIBuilder ubilder = new URIBuilder();
-                String scheme = splitted[0].substring(0, splitted[0].length() - 1);
-                ubilder.setScheme(scheme).setHost(host);
-                String hostPart = splitted[2];
+                LOGGER.trace("The cluster uri pattern: {} ", intraClusterHttpUrlPattern);
 
-                String[] hostAndPort = hostPart.split("\\:");//host:port
-                if (hostAndPort.length > 1) {
-                    String port = hostAndPort[1];
-                    if (NumberUtils.isDigits(port)) {
-                        ubilder.setPort(Integer.parseInt(port));
-                    }
-                } else {
-                    ubilder.setPort(DEFAULTPORT);
-                }
-                ubilder.setPath(path.toString()).setParameter(FILENAMEPARAMETER,
-                        fileName);
+                String path = intraClusterHttpUrlPattern.replace("$host", host) + ENDPOINTURIPATH;
+                URIBuilder ubilder = new URIBuilder(path);
+                ubilder.setParameter(FILENAMEPARAMETER, fileName);
                 URI requestUri = ubilder.build();
                 fileName = URLDecoder.decode(fileName, URLENCODING);
-                LOGGER.debug("Sending request to the following uri: {} ", requestUri.toString());
+                LOGGER.debug("Sending request to the following uri: {} ", requestUri);
                 HttpRequestBase httpRequest = buildHttpRequest(operation);
                 httpRequest.setURI(requestUri);
                 httpRequest.setHeader("User-Agent", HEADER_USERAGENT);
@@ -99,7 +97,6 @@ public class ReportNodeUtils {
                         StringBuilder errorBuilder = new StringBuilder("The access to the report ").append(fileName)
                                 .append(" is forbidden.");
                         LOGGER.error("The access to the report with the name {} is forbidden.", fileName);
-
                         throw new SecurityViolationException(errorBuilder.toString());
                     } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                         StringBuilder errorBuilder = new StringBuilder("The report file ").append(fileName)
@@ -112,6 +109,9 @@ public class ReportNodeUtils {
                             .append(e.getLocalizedMessage());
                     throw new CommunicationException(errorBuilder.toString());
                 }
+            } else {
+                LOGGER.error("Cluster pattern parameters is empty, please refer to the documentation and set up the parameter value accordingly");
+                throw new ConfigurationException("Cluster pattern parameters is empty, please refer to the documentation and set up the parameter value accordingly");
             }
         } catch (URISyntaxException e1) {
             StringBuilder errorBuilder = new StringBuilder("Invalid uri syntax: ").append(e1.getLocalizedMessage());
@@ -122,6 +122,7 @@ public class ReportNodeUtils {
         } finally {
             IOUtils.closeQuietly(entityContent);
         }
+
         return inputStream;
     }
 
