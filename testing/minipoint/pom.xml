@@ -26,7 +26,7 @@
   </parent>
   <artifactId>minipoint</artifactId>
   <groupId>com.evolveum.midpoint.testing</groupId>
-  <version>3.6</version>
+  <version>3.7-SNAPSHOT</version>
   <name>midPoint Testing - MiniPoint</name>
   <issueManagement>
   	<system>Atlassian JIRA</system>
@@ -38,7 +38,7 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
 	<properties>
-        <midpoint.version>3.6</midpoint.version>
+        <midpoint.version>3.7-SNAPSHOT</midpoint.version>
         <testng.version>6.8.8</testng.version>
         <connid.version>1.4.0.49</connid.version>
     </properties>
