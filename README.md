@@ -1,6 +1,6 @@
 Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
 
-midPoint 3.5 "Einstein"
+midPoint 3.6 "Comenius"
 ------------------------------------
 
 General information:

@@ -1,38 +1,29 @@
-midPoint 3.5 "Einstein"
+midPoint 3.6 "Comenius"
 ----------------------------------
 
-Release 3.5 is eighteenth midPoint release code-named Einstein. The 3.5
-release brings lots of features related to identity governance,
-self-registration and support for JSON/YAML.
+Release 3.6 is twenty first midPoint release code-named Comenius.
+The 3.6 release brings numerous new features especially in the
+field of identity governance, password management and identity
+connectors.
 
-Release date: 21st December 2016
+Release date: 4th July 2017
 
-Changes with respect to version 3.4.1:
-    Role catalog
-    Role request based on shopping cart paradigm
-    JSON/YAML support
-    Object lifecycle property
-    Passive Attribute Caching (EXPERIMENTAL)
-    Deputy (ad-hoc privilege delegation)
-    Object history (time machine)
-    Interactive audit log viewer
-    Audit log indexing improvements
-    Assignment metadata
-    Basic role lifecycle management (role approvals)
-    Improved approval processes
-    Self-registration
-    E-mail based password reset
-    Experimental support for policy rules
-    Weak construction
-    Improvements to AD connector in multi-domain environment
-    Identity merge
-    Better control over administration GUI forms
-    MariaDB support
-    Configurable limitations of parallel execution of tasks
-    Various user interface improvements
-    Internal code cleanup
-    Documentation improvements
+Changes with respect to version 3.5.1:
+    Major SoD improvements
+    Certificaiton improvements
+    Escalation
+    Other identity governance features
+    Password hashing
+    Manual connectors by ITSM integration
+    Important improvements to mappings, expressions, object templates and other mechanisms
+    Custom forms
+    Quasi-fulltext search
+    Shopping cart and role catalog improvements
+    Numerous GUI improvements
+    Significantly improved Powershell support
+    New CSV connector
+    Other connector improvements
 
 Java 7 environment is no longer supported.
 XPath2 scripting is no longer supported.
-CSVFile Connector is deprecated.
+CSVFile Connector is no longer supported.

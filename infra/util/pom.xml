@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>infra</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.6-SNAPSHOT</version>
+		<version>3.7-SNAPSHOT</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>

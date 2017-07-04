@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,26 +75,26 @@ public class PageLogin extends PageBase {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
 
-                boolean linkIsVisible = false;
-                
                 if (securityPolicy == null) {
-                	return linkIsVisible;
+                	return false;
                 }
                 
                 CredentialsPolicyType creds = securityPolicy.getCredentials();
                 
+                // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled. 
                 if (creds != null
                         && ((creds.getSecurityQuestions() != null
                         && creds.getSecurityQuestions().getQuestionNumber() != null) || (securityPolicy.getCredentialsReset() != null))) {
-                    linkIsVisible = true;
+                    return true;
                 }
 
-                return linkIsVisible;
+                return false;
             }
         });
         add(link);
         
         AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
+        	private static final long serialVersionUID = 1L;
         	
         	@Override
         	public void onClick(AjaxRequestTarget target) {
