@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2016 Evolveum
+  ~ Copyright (c) 2014-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,12 +18,23 @@
 <securityPolicy oid="b50aff7e-3784-11e6-b97e-0b955775c407" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 	<name>Evolveum Security Policy</name>
+	<authentication>
+		<mailAuthentication>
+			<name>confirmationLink</name>
+			<mailNonce>mailNonce</mailNonce>
+		</mailAuthentication>
+	</authentication>
 	<credentials>
 		<password>
 			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
 		</password>
+		<nonce>
+			<maxAge>PT2M</maxAge>
+			<name>mailNonce</name>
+			<valuePolicyRef oid="ffa65cbc-6088-11e7-b434-db222509f488" type="ValuePolicyType"><!-- Mail Nonce Policy --></valuePolicyRef>
+		</nonce>
 		<securityQuestions>
 			<resetMethod>
 				<resetType>securityQuestions</resetType>
@@ -40,4 +51,10 @@
 			</question>
 		</securityQuestions>
 	</credentials>
+	<credentialsReset>
+		<mailReset>
+			<name>passwordMailReset</name>
+			<additionalAuthenticationName>confirmationLink</additionalAuthenticationName>
+		</mailReset>
+	</credentialsReset>
 </securityPolicy>
