@@ -20,12 +20,12 @@
 	<name>Dummy Connector Fake</name>
 	<groupId>com.evolveum.icf</groupId>
 	<artifactId>dummy-connector-fake</artifactId>
-	<version>3.6-SNAPSHOT</version>
+	<version>3.6</version>
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>icf-connectors</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.6-SNAPSHOT</version>
+		<version>3.6</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>

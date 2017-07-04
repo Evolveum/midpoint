@@ -20,13 +20,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.evolveum.midpoint.tools</groupId>
     <artifactId>schema-dist-maven-plugin</artifactId>
-    <version>3.6-SNAPSHOT</version>
+    <version>3.6</version>
     <packaging>maven-plugin</packaging>
     <name>midPoint Tools - schema dist maven plugin</name>
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.6</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.6</version>
         </dependency>
     </dependencies>
     <build>

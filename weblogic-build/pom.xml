@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
     <groupId>com.evolveum.midpoint.dist</groupId>
     <artifactId>midPoint-weblogic</artifactId>
     <packaging>ear</packaging>
-    <version>3.6-SNAPSHOT</version>
+    <version>3.6</version>
     <description>midPoint distribution for WebLogic Server</description>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -36,7 +36,7 @@
 	<dependency>
 	    <groupId>com.evolveum.midpoint.gui</groupId>
 	    <artifactId>admin-gui</artifactId>
-	    <version>3.6-SNAPSHOT</version>
+	    <version>3.6</version>
 	    <type>war</type>
 	</dependency>
     </dependencies>

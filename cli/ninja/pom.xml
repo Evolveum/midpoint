@@ -23,12 +23,12 @@
     <name>midPoint CLI Interface - ninja</name>
     <groupId>com.evolveum.midpoint.cli</groupId>
     <artifactId>ninja</artifactId>
-    <version>3.6-SNAPSHOT</version>
+    <version>3.6</version>
 
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>cli</artifactId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.6</version>
     </parent>
 
     <dependencies>
