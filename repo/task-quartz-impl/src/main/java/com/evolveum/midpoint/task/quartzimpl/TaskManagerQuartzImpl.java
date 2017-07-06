@@ -1921,7 +1921,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // returns map task lightweight id -> task
     public Map<String,TaskQuartzImpl> getLocallyRunningTaskInstances() {
         synchronized (locallyRunningTaskInstancesMap) {    // must be synchronized while iterating over it (addAll)
-            return new HashMap<String,TaskQuartzImpl>(locallyRunningTaskInstancesMap);
+            return new HashMap<>(locallyRunningTaskInstancesMap);
         }
     }
 

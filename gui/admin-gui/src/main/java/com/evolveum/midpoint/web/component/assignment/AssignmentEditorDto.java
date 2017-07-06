@@ -553,6 +553,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public PrismContainerValue<AssignmentType> getNewValue(PrismContext prismContext) throws SchemaException {
+		prismContext.adopt(newAssignment);
 		// this removes activation element if it's empty
 		ActivationType activation = newAssignment.getActivation();
 		if (activation == null || activation.asPrismContainerValue().isEmpty()) {
