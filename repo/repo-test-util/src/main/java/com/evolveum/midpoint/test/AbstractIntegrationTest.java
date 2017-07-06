@@ -2052,7 +2052,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected String assignmentSummary(PrismObject<UserType> user) {
 		Map<String,Integer> assignmentRelations = new HashMap<>();
 		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
-			ObjectReferenceType targetRef = assignment.getTargetRef();
 			relationToMap(assignmentRelations, assignment.getTargetRef());
 		}
 		Map<String,Integer> memRelations = new HashMap<>();
@@ -2101,4 +2100,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		display("Counters", sb.toString());
 	}
 	
+	protected void assertMessageContains(String message, String string) {
+		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
+	}
 }

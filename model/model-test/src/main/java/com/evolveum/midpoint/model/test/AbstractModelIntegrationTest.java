@@ -4249,4 +4249,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, parentResult);
 	}
 
+	protected void displayProvisioningScripts() {
+		display("Provisioning scripts", getDummyResource().getScriptHistory());
+	}
+	
+	protected void purgeProvisioningScriptHistory() {
+		getDummyResource().purgeScriptHistory();
+	}
+
+	protected void assertNoProvisioningScripts() {
+		if (!getDummyResource().getScriptHistory().isEmpty()) {
+			IntegrationTestTools.displayScripts(getDummyResource().getScriptHistory());
+			AssertJUnit.fail(getDummyResource().getScriptHistory().size()+" provisioning scripts were executed while not expected any");
+		}
+	}
+	
+	protected void assertDummyProvisioningScriptsNone() {
+		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
+	}
 }
