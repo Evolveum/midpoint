@@ -143,6 +143,7 @@
 	</capabilities>
 	
 	<consistency>
+		<shadowConstaintsCheck>light</shadowConstaintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 	</consistency>
 	

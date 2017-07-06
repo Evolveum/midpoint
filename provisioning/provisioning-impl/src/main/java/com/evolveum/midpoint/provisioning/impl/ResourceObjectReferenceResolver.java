@@ -41,6 +41,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
@@ -125,10 +126,10 @@ public class ResourceObjectReferenceResolver {
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
 		
-		final Holder<ShadowType> shadowHolder = new Holder<>();
-		ShadowHandler<ShadowType> handler = new ShadowHandler<ShadowType>() {
+		final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
-			public boolean handle(ShadowType shadow) {
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
 				if (shadowHolder.getValue() != null) {
 					throw new IllegalStateException("More than one search results for " + desc);
 				}
@@ -141,8 +142,7 @@ public class ResourceObjectReferenceResolver {
 		
 		// TODO: implement storage of OID (ONCE search frequency)
 		
-		ShadowType shadowType = shadowHolder.getValue();
-		return shadowType==null?null:shadowType.asPrismObject();
+		return shadowHolder.getValue();
 	}
 	
 	/**
@@ -237,7 +237,7 @@ public class ResourceObjectReferenceResolver {
 			ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);
 			identification = resolvePrimaryIdentifiers(ctx, identification, parentResult);
 			identification.validatePrimaryIdenfiers();
-			return connector.fetchObject(ShadowType.class, identification, attributesToReturn, ctx,
+			return connector.fetchObject(identification, attributesToReturn, ctx,
 					parentResult);
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(

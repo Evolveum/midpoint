@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,11 +63,14 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 	}
 
 	public int size() {
+		if (list == null) {
+			return 0;
+		}
 		return list.size();
 	}
 
 	public boolean isEmpty() {
-		return list.isEmpty();
+		return list == null || list.isEmpty();
 	}
 
 	public boolean contains(Object o) {
@@ -87,7 +90,7 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 	}
 
 	public boolean add(T e) {
-		return list.add(e);
+		return getInitializedList().add(e);
 	}
 
 	public boolean remove(Object o) {
@@ -213,4 +216,12 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable {
 		}
 		return clone;
 	}
+	
+	private List<T> getInitializedList() {
+		if (list == null) {
+			list = new ArrayList<>();
+		}
+		return list;
+	}
+
 }

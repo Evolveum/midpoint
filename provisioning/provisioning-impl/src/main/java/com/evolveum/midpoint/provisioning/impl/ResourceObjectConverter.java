@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
+import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -192,7 +194,7 @@ public class ResourceObjectConverter {
 					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
 					.build();
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
-			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			ShadowResultHandler handler = new ShadowResultHandler() {
 				@Override
 				public boolean handle(PrismObject<ShadowType> shadow) {
 					if (!shadowHolder.isEmpty()) {
@@ -339,7 +341,7 @@ public class ResourceObjectConverter {
 			}
 			ResourceObjectIdentification identification = ResourceObjectIdentification.createFromShadow(ctx.getObjectClassDefinition(), shadow.asObjectable());
 		
-			existingObject = readConnector.fetchObject(ShadowType.class, identification, null, ctx, result);
+			existingObject = readConnector.fetchObject(identification, null, ctx, result);
 		} catch (ObjectNotFoundException e) {
 			// This is OK
 			result.muteLastSubresultError();
@@ -1219,13 +1221,19 @@ public class ResourceObjectConverter {
 					(shadow) -> {
 						// in order to utilize the cache right from the beginning...
 						RepositoryCache.enter();
+						
+						OperationResult objResult = parentResult.createMinorSubresult(OperationConstants.OPERATION_SEARCH_RESULT);
+						
 						try {
 							try {
-								shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, parentResult);
+								shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
 							} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException e) {
 								throw new TunnelException(e);
 							}
-							return resultHandler.handle(shadow);
+							Validate.notNull(shadow, "null shadow");
+							boolean doContinue = resultHandler.handle(shadow, objResult);
+							objResult.computeStatus();
+							return doContinue;
 						} finally {
 							RepositoryCache.exit();
 						}
@@ -1768,7 +1776,7 @@ public class ResourceObjectConverter {
 									change.getIdentifiers());
 							identification.validatePrimaryIdenfiers();
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
-							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, ctx, parentResult);
+							currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, parentResult);
 						}
 						
 					}

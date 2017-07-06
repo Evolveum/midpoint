@@ -124,11 +124,9 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 			return;
 		}
 
-		ConstraintViolationConfirmer confirmer = new ConstraintViolationConfirmer() {
-			@Override
-			public boolean confirmViolation(String oid) {
+		ConstraintViolationConfirmer confirmer = (conflictingShadowCandidate) -> {
 				boolean violation = true;
-				LensProjectionContext foundContext = context.findProjectionContextByOid(oid);
+				LensProjectionContext foundContext = context.findProjectionContextByOid(conflictingShadowCandidate.getOid());
 				if (foundContext != null) {
 					if (foundContext.getResourceShadowDiscriminator() != null) {
 						if (foundContext.getResourceShadowDiscriminator().isThombstone()) {
@@ -138,8 +136,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 					}
 				}
 				return violation;
-			}
-		};
+			};
 
 		constraintsCheckingResult = provisioningService.checkConstraints(projOcDef, projectionNew,
 				projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),

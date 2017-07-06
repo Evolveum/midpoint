@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Classes implementing this interface are used to handle iterative results.
  *
- * It is only used to handle iterative search results now. It may be resused for
+ * It is only used to handle iterative search results now. It may be reused for
  * other purposes as well.
  * 
  * @author Radovan Semancik
  */
-public interface ResultHandler<T extends ShadowType> {
+public interface ShadowResultHandler {
 
     /**
      * Handle a single result.
      * @param object Resource object to process.
      * @return true if the operation shoudl proceed, false if it should stop
      */
-	boolean handle(PrismObject<T> object);
+	boolean handle(PrismObject<ShadowType> object);
     
 }

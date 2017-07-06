@@ -636,4 +636,16 @@ public class ResourceTypeUtil {
 	public static QName fillDefaultFocusType(QName focusType) {
 		return focusType != null ? focusType : UserType.COMPLEX_TYPE;
 	}
+	
+	public static ShadowCheckType getShadowConstaintsCheck(ResourceType resource) {
+		ResourceConsistencyType consistency = resource.getConsistency();
+		if (consistency == null) {
+			return ShadowCheckType.NONE;
+		}
+		ShadowCheckType shadowCheckType = consistency.getShadowConstaintsCheck();
+		if (shadowCheckType == null) {
+			return ShadowCheckType.NONE;
+		}
+		return shadowCheckType;
+	}
 }

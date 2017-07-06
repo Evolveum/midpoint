@@ -31,7 +31,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -228,8 +228,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	}
 
 	@Override
-	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type,
-			ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
+	public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn,
 			StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ConfigurationException {
@@ -238,9 +237,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	}
 	
 	@Override
-	public <T extends ShadowType> SearchResultMetadata search(
+	public SearchResultMetadata search(
 			ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-			ResultHandler<T> handler, AttributesToReturn attributesToReturn,
+			ShadowResultHandler handler, AttributesToReturn attributesToReturn,
 			PagedSearchCapabilityType pagedSearchConfigurationType,
 			SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
