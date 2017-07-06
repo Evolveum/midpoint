@@ -680,10 +680,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	public boolean isEmpty() {
-		if (valuesToAdd == null && valuesToDelete == null && valuesToReplace == null) {
-			return true;
-		}
-		return false;
+		return valuesToAdd == null && valuesToDelete == null && valuesToReplace == null;
 	}
 
 	// TODO merge with isEmpty

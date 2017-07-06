@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -561,9 +562,21 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return thisObject.clone();
 	}
 
-    public void storeIntoLensElementContextType(LensElementContextType lensElementContextType) throws SchemaException {
-        lensElementContextType.setObjectOld(objectOld != null ? objectOld.asObjectable() : null);
-        lensElementContextType.setObjectNew(objectNew != null ? objectNew.asObjectable() : null);
+    void storeIntoLensElementContextType(LensElementContextType lensElementContextType, boolean reduced) throws SchemaException {
+		if (objectOld != null) {
+			if (reduced) {
+				lensElementContextType.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld));
+			} else {
+				lensElementContextType.setObjectOld(objectOld.asObjectable());
+			}
+		}
+		if (objectNew != null) {
+			if (reduced) {
+				lensElementContextType.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew));
+			} else {
+				lensElementContextType.setObjectNew(objectNew.asObjectable());
+			}
+		}
         lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
         for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
             lensElementContextType.getExecutedDeltas().add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());

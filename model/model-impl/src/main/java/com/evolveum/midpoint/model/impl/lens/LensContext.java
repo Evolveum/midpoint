@@ -1033,11 +1033,20 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {
-		PrismContainer<LensContextType> pc = toPrismContainer();
-		return pc.getValue().asContainerable();
+		return toLensContextType(false);
 	}
 
-	public PrismContainer<LensContextType> toPrismContainer() throws SchemaException {
+	/**
+	 * 'reduced' means
+	 * - no projection contexts except those with primary or sync deltas
+	 * - no full object values (focus, shadow).
+	 *
+	 * This mode is to be used for re-starting operation after primary-stage approval (here all data are re-loaded; maybe
+	 * except for objectOld, but let's neglect it for the time being).
+	 *
+	 * It is also to be used for the FINAL stage, where we need the context basically for information about executed deltas.
+	 */
+	public LensContextType toLensContextType(boolean reduced) throws SchemaException {
 
 		PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer
 				.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);
@@ -1049,13 +1058,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		if (focusContext != null) {
 			PrismContainer<LensFocusContextType> lensFocusContextTypeContainer = lensContextTypeContainer
 					.findOrCreateContainer(LensContextType.F_FOCUS_CONTEXT);
-			focusContext.addToPrismContainer(lensFocusContextTypeContainer);
+			focusContext.addToPrismContainer(lensFocusContextTypeContainer, reduced);
 		}
 
 		PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer
 				.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
 		for (LensProjectionContext lensProjectionContext : projectionContexts) {
-			lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer);
+			// primary delta can be null because of delta reduction algorithm (when approving associations)
+			if (!reduced || lensProjectionContext.getPrimaryDelta() != null || !ObjectDelta.isNullOrEmpty(lensProjectionContext.getSyncDelta())) {
+				lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, reduced);
+			}
 		}
 		lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
 		lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
@@ -1074,7 +1086,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			lensContextType.getRottenExecutedDeltas().add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
 		}
 
-		return lensContextTypeContainer;
+		return lensContextType;
 	}
 
 	static <T extends ObjectType> LensObjectDeltaOperation<T> simplifyExecutedDelta(LensObjectDeltaOperation<T> executedDelta) {

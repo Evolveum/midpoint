@@ -400,11 +400,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return sb.toString();
 	}
 
-    public void addToPrismContainer(PrismContainer<LensFocusContextType> lensFocusContextTypeContainer) throws SchemaException {
-
+    void addToPrismContainer(PrismContainer<LensFocusContextType> lensFocusContextTypeContainer, boolean reduced) throws SchemaException {
         LensFocusContextType lensFocusContextType = lensFocusContextTypeContainer.createNewValue().asContainerable();
-
-        super.storeIntoLensElementContextType(lensFocusContextType);
+        super.storeIntoLensElementContextType(lensFocusContextType, reduced);
         lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
     }
 

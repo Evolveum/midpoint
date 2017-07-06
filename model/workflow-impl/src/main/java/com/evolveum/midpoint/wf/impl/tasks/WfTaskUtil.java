@@ -133,8 +133,8 @@ public class WfTaskUtil {
         return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, task, result);
     }
 
-    public void storeModelContext(Task task, ModelContext context) throws SchemaException {
-        LensContextType modelContext = context != null ? ((LensContext) context).toLensContextType() : null;
+    public void storeModelContext(Task task, ModelContext context, boolean reduced) throws SchemaException {
+        LensContextType modelContext = context != null ? ((LensContext) context).toLensContextType(reduced) : null;
         storeModelContext(task, modelContext);
     }
 

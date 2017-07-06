@@ -1138,7 +1138,7 @@ public class ContextLoader {
 			LOGGER.trace("Finishing loading of projection context: password policy");
 			ObjectReferenceType passwordPolicyRef = structuralObjectClassDef.getPasswordPolicy();
 			if (passwordPolicyRef != null && passwordPolicyRef.getOid() != null) {
-				LOGGER.trace("Loading password policy {} for projection contex: {}", passwordPolicyRef, projContext);
+				LOGGER.trace("Loading password policy {} for projection context: {}", passwordPolicyRef, projContext);
 				PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(
 						ValuePolicyType.class, passwordPolicyRef.getOid(), null, result);
 				if (passwordPolicy != null) {

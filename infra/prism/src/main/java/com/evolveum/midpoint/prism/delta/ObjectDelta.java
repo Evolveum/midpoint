@@ -440,7 +440,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	if (getChangeType() == ChangeType.ADD) {
     		return objectToAdd == null || objectToAdd.isEmpty();
     	}
-        if (modifications == null || modifications.isEmpty()) {
+        if (modifications.isEmpty()) {
         	return true;
         }
         for (ItemDelta<?,?> mod: modifications) {
