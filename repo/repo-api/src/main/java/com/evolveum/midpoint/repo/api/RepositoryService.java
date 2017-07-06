@@ -140,6 +140,8 @@ public interface RepositoryService {
 	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
 	String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
 
+	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
+
 	/**
 	 * Returns object for provided OID.
 	 *

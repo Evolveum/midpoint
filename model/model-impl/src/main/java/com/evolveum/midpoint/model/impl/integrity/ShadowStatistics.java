@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * @author Pavol Mederly
  */
-public class Statistics {
+public class ShadowStatistics {
 
     public static final String NON_NORMALIZED_IDENTIFIER_VALUE = "Non-normalized identifier value";
     public static final String DUPLICATE_SHADOWS = "Duplicate shadows";
