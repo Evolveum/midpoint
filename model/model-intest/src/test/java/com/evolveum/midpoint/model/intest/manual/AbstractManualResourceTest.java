@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -154,6 +155,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
 
 	protected static final String INTEREST_ONE = "one";
+	
+	protected static final Random RND = new Random();
 
 
 	protected PrismObject<ResourceType> resource;
@@ -2563,7 +2566,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	// MID-4047
-	@Test(enabled = false)
+	@Test
 	public void test900ConcurrentConstructions() throws Exception {
 		final String TEST_NAME = "test900ConcurrentConstructions";
 		displayTestTile(TEST_NAME);
@@ -2580,10 +2583,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		for (int i = 0; i < THREADS; i++) {
 			threads[i] = new Thread(() -> {
 				try {
+					Thread.sleep(RND.nextInt(1000)); // Random start delay
+					LOGGER.info("{} starting", Thread.currentThread().getName());
 					login(userAdministrator);
 					Task localTask = createTask(TEST_NAME + ".local");
 					assignAccount(USER_BARBOSSA_OID, getResourceOid(), SchemaConstants.INTENT_DEFAULT, localTask, localTask.getResult());
-				} catch (CommonException e) {
+				} catch (CommonException | InterruptedException e) {
 					throw new SystemException("Couldn't assign resource: " + e.getMessage(), e);
 				}
 			});

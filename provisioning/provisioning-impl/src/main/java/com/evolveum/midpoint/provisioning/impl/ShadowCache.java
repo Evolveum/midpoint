@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
@@ -31,10 +32,10 @@ import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
+import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
@@ -228,6 +229,7 @@ public abstract class ShadowCache {
 		if (canReturnCached(options, repositoryShadow, resource)) {
 			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, resource);
 			applyAttributesDefinition(ctx, resultShadow);
+			validateShadow(resultShadow, true);
 			return resultShadow;
 		}
 		
@@ -270,6 +272,7 @@ public abstract class ShadowCache {
 					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, resource);
 					applyAttributesDefinition(ctx, resultShadow);
 					LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
+					validateShadow(resultShadow, true);
 					return resultShadow;
 				} else {
 					throw e;
@@ -320,6 +323,7 @@ public abstract class ShadowCache {
 
 			resultShadow = futurizeShadow(ctx, resultShadow, options, resource);
 			parentResult.recordSuccess();
+			validateShadow(resultShadow, true);
 			return resultShadow;
 
 		} catch (Exception ex) {
@@ -333,6 +337,7 @@ public abstract class ShadowCache {
 					// is returned
 					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
 				}
+				validateShadow(resourceShadow, true);
 				return resourceShadow;
 
 			} catch (GenericFrameworkException e) {
@@ -576,6 +581,8 @@ public abstract class ShadowCache {
 					isDoDiscovery(resource, options), true, parentResult);
 			return null;
 		}
+		
+		preAddChecks(ctx, shadow, task, parentResult);
 
 		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue;
 		PrismObject<ShadowType> addedShadow;
@@ -611,6 +618,32 @@ public abstract class ShadowCache {
 			operationListener.notifySuccess(operationDescription, task, parentResult);
 		}
 		return oid;
+	}
+
+	private void preAddChecks(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+		ShadowCheckType shadowConstraintsCheck = ResourceTypeUtil.getShadowConstaintsCheck(ctx.getResource());
+		if (shadowConstraintsCheck == ShadowCheckType.NONE) {
+			return;
+		}
+		
+		ConstraintsChecker checker = new ConstraintsChecker();
+		checker.setRepositoryService(repositoryService);
+		checker.setShadowCache(this);
+		checker.setPrismContext(prismContext);
+		checker.setShadowDefinition(ctx.getObjectClassDefinition());
+		checker.setShadowObject(shadow);
+		checker.setResourceType(ctx.getResource());
+		checker.setShadowOid(shadow.getOid());
+		checker.setResourceShadowDiscriminator(ctx.getShadowCoordinates());
+		checker.setConstraintViolationConfirmer(conflictingShadowCandidate -> !Boolean.TRUE.equals(conflictingShadowCandidate.asObjectable().isDead()) );
+		checker.setUseCache(false);
+		
+		ConstraintsCheckingResult retval = checker.check(task, result);
+		
+		LOGGER.trace("Checked {} constraints, result={}", shadow, retval.isSatisfiesConstraints());
+		if (!retval.isSatisfiesConstraints()) {
+			throw new ObjectAlreadyExistsException("Conflicting shadow already exists on "+ctx.getResource());
+		}
 	}
 
 	private ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
@@ -1189,9 +1222,22 @@ public abstract class ShadowCache {
 	////////////////////////////////////////////////////////////////////////////
 	// SEARCH
 	////////////////////////////////////////////////////////////////////////////
+	
+	public SearchResultList<PrismObject<ShadowType>> searchObjects(ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			final boolean readFromRepository, Task task, final OperationResult parentResult)
+					throws SchemaException, ObjectNotFoundException, CommunicationException,
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+
+		SearchResultList<PrismObject<ShadowType>> list = new SearchResultList<>();
+		SearchResultMetadata metadata = searchObjectsIterative(query, options, (shadow,result) -> list.add(shadow), readFromRepository, task, parentResult);
+		list.setMetadata(metadata);
+		return list;
+		
+	}
 
 	public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
+			Collection<SelectorOptions<GetOperationOptions>> options, final ResultHandler<ShadowType> handler,
 			final boolean readFromRepository, Task task, final OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -1205,7 +1251,7 @@ public abstract class ShadowCache {
 	}
 
 	public SearchResultMetadata searchObjectsIterative(final ProvisioningContext ctx, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
+			Collection<SelectorOptions<GetOperationOptions>> options, final ResultHandler<ShadowType> handler,
 			final boolean readFromRepository, final OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -1223,10 +1269,7 @@ public abstract class ShadowCache {
 
 		ObjectQuery attributeQuery = createAttributeQuery(query);
 
-		ResultHandler<ShadowType> resultHandler = new ResultHandler<ShadowType>() {
-
-			@Override
-			public boolean handle(PrismObject<ShadowType> resourceShadow) {
+		ResultHandler<ShadowType> resultHandler = (PrismObject<ShadowType> resourceShadow, OperationResult objResult) -> {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Found resource object\n{}", resourceShadow.debugDump(1));
 				}
@@ -1248,33 +1291,77 @@ public abstract class ShadowCache {
 
 						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow,
 								parentResult);
-
-						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, parentResult);
-
+						
+						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, objResult);
+						
 					} else {
 						resultShadow = resourceShadow;
 					}
 
-					// TODO: better error handling
+					validateShadow(resultShadow, readFromRepository);
+					
 				} catch (SchemaException e) {
-					parentResult.recordFatalError("Schema error: " + e.getMessage(), e);
+					objResult.recordFatalError("Schema error: " + e.getMessage(), e);
 					LOGGER.error("Schema error: {}", e.getMessage(), e);
 					return false;
 				} catch (ConfigurationException e) {
-					parentResult.recordFatalError("Configuration error: " + e.getMessage(), e);
+					objResult.recordFatalError("Configuration error: " + e.getMessage(), e);
 					LOGGER.error("Configuration error: {}", e.getMessage(), e);
 					return false;
 				} catch (ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException
 						| SecurityViolationException | GenericConnectorException | ExpressionEvaluationException e) {
-					parentResult.recordFatalError(e.getMessage(), e);
+					objResult.recordFatalError(e.getMessage(), e);
 					LOGGER.error("{}", e.getMessage(), e);
 					return false;
 				}
 
-				return handler.handle(resultShadow.asObjectable());
-			}
+				boolean doContinue;
+				try {
+					
+					doContinue =  handler.handle(resultShadow, objResult);
+					
+					objResult.computeStatus();
+					objResult.recordSuccessIfUnknown();
 
-		};
+                    if (!objResult.isSuccess() && !objResult.isHandledError()) {
+                        Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
+                                .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
+                                        getResourceObjectShadowDefinition(), objResult.createOperationResultType());
+                        try {
+							ConstraintsChecker.onShadowModifyOperation(shadowModificationType);
+							repositoryService.modifyObject(ShadowType.class, resultShadow.getOid(),
+                                    shadowModificationType, objResult);
+                        } catch (ObjectNotFoundException ex) {
+                        	objResult.recordFatalError("Saving of result to " + resultShadow
+                                    + " shadow failed: Not found: " + ex.getMessage(), ex);
+                        } catch (ObjectAlreadyExistsException ex) {
+                        	objResult.recordFatalError("Saving of result to " + resultShadow
+                                    + " shadow failed: Already exists: " + ex.getMessage(), ex);
+                        } catch (SchemaException ex) {
+                        	objResult.recordFatalError("Saving of result to " + resultShadow
+                                    + " shadow failed: Schema error: " + ex.getMessage(), ex);
+                        } catch (RuntimeException e) {
+                        	objResult.recordFatalError("Saving of result to " + resultShadow
+                                    + " shadow failed: " + e.getMessage(), e);
+                        	throw e;
+                        }
+                    }
+                } catch (RuntimeException e) {
+                	objResult.recordFatalError(e);
+                	throw e;
+                } finally {
+                	objResult.computeStatus();
+                	objResult.recordSuccessIfUnknown();
+                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
+                    // AbstractSummarizingResultHandler [lazyman]
+                    if (objResult.isSuccess()) {
+                    	objResult.getSubresults().clear();
+                    }
+                    parentResult.summarize();
+                }
+
+				return doContinue;
+			};
 
 		boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
 
@@ -1381,35 +1468,59 @@ public abstract class ShadowCache {
 
 	private SearchResultMetadata searchObjectsIterativeRepository(final ProvisioningContext ctx,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-			final ShadowHandler<ShadowType> shadowHandler, OperationResult parentResult)
+			final ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
 					CommunicationException, ExpressionEvaluationException {
 
-		com.evolveum.midpoint.schema.ResultHandler<ShadowType> repoHandler = new com.evolveum.midpoint.schema.ResultHandler<ShadowType>() {
-			@Override
-			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+		ResultHandler<ShadowType> repoHandler = (PrismObject<ShadowType> shadow, OperationResult objResult) -> {
 				try {
-					applyAttributesDefinition(ctx, object);
+					applyAttributesDefinition(ctx, shadow);
 					// fixing MID-1640; hoping that the protected object filter uses only identifiers
 					// (that are stored in repo)
-					ProvisioningUtil.setProtectedFlag(ctx, object, matchingRuleRegistry); 
-					boolean cont = shadowHandler.handle(object.asObjectable());
-					parentResult.recordSuccess();
+					ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry);
+					
+					validateShadow(shadow, true);
+					
+					if (GetOperationOptions.isMaxStaleness(SelectorOptions.findRootOptions(options))) {
+						CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
+						if (cachingMetadata == null) {
+							objResult.recordFatalError("Requested cached data but no cached data are available in the shadow");
+						}
+					}
+					
+					boolean cont = shadowHandler.handle(shadow, objResult);
+					
+					objResult.computeStatus();
+					objResult.recordSuccessIfUnknown();
+					if (!objResult.isSuccess()) {
+						OperationResultType resultType = objResult.createOperationResultType();
+						shadow.asObjectable().setFetchResult(resultType);
+					}
+					
 					return cont;
 				} catch (RuntimeException e) {
-					parentResult.recordFatalError(e);
+					objResult.recordFatalError(e);
 					throw e;
 				} catch (SchemaException | ConfigurationException | ObjectNotFoundException
 						| CommunicationException | ExpressionEvaluationException e) {
-					parentResult.recordFatalError(e);
+					objResult.recordFatalError(e);
+					shadow.asObjectable().setFetchResult(objResult.createOperationResultType());
 					throw new SystemException(e);
 				}
-			}
-		};
+			};
 
 		return shadowManager.searchObjectsIterativeRepository(ctx, query, options, repoHandler, parentResult);
 	}
-
+	
+	private void validateShadow(PrismObject<ShadowType> shadow, boolean requireOid) {
+		if (requireOid) {
+			Validate.notNull(shadow.getOid(), "null shadow OID");
+		}
+		if (InternalsConfig.encryptionChecks) {
+			CryptoUtil.checkEncrypted(shadow);
+		}
+	}
+	
 	private PrismObject<ShadowType> lookupOrCreateShadowInRepository(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
@@ -1553,9 +1664,9 @@ public abstract class ShadowCache {
 
 				final Holder<Integer> countHolder = new Holder<Integer>(0);
 
-				final ShadowHandler<ShadowType> handler = new ShadowHandler<ShadowType>() {
+				final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 					@Override
-					public boolean handle(ShadowType object) {
+					public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
 						int count = countHolder.getValue();
 						count++;
 						countHolder.setValue(count);
@@ -1589,10 +1700,10 @@ public abstract class ShadowCache {
 				// by one)
 				final Holder<Integer> countHolder = new Holder<Integer>(0);
 
-				final ShadowHandler<ShadowType> handler = new ShadowHandler<ShadowType>() {
+				final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
 					@Override
-					public boolean handle(ShadowType object) {
+					public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
 						int count = countHolder.getValue();
 						count++;
 						countHolder.setValue(count);

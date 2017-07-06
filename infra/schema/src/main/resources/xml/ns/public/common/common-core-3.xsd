@@ -4420,6 +4420,18 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="shadowConstaintsCheck" type="tns:ShadowCheckType" minOccurs="0" default="none">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Shadow constraint uniqueness setting. It mostly applies to shadow uniqueness.
+        				Uniqueness is checked by the resource under normal circumstances. This option
+        				can be used to turn on additional checks. Those checks may be needed to diagnose
+        				configuration issues or bugs (e.g. "duplicate shadow" problems). Or it may be
+        				used in case that the resource cannot check uniqueness by itself (e.g. in case of
+        				manual or asynchronous resources).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4468,6 +4480,47 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="ShadowCheckType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Shadow constraint uniqueness setting. It mostly applies to shadow uniqueness.
+   				Uniqueness is checked by the resource under normal circumstances. This option
+   				can be used to turn on additional checks. Those checks may be needed to diagnose
+   				configuration issues or bugs (e.g. "duplicate shadow" problems). Or it may be
+   				used in case that the resource cannot check uniqueness by itself (e.g. in case of
+   				manual or asynchronous resources).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		No additional checks.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="light">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Light checks only.
+                		E.g. the shadow uniqueness will be checked only once
+                		when new shadow is created.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LIGHT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <!-- TODO: thorough: always check uniqueness -->
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="ErrorSelectorType">
         <xsd:annotation>

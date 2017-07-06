@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -87,7 +88,7 @@ public class TestDummyCaching extends TestDummy {
 	@Override
 	public void test107AGetModifiedAccountFromCacheMax() throws Exception {
 		final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		rememberShadowFetchOperationCount();
@@ -155,7 +156,7 @@ public class TestDummyCaching extends TestDummy {
 	@Override
 	public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
 		final String TEST_NAME = "test107BGetModifiedAccountFromCacheHighStaleness";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		rememberShadowFetchOperationCount();
@@ -223,7 +224,7 @@ public class TestDummyCaching extends TestDummy {
 	@Override
 	public void test119SearchAllAccountsMaxStaleness() throws Exception {
 		final String TEST_NAME = "test119SearchAllAccountsMaxStaleness";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -233,7 +234,7 @@ public class TestDummyCaching extends TestDummy {
 		
 		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 		
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		Collection<SelectorOptions<GetOperationOptions>> options = 
 				SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
@@ -243,9 +244,8 @@ public class TestDummyCaching extends TestDummy {
 				query, options, null, result);
 		
 		// THEN
-		result.computeStatus();
 		display("searchObjects result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 		
 		display("Found " + allShadows.size() + " shadows");
 
@@ -257,6 +257,7 @@ public class TestDummyCaching extends TestDummy {
 			ShadowType shadowType = shadow.asObjectable();
 			OperationResultType fetchResult = shadowType.getFetchResult();
 			if (fetchResult != null) {
+				display("fetchResult",fetchResult);
 				assertEquals("Wrong fetch result status in "+shadow, OperationResultStatusType.SUCCESS, fetchResult.getStatus());
 			}
 			assertCachingMetadata(shadow, true, null, startTs);
@@ -266,7 +267,7 @@ public class TestDummyCaching extends TestDummy {
 			}
 		}
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		assertProtected(allShadows, 1);
 		

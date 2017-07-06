@@ -73,9 +73,16 @@ public class ConstraintsChecker {
 	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
 
 	private PrismContext prismContext;
-	private RepositoryService cacheRepositoryService;
-	private ProvisioningService provisioningService;
+	private RepositoryService repositoryService;
+	private ShadowCache shadowCache;
 	private StringBuilder messageBuilder = new StringBuilder();
+	private RefinedObjectClassDefinition shadowDefinition;
+	private PrismObject<ShadowType> shadowObject;
+	private ResourceType resourceType;
+	private String shadowOid;
+	private ResourceShadowDiscriminator resourceShadowDiscriminator;
+	private ConstraintViolationConfirmer constraintViolationConfirmer;
+	private boolean useCache = true;
 
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -85,20 +92,17 @@ public class ConstraintsChecker {
 		this.prismContext = prismContext;
 	}
 
-	public void setCacheRepositoryService(RepositoryService cacheRepositoryService) {
-		this.cacheRepositoryService = cacheRepositoryService;
+	public void setRepositoryService(RepositoryService repositoryService) {
+		this.repositoryService = repositoryService;
 	}
 
-	public void setProvisioningService(ProvisioningService provisioningService) {
-		this.provisioningService = provisioningService;
+	public ShadowCache getShadowCache() {
+		return shadowCache;
 	}
 
-	private RefinedObjectClassDefinition shadowDefinition;
-	private PrismObject<ShadowType> shadowObject;
-	private ResourceType resourceType;
-	private String shadowOid;
-	private ResourceShadowDiscriminator resourceShadowDiscriminator;
-	private ConstraintViolationConfirmer constraintViolationConfirmer;
+	public void setShadowCache(ShadowCache shadowCache) {
+		this.shadowCache = shadowCache;
+	}
 
 	public void setShadowDefinition(RefinedObjectClassDefinition shadowDefinition) {
 		this.shadowDefinition = shadowDefinition;
@@ -124,6 +128,14 @@ public class ConstraintsChecker {
 		this.constraintViolationConfirmer = constraintViolationConfirmer;
 	}
 
+	public boolean isUseCache() {
+		return useCache;
+	}
+
+	public void setUseCache(boolean useCache) {
+		this.useCache = useCache;
+	}
+
 	private ConstraintsCheckingResult constraintsCheckingResult;
 
 	public ConstraintsCheckingResult check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -140,7 +152,7 @@ public class ConstraintsChecker {
 
 		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(shadowDefinition.getPrimaryIdentifiers(),
 				shadowDefinition.getSecondaryIdentifiers());
-		LOGGER.trace("Secondary IDs {}", shadowDefinition.getSecondaryIdentifiers());
+		LOGGER.trace("Checking uniquenss of attributes: {}", uniqueAttributeDefs);
 		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
 			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
 			LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
@@ -184,7 +196,7 @@ public class ConstraintsChecker {
 
 	private boolean checkUniqueness(String oid, PrismProperty identifier, ObjectQuery query, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-		if (Cache.isOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues())) {
+		if (useCache && Cache.isOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues())) {
 			return true;
 		}
 
@@ -193,13 +205,15 @@ public class ConstraintsChecker {
 		// because there could be a matching rule; see ShadowManager.processQueryMatchingRuleFilter.
 		// Besides that, now the constraint checking is cached at a higher level, so this is not a big issue any more.
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, task, result);
+		List<PrismObject<ShadowType>> foundObjects = shadowCache.searchObjects(query, options, true, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 					identifier, foundObjects.size(), query.debugDump());
 		}
 		if (foundObjects.isEmpty()) {
-			Cache.setOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues());
+			if (useCache) {
+				Cache.setOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues());
+			}
 			return true;
 		}
 		if (foundObjects.size() > 1) {
@@ -220,11 +234,13 @@ public class ConstraintsChecker {
 						+ foundObjects.get(0).debugDump());
 			}
 			message("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ": " + foundObjects.get(0));
-			match = !constraintViolationConfirmer.confirmViolation(foundObjects.get(0).getOid());
+			match = !constraintViolationConfirmer.confirmViolation(foundObjects.get(0));
 			constraintsCheckingResult.setConflictingShadow(foundObjects.get(0));
 			// we do not cache "OK" here because the violation confirmer could depend on attributes/items that are not under our observations
 		} else {
-			Cache.setOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues());
+			if (useCache) {
+				Cache.setOk(resourceType.getOid(), oid, shadowDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues());
+			}
 			return true;
 		}
 		return match;

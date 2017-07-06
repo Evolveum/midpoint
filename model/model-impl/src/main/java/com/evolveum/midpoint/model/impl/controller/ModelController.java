@@ -1304,6 +1304,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return focus;
 	}
 
+	@Deprecated
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,

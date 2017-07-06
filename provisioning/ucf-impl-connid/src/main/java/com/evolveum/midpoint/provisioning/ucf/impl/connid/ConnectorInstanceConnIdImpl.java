@@ -110,7 +110,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PasswordChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -1018,7 +1018,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public <T extends ShadowType> PrismObject<T> fetchObject(Class<T> type, ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
+	public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
 															 OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ConfigurationException {
@@ -1112,15 +1112,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					+ description);
 		}
 
-		PrismObjectDefinition<T> shadowDefinition = toShadowDefinition(objectClassDefinition);
-		PrismObject<T> shadow = connIdConvertor.convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames, legacySchema);
+		PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectClassDefinition);
+		PrismObject<ShadowType> shadow = connIdConvertor.convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames, legacySchema);
 
 		result.recordSuccess();
 		return shadow;
 
 	}
 
-	private <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition(
+	private PrismObjectDefinition<ShadowType> toShadowDefinition(
 			ObjectClassComplexTypeDefinition objectClassDefinition) {
 		ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = objectClassDefinition
 				.toResourceAttributeContainerDefinition(ShadowType.F_ATTRIBUTES);
@@ -2172,8 +2172,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-    public <T extends ShadowType> SearchResultMetadata search(final ObjectClassComplexTypeDefinition objectClassDefinition, 
-    		final ObjectQuery query, final ResultHandler<T> handler, AttributesToReturn attributesToReturn, 
+    public SearchResultMetadata search(final ObjectClassComplexTypeDefinition objectClassDefinition, 
+    		final ObjectQuery query, final ShadowResultHandler handler, AttributesToReturn attributesToReturn, 
     		PagedSearchCapabilityType pagedSearchCapabilityType, SearchHierarchyConstraints searchHierarchyConstraints, 
     		final StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SecurityViolationException, SchemaException,
@@ -2199,7 +2199,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to determine object class", ex);
 			throw ex;
 		}
-		final PrismObjectDefinition<T> objectDefinition = toShadowDefinition(objectClassDefinition);
+		final PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(objectClassDefinition);
 
 		if (pagedSearchCapabilityType == null) {
 			pagedSearchCapabilityType = getCapability(PagedSearchCapabilityType.class);
@@ -2235,7 +2235,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                         }
                     }
 				}
-				PrismObject<T> resourceObject;
+				PrismObject<ShadowType> resourceObject;
+				Validate.notNull(connectorObject, "null connector object");
 				try {
 					resourceObject = connIdConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames, legacySchema);
 				} catch (SchemaException e) {
@@ -2243,6 +2244,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					throw new IntermediateException(e);
 				}
 
+				Validate.notNull(resourceObject, "null resource object");
+				
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
