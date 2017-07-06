@@ -25,6 +25,9 @@ import java.util.ArrayList;
  */
 public class Histogram<T> {
 
+	private static final int ZEROS_BEFORE_SKIP = 5;
+	private static final int ZEROS_AFTER_SKIP = 5;
+
 	private final int step;
 	private final int maxLength;
 
@@ -113,18 +116,49 @@ public class Histogram<T> {
 		//noinspection ConstantConditions
 		int maxCount = entries.stream().mapToInt(e -> e.getItemsCount()).max().getAsInt();
 		sb.append(String.format(rowFormatString, "Interval", "Items", column(0, maxCount, columns), "Representative"));
-		sb.append(StringUtils.repeat("-", maxIntervalLength + columns + 40)).append("\n");
+		int dividerLength = maxIntervalLength + columns + 40;
+		sb.append(StringUtils.repeat("-", dividerLength)).append("\n");
 		for (int i = 0; i < entries.size(); i++) {
-			HistogramEntry<T> entry = entries.get(i);
-			sb.append(String.format(rowFormatString, getIntervalString(i),
-					String.valueOf(entry.getItemsCount()), column(entry.getItemsCount(), maxCount, columns), getRepresentative(entry)));
+			int skipUntil = computeSkipUntil(i);
+			if (skipUntil >= 0) {
+				sb.append(StringUtils.repeat(" ~ ", dividerLength/6 - 3));
+				sb.append(skipUntil-i).append(" lines skipped");
+				sb.append(StringUtils.repeat(" ~ ", dividerLength/6 - 3)).append("\n");
+				i = skipUntil-1;
+			} else {
+				HistogramEntry<T> entry = entries.get(i);
+				sb.append(String.format(rowFormatString, getIntervalString(i),
+						String.valueOf(entry.getItemsCount()), column(entry.getItemsCount(), maxCount, columns),
+						getRepresentative(entry)));
+			}
 		}
 		sb.append("\n");
 		return sb.toString();
 	}
 
+	private int computeSkipUntil(int i) {
+		if (i < ZEROS_BEFORE_SKIP) {
+			return -1;
+		}
+		int firstNonZero = zerosTo(i - ZEROS_BEFORE_SKIP);
+		if (firstNonZero - ZEROS_AFTER_SKIP <= i+1) {		// so that at least 2 lines are skipped
+			return -1;
+		}
+		return firstNonZero - ZEROS_AFTER_SKIP;
+	}
+
+	private int zerosTo(int i) {
+		while (i < entries.size() && entries.get(i).getItemsCount() == 0) {
+			i++;
+		}
+		return i;
+	}
+
 	private Object column(int count, int maxCount, int columns) {
 		int bars = (int) ((double) columns * (double) count / (double) maxCount);
+		if (count > 0 && bars == 0) {
+			bars = 1;
+		}
 		return StringUtils.repeat("#", bars) + StringUtils.repeat(" ", columns-bars);
 	}
 
