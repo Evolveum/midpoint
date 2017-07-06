@@ -4432,6 +4432,22 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="validateSchema" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then midPoint will validate the schema of objects that leave
+        				and enter midPoint by the connectors. MidPoint will checks if datatypes and
+        				multiplicity is correct and issue hard errors in any mismatch.
+        				
+        				EXPERIMENTAL: this feature is used mostly for internal checks during 
+        				development and testing. It is not intended for production use. 
+        				Those checks may slow the system down and they may also may impact 
+        				robustness. MidPoint is usually able to deal data types that are slightly
+        				wrong and auto-correct them. Enabling this feature will cause that an error
+        				is thrown even if cases that may get auto-corrected. 
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>

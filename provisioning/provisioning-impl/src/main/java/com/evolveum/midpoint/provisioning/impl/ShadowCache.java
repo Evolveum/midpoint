@@ -621,6 +621,11 @@ public abstract class ShadowCache {
 	}
 
 	private void preAddChecks(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+		checkConstraints(ctx, shadow, task, result);
+		validateSchema(ctx, shadow, task, result);
+	}
+		
+	private void checkConstraints(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
 		ShadowCheckType shadowConstraintsCheck = ResourceTypeUtil.getShadowConstaintsCheck(ctx.getResource());
 		if (shadowConstraintsCheck == ShadowCheckType.NONE) {
 			return;
@@ -643,6 +648,12 @@ public abstract class ShadowCache {
 		LOGGER.trace("Checked {} constraints, result={}", shadow, retval.isSatisfiesConstraints());
 		if (!retval.isSatisfiesConstraints()) {
 			throw new ObjectAlreadyExistsException("Conflicting shadow already exists on "+ctx.getResource());
+		}
+	}
+	
+	private void validateSchema(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+		if (ResourceTypeUtil.isValidateSchema(ctx.getResource())) {
+			ShadowUtil.validateAttributeSchema(shadow, ctx.getObjectClassDefinition());
 		}
 	}
 

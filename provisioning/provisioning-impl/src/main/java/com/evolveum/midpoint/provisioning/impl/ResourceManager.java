@@ -667,7 +667,11 @@ public class ResourceManager {
 		List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 		ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
 		LOGGER.trace("Trying to get schema from {}", connectorSpec);
-		return connectorInstance.fetchResourceSchema(generateObjectClasses, parentResult);
+		ResourceSchema resourceSchema = connectorInstance.fetchResourceSchema(generateObjectClasses, parentResult);
+		if (ResourceTypeUtil.isValidateSchema(resource.asObjectable())) {
+			ResourceTypeUtil.validateSchema(resourceSchema, resource);
+		}
+		return resourceSchema;
 		
 	}
 	
