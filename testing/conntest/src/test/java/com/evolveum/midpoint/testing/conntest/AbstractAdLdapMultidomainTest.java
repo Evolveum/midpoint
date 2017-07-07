@@ -1255,8 +1255,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
         
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
@@ -1270,7 +1269,32 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Just make random test connection between the tests. Make sure that the
+	 * test does not break anything. If it does the next tests will simply fail.
+	 */
+	@Test
+    public void test295TestConnection() throws Exception {
+		final String TEST_NAME = "test295TestConnection";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        OperationResult testResult = modelService.testResource(getResourceOid(), task);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        display("Test connection result", testResult);
+        TestUtil.assertSuccess("Test connection result", testResult);
+                
+        assertLdapConnectorInstances(2);
 	}
 
 	@Test
@@ -1304,7 +1328,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 	
 	@Test
