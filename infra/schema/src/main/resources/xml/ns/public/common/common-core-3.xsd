@@ -11182,6 +11182,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="enableExperimentalFeatures" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Enabled experimental and alternative user interface features.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
