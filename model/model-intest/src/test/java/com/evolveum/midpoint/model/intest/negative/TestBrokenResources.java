@@ -98,6 +98,10 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	private static final String RESOURCE_DUMMY_UNACCESSIBLE_NAME = "unaccessible";
 	private static final String RESOURCE_DUMMY_UNACCESSIBLE_OID = "10000000-0000-0000-0000-666600660007";
 
+	private static final File RESOURCE_DUMMY_EBONY_FILE = new File (TEST_DIR, "resource-dummy-ebony.xml");
+	private static final String RESOURCE_DUMMY_EBONY_NAME = "ebony";
+	private static final String RESOURCE_DUMMY_EBONY_OID = "10000000-0000-0000-0000-00000000e305";
+	
 	private static final File ACCOUNT_SHADOW_JACK_CSVFILE_FILE = new File (TEST_DIR, "account-shadow-jack-csvfile.xml");
 	private static final String ACCOUNT_SHADOW_JACK_CSVFILE_OID = "ef2bc95b-76e0-1111-d3ad-3d4f12120001";
 	
@@ -108,7 +112,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	private static final String BROKEN_CSV_SOURCE_FILE_NAME = TEST_DIR + "/" + BROKEN_CSV_FILE_NAME;
 	private static final String BROKEN_CSV_TARGET_FILE_NAME = TEST_TARGET_DIR + "/" + BROKEN_CSV_FILE_NAME;
 	
-	private static final int NUMBER_OF_RESOURCES = 5;
+	private static final int NUMBER_OF_RESOURCES = 6;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(TestBrokenResources.class);
 	
@@ -128,6 +132,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILE, initResult);
 		
 		initDummyResourcePirate(RESOURCE_DUMMY_BLACK_NAME, RESOURCE_DUMMY_BLACK_FILE, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_EBONY_NAME, RESOURCE_DUMMY_EBONY_FILE, RESOURCE_DUMMY_EBONY_OID, initTask, initResult);
 		initDummyResourcePirate(null, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_UNACCESSIBLE_NAME, null, null, initTask, initResult);
 		
@@ -886,7 +891,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		assertDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
 		
-		assertDummyBlackScripts("add/after", null);
+		assertDummyScripts(RESOURCE_DUMMY_BLACK_NAME, "add/after", null);
 	}
 	
 	/**
@@ -919,7 +924,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		assertDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
 		
-		assertDummyBlackScripts("modify/after", "none");
+		assertDummyScripts(RESOURCE_DUMMY_BLACK_NAME, "modify/after", "none");
 	}
 	
 	/**
@@ -952,7 +957,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 		
-		assertDummyBlackScripts("delete/after", "none");
+        assertDummyScripts(RESOURCE_DUMMY_BLACK_NAME, "delete/after", "none");
 	}
 	
 	/**
@@ -993,7 +998,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         // But we know that the account was created and that it exists
 		assertDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
 		
-		assertDummyBlackScripts("add/after", DummyResource.POWERFAIL_ARG_ERROR_GENERIC);
+		assertDummyScripts(RESOURCE_DUMMY_BLACK_NAME, "add/after", DummyResource.POWERFAIL_ARG_ERROR_GENERIC);
 	}
 	
 	/**
@@ -1056,7 +1061,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 		
 		assertDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
 		
-		assertDummyBlackScripts("modify/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
+		assertDummyScripts(RESOURCE_DUMMY_BLACK_NAME, "modify/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 	}
 	
 	/**
@@ -1091,7 +1096,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         // But we know that it is gone ...
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 		
-		assertDummyBlackScripts("delete/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
+		assertDummyScripts(RESOURCE_DUMMY_BLACK_NAME, "delete/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 	}
 	
 	/**
@@ -1124,17 +1129,125 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
 	
+	/**
+	 * Causing an error in provisioning script. Partial criticality.
+	 * Error should be indicated, but the operation should go on.
+	 * MID-4060
+	 */
+	@Test
+	public void test520AssignResourceEbonyError() throws Exception {
+		final String TEST_NAME = "test520AssignResourceEbonyError";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest5xx();
+        
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_GENERIC);
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 0);
+        assertNoDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertPartialError(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        // Partial criticality. We assume that the account exists.
+        assertLinks(userAfter, 1);
+		
+        // But we know that the account was created and that it exists
+		assertDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+		
+		assertDummyScripts(RESOURCE_DUMMY_EBONY_NAME, "add/after", DummyResource.POWERFAIL_ARG_ERROR_GENERIC);
+	}
+	
+	/**
+	 * Causing an error in provisioning script. partial criticality.
+	 * The operation should go on.
+	 * MID-4060
+	 */
+	@Test
+	public void test524ModifyUserEmployeeNumberRuntime() throws Exception {
+		final String TEST_NAME = "test524ModifyUserEmployeeNumberRuntime";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest5xx();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertPartialError(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        String accountOid = getSingleLinkOid(userAfter);
+		
+		assertDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
+		
+		assertDummyScripts(RESOURCE_DUMMY_EBONY_NAME, "modify/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
+	}
+	
+	/**
+	 * Causing an error in provisioning script. Partial criticality.
+	 * The operation should go on.
+	 * MID-4060
+	 */
+	@Test
+	public void test528UnassignResourceEbony() throws Exception {
+		final String TEST_NAME = "test528UnassignResourceEbony";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest5xx();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        assertPartialError(result);
+		
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 0);
+		
+        assertNoDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+		
+		assertDummyScripts(RESOURCE_DUMMY_EBONY_NAME, "delete/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
+	}
+	
 	private void prepareTest5xx() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         purgeProvisioningScriptHistory(RESOURCE_DUMMY_BLACK_NAME);
+        purgeProvisioningScriptHistory(RESOURCE_DUMMY_EBONY_NAME);
 	}
 	
-	private void assertDummyBlackScripts(String operation, String errorArg) {
-		displayProvisioningScripts(RESOURCE_DUMMY_BLACK_NAME);
+	private void assertDummyScripts(String dummyName, String operation, String errorArg) {
+		displayProvisioningScripts(dummyName);
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("operation:"+operation);		
 		script.addArgSingle(DummyResource.POWERFAIL_ARG_ERROR, errorArg);
 		script.setLanguage(DummyResource.SCRIPT_LANGUAGE_POWERFAIL);
-		IntegrationTestTools.assertScripts(getDummyResource(RESOURCE_DUMMY_BLACK_NAME).getScriptHistory(), script);
+		IntegrationTestTools.assertScripts(getDummyResource(dummyName).getScriptHistory(), script);
 	}
 	
 	
