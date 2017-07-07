@@ -1372,7 +1372,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		OperationOptionsBuilder operationOptionsBuilder = new OperationOptionsBuilder();
 		OperationOptions options = operationOptionsBuilder.build();
 		
-		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
+		checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
 
 		OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		connIdResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
@@ -1417,15 +1417,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
-		
-		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 
 		if (uid == null || uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
 			connIdResult.recordFatalError("ConnId did not returned UID after create");
 			result.computeStatus("Add object failed");
 			throw new GenericFrameworkException("ConnId did not returned UID after create");
 		}
-
 		
 		Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(uid, 
 				attributesContainer.getDefinition().getComplexTypeDefinition(), resourceSchema);
@@ -1433,6 +1430,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			attributesContainer.getValue().addReplaceExisting(identifier);
 		}
 		connIdResult.recordSuccess();
+		
+		checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 
 		result.recordSuccess();
 		return AsynchronousOperationReturnValue.wrap(attributesContainer.getAttributes(), result);
@@ -1683,7 +1682,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		// icfResult for each operation
 		// and handle the faults individually
 
-		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
+		checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
 
 		OperationResult connIdResult = null;
 		try {
@@ -1874,7 +1873,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
-		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.AFTER, result);
+		checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 		
 		result.computeStatus();
 
@@ -1942,7 +1941,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			throw e;
 		}
 
-		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
+		checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.BEFORE, result);
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
 		icfResult.addArbitraryObjectAsParam("uid", uid);
@@ -1983,7 +1982,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 		}
 		
-		checkAndExecuteAdditionalOperation(reporter, additionalOperations, BeforeAfterType.AFTER, result);
+		checkAndExecuteAdditionalOperations(reporter, additionalOperations, BeforeAfterType.AFTER, result);
 
 		result.computeStatus();
 		return AsynchronousOperationResult.wrap(result);
@@ -2873,7 +2872,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	 * check additional operation order, according to the order are script
 	 * executed before or after operation..
 	 */
-	private void checkAndExecuteAdditionalOperation(StateReporter reporter, Collection<Operation> additionalOperations, BeforeAfterType order, OperationResult result) throws CommunicationException, GenericFrameworkException {
+	private void checkAndExecuteAdditionalOperations(StateReporter reporter, Collection<Operation> additionalOperations, BeforeAfterType order, OperationResult result) throws CommunicationException, GenericFrameworkException {
 
 		if (additionalOperations == null) {
 			// TODO: add warning to the result

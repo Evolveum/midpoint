@@ -444,6 +444,9 @@ public class ResourceObjectConverter {
 		} catch (GenericFrameworkException ex) {
 			result.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+		} catch (RuntimeException | Error ex) {
+			result.recordFatalError(ex);
+			throw ex;
 		}
 		
 		

@@ -4250,11 +4250,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void displayProvisioningScripts() {
-		display("Provisioning scripts", getDummyResource().getScriptHistory());
+		displayProvisioningScripts(null);
+	}
+	
+	protected void displayProvisioningScripts(String dummyName) {
+		display("Provisioning scripts "+dummyName, getDummyResource(dummyName).getScriptHistory());
 	}
 	
 	protected void purgeProvisioningScriptHistory() {
-		getDummyResource().purgeScriptHistory();
+		purgeProvisioningScriptHistory(null);
+	}
+	
+	protected void purgeProvisioningScriptHistory(String dummyName) {
+		getDummyResource(dummyName).purgeScriptHistory();
 	}
 
 	protected void assertNoProvisioningScripts() {
