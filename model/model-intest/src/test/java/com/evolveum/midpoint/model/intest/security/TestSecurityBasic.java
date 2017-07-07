@@ -1957,7 +1957,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
         assertAllow("assign business role to jack", 
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -1967,7 +1967,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
         assertAllow("unassign business role from jack", 
-        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
+        		(task, result) -> unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2010,14 +2010,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
         assertAllow("assign business role to jack (no param)", 
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
         
         assertAllow("assign business role to jack (org MoR)", 
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 4);
@@ -2025,7 +2025,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
         assertAllow("assign business role to jack (org Scumm)", 
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 5);
@@ -2033,7 +2033,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
         assertAllow("unassign business role from jack (org Scumm)", 
-        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result));
+        		(task, result) -> unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_SCUMM_BAR_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 4);
@@ -2044,14 +2044,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
         assertAllow("unassign business role from jack (no param)", 
-        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
+        		(task, result) -> unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
         
         user = getUser(USER_JACK_OID);
         display("user after (expected 3 assignments)", user);
         assertAssignments(user, 3);
         
         assertAllow("unassign business role from jack (org MoR)", 
-        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
+        		(task, result) -> unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2092,7 +2092,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignedRole(user, ROLE_ASSIGN_REQUESTABLE_ROLES_OID);
         
         assertAllow("assign business role to jack", 
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -2118,7 +2118,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 			});
 
         assertAllow("unassign business role from jack", 
-        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
+        		(task, result) -> unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2160,7 +2160,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         
         assertAllow("assign business role to jack", 
         	(task, result) ->
-				assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
+				assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -2175,7 +2175,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertAllow("unassign business role from jack",
         	(task, result) ->
-				unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
+				unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 2 assignments)", user);
@@ -2227,7 +2227,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         
         // MID-3136
         assertAllow("assign business role to jack",   
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -2238,7 +2238,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // End-user role has authorization to assign, but not to unassign
         assertDeny("unassign business role from jack",   
-        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
+        		(task, result) -> unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 3 assignments)", user);
@@ -2272,7 +2272,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         
         // MID-3136
         assertAllow("assign business role to jack (no param)", 
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, null, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 3);
@@ -2280,7 +2280,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         
         // MID-3136
         assertAllow("assign business role to jack (org governor)",  
-        		(task, result) -> assignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
+        		(task, result) -> assignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
         
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 4);
@@ -2295,7 +2295,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         // End-user role has authorization to assign, but not to unassign
         assertDeny("unassign business role from jack",  
-        		(task, result) -> unassignPrametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
+        		(task, result) -> unassignParametricRole(USER_JACK_OID, ROLE_BUSINESS_1_OID, null, ORG_GOVERNOR_OFFICE_OID, task, result));
 
         user = getUser(USER_JACK_OID);
         display("user after (expected 4 assignments)", user);

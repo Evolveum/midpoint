@@ -140,7 +140,7 @@ public class Projector {
 	 * Useful for change preview.
 	 */
 	public <F extends ObjectType> void projectAllWaves(LensContext<F> context, String activityDescription,
-												  Task task, OperationResult parentResult)
+			Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		projectInternal(context, activityDescription, true, true, task, parentResult);
