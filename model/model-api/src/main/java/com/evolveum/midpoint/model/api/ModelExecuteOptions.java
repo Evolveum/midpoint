@@ -648,7 +648,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 			case SKIP: value = "-"; break;
 			default: throw new AssertionError();
 		}
-		sb.append(label).append("=").append(value).append(",");
+		sb.append(label).append(value).append(",");
 	}
 
 	public ModelExecuteOptions clone() {
