@@ -4545,6 +4545,7 @@
                 which error types to handle, etc.
                 
                 EXPERIMENTAL: use with care
+                TODO: change booleans to CriticalityType
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -4606,6 +4607,56 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="CriticalityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies criticality of an operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.6.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="fatal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Fatal criticality. Error in the operation will cause
+                        fatal error. The processing will be interrupted,
+                        error will be indicated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FATAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="partial">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Partial criticality. The error will be indicated,
+                        composite result of the operation will be presented
+                        as partial error, but the processing will NOT be interrupted.
+                        The operation will try recover and continue.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PARTIAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: warning? -->
+<!--             <xsd:enumeration value="ignore">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No criticality. The error will be ignored. It will not
+                        be indicated in any result. 
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>  
+            </xsd:enumeration> -->
+        </xsd:restriction>
+    </xsd:simpleType>
         
     <xsd:complexType name="ResourceBusinessConfigurationType">
         <xsd:annotation>
@@ -5989,6 +6040,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="criticality" type="tns:CriticalityType" minOccurs="0" default="fatal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines where the script should be executed
+                        (connector or resource). If no type is specified, it
+                        defaults to resource.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.6.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6077,7 +6140,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
 
     <xsd:complexType name="ProvisioningScriptArgumentType">
         <xsd:annotation>

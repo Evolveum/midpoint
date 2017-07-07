@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processIcfException;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
 import java.io.File;
 import java.io.IOException;
@@ -295,7 +295,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				return connectors;
 			}
 		} catch (Throwable icfException) {
-			Throwable ex = processIcfException(icfException, "list connectors", result);
+			Throwable ex = processConnIdException(icfException, "list connectors", result);
 			result.recordFatalError(ex.getMessage(), ex);
 			if (ex instanceof CommunicationException) {
 				throw (CommunicationException) ex;

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Ebony dummy resource for testing tolerant attributes
+	 there are provisioning scripts that may fail (low criticality)
+     Similar to BLACK resource, but the provisioning scripts have lower criticality. it is also a bit simpler.
+      -->
+
+<resource oid="10000000-0000-0000-0000-00000000e305"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource Ebony</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>ebony</icfi:instanceId>
+			<icfi:supportValidity>true</icfi:supportValidity>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+				    <strength>weak</strength>
+				    <source>
+				    	<path>name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<target>
+						<path>$user/name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+				<inbound>
+					<strength>weak</strength>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/organizationalUnit</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<displayName>Quote</displayName>
+				<tolerantValuePattern>^res-.*</tolerantValuePattern>
+				<intolerantValuePattern>^.*</intolerantValuePattern>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$user/description</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<displayName>Drink</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<expression>
+						<value>rum</value>
+					</expression>
+				</outbound>
+			</attribute>
+			 <attribute>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
+                <tolerant>true</tolerant>
+                <intolerantValuePattern>^gossip-.*</intolerantValuePattern>
+                <outbound>
+					<strength>strong</strength>
+					<source>
+						<path>$user/employeeNumber</path>
+					</source>
+				</outbound>
+            </attribute>
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+			<activation>
+            	<administrativeStatus>
+            		<outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</administrativeStatus>
+            	<validFrom>
+            		<outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validFrom>
+            	<validTo>
+            		<outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</validTo>
+            </activation>
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+		</objectType>
+	</schemaHandling>
+	
+	<scripts>
+		<script>
+			<host>resource</host>
+			<language>powerfail</language>
+			<argument>
+				<script>
+					<code>user?.getEmployeeNumber()</code>
+				</script> 
+				<name>error</name>
+			</argument>
+			<code>operation:add/after</code>
+			<criticality>partial</criticality>
+			<operation>add</operation>
+            <kind>account</kind>
+			<order>after</order>
+		</script>
+		<script>
+			<host>resource</host>
+			<language>powerfail</language>
+			<argument>
+				<script>
+					<code>user?.getEmployeeNumber()</code>
+				</script> 
+				<name>error</name>
+			</argument>
+			<code>operation:modify/after</code>
+			<criticality>partial</criticality>
+			<operation>modify</operation>
+            <kind>account</kind>
+			<order>after</order>
+		</script>
+		<script>
+			<host>resource</host>
+			<language>powerfail</language>
+			<argument>
+				<script>
+					<code>user?.getEmployeeNumber()</code>
+				</script> 
+				<name>error</name>
+			</argument>
+			<code>operation:delete/after</code>
+			<criticality>partial</criticality>
+			<operation>delete</operation>
+            <kind>account</kind>
+			<order>after</order>
+		</script>
+	</scripts>
+	
+	<consistency>
+	</consistency>
+	
+	<synchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<script>
+							<code>
+								basic.getAttributeValue(account, 
+									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+							</code>
+						</script>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+	        </reaction>
+        </objectSynchronization>
+	</synchronization>
+	
+</resource>
