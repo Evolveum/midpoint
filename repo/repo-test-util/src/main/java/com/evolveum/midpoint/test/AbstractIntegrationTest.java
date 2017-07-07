@@ -1771,6 +1771,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertFailure(result);
 	}
 	
+	protected void assertPartialError(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertPartialError(result);
+	}
+	
 	protected void fail(String message) {
 		AssertJUnit.fail(message);
 	}

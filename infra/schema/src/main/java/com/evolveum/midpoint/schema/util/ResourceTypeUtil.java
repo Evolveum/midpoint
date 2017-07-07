@@ -641,12 +641,12 @@ public class ResourceTypeUtil {
 		return focusType != null ? focusType : UserType.COMPLEX_TYPE;
 	}
 	
-	public static ShadowCheckType getShadowConstaintsCheck(ResourceType resource) {
+	public static ShadowCheckType getShadowConstraintsCheck(ResourceType resource) {
 		ResourceConsistencyType consistency = resource.getConsistency();
 		if (consistency == null) {
 			return ShadowCheckType.NONE;
 		}
-		ShadowCheckType shadowCheckType = consistency.getShadowConstaintsCheck();
+		ShadowCheckType shadowCheckType = consistency.getShadowConstraintsCheck();
 		if (shadowCheckType == null) {
 			return ShadowCheckType.NONE;
 		}

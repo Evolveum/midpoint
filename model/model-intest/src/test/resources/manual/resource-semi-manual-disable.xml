@@ -173,7 +173,7 @@
 	
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
-		<shadowConstaintsCheck>light</shadowConstaintsCheck>
+		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 	</consistency>
 	

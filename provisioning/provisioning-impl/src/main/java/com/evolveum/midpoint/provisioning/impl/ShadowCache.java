@@ -626,7 +626,7 @@ public abstract class ShadowCache {
 	}
 		
 	private void checkConstraints(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
-		ShadowCheckType shadowConstraintsCheck = ResourceTypeUtil.getShadowConstaintsCheck(ctx.getResource());
+		ShadowCheckType shadowConstraintsCheck = ResourceTypeUtil.getShadowConstraintsCheck(ctx.getResource());
 		if (shadowConstraintsCheck == ShadowCheckType.NONE) {
 			return;
 		}
