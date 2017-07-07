@@ -447,9 +447,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.options = options;
 	}
 
+	// be sure to use this method during clockwork processing, instead of directly accessing options.getPartialProcessing
 	@Override
 	@NotNull
 	public PartialProcessingOptionsType getPartialProcessingOptions() {
+		if (state == ModelState.INITIAL && options != null && options.getInitialPartialProcessing() != null) {
+			return options.getInitialPartialProcessing();
+		}
 		if (options == null || options.getPartialProcessing() == null) {
 			return new PartialProcessingOptionsType();
 		} else {

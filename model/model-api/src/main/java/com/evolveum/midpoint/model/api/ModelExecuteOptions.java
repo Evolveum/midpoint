@@ -125,6 +125,16 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 */
 	private PartialProcessingOptionsType partialProcessing;
 
+	/**
+	 * Partial processing for initial clockwork stage. Used primarily for eliminating overhead when starting
+	 * operations that are expected to result in (background) approval processing.
+	 *
+	 * Note that if this option is used and if the clockwork proceeds to PRIMARY phase (e.g. because there are
+	 * no approvals), the context will be rotten after INITIAL phase. This presents some overhead. So please use
+	 * this option only if there is reasonable assumption that the request will stop after INITIAL phase.
+	 */
+	private PartialProcessingOptionsType initialPartialProcessing;
+
     public Boolean getForce() {
 		return force;
 	}
@@ -504,6 +514,28 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		return opts;
 	}
 
+	public PartialProcessingOptionsType getInitialPartialProcessing() {
+		return initialPartialProcessing;
+	}
+
+	public void setInitialPartialProcessing(
+			PartialProcessingOptionsType initialPartialProcessing) {
+		this.initialPartialProcessing = initialPartialProcessing;
+	}
+
+	public static PartialProcessingOptionsType getInitialPartialProcessing(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getInitialPartialProcessing();
+	}
+
+	public static ModelExecuteOptions createInitialPartialProcessing(PartialProcessingOptionsType partialProcessing) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setInitialPartialProcessing(partialProcessing);
+		return opts;
+	}
+
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
@@ -600,6 +632,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     	appendFlag(sb, "reconcileAffected", reconcileAffected);
     	appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);
     	appendVal(sb, "partialProcessing", format(partialProcessing));
+    	appendVal(sb, "initialPartialProcessing", format(initialPartialProcessing));
     	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();

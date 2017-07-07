@@ -52,6 +52,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
+
 /**
  * Created by honchar.
  */
@@ -208,7 +210,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             PrismObject<UserType> user = getTargetUser();
             delta = prepareDelta(user, result);
 
-            getModelService().executeChanges(Collections.singletonList(delta), createOptions(), createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
+            ModelExecuteOptions options = createOptions();
+            options.setInitialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP)); // TODO make this configurable?
+            getModelService().executeChanges(Collections.singletonList(delta), options, createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
 
             result.recordSuccess();
             SessionStorage storage = getSessionStorage();
@@ -252,6 +256,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         return options;
     }
 
+    // TODO initial partial processing options - MID-4059 (but it's not so important here, because the task runs on background)
     private void onMultiUserRequestPerformed(AjaxRequestTarget target) {
             OperationResult result = new OperationResult(OPERATION_REQUEST_ASSIGNMENTS);
             Task operationalTask = createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
@@ -387,8 +392,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             handleAssignmentDeltas(delta, getSessionStorage().getRoleCatalog().getAssignmentShoppingCart(), def);
 
             PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
-            partialProcessing.setInbound(PartialProcessingTypeType.SKIP);
-            partialProcessing.setProjection(PartialProcessingTypeType.SKIP);
+            partialProcessing.setInbound(SKIP);
+            partialProcessing.setProjection(SKIP);
 			ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
 			modelContext = getModelInteractionService()
                     .previewChanges(WebComponentUtil.createDeltaCollection(delta), recomputeOptions, task, result);
