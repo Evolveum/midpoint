@@ -4420,7 +4420,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="shadowConstaintsCheck" type="tns:ShadowCheckType" minOccurs="0" default="none">
+        	<xsd:element name="shadowConstraintsCheck" type="tns:ShadowCheckType" minOccurs="0" default="none">
         		<xsd:annotation>
         			<xsd:documentation>
         				Shadow constraint uniqueness setting. It mostly applies to shadow uniqueness.
