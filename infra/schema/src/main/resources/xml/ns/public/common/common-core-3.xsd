@@ -4635,8 +4635,8 @@
                     <xsd:documentation>
                         Partial criticality. The error will be indicated,
                         composite result of the operation will be presented
-                        as fatal error, but the processing will NOT be interrupted.
-                        The operation will recover and continue.
+                        as partial error, but the processing will NOT be interrupted.
+                        The operation will try recover and continue.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PARTIAL"/>
