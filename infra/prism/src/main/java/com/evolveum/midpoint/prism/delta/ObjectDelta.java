@@ -377,7 +377,19 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
 
     private <D extends ItemDelta> D findModification(ItemPath propertyPath, Class<D> deltaType) {
-    	return ItemDelta.findItemDelta(modifications, propertyPath, deltaType);
+    	if (isModify()) {
+    		return ItemDelta.findItemDelta(modifications, propertyPath, deltaType);
+    	} else if (isAdd()) {
+    		Item<PrismValue, ItemDefinition> item = getObjectToAdd().findItem(propertyPath);
+    		if (item == null) {
+    			return null;
+    		}
+    		D itemDelta = (D) item.createDelta();
+            itemDelta.addValuesToAdd(item.getClonedValues());
+    		return itemDelta;
+    	} else {
+    		return null;
+    	}
     }
     
     private  <D extends ItemDelta> D findModification(QName itemName, Class<D> deltaType) {

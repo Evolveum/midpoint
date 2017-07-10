@@ -309,6 +309,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ORG_INDIRECT_PIRATE_FILE = new File(TEST_DIR,"org-indirect-pirate.xml");
 	protected static final String ORG_INDIRECT_PIRATE_OID = "59024142-5830-11e7-80e6-ffbee06efb45";
 	
+	protected static final File ORG_CHEATERS_FILE = new File(TEST_DIR, "org-cheaters.xml");
+	protected static final String ORG_CHEATERS_OID = "944cef84-6570-11e7-8262-079921253d05";
+	
 	protected static final File TASK_USELESS_ADMINISTRATOR_FILE = new File(TEST_DIR,"task-useless-administrator.xml");
 	protected static final String TASK_USELESS_ADMINISTRATOR_OID = "daa36dba-30c7-11e7-bd7d-6311953a3ecd";
 	

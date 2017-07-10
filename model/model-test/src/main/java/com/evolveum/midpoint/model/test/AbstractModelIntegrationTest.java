@@ -2195,15 +2195,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	
+	protected <O extends ObjectType> PrismObject<O> createObject(Class<O> type, String name) throws SchemaException {
+		PrismObject<O> object = getObjectDefinition(type).instantiate();
+		object.asObjectable().setName(createPolyStringType(name));
+		return object;
+	}
+	
 	protected PrismObject<UserType> createUser(String name, String fullName) throws SchemaException {
 		return createUser(name, fullName, null);
 	}
 	
 	protected PrismObject<UserType> createUser(String name, String fullName, Boolean enabled) throws SchemaException {
-		PrismObject<UserType> user = getUserDefinition().instantiate();
+		PrismObject<UserType> user = createObject(UserType.class, name);
 		UserType userType = user.asObjectable();
-		userType.setName(PrismTestUtil.createPolyStringType(name));
-		userType.setFullName(PrismTestUtil.createPolyStringType(fullName));
+		userType.setFullName(createPolyStringType(fullName));
 		if (enabled != null) {
 			ActivationType activation = new ActivationType();
 			userType.setActivation(activation);
@@ -2219,10 +2224,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected PrismObject<UserType> createUser(String name, String givenName, String familyName, Boolean enabled) throws SchemaException {
 		PrismObject<UserType> user = getUserDefinition().instantiate();
 		UserType userType = user.asObjectable();
-		userType.setName(PrismTestUtil.createPolyStringType(name));
-		userType.setGivenName(PrismTestUtil.createPolyStringType(givenName));
-		userType.setFamilyName(PrismTestUtil.createPolyStringType(familyName));
-		userType.setFullName(PrismTestUtil.createPolyStringType(givenName + " " + familyName));
+		userType.setName(createPolyStringType(name));
+		userType.setGivenName(createPolyStringType(givenName));
+		userType.setFamilyName(createPolyStringType(familyName));
+		userType.setFullName(createPolyStringType(givenName + " " + familyName));
 		if (enabled != null) {
 			ActivationType activation = new ActivationType();
 			userType.setActivation(activation);
@@ -2236,8 +2241,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void fillinUser(PrismObject<UserType> user, String name, String fullName) {
-		user.asObjectable().setName(PrismTestUtil.createPolyStringType(name));
-		user.asObjectable().setFullName(PrismTestUtil.createPolyStringType(fullName));
+		user.asObjectable().setName(createPolyStringType(name));
+		user.asObjectable().setFullName(createPolyStringType(fullName));
 	}
 	
 	protected void fillinUserAssignmentAccountConstruction(PrismObject<UserType> user, String resourceOid) {
