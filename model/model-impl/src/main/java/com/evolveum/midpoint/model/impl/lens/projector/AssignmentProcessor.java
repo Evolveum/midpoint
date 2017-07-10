@@ -84,6 +84,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -716,7 +717,7 @@ public class AssignmentProcessor {
 		
 	}
 
-	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, OperationResult result) throws SchemaException {
+	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, OperationResult result) throws SchemaException, PolicyViolationException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
@@ -735,6 +736,43 @@ public class AssignmentProcessor {
 			}
 		}
 		setReferences(focusContext, ObjectType.F_PARENT_ORG_REF, shouldBeParentOrgRefs);
+		
+		ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
+		if (focusPrimaryDelta != null) {
+			ReferenceDelta parentOrgRefDelta = focusPrimaryDelta.findReferenceModification(ObjectType.F_PARENT_ORG_REF);
+			if (parentOrgRefDelta != null) {
+				List<PrismReferenceValue> parentOrgRefCurrentValues = null;
+				PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+				if (objectCurrent != null) {
+					PrismReference parentOrgRefCurrent = objectCurrent.findReference(ObjectType.F_PARENT_ORG_REF);
+					if (parentOrgRefCurrent != null) {
+						parentOrgRefCurrentValues = parentOrgRefCurrent.getValues();
+					}
+				}
+				try {
+					
+					parentOrgRefDelta.validateValues(
+						(plusMinusZero,val) -> {
+							switch (plusMinusZero) {
+								case PLUS:
+								case ZERO:
+									if (!PrismReferenceValue.containsRealValue(shouldBeParentOrgRefs, val)) {
+										throw new TunnelException(new PolicyViolationException("Attempt to add parentOrgRef "+val.getOid()+", but it is not allowed by assignments"));
+									}
+									break;
+								case MINUS:
+									if (PrismReferenceValue.containsRealValue(shouldBeParentOrgRefs, val)) {
+										throw new TunnelException(new PolicyViolationException("Attempt to delete parentOrgRef "+val.getOid()+", but it is mandated by assignments"));
+									}
+									break;
+							}
+						}, parentOrgRefCurrentValues);
+					
+				} catch (TunnelException e) {
+					throw (PolicyViolationException)e.getCause();
+				}
+			}
+		}
 	}
 
 	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context,

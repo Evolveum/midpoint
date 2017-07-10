@@ -1118,6 +1118,16 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGetAllow(UserType.class, userCobbOid); // Cobb is in Scumm Bar, transitive descendant of Ministry of Rum
         assertAddAllow(USER_MANCOMB_FILE); // MID-3874
         
+        Task task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        try {
+        	addObject(ORG_CHEATERS_FILE, task, result); // MID-3874
+        	assertNotReached();
+        } catch (PolicyViolationException e) {
+        	display("Expected exception", e);
+        	assertFailure(result);
+        } 
+        
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(user);
         assertGetAllow(ShadowType.class, accountOid);
@@ -1148,8 +1158,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
     	// MID-2822
         
-    	Task task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+    	task = taskManager.createTaskInstance(TestSecurityBasic.class.getName() + "." + TEST_NAME);
+        result = task.getResult();
 
         ObjectQuery query = ObjectQuery.createObjectQuery(
         		ObjectQueryUtil.createResourceAndObjectClassFilter(RESOURCE_DUMMY_OID, 
