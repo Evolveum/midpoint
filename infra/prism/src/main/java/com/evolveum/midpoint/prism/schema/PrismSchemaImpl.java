@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.schema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,10 +28,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +43,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	//private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
 	
 	@NotNull protected final Collection<Definition> definitions = new ArrayList<>();
+	@NotNull private final Map<QName, ItemDefinition<?>> itemDefinitionMap = new HashMap<>();		// key is the item name (qualified or unqualified)
 	protected String namespace;			// may be null if not properly initialized
 	protected PrismContext prismContext;
 
@@ -78,7 +77,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	@NotNull
 	@Override
 	public Collection<Definition> getDefinitions() {
-		return definitions;
+		return Collections.unmodifiableCollection(definitions);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -107,6 +106,10 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	public void add(@NotNull Definition def) {
 		definitions.add(def);
+		if (def instanceof ItemDefinition) {
+			ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
+			itemDefinitionMap.put(itemDef.getName(), itemDef);
+		}
 	}
 	
 	@Override
@@ -171,8 +174,8 @@ public class PrismSchemaImpl implements PrismSchema {
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
 		PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(name, cTypeDef, prismContext);
-		definitions.add(cTypeDef);
-		definitions.add(def);
+		add(cTypeDef);
+		add(def);
 		return def;
 	}
 	
@@ -182,16 +185,16 @@ public class PrismSchemaImpl implements PrismSchema {
 		ComplexTypeDefinition cTypeDef = findComplexTypeDefinitionByType(typeName);
 		if (cTypeDef == null) {
 			cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
-			definitions.add(cTypeDef);
+			add(cTypeDef);
 		}
 		PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(name, cTypeDef, prismContext);
-		definitions.add(def);
+		add(def);
 		return def;
 	}
 	
 	public ComplexTypeDefinition createComplexTypeDefinition(QName typeName) {
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
-		definitions.add(cTypeDef);
+		add(cTypeDef);
 		return cTypeDef;
 	}
 
@@ -241,7 +244,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	 */
 	public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
 		PrismPropertyDefinition def = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
-		definitions.add(def);
+		add(def);
 		return def;
 	}
 
@@ -368,21 +371,21 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	@NotNull
 	@Override
+	@SuppressWarnings("unchecked")
 	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName,
 			@NotNull Class<ID> definitionClass) {
-		List<ID> rv = new ArrayList<ID>();
-		for (Definition definition : definitions) {
-			if (definitionClass.isAssignableFrom(definition.getClass())) {
-				@SuppressWarnings("unchecked")
-				ID itemDef = (ID) definition;
-				if (QNameUtil.match(elementName, itemDef.getName())) {
-					rv.add(itemDef);
-				}
-			}
+		List<Definition> matching = new ArrayList<>();
+		CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(elementName));
+		if (QNameUtil.hasNamespace(elementName)) {
+			CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(QNameUtil.unqualify(elementName)));
+		} else if (namespace != null) {
+			CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(new QName(namespace, elementName.getLocalPart())));
 		}
-		return rv;
+		return matching.stream()
+				.filter(d -> definitionClass.isAssignableFrom(d.getClass()))
+				.map(d -> (ID) d)
+				.collect(Collectors.toList());
 	}
-
 
 	//	private Map<Class<? extends Objectable>, PrismObjectDefinition> classToDefCache = Collections.synchronizedMap(new HashMap<>());
 //	@Override

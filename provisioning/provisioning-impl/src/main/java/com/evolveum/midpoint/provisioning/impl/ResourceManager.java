@@ -1002,7 +1002,7 @@ public class ResourceManager {
 
 	private void checkSchema(PrismSchema schema) throws SchemaException {
 		// This is resource schema, it should contain only
-		// ResourceObjectDefintions
+		// ResourceObjectDefinitions
 		for (Definition def : schema.getDefinitions()) {
 			if (def instanceof ComplexTypeDefinition) {
 				// This is OK
