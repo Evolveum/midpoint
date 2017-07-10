@@ -170,7 +170,7 @@ public class SchemaTransformer {
     	try {
 	    	securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+				LOGGER.trace("Security constraints for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 			}
 			if (securityConstraints == null) {
 				SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
@@ -314,7 +314,7 @@ public class SchemaTransformer {
 		AuthorizationDecisionType defaultAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 		AuthorizationDecisionType defaultModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 		LOGGER.trace("applySecurityConstraints(itemDefs): def={}, phase={}, defaults R={}, A={}, M={}",
-				new Object[]{itemDefinition, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision});
+				itemDefinition, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
 		applySecurityConstraintsItemDef(itemDefinition, ItemPath.EMPTY_PATH, securityConstraints,
 				defaultReadDecision, defaultAddDecision, defaultModifyDecision, phase);
 				

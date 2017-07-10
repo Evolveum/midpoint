@@ -54,7 +54,7 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public ItemPath() {
-		segments = new ArrayList<>(0);
+		segments = new ArrayList<>();
 	}
 		
 	public ItemPath(QName... qnames) {
