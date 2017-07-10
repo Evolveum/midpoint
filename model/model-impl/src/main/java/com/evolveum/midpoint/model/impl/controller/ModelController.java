@@ -838,22 +838,22 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				resolve(object, options, task, result);
             }
 
+			// postprocessing objects that weren't handled by their correct provider (e.g. searching for ObjectType, and retrieving tasks, resources, shadows)
+			// currently only resources and shadows are handled in this way
+			// TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
+			if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
+				for (PrismObject<T> object : list) {
+					if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
+						provisioning.applyDefinition(object, task, result);
+					}
+				}
+			}
+			// better to use cache here (MID-4059)
+			schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);
+
 		} finally {
 			RepositoryCache.exit();
 		}
-
-		// postprocessing objects that weren't handled by their correct provider (e.g. searching for ObjectType, and retrieving tasks, resources, shadows)
-		// currently only resources and shadows are handled in this way
-		// TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
-		if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
-			for (PrismObject<T> object : list) {
-				if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
-					provisioning.applyDefinition(object, task, result);
-				}
-			}
-		}
-		
-		schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);
 
 		return list;
 	}

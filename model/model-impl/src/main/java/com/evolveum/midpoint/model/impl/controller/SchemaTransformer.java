@@ -140,7 +140,7 @@ public class SchemaTransformer {
 		try {
             applySchemasAndSecurity(object, options, phase, task, subresult);
         } catch (IllegalArgumentException|IllegalStateException|SchemaException |SecurityViolationException |ConfigurationException |ObjectNotFoundException e) {
-            LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
+            LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             OperationResultType fetchResult = object.asObjectable().getFetchResult();
             if (fetchResult == null) {
                 fetchResult = subresult.createOperationResultType();
