@@ -502,7 +502,7 @@ public class ContainerWrapper<C extends Containerable> implements ItemWrapper, S
 				if (!itemWrapper.hasChanged()) {
 					continue;
 				}
-				ItemPath containerPath = getPath() != null ? getPath() : new ItemPath();
+				ItemPath containerPath = getPath() != null ? getPath() : ItemPath.EMPTY_PATH;
 				if (itemWrapper instanceof PropertyWrapper) {
 					ItemDelta pDelta = computePropertyDeltas((PropertyWrapper) itemWrapper, containerPath);
 					if (!pDelta.isEmpty()) {

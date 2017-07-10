@@ -79,7 +79,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = itemDefinition.getName();
-		this.parentPath = new ItemPath();
+		this.parentPath = ItemPath.EMPTY_PATH;
 		this.definition = itemDefinition;
 	}
 
@@ -87,7 +87,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = elementName;
-		this.parentPath = new ItemPath();
+		this.parentPath = ItemPath.EMPTY_PATH;
 		this.definition = itemDefinition;
     }
 

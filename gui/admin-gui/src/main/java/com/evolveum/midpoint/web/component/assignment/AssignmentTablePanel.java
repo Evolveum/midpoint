@@ -470,7 +470,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 	public ContainerDelta handleAssignmentDeltas(ObjectDelta<T> userDelta, PrismContainerDefinition def,
 			QName assignmentPath) throws SchemaException {
-		ContainerDelta assDelta = new ContainerDelta(new ItemPath(), assignmentPath, def,
+		ContainerDelta assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, assignmentPath, def,
 				def.getPrismContext()); // hoping that def contains a prism
 										// context!
 

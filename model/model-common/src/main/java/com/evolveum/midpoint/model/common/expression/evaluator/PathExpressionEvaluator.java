@@ -128,7 +128,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         		// The output path does not really matter. The delta will be converted to triple anyway
                 // But the path cannot be null, oherwise the code will die
         		resolveContext = resolveContext.resolveStructuredProperty(resolvePath, (PrismPropertyDefinition) outputDefinition,
-                        new ItemPath());
+                        ItemPath.EMPTY_PATH);
         		break;
         	} else if (resolveContext.isNull()){
         		break;
