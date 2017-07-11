@@ -48,7 +48,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
-	private static final String OPERATION_GET_SYSTEM_CONFIGURATION = DOT_CLASS + "getSystemConfiguration";
+	private static final String OPERATION_GET_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "getAdminGuiConfiguration";
 
 	private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
 
@@ -69,15 +69,8 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		assignments.setOutputMarkupId(true);
 		add(assignments);
 
-		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIGURATION);
-		SystemConfigurationType systemConfig = null;
-		try{
-			systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
-		} catch (Exception ex){
-			LOGGER.error("Cannot get system configuration object, ", ex);
-		}
 		Component panel;
-		if (SystemConfigurationTypeUtil.isExperimentalCodeEnabled(systemConfig)){
+		if (isEnableExperimentalFeatures()){
 			panel = new AssignmentDataTablePanel(ID_ASSIGNMENTS_PANEL, assignmentsModel, pageBase);
 		} else {
 			panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
@@ -106,6 +99,19 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 			};
 		}
 		assignments.add(panel);
+	}
+
+	private boolean isEnableExperimentalFeatures(){
+		OperationResult result = new OperationResult(OPERATION_GET_ADMIN_GUI_CONFIGURATION);
+		AdminGuiConfigurationType adminGuiConfig = null;
+		try{
+			adminGuiConfig = pageBase.getModelInteractionService().getAdminGuiConfiguration(pageBase.createSimpleTask(OPERATION_GET_ADMIN_GUI_CONFIGURATION), result);
+		} catch (Exception ex){
+			LOGGER.error("Cannot get admin gui configuration object, ", ex);
+		}
+		return adminGuiConfig != null && adminGuiConfig.isEnableExperimentalFeatures() != null &&
+				adminGuiConfig.isEnableExperimentalFeatures();
+
 	}
 
 	public boolean isAssignmentsModelChanged(){
