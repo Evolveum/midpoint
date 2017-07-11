@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.RelationSelectorAssignablePanel;
+import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -64,8 +66,46 @@ public class AssignmentDataTablePanel extends BasePanel {
         assignmentsContainer.setOutputMarkupId(true);
         add(assignmentsContainer);
 
+        addOrReplaceAssignmentsTable(assignmentsContainer);
+
+        AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ASSIGNMENT_BUTTON, new Model<>("fa fa-plus"),
+                createStringResource("MainObjectListPanel.newObject")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                RelationSelectorAssignablePanel panel = new RelationSelectorAssignablePanel(
+                        getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void addPerformed(AjaxRequestTarget target, List selected, RelationTypes relation) {
+                        addSelectedAssignmentsPerformed(target, selected, relation);
+                        addOrReplaceAssignmentsTable(getAssignmentsContainer());
+                        target.add(getAssignmentsContainer());
+
+                    }
+
+                };
+                panel.setOutputMarkupId(true);
+                getPageBase().showMainPopup(panel, target);           }
+        };
+        assignmentsContainer.add(newObjectIcon);
+
+
+    }
+
+    private void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<ObjectType> assignmentsList, RelationTypes relation){
+        updateRelationAssignmentMap(assignmentsList, relation);
+        relationModel.setObject(relation);
+        addOrReplaceAssignmentsTable(getAssignmentsContainer());
+        target.add(getAssignmentsContainer());
+    }
+
+    private void addOrReplaceAssignmentsTable(WebMarkupContainer assignmentsContainer){
         DropDownChoicePanel relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER), this, false);
+                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), relationModel, this, false);
         relation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
@@ -77,26 +117,8 @@ public class AssignmentDataTablePanel extends BasePanel {
         });
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
-        assignmentsContainer.add(relation);
+        assignmentsContainer.addOrReplace(relation);
 
-        addOrReplaceAssignmentsTable(assignmentsContainer);
-
-        AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ASSIGNMENT_BUTTON, new Model<>("fa fa-plus"),
-                createStringResource("MainObjectListPanel.newObject")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-//                newObjectPerformed(target);
-            }
-        };
-        assignmentsContainer.add(newObjectIcon);
-
-
-    }
-
-    private void addOrReplaceAssignmentsTable(WebMarkupContainer assignmentsContainer){
         ListDataProvider<AssignmentEditorDto> assignmentsProvider = new ListDataProvider<AssignmentEditorDto>(this,
                 Model.ofList(relationAssignmentsMap.get(relationModel.getObject())), false);
         BoxedTablePanel<AssignmentEditorDto> assignmentTable = new BoxedTablePanel<AssignmentEditorDto>(ID_ASSIGNMENTS_TABLE,
@@ -230,6 +252,20 @@ public class AssignmentDataTablePanel extends BasePanel {
             }
             relationAssignmentsMap.put(relation, assignmentList);
         }
+    }
+
+    private void updateRelationAssignmentMap(List<ObjectType> newAssignments, RelationTypes relation){
+        if (newAssignments == null){
+            return;
+        }
+        for (ObjectType object : newAssignments) {
+            AssignmentEditorDto newAssignment = AssignmentsUtil.createAssignmentFromSelectedObjects(object, relation, pageBase);
+            if (newAssignment != null){
+                relationAssignmentsMap.get(newAssignment.getRelationQName() == null ? RelationTypes.MEMBER :
+                        RelationTypes.getRelationType(newAssignment.getRelationQName())).add(newAssignment);
+            }
+        }
+
     }
 
     private WebMarkupContainer getAssignmentsContainer(){

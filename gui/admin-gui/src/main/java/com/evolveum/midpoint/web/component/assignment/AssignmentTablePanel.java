@@ -393,57 +393,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 
-		for (ObjectType object : newAssignments) {
-			try {
-
-				if (object instanceof ResourceType) {
-					addSelectedResourceAssignPerformed((ResourceType) object);
-					continue;
-				}
-				if (object instanceof UserType) {
-					AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
-							SchemaConstants.ORG_DEPUTY, getPageBase());
-					assignments.add(dto);
-				} else {
-					AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
-							getPageBase());
-					assignments.add(dto);
-				}
-			} catch (Exception e) {
-				error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(),
-						e.getMessage()));
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign object", e);
-			}
-		}
 		reloadAssignmentsPanel(target);
 	}
 
 	protected void reloadAssignmentsPanel(AjaxRequestTarget target){
 		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
-	}
-
-	protected void addSelectedResourceAssignPerformed(ResourceType resource) {
-		AssignmentType assignment = new AssignmentType();
-		ConstructionType construction = new ConstructionType();
-		assignment.setConstruction(construction);
-
-		try {
-			getPageBase().getPrismContext().adopt(assignment, UserType.class,
-					new ItemPath(UserType.F_ASSIGNMENT));
-		} catch (SchemaException e) {
-			error(getString("Could not create assignment", resource.getName(), e.getMessage()));
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create assignment", e);
-			return;
-		}
-
-		construction.setResource(resource);
-
-		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-		AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
-		assignments.add(dto);
-
-		dto.setMinimized(true);
-		dto.setShowEmpty(true);
 	}
 
 	public void handleAssignmentsWhenAdd(PrismObject<T> object, PrismContainerDefinition assignmentDef,

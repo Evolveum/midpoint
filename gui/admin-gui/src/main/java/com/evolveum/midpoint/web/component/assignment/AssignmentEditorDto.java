@@ -610,12 +610,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public String getRelation() {
+		return getRelationQName() != null ? getRelationQName().getLocalPart() : null;
+	}
+
+	public QName getRelationQName() {
 		ObjectReferenceType ref = newAssignment.getTargetRef();
 		if (ref == null || ref.getRelation() == null) {
 			return null;		// TODO default vs. null ?
 		}
-
-		return ref.getRelation().getLocalPart();
+		return ref.getRelation();
 	}
 
 	public void setDescription(String description) {
