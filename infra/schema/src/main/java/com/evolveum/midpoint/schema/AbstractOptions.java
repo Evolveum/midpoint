@@ -34,9 +34,7 @@ public abstract class AbstractOptions {
 	}
 	
     protected void appendVal(StringBuilder sb, String name, Object val) {
-		if (val == null) {
-			return;
-		} else {
+		if (val != null) {
 			sb.append(name);
 			sb.append("=");
 			sb.append(val);

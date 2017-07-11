@@ -15,57 +15,35 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.*;
-
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.util.Utils;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.security.api.SecurityUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import javax.xml.namespace.QName;
+import java.util.*;
 
 /**
  * Transforms the schema and objects by applying security constraints,
@@ -162,7 +140,7 @@ public class SchemaTransformer {
 		try {
             applySchemasAndSecurity(object, options, phase, task, subresult);
         } catch (IllegalArgumentException|IllegalStateException|SchemaException |SecurityViolationException |ConfigurationException |ObjectNotFoundException e) {
-            LOGGER.error("Error post-processing object {}: {}", new Object[]{object, e.getMessage(), e});
+            LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             OperationResultType fetchResult = object.asObjectable().getFetchResult();
             if (fetchResult == null) {
                 fetchResult = subresult.createOperationResultType();
@@ -192,7 +170,7 @@ public class SchemaTransformer {
     	try {
 	    	securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+				LOGGER.trace("Security constraints for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 			}
 			if (securityConstraints == null) {
 				SecurityUtil.logSecurityDeny(object, "because no security constraints are defined (default deny)");
@@ -336,7 +314,7 @@ public class SchemaTransformer {
 		AuthorizationDecisionType defaultAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 		AuthorizationDecisionType defaultModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 		LOGGER.trace("applySecurityConstraints(itemDefs): def={}, phase={}, defaults R={}, A={}, M={}",
-				new Object[]{itemDefinition, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision});
+				itemDefinition, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
 		applySecurityConstraintsItemDef(itemDefinition, ItemPath.EMPTY_PATH, securityConstraints,
 				defaultReadDecision, defaultAddDecision, defaultModifyDecision, phase);
 				

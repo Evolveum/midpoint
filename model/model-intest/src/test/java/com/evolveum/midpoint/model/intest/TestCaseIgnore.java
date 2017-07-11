@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -139,7 +140,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -147,18 +148,18 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyUpcaseType, caseIgnoreMatchingRule);
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         assertEnableTimestampShadow(accountModel, startTime, endTime);
         
@@ -748,12 +749,8 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 		assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();
         prepareNotifications();
-        purgeScriptHistory();
-        rememberShadowFetchOperationCount();
+        purgeProvisioningScriptHistory();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	}
 	
-	private void purgeScriptHistory() {
-		getDummyResource().purgeScriptHistory();
-	}
-
 }

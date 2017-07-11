@@ -66,9 +66,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	private Boolean resolve;
 
     /**
-     * Resolve the object reference names. (Currently applicable only as a top-level option.)
-     *
-     * EXPERIMENTAL.
+     * Resolve the object reference names.
      */
 	private Boolean resolveNames;
 
@@ -148,6 +146,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 * So please consider this option an EXPERIMENTAL, for now.
 	 */
 	private Boolean distinct;
+
+	/**
+	 * Whether to attach diagnostics data to the returned object(s).
+	 */
+	private Boolean attachDiagData;
 
 	public RetrieveOption getRetrieve() {
 		return retrieve;
@@ -650,6 +653,32 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		return opts;
 	}
 
+	public Boolean getAttachDiagData() {
+		return attachDiagData;
+	}
+
+	public void setAttachDiagData(Boolean value) {
+		this.attachDiagData = value;
+	}
+
+	public static boolean isAttachDiagData(GetOperationOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.attachDiagData == null) {
+			return false;
+		}
+		return options.attachDiagData;
+	}
+
+	/**
+	 * Whether to attach diagnostics data to the returned object(s).
+	 */
+	public static GetOperationOptions createAttachDiagData() {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setAttachDiagData(true);
+		return opts;
+	}
 
 	public RelationalValueSearchQuery getRelationalValueSearchQuery() {
 		return relationalValueSearchQuery;

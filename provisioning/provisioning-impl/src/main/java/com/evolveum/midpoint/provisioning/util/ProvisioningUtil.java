@@ -154,6 +154,8 @@ public class ProvisioningUtil {
 			scriptOperation.setConnectorHost(false);
 			scriptOperation.setResourceHost(true);
 		}
+		
+		scriptOperation.setCriticality(scriptType.getCriticality());
 
 		return scriptOperation;
 	}

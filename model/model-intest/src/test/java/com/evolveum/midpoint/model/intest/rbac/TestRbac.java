@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -66,21 +67,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
@@ -208,7 +195,6 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	 */
 	private static final QName RELATION_COMPLICATED_QNAME = new QName("http://exmple.com/relation", "complicated");
 
-
 	private String userLemonheadOid;
 	private String userSharptoothOid;
 	private String userRedskullOid;
@@ -303,8 +289,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test010SearchReuqestableRoles() throws Exception {
-		final String TEST_NAME = "test010SearchReuqestableRoles";
+    public void test010SearchRequestableRoles() throws Exception {
+		final String TEST_NAME = "test010SearchRequestableRoles";
         displayTestTile(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -337,7 +323,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -362,7 +348,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
         		"Jack Sparrow is the best pirate Caribbean has ever seen");
 	}
-	
+
+	protected ModelExecuteOptions getDefaultOptions() {
+		return null;
+	}
+
 	/**
 	 * We modify Jack's "locality". As this is assigned by expression in the role to the dummy account, the account should
 	 * be updated as well. 
@@ -383,7 +373,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
  		XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result, PrismTestUtil.createPolyString("Tortuga"));
         
         // THEN
         displayThen(TEST_NAME);
@@ -414,7 +404,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
                
         // WHEN
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -454,9 +444,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 				UserType.F_LINK_REF, prismContext, account);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		
-		// We need to switch off the encorcement for this opertation. Otherwise we won't be able to create the account
+		// We need to switch off the enforcement for this operation. Otherwise we won't be able to create the account
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
-		modelService.executeChanges(deltas, null, task, result);
+		modelService.executeChanges(deltas, getDefaultOptions(), task, result);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		        
         // Precondition (simplified)
@@ -470,7 +460,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
   		displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -509,7 +499,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         
         // WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);		// TODO options?
         
         // THEN
         result.computeStatus();
@@ -543,7 +533,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         
         // WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
         
         // THEN
         result.computeStatus();
@@ -573,7 +563,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
                
         // WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);			// TODO options?
         
         // THEN
         result.computeStatus();
@@ -602,7 +592,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
                
         // WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
         
         // THEN
         result.computeStatus();
@@ -631,7 +621,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
                
         // WHEN
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -661,7 +651,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         extension.add(seaProp);
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, extension, task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, extension, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -725,7 +715,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -761,7 +751,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> delta = user.createModifyDelta();
         
 		// WHEN
-        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -792,7 +782,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -826,7 +816,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         extension.add(seaProp);
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, task, result);
+        assignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -864,7 +854,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         extension.add(seaProp);
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, task, result);
+        unassignRole(USER_JACK_OID, ROLE_ADRIATIC_PIRATE_OID, extension, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -887,7 +877,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -918,7 +908,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -948,7 +938,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         extension.add(seaProp);
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, extension, task, result);
+        assignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, extension, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -987,7 +977,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         extension.add(seaProp);
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, extension, task, result);
+        unassignRole(USER_JACK_OID, ROLE_BLACK_SEA_PIRATE_OID, extension, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -1011,7 +1001,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1045,7 +1035,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_INDIAN_OCEAN_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -1126,7 +1116,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN (1)
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, getDefaultOptions(), task, result);
         
         // THEN (1)
         displayThen(TEST_NAME);
@@ -1136,7 +1126,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN (2)
         displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
+        recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
         
         // THEN (2)
         displayThen(TEST_NAME);
@@ -1167,7 +1157,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, relation, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1224,7 +1214,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 0);
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_ALL_TREASURE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_ALL_TREASURE_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -1256,7 +1246,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         addObject(ROLE_TREASURE_GOLD_FILE);
                 
 		// WHEN
-        recomputeUser(USER_JACK_OID, task, result);
+        recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -1285,7 +1275,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_ALL_LOOT_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_ALL_LOOT_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -1312,7 +1302,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_ALL_LOOT_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_ALL_LOOT_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -1338,7 +1328,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_ALL_TREASURE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_ALL_TREASURE_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -1362,7 +1352,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        assignRole(USER_JACK_OID, ROLE_ALL_YOU_CAN_GET_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_ALL_YOU_CAN_GET_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -1389,7 +1379,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        unassignRole(USER_JACK_OID, ROLE_ALL_YOU_CAN_GET_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_ALL_YOU_CAN_GET_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertSuccess(result);
@@ -1417,7 +1407,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -1457,7 +1447,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
   		displayWhen(TEST_NAME);
-        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString("Isla de Muerta"));
+        modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, getDefaultOptions(), task, result, createPolyString("Isla de Muerta"));
         
         // THEN
         displayThen(TEST_NAME);
@@ -1491,7 +1481,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
                
         // WHEN
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1528,7 +1518,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
 		// WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         userJack = getUser(USER_JACK_OID);
@@ -1552,7 +1542,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         result.computeStatus();
@@ -1595,7 +1585,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
         // WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         userJack = getUser(USER_JACK_OID);
@@ -1617,7 +1607,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
-        assignRole(USER_JACK_OID, ROLE_CLERIC_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_CLERIC_OID, getDefaultOptions(), task, result);
         
         // THEN
         assertAssignedRole(USER_JACK_OID, ROLE_CLERIC_OID, task, result);
@@ -1645,7 +1635,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), null, task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1680,7 +1670,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), null, task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(assignmentDelta), getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1710,7 +1700,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_WANNABE_OID);
+        assignRole(USER_JACK_OID, ROLE_WANNABE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1726,7 +1716,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Remove honorifixSuffix. This triggers a condition in Wannabe role inducement. 
+	 * Remove honorificSuffix. This triggers a condition in Wannabe role inducement.
 	 * But as the whole role has false condition nothing should happen.
 	 */
 	@Test
@@ -1740,7 +1730,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result);
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1769,7 +1759,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, task, result, "wannabe");
+		modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_TYPE, getDefaultOptions(), task, result, "wannabe");
         
         // THEN
         displayThen(TEST_NAME);
@@ -1786,7 +1776,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Remove honorifixPrefix. This triggers a condition in Wannabe role and should remove an account.
+	 * Remove honorificPrefix. This triggers a condition in Wannabe role and should remove an account.
 	 */
 	@Test
     public void test543JackRemoveHonorificPrefixWannabe() throws Exception {
@@ -1799,7 +1789,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result);
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1815,7 +1805,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Set honorifixSuffix. This triggers conditions and adds a sub-role Honorable Wannabe.
+	 * Set honorificSuffix. This triggers conditions and adds a sub-role Honorable Wannabe.
 	 */
 	@Test
     public void test544JackSetHonorificSuffixWannabe() throws Exception {
@@ -1828,7 +1818,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, task, result, 
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, getDefaultOptions(), task, result,
 				PrismTestUtil.createPolyString("PhD."));
         
         // THEN
@@ -1847,7 +1837,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * Restore honorifixPrefix. The title should be replaced again.
+	 * Restore honorificPrefix. The title should be replaced again.
 	 */
 	@Test
     public void test545JackRestoreHonorificPrefixWannabe() throws Exception {
@@ -1860,7 +1850,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result, 
+		modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, getDefaultOptions(), task, result,
 				PrismTestUtil.createPolyString("captain"));
         
         // THEN
@@ -1891,7 +1881,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_WANNABE_OID);
+        unassignRole(USER_JACK_OID, ROLE_WANNABE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1919,7 +1909,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
         
         // WHEN
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -1954,7 +1944,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         try {
 	        // WHEN
-	        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+	        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -1992,7 +1982,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2027,7 +2017,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2052,7 +2042,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignees(ROLE_GOVERNOR_OID, 0);
         
         // WHEN
-        assignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
+        assignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2086,7 +2076,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         try {
 	        // WHEN
-	        assignRole(USER_JACK_OID, ROLE_GOVERNOR_OID, task, result);
+	        assignRole(USER_JACK_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -2123,7 +2113,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
         try {
 	        // WHEN
-	        assignRole(USER_JACK_OID, ROLE_GOVERNOR_OID, SchemaConstants.ORG_APPROVER, task, result);
+	        assignRole(USER_JACK_OID, ROLE_GOVERNOR_OID, SchemaConstants.ORG_APPROVER, getDefaultOptions(), task, result);
 
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -2163,7 +2153,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2195,7 +2185,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2227,7 +2217,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+        assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2260,7 +2250,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
         	displayWhen(TEST_NAME);
-	        assignRole(user.getOid(), ROLE_CANNIBAL_OID, task, result);
+	        assignRole(user.getOid(), ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -2292,7 +2282,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(userSharptoothOid, ROLE_CANNIBAL_OID, task, result);
+        unassignRole(userSharptoothOid, ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2320,7 +2310,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
         	displayWhen(TEST_NAME);
-	        unassignRole(userRedskullOid, ROLE_CANNIBAL_OID, task, result);
+	        unassignRole(userRedskullOid, ROLE_CANNIBAL_OID, getDefaultOptions(), task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -2358,7 +2348,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertAssignees(ROLE_CANNIBAL_OID, 2);
 
         // WHEN
-		assignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, task, result);
+		assignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, getDefaultOptions(), task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2393,7 +2383,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	        // WHEN
         	displayWhen(TEST_NAME);
         	// null namespace to test no-namespace "owner" relation
-	        unassignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, QNameUtil.nullNamespace(SchemaConstants.ORG_OWNER), task, result);
+	        unassignRole(USER_RAPP_OID, ROLE_CANNIBAL_OID, QNameUtil.nullNamespace(SchemaConstants.ORG_OWNER), getDefaultOptions(), task, result);
 
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -2431,7 +2421,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 1);
 
 		// WHEN
-		assignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, task, result);
+		assignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, getDefaultOptions(), task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2463,7 +2453,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		assertAssignees(ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, 2);
 
 		// WHEN
-		unassignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, task, result);
+		unassignRole(userBignoseOid, ROLE_CANNIBAL_OID, SchemaConstants.ORG_OWNER, getDefaultOptions(), task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2490,7 +2480,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, task, result);
+        unassignRole(USER_ELAINE_OID, ROLE_GOVERNOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2518,7 +2508,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2546,7 +2536,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, true, task);
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, true, getDefaultOptions(), task);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2577,7 +2567,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, true, task);
+        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, true, getDefaultOptions(), task);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2610,13 +2600,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleDeleteInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID);
+        modifyRoleDeleteInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID, getDefaultOptions());
         PrismObject<RoleType> roleJudge = modelService.getObject(RoleType.class, ROLE_JUDGE_OID, null, task, result);
         display("Role judge", roleJudge);
         
         // WHEN
         displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2645,7 +2635,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2671,7 +2661,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_EMPTY_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_EMPTY_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2697,7 +2687,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, true, task);
+        modifyRoleAddInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, true, getDefaultOptions(), task);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2727,7 +2717,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
         
-        modifyRoleDeleteInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID);
+        modifyRoleDeleteInducementTarget(ROLE_EMPTY_OID, ROLE_PIRATE_OID, getDefaultOptions());
         
         // WHEN
         displayWhen(TEST_NAME);
@@ -2757,7 +2747,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_EMPTY_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_EMPTY_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2785,7 +2775,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignPrametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, task, result);
+        assignParametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2817,7 +2807,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignPrametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, task, result);
+        unassignParametricRole(USER_JACK_OID, ROLE_GOVERNOR_OID, null, ORG_SCUMM_BAR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2848,7 +2838,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2885,7 +2875,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2919,7 +2909,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_PROJECT_OMNINAMAGER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2956,7 +2946,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -2992,7 +2982,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
+        recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3028,7 +3018,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        reconcileUser(USER_JACK_OID, task, result);
+        reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3064,7 +3054,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3103,7 +3093,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
+        recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3142,7 +3132,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        reconcileUser(USER_JACK_OID, task, result);
+        reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3183,7 +3173,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3221,7 +3211,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        recomputeUser(USER_JACK_OID, task, result);
+        recomputeUser(USER_JACK_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3259,7 +3249,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3294,7 +3284,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3334,7 +3324,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3375,7 +3365,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3410,7 +3400,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3453,7 +3443,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3500,7 +3490,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3537,7 +3527,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3575,7 +3565,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3611,7 +3601,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3654,7 +3644,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3690,7 +3680,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3725,7 +3715,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, task, result);
+        unassignRole(USER_JACK_OID, ROLE_WEAK_GOSSIPER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3767,7 +3757,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3809,7 +3799,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3847,7 +3837,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3892,7 +3882,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3928,7 +3918,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_SAILOR_OID, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -3978,7 +3968,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -4025,7 +4015,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -4066,7 +4056,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -4113,7 +4103,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -4161,7 +4151,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, getDefaultOptions(), task, result);
         
         // THEN
         displayThen(TEST_NAME);
@@ -4188,8 +4178,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
-			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_OID, RoleType.F_DESCRIPTION, 
-					task, result, "whatever");
+			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_OID, RoleType.F_DESCRIPTION,
+					getDefaultOptions(), task, result, "whatever");
 			
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -4221,7 +4211,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		addObject(role, task, result);
+		addObject(role, getDefaultOptions(), task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -4245,8 +4235,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
-			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_IDENTIFIER, 
-					task, result, "whatever");
+			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_IDENTIFIER,
+					getDefaultOptions(), task, result, "whatever");
 			
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -4273,8 +4263,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
-			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_DESCRIPTION, 
-					task, result, "whatever");
+			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_GLOBAL_OID, RoleType.F_DESCRIPTION,
+					getDefaultOptions(), task, result, "whatever");
 			
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -4307,7 +4297,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		addObject(role, task, result);
+		addObject(role, getDefaultOptions(), task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4335,7 +4325,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		displayWhen(TEST_NAME);
 		final String NEW_VALUE = "whatever";
 		modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID, RoleType.F_IDENTIFIER,
-				task, result, NEW_VALUE);
+				getDefaultOptions(), task, result, NEW_VALUE);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4360,7 +4350,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 			// WHEN
 			displayWhen(TEST_NAME);
 			modifyObjectReplaceProperty(RoleType.class, ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID, RoleType.F_DESCRIPTION,
-					task, result, "whatever");
+					getDefaultOptions(), task, result, "whatever");
 
 			AssertJUnit.fail("Unexpected success");
 		} catch (PolicyViolationException e) {
@@ -4389,7 +4379,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
-			addObject(role, task, result);
+			addObject(role, getDefaultOptions(), task, result);
 			
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -4421,7 +4411,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
-			addObject(role, task, result);
+			addObject(role, getDefaultOptions(), task, result);
 			
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -4450,8 +4440,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyObjectReplaceProperty(RoleType.class, ROLE_META_UNTOUCHABLE_OID, RoleType.F_DESCRIPTION, 
-				task, result, "Touche!");
+		modifyObjectReplaceProperty(RoleType.class, ROLE_META_UNTOUCHABLE_OID, RoleType.F_DESCRIPTION,
+				getDefaultOptions(), task, result, "Touche!");
 			
 		// THEN
         displayThen(TEST_NAME);
@@ -4473,8 +4463,8 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
 		displayWhen(TEST_NAME);
-		modifyObjectReplaceProperty(RoleType.class, ROLE_JUDGE_OID, RoleType.F_DESCRIPTION, 
-				task, result, "whatever");
+		modifyObjectReplaceProperty(RoleType.class, ROLE_JUDGE_OID, RoleType.F_DESCRIPTION,
+				getDefaultOptions(), task, result, "whatever");
 			
 		// THEN
         displayThen(TEST_NAME);
@@ -4501,7 +4491,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         try {
 	        // WHEN
 			displayWhen(TEST_NAME);
-			assignRole(USER_JACK_OID, ROLE_NON_ASSIGNABLE_OID, task, result);
+			assignRole(USER_JACK_OID, ROLE_NON_ASSIGNABLE_OID, getDefaultOptions(), task, result);
 			
 			AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
@@ -4531,7 +4521,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignRole(USER_JACK_OID, ROLE_BLOODY_FOOL_OID, task, result);
+        assignRole(USER_JACK_OID, ROLE_BLOODY_FOOL_OID, getDefaultOptions(), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -4570,7 +4560,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyRoleDeleteInducement(ROLE_META_FOOL_OID, 10002L, false, task);
+        modifyRoleDeleteInducement(ROLE_META_FOOL_OID, 10002L, false, getDefaultOptions(), task);
 
         // THEN
         displayThen(TEST_NAME);
@@ -4597,7 +4587,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        reconcileUser(USER_JACK_OID, task, result);
+        reconcileUser(USER_JACK_OID, getDefaultOptions(), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -4639,7 +4629,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignRole(USER_JACK_OID, ROLE_SCREAMING_OID, task, result);
+		assignRole(USER_JACK_OID, ROLE_SCREAMING_OID, getDefaultOptions(), task, result);
 
 		// THEN
 		displayThen(TEST_NAME);

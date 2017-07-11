@@ -429,6 +429,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException error handling resource schema
 	 * @throws CommunicationException error communicating with the resource
 	 */
+	@Deprecated
 	List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 				Task task, OperationResult parentResult) 
 						throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;

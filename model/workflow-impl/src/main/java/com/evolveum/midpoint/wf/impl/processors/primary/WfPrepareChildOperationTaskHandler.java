@@ -111,7 +111,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Resulting model context to be stored into task {}:\n{}", task, modelContext.debugDump(0));
                 }
-                wfTask.storeModelContext(modelContext);
+                wfTask.storeModelContext(modelContext, true);
             }
             task.savePendingModifications(result);
         } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {

@@ -167,7 +167,7 @@ public class RepositoryObjectDataProvider
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             count = getModel().countObjects(type, getQuery(),
-                    SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
+                    SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()),
                     getPage().createSimpleTask(OPERATION_COUNT_OBJECTS), result);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);

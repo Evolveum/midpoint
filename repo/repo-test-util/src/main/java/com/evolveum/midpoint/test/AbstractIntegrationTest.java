@@ -1163,17 +1163,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.build();
 	}
-		
+	
+	protected <O extends ObjectType> PrismObjectDefinition<O> getObjectDefinition(Class<O> type) {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+	}
+	
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+		return getObjectDefinition(UserType.class);
 	}
 	
 	protected PrismObjectDefinition<RoleType> getRoleDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
+		return getObjectDefinition(RoleType.class);
 	}
 	
 	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		return getObjectDefinition(ShadowType.class);
 	}
 
 	// objectClassName may be null
@@ -1771,6 +1775,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertFailure(result);
 	}
 	
+	protected void assertPartialError(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		TestUtil.assertPartialError(result);
+	}
+	
 	protected void fail(String message) {
 		AssertJUnit.fail(message);
 	}
@@ -2052,7 +2063,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected String assignmentSummary(PrismObject<UserType> user) {
 		Map<String,Integer> assignmentRelations = new HashMap<>();
 		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
-			ObjectReferenceType targetRef = assignment.getTargetRef();
 			relationToMap(assignmentRelations, assignment.getTargetRef());
 		}
 		Map<String,Integer> memRelations = new HashMap<>();
@@ -2101,4 +2111,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		display("Counters", sb.toString());
 	}
 	
+	protected void assertMessageContains(String message, String string) {
+		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
+	}
 }

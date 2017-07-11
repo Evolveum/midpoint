@@ -104,9 +104,9 @@ public class ConnIdUtil {
 
     private static final String CONNECTIONS_EXCEPTION_CLASS_NAME = "CommunicationsException";
 
-    static Throwable processIcfException(Throwable icfException, ConnectorInstanceConnIdImpl conn,
+    static Throwable processConnIdException(Throwable connIdException, ConnectorInstanceConnIdImpl conn,
 			OperationResult icfResult) {
-		return processIcfException(icfException, conn.getHumanReadableName(), icfResult);
+		return processConnIdException(connIdException, conn.getHumanReadableName(), icfResult);
 	}
 	
 	/**
@@ -133,7 +133,7 @@ public class ConnIdUtil {
 	 *            OperationResult to record failure
 	 * @return reasonable midPoint exception
 	 */
-	static Throwable processIcfException(Throwable connIdException, String desc,
+	static Throwable processConnIdException(Throwable connIdException, String desc,
 			OperationResult connIdResult) {
 		// Whole exception handling in this case is a black magic.
 		// ConnId does not define any checked exceptions so the developers are not

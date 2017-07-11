@@ -27,13 +27,14 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,10 +50,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -61,7 +59,6 @@ import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -72,9 +69,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -82,7 +76,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnfo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
@@ -162,6 +155,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
 
 	protected static final String INTEREST_ONE = "one";
+	
+	protected static final Random RND = new Random();
 
 
 	protected PrismObject<ResourceType> resource;
@@ -207,6 +202,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		importObjectFromFile(getRoleOneFile(), initResult);
 		
 		addObject(USER_JACK_FILE);
+		addObject(USER_BARBOSSA_FILE);
 		
 		PrismObject<UserType> userWill = createUserWill();
 		addObject(userWill, initTask, initResult);
@@ -2567,6 +2563,51 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 		assertNoShadowPassword(shadowRepo);
 		assertShadowExists(shadowRepo, true);
+	}
+
+	// MID-4047
+	@Test
+	public void test900ConcurrentConstructions() throws Exception {
+		final String TEST_NAME = "test900ConcurrentConstructions";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		final int THREADS = 4;
+		final long TIMEOUT = 60000L;
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		Thread[] threads = new Thread[THREADS];
+		for (int i = 0; i < THREADS; i++) {
+			threads[i] = new Thread(() -> {
+				try {
+					Thread.sleep(RND.nextInt(1000)); // Random start delay
+					LOGGER.info("{} starting", Thread.currentThread().getName());
+					login(userAdministrator);
+					Task localTask = createTask(TEST_NAME + ".local");
+					assignAccount(USER_BARBOSSA_OID, getResourceOid(), SchemaConstants.INTENT_DEFAULT, localTask, localTask.getResult());
+				} catch (CommonException | InterruptedException e) {
+					throw new SystemException("Couldn't assign resource: " + e.getMessage(), e);
+				}
+			});
+			threads[i].setName("Thread " + (i+1) + " of " + THREADS);
+			threads[i].start();
+		}
+
+		// THEN
+		displayThen(TEST_NAME);
+		for (int i = 0; i < THREADS; i++) {
+			if (threads[i].isAlive()) {
+				System.out.println("Waiting for " + threads[i]);
+				threads[i].join(TIMEOUT);
+			}
+		}
+
+		PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
+		display("barbossa", barbossa);
+		assertEquals("Wrong # of links", 1, barbossa.asObjectable().getLinkRef().size());
 	}
 	
 	protected void backingStoreProvisionWill(String interest) throws IOException {

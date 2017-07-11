@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -147,7 +147,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		
 		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
 
-		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+		ShadowResultHandler handler = new ShadowResultHandler() {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
@@ -185,7 +185,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		
 		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
 
-		final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+		final ShadowResultHandler handler = new ShadowResultHandler() {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
@@ -253,7 +253,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		
 		final OperationResult result1 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<PrismObject<ShadowType>>();
-		final ResultHandler<ShadowType> handler1 = new ResultHandler<ShadowType>() {
+		final ShadowResultHandler handler1 = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				checkUcfShadow(shadow, accountDefinition);
@@ -264,7 +264,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		
 		final OperationResult result2 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<PrismObject<ShadowType>>();
-		final ResultHandler<ShadowType> handler2 = new ResultHandler<ShadowType>() {
+		final ShadowResultHandler handler2 = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				checkUcfShadow(shadow, accountDefinition);

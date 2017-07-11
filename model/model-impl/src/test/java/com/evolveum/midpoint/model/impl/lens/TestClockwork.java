@@ -121,8 +121,8 @@ public class TestClockwork extends AbstractLensTest {
 
         System.out.println("Context before serialization = " + context.debugDump());
 
-        PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
-        String xml = prismContext.xmlSerializer().serialize(lensContextType.getValue(), lensContextType.getElementName());
+        LensContextType lensContextType = context.toLensContextType();
+        String xml = prismContext.xmlSerializer().serializeRealValue(lensContextType, SchemaConstants.C_MODEL_CONTEXT);
 
         display("Serialized form", xml);
 
@@ -316,8 +316,8 @@ public class TestClockwork extends AbstractLensTest {
 
         		display("Context before serialization", context);
 
-                PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
-                String xml = prismContext.xmlSerializer().serialize(lensContextType.getValue(), lensContextType.getElementName());
+                LensContextType lensContextType = context.toLensContextType();
+                String xml = prismContext.xmlSerializer().serializeRealValue(lensContextType, SchemaConstants.C_MODEL_CONTEXT);
 
                 display("Serialized form", xml);
 

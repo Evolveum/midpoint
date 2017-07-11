@@ -47,7 +47,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -267,7 +267,7 @@ class EntitlementConverter {
 			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
 		}
 		
-		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+		ShadowResultHandler handler = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> entitlementShadow) {
 				PrismContainerValue<ShadowAssociationType> associationCVal = associationContainer.createNewValue();
@@ -475,7 +475,7 @@ class EntitlementConverter {
 					searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
 				}
 				
-				ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+				ShadowResultHandler handler = new ShadowResultHandler() {
 					@Override
 					public boolean handle(PrismObject<ShadowType> entitlementShadow) {
 						Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(entitlementShadow);

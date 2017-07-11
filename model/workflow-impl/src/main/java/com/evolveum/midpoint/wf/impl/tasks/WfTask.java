@@ -187,8 +187,8 @@ public class WfTask {
         getWfTaskUtil().deleteModelOperationContext(task);
     }
 
-    public void storeModelContext(ModelContext modelContext) throws SchemaException {
-        getWfTaskUtil().storeModelContext(task, modelContext);
+    public void storeModelContext(ModelContext modelContext, boolean reduced) throws SchemaException {
+        getWfTaskUtil().storeModelContext(task, modelContext, reduced);
     }
 
     public List<WfTask> listDependents(OperationResult result) throws SchemaException, ObjectNotFoundException {

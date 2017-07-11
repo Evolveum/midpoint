@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -329,8 +330,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         displayTestTile(TEST_NAME);
         
 //        IntegrationTestTools.displayXml("Resource XML", resource);
-        accountObjectClassDefinition = AdUtils.assertAdSchema(resource, getAccountObjectClass(), prismContext);
-        AdUtils.assertExchangeSchema(resource, prismContext);
+        accountObjectClassDefinition = AdUtils.assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
+        AdUtils.assertAdRefinedSchema(resource, getAccountObjectClass(), prismContext);
+        AdUtils.assertExchangeSchema(resource, getAccountObjectClass(), prismContext);
         
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         assertEquals("Unexpected number of schema definitions (limited by generation constraints)", 5, resourceSchema.getDefinitions().size());
@@ -349,8 +351,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         ObjectQuery query = createSamAccountNameQuery(ACCOUNT_JACK_SAM_ACCOUNT_NAME);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         displayWhen(TEST_NAME);
@@ -369,7 +371,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         jackAccountOid = shadow.getOid();
         
 //        assertConnectorOperationIncrement(2);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -1253,8 +1255,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
         
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
@@ -1268,7 +1269,32 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Just make random test connection between the tests. Make sure that the
+	 * test does not break anything. If it does the next tests will simply fail.
+	 */
+	@Test
+    public void test295TestConnection() throws Exception {
+		final String TEST_NAME = "test295TestConnection";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        OperationResult testResult = modelService.testResource(getResourceOid(), task);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        display("Test connection result", testResult);
+        TestUtil.assertSuccess("Test connection result", testResult);
+                
+        assertLdapConnectorInstances(2);
 	}
 
 	@Test
@@ -1302,7 +1328,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 	
 	@Test

@@ -241,9 +241,9 @@
 						<script>
 							<code>
 								if (effectiveStatus == com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED) {
-									return 'TRUE'
+									return true
 								} else {
-									return 'FALSE'
+									return false
 								}
 							</code>
 						</script>
@@ -758,6 +758,7 @@
 
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
+		<validateSchema>true</validateSchema>
 	</consistency>
     
     	<synchronization>

@@ -106,7 +106,7 @@ public class FullTextFilter extends ObjectFilter {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("IN OID: ");
+		sb.append("FULLTEXT: ");
 		if (values != null) {
 			sb.append(values.stream().collect(Collectors.joining("; ")));
 		}

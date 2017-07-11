@@ -49,7 +49,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
 	// Original resource schema is there to make parsing easier. 
 	// But it is also useful in some cases, e.g. we do not need to pass both refined schema and
-	// original schema as a metod parameter.
+	// original schema as a method parameter.
 	private ResourceSchema originalResourceSchema;
 	
 	// This object contains the real data of the refined schema
@@ -60,6 +60,12 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		this.resourceSchema = new ResourceSchemaImpl(originalResourceSchema.getNamespace(), originalResourceSchema.getPrismContext());
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public Collection<ObjectClassComplexTypeDefinition> getObjectClassDefinitions() {
+		return (Collection) getRefinedDefinitions();
+	}
+
 	@Override
 	public List<? extends RefinedObjectClassDefinition> getRefinedDefinitions() {
 		return resourceSchema.getDefinitions(RefinedObjectClassDefinition.class);
@@ -580,4 +586,21 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
 	//endregion
 
+	public static void validateRefinedSchema(RefinedResourceSchema refinedSchema, PrismObject<ResourceType> resource) throws SchemaException {
+		
+		Set<RefinedObjectClassDefinitionKey> discrs = new HashSet<>();
+		
+		for (RefinedObjectClassDefinition rObjectClassDefinition: refinedSchema.getRefinedDefinitions()) {
+			QName typeName = rObjectClassDefinition.getTypeName();
+			RefinedObjectClassDefinitionKey key = new RefinedObjectClassDefinitionKey(rObjectClassDefinition);
+			if (discrs.contains(key)) {
+				throw new SchemaException("Duplicate definition of object class "+key+" in resource schema of "+resource);
+			}
+			discrs.add(key);
+			
+			ResourceTypeUtil.validateObjectClassDefinition(rObjectClassDefinition, resource);
+		}
+	}
+	
+	
 }

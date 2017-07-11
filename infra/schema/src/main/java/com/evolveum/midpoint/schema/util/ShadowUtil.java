@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -27,6 +28,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -45,6 +48,8 @@ import java.util.List;
  * @author Radovan Semancik
  */
 public class ShadowUtil {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ShadowUtil.class);
 	
 	public static Collection<ResourceAttribute<?>> getPrimaryIdentifiers(ShadowType shadowType) {
 		return getPrimaryIdentifiers(shadowType.asPrismObject());
@@ -708,6 +713,47 @@ public class ShadowUtil {
 		ResourceAttributeContainer container = new ResourceAttributeContainer(ShadowType.F_ATTRIBUTES, null, attribute.getPrismContext());
 		container.createNewValue().add(fixedAttribute);
 		return fixedAttribute;
+	}
+
+	// TODO: may be useful to move to ObjectClassComplexTypeDefinition later?
+	public static void validateAttributeSchema(PrismObject<ShadowType> shadow,
+			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+		for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
+			validateAttribute(attribute, objectClassDefinition);
+		}
+	}
+
+	// TODO: may be useful to move to ResourceAttributeDefinition later?
+	private static <T> void validateAttribute(ResourceAttribute<T> attribute,
+			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		QName attrName = attribute.getElementName();
+		ResourceAttributeDefinition<T> attrDef = objectClassDefinition.findAttributeDefinition(attrName);
+		if (attrDef == null) {
+			throw new SchemaException("No definition for attribute "+attrName+" in object class "+objectClassDefinition);
+		}
+		List<PrismPropertyValue<T>> pvals = attribute.getValues();
+		if (pvals == null || pvals.isEmpty()) {
+			if (attrDef.isMandatory()) {
+				throw new SchemaException("Mandatory attribute "+attrName+" has no value");
+			} else {
+				return;
+			}
+		}
+		if (pvals.size() > 1 && attrDef.isSingleValue()) {
+			throw new SchemaException("Single-value attribute "+attrName+" has "+pvals.size()+" values");
+		}
+		Class<T> expectedClass = attrDef.getTypeClass();
+		for (PrismPropertyValue<T> pval: pvals) {
+			T val = pval.getValue();
+			if (val == null) {
+				throw new SchemaException("Null value in attribute "+attrName);
+			}
+			LOGGER.info("MMMMMMMMMMMM: {}:{}\n   {} <-> {}", attrName, attrDef, expectedClass, val.getClass());
+			if (!XmlTypeConverter.isMatchingType(expectedClass, val.getClass())) {
+				throw new SchemaException("Wrong value in attribute "+attrName+"; expected class "+attrDef.getTypeClass().getSimpleName()+", but was "+val.getClass());
+			}
+		}
 	}
 
 }

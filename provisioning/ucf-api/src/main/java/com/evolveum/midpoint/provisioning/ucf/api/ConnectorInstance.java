@@ -162,7 +162,7 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 * @throws SchemaException error converting object from native (connector) format
 	 */
-	<T extends ShadowType> PrismObject<T> fetchObject(Class<T> type, ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
+	PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification, AttributesToReturn attributesToReturn, StateReporter reporter,
 															 OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException, 
 		SecurityViolationException, ConfigurationException;
@@ -190,7 +190,7 @@ public interface ConnectorInstance {
 	 * @throws ObjectNotFoundException if something from the search parameters refers non-existent object.
 	 * 									e.g. if search base points to an non-existent object.
 	 */
-    <T extends ShadowType> SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, ResultHandler<T> handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
+    SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
 															  OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
             		ObjectNotFoundException;

@@ -40,8 +40,14 @@ public class ItemPath implements Serializable, Cloneable {
 	@Deprecated	// use ItemPathType.COMPLEX_TYPE
 	public static final QName XSD_TYPE = ItemPathType.COMPLEX_TYPE;
 
-	public static final ItemPath EMPTY_PATH = new ItemPath();
-	
+	public static final ItemPath EMPTY_PATH = ItemPath.createEmpty();
+
+	private static ItemPath createEmpty() {
+		ItemPath empty = new ItemPath();
+		empty.segments = Collections.emptyList();			// to ensure it won't get modified in no case
+		return empty;
+	}
+
 	private List<ItemPathSegment> segments;
 	private Map<String, String> namespaceMap;
 
@@ -53,8 +59,9 @@ public class ItemPath implements Serializable, Cloneable {
 		return namespaceMap;
 	}
 
-	public ItemPath() {
-		segments = new ArrayList<>(0);
+	// use ItemPath.EMPTY_PATH from outside clients to avoid unnecessary instantiation
+	private ItemPath() {
+		segments = new ArrayList<>();		// to provide room for growth
 	}
 		
 	public ItemPath(QName... qnames) {
@@ -365,7 +372,8 @@ public class ItemPath implements Serializable, Cloneable {
 	 *  - SUPERPATH if path2 is a subpath of path1, like A/B/C/D is a superpath of A/B
 	 *  - NO_RELATION if neither of the above three occurs
 	 */
-	public CompareResult compareComplex(ItemPath otherPath) {
+	@Deprecated
+	public CompareResult compareComplexOld(ItemPath otherPath) {
 		ItemPath thisNormalized = this.normalize();
 		ItemPath otherNormalized = otherPath == null ? EMPTY_PATH : otherPath.normalize();
 		int i = 0;
@@ -385,6 +393,76 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return CompareResult.EQUIVALENT;
 	}
+
+	/**
+	 * Alternative to normalization: reads the same sequence of segments of 'path' as segments of 'path.normalize()'
+	 */
+	private class ItemPathNormalizingIterator implements Iterator<ItemPathSegment> {
+		final ItemPath path;
+		private int i = 0;
+		private boolean nextIsArtificialId = false;
+
+		ItemPathNormalizingIterator(ItemPath path) {
+			this.path = path;
+		}
+
+		@Override
+		public boolean hasNext() {
+			// note that if i == path.size(), nextIsArtificialId is always false
+			return i < path.size();
+		}
+
+		@Override
+		public ItemPathSegment next() {
+			if (i >= path.size()) {
+				throw new IndexOutOfBoundsException("Index: " + i + ", path size: " + path.size() + ", path: " + path);
+			} else if (nextIsArtificialId) {
+				nextIsArtificialId = false;
+				return new IdItemPathSegment();
+			} else if (i == path.size() - 1) {
+				// the last segment: nothing will be added
+				return path.segments.get(i++);
+			} else {
+				ItemPathSegment rv = path.segments.get(i++);
+				if (!(rv instanceof IdItemPathSegment) && !(path.segments.get(i) instanceof IdItemPathSegment)) {
+					nextIsArtificialId = true;			// next one returned will be artificial id segment
+				}
+				return rv;
+			}
+		}
+	}
+
+	private ItemPathNormalizingIterator normalizingIterator() {
+		return new ItemPathNormalizingIterator(this);
+	}
+
+	public CompareResult compareComplex(ItemPath otherPath) {
+		ItemPathNormalizingIterator thisIterator = this.normalizingIterator();
+		ItemPathNormalizingIterator otherIterator = (otherPath != null ? otherPath : EMPTY_PATH).normalizingIterator();
+		while (thisIterator.hasNext() && otherIterator.hasNext()) {
+			ItemPathSegment thisSegment = thisIterator.next();
+			ItemPathSegment otherSegment = otherIterator.next();
+			if (!thisSegment.equivalent(otherSegment)) {
+				return CompareResult.NO_RELATION;
+			}
+		}
+		if (thisIterator.hasNext()) {
+			return CompareResult.SUPERPATH;				// "this" is longer than "other"
+		}
+		if (otherIterator.hasNext()) {
+			return CompareResult.SUBPATH;				// "this" is shorter than "other"
+		}
+		return CompareResult.EQUIVALENT;
+	}
+
+//	public CompareResult compareComplex(ItemPath otherPath) {
+//		CompareResult r1 = compareComplexOld(otherPath);
+//		CompareResult r2 = compareComplexEfficient(otherPath);
+//		if (r1 != r2) {
+//			throw new AssertionError("old vs efficient: r1 = " + r1 + ", r2 = " + r2);
+//		}
+//		return r2;
+//	}
 
     public static boolean containsEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
         for (ItemPath path : paths) {

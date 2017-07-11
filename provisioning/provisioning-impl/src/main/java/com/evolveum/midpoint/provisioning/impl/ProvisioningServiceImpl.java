@@ -68,6 +68,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -90,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCheckType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -284,8 +286,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 		}
 		result.cleanupResult();
-		
-		validateObject(resultingObject);
 		
 		return resultingObject;
 
@@ -523,7 +523,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 
 				PrismObject<T> completeResource = completeObject(type, repoObject, options, task, objResult);
-				validateObject(completeResource);
                 objResult.computeStatusIfUnknown();
                 if (!objResult.isSuccess()) {
                     completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
@@ -563,6 +562,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	}
 	
+	// TODO: move to ResourceManager and ConnectorManager
+	// the shadow-related code is already in the ShadowCache
 	private <T extends ObjectType> PrismObject<T> completeObject(Class<T> type, PrismObject<T> inObject, 
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
@@ -572,11 +573,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						SelectorOptions.findRootOptions(options), task, result);
 				return (PrismObject<T>) completeResource;
 		} else if (ShadowType.class.equals(type)) {
-			//TODO: applyDefinition??? 
-			applyDefinition(inObject, task, result);
-			setProtectedShadow((PrismObject<ShadowType>) inObject, result);
-			return inObject;
-			
+			// should not happen, the shadow-related code is already in the ShadowCache
+			throw new IllegalStateException("BOOOM!");
 		} else {
 			//TODO: connectors etc..
 			
@@ -852,6 +850,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return testResult;
 	}
 
+	@Deprecated
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
@@ -875,14 +874,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, objectClass, prismContext);
 		
 		final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<PrismObject<? extends ShadowType>>();
-		final ShadowHandler shadowHandler = new ShadowHandler() {
+		final ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
 			@Override
-			public boolean handle(ShadowType shadow) {
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("listResourceObjects: processing shadow: {}", SchemaDebugUtil.prettyPrint(shadow));
 				}
 
-				objectList.add(shadow.asPrismObject());
+				objectList.add(shadow);
 				return true;
 			}
 		};
@@ -952,6 +951,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 	}
 	
+	// TODO: move to ResourceManager and ConnectorManager
+	// the shadow-related code is already in the ShadowCache
 	private <T extends ObjectType> boolean handleRepoObject(final Class<T> type, PrismObject<T> object,
 			  final Collection<SelectorOptions<GetOperationOptions>> options,
 			  final ResultHandler<T> handler, Task task, final OperationResult objResult) {
@@ -968,15 +969,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			object.asObjectable().setFetchResult(objResult.createOperationResultType());
 			completeObject = object;
 		}
-		validateObject(completeObject);
-		
-		if (ShadowType.class.isAssignableFrom(type) && GetOperationOptions.isMaxStaleness(SelectorOptions.findRootOptions(options))) {
-			CachingMetadataType cachingMetadata = ((ShadowType)completeObject.asObjectable()).getCachingMetadata();
-			if (cachingMetadata == null) {
-				objResult.recordFatalError("Requested cached data but no cached data are available in the shadow");
-			}
-		}
-		
+				
 		objResult.computeStatus();
 		objResult.recordSuccessIfUnknown();
 		
@@ -1035,7 +1028,25 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		
-		if (!ShadowType.class.isAssignableFrom(type)){
+		if (ShadowType.class.isAssignableFrom(type)) {
+		
+			SearchResultMetadata metadata;
+			try {
+				
+				metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(query, options, (ResultHandler<ShadowType>)handler, true, task, result);
+				
+				result.computeStatus();
+				
+			} catch (ConfigurationException | CommunicationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+				throw e;
+			} finally {
+				result.cleanupResult();
+			}
+			
+			return metadata;
+						
+		} else {
 			
 			ResultHandler<T> internalHandler = (object, objResult) -> handleRepoObject(type, object, options, handler, task, objResult);
 			
@@ -1061,96 +1072,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			return metadata;
 		} 
 		
-		final boolean shouldDoRepoSearch = ProvisioningUtil.shouldDoRepoSearch(rootOptions);
-
-		final ShadowHandler shadowHandler = new ShadowHandler() {
-
-			@Override
-			public boolean handle(ShadowType shadowType) {
-				
-				OperationResult handleResult = result.createSubresult(ProvisioningService.class.getName()
-						+ ".searchObjectsIterative.handle");
-
-				if (shouldDoRepoSearch) {
-					return handleRepoObject(type, (PrismObject<T>) shadowType.asPrismObject(), options, handler, task, handleResult);
-				}
-				
-				if (shadowType == null) {
-					throw new IllegalArgumentException("Null shadow in call to handler");
-				}
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("searchObjectsIterative: processing shadow: {}",
-							SchemaDebugUtil.prettyPrint(shadowType));
-				}
-
-				
-
-                boolean doContinue;
-                try {
-                    PrismObject shadow = shadowType.asPrismObject();
-                    validateObject(shadow);
-                    
-                	doContinue = handler.handle(shadow, handleResult);
-                	
-                    handleResult.computeStatus();
-                    handleResult.recordSuccessIfUnknown();
-
-                    if (!handleResult.isSuccess() && !handleResult.isHandledError()) {
-                        Collection<? extends ItemDelta> shadowModificationType = PropertyDelta
-                                .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
-                                        getResourceObjectShadowDefinition(), handleResult.createOperationResultType());
-                        try {
-							ConstraintsChecker.onShadowModifyOperation(shadowModificationType);
-                            cacheRepositoryService.modifyObject(ShadowType.class, shadowType.getOid(),
-                                    shadowModificationType, result);
-                        } catch (ObjectNotFoundException ex) {
-                            result.recordFatalError("Saving of result to " + shadow
-                                    + " shadow failed: Not found: " + ex.getMessage(), ex);
-                        } catch (ObjectAlreadyExistsException ex) {
-                            result.recordFatalError("Saving of result to " + shadow
-                                    + " shadow failed: Already exists: " + ex.getMessage(), ex);
-                        } catch (SchemaException ex) {
-                            result.recordFatalError("Saving of result to " + shadow
-                                    + " shadow failed: Schema error: " + ex.getMessage(), ex);
-                        } catch (RuntimeException e) {
-                        	result.recordFatalError("Saving of result to " + shadow
-                                    + " shadow failed: " + e.getMessage(), e);
-                        	throw e;
-                        }
-                    }
-                } catch (RuntimeException e) {
-                	result.recordFatalError(e);
-                	throw e;
-                } finally {
-                	handleResult.computeStatus();
-                	handleResult.recordSuccessIfUnknown();
-                    // FIXME: hack. Hardcoded ugly summarization of successes. something like
-                    // AbstractSummarizingResultHandler [lazyman]
-                    if (result.isSuccess()) {
-                        result.getSubresults().clear();
-                    }
-                    result.summarize();
-                }
-
-				return doContinue;
-			}
-		};
-
-		SearchResultMetadata metadata;
-		try {
-			
-			metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(query, options, shadowHandler, true, task, result);
-			
-			result.computeStatus();
-			
-		} catch (ConfigurationException | CommunicationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-			throw e;
-		} finally {
-			result.cleanupResult();
-		}
-		
-		return metadata;
 	}
 
 	@Override
@@ -1366,8 +1287,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					  throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
 		ConstraintsChecker checker = new ConstraintsChecker();
-		checker.setCacheRepositoryService(cacheRepositoryService);
-		checker.setProvisioningService(this);
+		checker.setRepositoryService(cacheRepositoryService);
+		checker.setShadowCache(getShadowCache(Mode.STANDARD));
 		checker.setPrismContext(prismContext);
 		checker.setShadowDefinition(shadowDefinition);
 		checker.setShadowObject(shadowObject);
@@ -1421,16 +1342,4 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} 
 	}
 	
-	private <T extends ObjectType> void validateObjects(Collection<PrismObject<T>> objects) {
-		for(PrismObject<T> object: objects) {
-			validateObject(object);
-		}
-	}
-	
-	private <T extends ObjectType> void validateObject(PrismObject<T> object) {
-		Validate.notNull(object.getOid());
-		if (InternalsConfig.encryptionChecks) {
-			CryptoUtil.checkEncrypted(object);
-		}
-	}
 }

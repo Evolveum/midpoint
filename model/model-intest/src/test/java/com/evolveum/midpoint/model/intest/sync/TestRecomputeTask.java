@@ -273,7 +273,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         // Now do something evil, remove "red" construction from judge role
-        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, false, null);
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, false, null, null);
         
         displayRoles(task, result);
         

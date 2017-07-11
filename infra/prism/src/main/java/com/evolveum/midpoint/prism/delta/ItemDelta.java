@@ -79,7 +79,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = itemDefinition.getName();
-		this.parentPath = new ItemPath();
+		this.parentPath = ItemPath.EMPTY_PATH;
 		this.definition = itemDefinition;
 	}
 
@@ -87,7 +87,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
 		this.elementName = elementName;
-		this.parentPath = new ItemPath();
+		this.parentPath = ItemPath.EMPTY_PATH;
 		this.definition = itemDefinition;
     }
 
@@ -680,10 +680,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 	}
 
 	public boolean isEmpty() {
-		if (valuesToAdd == null && valuesToDelete == null && valuesToReplace == null) {
-			return true;
-		}
-		return false;
+		return valuesToAdd == null && valuesToDelete == null && valuesToReplace == null;
 	}
 
 	// TODO merge with isEmpty
@@ -1009,8 +1006,43 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
     		}
     	}
     }
+    
+    
+    public void validateValues(ItemDeltaValidator<V> validator) throws SchemaException {
+    	validateValues(validator, getEstimatedOldValues());
+    }
+    
+    public void validateValues(ItemDeltaValidator<V> validator, Collection<V> oldValues) throws SchemaException {
+    	validateSet(valuesToAdd, PlusMinusZero.PLUS, validator);
+    	validateSet(valuesToDelete, PlusMinusZero.MINUS, validator);
+    	if (isReplace()) {
+    		for (V val: getValuesToReplace()) {
+    			if (oldValues != null && PrismValue.containsRealValue(oldValues, val)) {
+    				validator.validate(PlusMinusZero.ZERO, val);
+    			} else {
+    				validator.validate(PlusMinusZero.PLUS, val);
+    			}
+    		}
+    		if (oldValues != null) {
+    			for (V val: getValuesToReplace()) {
+    				if (!PrismValue.containsRealValue(getValuesToReplace(), val)) {
+    					validator.validate(PlusMinusZero.MINUS, val);
+    				}
+    			}
+    		}
+    	}
+    }
 
-    public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
+    private void validateSet(Collection<V> set, PlusMinusZero plusMinusZero,
+			ItemDeltaValidator<V> validator) {
+		if (set != null) {
+			for (V val: set) {
+				validator.validate(plusMinusZero, val);
+			}
+		}
+	}
+
+	public static void checkConsistence(Collection<? extends ItemDelta> deltas) {
         checkConsistence(deltas, ConsistencyCheckScope.THOROUGH);
     }
 

@@ -1295,11 +1295,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return getKindValue(resourceShadowDiscriminator.getKind());
 	}
 
-	public void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer) throws SchemaException {
-
+	void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, boolean reduced) throws SchemaException {
         LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
-
-        super.storeIntoLensElementContextType(lensProjectionContextType);
+        super.storeIntoLensElementContextType(lensProjectionContextType, reduced);
         lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
 		lensProjectionContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
         lensProjectionContextType.setWave(wave);
@@ -1316,7 +1314,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         lensProjectionContextType.setDoReconciliation(doReconciliation);
         lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
         lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
-        lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
+        if (!reduced) {
+			lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
+		}
         lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
     }
 
@@ -1337,7 +1337,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			projectionContext.syncDelta = null;
 		}
 		ObjectDeltaType secondaryDeltaType = projectionContextType.getSecondaryDelta();
-		projectionContext.secondaryDelta = secondaryDeltaType != null ? (ObjectDelta) DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
+		projectionContext.secondaryDelta = secondaryDeltaType != null ?
+				DeltaConvertor.createObjectDelta(secondaryDeltaType, lensContext.getPrismContext()) : null;
 		ObjectType object = projectionContextType.getObjectNew() != null ? projectionContextType.getObjectNew() : projectionContextType.getObjectOld();
 		projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
 
