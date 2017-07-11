@@ -43,6 +43,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -86,6 +87,7 @@ public class CertDefinitionDto implements Serializable {
         for (AccessCertificationStageDefinitionType stageDef : definition.getStageDefinition()) {
             stageDefinition.add(createStageDefinitionDto(stageDef, prismContext));
         }
+        stageDefinition.sort(Comparator.comparing(StageDefinitionDto::getNumber));
         if (definition.getRemediationDefinition() != null) {
             remediationStyle = definition.getRemediationDefinition().getStyle();
             revokeOn = new ArrayList<>(definition.getRemediationDefinition().getRevokeOn());
