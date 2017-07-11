@@ -19,8 +19,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDataTablePanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -29,6 +32,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
@@ -43,7 +47,9 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
-	
+	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
+	private static final String OPERATION_GET_SYSTEM_CONFIGURATION = DOT_CLASS + "getSystemConfiguration";
+
 	private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
@@ -62,30 +68,43 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
-				createStringResource("FocusType.assignment"), assignmentsModel) {
 
-            @Override
-            protected boolean getAssignmentMenuVisibility() {
-                return  !getObjectWrapper().isReadonly();
-            }
+		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIGURATION);
+		SystemConfigurationType systemConfig = null;
+		try{
+			systemConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
+		} catch (Exception ex){
+			LOGGER.error("Cannot get system configuration object, ", ex);
+		}
+		Component panel;
+		if (SystemConfigurationTypeUtil.isExperimentalCodeEnabled(systemConfig)){
+			panel = new AssignmentDataTablePanel(ID_ASSIGNMENTS_PANEL, assignmentsModel, pageBase);
+		} else {
+			panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
+					createStringResource("FocusType.assignment"), assignmentsModel) {
 
-            @Override
-			protected boolean isShowAllAssignmentsVisible(){
-				PrismContainer assignmentContainer = getObjectWrapper().getObject().findContainer(new ItemPath(FocusType.F_ASSIGNMENT));
-				return assignmentContainer != null && assignmentContainer.getDefinition() != null ?
-						assignmentContainer.getDefinition().canRead() : super.isShowAllAssignmentsVisible();
-			}
+				@Override
+				protected boolean getAssignmentMenuVisibility() {
+					return !getObjectWrapper().isReadonly();
+				}
 
-            @Override
-			protected void showAllAssignments(AjaxRequestTarget target) {
-                List<AssignmentsPreviewDto> assignmentsPreviewDtos = ((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(target);
-				AssignmentPreviewDialog dialog = new AssignmentPreviewDialog(getPageBase().getMainPopupBodyId(),
-                        assignmentsPreviewDtos, new ArrayList<String>(), getPageBase());
-				getPageBase().showMainPopup(dialog, target);
-			}
+				@Override
+				protected boolean isShowAllAssignmentsVisible() {
+					PrismContainer assignmentContainer = getObjectWrapper().getObject().findContainer(new ItemPath(FocusType.F_ASSIGNMENT));
+					return assignmentContainer != null && assignmentContainer.getDefinition() != null ?
+							assignmentContainer.getDefinition().canRead() : super.isShowAllAssignmentsVisible();
+				}
 
-		};
+				@Override
+				protected void showAllAssignments(AjaxRequestTarget target) {
+					List<AssignmentsPreviewDto> assignmentsPreviewDtos = ((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(target);
+					AssignmentPreviewDialog dialog = new AssignmentPreviewDialog(getPageBase().getMainPopupBodyId(),
+							assignmentsPreviewDtos, new ArrayList<String>(), getPageBase());
+					getPageBase().showMainPopup(dialog, target);
+				}
+
+			};
+		}
 		assignments.add(panel);
 	}
 

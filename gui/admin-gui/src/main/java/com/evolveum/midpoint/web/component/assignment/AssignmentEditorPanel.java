@@ -272,7 +272,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		nameLabel.setOutputMarkupId(true);
 		name.add(nameLabel);
 
-		Label activation = new Label(ID_ACTIVATION, createActivationModel());
+		Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel(), "-", AssignmentEditorPanel.this));
 		headerRow.add(activation);
 
 		ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
@@ -349,38 +349,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-	private IModel<String> createActivationModel() {
-		return new AbstractReadOnlyModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				AssignmentEditorDto dto = getModel().getObject();
-				ActivationType activation = dto.getActivation();
-				if (activation == null) {
-					return "-";
-				}
-
-				ActivationStatusType status = activation.getAdministrativeStatus();
-				String strEnabled = createStringResource(status, "lower", "ActivationStatusType.null")
-						.getString();
-
-				if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-					return getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
-							MiscUtil.asDate(activation.getValidFrom()),
-							MiscUtil.asDate(activation.getValidTo()));
-				} else if (activation.getValidFrom() != null) {
-					return getString("AssignmentEditorPanel.enabledFrom", strEnabled,
-							MiscUtil.asDate(activation.getValidFrom()));
-				} else if (activation.getValidTo() != null) {
-					return getString("AssignmentEditorPanel.enabledTo", strEnabled,
-							MiscUtil.asDate(activation.getValidTo()));
-				}
-
-				return "-";
-			}
-		};
-	}
 
 	protected IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
 		return new Model<Date>() {
