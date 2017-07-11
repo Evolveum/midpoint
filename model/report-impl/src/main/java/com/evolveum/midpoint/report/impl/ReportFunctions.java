@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -424,6 +425,26 @@ public class ReportFunctions {
         return model.searchContainers(AccessCertificationCaseType.class, query, options, task, task.getResult());
     }
 
+    private List<AccessCertificationCaseType> getCertificationCampaignNotRespondedCasesAsBeans(String campaignName) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        Task task = taskManager.createTaskInstance();
+        ObjectQuery query;
+        if (StringUtils.isEmpty(campaignName)) {
+            //query = null;
+            return new ArrayList<>();
+        } else {
+            query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(PrismConstants.T_PARENT, F_NAME).eqPoly(campaignName, "").matchingOrig()
+                    .and().item(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
+                    // TODO first by object/target type then by name (not supported by the repository as of now)
+                    .asc(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
+                    .asc(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
+                    .build();
+        }
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+        return model.searchContainers(AccessCertificationCaseType.class, query, options, task, task.getResult());
+    }
+
     public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
@@ -431,6 +452,21 @@ public class ReportFunctions {
         for (AccessCertificationCaseType aCase : cases) {
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
                 if (stageNumber == null || java.util.Objects.equals(workItem.getStageNumber(), stageNumber)) {
+                    workItems.add(workItem);
+                }
+            }
+        }
+        return PrismContainerValue.toPcvList(workItems);
+    }
+
+    public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignNonResponders(String campaignName, Integer stageNumber)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        List<AccessCertificationCaseType> cases = getCertificationCampaignNotRespondedCasesAsBeans(campaignName);
+        List<AccessCertificationWorkItemType> workItems = new ArrayList<>();
+        for (AccessCertificationCaseType aCase : cases) {
+            for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+                if ((workItem.getOutput() == null || workItem.getOutput().getOutcome() == null)
+                    && (stageNumber == null || java.util.Objects.equals(workItem.getStageNumber(), stageNumber))) {
                     workItems.add(workItem);
                 }
             }
