@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportUserList" pageWidth="1200" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1160" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
+	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.1" value="pageHeader"/>
+	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.2" value="pageFooter"/>
+	<property name="net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.2" value="columnHeader"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="16"/>
+	<property name="ireport.y" value="14"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="mql.xml"/>
+	<import value="com.evolveum.midpoint.report.impl.ReportUtils"/>
+	<import value="com.evolveum.midpoint.schema.util.CertCampaignTypeUtil"/>
+	<style name="Base" isDefault="true" hTextAlign="Left" hImageAlign="Left" vTextAlign="Middle" vImageAlign="Middle" fontName="DejaVu Sans" fontSize="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Title" style="Base" mode="Opaque" forecolor="#FFFFFF" backcolor="#267994" fontSize="26"/>
+	<style name="Page header" style="Base" forecolor="#000000" fontSize="12"/>
+	<style name="Column header" style="Base" mode="Opaque" forecolor="#FFFFFF" backcolor="#333333" hTextAlign="Center" hImageAlign="Center" fontSize="12"/>
+	<style name="Detail" style="Base" isBold="false"/>
+	<style name="Code" style="Base" fontSize="9" isBold="false"/>
+	<style name="Page footer" style="Base" forecolor="#000000" fontSize="9"/>
+	<parameter name="campaignName" class="java.lang.String">
+		<property name="key" value="name"/>
+		<property name="label" value="name"/>
+		<property name="targetType" value="com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType"/>
+		<parameterDescription><![CDATA[Name of certification campaign whose decisions are to be reported on.]]></parameterDescription>
+	</parameter>
+	<parameter name="stageNumber" class="java.lang.Integer">
+		<parameterDescription><![CDATA[Number of stage to report decisions for (if not specified, all stages are taken into account)]]></parameterDescription>
+	</parameter>
+	<queryString language="mql">
+		<![CDATA[<code>
+    report.getCertificationCampaignDecisions(campaignName, stageNumber)
+</code>]]>
+	</queryString>
+	<field name="stageNumber" class="java.lang.Integer"/>
+	<field name="performerRef" class="com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType"/>
+	<field name="output" class="com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType"/>
+	<field name="outputChangeTimestamp" class="javax.xml.datatype.XMLGregorianCalendar"/>
+	<field name="_parent_" class="com.evolveum.midpoint.prism.PrismContainerValue"/>
+	<field name="_this_" class="com.evolveum.midpoint.prism.PrismContainerValue"/>
+	<background>
+		<band height="68" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+		</band>
+	</background>
+	<title>
+		<band height="123" splitType="Stretch">
+			<frame>
+				<reportElement style="Title" mode="Opaque" x="0" y="0" width="1160" height="67" backcolor="#267994" uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553"/>
+				<staticText>
+					<reportElement style="Title" x="10" y="14" width="1140" height="38" uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Certification Decisions Report]]></text>
+				</staticText>
+			</frame>
+			<staticText>
+				<reportElement style="Page header" x="0" y="85" width="120" height="20" uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Campaign name:]]></text>
+			</staticText>
+			<textField pattern="dd.MM.yyyy, HH:mm:ss">
+				<reportElement style="Page header" isPrintRepeatedValues="false" x="120" y="85" width="437" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{campaignName}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Page header" x="904" y="85" width="186" height="20" uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Stage number:]]></text>
+			</staticText>
+			<textField>
+				<reportElement style="Page header" isPrintRepeatedValues="false" x="1100" y="85" width="60" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{stageNumber} != null ? $P{stageNumber} : "Any"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+			<staticText>
+				<reportElement style="Column header" x="0" y="0" width="273" height="20" uuid="0498909b-d3c5-4ee3-b8c9-f00a808efa7a">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Object]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="273" y="0" width="272" height="20" uuid="c530556b-e674-47c6-a799-6f1d5b5bce61">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Target]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="545" y="0" width="165" height="20" uuid="3b54722a-99bf-4c7c-b649-bb03ec53329e">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Reviewed by]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="710" y="0" width="130" height="20" uuid="421d39bd-6af0-4c1c-839f-06c1cf3cf130"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Reviewed on]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="840" y="0" width="75" height="20" uuid="a8be1fb9-e714-423f-b349-42a220494b61">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[In stage]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="915" y="0" width="80" height="20" uuid="3319e59b-5201-454d-9296-722c557b8460">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Result]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="995" y="0" width="165" height="20" uuid="53c59170-f78a-41a5-9399-e4129d3d6df8">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Comment]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="24" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+			<frame>
+				<reportElement style="Detail" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="1160" height="24" uuid="86db6537-81f0-42b1-b74a-d2be709271cd">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+				</reportElement>
+				<textField>
+					<reportElement x="0" y="0" width="273" height="24" uuid="c8948c85-ec31-4b39-889a-43cbce70f7f8">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintForReport(ReportUtils.getItemRealValue($F{_parent_}, "objectRef"))]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="273" y="0" width="272" height="24" uuid="75bfd4a0-5800-47a5-a53c-458025730bb3">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintForReport(ReportUtils.getItemRealValue($F{_parent_}, "targetRef"))]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="545" y="0" width="165" height="24" uuid="b5de6003-cc64-4ee4-9b25-9927e7379f57">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintPerformerOrAssigneesForReport($F{_this_})]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="710" y="0" width="130" height="24" uuid="b91b3f45-252d-4e71-951c-9e120aaf7c5a">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintOutputChangeForReport($F{_this_})]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="840" y="0" width="75" height="24" uuid="8c09b787-2392-44e9-890f-46dd0f3b3b68">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{stageNumber}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="915" y="0" width="80" height="24" uuid="994a1e0f-ce28-4e44-bb4d-470c8bc2c65d">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintCertOutcomeForReport($F{output}, true)]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="995" y="0" width="165" height="24" uuid="a9aad576-69db-47c1-b49b-44793a4e6a07">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintCertCommentForReport($F{output})]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="32" splitType="Stretch">
+			<frame>
+				<reportElement style="Page footer" mode="Transparent" x="0" y="1" width="1120" height="24" forecolor="#000000" backcolor="#267994" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
+				<textField pattern="EEEEE dd MMMMM yyyy">
+					<reportElement style="Page footer" x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="Page footer" x="1000" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement style="Page footer" x="1080" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+</jasperReport>

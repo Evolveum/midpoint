@@ -37,6 +37,7 @@ import java.util.ResourceBundle;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
@@ -50,10 +51,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.stream.Collectors;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any
@@ -83,12 +87,58 @@ public class ReportUtils {
         return timestamp;
     }
 
+    public static String prettyPrintPerformerOrAssigneesForReport(PrismContainerValue<AbstractWorkItemType> workItemPcv) {
+        if (workItemPcv == null) {      // should not occur
+            return "";
+        }
+        AbstractWorkItemType workItem = workItemPcv.asContainerable();
+        if (workItem.getPerformerRef() != null && workItem.getOutput() != null
+                && (workItem.getOutput().getOutcome() != null || StringUtils.isNotBlank(workItem.getOutput().getComment()))) {
+            // performer is shown only if there's a real outcome (either result or comment)
+            return prettyPrintForReport(workItem.getPerformerRef(), false);
+        } else {
+            return "(" + prettyPrintReferencesForReport(workItem.getAssigneeRef(), false) + ")";
+        }
+    }
+
+    public static String prettyPrintOutputChangeForReport(PrismContainerValue<AccessCertificationWorkItemType> workItemPcv) {
+        if (workItemPcv == null) {      // should not occur
+            return "";
+        }
+        AccessCertificationWorkItemType workItem = workItemPcv.asContainerable();
+        if (workItem.getOutputChangeTimestamp() != null && workItem.getOutput() != null
+                && (workItem.getOutput().getOutcome() != null || StringUtils.isNotBlank(workItem.getOutput().getComment()))) {
+            // output change timestamp is shown only if there's a real outcome (either result or comment)
+            return prettyPrintForReport(workItem.getOutputChangeTimestamp());
+        } else {
+            return "";
+        }
+    }
+
+    public static String prettyPrintReferencesForReport(@NotNull List<ObjectReferenceType> references, boolean showType) {
+        return references.stream()
+                .map(ref -> prettyPrintForReport(ref, showType))
+                .collect(Collectors.joining(", "));
+    }
+
+    public static String prettyPrintCertOutcomeForReport(String uri, boolean noResponseIfEmpty) {
+        return prettyPrintForReport(OutcomeUtils.fromUri(uri), noResponseIfEmpty);
+    }
+
     public static String prettyPrintCertOutcomeForReport(String uri) {
-        return prettyPrintForReport(OutcomeUtils.fromUri(uri));
+        return prettyPrintCertOutcomeForReport(uri, false);
     }
 
     public static String prettyPrintCertOutcomeForReport(AbstractWorkItemOutputType output) {
-        return output != null ? prettyPrintCertOutcomeForReport(output.getOutcome()) : null;
+        return prettyPrintCertOutcomeForReport(output, false);
+    }
+
+    public static String prettyPrintCertOutcomeForReport(AbstractWorkItemOutputType output, boolean noResponseIfEmpty) {
+        String outcome = output != null ? output.getOutcome() : null;
+        if (noResponseIfEmpty && outcome == null) {
+            outcome = SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE;
+        }
+        return prettyPrintCertOutcomeForReport(outcome, noResponseIfEmpty);
     }
 
     public static String prettyPrintCertCommentForReport(AbstractWorkItemOutputType output) {
@@ -653,13 +703,26 @@ public class ReportUtils {
         }
     }
 
+    public static String prettyPrintForReport(AccessCertificationResponseType response, boolean noResponseIfEmpty) {
+        if (noResponseIfEmpty) {
+            if (response == null) {
+                response = AccessCertificationResponseType.NO_RESPONSE;
+            }
+        } else {
+            if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
+                return "";
+            }
+        }
+        return getPropertyString("AccessCertificationResponseType."+response.name());
+    }
+
     public static String prettyPrintForReport(AccessCertificationResponseType response) {
         if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
             return "";
         }
         return getPropertyString("AccessCertificationResponseType."+response.name());
     }
-    
+
     public static String prettyPrintForReport(EvaluatedPolicyRuleTriggerType trigger) {
         return prettyPrintRuleTriggerForReport(trigger);
     }    

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportUserList" pageWidth="1200" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1160" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
+	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.1" value="pageHeader"/>
+	<property name="net.sf.jasperreports.export.xls.exclude.origin.band.2" value="pageFooter"/>
+	<property name="net.sf.jasperreports.export.xls.exclude.origin.keep.first.band.2" value="columnHeader"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="true"/>
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="16"/>
+	<property name="ireport.y" value="14"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="mql.xml"/>
+	<import value="com.evolveum.midpoint.report.impl.ReportUtils"/>
+	<style name="Base" isDefault="true" hTextAlign="Left" hImageAlign="Left" vTextAlign="Middle" vImageAlign="Middle" fontName="DejaVu Sans" fontSize="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Title" style="Base" mode="Opaque" forecolor="#FFFFFF" backcolor="#267994" fontSize="26"/>
+	<style name="Page header" style="Base" forecolor="#000000" fontSize="12"/>
+	<style name="Column header" style="Base" mode="Opaque" forecolor="#FFFFFF" backcolor="#333333" hTextAlign="Center" hImageAlign="Center" fontSize="12"/>
+	<style name="Detail" style="Base" isBold="false"/>
+	<style name="Code" style="Base" fontSize="9" isBold="false"/>
+	<style name="Page footer" style="Base" forecolor="#000000" fontSize="9"/>
+	<queryString language="mql">
+		<![CDATA[<code>
+    report.searchCertificationDefinitions()
+</code>]]>
+	</queryString>
+	<field name="oid" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="ownerRef" class="com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType"/>
+	<field name="lastCampaignStartedTimestamp" class="javax.xml.datatype.XMLGregorianCalendar"/>
+	<field name="lastCampaignClosedTimestamp" class="javax.xml.datatype.XMLGregorianCalendar"/>
+	<field name="campaigns" class="java.lang.Integer"/>
+	<field name="openCampaigns" class="java.lang.Integer"/>
+	<background>
+		<band height="30" splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="123" splitType="Stretch">
+			<frame>
+				<reportElement style="Title" mode="Opaque" x="0" y="0" width="1160" height="67" backcolor="#267994" uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553"/>
+				<staticText>
+					<reportElement style="Title" x="10" y="14" width="1140" height="38" uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c"/>
+					<textElement verticalAlignment="Middle"/>
+					<text><![CDATA[Certification Definitions Report]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+			<staticText>
+				<reportElement style="Column header" x="0" y="0" width="560" height="20" uuid="0498909b-d3c5-4ee3-b8c9-f00a808efa7a"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="560" y="0" width="150" height="20" uuid="c530556b-e674-47c6-a799-6f1d5b5bce61">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Owner]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="710" y="0" width="110" height="20" uuid="642a6c05-3fd4-4d08-8745-ed37d9034473">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Campaigns]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="820" y="0" width="110" height="20" uuid="88fe3094-144c-4551-867a-3e7cf9e4685c">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Open campaigns]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="930" y="0" width="115" height="20" uuid="bbf94f0d-535f-4b7f-a2f2-7ad3ec50f0ef">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Last started]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="1045" y="0" width="115" height="20" uuid="3b54722a-99bf-4c7c-b649-bb03ec53329e">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Last closed]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="24" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+			<frame>
+				<reportElement style="Detail" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="1160" height="24" uuid="86db6537-81f0-42b1-b74a-d2be709271cd">
+					<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.HorizontalRowLayout"/>
+				</reportElement>
+				<textField>
+					<reportElement x="0" y="0" width="560" height="24" uuid="c8948c85-ec31-4b39-889a-43cbce70f7f8">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="560" y="0" width="150" height="24" uuid="75bfd4a0-5800-47a5-a53c-458025730bb3">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintForReport($F{ownerRef}, false)]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="710" y="0" width="110" height="24" uuid="763d65b3-1186-4c1c-adb9-5f041fca53f6">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{campaigns}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="820" y="0" width="110" height="24" uuid="d8b3ed4c-e08b-4bab-83aa-c72ab8790b2b">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[$F{openCampaigns}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="930" y="0" width="115" height="24" uuid="f9b8bb68-7dc3-47bf-8611-802b8368f224">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintForReport($F{lastCampaignStartedTimestamp})]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="1045" y="0" width="115" height="24" uuid="b5de6003-cc64-4ee4-9b25-9927e7379f57">
+						<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Center"/>
+					<textFieldExpression><![CDATA[ReportUtils.prettyPrintForReport($F{lastCampaignClosedTimestamp})]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="32" splitType="Stretch">
+			<frame>
+				<reportElement style="Page footer" mode="Transparent" x="0" y="1" width="1120" height="24" forecolor="#000000" backcolor="#267994" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
+				<textField pattern="EEEEE dd MMMMM yyyy">
+					<reportElement style="Page footer" x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="Page footer" x="1000" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report">
+					<reportElement style="Page footer" x="1080" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
+					<textElement verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+</jasperReport>
