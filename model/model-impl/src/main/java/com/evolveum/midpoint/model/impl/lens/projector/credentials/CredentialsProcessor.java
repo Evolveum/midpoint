@@ -71,29 +71,11 @@ public class CredentialsProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialsProcessor.class);
 
-	@Autowired(required=true)
-	private PrismContext prismContext;
-
-	@Autowired(required=true)
-	private MappingFactory mappingFactory;
-
-	@Autowired(required=true)
-	private MappingEvaluator mappingEvaluator;
-
-	@Autowired(required=true)
-	private OperationalDataManager metadataManager;
-	
-	@Autowired(required=true)
-	private ModelObjectResolver resolver;
-	
-	@Autowired(required=true)
-	private ValuePolicyProcessor valuePolicyProcessor;
-	
-	@Autowired(required = true)
-	private SecurityHelper securityHelper;
-	
-	@Autowired(required = true)
-	Protector protector;
+	@Autowired private PrismContext prismContext;
+	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private ModelObjectResolver resolver;
+	@Autowired private ValuePolicyProcessor valuePolicyProcessor;
+	@Autowired Protector protector;
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
@@ -105,33 +87,11 @@ public class CredentialsProcessor {
 			return;
 		}
 		
-		processSecurityPolicy(context, now, task, result);
 		processFocusPassword((LensContext<UserType>) context, now, task, result);
 		processFocusNonce((LensContext<UserType>) context, now, task, result);
 		processFocusSecurityQuestions((LensContext<UserType>) context, now, task, result);
 	}
 	
-	private <F extends FocusType> void processSecurityPolicy(LensContext<F> context, XMLGregorianCalendar now,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
-		if (securityPolicy == null) {
-			securityPolicy = securityHelper.locateSecurityPolicy(focusContext.getObjectAny(), 
-					context.getSystemConfiguration(), task, result);
-			if (securityPolicy == null) {
-				// store empty policy to avoid repeated lookups
-				securityPolicy = new SecurityPolicyType();
-			}
-			focusContext.setSecurityPolicy(securityPolicy);
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
-		} else {
-			LOGGER.debug("Security policy: {}", securityPolicy);
-		}
-	}
-		
 	private <F extends FocusType> void processFocusPassword(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException {

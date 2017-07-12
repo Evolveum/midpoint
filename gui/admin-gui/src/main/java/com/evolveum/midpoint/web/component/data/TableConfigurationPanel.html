@@ -34,18 +34,15 @@
         <h3 class="popover-title"><wicket:message key="PageSizePopover.title"/></h3>
         <div class="popover-content">
             <form wicket:id="form">
-             	<div class="row">
-       	 			<span wicket:id="inputFeedback" class="text-danger"/>
-   				</div>
+                <span wicket:id="inputFeedback" class="text-danger"/>
                 <div class="input-group">
-                    <input wicket:id="input" type="text" size="1" style="display: inline-block; width: auto;"
+                    <input wicket:id="input" type="text" size="3" style="display: inline-block; width: auto;"
                            class="form-control input-sm">
-                          
-                    <span class="input-group-btn">
+                    <div class="input-group-btn" style="width: auto;">
                         <button wicket:id="button" type="button" class="btn btn-sm btn-success">
                             <i class="fa fa-check"></i>
                         </button>
-                    </span>
+                    </div>
                 </div>
             </form>
         </div>

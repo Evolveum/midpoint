@@ -154,6 +154,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 	private static final String INTENT_GROUP = "group";
 	private static final String INTENT_OU_TOP = "ou-top";
+
+	private static final String USER_EMPTYHEAD_NAME = "emptyhead";
 	
 	private boolean allowDuplicateSearchResults = false;
 	
@@ -1182,8 +1184,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
         display("Entry", entry);
@@ -1268,6 +1269,38 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAccountEnabled(shadow);
         
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
+        
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Try to create an account without password. This should end up with an error.
+	 * A reasonable error.
+	 * MID-4046
+	 */
+	@Test
+    public void test270AssignAccountToEmptyhead() throws Exception {
+		final String TEST_NAME = "test270AssignAccountToEmptyhead";
+        displayTestTile(TEST_NAME);
+        
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = createUser(USER_EMPTYHEAD_NAME, USER_EMPTYHEAD_NAME, true);
+        display("User before", userBefore);
+        addObject(userBefore);
+        String userEmptyheadOid = userBefore.getOid();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccount(userEmptyheadOid, getResourceOid(), null, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertPartialError(result);
+        
+        assertMessageContains(result.getMessage(), "does not meet the length, complexity, or history requirement");
         
         assertLdapConnectorInstances(2);
 	}

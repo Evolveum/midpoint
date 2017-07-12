@@ -21,6 +21,7 @@ package com.evolveum.midpoint.util;
  * 
  * @author semancik
  */
+@FunctionalInterface
 public interface HumanReadableDescribable {
 
 	String toHumanReadableDescription();

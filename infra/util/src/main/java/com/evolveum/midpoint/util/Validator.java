@@ -20,6 +20,7 @@ package com.evolveum.midpoint.util;
  * 
  * @author Radovan Semancik
  */
+@FunctionalInterface
 public interface Validator<T> {
 	
 	/**

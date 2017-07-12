@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author mederly
  */
+@FunctionalInterface
 public interface ConvertorInterface {
 
 	/**

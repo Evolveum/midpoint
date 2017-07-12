@@ -58,6 +58,7 @@ public class SearchFactory {
                 new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                 new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
+                new ItemPath(UserType.F_TITLE),
                 new ItemPath(UserType.F_GIVEN_NAME),
                 new ItemPath(UserType.F_FAMILY_NAME),
                 new ItemPath(UserType.F_FULL_NAME),

@@ -23,6 +23,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author mederly
  */
+@FunctionalInterface
 public interface CertGuiHandler {
     String getCaseInfoButtonTitle(IModel<? extends CertCaseOrWorkItemDto> rowModel, PageBase page);
 }

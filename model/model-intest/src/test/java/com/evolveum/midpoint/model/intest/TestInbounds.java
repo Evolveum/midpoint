@@ -16,12 +16,13 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -224,11 +226,12 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("User before", userBefore);
     
 		// WHEN
+		displayWhen(TEST_NAME);
         assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
 		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
@@ -246,7 +249,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
-        
 	}
 	
 	/**
@@ -597,8 +599,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		reconcileUser(USER_GUYBRUSH_OID, task, result);
 
 		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
         
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
@@ -616,7 +617,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
-        
 	}
 
 	/**
@@ -664,7 +664,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
-        
 	}
 	
 	/**
@@ -720,7 +719,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
-        
 	}
 	
 	/**
@@ -771,7 +769,6 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
-        
 	}
 
 	/**
@@ -797,11 +794,12 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 		display("Account orange before", dummyAccountBefore);
     
 		// WHEN
+		displayWhen(TEST_NAME);
 		reconcileUser(USER_GUYBRUSH_OID, task, result);
     
 		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+        assertSuccess(result);
         
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
@@ -821,6 +819,84 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
         display("Orange shadow", shadowOrange);
-        
 	}
+	
+	/**
+	 * Cleanup
+	 */
+	@Test
+    public void test297ModifyAccountOrangeGossipRecon() throws Exception {
+		final String TEST_NAME = "test297ModifyAccountOrangeGossipRecon";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+		
+		DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
+		dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME /* no value */);
+		display("Account orange before", dummyAccountBefore);
+    
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignRole(USER_GUYBRUSH_OID, ROLE_THIEF_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        assertNotAssignedRole(userAfter, ROLE_THIEF_OID);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 1);
+        
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
+        display("Orange account", dummyAccount);
+        
+        guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
+        PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
+        display("Orange shadow", shadowOrange);
+	}
+	
+	@Test
+    public void test299UnassignAccountOrange() throws Exception {
+		final String TEST_NAME = "test299UnassignAccountOrange";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		display("User before", userBefore);
+		assertAssignments(userBefore, 1);
+    
+		// WHEN
+		displayWhen(TEST_NAME);
+        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		display("User after", userAfter);
+        assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, 
+        		USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 0);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
+
+        assertNoShadow(guybrushShadowOrangeOid);
+	}
+
 }

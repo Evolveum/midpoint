@@ -19,6 +19,7 @@ package com.evolveum.midpoint.test;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface ObjectChecker<T> {
 	
 	public void check(T change);

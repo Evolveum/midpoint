@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface MappingOutputProcessor<V extends PrismValue> {
 
 	/**

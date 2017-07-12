@@ -539,7 +539,8 @@ public class ConnectorManager {
 		}
 	}
 	
-	private interface ConnectorFactoryConsumer {
+	@FunctionalInterface
+    private interface ConnectorFactoryConsumer {
 		void process(ConnectorFactory connectorFactory) throws CommunicationException;
 	}
 

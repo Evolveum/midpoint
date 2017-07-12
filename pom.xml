@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -40,12 +40,12 @@
         <repository>
             <id>evolveum-nexus</id>
             <name>Internal Releases</name>
-            <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+            <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>evolveum-nexus</id>
             <name>Internal Snapshots</name>
-            <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -140,12 +140,12 @@
 		<repository>
 			<id>evolveum</id>
 			<name>Evolveum Public Releases</name>
-			<url>http://nexus.evolveum.com/nexus/content/groups/public</url>
+			<url>https://nexus.evolveum.com/nexus/content/groups/public</url>
 		</repository>
 		<repository>
 			<id>evolveum-snapshots</id>
 			<name>Evolveum Snapshots</name>
-			<url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+			<url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
 		</repository>
 	</repositories>
 	<properties>

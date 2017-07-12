@@ -23,6 +23,7 @@ package com.evolveum.midpoint.model.impl.sync;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface ReconciliationTaskResultListener {
 
 	void process(ReconciliationTaskResult reconResult);
