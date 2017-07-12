@@ -19,6 +19,7 @@ package com.evolveum.midpoint.test;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface ObjectSource<T> {
 
 	public T get();

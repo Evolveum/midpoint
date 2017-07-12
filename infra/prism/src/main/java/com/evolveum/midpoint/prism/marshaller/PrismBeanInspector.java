@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ public class PrismBeanInspector {
 
 	//region Caching mechanism (multiple dimensions)
 
+    @FunctionalInterface
     interface Getter1<V, P1> {
         V get(P1 param1);
     }
@@ -73,6 +74,7 @@ public class PrismBeanInspector {
         }
     }
 
+    @FunctionalInterface
     interface Getter2<V, P1, P2> {
         V get(P1 param1, P2 param2);
     }
@@ -91,6 +93,7 @@ public class PrismBeanInspector {
         });
     }
 
+    @FunctionalInterface
     interface Getter3<V, P1, P2, P3> {
         V get(P1 param1, P2 param2, P3 param3);
     }

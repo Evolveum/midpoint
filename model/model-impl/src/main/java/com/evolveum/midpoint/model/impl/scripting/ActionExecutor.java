@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionTy
  *
  * @author mederly
  */
+@FunctionalInterface
 public interface ActionExecutor {
 
     /**

@@ -183,6 +183,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         concurrencyUniversal("Test4", 60000L, 0L, mts, checker);
     }
 
+    @FunctionalInterface
     private interface Checker {
         void check(int iteration, String oid) throws Exception;
     }

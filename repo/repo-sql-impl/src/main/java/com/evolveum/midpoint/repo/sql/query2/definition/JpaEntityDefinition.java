@@ -85,6 +85,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
         return null;
     }
 
+    @FunctionalInterface
     public interface LinkDefinitionHandler {
         void handle(JpaLinkDefinition linkDefinition);
     }
