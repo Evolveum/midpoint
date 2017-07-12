@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface Revivable {
 
 	void revive(PrismContext prismContext) throws SchemaException;
