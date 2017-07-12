@@ -1438,10 +1438,14 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         deleteObject(OrgType.class, ORG_TEMP_OID, task, result);
 
         // WHEN
+        displayWhen(TEST_NAME);
         unassignOrg(USER_JACK_OID, ORG_TEMP_OID, task, result);
 
         // THEN
-        assertSuccess(result);
+        displayThen(TEST_NAME);
+        display("result", result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result, 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
