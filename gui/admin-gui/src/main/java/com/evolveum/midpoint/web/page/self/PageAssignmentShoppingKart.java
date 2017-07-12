@@ -59,7 +59,6 @@ public class PageAssignmentShoppingKart extends PageSelf {
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingKart.class);
 
     private String catalogOid = null;
-    private boolean isFirstInit = true;
     private RoleManagementConfigurationType roleManagementConfigurationType;
 
     public PageAssignmentShoppingKart() {

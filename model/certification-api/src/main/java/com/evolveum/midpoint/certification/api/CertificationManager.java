@@ -154,6 +154,10 @@ public interface CertificationManager {
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException;
 
+    int countOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException;
+
     /**
      * Records a particular decision of a reviewer.
      *  @param campaignOid OID of the campaign to which the decision belongs.

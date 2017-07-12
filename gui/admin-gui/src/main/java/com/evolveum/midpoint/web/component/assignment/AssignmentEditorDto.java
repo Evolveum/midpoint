@@ -206,6 +206,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		AssignmentType assignment = new AssignmentType();
 		assignment.setTargetRef(targetRef);
+		assignment.setTarget(object);
 
 		return new AssignmentEditorDto(status, assignment, pageBase);
 	}
@@ -552,6 +553,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public PrismContainerValue<AssignmentType> getNewValue(PrismContext prismContext) throws SchemaException {
+		prismContext.adopt(newAssignment);
 		// this removes activation element if it's empty
 		ActivationType activation = newAssignment.getActivation();
 		if (activation == null || activation.asPrismContainerValue().isEmpty()) {
@@ -608,12 +610,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public String getRelation() {
+		return getRelationQName() != null ? getRelationQName().getLocalPart() : null;
+	}
+
+	public QName getRelationQName() {
 		ObjectReferenceType ref = newAssignment.getTargetRef();
 		if (ref == null || ref.getRelation() == null) {
 			return null;		// TODO default vs. null ?
 		}
-
-		return ref.getRelation().getLocalPart();
+		return ref.getRelation();
 	}
 
 	public void setDescription(String description) {

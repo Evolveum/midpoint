@@ -310,7 +310,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
@@ -332,7 +332,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test100AddHrAccountHerman() throws Exception {
 		final String TEST_NAME = "test100AddHrAccountHerman";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
@@ -372,7 +372,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test105AddHrAccountLemonhead() throws Exception {
 		final String TEST_NAME = "test105AddHrAccountLemonhead";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
@@ -417,7 +417,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test106AddHrAccountSharptooth() throws Exception {
 		final String TEST_NAME = "test106AddHrAccountSharptooth";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_SHARPTOOTH_USERNAME);
@@ -461,7 +461,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test107AddHrAccountRedskull() throws Exception {
 		final String TEST_NAME = "test107AddHrAccountRedskull";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_REDSKULL_USERNAME);
@@ -504,18 +504,18 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test108RedskullGoesVegeratian() throws Exception {
 		final String TEST_NAME = "test108RedskullGoesVegeratian";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_RESPONSIBILITIES, RESP_CANIBALISM);
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
 		assertNotNull("No redskull user", user);
 		display("User", user);
@@ -545,16 +545,16 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test109HrDeleteRedskull() throws Exception {
 		final String TEST_NAME = "test109HrDeleteRedskull";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		dummyResourceHr.deleteAccountByName(ACCOUNT_REDSKULL_USERNAME);
 		waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		PrismObject<UserType> user = findUserByUsername(ACCOUNT_REDSKULL_USERNAME);
 		display("User", user);
 		assertNull("Redskull user not gone", user);
@@ -575,7 +575,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test110AddHrAccountGuybrush() throws Exception {
 		final String TEST_NAME = "test110AddHrAccountGuybrush";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_GUYBRUSH_USERNAME);
@@ -621,7 +621,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test115AddHrAccountMancomb() throws Exception {
 		final String TEST_NAME = "test115AddHrAccountMancomb";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
@@ -668,7 +668,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test117AddHrAccountCobb() throws Exception {
 		final String TEST_NAME = "test117AddHrAccountCobb";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_COBB_USERNAME);
@@ -715,7 +715,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test130AddHrAccountLargo() throws Exception {
 		final String TEST_NAME = "test130AddHrAccountLargo";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_LARGO_USERNAME);
@@ -768,7 +768,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test140AddHrAccountWally() throws Exception {
 		final String TEST_NAME = "test140AddHrAccountWally";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
@@ -812,7 +812,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test142AddHrAccountAugustus() throws Exception {
 		final String TEST_NAME = "test142AddHrAccountAugustus";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_AUGUSTUS_USERNAME);
@@ -856,7 +856,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test185AddHrAccountStan() throws Exception {
 		final String TEST_NAME = "test185AddHrAccountStan";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_STAN_USERNAME);
@@ -902,7 +902,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test186AddHrAccountCapsize() throws Exception {
 		final String TEST_NAME = "test186AddHrAccountCapsize";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_CAPSIZE_USERNAME);
@@ -948,7 +948,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test187AddHrAccountRogersSr() throws Exception {
 		final String TEST_NAME = "test187AddHrAccountRogersSr";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_ROGERSSR_USERNAME);
@@ -995,7 +995,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test190AddHrAccountTeleke() throws Exception {
 		final String TEST_NAME = "test190AddHrAccountTeleke";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_TELEKE_USERNAME);
@@ -1038,12 +1038,12 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test500ReconcileOpenDJDefault() throws Exception {
 		final String TEST_NAME = "test500ReconcileOpenDJDefault";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
-		Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task,
 				result);
@@ -1053,17 +1053,17 @@ public class TestOrgSync extends AbstractStoryTest {
 		reconciliationTaskResultListener.clear();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		importObjectFromFile(TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
 		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
@@ -1083,28 +1083,28 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test502ReconcileOpenDJDefaultAgain() throws Exception {
 		final String TEST_NAME = "test502ReconcileOpenDJDefaultAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
-		Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		assertUsers(18);
 		reconciliationTaskResultListener.clear();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
 		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
 
@@ -1120,12 +1120,12 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test510ReconcileOpenDJLdapGroup() throws Exception {
 		final String TEST_NAME = "test510ReconcileOpenDJLdapGroup";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 
 		// GIVEN
-		Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task,
 				result);
@@ -1135,17 +1135,17 @@ public class TestOrgSync extends AbstractStoryTest {
 		reconciliationTaskResultListener.clear();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		importObjectFromFile(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
 		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 2, 0, 0);
 
@@ -1164,15 +1164,15 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Test
 	public void test550ReconcileOpenDJAfterMembershipChange() throws Exception {
 		final String TEST_NAME = "test550ReconcileOpenDJAfterMembershipChange";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTile(TEST_NAME);
 
 		// We manually remove Lemonhead from R_canibalism group
 		// And check whether reconciliation re-adds him again
 
 		// GIVEN
-		Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		Collection<String> membersBeforeTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
 		System.out.println("group members before test = " + membersBeforeTest);
@@ -1187,17 +1187,17 @@ public class TestOrgSync extends AbstractStoryTest {
 		openDJController.assertNoUniqueMember(RESP_CANIBALISM_DN, ACCOUNT_LEMONHEAD_DN);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false, TASK_WAIT_TIMEOUT);
 		waitForTaskCloseOrSuspend(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
 		// Task result
 		PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
@@ -1208,14 +1208,8 @@ public class TestOrgSync extends AbstractStoryTest {
 		Collection<String> membersAfterTest = openDJController.getGroupUniqueMembers(RESP_CANIBALISM_DN);
 		System.out.println("group members after test = " + membersAfterTest);
 		assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN,
-				membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase())); // ...it
-																				// seems
-																				// to
-																				// get
-																				// lowercased
-																				// during
-																				// the
-																				// reconciliation
+				// ...it seems to get lowercased during the reconciliation
+				membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase())); 
 	}
 
 	protected void assertUserGuybrush(PrismObject<UserType> user) {

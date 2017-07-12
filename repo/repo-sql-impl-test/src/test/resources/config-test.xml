@@ -23,8 +23,6 @@
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
-            <database>h2</database>
-            <asServer>true</asServer>
 
             <port>5438</port>
             <fileName>midpoint</fileName>

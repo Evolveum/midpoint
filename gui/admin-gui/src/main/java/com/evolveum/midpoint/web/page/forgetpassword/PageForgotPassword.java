@@ -357,7 +357,16 @@ public class PageForgotPassword extends PageRegistrationBase {
 		String email = emailTextField != null ? emailTextField.getModelObject() : null;
 		LOGGER.debug("Reset Password user info form submitted. username={}, email={}", username, email);
 
-		switch (getResetPasswordPolicy().getResetMethod()) {
+		ResetPolicyDto resetPasswordPolicy = getResetPasswordPolicy();
+		if (resetPasswordPolicy == null) {
+			passwordResetNotSupported();
+		}
+		ResetMethod method = resetPasswordPolicy.getResetMethod();
+		if (method == null) {
+			passwordResetNotSupported();
+		}
+		
+		switch (method) {
 			case MAIL:
 				return QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_EMAIL_ADDRESS)
 						.eq(email).matchingCaseIgnore().build();
@@ -368,10 +377,15 @@ public class PageForgotPassword extends PageRegistrationBase {
 						.matchingCaseIgnore().build();
 
 			default:
-				getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
-				throw new RestartResponseException(PageForgotPassword.this);
+				passwordResetNotSupported();
+				return null; // not reached
 		}
 
+	}
+	
+	private void passwordResetNotSupported() {
+		getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
+		throw new RestartResponseException(PageForgotPassword.this);
 	}
 
 	private UserType searchUserPrivileged(ObjectQuery query) {

@@ -51,6 +51,10 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloa
 	@Override
 	public IResourceStream getResourceStream() {
 		final InputStream byteStream = initStream();
+
+		if (byteStream == null) {
+			return null;
+		}
 		
 		IResourceStream resourceStream = new AbstractResourceStream(){
 

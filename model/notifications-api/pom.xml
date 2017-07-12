@@ -24,7 +24,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.7-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,37 +35,37 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-api</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-api</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
         </dependency>
         
         <dependency>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.7-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -79,10 +79,15 @@ public class PrismHeaderPanel extends BasePanel {
 				return getObjectWrapper(model).isShowMetadata();
 			}
         };
-		showMetadataButton.add(new AttributeModifier("title",
-						getObjectWrapper(model) == null ? "" : (getObjectWrapper(model).isShowMetadata() ?
-				createStringResource("PrismObjectPanel.hideMetadata") :
-								createStringResource("PrismObjectPanel.showMetadata"))));
+		showMetadataButton.add(new AttributeModifier("title", new AbstractReadOnlyModel() {
+
+			@Override
+			public Object getObject() {
+				return getObjectWrapper(model) == null ? "" : (getObjectWrapper(model).isShowMetadata() ?
+						createStringResource("PrismObjectPanel.hideMetadata").getString() :
+						createStringResource("PrismObjectPanel.showMetadata").getString());
+			}
+		}));
 		showMetadataButton.add(buttonsVisibleBehaviour);
 		add(showMetadataButton);
 

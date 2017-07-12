@@ -708,7 +708,7 @@ class DomToSchemaProcessor {
 				}
 				if (definition != null) {
 					definition.setSubstitutionHead(getSubstitutionHead(xsElementDecl));
-					schema.getDefinitions().add(definition);
+					schema.add(definition);
 				}
 
 			} else { //if (xsElementDecl.getTargetNamespace().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {

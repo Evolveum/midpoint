@@ -18,7 +18,8 @@
 <!-- yellow resource - almost same as resource-dummy but with strong asIs administrativeStatus mapping 
                        also has a modified synchronization section: just correlation but no reactions.
                        also it has minimum password length constraint (resource-enforced, not midPoint password policy)
-                       also it is using some constants in the configuration and expressions. -->
+                       also it is using some constants in the configuration and expressions
+                       also it has conditional provisioning scripts -->
 
 <resource oid="10000000-0000-0000-0000-000000000704"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -371,6 +372,14 @@ end
 			</code>
 			<operation>add</operation>
 			<order>after</order>
+			<condition> 
+				<script> <!-- MID-4008 -->
+					<code>
+						assert operation == 'add'
+						return true;
+					</code>
+				</script>
+			</condition>
 		</script>
 		<script>
 			<host>resource</host>
@@ -394,6 +403,14 @@ end
 			<code>Beware the Jabberwock, my son!</code>
 			<operation>modify</operation>
 			<order>before</order>
+			<condition> 
+				<script>  <!-- MID-4008 -->
+					<code>
+						assert operation == 'modify'
+						return true;
+					</code>
+				</script>
+			</condition>
 		</script>
 		<script>
 			<host>resource</host>
@@ -401,6 +418,14 @@ end
 			<code>The Jabberwock, with eyes of flame</code>
 			<operation>delete</operation>
 			<order>after</order>
+			<condition> 
+				<script>  <!-- MID-4008 -->
+					<code>
+						assert operation == 'delete'
+						return true;
+					</code>
+				</script>
+			</condition>
 		</script>
 		<script>
 			<host>resource</host>

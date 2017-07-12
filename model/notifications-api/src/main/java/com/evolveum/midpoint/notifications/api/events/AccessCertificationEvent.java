@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
@@ -92,5 +93,13 @@ public abstract class AccessCertificationEvent extends BaseEvent {
             return null;
         }
         return CertCampaignTypeUtil.findStageDefinition(campaign, campaign.getStageNumber());
+    }
+    
+    @Override
+    protected void debugDumpCommon(StringBuilder sb, int indent) {
+    	super.debugDumpCommon(sb, indent);
+    	DebugUtil.debugDumpWithLabelToStringLn(sb, "campaign", campaign, indent + 1);
+    	DebugUtil.debugDumpWithLabelToStringLn(sb, "status", status, indent + 1);
+    	DebugUtil.debugDumpWithLabelToStringLn(sb, "operationType", operationType, indent + 1);
     }
 }

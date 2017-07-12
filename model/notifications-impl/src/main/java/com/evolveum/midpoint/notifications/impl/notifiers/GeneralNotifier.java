@@ -83,7 +83,7 @@ public class GeneralNotifier extends BaseHandler {
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
     		Task task, OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(GeneralNotifier.class.getName() + ".processEvent");
+        OperationResult result = parentResult.createMinorSubresult(GeneralNotifier.class.getName() + ".processEvent");
 
         logStart(getLogger(), event, eventHandlerType);
 

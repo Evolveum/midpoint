@@ -818,14 +818,14 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Progress is too big (fault in scheduling?)", task.getProgress() <= 7);
 
         // Test for presence of a result. It should be there and it should
-        // indicate success
+        // indicate success or in-progress
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull("Task result is null", taskResult);
-        AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
+        AssertJUnit.assertTrue("Task did not yield 'success' or 'in-progress' status: it is " + taskResult.getStatus(),
+                taskResult.isSuccess() || taskResult.isInProgress());
 
         // Suspend the task (in order to keep logs clean), without much waiting
         taskManager.suspendTask(task, 100, result);
-
     }
 
     @Test(enabled = true)

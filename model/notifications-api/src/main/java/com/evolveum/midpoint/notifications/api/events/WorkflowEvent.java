@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -146,5 +147,13 @@ abstract public class WorkflowEvent extends BaseEvent {
 	private void notUsed() {
     	ApprovalUtils.approvalBooleanValueFromUri("");
     }
+
+	@Override
+	protected void debugDumpCommon(StringBuilder sb, int indent) {
+		super.debugDumpCommon(sb, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "processInstanceName", getProcessInstanceName(), indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "changeType", changeType, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "outcome", getOutcome(), indent + 1);
+	}
 
 }

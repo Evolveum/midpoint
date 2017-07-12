@@ -454,17 +454,17 @@ public class ActivationProcessor {
 
     
     private <F extends FocusType> boolean evaluateExistenceMapping(final LensContext<F> context,
-    		final LensProjectionContext accCtx, final XMLGregorianCalendar now, final boolean current,
+    		final LensProjectionContext projCtx, final XMLGregorianCalendar now, final boolean current,
             Task task, final OperationResult result)
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	final String accCtxDesc = accCtx.toHumanReadableString();
+    	final String projCtxDesc = projCtx.toHumanReadableString();
     	
-    	final Boolean legal = accCtx.isLegal();
+    	final Boolean legal = projCtx.isLegal();
     	if (legal == null) {
-    		throw new IllegalStateException("Null 'legal' for "+accCtxDesc);
+    		throw new IllegalStateException("Null 'legal' for "+projCtxDesc);
     	}
     	
-    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceObjectTypeDefinitionType();
+    	ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
         if (resourceAccountDefType == null) {
             return legal;
         }
@@ -484,23 +484,23 @@ public class ActivationProcessor {
                 
         MappingEvaluatorParams<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>, ShadowType, F> params = new MappingEvaluatorParams<>();
         params.setMappingTypes(outbound);
-        params.setMappingDesc("outbound existence mapping in projection " + accCtxDesc);
+        params.setMappingDesc("outbound existence mapping in projection " + projCtxDesc);
         params.setNow(now);
-        params.setAPrioriTargetObject(accCtx.getObjectOld());
+        params.setAPrioriTargetObject(projCtx.getObjectOld());
         params.setEvaluateCurrent(current);
-        params.setTargetContext(accCtx);
+        params.setTargetContext(projCtx);
         params.setFixTarget(true);
         params.setContext(context);
         
         params.setInitializer(builder -> {
 			// Source: legal
-	        ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSourceIdi = getLegalIdi(accCtx); 
+	        ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSourceIdi = getLegalIdi(projCtx); 
 	        Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource 
 	        	= new Source<>(legalSourceIdi, ExpressionConstants.VAR_LEGAL);
 			builder.defaultSource(legalSource);
 
             // Source: assigned
-            ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedIdi = getAssignedIdi(accCtx);
+            ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedIdi = getAssignedIdi(projCtx);
             Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedSource = new Source<>(assignedIdi, ExpressionConstants.VAR_ASSIGNED);
 			builder.addSource(assignedSource);
 
@@ -517,13 +517,13 @@ public class ActivationProcessor {
 			builder.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
 
 			// Variable: shadow
-			builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accCtx.getObjectDeltaObject());
+			builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject());
 
 			// Variable: resource
-			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accCtx.getResource());
+			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
 
 			builder.originType(OriginType.OUTBOUND);
-			builder.originObject(accCtx.getResource());
+			builder.originObject(projCtx.getResource());
 			return builder;
         });
         
@@ -542,10 +542,10 @@ public class ActivationProcessor {
 			// The processing will die on the error if one mapping returns a value and the other mapping returns null 
 			// (e.g. because the condition is false). This should be fixed.
 	        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
-	        	throw new ExpressionEvaluationException("Activation existence expression resulted in null or empty value for projection " + accCtxDesc);
+	        	throw new ExpressionEvaluationException("Activation existence expression resulted in null or empty value for projection " + projCtxDesc);
 	        }
 	        if (nonNegativeValues.size() > 1) {
-	        	throw new ExpressionEvaluationException("Activation existence expression resulted in too many values ("+nonNegativeValues.size()+") for projection " + accCtxDesc);
+	        	throw new ExpressionEvaluationException("Activation existence expression resulted in too many values ("+nonNegativeValues.size()+") for projection " + projCtxDesc);
 	        }
 	    	
 	        output.setValue(nonNegativeValues.iterator().next().getValue());

@@ -42,10 +42,10 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DefaultAjaxButton;
 import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.PropertyModel;
@@ -131,47 +131,52 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = task.getResult();
         WorkItemDto workItemDto = null;
         try {
-            final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-                    .item(F_EXTERNAL_ID).eq(taskId)
-                    .build();
+			final ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
+					.item(F_EXTERNAL_ID).eq(taskId)
+					.build();
 			final Collection<SelectorOptions<GetOperationOptions>> options =
 					resolveItemsNamed(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF);
 			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
-            if (workItems.size() > 1) {
-                throw new SystemException("More than one work item with ID of " + taskId);
-            } else if (workItems.size() == 0) {
-                throw new ObjectNotFoundException("No work item with ID of " + taskId);
-            }
+			if (workItems.size() > 1) {
+				throw new SystemException("More than one work item with ID of " + taskId);
+			} else if (workItems.size() == 0) {
+				throw new ObjectNotFoundException("No work item with ID of " + taskId);
+			}
 			final WorkItemType workItem = workItems.get(0);
 
-			//final String taskOid = workItem.getTaskRef() != null ? workItem.getTaskRef().getOid() : null;
-			final String taskOid = WfContextUtil.getTask(workItem).getOid();
+			final String taskOid = WfContextUtil.getTaskOid(workItem);
+			if (taskOid == null) {
+				// this is a problem ... most probably we will not be able to do anything reasonable - let's give it up
+				result.recordFatalError(getString("PageWorkItem.noRequest"));
+				showResult(result, false);
+				throw redirectBackViaRestartResponseException();
+			}
 			TaskType taskType = null;
 			List<TaskType> relatedTasks = new ArrayList<>();
-			if (taskOid != null) {
-				final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = resolveItemsNamed(
-						new ItemPath(F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
-				getTaskOptions.addAll(retrieveItemsNamed(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM)));
-				try {
-					taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
-				} catch (AuthorizationException e) {
-					LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, taskOid);
-				}
-
-				if (taskType != null && taskType.getParent() != null) {
-					final ObjectQuery relatedTasksQuery = QueryBuilder.queryFor(TaskType.class, getPrismContext())
-							.item(F_PARENT).eq(taskType.getParent())
-							.build();
-					List<PrismObject<TaskType>> relatedTaskObjects = getModelService()
-							.searchObjects(TaskType.class, relatedTasksQuery, null, task, result);
-					for (PrismObject<TaskType> relatedObject : relatedTaskObjects) {
-						relatedTasks.add(relatedObject.asObjectable());
-					}
+			final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = resolveItemsNamed(
+					new ItemPath(F_WORKFLOW_CONTEXT, F_REQUESTER_REF));
+			getTaskOptions.addAll(retrieveItemsNamed(new ItemPath(F_WORKFLOW_CONTEXT, F_WORK_ITEM)));
+			try {
+				taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
+			} catch (AuthorizationException e) {
+				LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, taskOid);
+			}
+			if (taskType != null && taskType.getParent() != null) {
+				final ObjectQuery relatedTasksQuery = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+						.item(F_PARENT).eq(taskType.getParent())
+						.build();
+				List<PrismObject<TaskType>> relatedTaskObjects = getModelService()
+						.searchObjects(TaskType.class, relatedTasksQuery, null, task, result);
+				for (PrismObject<TaskType> relatedObject : relatedTaskObjects) {
+					relatedTasks.add(relatedObject.asObjectable());
 				}
 			}
 			workItemDto = new WorkItemDto(workItem, taskType, relatedTasks);
-			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task, result);
-            result.recordSuccessIfUnknown();
+			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task,
+					result);
+			result.recordSuccessIfUnknown();
+		} catch (RestartResponseException e) {
+        	throw e;	// already processed
         } catch (ObjectNotFoundException ex) {
 			result.recordFatalError(getString("PageWorkItem.couldNotGetWorkItem"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item because it does not exist. (It might have been already completed or deleted.)", ex);
@@ -182,7 +187,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         showResult(result, false);
         if (!result.isSuccess()) {
         	throw redirectBackViaRestartResponseException();
-            //throw getRestartResponseException(PageDashboard.class);
         }
         return workItemDto;
     }

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -101,8 +102,8 @@ public class ModelOperationTaskHandler implements TaskHandler {
                 Iterator<LensProjectionContext> projectionIterator = context.getProjectionContextsIterator();
                 while (projectionIterator.hasNext()) {
                     LensProjectionContext projectionContext = projectionIterator.next();
-                    if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
-                        continue;       // don't remove client requested actions!
+                    if (!ObjectDelta.isNullOrEmpty(projectionContext.getPrimaryDelta()) || !ObjectDelta.isNullOrEmpty(projectionContext.getSyncDelta())) {
+                        continue;       // don't remove client requested or externally triggered actions!
                     }
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Removing projection context {}", projectionContext.getHumanReadableName());
@@ -114,11 +115,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 				}
                 clockwork.run(context, task, result);
 
-                if (context.getState() != ModelState.FINAL) {
-					task.setModelOperationContext(context.toLensContextType());
-				} else {
-                	task.setModelOperationContext(null);			// won't be needed any more
-				}
+				task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL));
                 task.savePendingModifications(result);
 
                 if (result.isUnknown()) {

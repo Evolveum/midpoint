@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -216,20 +217,21 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+			Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
 		RepositoryCache.enter();
 
-		PrismObject<T> object = null;
+		PrismObject<T> object;
 		OperationResult result = parentResult.createMinorSubresult(GET_OBJECT);
         result.addParam("oid", oid);
-        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addCollectionOfSerializablesAsParam("options", rawOptions);
         result.addParam("class", clazz);
 
-		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		try {
             if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
@@ -273,7 +275,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return object;
 	}
 
-	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
+	private void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (object == null) {
 			return;
@@ -281,7 +283,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		resolve(object.asObjectable(), options, task, result);
 	}
 
-	protected void resolve(Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options,
+	private void resolve(Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
 		if (containerable == null || options == null) {
 			return;
@@ -766,7 +768,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -774,6 +776,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
         ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
@@ -784,7 +787,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParams(new String[] { "query", "paging", "searchProvider" },
                 query, (query != null ? query.getPaging() : "undefined"), searchProvider);
-		
+
 		query = preProcessQuerySecurity(type, query);
 		if (isFilterNone(query, result)) {
 			return new SearchResultList<>(new ArrayList<>());
@@ -835,29 +838,55 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				resolve(object, options, task, result);
             }
 
+			// postprocessing objects that weren't handled by their correct provider (e.g. searching for ObjectType, and retrieving tasks, resources, shadows)
+			// currently only resources and shadows are handled in this way
+			// TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
+			if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
+				for (PrismObject<T> object : list) {
+					if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
+						provisioning.applyDefinition(object, task, result);
+					}
+				}
+			}
+			// better to use cache here (MID-4059)
+			schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);
+
 		} finally {
 			RepositoryCache.exit();
 		}
 
-		// postprocessing objects that weren't handled by their correct provider (e.g. searching for ObjectType, and retrieving tasks, resources, shadows)
-		// currently only resources and shadows are handled in this way
-		// TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
-		if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
-			for (PrismObject<T> object : list) {
-				if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
-					provisioning.applyDefinition(object, task, result);
-				}
+		return list;
+	}
+
+	private class ContainerOperationContext<T extends Containerable> {
+		final boolean isCase;
+		final boolean isWorkItem;
+		final ObjectTypes.ObjectManager manager;
+		final ObjectQuery refinedQuery;
+
+		ContainerOperationContext(Class<T> type, ObjectQuery query) throws SchemaException, SecurityViolationException {
+			isCase = AccessCertificationCaseType.class.equals(type);
+			isWorkItem = WorkItemType.class.equals(type);
+
+			if (!isCase && !isWorkItem) {
+				throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and WorkItemType classes");
+			}
+
+			if (isCase) {
+				refinedQuery  = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
+				manager = ObjectTypes.ObjectManager.REPOSITORY;
+			} else if (isWorkItem) {
+				refinedQuery = preProcessWorkItemSecurity(query);
+				manager = ObjectTypes.ObjectManager.WORKFLOW;
+			} else {
+				throw new IllegalStateException();
 			}
 		}
-		
-		schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);
-
-		return list;
 	}
 
 	@Override
 	public <T extends Containerable> SearchResultList<T> searchContainers(
-			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
 			Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 
 		Validate.notNull(type, "Container value type must not be null.");
@@ -866,30 +895,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
-		final boolean isCase = AccessCertificationCaseType.class.equals(type);
-		final boolean isWorkItem = WorkItemType.class.equals(type);
+		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query);
 
-		if (!isCase && !isWorkItem) {
-			throw new UnsupportedOperationException("searchContainers method is currently supported only for AccessCertificationCaseType and WorkItemType classes");
-		}
-
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
 		result.addParams(new String[] { "type", "query", "paging" },
 				type, query, (query != null ? query.getPaging() : "undefined"));
 
-
-		final ObjectTypes.ObjectManager manager;
-		if (isCase) {
-			query = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query);
-			manager = ObjectTypes.ObjectManager.REPOSITORY;
-		} else if (isWorkItem) {
-			query = preProcessWorkItemSecurity(query);
-			manager = ObjectTypes.ObjectManager.WORKFLOW;
-		} else {
-			throw new IllegalStateException();
-		}
+		query = ctx.refinedQuery;
 
 		if (isFilterNone(query, result)) {
 			return new SearchResultList<>(new ArrayList<>());
@@ -905,7 +920,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
 					QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
 				}
-				switch (manager) {
+				switch (ctx.manager) {
 					case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
 					case WORKFLOW: list = workflowManager.searchContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
@@ -913,7 +928,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				result.computeStatus();
 				result.cleanupResult();
 			} catch (SchemaException|RuntimeException e) {
-				processSearchException(e, rootOptions, manager, result);
+				processSearchException(e, rootOptions, ctx.manager, result);
 				throw e;
 			} finally {
 				QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
@@ -934,10 +949,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			RepositoryCache.exit();
 		}
 
-		if (isCase) {
+		if (ctx.isCase) {
 			list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
 					AccessCertificationCampaignType.F_CASE, rootOptions, null, task, result);
-		} else if (isWorkItem) {
+		} else if (ctx.isWorkItem) {
 			// TODO implement security post processing for WorkItems
 		} else {
 			throw new IllegalStateException();
@@ -948,31 +963,21 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <T extends Containerable> Integer countContainers(
-			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
+			Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> rawOptions,
 			Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException {
 
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
-		final boolean isWorkItem = WorkItemType.class.equals(type);
+		final ContainerOperationContext<T> ctx = new ContainerOperationContext<>(type, query);
 
-		if (!isWorkItem) {
-			throw new UnsupportedOperationException("countContainers method is currently supported only for WorkItemType classes");
-		}
-
+		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
 		result.addParams(new String[] { "type", "query"}, type, query);
 
-
-		final ObjectTypes.ObjectManager manager;
-		if (isWorkItem) {
-			query = preProcessWorkItemSecurity(query);
-			manager = ObjectTypes.ObjectManager.WORKFLOW;
-		} else {
-			throw new IllegalStateException();
-		}
+		query = ctx.refinedQuery;
 
 		if (isFilterNone(query, result)) {
 			return 0;
@@ -985,15 +990,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			logQuery(query);
 
 			try {
-				switch (manager) {
-					//case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
+				switch (ctx.manager) {
+					case REPOSITORY: count = cacheRepositoryService.countContainers(type, query, options, result); break;
 					case WORKFLOW: count = workflowManager.countContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
 				}
 				result.computeStatus();
 				result.cleanupResult();
 			} catch (SchemaException|RuntimeException e) {
-				processSearchException(e, rootOptions, manager, result);
+				processSearchException(e, rootOptions, ctx.manager, result);
 				throw e;
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
@@ -1062,7 +1067,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-			final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> options,
+			final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> rawOptions,
             final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(type, "Object type must not be null.");
@@ -1071,7 +1076,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ModelUtils.validatePaging(query.getPaging());
 		}
 
-        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
         if (searchProvider == null || searchProvider == ObjectTypes.ObjectManager.MODEL || GetOperationOptions.isRaw(rootOptions)) {
             searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
@@ -1151,7 +1157,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException, ExpressionEvaluationException {
 
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
@@ -1167,6 +1173,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		try {
 			RepositoryCache.enter();
 
+			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
             ObjectTypes.ObjectManager objectManager = ObjectTypes.getObjectManagerForClass(type);
@@ -1248,7 +1255,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 	
 	@Override
-	public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+	public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
 		Validate.notEmpty(shadowOid, "Account oid must not be null or empty.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -1263,7 +1270,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addParams(new String[] { "accountOid" }, shadowOid);
 
 		try {
-			
+			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
 			focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
 			result.recordSuccess();
 		} catch (RuntimeException | Error ex) {
@@ -1297,6 +1304,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return focus;
 	}
 
+	@Deprecated
 	@Override
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
@@ -1591,7 +1599,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Override
 	public <T extends ObjectType> CompareResultType compareObject(PrismObject<T> provided,
-			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
+			Collection<SelectorOptions<GetOperationOptions>> rawReadOptions, ModelCompareOptions compareOptions,
 			@NotNull List<ItemPath> ignoreItems, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
@@ -1601,9 +1609,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		OperationResult result = parentResult.createMinorSubresult(COMPARE_OBJECT);
 		result.addParam("oid", provided.getOid());
 		result.addParam("name", provided.getName());
-		result.addCollectionOfSerializablesAsParam("readOptions", readOptions);
+		result.addCollectionOfSerializablesAsParam("readOptions", rawReadOptions);
 		result.addParam("compareOptions", compareOptions);
 		result.addCollectionOfSerializablesAsParam("ignoreItems", ignoreItems);
+
+		Collection<SelectorOptions<GetOperationOptions>> readOptions = preProcessOptionsSecurity(rawReadOptions);
 
 		CompareResultType rv = new CompareResultType();
 
@@ -1719,6 +1729,19 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		removeIgnoredItems(object, operationalItems);
 	}
 
+	private Collection<SelectorOptions<GetOperationOptions>> preProcessOptionsSecurity(Collection<SelectorOptions<GetOperationOptions>> options)
+			throws SchemaException {
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		if (GetOperationOptions.isAttachDiagData(rootOptions) &&
+				!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+			Collection<SelectorOptions<GetOperationOptions>> reducedOptions = CloneUtil.cloneCollectionMembers(options);
+			SelectorOptions.findRootOptions(reducedOptions).setAttachDiagData(false);
+			return reducedOptions;
+		} else {
+			return options;
+		}
+	}
+
 	private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
     	ObjectFilter origFilter = null;
     	if (origQuery != null) {
@@ -1791,7 +1814,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> rawOptions, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		task = task.cloneIfImmutable();
@@ -1990,8 +2014,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Deprecated
 	@Override
-	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+	public List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
 		return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
+	}
+
+	@Deprecated
+	@Override
+	public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException {
+		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
+		return getCertificationManagerChecked().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, options, task, parentResult);
 	}
 
 	@Override

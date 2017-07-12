@@ -505,6 +505,9 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         
         role = ModelClientUtil.unmarshallFile(ROLE_ADDER_FILE);
         addObject(role);
+        
+        role = ModelClientUtil.unmarshallFile(ROLE_WHATEVER_FILE);
+        addObject(role);
 
         UserType user = ModelClientUtil.unmarshallFile(USER_CYCLOPS_FILE);
         String userCyclopsOid = addObject(user);
@@ -523,7 +526,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         assertUser(userAfter, userCyclopsOid, USER_CYCLOPS_USERNAME);
         
         assertObjectCount(UserType.class, 6);
-        assertObjectCount(RoleType.class, 5);
+        assertObjectCount(RoleType.class, 6);
     }
 
 	@Test
@@ -688,7 +691,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         tailer.assertAudit(4);
         
         assertObjectCount(UserType.class, 6);
-        assertObjectCount(RoleType.class, 6);
+        assertObjectCount(RoleType.class, 7);
     }
 	
 	@Test
@@ -699,15 +702,17 @@ public class TestWSSecurity extends AbstractWebserviceTest {
     	LogfileTestTailer tailer = createLogTailer();
         
         ObjectDeltaListType deltaList = ModelClientUtil.createAssignDeltaList(UserType.class, USER_DARTHADDER_OID, 
-        		RoleType.class, ROLE_MODIFIER_OID);
+        		RoleType.class, ROLE_WHATEVER_OID);
         
         try {
     		// WHEN
+        	displayWhen(TEST_NAME);
             modelPort.executeChanges(deltaList, null);
         	
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (SOAPFaultException e) {
+        	displayThen(TEST_NAME);
         	assertSoapFault(e, "FailedAuthentication", "could not be authenticated or authorized");        	
         }
         
@@ -1037,7 +1042,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         	AssertJUnit.fail("Unexpected success");
         	
         } catch (FaultMessage e) {
-        	assertFaultMessage(e, PolicyViolationFaultType.class, "password does not satisfy password policies");        	
+        	assertFaultMessage(e, PolicyViolationFaultType.class, "password does not satisfy");        	
         }
         
         // THEN
@@ -1045,7 +1050,7 @@ public class TestWSSecurity extends AbstractWebserviceTest {
         displayAudit(tailer);
         assertAuditLoginLogout(tailer);
         assertAuditIds(tailer);
-        assertAuditOperation(tailer, "MODIFY_OBJECT", OperationResultStatusType.FATAL_ERROR, "password does not satisfy password policies");
+        assertAuditOperation(tailer, "MODIFY_OBJECT", OperationResultStatusType.FATAL_ERROR, "password does not satisfy");
         tailer.assertAudit(4);
         
         UserType user = getObject(UserType.class, USER_DARTHADDER_OID);

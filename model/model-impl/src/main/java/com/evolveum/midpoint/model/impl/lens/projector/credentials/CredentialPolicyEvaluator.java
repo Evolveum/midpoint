@@ -344,8 +344,10 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
 	protected void validateCredentialContainerValues(PrismContainerValue<R> cVal) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		PrismProperty<ProtectedStringType> credentialValueProperty = cVal.findProperty(getCredentialRelativeValuePath());
-		for (PrismPropertyValue<ProtectedStringType> credentialValuePropertyValue: credentialValueProperty.getValues()) {
-			validateProtectedStringValue(credentialValuePropertyValue.getValue());
+		if (credentialValueProperty != null) {
+			for (PrismPropertyValue<ProtectedStringType> credentialValuePropertyValue : credentialValueProperty.getValues()) {
+				validateProtectedStringValue(credentialValuePropertyValue.getValue());
+			}
 		}
 	}
 

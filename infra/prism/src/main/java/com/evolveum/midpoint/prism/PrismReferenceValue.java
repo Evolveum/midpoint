@@ -698,4 +698,13 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public static boolean containsOid(Collection<PrismReferenceValue> values, @NotNull String oid) {
 		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
 	}
+
+	@Override
+	public void revive(PrismContext prismContext) throws SchemaException {
+		super.revive(prismContext);
+		if (object != null) {
+			object.revive(prismContext);
+		}
+	}
+
 }

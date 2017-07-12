@@ -101,23 +101,27 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 
 	// beware, may return null if there's any problem getting sysconfig (e.g. during initial import)
     public static SystemConfigurationType getSystemConfiguration(RepositoryService repositoryService, OperationResult result) {
+    	return getSystemConfiguration(repositoryService, true, result);
+	}
+
+    public static SystemConfigurationType getSystemConfiguration(RepositoryService repositoryService, boolean errorIfNotFound, OperationResult result) {
         try {
             return repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
             		null, result).asObjectable();
         } catch (ObjectNotFoundException|SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
+        	if (errorIfNotFound) {
+				LoggingUtils.logException(LOGGER,
+						"Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
+			} else {
+        		LoggingUtils.logExceptionOnDebugLevel(LOGGER,
+						"Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
+			}
             return null;
         }
     }
     
     public SystemConfigurationType getSystemConfiguration(OperationResult result) {
-        try {
-            return cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-            		null, result).asObjectable();
-        } catch (ObjectNotFoundException|SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Notification(s) couldn't be processed, because the system configuration couldn't be retrieved", e);
-            return null;
-        }
+    	return getSystemConfiguration(cacheRepositoryService, result);
     }
     
     public static SecurityPolicyType getSecurityPolicyConfiguration(ObjectReferenceType securityPolicyRef, RepositoryService repositoryService, OperationResult result) {

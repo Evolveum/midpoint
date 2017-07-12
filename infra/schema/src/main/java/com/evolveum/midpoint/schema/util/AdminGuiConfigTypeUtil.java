@@ -60,6 +60,9 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration.getPreferredDataLanguage() != null) {
 			composite.setPreferredDataLanguage(adminGuiConfiguration.getPreferredDataLanguage());
 		}
+		if (adminGuiConfiguration.isEnableExperimentalFeatures() != null) {
+			composite.setEnableExperimentalFeatures(adminGuiConfiguration.isEnableExperimentalFeatures());
+		}
 		if (adminGuiConfiguration.getObjectLists() != null) {
 			if (composite.getObjectLists() == null) {
 				composite.setObjectLists(adminGuiConfiguration.getObjectLists().clone());

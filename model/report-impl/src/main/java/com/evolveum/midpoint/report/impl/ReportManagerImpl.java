@@ -62,7 +62,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -331,11 +330,29 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     	parentResult.addSubresult(task.getResult());
     	OperationResult result = parentResult.createSubresult(DELETE_REPORT_OUTPUT);
 
+
+        String filePath = reportOutput.getFilePath();
         result.addParam("oid", oid);
         try {
-            File reportFile = new File(reportOutput.getFilePath());
-            reportFile.delete();
-            
+			File reportFile = new File(filePath);
+
+			if (reportFile.exists()) {
+				reportFile.delete();
+			} else {
+				// TODO deduplicate this code
+				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
+				String nodeOid = nodeRef.getOid();
+				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
+				String hostName = node.getHostname();
+				SystemConfigurationType systemConfig = modelService
+						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
+								result).asObjectable();
+				String icUrlPattern = systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
+				String[] splitted = filePath.split("/");
+				String filename = splitted[splitted.length - 1];
+				ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "DELETE");
+			}
+
 			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
@@ -369,22 +386,35 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 return null;
             }
             File file = new File(filePath);
-            reportData = FileUtils.openInputStream(file);
-
+            if (file.exists()) {
+                reportData = FileUtils.openInputStream(file);
+            } else {
+            	// TODO deduplicate this code
+				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
+				String nodeOid = nodeRef.getOid();
+				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
+				String hostName = node.getHostname();
+				SystemConfigurationType systemConfig = modelService
+						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
+								result).asObjectable();
+				String icUrlPattern = systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
+				String[] splitted = filePath.split("/");
+				String filename = splitted[splitted.length - 1];
+				reportData = ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "GET");
+			}
             result.recordSuccessIfUnknown();
         } catch (IOException ex) {
-        	LOGGER.error("Report doesn't exist anymore."); 
-        	result.recordPartialError("Report doesn't exist anymore.");       
+        	LoggingUtils.logException(LOGGER, "Error while fetching file. File might not exist on the corresponding file system", ex);
+        	result.recordPartialError("Error while fetching file. File might not exist on the corresponding file system. Reason: " + ex.getMessage(), ex);
         	throw ex;
         }  catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
 				| ConfigurationException | ExpressionEvaluationException e) {
-			result.recordFatalError("Problem with reading report outuput. Reson: " + e.getMessage(), e);
+			result.recordFatalError("Problem with reading report output. Reason: " + e.getMessage(), e);
 			throw e;
         } finally {
             result.computeStatusIfUnknown();
         }
 
-       
         return reportData;
     }
 }

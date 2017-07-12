@@ -4420,6 +4420,34 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="shadowConstraintsCheck" type="tns:ShadowCheckType" minOccurs="0" default="none">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Shadow constraint uniqueness setting. It mostly applies to shadow uniqueness.
+        				Uniqueness is checked by the resource under normal circumstances. This option
+        				can be used to turn on additional checks. Those checks may be needed to diagnose
+        				configuration issues or bugs (e.g. "duplicate shadow" problems). Or it may be
+        				used in case that the resource cannot check uniqueness by itself (e.g. in case of
+        				manual or asynchronous resources).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="validateSchema" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then midPoint will validate the schema of objects that leave
+        				and enter midPoint by the connectors. MidPoint will checks if datatypes and
+        				multiplicity is correct and issue hard errors in any mismatch.
+        				
+        				EXPERIMENTAL: this feature is used mostly for internal checks during 
+        				development and testing. It is not intended for production use. 
+        				Those checks may slow the system down and they may also may impact 
+        				robustness. MidPoint is usually able to deal data types that are slightly
+        				wrong and auto-correct them. Enabling this feature will cause that an error
+        				is thrown even if cases that may get auto-corrected. 
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
             <xsd:element name="caseIgnoreAttributeNames" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4469,6 +4497,47 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     
+    <xsd:simpleType name="ShadowCheckType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Shadow constraint uniqueness setting. It mostly applies to shadow uniqueness.
+   				Uniqueness is checked by the resource under normal circumstances. This option
+   				can be used to turn on additional checks. Those checks may be needed to diagnose
+   				configuration issues or bugs (e.g. "duplicate shadow" problems). Or it may be
+   				used in case that the resource cannot check uniqueness by itself (e.g. in case of
+   				manual or asynchronous resources).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		No additional checks.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="light">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Light checks only.
+                		E.g. the shadow uniqueness will be checked only once
+                		when new shadow is created.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LIGHT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <!-- TODO: thorough: always check uniqueness -->
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
     <xsd:complexType name="ErrorSelectorType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4476,6 +4545,7 @@
                 which error types to handle, etc.
                 
                 EXPERIMENTAL: use with care
+                TODO: change booleans to CriticalityType
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -4537,6 +4607,56 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="CriticalityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies criticality of an operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>3.6.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="fatal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Fatal criticality. Error in the operation will cause
+                        fatal error. The processing will be interrupted,
+                        error will be indicated.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FATAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="partial">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Partial criticality. The error will be indicated,
+                        composite result of the operation will be presented
+                        as partial error, but the processing will NOT be interrupted.
+                        The operation will try recover and continue.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PARTIAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: warning? -->
+<!--             <xsd:enumeration value="ignore">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No criticality. The error will be ignored. It will not
+                        be indicated in any result. 
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>  
+            </xsd:enumeration> -->
+        </xsd:restriction>
+    </xsd:simpleType>
         
     <xsd:complexType name="ResourceBusinessConfigurationType">
         <xsd:annotation>
@@ -5920,6 +6040,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="criticality" type="tns:CriticalityType" minOccurs="0" default="fatal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines where the script should be executed
+                        (connector or resource). If no type is specified, it
+                        defaults to resource.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>3.6.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6008,7 +6140,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
 
     <xsd:complexType name="ProvisioningScriptArgumentType">
         <xsd:annotation>
@@ -10942,6 +11073,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="subresultStripThreshold" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+						When aggregation of the same subresults (same operation and status) is to be applied,
+						during operation result "summarize" operation.
+                        (Default: 10.)
+
+						TEMPORARY/EXPERIMENTAL. We plan to provide more elaborate operation result aggregation strategies.
+						This is just a quick way how to reduce large operation results for some deployments.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -11036,6 +11179,18 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.5</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="enableExperimentalFeatures" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Enabled experimental and alternative user interface features.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -15872,12 +16027,24 @@
 					<xsd:documentation>
 						Hostname that will be used as a public hostname for the midPoint deployment.
 						E.g. it will be used in URLs that point to the midPoint in notification mails.
-						DEPRECATED. Use infrastructure/defaultHostname instead.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<a:since>3.5</a:since>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:since>3.6</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="intraClusterHttpUrlPattern" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Pattern for HTTP/HTTPS communication inside midPoint cluster.
+						This is specifies the URLs that ure used by midPoint cluster nodes
+						when they need to communicate with each other. The pattern is in fact
+						an URL prefix pointing to root URL of the application. Specific paths
+						will be appended to the URL. 
+						Example: https://$host/midpoint
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>

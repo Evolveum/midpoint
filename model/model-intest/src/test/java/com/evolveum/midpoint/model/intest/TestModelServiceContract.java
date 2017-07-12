@@ -555,10 +555,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test109ModifyUserAddAccountAgain() throws Exception {
-        TestUtil.displayTestTile(this, "test109ModifyUserAddAccountAgain");
+		final String TEST_NAME = "test109ModifyUserAddAccountAgain";
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test109ModifyUserAddAccountAgain");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -589,7 +590,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 		assertNoProvisioningScripts();
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		// Check audit
         display("Audit", dummyAuditService);
@@ -604,10 +605,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	@Test
     public void test110GetUserResolveAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test110GetUserResolveAccount");
+		final String TEST_NAME = "test110GetUserResolveAccount";
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test110GetUserResolveAccount");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -643,10 +645,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	@Test
     public void test111GetUserResolveAccountResource() throws Exception {
-        TestUtil.displayTestTile(this, "test111GetUserResolveAccountResource");
+		final String TEST_NAME = "test111GetUserResolveAccountResource";
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test111GetUserResolveAccountResource");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -660,7 +663,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
 		// THEN
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
@@ -678,8 +681,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         assertNotNull("Resource in account was not resolved", shadow.getResource());
         
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess("getObject result", result);
         
         userJack.checkConsistence(true, true);
         
@@ -688,10 +690,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	@Test
     public void test112GetUserResolveAccountNoFetch() throws Exception {
-        TestUtil.displayTestTile(this, "test112GetUserResolveAccountNoFetch");
+		final String TEST_NAME = "test112GetUserResolveAccountNoFetch";
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test112GetUserResolveAccountNoFetch");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -705,7 +708,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
 		
 		// THEN
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
@@ -1830,7 +1833,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
         
-        assertDummyScriptsNone();
+        assertDummyProvisioningScriptsNone();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -1977,7 +1980,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check account in dummy resource
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
         
-        assertDummyScriptsNone();
+        assertDummyProvisioningScriptsNone();
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -3160,7 +3163,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
@@ -3182,7 +3185,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Not sure why 2 ... but this is not a big problem now
-        assertShadowFetchOperationCountIncrement(2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -3221,22 +3224,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 	
-	
-	private void assertMessageContains(String message, String string) {
-		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
-	}
-	
-	private void purgeScriptHistory() {
-		getDummyResource().purgeScriptHistory();
-	}
-
-	private void assertNoProvisioningScripts() {
-		if (!getDummyResource().getScriptHistory().isEmpty()) {
-			IntegrationTestTools.displayScripts(getDummyResource().getScriptHistory());
-			AssertJUnit.fail(getDummyResource().getScriptHistory().size()+" provisioning scripts were executed while not expected any");
-		}
-	}
-
 	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
 				"   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n			");
@@ -3300,16 +3287,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
 	}
 	
-	private void assertDummyScriptsNone() {
-		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
-	}
-	
 	private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();
         prepareNotifications();
-        purgeScriptHistory();
-        rememberShadowFetchOperationCount();
+        purgeProvisioningScriptHistory();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	}
 
 }

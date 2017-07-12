@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 
@@ -48,5 +49,12 @@ public class WorkflowProcessEvent extends WorkflowEvent {
                 '}';
 
     }
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+		debugDumpCommon(sb, indent);
+		return sb.toString();
+	}
 
 }

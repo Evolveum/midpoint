@@ -28,6 +28,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +43,7 @@ import java.util.Map;
 /**
  * @author mederly
  */
-public abstract class BaseEvent implements Event {
+public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 
     private LightweightIdentifier id;               // randomly generated event ID
     private SimpleObjectRef requester;              // who requested this operation (null if unknown)
@@ -370,5 +373,16 @@ public abstract class BaseEvent implements Event {
 	@Override
 	public EventHandlerType getAdHocHandler() {
 		return adHocHandler;
+	}
+	
+	protected void debugDumpCommon(StringBuilder sb, int indent) {
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "id", getId(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "requester", getRequester(), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "requestee", getRequestee(), indent + 1);
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(this.getClass().getSimpleName()).append("(").append(getId()).append(")");
 	}
 }

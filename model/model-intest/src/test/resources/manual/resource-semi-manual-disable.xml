@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="5e497cb0-5cdb-11e7-9cfe-4bfe0342d181"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
+        xmlns:csvconf="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+								  
+	<name>Semi-Manual disable-on-delete CSV Resource</name>
+	
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:equal>
+				<q:path>c:connectorType</q:path>
+				<q:value>ManualConnector</q:value>
+			</q:equal>
+		</filter>
+	</connectorRef>
+
+	<connectorConfiguration>
+		<conf:defaultAssignee>administrator</conf:defaultAssignee>
+	</connectorConfiguration>
+	
+	<additionalConnector>
+		<name>csv</name>
+		<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+		<connectorConfiguration>
+			<icfc:configurationProperties>
+				<csvconf:filePath>target/semi-manual.csv</csvconf:filePath>
+				<csvconf:encoding>utf-8</csvconf:encoding>
+				<csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
+				<csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
+				<csvconf:uniqueAttribute>username</csvconf:uniqueAttribute>
+				<csvconf:passwordAttribute>password</csvconf:passwordAttribute>
+			</icfc:configurationProperties>
+		</connectorConfiguration>
+		<capabilities>
+			<configured>
+				<cap:liveSync>
+					<cap:enabled>false</cap:enabled>
+				</cap:liveSync>
+				<cap:create>
+					<cap:enabled>false</cap:enabled>
+				</cap:create>
+				<cap:update>
+					<cap:enabled>false</cap:enabled>
+				</cap:update>
+				<cap:delete>
+					<cap:enabled>false</cap:enabled>
+				</cap:delete>
+				<cap:script>
+				    <cap:enabled>false</cap:enabled>
+				</cap:script>
+				<cap:activation>
+					<cap:status>
+						<cap:attribute>ri:disabled</cap:attribute>
+						<cap:enableValue>false</cap:enableValue>
+						<cap:disableValue>true</cap:disableValue>
+					</cap:status>
+				</cap:activation>
+<!-- 				<cap:addRemoveAttributeValues>
+					<cap:enabled>false</cap:enabled>
+				</cap:addRemoveAttributeValues>  -->
+			</configured>
+		</capabilities>
+	</additionalConnector>
+	
+	<!-- Schema definition comes from the CSV file -->
+
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>ri:username</ref>
+				<outbound>
+				    <strength>strong</strength>
+				    <source>
+				    	<path>name</path>
+				    </source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<outbound>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+            
+         	<activation>
+				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted. -->
+            	<existence>
+            		<outbound>
+            			<name>default existence</name>
+            			<strength>weak</strength>
+            			<expression>
+            				<path>$focusExists</path>
+            			</expression>
+            		</outbound>
+            	</existence>
+            	<administrativeStatus>
+                    <outbound>
+                    	<strength>strong</strength>
+                    	<expression>
+                        	<script>
+                        		<code>
+                        			if (legal) {
+                        				input;
+                        			} else {
+                        				com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED;
+                        			}
+                        		</code>
+                        	</script>
+                        </expression>
+                    </outbound>            	
+            	</administrativeStatus>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+            
+		</objectType>
+	</schemaHandling>
+	
+	<capabilities>
+		<configured>
+			<cap:activation>
+				<cap:status>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:status>
+			</cap:activation>
+<!-- 			<cap:addRemoveAttributeValues>
+				<cap:enabled>false</cap:enabled>
+			</cap:addRemoveAttributeValues>  -->
+		</configured>
+	</capabilities>
+	
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+		<shadowConstraintsCheck>light</shadowConstraintsCheck>
+		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+	</consistency>
+	
+	<synchronization>
+		<objectSynchronization>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<path>$projection/attributes/username</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+    </synchronization>
+	
+</resource>

@@ -156,7 +156,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 	public static final String ID_SYNCHRONIZE_WORKFLOW_REQUESTS = "synchronizeWorkflowRequests";
 
     public static final String SELECTED_CATEGORY = "category";
-	private static final int REFRESH_INTERVAL = 10000;				// don't set too low to prevent refreshing open inline menus (TODO skip refresh if a menu is open)
+	private static final int REFRESH_INTERVAL = 60000;				// don't set too low to prevent refreshing open inline menus (TODO skip refresh if a menu is open)
 
 	private IModel<TasksSearchDto> searchModel;
     private String searchText = "";

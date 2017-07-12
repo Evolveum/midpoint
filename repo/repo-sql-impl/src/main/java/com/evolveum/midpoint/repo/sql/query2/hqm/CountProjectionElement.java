@@ -16,21 +16,18 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * @author mederly
  */
 public class CountProjectionElement extends ProjectionElement {
 
-    @NotNull private final List<String> items;
+    @NotNull private final String item;
     private final boolean distinct;
 
-    public CountProjectionElement(@NotNull List<String> items, boolean distinct) {
-        this.items = items;
+    public CountProjectionElement(@NotNull String item, boolean distinct) {
+        this.item = item;
         this.distinct = distinct;
     }
 
@@ -39,6 +36,6 @@ public class CountProjectionElement extends ProjectionElement {
         if (distinct) {
             sb.append("distinct ");
         }
-        sb.append(StringUtils.join(items, ", ")).append(")");
+        sb.append(item).append(")");
     }
 }

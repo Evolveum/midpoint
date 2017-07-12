@@ -1523,7 +1523,7 @@ public class TaskQuartzImpl implements Task {
 			}
 		}
 				
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE+"getObject");
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE+"getObject");
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 		
@@ -1693,7 +1693,7 @@ public class TaskQuartzImpl implements Task {
     @Override
     public List<Task> listDependents(OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listDependents");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listDependents");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
@@ -2371,7 +2371,7 @@ public class TaskQuartzImpl implements Task {
 
     @Override
 	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE+"refresh");
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE+"refresh");
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 		result.addContext(OperationResult.CONTEXT_OID, getOid());
 		if (!isPersistent()) {
@@ -2395,7 +2395,7 @@ public class TaskQuartzImpl implements Task {
 	}
 
     private void updateTaskInstance(PrismObject<TaskType> taskPrism, OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "updateTaskInstance");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "updateTaskInstance");
         result.addArbitraryObjectAsParam("task", this);
         result.addParam("taskPrism", taskPrism);
 
@@ -2516,7 +2516,7 @@ public class TaskQuartzImpl implements Task {
     @Deprecated
     public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?,?>> extensionDeltas, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "waitForSubtasks");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "waitForSubtasks");
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
         result.addContext(OperationResult.CONTEXT_OID, getOid());
 
@@ -2563,7 +2563,7 @@ public class TaskQuartzImpl implements Task {
 //    }
 
     public List<PrismObject<TaskType>> listSubtasksRaw(OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasksRaw");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listSubtasksRaw");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
@@ -2576,7 +2576,7 @@ public class TaskQuartzImpl implements Task {
     }
 
 	public List<PrismObject<TaskType>> listPrerequisiteTasksRaw(OperationResult parentResult) throws SchemaException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listPrerequisiteTasksRaw");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listPrerequisiteTasksRaw");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
@@ -2592,7 +2592,7 @@ public class TaskQuartzImpl implements Task {
     @Override
     public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasks");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listSubtasks");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
@@ -2611,7 +2611,7 @@ public class TaskQuartzImpl implements Task {
     @Override
     public List<Task> listSubtasksDeeply(OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listSubtasksDeeply");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listSubtasksDeeply");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
@@ -2630,7 +2630,7 @@ public class TaskQuartzImpl implements Task {
     @Override
     public List<Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "listPrerequisiteTasks");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listPrerequisiteTasks");
         result.addContext(OperationResult.CONTEXT_OID, getOid());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 

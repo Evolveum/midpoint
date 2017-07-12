@@ -394,7 +394,6 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
                 ObjectDeltaWaveType objectDeltaWaveType = new ObjectDeltaWaveType();
                 objectDeltaWaveType.setNumber(i);
                 objectDeltaWaveType.setDelta(DeltaConvertor.toObjectDeltaType(wave));
-
                 objectDeltaWavesType.getWave().add(objectDeltaWaveType);
             }
         }

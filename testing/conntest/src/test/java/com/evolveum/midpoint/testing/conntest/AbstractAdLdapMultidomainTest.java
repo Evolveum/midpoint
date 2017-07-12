@@ -43,6 +43,7 @@ import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -54,6 +55,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -109,6 +112,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
 	public static final QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
 	public static final String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
+	public static final String ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME = "msExchHideFromAddressLists";
 	
 	protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
 	protected static final String ACCOUNT_JACK_FULL_NAME = "Jack Sparrow";
@@ -302,7 +306,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
 		assertLdapPassword(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
 		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
@@ -323,11 +327,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Override
     public void test020Schema() throws Exception {
 		final String TEST_NAME = "test020Schema";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
 //        IntegrationTestTools.displayXml("Resource XML", resource);
-        accountObjectClassDefinition = AdUtils.assertAdSchema(resource, getAccountObjectClass(), prismContext);
-        AdUtils.assertExchangeSchema(resource, prismContext);
+        accountObjectClassDefinition = AdUtils.assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
+        AdUtils.assertAdRefinedSchema(resource, getAccountObjectClass(), prismContext);
+        AdUtils.assertExchangeSchema(resource, getAccountObjectClass(), prismContext);
         
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
         assertEquals("Unexpected number of schema definitions (limited by generation constraints)", 5, resourceSchema.getDefinitions().size());
@@ -338,23 +343,23 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test100SeachJackBySamAccountName() throws Exception {
 		final String TEST_NAME = "test100SeachJackBySamAccountName";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = createSamAccountNameQuery(ACCOUNT_JACK_SAM_ACCOUNT_NAME);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
@@ -366,7 +371,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         jackAccountOid = shadow.getOid();
         
 //        assertConnectorOperationIncrement(2);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -382,10 +387,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test101SeachJackByDn() throws Exception {
 		final String TEST_NAME = "test101SeachJackByDn";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         String jackDn = toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME);
@@ -395,11 +400,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		rememberConnectorSimulatedPagingSearchCount();
 		
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
@@ -429,10 +434,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test102SeachNotExistByDn() throws Exception {
 		final String TEST_NAME = "test102SeachNotExistByDn";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         String dn = toAccountDn("idonoexist", "I am a Fiction");
@@ -442,11 +447,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		rememberConnectorSimulatedPagingSearchCount();
 		
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		
@@ -461,10 +466,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test105SeachPiratesByCn() throws Exception {
 		final String TEST_NAME = "test105SeachPiratesByCn";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
@@ -474,7 +479,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		rememberConnectorSimulatedPagingSearchCount();
 		
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
 		// THEN
@@ -501,21 +506,21 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test110GetJack() throws Exception {
 		final String TEST_NAME = "test110GetJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
 		rememberConnectorOperationCount();
 		rememberConnectorSimulatedPagingSearchCount();
 		
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, jackAccountOid, null, task, result);
         
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);		
         display("Shadow", shadow);
@@ -544,10 +549,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test150SeachAllAccounts() throws Exception {
 		final String TEST_NAME = "test150SeachAllAccounts";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -577,10 +582,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test152SeachFirst2Accounts() throws Exception {
 		final String TEST_NAME = "test152SeachFirst2Accounts";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -608,10 +613,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 //	@Test
 //    public void test154SeachFirst11Accounts() throws Exception {
 //		final String TEST_NAME = "test154SeachFirst11Accounts";
-//        TestUtil.displayTestTile(this, TEST_NAME);
+//        displayTestTile(TEST_NAME);
 //        
 //        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+//        Task task = createTask(TEST_NAME);
 //        OperationResult result = task.getResult();
 //        
 //        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -636,10 +641,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 //	@Test
 //    public void test162SeachFirst2AccountsOffset0() throws Exception {
 //		final String TEST_NAME = "test162SeachFirst2AccountsOffset0";
-//        TestUtil.displayTestTile(this, TEST_NAME);
+//        displayTestTile(TEST_NAME);
 //        
 //        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+//        Task task = createTask(TEST_NAME);
 //        OperationResult result = task.getResult();
 //        
 //        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -670,10 +675,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 //	@Test
 //    public void test172Search2AccountsOffset1() throws Exception {
 //		final String TEST_NAME = "test172Search2AccountsOffset1";
-//        TestUtil.displayTestTile(this, TEST_NAME);
+//        displayTestTile(TEST_NAME);
 //        
 //        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+//        Task task = createTask(TEST_NAME);
 //        OperationResult result = task.getResult();
 //        
 //        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -702,10 +707,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 //	@Test
 //    public void test174SeachFirst11AccountsOffset2() throws Exception {
 //		final String TEST_NAME = "test174SeachFirst11AccountsOffset2";
-//        TestUtil.displayTestTile(this, TEST_NAME);
+//        displayTestTile(TEST_NAME);
 //        
 //        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+//        Task task = createTask(TEST_NAME);
 //        OperationResult result = task.getResult();
 //        
 //        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -740,10 +745,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 //	@Test
 //    public void test182Search2AccountsOffset1SortCn() throws Exception {
 //		final String TEST_NAME = "test182Search2AccountsOffset1SortCn";
-//        TestUtil.displayTestTile(this, TEST_NAME);
+//        displayTestTile(TEST_NAME);
 //        
 //        // GIVEN
-//        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+//        Task task = createTask(TEST_NAME);
 //        OperationResult result = task.getResult();
 //        
 //        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
@@ -771,19 +776,19 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test200AssignAccountBarbossa() throws Exception {
 		final String TEST_NAME = "test200AssignAccountBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         long tsStart = System.currentTimeMillis();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -821,10 +826,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test210ModifyAccountBarbossaTitle() throws Exception {
 		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
@@ -835,11 +840,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         delta.addModification(attrDelta);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -857,10 +862,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue() throws Exception {
 		final String TEST_NAME = "test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<ShadowType> delta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountBarbossaOid, prismContext);
@@ -871,13 +876,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         delta.addModification(attrDelta);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "TRUE");
@@ -887,7 +891,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 	
 	/**
@@ -896,10 +900,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse() throws Exception {
 		final String TEST_NAME = "test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         
@@ -911,15 +915,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         delta.addModification(attrDelta);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, 
         		new ItemPath(UserType.F_EXTENSION,  EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME), 
         		task, result, Boolean.FALSE);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "FALSE");
@@ -929,71 +932,219 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 	
 	@Test
     public void test220ModifyUserBarbossaPassword() throws Exception {
 		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue("here.There.Be.Monsters");
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, 
         		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
         		task, result, userPasswordPs);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        assertAttribute(entry, "title", "Captain");
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertBarbossaEnabled();
         
-        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-        String shadowOid = getSingleLinkOid(user);
-        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
-        
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 	
 	@Test
     public void test230DisableUserBarbossa() throws Exception {
 		final String TEST_NAME = "test230DisableUserBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, 
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
         		task, result, ActivationStatusType.DISABLED);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
-//        assertLdapConnectorInstances(2);
+        assertBarbossaDisabled();
+	}
+	
+	/**
+	 * MID-4041
+	 */
+	@Test
+    public void test232ReconcileBarbossa() throws Exception {
+		final String TEST_NAME = "test232ReconcileBarbossa";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertBarbossaDisabled();
+	}
+
+	/**
+	 * MID-4041
+	 */
+	@Test
+    public void test236EnableUserBarbossa() throws Exception {
+		final String TEST_NAME = "test236EnableUserBarbossa";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, 
+        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertBarbossaEnabled();
+        
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * MID-4041
+	 */
+	@Test
+    public void test237ReconcileBarbossa() throws Exception {
+		final String TEST_NAME = "test237ReconcileBarbossa";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertBarbossaEnabled();
+        
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * MID-4041
+	 */
+	@Test
+    public void test238DisableUserBarbossaRawAndReconcile() throws Exception {
+		final String TEST_NAME = "test238DisableUserBarbossaRawAndReconcile";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+        		ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.DISABLED);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertBarbossaDisabled();
+        
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * MID-4041
+	 */
+	@Test
+    public void test239EnableUserBarbossaRawAndReconcile() throws Exception {
+		final String TEST_NAME = "test239EnableUserBarbossaRawAndReconcile";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+        		ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.ENABLED);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_BARBOSSA_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        assertBarbossaEnabled();
+        
+        assertLdapConnectorInstances(2);
+	}
+	
+	private PrismObject<UserType> assertBarbossaEnabled() throws Exception {
+		PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
+        
+		Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "FALSE");        
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
+        
+        String shadowOid = getSingleLinkOid(user);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
+        assertAccountEnabled(shadow);
+        
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+        
+        return user;
+	}
+	
+	private void assertBarbossaDisabled() throws Exception {
+		assertLdapConnectorInstances(2);
         
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        display("disabled Barbossa entry", entry);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
+        
+        assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "TRUE");
                 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -1006,40 +1157,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         	// this is expected
         }
         
-//        assertLdapConnectorInstances(2);
-	}
-
-	@Test
-    public void test239EnableUserBarbossa() throws Exception {
-		final String TEST_NAME = "test239EnableUserBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
-
-        // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-        
-        // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID, 
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
-        		task, result, ActivationStatusType.ENABLED);
-        
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
-        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
-        assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
-
-        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
-        
-        String shadowOid = getSingleLinkOid(user);
-        PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
-        assertAccountEnabled(shadow);
-        
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 
 	/**
@@ -1048,22 +1166,22 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test250AssignGuybrushPirates() throws Exception {
 		final String TEST_NAME = "test250AssignGuybrushPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
                 
         modifyUserReplace(USER_GUYBRUSH_OID, 
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
         		task, result, ActivationStatusType.DISABLED);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATES_OID, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1081,29 +1199,29 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAccountDisabled(shadow);
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 	
 	@Test
     public void test255ModifyUserGuybrushPassword() throws Exception {
 		final String TEST_NAME = "test255ModifyUserGuybrushPassword";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue("wanna.be.a.123");
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, 
         		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
         		task, result, userPasswordPs);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1123,22 +1241,21 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test260EnableGyubrush() throws Exception {
 		final String TEST_NAME = "test260EnableGyubrush";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, 
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
         		task, result, ActivationStatusType.ENABLED);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> user = getUser(USER_GUYBRUSH_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
@@ -1152,24 +1269,49 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Just make random test connection between the tests. Make sure that the
+	 * test does not break anything. If it does the next tests will simply fail.
+	 */
+	@Test
+    public void test295TestConnection() throws Exception {
+		final String TEST_NAME = "test295TestConnection";
+        displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        OperationResult testResult = modelService.testResource(getResourceOid(), task);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        display("Test connection result", testResult);
+        TestUtil.assertSuccess("Test connection result", testResult);
+                
+        assertLdapConnectorInstances(2);
 	}
 
 	@Test
     public void test300AssignBarbossaPirates() throws Exception {
 		final String TEST_NAME = "test300AssignBarbossaPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1186,16 +1328,16 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
 	}
 	
 	@Test
     public void test390ModifyUserBarbossaRename() throws Exception {
 		final String TEST_NAME = "test390ModifyUserBarbossaRename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, UserType.F_NAME, 
@@ -1206,11 +1348,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1237,20 +1379,20 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test395UnAssignBarbossaPirates() throws Exception {
 		final String TEST_NAME = "test395UnAssignBarbossaPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // TODO: do this on another account. There is a bad interference with rename.
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1273,18 +1415,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test399UnAssignAccountBarbossa() throws Exception {
 		final String TEST_NAME = "test399UnAssignAccountBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1300,7 +1442,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test500AddOrgMeleeIsland() throws Exception {
 		final String TEST_NAME = "test500AddOrgMeleeIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1317,11 +1459,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		orgType.getAssignment().add(metaroleAssignment);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(org, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1346,18 +1488,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test510AssignGuybrushMeleeIsland() throws Exception {
 		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1381,7 +1523,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test515AddOrgGroupMeleeIslandPirates() throws Exception {
 		final String TEST_NAME = "test515AddOrgGroupMeleeIslandPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1406,11 +1548,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		roleType.getAssignment().add(orgAssignment);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(role, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1436,18 +1578,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test520RenameMeleeIsland() throws Exception {
 		final String TEST_NAME = "test520RenameMeleeIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         renameObject(OrgType.class, orgMeleeIslandOid, GROUP_MELEE_ISLAND_ALT_NAME, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1496,21 +1638,21 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test522ModifyMeleeIslandPirates() throws Exception {
 		final String TEST_NAME = "test522GetMeleeIslandPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyObjectReplaceProperty(ShadowType.class, groupMeleeIslandPiratesOid, 
         		new ItemPath(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
         		task, result,
         		GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1525,18 +1667,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test524GetMeleeIslandPirates() throws Exception {
 		final String TEST_NAME = "test524GetMeleeIslandPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupMeleeIslandPiratesOid, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1556,18 +1698,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test595DeleteOrgGroupMeleeIslandPirates() throws Exception {
 		final String TEST_NAME = "test595DeleteOrgGroupMeleeIslandPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         deleteObject(RoleType.class, roleMeleeIslandPiratesOid, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1582,18 +1724,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test599DeleteOrgMeleeIsland() throws Exception {
 		final String TEST_NAME = "test599DeleteOrgMeleeIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         deleteObject(OrgType.class, orgMeleeIslandOid, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1611,20 +1753,20 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test600AssignAccountSubman() throws Exception {
 		final String TEST_NAME = "test600AssignAccountSubman";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
                 
         long tsStart = System.currentTimeMillis();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_SUBMAN_OID, ROLE_SUBMISSIVE_OID, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1663,19 +1805,19 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test610ModifyUserSubmanTitle() throws Exception {
 		final String TEST_NAME = "test610ModifyUserSubmanTitle";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID, UserType.F_TITLE, task, result, 
         		PrismTestUtil.createPolyString("Underdog"));
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1694,23 +1836,23 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test620ModifyUserSubmanPassword() throws Exception {
 		final String TEST_NAME = "test620ModifyUserSubmanPassword";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue("SuB.321");
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID, 
         		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE), 
         		task, result, userPasswordPs);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1729,20 +1871,20 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test630DisableUserSubman() throws Exception {
 		final String TEST_NAME = "test630DisableUserSubman";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID, 
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
         		task, result, ActivationStatusType.DISABLED);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1771,20 +1913,20 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test639EnableUserSubman() throws Exception {
 		final String TEST_NAME = "test639EnableUserBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID, 
-        		new ItemPath(UserType.F_ACTIVATION,  ActivationType.F_ADMINISTRATIVE_STATUS), 
+        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, 
         		task, result, ActivationStatusType.ENABLED);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1804,10 +1946,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test690ModifyUserSubmanRename() throws Exception {
 		final String TEST_NAME = "test690ModifyUserSubmanRename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_SUBMAN_OID, UserType.F_NAME, 
@@ -1818,11 +1960,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1846,18 +1988,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test699UnAssignAccountSubdog() throws Exception {
 		final String TEST_NAME = "test699UnAssignAccountSubdog";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(USER_SUBMAN_OID, ROLE_SUBMISSIVE_OID, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1879,23 +2021,23 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test700AssignAccountSubmarineAndModify() throws Exception {
 		final String TEST_NAME = "test700AssignAccountSubmarineAndModify";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
                 
         long tsStart = System.currentTimeMillis();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_SUBMARINE_OID, ROLE_SUBMISSIVE_OID, task, result);
         
         modifyUserReplace(USER_SUBMARINE_OID, UserType.F_TITLE, task, result, 
         		PrismTestUtil.createPolyString("Underseadog"));
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1926,18 +2068,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	@Test
     public void test809UnAssignAccountSubmarine() throws Exception {
 		final String TEST_NAME = "test809UnAssignAccountSubmarine";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(USER_SUBMARINE_OID, ROLE_SUBMISSIVE_OID, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

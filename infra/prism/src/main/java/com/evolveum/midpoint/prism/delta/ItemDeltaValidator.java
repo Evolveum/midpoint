@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.prism.delta;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.prism.PrismValue;
 
 /**
- * @author Radovan Semancik
+ * @author semancik
  *
  */
-public interface ShadowHandler<T extends ShadowType> {
-
-	/**
-     * Handle a single shadow. Used e.g. to return results
-     * of iterative search of shadows.
-     * 
-     * @param object Resource object to process.
-     * @return true if the operation should proceed, false if it should stop
-     */
-    public boolean handle(T shadow);
+public interface ItemDeltaValidator<V extends PrismValue> {
+	
+	void validate(PlusMinusZero plusMinusZero, V itemValue);
 	
 }

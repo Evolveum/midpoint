@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
+import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -192,7 +194,7 @@ public class ResourceObjectConverter {
 					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
 					.build();
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
-			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+			ShadowResultHandler handler = new ShadowResultHandler() {
 				@Override
 				public boolean handle(PrismObject<ShadowType> shadow) {
 					if (!shadowHolder.isEmpty()) {
@@ -339,7 +341,7 @@ public class ResourceObjectConverter {
 			}
 			ResourceObjectIdentification identification = ResourceObjectIdentification.createFromShadow(ctx.getObjectClassDefinition(), shadow.asObjectable());
 		
-			existingObject = readConnector.fetchObject(ShadowType.class, identification, null, ctx, result);
+			existingObject = readConnector.fetchObject(identification, null, ctx, result);
 		} catch (ObjectNotFoundException e) {
 			// This is OK
 			result.muteLastSubresultError();
@@ -442,6 +444,9 @@ public class ResourceObjectConverter {
 		} catch (GenericFrameworkException ex) {
 			result.recordFatalError("Generic error in connector: " + ex.getMessage(), ex);
 			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+		} catch (RuntimeException | Error ex) {
+			result.recordFatalError(ex);
+			throw ex;
 		}
 		
 		
@@ -547,7 +552,7 @@ public class ResourceObjectConverter {
 				LOGGER.trace("Pre-reading resource shadow");
 				preReadShadow = preReadShadow(ctx, identifiers, operations, true, result);  // yes, we need associations here
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Pre-read object:\n{}", preReadShadow.debugDump());
+					LOGGER.trace("Pre-read object:\n{}", preReadShadow==null?null:preReadShadow.debugDump());
 				}
 			}
 			
@@ -650,6 +655,7 @@ public class ResourceObjectConverter {
 		return sideEffectDeltas;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private Collection<PropertyModificationOperation> executeModify(ProvisioningContext ctx, 
 			PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, 
 			Collection<Operation> operations, OperationResult parentResult) 
@@ -684,34 +690,43 @@ public class ResourceObjectConverter {
 					currentShadow = preReadShadow(ctx, identifiers, operations, false, parentResult);
 				}
 				
-				Collection<Operation> filteredOperations = new ArrayList(operations.size());
-				for (Operation origOperation: operations) {
-					if (origOperation instanceof PropertyModificationOperation) {
-						PropertyModificationOperation modificationOperation = (PropertyModificationOperation)origOperation;
-						PropertyDelta<?> propertyDelta = modificationOperation.getPropertyDelta();
-						PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow,
-								modificationOperation.getMatchingRuleQName(), matchingRuleRegistry);
-						if (filteredDelta != null && !filteredDelta.isEmpty()) {
-							if (propertyDelta == filteredDelta) {
-								filteredOperations.add(origOperation);
+				if (currentShadow == null) {
+					
+					LOGGER.debug("We do not have pre-read shadow, skipping duplicate filtering");
+					
+				} else {
+					
+					LOGGER.trace("Filtering out duplicate values");
+				
+					Collection<Operation> filteredOperations = new ArrayList<>(operations.size());
+					for (Operation origOperation: operations) {
+						if (origOperation instanceof PropertyModificationOperation) {
+							PropertyModificationOperation modificationOperation = (PropertyModificationOperation)origOperation;
+							PropertyDelta<?> propertyDelta = modificationOperation.getPropertyDelta();
+							PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow,
+									modificationOperation.getMatchingRuleQName(), matchingRuleRegistry);
+							if (filteredDelta != null && !filteredDelta.isEmpty()) {
+								if (propertyDelta == filteredDelta) {
+									filteredOperations.add(origOperation);
+								} else {
+									PropertyModificationOperation newOp = new PropertyModificationOperation<>(filteredDelta);
+									newOp.setMatchingRuleQName(modificationOperation.getMatchingRuleQName());
+									filteredOperations.add(newOp);
+								}
 							} else {
-								PropertyModificationOperation newOp = new PropertyModificationOperation(filteredDelta);
-								newOp.setMatchingRuleQName(modificationOperation.getMatchingRuleQName());
-								filteredOperations.add(newOp);
+								LOGGER.trace("Filtering out modification {} because it has empty delta after narrow", propertyDelta);
 							}
-						} else {
-							LOGGER.trace("Filtering out modification {} because it has empty delta after narrow", propertyDelta);
+						} else if (origOperation instanceof ExecuteProvisioningScriptOperation) {
+							filteredOperations.add(origOperation);					
 						}
-					} else if (origOperation instanceof ExecuteProvisioningScriptOperation){
-						filteredOperations.add(origOperation);					
 					}
+					if (filteredOperations.isEmpty()) {
+						LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
+						parentResult.recordSuccess();
+						return new ArrayList<>(0);
+					}
+					operations = filteredOperations;
 				}
-				if (filteredOperations.isEmpty()) {
-					LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
-					parentResult.recordSuccess();
-					return new ArrayList<>(0);
-				}
-				operations = filteredOperations;
 			}
 			
 			if (LOGGER.isDebugEnabled()) {
@@ -807,6 +822,7 @@ public class ResourceObjectConverter {
 		return sideEffectChanges;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private PrismObject<ShadowType> preReadShadow(ProvisioningContext ctx, 
 			Collection<? extends ResourceAttribute<?>> identifiers, 
 			Collection<Operation> operations, boolean fetchEntitlements, OperationResult parentResult) 
@@ -822,8 +838,15 @@ public class ResourceObjectConverter {
 
 		AttributesToReturn attributesToReturn = new AttributesToReturn();
 		attributesToReturn.setAttributesToReturn(neededExtraAttributes);
-		currentShadow = fetchResourceObject(ctx, identifiers, 
+		try {
+			currentShadow = fetchResourceObject(ctx, identifiers, 
 				attributesToReturn, fetchEntitlements, parentResult);
+		} catch (ObjectNotFoundException e) {
+			// This may happen for semi-manual connectors that are not yet up to date.
+			// No big deal. We will have to work without it.
+			LOGGER.warn("Cannot pre-read shadow {}, it is probably not present in the {}. Skipping pre-read.", identifiers, ctx.getResource());
+			return null;
+		}
 		return currentShadow;
 	}
 
@@ -1201,13 +1224,19 @@ public class ResourceObjectConverter {
 					(shadow) -> {
 						// in order to utilize the cache right from the beginning...
 						RepositoryCache.enter();
+						
+						OperationResult objResult = parentResult.createMinorSubresult(OperationConstants.OPERATION_SEARCH_RESULT);
+						
 						try {
 							try {
-								shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, parentResult);
+								shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
 							} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException e) {
 								throw new TunnelException(e);
 							}
-							return resultHandler.handle(shadow);
+							Validate.notNull(shadow, "null shadow");
+							boolean doContinue = resultHandler.handle(shadow, objResult);
+							objResult.computeStatus();
+							return doContinue;
 						} finally {
 							RepositoryCache.exit();
 						}
@@ -1750,7 +1779,7 @@ public class ResourceObjectConverter {
 									change.getIdentifiers());
 							identification.validatePrimaryIdenfiers();
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
-							currentShadow = connector.fetchObject(ShadowType.class, identification, shadowAttrsToReturn, ctx, parentResult);
+							currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, parentResult);
 						}
 						
 					}

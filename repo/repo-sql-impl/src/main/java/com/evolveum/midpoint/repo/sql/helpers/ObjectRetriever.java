@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.ObjectPagingAfterOid;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -57,6 +58,8 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static org.apache.commons.lang3.ArrayUtils.getLength;
+
 /**
  * @author lazyman, mederly
  */
@@ -69,28 +72,17 @@ public class ObjectRetriever {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectRetriever.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
-    @Autowired
-    @Qualifier("repositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired
-    private LookupTableHelper lookupTableHelper;
-
-    @Autowired
-    private CertificationCaseHelper caseHelper;
-
-    @Autowired
-    private BaseHelper baseHelper;
-
-    @Autowired
-    private NameResolutionHelper nameResolutionHelper;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private LookupTableHelper lookupTableHelper;
+	@Autowired private CertificationCaseHelper caseHelper;
+	@Autowired private BaseHelper baseHelper;
+	@Autowired private NameResolutionHelper nameResolutionHelper;
+	@Autowired private PrismContext prismContext;
+	@Autowired
+	@Qualifier("repositoryService")
+	private RepositoryService repositoryService;
 
     public <T extends ObjectType> PrismObject<T> getObjectAttempt(Class<T> type, String oid,
-                                                                  Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                  OperationResult result)
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         LOGGER_PERFORMANCE.debug("> get object {}, oid={}", type.getSimpleName(), oid);
         PrismObject<T> objectType = null;
@@ -232,17 +224,15 @@ public class ObjectRetriever {
             query.setString("oid", shadowOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
-            List<GetObjectResult> focuses = query.list();
+			@SuppressWarnings({"unchecked", "raw"})
+			List<GetObjectResult> focuses = query.list();
             LOGGER.trace("Found {} focuses, transforming data to JAXB types.", focuses != null ? focuses.size() : 0);
 
             if (focuses == null || focuses.isEmpty()) {
                 // account shadow owner was not found
                 return null;
-            }
-
-            if (focuses.size() > 1) {
-                LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.",
-                        new Object[]{focuses.size(), shadowOid});
+            } else if (focuses.size() > 1) {
+                LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.", focuses.size(), shadowOid);
             }
 
             GetObjectResult focus = focuses.get(0);
@@ -270,7 +260,8 @@ public class ObjectRetriever {
             query.setString("oid", accountOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
-            List<GetObjectResult> users = query.list();
+			@SuppressWarnings({"unchecked", "raw"})
+			List<GetObjectResult> users = query.list();
             LOGGER.trace("Found {} users, transforming data to JAXB types.", users != null ? users.size() : 0);
 
             if (users == null || users.isEmpty()) {
@@ -336,10 +327,37 @@ public class ObjectRetriever {
         return count;
     }
 
+    public <C extends Containerable> int countContainersAttempt(Class<C> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+		boolean cases = AccessCertificationCaseType.class.equals(type);
+		boolean workItems = AccessCertificationWorkItemType.class.equals(type);
+		if (!cases && !workItems) {
+			throw new UnsupportedOperationException("Only AccessCertificationCaseType or AccessCertificationWorkItemType is supported here now.");
+		}
+
+		LOGGER_PERFORMANCE.debug("> count containers {}", type.getSimpleName());
+		Session session = null;
+		try {
+			session = baseHelper.beginReadOnlyTransaction();
+
+			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
+			RQuery rQuery = engine.interpret(query, type, options, true, session);
+			Number longCount = (Number) rQuery.uniqueResult();
+			LOGGER.trace("Found {} objects.", longCount);
+
+			session.getTransaction().commit();
+			return longCount != null ? longCount.intValue() : 0;
+		} catch (QueryException | RuntimeException ex) {
+			baseHelper.handleGeneralException(ex, session, result);
+			throw new AssertionError("Shouldn't get here; previous method call should throw an exception.");
+		} finally {
+			baseHelper.cleanupSessionAndResult(session, result);
+		}
+    }
+
 	@NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
-                                                                                        Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                                        OperationResult result) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
         LOGGER_PERFORMANCE.debug("> search objects {}", new Object[]{type.getSimpleName()});
         Session session = null;
         try {
@@ -349,7 +367,8 @@ public class ObjectRetriever {
 			QueryEngine2 engine = new QueryEngine2(getConfiguration(), prismContext);
 			rQuery = engine.interpret(query, type, options, false, session);
 
-            List<GetObjectResult> queryResult = rQuery.list();
+			@SuppressWarnings({"unchecked", "raw"})
+			List<GetObjectResult> queryResult = rQuery.list();
             LOGGER.trace("Found {} objects, translating to JAXB.", queryResult != null ? queryResult.size() : 0);
 
 			List<PrismObject<T>> list = queryResultToPrismObjects(queryResult, type, options, session, result);
@@ -412,6 +431,7 @@ public class ObjectRetriever {
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             if (cases) {
+				@SuppressWarnings({"unchecked", "raw"})
 				List<GetContainerableResult> items = rQuery.list();
 				LOGGER.trace("Found {} items (cases), translating to JAXB.", items.size());
 				Map<String,PrismObject<AccessCertificationCampaignType>> campaignsCache = new HashMap<>();
@@ -422,6 +442,7 @@ public class ObjectRetriever {
 				}
 			} else {
             	assert workItems;
+            	@SuppressWarnings({"unchecked", "raw"})
 				List<GetCertificationWorkItemResult> items = rQuery.list();
 				LOGGER.trace("Found {} work items, translating to JAXB.", items.size());
 				Map<String,PrismContainerValue<AccessCertificationCaseType>> casesCache = new HashMap<>();
@@ -455,7 +476,8 @@ public class ObjectRetriever {
 			Holder<PrismObject<T>> partialValueHolder,
 			Session session, OperationResult operationResult) throws SchemaException {
 
-        String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
+		byte[] fullObject = result.getFullObject();
+		String xml = RUtil.getXmlFromByteArray(fullObject, getConfiguration().isUseZip());
         PrismObject<T> prismObject;
         try {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
@@ -474,7 +496,7 @@ public class ObjectRetriever {
             		type.getSimpleName(), oid, e.getClass().getName(), e.getMessage(), xml, e);
             throw e;
         }
-
+        attachDiagDataIfRequested(prismObject, fullObject, options);
         if (FocusType.class.isAssignableFrom(prismObject.getCompileTimeClass())) {
             if (SelectorOptions.hasToLoadPath(FocusType.F_JPEG_PHOTO, options)) {
                 //todo improve, use user.hasPhoto flag and take options into account [lazyman]
@@ -530,7 +552,8 @@ public class ObjectRetriever {
         query.setParameter("oid", object.getOid());
         query.setParameter("ownerType", RObjectExtensionType.ATTRIBUTES);
 
-        List<Object[]> values = query.list();
+		@SuppressWarnings({"unchecked", "raw"})
+		List<Object[]> values = query.list();
         if (values == null || values.isEmpty()) {
             return;
         }
@@ -551,7 +574,7 @@ public class ObjectRetriever {
             if (item.getDefinition() == null) {
                 RValueType rValType = (RValueType) value[2];
                 if (rValType == RValueType.PROPERTY) {
-                    PrismPropertyDefinition<Object> def = new PrismPropertyDefinitionImpl<Object>(name, type, object.getPrismContext());
+                    PrismPropertyDefinition<Object> def = new PrismPropertyDefinitionImpl<>(name, type, object.getPrismContext());
                     item.applyDefinition(def, true);
                 } else if (rValType == RValueType.REFERENCE) {
                     PrismReferenceDefinition def = new PrismReferenceDefinitionImpl(name, type, object.getPrismContext());
@@ -577,7 +600,8 @@ public class ObjectRetriever {
             query.setString("oid", resourceOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
 
-            List<GetObjectResult> shadows = query.list();
+			@SuppressWarnings({"unchecked", "raw"})
+			List<GetObjectResult> shadows = query.list();
             LOGGER.debug("Query returned {} shadows, transforming to JAXB types.", shadows != null ? shadows.size() : 0);
 
             if (shadows != null) {
@@ -878,4 +902,16 @@ main:       for (;;) {
             baseHelper.cleanupSessionAndResult(session, result);
         }
     }
+
+	void attachDiagDataIfRequested(PrismValue value, byte[] fullObject, Collection<SelectorOptions<GetOperationOptions>> options) {
+		if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
+			value.setUserData(RepositoryService.KEY_DIAG_DATA, new RepositoryObjectDiagnosticData(getLength(fullObject)));
+		}
+	}
+
+	private void attachDiagDataIfRequested(Item item, byte[] fullObject, Collection<SelectorOptions<GetOperationOptions>> options) {
+		if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
+			item.setUserData(RepositoryService.KEY_DIAG_DATA, new RepositoryObjectDiagnosticData(getLength(fullObject)));
+		}
+	}
 }

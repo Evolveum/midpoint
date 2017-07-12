@@ -29,21 +29,28 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
@@ -131,6 +138,22 @@ public class ReportFunctions {
         return resolveAssignments(assignments, RoleType.class);
     }
 
+    public List<PrismObject<RoleType>> resolveRoles(Collection<AssignmentType> assignments,
+            Collection<String> filterOids) {
+
+        Collection<AssignmentType> toResolve = assignments;
+        if (CollectionUtils.isNotEmpty(filterOids) && CollectionUtils.isNotEmpty(assignments)) {
+            toResolve = assignments.stream().filter(Objects::nonNull)
+                    .filter(as -> as.getTargetRef() != null && as.getTargetRef().getOid() != null
+                            && filterOids.contains(as.getTargetRef().getOid()))
+                    // filter to default relation only - ignores approvers etc
+                    .filter(as -> ObjectTypeUtil.isDefaultRelation(as.getTargetRef().getRelation()))
+                    .collect(Collectors.toList());
+        }
+
+        return resolveRoles(toResolve);
+    }
+
     public List<PrismObject<OrgType>> resolveOrgs(Collection<AssignmentType> assignments) {
         return resolveAssignments(assignments, OrgType.class);
     }
@@ -214,6 +237,46 @@ public class ReportFunctions {
             }
         }
         return auditService.listRecords(query, resultSet);
+    }
+
+    public List<AuditEventRecord> searchAuditRecordsAsWorkflows(String query, Map<String, Object> params) {
+        return transformToWorkflows(searchAuditRecords(query, params));
+    }
+
+    private List<AuditEventRecord> transformToWorkflows(List<AuditEventRecord> auditEvents) {
+        if (auditEvents == null || auditEvents.isEmpty()) {
+            return auditEvents;
+        }
+
+        // group all records by property/wf.processInstanceId
+        Map<String, List<AuditEventRecord>> workflows = auditEvents.stream().collect(Collectors.groupingBy(event -> {
+            Set<String> processInstanceIds = event.getPropertyValues(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
+
+            Iterator<String> it = processInstanceIds.iterator();
+            return it.hasNext() ? it.next() : "default workflow";
+        }));
+
+        // map of workflows in order of first request timestamp
+        Map<Long, List<AuditEventRecord>> workflowsFiltered = new TreeMap<>();
+        workflows.entrySet().stream().forEach(entry -> {
+            List<AuditEventRecord> wf = entry.getValue();
+            // leave only the first request in each workflow
+            List<AuditEventRecord> filtered = new ArrayList<>();
+            wf.stream().filter(record -> record.getEventStage() == AuditEventStage.REQUEST).findFirst()
+                    .ifPresent(filtered::add);
+            // and all executions with decision
+            wf.stream().filter(record -> record.getEventStage() == AuditEventStage.EXECUTION)
+                    .filter(record -> record.getMessage() == null || !record.getMessage().contains("(no decision)"))
+                    .forEach(filtered::add);
+
+            wf.stream().findFirst().ifPresent(record -> {
+
+                workflowsFiltered.put(record.getTimestamp(), filtered);
+            });
+        });
+
+        return workflowsFiltered.entrySet().stream().map(Entry::getValue).flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     public UserType getShadowOwner(String shadowOid) {
@@ -362,6 +425,26 @@ public class ReportFunctions {
         return model.searchContainers(AccessCertificationCaseType.class, query, options, task, task.getResult());
     }
 
+    private List<AccessCertificationCaseType> getCertificationCampaignNotRespondedCasesAsBeans(String campaignName) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        Task task = taskManager.createTaskInstance();
+        ObjectQuery query;
+        if (StringUtils.isEmpty(campaignName)) {
+            //query = null;
+            return new ArrayList<>();
+        } else {
+            query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+                    .item(PrismConstants.T_PARENT, F_NAME).eqPoly(campaignName, "").matchingOrig()
+                    .and().item(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
+                    // TODO first by object/target type then by name (not supported by the repository as of now)
+                    .asc(AccessCertificationCaseType.F_OBJECT_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
+                    .asc(AccessCertificationCaseType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_NAME)
+                    .build();
+        }
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createResolveNames());
+        return model.searchContainers(AccessCertificationCaseType.class, query, options, task, task.getResult());
+    }
+
     public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
@@ -369,6 +452,21 @@ public class ReportFunctions {
         for (AccessCertificationCaseType aCase : cases) {
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
                 if (stageNumber == null || java.util.Objects.equals(workItem.getStageNumber(), stageNumber)) {
+                    workItems.add(workItem);
+                }
+            }
+        }
+        return PrismContainerValue.toPcvList(workItems);
+    }
+
+    public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignNonResponders(String campaignName, Integer stageNumber)
+            throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        List<AccessCertificationCaseType> cases = getCertificationCampaignNotRespondedCasesAsBeans(campaignName);
+        List<AccessCertificationWorkItemType> workItems = new ArrayList<>();
+        for (AccessCertificationCaseType aCase : cases) {
+            for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+                if ((workItem.getOutput() == null || workItem.getOutput().getOutcome() == null)
+                    && (stageNumber == null || java.util.Objects.equals(workItem.getStageNumber(), stageNumber))) {
                     workItems.add(workItem);
                 }
             }

@@ -21,6 +21,8 @@ import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -264,8 +266,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String objectOid,
-													String targetOid, FocusType focus, String campaignOid,
-													String tenantOid, String orgOid, ActivationStatusType administrativeStatus) {
+			String targetOid, FocusType focus, String campaignOid, String tenantOid, String orgOid,
+			ActivationStatusType administrativeStatus) {
 		AccessCertificationCaseType aCase = checkCase(caseList, objectOid, targetOid, focus, campaignOid);
 		String realTenantOid = aCase.getTenantRef() != null ? aCase.getTenantRef().getOid() : null;
 		String realOrgOid = aCase.getOrgRef() != null ? aCase.getOrgRef().getOid() : null;
@@ -345,7 +347,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertNull("Unexpected start time", campaign.getStartTimestamp());
 		assertNull("Unexpected end time", campaign.getEndTimestamp());
 	}
-	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases)
+			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
         assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
         assertDefinitionAndOwner(campaign, definition);
         assertApproximateTime("start time", new Date(), campaign.getStartTimestamp());
@@ -362,6 +366,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		PrismObject<AccessCertificationDefinitionType> def = getObjectViaRepo(AccessCertificationDefinitionType.class, definition.getOid());
 		assertApproximateTime("last campaign started", new Date(), def.asObjectable().getLastCampaignStartedTimestamp());
 		assertNull("unexpected last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
+		assertCases(campaign.getOid(), cases);
     }
 
 	protected void assertAfterStageOpen(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
@@ -543,7 +548,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getObject");
+		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".getObject");
 		OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> options =
 				Arrays.asList(SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE)));
@@ -553,6 +558,17 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		return campaign;
 	}
 
+	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".countCampaignCases");
+		OperationResult result = task.getResult();
+		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+				.ownerId(campaignOid)
+				.build();
+		int rv = modelService.countContainers(AccessCertificationCaseType.class, query, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return rv;
+	}
 
 	protected void assertAfterStageClose(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) {
         assertStateAndStage(campaign, REVIEW_STAGE_DONE, stageNumber);
@@ -561,8 +577,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
         assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertEquals("wrong stage #", stageNumber, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStartTimestamp());
-        assertApproximateTime("stage 1 end", new Date(), stage.getStartTimestamp());
+        assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
+        assertApproximateTime("stage end", new Date(), stage.getStartTimestamp());
 
 		for (AccessCertificationCaseType aCase : campaign.getCase()) {
 			if (aCase.getStageNumber() != stageNumber) {
@@ -588,7 +604,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	// completedStage - if null, checks the stage outcome in the history list
 	protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
-									 AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
+			AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
         AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
         assertEquals("Wrong stage outcome in " + ccase, OutcomeUtils.toUri(stageOutcome), ccase.getCurrentStageOutcome());
         assertEquals("Wrong overall outcome in " + ccase, OutcomeUtils.toUri(overallOutcome), ccase.getOutcome());
@@ -598,9 +614,16 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		}
     }
 
-	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
 		assertPercentComplete(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
+	}
+
+	protected void assertCases(String campaignOid, int expectedCases)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		int cases = countCampaignCases(campaignOid);
+		assertEquals("Wrong # of cases for campaign " + campaignOid, expectedCases, cases);
 	}
 
 	protected void assertPercentComplete(AccessCertificationCampaignType campaign, int expCasesComplete, int expCasesDecided, int expDecisionsDone) {

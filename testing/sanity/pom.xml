@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.6-SNAPSHOT</version>
+		<version>3.7-SNAPSHOT</version>
 		<relativePath>../../build-system/pom.xml</relativePath>
 	</parent>
     <scm>
@@ -60,109 +60,109 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>prism</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-test</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-quartz-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>audit-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-test-util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
         <dependency>
         	<groupId>com.evolveum.midpoint.model</groupId>
         	<artifactId>report-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
         </dependency>
         <dependency>
         	<groupId>com.evolveum.midpoint.model</groupId>
         	<artifactId>notifications-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
         </dependency>
         <dependency>
         	<groupId>com.evolveum.midpoint.model</groupId>
         	<artifactId>workflow-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
         </dependency>
         
@@ -203,7 +203,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -219,11 +219,6 @@
 		    </exclusions> 
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.polygon</groupId>
-			<artifactId>connector-ldap-legacy</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
         	<groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-databasetable</artifactId>
 			<scope>test</scope>
@@ -231,19 +226,19 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl-test</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -254,7 +249,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.7-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

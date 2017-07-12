@@ -152,7 +152,7 @@ public class NodeRegistrar {
         node.setNodeIdentifier(configuration.getNodeId());
         node.setName(new PolyStringType(configuration.getNodeId()));
         node.setHostname(getMyHostname());
-        node.getIpAddress().addAll(getMyIPAdresses());
+        node.getIpAddress().addAll(getMyIpAddresses());
         node.setJmxPort(configuration.getJmxPort());
         node.setClustered(configuration.isClustered());
         node.setRunning(true);
@@ -238,9 +238,9 @@ public class NodeRegistrar {
 
         LOGGER.trace("Updating this node registration (name {}, oid {})", nodePrism.asObjectable().getName(), nodePrism.getOid());
 
-        List<PropertyDelta<?>> modifications = new ArrayList<PropertyDelta<?>>();
+        List<PropertyDelta<?>> modifications = new ArrayList<>();
         modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_HOSTNAME, getMyHostname()));
-        modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_IP_ADDRESS, getMyIPAdresses().toArray(new String[0])));
+        modifications.add(PropertyDelta.createReplaceDelta(nodePrism.getDefinition(), NodeType.F_IP_ADDRESS, getMyIpAddresses().toArray(new String[0])));
         modifications.add(createCheckInTimeDelta());
 
         try {
@@ -441,14 +441,14 @@ public class NodeRegistrar {
         }
     }
     
-    private List<String> getMyIPAdresses() {
+    private List<String> getMyIpAddresses() {
     	List<String> addresses = new ArrayList<>();
     	Enumeration<NetworkInterface> nets;
 		try {
 			nets = NetworkInterface.getNetworkInterfaces();
 			for (NetworkInterface netint : Collections.list(nets)) {
-				for (InetAddress inetAddres: Collections.list(netint.getInetAddresses())) {
-					String hostAddress = inetAddres.getHostAddress();
+				for (InetAddress inetAddress: Collections.list(netint.getInetAddresses())) {
+					String hostAddress = inetAddress.getHostAddress();
 					String normalizedAddress = normalizeAddress(hostAddress);
 					if (!isLocalAddress(normalizedAddress)) {
 						addresses.add(normalizedAddress);

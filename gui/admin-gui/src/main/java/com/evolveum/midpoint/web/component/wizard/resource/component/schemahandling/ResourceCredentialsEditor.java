@@ -269,7 +269,13 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 
     private void outboundEditPerformed(AjaxRequestTarget target){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
-        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "password.outbound"), false);
+        IModel<ResourceCredentialsDefinitionType> model = getModel();
+        List<MappingType> outboundMappingList = model == null ? null :
+                (model.getObject() == null ? null :
+                        (model.getObject().getPassword() == null ? null : model.getObject().getPassword().getOutbound()));
+        MappingType mapping = outboundMappingList != null && outboundMappingList.size() > 0 ?
+                outboundMappingList.get(0) : null;
+        window.updateModel(target, mapping, false);
         window.show(target);
     }
 

@@ -278,6 +278,7 @@ public class CertificationCaseHelper {
 		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
 			Query query = session.getNamedQuery("get.campaignCases");
 			query.setString("ownerOid", campaignOid);
+			@SuppressWarnings({"raw", "unchecked"})
 			List<Object> cases = query.list();
 			for (Object o : cases) {
 				if (!(o instanceof byte[])) {
@@ -319,7 +320,8 @@ public class CertificationCaseHelper {
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			Session session, OperationResult operationResult) throws SchemaException {
 
-        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), prismContext, false);
+		byte[] fullObject = result.getFullObject();
+		AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
 
         String ownerOid = result.getOwnerOid();
@@ -327,7 +329,8 @@ public class CertificationCaseHelper {
         if (campaign != null && !campaign.asObjectable().getCase().contains(aCase)) {
             campaign.asObjectable().getCase().add(aCase);
         }
-        return aCase;
+		objectRetriever.attachDiagDataIfRequested(aCase.asPrismContainerValue(), fullObject, options);
+		return aCase;
     }
 
     public AccessCertificationWorkItemType updateLoadedCertificationWorkItem(GetCertificationWorkItemResult result,
@@ -347,6 +350,7 @@ public class CertificationCaseHelper {
 					.and().id(caseId)
 					.build();
 			RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
+			@SuppressWarnings({"raw", "unchecked"})
 			List<GetContainerableResult> cases = caseQuery.list();
 			if (cases.size() > 1) {
 				throw new IllegalStateException(
@@ -355,6 +359,7 @@ public class CertificationCaseHelper {
 				// we need it, because otherwise we have only identifiers for the work item, no data
 				throw new IllegalStateException("No certification case found for campaign " + campaignOid + ", ID " + caseId);
 			}
+			// TODO really use options of 'null' ?
 			AccessCertificationCaseType _case = updateLoadedCertificationCase(cases.get(0), campaignsCache, null, session, operationResult);
 			casePcv = _case.asPrismContainerValue();
 			casesCache.put(caseKey, casePcv);
@@ -399,6 +404,7 @@ public class CertificationCaseHelper {
         criteria.add(Restrictions.eq("ownerOid", object.getOid()));
 
         // TODO fetch only XML representation
+		@SuppressWarnings({"raw", "unchecked"})
         List<RAccessCertificationCase> cases = criteria.list();
         if (cases == null || cases.isEmpty()) {
             return;

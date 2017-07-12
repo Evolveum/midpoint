@@ -32,6 +32,11 @@ public class GetContainerableResult implements Serializable {
         }
 
         @Override
+        public String getCountString(String basePath) {
+            return "*";     // TODO ok?
+        }
+
+        @Override
         public List<String> getContentAttributes(String rootAlias) {
             return Collections.singletonList(rootAlias + ".fullObject");
         }

@@ -66,7 +66,7 @@ public class TestPath {
 				  					  new NameItemPathSegment(new QName(NS, "bar")), new IdItemPathSegment(333L));
 		ItemPath path4 = new ItemPath(new QName(NS, "x"));
 		ItemPath path5 = new ItemPath(new NameItemPathSegment(new QName(NS, "foo")), new IdItemPathSegment(123L));
-		ItemPath pathE = new ItemPath();
+		ItemPath pathE = ItemPath.EMPTY_PATH;
 		
 		// WHEN
 		ItemPath normalized1 = path1.normalize();

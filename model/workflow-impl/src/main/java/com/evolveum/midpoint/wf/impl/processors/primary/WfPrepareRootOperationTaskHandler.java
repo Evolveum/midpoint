@@ -142,7 +142,7 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
             }
 
             if (changed) {
-                rootWfTask.storeModelContext(rootContext);
+                rootWfTask.storeModelContext(rootContext, true);
                 rootWfTask.commitChanges(result);
             }
 

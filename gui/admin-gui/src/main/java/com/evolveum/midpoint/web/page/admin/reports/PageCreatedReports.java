@@ -530,8 +530,8 @@ public class PageCreatedReports extends PageAdminReports {
         try {
             input = reportManager.getReportOutputData(report.getOid(), result);
         } catch (IOException ex) {
-        	LOGGER.error("Report {} doesn't exist anymore.", WebComponentUtil.getName(report));
-        	result.recordPartialError("Report" + WebComponentUtil.getName(report) + " doesn't exist anymore.");
+        	LOGGER.error("Report {} is not accessible.", WebComponentUtil.getName(report));
+        	result.recordPartialError("Report " + WebComponentUtil.getName(report) + " is not accessible.");
         } catch (Exception e) {
             pageBase.error(pageBase.getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't download report.", e);

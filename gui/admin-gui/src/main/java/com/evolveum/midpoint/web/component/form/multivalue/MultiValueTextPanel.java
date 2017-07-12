@@ -225,6 +225,9 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
         Iterator<T> iterator = objects.iterator();
         while (iterator.hasNext()) {
             T object = iterator.next();
+            if (object == null){
+                continue;
+            }
             if (object.equals(item.getModelObject())) {
                 iterator.remove();
                 break;

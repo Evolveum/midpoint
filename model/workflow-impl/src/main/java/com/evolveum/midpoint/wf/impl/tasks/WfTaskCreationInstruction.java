@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -377,7 +378,8 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 		// model and workflow context
 		if (taskModelContext != null) {
-			task.setModelOperationContext(((LensContext) taskModelContext).toLensContextType());
+			boolean reduced = taskModelContext.getState() == ModelState.PRIMARY;
+			task.setModelOperationContext(((LensContext) taskModelContext).toLensContextType(reduced));
 		}
 		wfContext.setChangeProcessor(changeProcessor.getClass().getName());
 		wfContext.setStartTimestamp(createXMLGregorianCalendar(processCreationTimestamp));

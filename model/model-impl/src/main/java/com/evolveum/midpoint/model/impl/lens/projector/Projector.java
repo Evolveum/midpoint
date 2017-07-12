@@ -25,6 +25,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.ProgressInformation;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,10 +53,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies 
@@ -140,7 +137,7 @@ public class Projector {
 	 * Useful for change preview.
 	 */
 	public <F extends ObjectType> void projectAllWaves(LensContext<F> context, String activityDescription,
-												  Task task, OperationResult parentResult)
+			Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		projectInternal(context, activityDescription, true, true, task, parentResult);
@@ -235,41 +232,47 @@ public class Projector {
 				LensUtil.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
 				LensUtil.checkContextSanity(context, "focus processing", result);
 
-				// Process activation of all resources, regardless of the waves. This is needed to properly
-		        // sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
-		        // a projection is provisioned or deprovisioned only after the activation is processed.
-		        if (fromStart && inFirstWave) {
-		        	LOGGER.trace("Processing activation for all contexts");
-			        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-			        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
-			        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
-							continue;
-			        	}
-			        	activationProcessor.processActivation(context, projectionContext, now, task, result);
-			        	projectionContext.recompute();
-			        }
-					assignmentProcessor.removeIgnoredContexts(context);		// TODO move implementation of this method elsewhere; but it has to be invoked here, as activationProcessor sets the IGNORE flag
-		        }
-		        LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context, true);
-				if (consistencyChecks) context.checkConsistence();
+				if (partialProcessingOptions.getProjection() != PartialProcessingTypeType.SKIP) {
+					// Process activation of all resources, regardless of the waves. This is needed to properly
+					// sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
+					// a projection is provisioned or deprovisioned only after the activation is processed.
+					if (fromStart && inFirstWave) {
+						LOGGER.trace("Processing activation for all contexts");
+						for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+							if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
+									projectionContext.getSynchronizationPolicyDecision()
+											== SynchronizationPolicyDecision.IGNORE) {
+								continue;
+							}
+							activationProcessor.processActivation(context, projectionContext, now, task, result);
+							projectionContext.recompute();
+						}
+						assignmentProcessor.removeIgnoredContexts(
+								context);        // TODO move implementation of this method elsewhere; but it has to be invoked here, as activationProcessor sets the IGNORE flag
+					}
+					LensUtil.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context,
+							true);
+					if (consistencyChecks)
+						context.checkConsistence();
 
-		        dependencyProcessor.sortProjectionsToWaves(context);
-		        maxWaves = dependencyProcessor.computeMaxWaves(context);
-		        LOGGER.trace("Continuing wave {}, maxWaves={}", context.getProjectionWave(), maxWaves);
+					dependencyProcessor.sortProjectionsToWaves(context);
+					maxWaves = dependencyProcessor.computeMaxWaves(context);
+					LOGGER.trace("Continuing wave {}, maxWaves={}", context.getProjectionWave(), maxWaves);
 
-		        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-		        	
-		        	LensUtil.partialExecute("projection "+projectionContext.getHumanReadableName(),
-							() -> projectProjection(context, projectionContext, 
-									partialProcessingOptions, now, activityDescription, task, result),
-							partialProcessingOptions::getProjection);
-		        			// TODO: make this condition more complex in the future. We may want the ability
-		        	        // to select only some projections to process
-		        	
-		        }
-		        
-		        // if there exists some conflicting projection contexts, add them to the context so they will be recomputed in the next wave..
-		        addConflictingContexts(context);
+					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+
+						LensUtil.partialExecute("projection " + projectionContext.getHumanReadableName(),
+								() -> projectProjection(context, projectionContext,
+										partialProcessingOptions, now, activityDescription, task, result),
+								partialProcessingOptions::getProjection);
+						// TODO: make this condition more complex in the future. We may want the ability
+						// to select only some projections to process
+
+					}
+
+					// if there exists some conflicting projection contexts, add them to the context so they will be recomputed in the next wave..
+					addConflictingContexts(context);
+				}
 		        
 		        if (consistencyChecks) context.checkConsistence();
 		        

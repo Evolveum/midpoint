@@ -119,18 +119,21 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         config.validate();
         sqlConfiguration = config;
 
-        if (getSqlConfiguration().isEmbedded()) {
+        if (config.isUsingH2()) {
+            if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
+                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
+            }
+        }
+
+        if (config.isEmbedded()) {
             dropDatabaseIfExists(config);
-			if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
-				System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
-			}
-            if (getSqlConfiguration().isAsServer()) {
+            if (config.isAsServer()) {
                 LOGGER.info("Starting h2 in server mode.");
                 startServer();
             } else {
                 LOGGER.info("H2 prepared to run in local mode (from file).");
             }
-            LOGGER.info("H2 files are in '{}'.", new File(sqlConfiguration.getBaseDir()).getAbsolutePath());
+            LOGGER.info("H2 files are in '{}'.", new File(config.getBaseDir()).getAbsolutePath());
         } else {
             LOGGER.info("Repository is not running in embedded mode.");
         }

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,7 +51,11 @@ public class DateInput extends DateTimeField {
 
     @Override
     protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
-        DateTextField dateField = super.newDateTextField(id, dateFieldModel);
+        String localizedDatePattern = WebComponentUtil.getLocalizedDatePattern(DateLabelComponent.SHORT_NOTIME_STYLE);
+        if (localizedDatePattern != null && !localizedDatePattern.contains("yyyy")){
+            localizedDatePattern = localizedDatePattern.replaceAll("yy", "yyyy");
+        }
+        DateTextField dateField = DateTextField.forDatePattern(id, dateFieldModel, localizedDatePattern);
         dateField.add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
             @Override
             protected void onUpdate(AjaxRequestTarget target){

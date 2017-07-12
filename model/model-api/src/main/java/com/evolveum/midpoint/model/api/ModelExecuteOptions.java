@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -123,6 +124,16 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
      * Use with extreme care. Some combinations may be dangerous.
 	 */
 	private PartialProcessingOptionsType partialProcessing;
+
+	/**
+	 * Partial processing for initial clockwork stage. Used primarily for eliminating overhead when starting
+	 * operations that are expected to result in (background) approval processing.
+	 *
+	 * Note that if this option is used and if the clockwork proceeds to PRIMARY phase (e.g. because there are
+	 * no approvals), the context will be rotten after INITIAL phase. This presents some overhead. So please use
+	 * this option only if there is reasonable assumption that the request will stop after INITIAL phase.
+	 */
+	private PartialProcessingOptionsType initialPartialProcessing;
 
     public Boolean getForce() {
 		return force;
@@ -231,6 +242,12 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	
 	public static ModelExecuteOptions createReconcile() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setReconcile(true);
+		return opts;
+	}
+
+	public static ModelExecuteOptions createReconcile(ModelExecuteOptions defaultOptions) {
+		ModelExecuteOptions opts = defaultOptions != null ? defaultOptions.clone() : new ModelExecuteOptions();
 		opts.setReconcile(true);
 		return opts;
 	}
@@ -497,6 +514,28 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		return opts;
 	}
 
+	public PartialProcessingOptionsType getInitialPartialProcessing() {
+		return initialPartialProcessing;
+	}
+
+	public void setInitialPartialProcessing(
+			PartialProcessingOptionsType initialPartialProcessing) {
+		this.initialPartialProcessing = initialPartialProcessing;
+	}
+
+	public static PartialProcessingOptionsType getInitialPartialProcessing(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getInitialPartialProcessing();
+	}
+
+	public static ModelExecuteOptions createInitialPartialProcessing(PartialProcessingOptionsType partialProcessing) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setInitialPartialProcessing(partialProcessing);
+		return opts;
+	}
+
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
         ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
         retval.setForce(force);
@@ -592,13 +631,60 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     	appendFlag(sb, "reevaluateSearchFilters", reevaluateSearchFilters);
     	appendFlag(sb, "reconcileAffected", reconcileAffected);
     	appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);
-    	appendFlag(sb, "partialProcessing", partialProcessing == null ? null : true);
+    	appendVal(sb, "partialProcessing", format(partialProcessing));
+    	appendVal(sb, "initialPartialProcessing", format(initialPartialProcessing));
     	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();
     }
 
-    public ModelExecuteOptions clone() {
+	private Object format(PartialProcessingOptionsType pp) {
+		if (pp == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		appendPpFlag(sb, pp.getLoad(), "L");
+		appendPpFlag(sb, pp.getFocus(), "F");
+		appendPpFlag(sb, pp.getInbound(), "I");
+		appendPpFlag(sb, pp.getFocusActivation(), "FA");
+		appendPpFlag(sb, pp.getObjectTemplateBeforeAssignments(), "OTBA");
+		appendPpFlag(sb, pp.getAssignments(), "A");
+		appendPpFlag(sb, pp.getAssignmentsOrg(), "AORG");
+		appendPpFlag(sb, pp.getAssignmentsMembershipAndDelegate(), "AM&D");
+		appendPpFlag(sb, pp.getAssignmentsConflicts(), "AC");
+		appendPpFlag(sb, pp.getObjectTemplateAfterAssignments(), "OTAA");
+		appendPpFlag(sb, pp.getFocusCredentials(), "FC");
+		appendPpFlag(sb, pp.getFocusPolicyRules(), "FPR");
+		appendPpFlag(sb, pp.getProjection(), "P");
+		appendPpFlag(sb, pp.getOutbound(), "O");
+		appendPpFlag(sb, pp.getProjectionValues(), "PV");
+		appendPpFlag(sb, pp.getProjectionCredentials(), "PC");
+		appendPpFlag(sb, pp.getProjectionReconciliation(), "PR");
+		appendPpFlag(sb, pp.getProjectionLifecycle(), "PL");
+		appendPpFlag(sb, pp.getApprovals(), "APP");
+		appendPpFlag(sb, pp.getExecution(), "E");
+		appendPpFlag(sb, pp.getNotification(), "N");
+		removeLastComma(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private void appendPpFlag(StringBuilder sb, PartialProcessingTypeType option, String label) {
+		if (option == null) {
+			return;
+		}
+		String value;
+		switch (option) {
+			case AUTOMATIC: return;
+			case PROCESS: value = "+"; break;
+			case SKIP: value = "-"; break;
+			default: throw new AssertionError();
+		}
+		sb.append(label).append(value).append(",");
+	}
+
+	public ModelExecuteOptions clone() {
         // not much efficient, but...
         ModelExecuteOptions clone = fromModelExecutionOptionsType(toModelExecutionOptionsType());
 		clone.setPreAuthorized(this.preAuthorized);

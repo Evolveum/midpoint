@@ -17,7 +17,8 @@
 
 <!-- Black dummy resource for testing tolerant attributes
      also there is a resource password policy
-     also this resource has lower connector error criticality -->
+     also this resource has lower connector error criticality
+     also there are provisioning scripts that may fail (default criticality) -->
 
 <resource oid="10000000-0000-0000-0000-000000000305"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -182,6 +183,51 @@
             </credentials>
 		</objectType>
 	</schemaHandling>
+	
+	<scripts>
+		<script>
+			<host>resource</host>
+			<language>powerfail</language>
+			<argument>
+				<script>
+					<code>user?.getEmployeeNumber()</code>
+				</script> 
+				<name>error</name>
+			</argument>
+			<code>operation:add/after</code>
+			<operation>add</operation>
+            <kind>account</kind>
+			<order>after</order>
+		</script>
+		<script>
+			<host>resource</host>
+			<language>powerfail</language>
+			<argument>
+				<script>
+					<code>user?.getEmployeeNumber()</code>
+				</script> 
+				<name>error</name>
+			</argument>
+			<code>operation:modify/after</code>
+			<operation>modify</operation>
+            <kind>account</kind>
+			<order>after</order>
+		</script>
+		<script>
+			<host>resource</host>
+			<language>powerfail</language>
+			<argument>
+				<script>
+					<code>user?.getEmployeeNumber()</code>
+				</script> 
+				<name>error</name>
+			</argument>
+			<code>operation:delete/after</code>
+			<operation>delete</operation>
+            <kind>account</kind>
+			<order>after</order>
+		</script>
+	</scripts>
 	
 	<consistency>
 		<!-- MID-3682 -->

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -43,15 +43,26 @@
                             log.info("orgName="+orgName)
                             org = midpoint.searchObjectByName(OrgType.class, orgName)
                             log.info("org="+org)
+                            
                             if (org == null) {
                                 // Org does not exist, lets create it
                                 org = midpoint.createEmptyObjectWithName(OrgType.class, orgName);
                                 topOrgRef = new ObjectReferenceType();
                                 topOrgRef.setOid('80808080-8888-6666-0000-100000000001');
                                 org.getParentOrgRef().add(topOrgRef);
+                                
+                                assignment = new AssignmentType();
+                                topOrgTarget = new ObjectReferenceType();
+                                topOrgTarget.setOid('80808080-8888-6666-0000-100000000001');
+                                topOrgTarget.setType(OrgType.COMPLEX_TYPE);
+                                assignment.setTargetRef(topOrgTarget);
+                                org.getAssignment().add(assignment)
+                                
                                 midpoint.addObject(org);
+                                
                                 log.info("org "+org+" created")
                             }
+                            
                             if (!midpoint.isDirectlyAssigned(org)) {
                                 // The org is not assigned. Let's assign it.
                                 log.info("BAR BAR BAR Not assigned")

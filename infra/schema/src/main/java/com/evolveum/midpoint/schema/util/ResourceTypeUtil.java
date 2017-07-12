@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -36,6 +37,9 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -635,5 +639,60 @@ public class ResourceTypeUtil {
 	@NotNull
 	public static QName fillDefaultFocusType(QName focusType) {
 		return focusType != null ? focusType : UserType.COMPLEX_TYPE;
+	}
+	
+	public static ShadowCheckType getShadowConstraintsCheck(ResourceType resource) {
+		ResourceConsistencyType consistency = resource.getConsistency();
+		if (consistency == null) {
+			return ShadowCheckType.NONE;
+		}
+		ShadowCheckType shadowCheckType = consistency.getShadowConstraintsCheck();
+		if (shadowCheckType == null) {
+			return ShadowCheckType.NONE;
+		}
+		return shadowCheckType;
+	}
+
+	public static boolean isValidateSchema(ResourceType resource) {
+		ResourceConsistencyType consistency = resource.getConsistency();
+		if (consistency == null) {
+			return false;
+		}
+		return Boolean.TRUE.equals(consistency.isValidateSchema());
+	}
+
+	// TODO: maybe later move to ResourceSchema?
+	public static void validateSchema(ResourceSchema resourceSchema, PrismObject<ResourceType> resource) throws SchemaException {
+		
+		Set<QName> objectClassNames = new HashSet<>();
+		
+		for (ObjectClassComplexTypeDefinition objectClassDefinition: resourceSchema.getObjectClassDefinitions()) {
+			QName typeName = objectClassDefinition.getTypeName();
+			if (objectClassNames.contains(typeName)) {
+				throw new SchemaException("Duplicate definition of object class "+typeName+" in resource schema of "+resource);
+			}
+			objectClassNames.add(typeName);
+			
+			validateObjectClassDefinition(objectClassDefinition, resource);
+		}
+	}
+
+	public static void validateObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition,
+			PrismObject<ResourceType> resource) throws SchemaException {
+		Set<QName> attributeNames = new HashSet<>();
+		for (ResourceAttributeDefinition<?> attributeDefinition: objectClassDefinition.getAttributeDefinitions()) {
+			QName attrName = attributeDefinition.getName();
+			if (attributeNames.contains(attrName)) {
+				throw new SchemaException("Duplicate definition of attribute "+attrName+" in object class "+objectClassDefinition.getTypeName()+" in resource schema of "+resource);
+			}
+			attributeNames.add(attrName);
+		}
+		
+		Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = objectClassDefinition.getPrimaryIdentifiers();
+		Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = objectClassDefinition.getSecondaryIdentifiers();
+		
+		if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
+			throw new SchemaException("No identifiers in definition of object class "+objectClassDefinition.getTypeName()+" in resource schema of "+resource);
+		}
 	}
 }

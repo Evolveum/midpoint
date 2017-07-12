@@ -23,12 +23,12 @@ import java.util.List;
  */
 public interface TaskHandler {
 	
-	public TaskRunResult run(Task task);
+	TaskRunResult run(Task task);
 	
-	public Long heartbeat(Task task);
+	Long heartbeat(Task task);
 	
 	// TODO: fix signature
-	public void refreshStatus(Task task);
+	void refreshStatus(Task task);
 
     /**
      * Returns a category name for a given task. In most cases, the name would be independent of concrete task.
@@ -37,12 +37,12 @@ public interface TaskHandler {
      *             to all tasks
      * @return a user-understandable name, like "LiveSync" or "Workflow"
      */
-    public String getCategoryName(Task task);
+	String getCategoryName(Task task);
 
     /**
      * Returns names of task categories provided by this handler. Usually it will be one-item list.
      * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
      */
-    public List<String> getCategoryNames();
+	List<String> getCategoryNames();
 
 }

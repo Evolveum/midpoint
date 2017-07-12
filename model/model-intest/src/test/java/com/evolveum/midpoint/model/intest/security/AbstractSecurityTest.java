@@ -249,6 +249,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_MANAGER_FULL_CONTROL_FILE = new File(TEST_DIR, "role-manager-full-control.xml");
 	protected static final String ROLE_MANAGER_FULL_CONTROL_OID = "e2c88fea-db21-11e5-80ba-d7b2f1155264";
 	
+	protected static final File ROLE_MANAGER_USER_ADMIN_FILE = new File(TEST_DIR, "role-manager-user-admin.xml");
+	protected static final String ROLE_MANAGER_USER_ADMIN_OID = "c545323c-5d68-11e7-acba-2b32ef514121";
+	
 	protected static final File ROLE_ROLE_OWNER_FULL_CONTROL_FILE = new File(TEST_DIR, "role-role-owner-full-control.xml");
 	protected static final String ROLE_ROLE_OWNER_FULL_CONTROL_OID = "9c6e597e-dbd7-11e5-a538-97834c1cd5ba";
 
@@ -306,6 +309,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ORG_INDIRECT_PIRATE_FILE = new File(TEST_DIR,"org-indirect-pirate.xml");
 	protected static final String ORG_INDIRECT_PIRATE_OID = "59024142-5830-11e7-80e6-ffbee06efb45";
 	
+	protected static final File ORG_CHEATERS_FILE = new File(TEST_DIR, "org-cheaters.xml");
+	protected static final String ORG_CHEATERS_OID = "944cef84-6570-11e7-8262-079921253d05";
+	
 	protected static final File TASK_USELESS_ADMINISTRATOR_FILE = new File(TEST_DIR,"task-useless-administrator.xml");
 	protected static final String TASK_USELESS_ADMINISTRATOR_OID = "daa36dba-30c7-11e7-bd7d-6311953a3ecd";
 	
@@ -335,7 +341,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_ALL_ROLES = 75;
+	protected static final int NUMBER_OF_ALL_ROLES = 76;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 	
 	protected String userRumRogersOid;
@@ -396,6 +402,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_MANAGER_USER_ADMIN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_TASK_OWNER_FILE, initResult);

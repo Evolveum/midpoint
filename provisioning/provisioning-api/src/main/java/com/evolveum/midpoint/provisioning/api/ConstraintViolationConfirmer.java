@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,18 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 /**
  * @author mederly
  */
 public interface ConstraintViolationConfirmer {
 
-    boolean confirmViolation(String oid);
+	/**
+	 * Returns true if the candidate conflicts with the shadow being checked.
+	 * Returns false if this is not a conflicting shadow.
+	 */
+    boolean confirmViolation(PrismObject<ShadowType> conflictingShadowCandidate);
 
 }

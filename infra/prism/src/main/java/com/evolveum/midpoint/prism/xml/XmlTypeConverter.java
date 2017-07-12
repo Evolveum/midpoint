@@ -327,8 +327,46 @@ public class XmlTypeConverter {
     public static boolean canConvert(QName xsdType) {
         return (XsdTypeMapper.getXsdToJavaMapping(xsdType) != null);
     }
+    
+	public static boolean isMatchingType(Class<?> expectedClass, Class<?> actualClass) {
+		if (expectedClass.isAssignableFrom(actualClass)) {
+			return true;
+		}
+		if (isMatchingType(expectedClass, actualClass, int.class, Integer.class)) {
+			return true;
+		}
+		if (isMatchingType(expectedClass, actualClass, long.class, Long.class)) {
+			return true;
+		}
+		if (isMatchingType(expectedClass, actualClass, boolean.class, Boolean.class)) {
+			return true;
+		}
+		if (isMatchingType(expectedClass, actualClass, byte.class, Byte.class)) {
+			return true;
+		}
+		if (isMatchingType(expectedClass, actualClass, char.class, Character.class)) {
+			return true;
+		}
+		if (isMatchingType(expectedClass, actualClass, float.class, Float.class)) {
+			return true;
+		}
+		if (isMatchingType(expectedClass, actualClass, double.class, Double.class)) {
+			return true;
+		}
+		return false;
+	}
 
-    public static <T> T convertValueElementAsScalar(Element valueElement, Class<T> type) throws SchemaException {
+    private static boolean isMatchingType(Class<?> expectedClass, Class<?> actualClass, Class<?> lowerClass, Class<?> upperClass) {
+		if (lowerClass.isAssignableFrom(expectedClass) && upperClass.isAssignableFrom(actualClass)) {
+			return true;
+		}
+		if (lowerClass.isAssignableFrom(actualClass) && upperClass.isAssignableFrom(expectedClass)) {
+			return true;
+		}
+		return false;
+	}
+
+	public static <T> T convertValueElementAsScalar(Element valueElement, Class<T> type) throws SchemaException {
         return toJavaValue(valueElement, type);
     }
 

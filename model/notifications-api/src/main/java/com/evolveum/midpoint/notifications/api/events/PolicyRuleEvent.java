@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.events;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
@@ -65,5 +66,13 @@ public class PolicyRuleEvent extends BaseEvent {
 
 	public String getRuleName() {
 		return policyRule.getName();
+	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+		debugDumpCommon(sb, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "policyRule", policyRule, indent + 1);
+		return sb.toString();
 	}
 }

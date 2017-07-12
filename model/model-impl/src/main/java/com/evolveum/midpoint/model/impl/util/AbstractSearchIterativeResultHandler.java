@@ -274,6 +274,11 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		@Override
 		public void run(Task workerTask) {
+
+			// temporary hack: how to see thread name for this task
+			workerTask.setName(workerTask.getName().getOrig() + " (" + Thread.currentThread().getName() + ")");
+			workerSpecificResult.addContext("subtaskName", workerTask.getName());
+
 			while (workerTask.canRun()) {
 				ProcessingRequest request;
 				try {
@@ -500,7 +505,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			// we intentionally do not put worker specific result under main operation result until the handler is done
 			// (because of concurrency issues - adding subresults vs e.g. putting main result into the task)
 			OperationResult workerSpecificResult = new OperationResult(taskOperationPrefix + ".handleAsynchronously");
-			workerSpecificResult.addContext("subtask", i);
+			workerSpecificResult.addContext("subtaskIndex", i+1);
 			workerSpecificResults.add(workerSpecificResult);
 
 			Task subtask = coordinatorTask.createSubtask(new WorkerHandler(workerSpecificResult));

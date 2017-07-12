@@ -95,7 +95,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
     private String[] autoDeploymentFrom;
 
-    boolean dropDatabase;
+    private boolean dropDatabase;
 
     @PostConstruct
     void initialize() {
@@ -126,8 +126,8 @@ public class WfConfiguration implements BeanFactoryAware {
                 sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
                 if (sqlConfig.isEmbedded()) {
                     defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
-                    dropDatabase = sqlConfig.isDropIfExists();
                 }
+                dropDatabase = sqlConfig.isDropIfExists();
             }
         } catch(NoSuchBeanDefinitionException e) {
             LOGGER.debug("SqlRepositoryFactory is not available, Activiti database configuration (if any) will be taken from 'workflow' configuration section only.");

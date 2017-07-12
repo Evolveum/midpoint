@@ -263,7 +263,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		final String TEST_NAME = "test020Schema";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        accountObjectClassDefinition = AdUtils.assertAdSchema(resource, getAccountObjectClass(), prismContext);
+        accountObjectClassDefinition = AdUtils.assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
         
         assertLdapConnectorInstances(1);
 	}

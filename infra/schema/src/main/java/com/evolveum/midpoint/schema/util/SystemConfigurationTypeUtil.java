@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -63,4 +64,9 @@ public class SystemConfigurationTypeUtil {
         }
     }
 
+    // TODO move to better place?
+    public static void applyOperationResultHandling(SystemConfigurationType config) {
+        Integer value = config != null && config.getInternals() != null ? config.getInternals().getSubresultStripThreshold() : null;
+        OperationResult.setSubresultStripThreshold(value);
+    }
 }

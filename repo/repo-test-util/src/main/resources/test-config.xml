@@ -29,6 +29,15 @@
             <performanceStatisticsLevel>10</performanceStatisticsLevel>
             <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
         </repository>
+        <!-- needed for non-H2 tests, in particular in admin-gui, so that activiti (re)initialization exceptions will not occur -->
+        <workflow>
+            <enabled>true</enabled>
+            <jdbcUrl>jdbc:h2:mem:activiti;DB_CLOSE_DELAY=1000</jdbcUrl>
+            <jdbcDriver>org.h2.Driver</jdbcDriver>
+            <jdbcUsername>sa</jdbcUsername>
+            <jdbcPassword/>
+            <activitiSchemaUpdate>true</activitiSchemaUpdate>
+        </workflow>
         <audit>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>

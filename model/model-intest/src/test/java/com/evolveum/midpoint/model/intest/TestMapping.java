@@ -127,7 +127,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 		
 		// THEN
@@ -184,7 +184,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		PrismTestUtil.createPolyString("Cpt. Jack Sparrow"));
 		
@@ -224,7 +224,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, 
         		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
@@ -1367,7 +1367,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -1408,7 +1408,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -1458,7 +1458,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -1508,7 +1508,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -1554,7 +1554,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
 		
 		// THEN
@@ -1600,7 +1600,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY), 
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
@@ -1654,7 +1654,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
 		
 		// THEN
@@ -1709,7 +1709,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_GUYBRUSH_OID, USER_GUYBRUSH_PASSWORD_1_CLEAR, task, result);
 		
 		// THEN
@@ -1752,7 +1752,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
 		
 		// THEN
@@ -1827,7 +1827,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -1868,7 +1868,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -1919,7 +1919,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -1969,7 +1969,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 		
 		// THEN
@@ -2015,7 +2015,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
 		
 		// THEN
@@ -2061,7 +2061,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         display("Dummy account before", dummyAccountBefore);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY), 
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
@@ -2115,7 +2115,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
 		
 		// THEN
@@ -2170,7 +2170,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_GUYBRUSH_OID, USER_GUYBRUSH_PASSWORD_2_CLEAR, task, result);
 		
 		// THEN
@@ -2213,7 +2213,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
 		
 		// THEN
@@ -2234,7 +2234,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
-	 * MID-3816
+	 * MID-3816, MID-4008
 	 */
 	@Test
     public void test300AssignGuybrushDummyYellow() throws Exception {
@@ -2246,7 +2246,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		
 		// THEN
@@ -2284,7 +2284,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		
 		// THEN

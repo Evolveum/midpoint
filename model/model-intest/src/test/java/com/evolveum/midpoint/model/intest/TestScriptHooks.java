@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
@@ -96,7 +95,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100JackAssignHookAccount() throws Exception {
 		final String TEST_NAME = "test100JackAssignHookAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
@@ -109,8 +108,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_HOOK_OID, null, task, result);
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -151,7 +149,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110JackAddOrganization() throws Exception {
 		final String TEST_NAME = "test110JackAddOrganization";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
@@ -161,11 +159,10 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         StaticHookRecorder.reset();
                 
 		// WHEN
-        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, new PolyString("Pirate Brethren"));
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Pirate Brethren"));
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);

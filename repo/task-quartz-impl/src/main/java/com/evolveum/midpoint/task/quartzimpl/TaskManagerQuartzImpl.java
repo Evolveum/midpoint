@@ -533,7 +533,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@NotNull
 	public Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "createTaskInstance");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "createTaskInstance");
         result.addParam("taskPrism", taskPrism);
 
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
@@ -905,7 +905,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                                                            Collection<SelectorOptions<GetOperationOptions>> options,
                                                            OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getObject");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".getObject");
         result.addParam("objectType", type);
         result.addParam("oid", oid);
         result.addCollectionOfSerializablesAsParam("options", options);
@@ -1051,7 +1051,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchObjects");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addCollectionOfSerializablesAsParam("options", options);
@@ -1070,7 +1070,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchObjects");
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addCollectionOfSerializablesAsParam("options", options);
@@ -1098,7 +1098,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                                                    ObjectQuery query,
                                                    OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".countObjects");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".countObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
@@ -1317,7 +1317,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public void onTaskCreate(String oid, OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "onTaskCreate");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "onTaskCreate");
         result.addParam("oid", oid);
 
         LOGGER.trace("onTaskCreate called for oid = " + oid);
@@ -1342,7 +1342,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public void onTaskDelete(String oid, OperationResult parentResult) {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "onTaskDelete");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "onTaskDelete");
         result.addParam("oid", oid);
 
         LOGGER.trace("onTaskDelete called for oid = " + oid);
@@ -1685,7 +1685,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskByIdentifier");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getTaskByIdentifier");
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
@@ -1696,7 +1696,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public PrismObject<TaskType> getTaskTypeByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + "getTaskTypeByIdentifier");
+        OperationResult result = parentResult.createMinorSubresult(DOT_IMPL_CLASS + "getTaskTypeByIdentifier");
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
@@ -1876,7 +1876,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@NotNull
     public NextStartTimes getNextStartTimes(String oid, boolean retrieveNextRunStartTime, boolean retrieveRetryTime,
 			OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getNextStartTimes");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getNextStartTimes");
         result.addParam("oid", oid);
         result.addParam("retrieveNextRunStartTime", retrieveNextRunStartTime);
         result.addParam("retrieveRetryTime", retrieveRetryTime);
@@ -1921,7 +1921,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     // returns map task lightweight id -> task
     public Map<String,TaskQuartzImpl> getLocallyRunningTaskInstances() {
         synchronized (locallyRunningTaskInstancesMap) {    // must be synchronized while iterating over it (addAll)
-            return new HashMap<String,TaskQuartzImpl>(locallyRunningTaskInstancesMap);
+            return new HashMap<>(locallyRunningTaskInstancesMap);
         }
     }
 

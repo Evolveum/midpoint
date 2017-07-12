@@ -113,6 +113,12 @@ public class DummyResource implements DebugDumpable {
 	
 	public static final String VALUE_MONSTER = "monster";
 	public static final String VALUE_COOKIE = "cookie";
+
+	public static final String SCRIPT_LANGUAGE_POWERFAIL = "powerfail";
+	public static final String POWERFAIL_ARG_ERROR = "error";
+	public static final String POWERFAIL_ARG_ERROR_GENERIC = "generic";
+	public static final String POWERFAIL_ARG_ERROR_RUNTIME = "runtime";
+	public static final String POWERFAIL_ARG_ERROR_IO = "io";
 	
 	private BreakMode schemaBreakMode = BreakMode.NONE;
 	private BreakMode getBreakMode = BreakMode.NONE;
@@ -776,8 +782,20 @@ public class DummyResource implements DebugDumpable {
 	 * 
 	 * @param scriptCode code of the script
 	 */
-	public void runScript(String language, String scriptCode, Map<String, Object> params) {
+	public void runScript(String language, String scriptCode, Map<String, Object> params) throws FileNotFoundException {
 		scriptHistory.add(new ScriptHistoryEntry(language, scriptCode, params));
+		if (SCRIPT_LANGUAGE_POWERFAIL.equals(language)) {
+			Object errorArg = params.get(POWERFAIL_ARG_ERROR);
+			if (POWERFAIL_ARG_ERROR_GENERIC.equals(errorArg)) {
+				// The connector will react with generic exception
+				throw new IllegalArgumentException("Booom! PowerFail script failed (generic)");
+			} else if (POWERFAIL_ARG_ERROR_RUNTIME.equals(errorArg)) {
+				// The connector will just pass this up
+				throw new RuntimeException("Booom! PowerFail script failed (runtime)");
+			} else if (POWERFAIL_ARG_ERROR_IO.equals(errorArg)) {
+				throw new FileNotFoundException("Booom! PowerFail script failed (IO)");
+			}
+		}
 	}
 	
 	/**

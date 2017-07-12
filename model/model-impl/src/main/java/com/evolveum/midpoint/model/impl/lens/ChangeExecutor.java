@@ -1464,9 +1464,6 @@ public class ChangeExecutor {
 		if (resourceScripts != null) {
 			OperationProvisioningScriptsType scripts = resourceScripts.clone();
 			for (OperationProvisioningScriptType script : scripts.getScript()) {
-				if (!evaluateScriptCondition(script, variables, task, result)){
-					continue;
-				}
 				if (discr != null) {
 					if (script.getKind() != null && !script.getKind().isEmpty()
 							&& !script.getKind().contains(discr.getKind())) {
@@ -1477,14 +1474,20 @@ public class ChangeExecutor {
 						continue;
 					}
 				}
-				if (script.getOperation().contains(operation)) {
-					if (order == null || order == script.getOrder()) {
-						for (ProvisioningScriptArgumentType argument : script.getArgument()) {
-							evaluateScriptArgument(argument, variables, context, objectContext, task, result);
-						}
-						outScripts.getScript().add(script);
-					}
+				if (!script.getOperation().contains(operation)) {
+					continue;
 				}
+				if (order != null && order != script.getOrder()) {
+					continue;
+				}
+				// Let's do the most expensive evaluation last
+				if (!evaluateScriptCondition(script, variables, task, result)){
+					continue;
+				}
+				for (ProvisioningScriptArgumentType argument : script.getArgument()) {
+					evaluateScriptArgument(argument, variables, context, objectContext, task, result);
+				}
+				outScripts.getScript().add(script);
 			}
 		}
 

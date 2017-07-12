@@ -131,7 +131,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // WHEN
         displayWhen(TEST_NAME);
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, 
-        		SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()), task, result);
+        		SelectorOptions.createCollection(ItemPath.EMPTY_PATH, GetOperationOptions.createRaw()), task, result);
         
         // THEN
         displayThen(TEST_NAME);

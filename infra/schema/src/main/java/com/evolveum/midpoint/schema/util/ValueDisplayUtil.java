@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
@@ -41,6 +42,8 @@ import javax.xml.namespace.QName;
 import java.util.Date;
 
 /**
+ * TODO unify with PrettyPrinter somehow
+ *
  * @author mederly
  */
 public class ValueDisplayUtil {
@@ -137,8 +140,10 @@ public class ValueDisplayUtil {
 			return String.valueOf(value);
         } else if (value instanceof byte[]) {
             return "(binary data)";
+        } else if (value instanceof RawType) {
+            return PrettyPrinter.prettyPrint(value);
         } else {
-            return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
+            return "(a value of type " + value.getClass().getSimpleName() + ")";  // todo i18n
         }
     }
 

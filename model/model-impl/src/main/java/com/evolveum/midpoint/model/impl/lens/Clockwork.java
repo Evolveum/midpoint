@@ -266,7 +266,7 @@ public class Clockwork {
 			// for the accounts (unless there is a specific delta for it).
 			// This is ugly, but it is the easiest way now (TODO: cleanup).
 			contextLoader.determineFocusContext((LensContext<? extends FocusType>) context, result);
-			
+
 			ModelState state = context.getState();
 			if (state == ModelState.INITIAL) {
 				if (debugListener != null) {
@@ -285,6 +285,9 @@ public class Clockwork {
 				recompute = true;
 			} else if (context.getExecutionWave() > context.getProjectionWave()) {		// should not occur
 				LOGGER.warn("Execution wave is greater than projection wave -- forcing cleanup and recomputation");
+				recompute = true;
+			} else if (state == ModelState.PRIMARY && ModelExecuteOptions.getInitialPartialProcessing(context.getOptions()) != null) {
+				LOGGER.trace("Initial phase was run with initialPartialProcessing option -- forcing cleanup and recomputation");
 				recompute = true;
 			}
 

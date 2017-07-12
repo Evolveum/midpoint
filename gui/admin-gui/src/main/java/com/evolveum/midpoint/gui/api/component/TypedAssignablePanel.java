@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,19 +101,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	}
 	
 	private void initLayout(Class<T> type, final boolean multiselect) {
-		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
-				new ListModel(WebComponentUtil.createAssignableTypesList()), new QNameChoiceRenderer());
-		typeSelect.add(new OnChangeAjaxBehavior() {
+		initAssignmentParametersPanel();
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(get(ID_TABLES_CONTAINER));
-				target.add(addOrReplace(createCountContainer()));
-			}
-		});
-		typeSelect.setOutputMarkupId(true);
-		add(typeSelect);
-		
 		WebMarkupContainer tablesContainer = new WebMarkupContainer(ID_TABLES_CONTAINER);
 		tablesContainer.setOutputMarkupId(true);
 		add(tablesContainer);
@@ -156,7 +145,23 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 		add(addButton);
 	}
-	
+
+	protected void initAssignmentParametersPanel(){
+		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
+				new ListModel(WebComponentUtil.createAssignableTypesList()), new QNameChoiceRenderer());
+		typeSelect.add(new OnChangeAjaxBehavior() {
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(get(ID_TABLES_CONTAINER));
+				target.add(addOrReplace(createCountContainer()));
+			}
+		});
+		typeSelect.setOutputMarkupId(true);
+		add(typeSelect);
+
+	}
+
 	private List<T> getSelectedData(String id){
 		return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedObjects();
 	}

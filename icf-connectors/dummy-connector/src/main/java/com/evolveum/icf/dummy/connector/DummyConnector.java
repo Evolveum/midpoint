@@ -1143,7 +1143,13 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
         
-        resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
+        try {
+			resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
+        } catch (IllegalArgumentException e) {
+        	throw new ConnectorException(e.getMessage(), e);
+		} catch (FileNotFoundException e) {
+			throw new ConnectorIOException(e.getMessage(), e);
+		}
         
         return null;
     }

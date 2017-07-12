@@ -45,7 +45,18 @@ public class TestManual extends AbstractManualResourceTest {
 	}
 	
 	@Override
+	protected String getRoleOneOid() {
+		return ROLE_ONE_MANUAL_OID;
+	}
+	
+	@Override
+	protected File getRoleOneFile() {
+		return ROLE_ONE_MANUAL_FILE;
+	}
+	
+	@Override
 	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
 		AssertJUnit.assertNotNull("No schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 	}
+
 }
