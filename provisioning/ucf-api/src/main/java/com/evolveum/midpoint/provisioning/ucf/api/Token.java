@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
  *
  * @author Radovan Semancik
  */
+@FunctionalInterface
 public interface Token {
 	
 	/**

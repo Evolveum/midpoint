@@ -32,6 +32,7 @@ import java.util.Locale;
  *
  * @author mederly
  */
+@FunctionalInterface
 public interface ResourceValidator {
 
 	String CAT_BASIC = "basic";

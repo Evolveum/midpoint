@@ -24,6 +24,7 @@ import org.apache.wicket.model.IModel;
  * 
  * @author semancik
  */
+@FunctionalInterface
 public interface CountModelProvider {
 	
 	/**

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 /**
  * @author mederly
  */
+@FunctionalInterface
 public interface TaskDeletionListener {
 
 	/**

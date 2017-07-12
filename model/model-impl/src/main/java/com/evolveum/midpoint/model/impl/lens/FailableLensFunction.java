@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface FailableLensFunction<T, R> {
 	
 	R apply(T param) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;

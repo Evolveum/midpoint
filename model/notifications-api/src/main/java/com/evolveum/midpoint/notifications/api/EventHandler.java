@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 /**
  * @author mederly
  */
+@FunctionalInterface
 public interface EventHandler {
 
     // true if we should continue with processing, false otherwise

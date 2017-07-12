@@ -19,6 +19,7 @@ package com.evolveum.midpoint.task.api;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface LightweightIdentifierGenerator {
 	
 	public LightweightIdentifier generate();

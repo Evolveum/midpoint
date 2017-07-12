@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * 
  * @author Radovan Semancik
  */
+@FunctionalInterface
 public interface AsynchronousOperationQueryable {
 
 	OperationResultStatus queryOperationStatus(String asyncronousOperationReference, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * 
  * @author Radovan Semancik
  */
+@FunctionalInterface
 public interface ResultHandler<T extends ObjectType> {
 
     /**

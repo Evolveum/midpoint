@@ -23,6 +23,7 @@ import java.util.Collection;
 /**
  * @author mederly
  */
+@FunctionalInterface
 public interface TaskTabPanel {
 	Collection<Component> getComponentsToUpdate();
 }

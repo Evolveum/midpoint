@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  *
  * @author mederly
  */
+@FunctionalInterface
 public interface FocusListComponent<F extends FocusType> {
 
 	MainObjectListPanel<F> getObjectListPanel();
