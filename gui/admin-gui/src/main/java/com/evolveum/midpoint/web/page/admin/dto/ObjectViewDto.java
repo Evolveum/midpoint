@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.util.Choiceable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -44,6 +45,12 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable, Choice
         this.name = null;
         this.oid = null;
     }
+    
+    public ObjectViewDto(T object) {
+        this.name = WebComponentUtil.getName(object);
+        this.oid = object.getOid();
+        this.object = (PrismObject) object.asPrismObject().clone();
+    }
 
     public ObjectViewDto(String oid){
         this.oid = oid;
@@ -63,6 +70,17 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable, Choice
 
     public PrismObject<T> getObject() {
         return object;
+    }
+    
+    public void setObject(PrismObject<T> object) {
+		this.object = object;
+	}
+    
+    public T getObjectType() {
+    	if (object == null) {
+    		return null;
+    	}
+    	return object.asObjectable();
     }
 
     @Override

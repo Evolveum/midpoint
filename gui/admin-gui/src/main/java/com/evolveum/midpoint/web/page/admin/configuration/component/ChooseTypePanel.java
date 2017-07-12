@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -99,7 +100,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setToDefault();
+                setToDefault(target);
                 target.add(name);
             }
         };
@@ -128,12 +129,18 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 
         o.setName(WebComponentUtil.getName(object));
         o.setOid(object.getOid());
+        o.setObject((PrismObject) object.asPrismObject().clone());
 
         if(LOGGER.isTraceEnabled()){
             LOGGER.trace("Choose operation performed: {} ({})", o.getName(), o.getOid());
         }
 
         target.add(get(ID_OBJECT_NAME));
+        executeCustomAction(target, object);
+    }
+    
+    protected void executeCustomAction(AjaxRequestTarget target, T object) {
+    	
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
@@ -154,10 +161,15 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     	getPageBase().showMainPopup(objectBrowserPanel, target);
     }
 
-    private void setToDefault(){
+    private void setToDefault(AjaxRequestTarget target){
         ObjectViewDto<T> dto = new ObjectViewDto<T>();
         dto.setType(getObjectTypeClass());
         getModel().setObject(dto);
+        executeCustomRemoveAction(target);
+    }
+    
+protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+    	
     }
 
     public Class<T> getObjectTypeClass(){

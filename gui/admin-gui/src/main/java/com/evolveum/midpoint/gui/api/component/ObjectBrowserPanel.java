@@ -76,7 +76,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	 */
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
 							  PageBase parentPage, ObjectFilter queryFilter) {
-		this(id, defaultType, supportedTypes, multiselect, parentPage, null, new ArrayList<O>());
+		this(id, defaultType, supportedTypes, multiselect, parentPage, queryFilter, new ArrayList<O>());
 	}
 
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
