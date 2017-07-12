@@ -14,7 +14,7 @@
   ~ limitations under the License.
   ~
   ~ Adapted from sources of Activiti 5.22 by mederly.
-  ~ Portions Copyright (c) 2010-2016 Evolveum
+  ~ Portions Copyright (c) 2010-2017 Evolveum
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
