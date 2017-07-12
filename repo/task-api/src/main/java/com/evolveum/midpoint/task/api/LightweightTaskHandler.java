@@ -23,6 +23,7 @@ package com.evolveum.midpoint.task.api;
  *
  * @author Pavol Mederly
  */
+@FunctionalInterface
 public interface LightweightTaskHandler {
 	
 	public void run(Task task);
