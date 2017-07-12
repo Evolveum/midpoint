@@ -234,6 +234,13 @@ public class ObjectTypeUtil {
 		return ort;
 	}
 
+	public static ObjectReferenceType createObjectRefWithFullObject(ObjectType objectType) {
+		if (objectType == null) {
+			return null;
+		}
+        return createObjectRefWithFullObject(objectType.asPrismObject());
+    }
+
 	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
 		if (objectType == null) {
 			return null;
@@ -255,7 +262,16 @@ public class ObjectTypeUtil {
         return ref;
     }
     
-    //FIXME TODO temporary hack 
+    public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object) {
+        if (object == null) {
+            return null;
+        }
+        ObjectReferenceType ref = createObjectRef(object);
+        ref.asReferenceValue().setObject(object);
+        return ref;
+    }
+
+    //FIXME TODO temporary hack
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, boolean nameAsDescription) {
         if (object == null) {
             return null;

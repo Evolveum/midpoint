@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
@@ -256,7 +257,13 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	public void setObjectRef(ModelContext<?> modelContext, OperationResult result) {
 		ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(modelContext);
-		setObjectRef(ObjectTypeUtil.createObjectRef(focus), result);
+		ObjectDelta<?> primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
+		if (primaryDelta != null && primaryDelta.isAdd()) {
+			ObjectReferenceType ref = ObjectTypeUtil.createObjectRefWithFullObject(focus);
+			wfContext.setObjectRef(ref);
+		} else {
+			setObjectRef(ObjectTypeUtil.createObjectRef(focus), result);
+		}
 	}
 
 	public void setTargetRef(ObjectReferenceType ref, OperationResult result) {
