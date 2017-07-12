@@ -48,7 +48,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
     public AbstractAssignmentListPanel(String id, IModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase){
         super(id, assignmentsModel);
-        this.pageBase = pageBase != null ? pageBase : getPageBase();
+        this.pageBase = pageBase;
     }
 
     protected void deleteAssignmentPerformed(AjaxRequestTarget target, AssignmentEditorDto dto) {

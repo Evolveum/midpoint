@@ -19,7 +19,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.model.IModel;
@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class RelationSelectorAssignablePanel<T extends AbstractRoleType> extends TypedAssignablePanel{
+public class RelationSelectorAssignablePanel<T extends ObjectType> extends TypedAssignablePanel{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_RELATION = "relation";

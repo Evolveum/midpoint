@@ -317,7 +317,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 		}
 
 		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-
+		for (ObjectType object : newAssignments) {
+			assignments.add(createAssignmentFromSelectedObjects(object, RelationTypes.MEMBER));
+		}
 		reloadAssignmentsPanel(target);
 	}
 
