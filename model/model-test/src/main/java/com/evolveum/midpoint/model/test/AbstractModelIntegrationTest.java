@@ -90,6 +90,7 @@ import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.Containerable;
@@ -192,6 +193,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
@@ -200,9 +202,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -213,6 +217,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -251,53 +256,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_GUI_USER_URI;
 	
-	@Autowired(required = true)
-	protected ModelService modelService;
+	@Autowired protected ModelService modelService;
+	@Autowired protected ModelInteractionService modelInteractionService;
+	@Autowired protected ModelDiagnosticService modelDiagnosticService;
+	@Autowired protected ModelAuditService modelAuditService;
+	@Autowired protected ModelPortType modelWeb;
+	@Autowired protected RepositoryService repositoryService;
+	@Autowired protected SystemObjectCache systemObjectCache;
+	@Autowired protected ProvisioningService provisioningService;
+	@Autowired protected HookRegistry hookRegistry;
+	@Autowired protected Clock clock;
+	@Autowired protected PrismContext prismContext;
+    @Autowired protected DummyTransport dummyTransport;    
+	@Autowired protected SecurityEnforcer securityEnforcer;
+	@Autowired protected MidpointFunctions libraryMidpointFunctions;
+	@Autowired protected ValuePolicyProcessor valuePolicyProcessor;
 	
-	@Autowired(required = true)
-	protected ModelInteractionService modelInteractionService;
+	@Autowired(required = false)
+	protected NotificationManager notificationManager;
 	
-	@Autowired(required = true)
-	protected ModelDiagnosticService modelDiagnosticService;
-	
-	@Autowired(required = true)
-	protected ModelAuditService modelAuditService;
-	
-	@Autowired(required = true)
-	protected ModelPortType modelWeb;
-	
-	@Autowired(required = true)
-	protected RepositoryService repositoryService;
-	
-	@Autowired(required = true)
-	protected SystemObjectCache systemObjectCache;
-	
-	@Autowired(required = true)
-	protected ProvisioningService provisioningService;
-		
-	@Autowired(required = true)
-	protected HookRegistry hookRegistry;
-	
-	@Autowired(required = true)
-	protected Clock clock;
-	
-	@Autowired(required = true)
-	protected PrismContext prismContext;
-
-    @Autowired(required = true)
-    protected DummyTransport dummyTransport;
-
-    @Autowired(required = false)
-    protected NotificationManager notificationManager;
-    
-    @Autowired(required = false)
-    protected UserProfileService userProfileService;
-    
-	@Autowired(required=true)
-	protected SecurityEnforcer securityEnforcer;
-	
-	@Autowired(required=true)
-	protected MidpointFunctions libraryMidpointFunctions;
+	@Autowired(required = false)
+	protected UserProfileService userProfileService;
 	
 	protected DummyResourceCollection dummyResourceCollection;
 	
@@ -3470,14 +3449,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Wrong shadow disableReason in " + shadow, expectedReason, disableReason);
 	}
 	
-	protected void assertPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
+	protected String getPassword(PrismObject<UserType> user) throws EncryptionException {
 		CredentialsType credentialsType = user.asObjectable().getCredentials();
 		assertNotNull("No credentials in "+user, credentialsType);
 		PasswordType passwordType = credentialsType.getPassword();
 		assertNotNull("No password in "+user, passwordType);
 		ProtectedStringType protectedStringType = passwordType.getValue();
 		assertNotNull("No password value in "+user, protectedStringType);
-		String decryptedUserPassword = protector.decryptString(protectedStringType);
+		return protector.decryptString(protectedStringType);
+	}
+	
+	protected void assertPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
+		String decryptedUserPassword = getPassword(user);
 		assertEquals("Wrong password in "+user, expectedPassword, decryptedUserPassword);
 	}
 
@@ -4392,4 +4375,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertDummyProvisioningScriptsNone() {
 		IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory());
 	}
+	
+	protected void applyPasswordPolicy(String passwordPolicyOid, String securityPolicyOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		PrismReferenceValue passPolicyRef = new PrismReferenceValue(passwordPolicyOid, ValuePolicyType.COMPLEX_TYPE);
+		modifyObjectReplaceReference(SecurityPolicyType.class, securityPolicyOid,
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_VALUE_POLICY_REF),
+        		task, result, passPolicyRef);
+	}
+	
+	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+		Task task = createTask("assertPasswordCompliesWithPolicy");
+		OperationResult result = task.getResult();
+		assertPasswordCompliesWithPolicy(user, passwordPolicyOid, task, result);
+		assertSuccess(result);
+	}
+	
+	protected void assertPasswordCompliesWithPolicy(PrismObject<UserType> user, String passwordPolicyOid, Task task, OperationResult result) throws EncryptionException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+		String password = getPassword(user);
+		display("Password of "+user, password);
+		PrismObject<ValuePolicyType> passwordPolicy = repositoryService.getObject(ValuePolicyType.class, passwordPolicyOid, null, result);
+		StringBuilder messageBuilder = new StringBuilder();
+		boolean valid = valuePolicyProcessor.validateValue(password, passwordPolicy.asObjectable(), user, messageBuilder, "validating password of "+user, task, result);
+		if (!valid) {
+			fail("Password for "+user+" does not comply with password policy: "+messageBuilder.toString());
+		}
+	}
+
 }

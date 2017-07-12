@@ -1441,8 +1441,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         unassignOrg(USER_JACK_OID, ORG_TEMP_OID, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);

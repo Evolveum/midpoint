@@ -939,9 +939,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		modifyObjectReplaceReference(SecurityPolicyType.class, getSecurityPolicyOid(),
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF),
-        		task, result, passPolicyRef);
+		applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
 		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
 				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
         		task, result, 3);
@@ -950,7 +948,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 	}
-	
+		
 	// test202 is in subclasses. Different behavior for encryption and hashing
 	
 	/**
