@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface MappingInitializer<V extends PrismValue,D extends ItemDefinition> {
 
 	Mapping.Builder<V,D> initialize(Mapping.Builder<V,D> mapping) throws SchemaException;
