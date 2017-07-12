@@ -1,8 +1,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.RelationSelectorAssignablePanel;
-import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -10,11 +9,11 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.DirectlyEditablePropertyColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -26,7 +25,6 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
@@ -43,7 +41,7 @@ import java.util.Map;
 /**
  * Created by honchar.
  */
-public class AssignmentDataTablePanel extends BasePanel {
+public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_RELATION = "relation";
     private static final String ID_ASSIGNMENTS_TABLE = "assignmentsTable";
@@ -51,13 +49,10 @@ public class AssignmentDataTablePanel extends BasePanel {
 
     private Map<RelationTypes, List<AssignmentEditorDto>> relationAssignmentsMap = new HashMap<>();
     private IModel<RelationTypes> relationModel = Model.of(RelationTypes.MEMBER);
-    private PageBase pageBase;
-
 
     public AssignmentDataTablePanel(String id, IModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase){
-        super(id);
-        this.pageBase = pageBase;
-        fillInRelationAssignmentsMap(assignmentsModel);
+        super(id, assignmentsModel, pageBase);
+        fillInRelationAssignmentsMap();
         initLayout();
     }
 
@@ -97,7 +92,16 @@ public class AssignmentDataTablePanel extends BasePanel {
     }
 
     private void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<ObjectType> assignmentsList, RelationTypes relation){
-        updateRelationAssignmentMap(assignmentsList, relation);
+        if (assignmentsList == null || assignmentsList.isEmpty()){
+                warn(pageBase.getString("AssignmentTablePanel.message.noAssignmentSelected"));
+                target.add(getPageBase().getFeedbackPanel());
+                return;
+        }
+        for (ObjectType object : assignmentsList){
+            AssignmentEditorDto dto = createAssignmentFromSelectedObjects(object, relation);
+            getAssignmentModel().getObject().add(dto);
+        }
+        fillInRelationAssignmentsMap();
         relationModel.setObject(relation);
         addOrReplaceAssignmentsTable(getAssignmentsContainer());
         target.add(getAssignmentsContainer());
@@ -133,6 +137,8 @@ public class AssignmentDataTablePanel extends BasePanel {
 
     private List<IColumn<AssignmentEditorDto, String>> initColumns() {
         List<IColumn<AssignmentEditorDto, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxHeaderColumn<AssignmentEditorDto>());
 
         columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.targetColumnName")){
             private static final long serialVersionUID = 1L;
@@ -197,8 +203,27 @@ public class AssignmentDataTablePanel extends BasePanel {
             }
         });
 
-
+        columns.add(new InlineMenuButtonColumn<AssignmentEditorDto>(getAssignmentMenuActions(), 1, pageBase));
         return columns;
+    }
+
+    private List<InlineMenuItem> getAssignmentMenuActions(){
+        List<InlineMenuItem> menuItems = new ArrayList<>();
+        menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
+                new Model<Boolean>(true), new Model<Boolean>(true), false,
+                new ColumnMenuAction<SelectableBean<ResourceType>>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null){
+                            deleteAssignmentPerformed(target, null);
+                        } else {
+                            AssignmentEditorDto rowDto = (AssignmentEditorDto)getRowModel().getObject();
+                            deleteAssignmentPerformed(target, rowDto);
+                        }
+                    }
+                }, 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM, DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
+        return menuItems;
     }
 
     private VisibleEnableBehaviour visibleIfRoleBehavior(IModel<AssignmentEditorDto> assignmentModel){
@@ -238,13 +263,14 @@ public class AssignmentDataTablePanel extends BasePanel {
     }
 
 
-    private void fillInRelationAssignmentsMap(IModel<List<AssignmentEditorDto>> assignmentsModel){
-        if (assignmentsModel == null || assignmentsModel.getObject() == null){
+    private void fillInRelationAssignmentsMap(){
+        relationAssignmentsMap = new HashMap<>();
+        if (getAssignmentModel() == null || getAssignmentModel().getObject() == null){
             return;
         }
         for (RelationTypes relation : RelationTypes.values()){
             List<AssignmentEditorDto> assignmentList = new ArrayList<>();
-            for (AssignmentEditorDto assignmentDto : assignmentsModel.getObject()){
+            for (AssignmentEditorDto assignmentDto : getAssignmentModel().getObject()){
                 String relationLocalPart = relation.getRelation() == null ? SchemaConstants.ORG_DEFAULT.getLocalPart() : relation.getRelation().getLocalPart();
                 if (relationLocalPart.equals(assignmentDto.getRelation())){
                     assignmentList.add(assignmentDto);
@@ -259,7 +285,7 @@ public class AssignmentDataTablePanel extends BasePanel {
             return;
         }
         for (ObjectType object : newAssignments) {
-            AssignmentEditorDto newAssignment = AssignmentsUtil.createAssignmentFromSelectedObjects(object, relation, pageBase);
+            AssignmentEditorDto newAssignment = createAssignmentFromSelectedObjects(object, relation);
             if (newAssignment != null){
                 relationAssignmentsMap.get(newAssignment.getRelationQName() == null ? RelationTypes.MEMBER :
                         RelationTypes.getRelationType(newAssignment.getRelationQName())).add(newAssignment);
@@ -270,5 +296,10 @@ public class AssignmentDataTablePanel extends BasePanel {
 
     private WebMarkupContainer getAssignmentsContainer(){
         return (WebMarkupContainer)get(ID_ASSIGNMENTS);
+    }
+
+    protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
+        addOrReplaceAssignmentsTable(getAssignmentsContainer());
+        target.add(getAssignmentsContainer());
     }
 }

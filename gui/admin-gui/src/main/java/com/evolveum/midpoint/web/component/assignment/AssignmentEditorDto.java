@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,7 +58,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
  * 
  * @author lazyman
  */
-public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto> {
+public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto>, Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorDto.class);

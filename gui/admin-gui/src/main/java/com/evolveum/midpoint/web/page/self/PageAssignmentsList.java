@@ -118,7 +118,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
-                                deleteAssignmentPerformed(target);
+                                deleteAssignmentPerformed(target, null);
                             }
                         });
                 items.add(item);

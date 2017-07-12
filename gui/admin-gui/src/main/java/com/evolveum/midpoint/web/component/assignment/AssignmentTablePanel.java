@@ -80,7 +80,7 @@ import org.w3c.dom.Attr;
 /**
  * @author shood
  */
-public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<AssignmentEditorDto>> {
+public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignmentListPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
@@ -93,7 +93,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 	private static final String ID_MENU = "assignmentsMenu";
 	private static final String ID_LIST = "assignmentList";
 	protected static final String ID_ROW = "assignmentEditor";
-	private PageBase pageBase = null;
     private boolean isModelChanged = false;
 
 	public AssignmentTablePanel(String id, IModel<String> label,
@@ -103,8 +102,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 	public AssignmentTablePanel(String id, IModel<String> label,
 			IModel<List<AssignmentEditorDto>> assignmentModel, PageBase pageBase) {
-		super(id, assignmentModel);
-		this.pageBase = pageBase;
+		super(id, assignmentModel, pageBase);
 		initLayout(label);
 	}
 
@@ -116,9 +114,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 		return null;
 	}
 
-	protected IModel<List<AssignmentEditorDto>> getAssignmentModel() {
-		return getModel();
-	}
+
 
 	private void initLayout(IModel<String> labelText) {
 		final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
@@ -147,9 +143,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				List<AssignmentEditorDto> assignmentEditors = getAssignmentModel().getObject();
+				List<AssignmentEditorDto> assignmentsList = getAssignmentModel().getObject();
 
-				for (AssignmentEditorDto dto : assignmentEditors) {
+				for (AssignmentEditorDto dto : assignmentsList) {
 					dto.setSelected(this.getModelObject());
 				}
 
@@ -275,7 +271,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							AssignmentTablePanel.this.deleteAssignmentPerformed(target);
+							AssignmentTablePanel.this.deleteAssignmentPerformed(target, null);
                         }
 					});
 			items.add(item);
@@ -299,83 +295,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends BasePanel<List<A
 
 	}
 
+	protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
+		target.add(get(ID_ASSIGNMENTS));
+	}
+
 	protected boolean isShowAllAssignmentsVisible(){
 		return false;
-	}
-
-	private List<AssignmentEditorDto> getSelectedAssignments() {
-		List<AssignmentEditorDto> selected = new ArrayList<>();
-
-		List<AssignmentEditorDto> all = getAssignmentModel().getObject();
-
-		for (AssignmentEditorDto dto : all) {
-			if (dto.isSelected()) {
-				selected.add(dto);
-			}
-		}
-
-		return selected;
-	}
-
-	protected void deleteAssignmentPerformed(AjaxRequestTarget target) {
-		List<AssignmentEditorDto> selected = getSelectedAssignments();
-
-		if (selected.isEmpty()) {
-			warn(getNoAssignmentsSelectedMessage());
-			target.add(getPageBase().getFeedbackPanel());
-			return;
-		}
-
-		getPageBase().showMainPopup(getDeleteAssignmentPopupContent(), target);
-	}
-
-	protected String getNoAssignmentsSelectedMessage(){
-		return getString("AssignmentTablePanel.message.noAssignmentSelected");
-	}
-
-	protected String getAssignmentsDeleteMessage(int size){
-		return createStringResource("AssignmentTablePanel.modal.message.delete",
-				size).getString();
-	}
-
-	private Popupable getDeleteAssignmentPopupContent() {
-		return new ConfirmationPanel(getPageBase().getMainPopupBodyId(), new AbstractReadOnlyModel<String>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				return getAssignmentsDeleteMessage(getSelectedAssignments().size());
-			}
-		}) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
-                    reloadMainFormButtons(target);
-                }
-			}
-		};
-	}
-
-	private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
-			List<AssignmentEditorDto> toDelete) {
-		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-
-		for (AssignmentEditorDto assignment : toDelete) {
-			if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
-				assignments.remove(assignment);
-			} else {
-				assignment.setStatus(UserDtoStatus.DELETE);
-				assignment.setSelected(false);
-			}
-		}
-		target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
 	}
 
 	protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
