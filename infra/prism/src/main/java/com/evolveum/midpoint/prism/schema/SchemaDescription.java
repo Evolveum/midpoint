@@ -286,7 +286,8 @@ public class SchemaDescription implements DebugDumpable {
 		return DOMUtil.getFirstChildElement(node);
 	}
 	
-	private interface InputStreamable {
+	@FunctionalInterface
+    private interface InputStreamable {
 		InputStream openInputStream();
 	}
 

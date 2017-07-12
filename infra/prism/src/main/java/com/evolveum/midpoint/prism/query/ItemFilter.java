@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+@FunctionalInterface
 public interface ItemFilter {
 	
 	@NotNull ItemPath getFullPath();
