@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface Visitable {
 	
 	void accept(Visitor visitor);
