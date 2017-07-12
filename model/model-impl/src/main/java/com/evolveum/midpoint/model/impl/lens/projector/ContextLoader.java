@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,6 +45,7 @@ import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -95,14 +98,10 @@ public class ContextLoader {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 	
-	@Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
-	
-	@Autowired(required = true)
-    private ProvisioningService provisioningService;
-	
-	@Autowired(required = true)
-	private PrismContext prismContext;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private ProvisioningService provisioningService;
+    @Autowired private SecurityHelper securityHelper;
+	@Autowired private PrismContext prismContext;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 	
@@ -129,7 +128,7 @@ public class ContextLoader {
 			
 			context.recomputeFocus();
 	        
-			loadFromSystemConfig(context, result);
+			loadFromSystemConfig(context, task, result);
 	        
 	    	if (FocusType.class.isAssignableFrom(context.getFocusClass())) {
 		        // this also removes the accountRef deltas
@@ -378,8 +377,8 @@ public class ContextLoader {
 		}
 	}
 	
-	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ConfigurationException {
+	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		if (systemConfiguration == null) {
 			// This happens in some tests. And also during first startup.
@@ -413,6 +412,36 @@ public class ContextLoader {
 		    context.setAccountSynchronizationSettings(globalAccountSynchronizationSettings);
 		}
 		
+		loadSecurityPolicy(context, task, result);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return;
+		}
+		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			LOGGER.trace("Skipping load of security policy because focus is not user");
+			return;
+		}
+		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
+		if (securityPolicy == null) {
+			securityPolicy = securityHelper.locateSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(), 
+					context.getSystemConfiguration(), task, result);
+			if (securityPolicy == null) {
+				// store empty policy to avoid repeated lookups
+				securityPolicy = new SecurityPolicyType();
+			}
+			focusContext.setSecurityPolicy(securityPolicy);
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
+		} else {
+			LOGGER.debug("Security policy: {}", securityPolicy);
+		}
 	}
 
     // expects that object policy configuration is already set in focusContext

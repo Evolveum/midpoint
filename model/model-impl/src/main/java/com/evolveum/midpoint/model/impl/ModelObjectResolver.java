@@ -288,6 +288,7 @@ public class ModelObjectResolver implements ObjectResolver {
 					// Just log the error, but do not fail on that. Failing would prohibit login
 					// and that may mean the misconfiguration could not be easily fixed.
 					LOGGER.warn("Cannot find organization {} referenced in {}", orgRefValue.getOid(), object);
+					result.muteLastSubresultError();
 				}
 			}
 		}

@@ -216,7 +216,7 @@
                <inbound>
                   <expression>
                      <generate>
-                     	<valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffd" type="c:ValuePolicyType"/>
+                     	<valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffd" type="c:ValuePolicyType"/> <!-- Azure password policy -->
                      </generate>
                   </expression>
                </inbound>
