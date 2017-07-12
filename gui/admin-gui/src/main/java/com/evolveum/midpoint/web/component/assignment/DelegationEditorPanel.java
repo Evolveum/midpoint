@@ -51,6 +51,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.web.component.assignment.AssignmentsUtil.addAjaxOnUpdateBehavior;
+
 /**
  * Created by honchar.
  */
@@ -207,13 +209,13 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
 
     protected void initBodyLayout(WebMarkupContainer body) {
         DateInput validFrom = new DateInput(ID_DELEGATION_VALID_FROM,
-                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+                AssignmentsUtil.createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
         validFrom.setEnabled(getModel().getObject().isEditable());
         body.add(validFrom);
 
         DateInput validTo = new DateInput(ID_DELEGATION_VALID_TO,
-                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+                AssignmentsUtil.createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validTo")));
         validTo.setEnabled(getModel().getObject().isEditable());
         body.add(validTo);

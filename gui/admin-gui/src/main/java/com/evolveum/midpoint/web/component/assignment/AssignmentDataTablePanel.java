@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -22,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -111,6 +128,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         DropDownChoicePanel relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), relationModel, this, false);
         relation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -168,6 +186,8 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         });
         columns.add(new DirectlyEditablePropertyColumn<>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION));
         columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.organizationColumnName")){
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
                 ObjectQuery orgQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
@@ -181,6 +201,8 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
         });
         columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.tenantColumnName")){
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
                 ObjectQuery tenantQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
@@ -192,14 +214,27 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
             }
 
         });
-        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
-            @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> item, String componentId, IModel<AssignmentEditorDto> rowModel) {
-                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModel(rowModel,"", AssignmentDataTablePanel.this);
-                Label activation = new Label(componentId, StringUtils.isEmpty(activationLabelModel.getObject()) ?
-                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel);
-                item.add(activation);
+        columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
+            private static final long serialVersionUID = 1L;
 
+            @Override
+            protected IModel createLinkModel(IModel<AssignmentEditorDto> rowModel) {
+                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModel(rowModel,"", AssignmentDataTablePanel.this);
+                return StringUtils.isEmpty(activationLabelModel.getObject()) ?
+                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel;
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
+                        AssignmentActivationPopupPanel popupPanel = new AssignmentActivationPopupPanel(pageBase.getMainPopupBodyId(), rowModel){
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void reloadDateComponent(AjaxRequestTarget target) {
+                                target.add(getAssignmentsContainer());
+                            }
+                        };
+                        pageBase.showMainPopup(popupPanel, target);
             }
         });
 
@@ -212,6 +247,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
                 new Model<Boolean>(true), new Model<Boolean>(true), false,
                 new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -238,6 +274,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     }
     private ChooseTypePanel<OrgType> getChooseOrgPanel(String id, IModel<AssignmentEditorDto> model, ObjectQuery query){
         ChooseTypePanel chooseOrgPanel = new ChooseTypePanel(id, new PropertyModel<ObjectViewDto>(model, AssignmentEditorDto.F_TENANT_REF)) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected ObjectQuery getChooseQuery() {

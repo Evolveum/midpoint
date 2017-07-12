@@ -10,12 +10,22 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -54,8 +64,57 @@ public class AssignmentsUtil {
                             MiscUtil.asDate(activation.getValidTo()));
                 }
 
-                return defaultTitle;
+                return strEnabled;
             }
         };
     }
+
+    public static IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
+        return new Model<Date>() {
+
+            @Override
+            public Date getObject() {
+                XMLGregorianCalendar calendar = model.getObject();
+                if (calendar == null) {
+                    return null;
+                }
+                return MiscUtil.asDate(calendar);
+            }
+
+            @Override
+            public void setObject(Date object) {
+                if (object == null) {
+                    model.setObject(null);
+                } else {
+                    model.setObject(MiscUtil.asXMLGregorianCalendar(object));
+                }
+            }
+        };
+    }
+
+    public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
+        container.visitChildren(new IVisitor<Component, Object>() {
+            @Override
+            public void component(Component component, IVisit<Object> objectIVisit) {
+                if (component instanceof InputPanel) {
+                    addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
+                } else if (component instanceof FormComponent) {
+                    addAjaxOnBlurUpdateBehaviorToComponent(component);
+                }
+            }
+        });
+    }
+
+    private static void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
+        component.setOutputMarkupId(true);
+        component.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+    }
+
+
+
 }

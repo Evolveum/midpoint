@@ -52,7 +52,6 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -349,30 +348,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		};
 	}
 
-
-	protected IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
-		return new Model<Date>() {
-
-			@Override
-			public Date getObject() {
-				XMLGregorianCalendar calendar = model.getObject();
-				if (calendar == null) {
-					return null;
-				}
-				return MiscUtil.asDate(calendar);
-			}
-
-			@Override
-			public void setObject(Date object) {
-				if (object == null) {
-					model.setObject(null);
-				} else {
-					model.setObject(MiscUtil.asXMLGregorianCalendar(object));
-				}
-			}
-		};
-	}
-
 	protected void initBodyLayout(WebMarkupContainer body) {
 		WebMarkupContainer propertyContainer = new WebMarkupContainer(ID_PROPERTY_CONTAINER);
 		propertyContainer.setOutputMarkupId(true);
@@ -551,7 +526,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		activationBlock.add(validFromContainer);
 
 		DateInput validFrom = new DateInput(ID_VALID_FROM,
-				createDateModel(new PropertyModel<>(getModel(),
+				AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
 						AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
 		validFrom.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
@@ -577,7 +552,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		activationBlock.add(validToContainer);
 
 		DateInput validTo = new DateInput(ID_VALID_TO,
-				createDateModel(new PropertyModel<>(getModel(),
+				AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
 						AssignmentEditorDto.F_ACTIVATION + ".validTo")));
 		validTo.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
@@ -664,7 +639,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		});
 		body.add(metadataPanel);
 
-		addAjaxOnUpdateBehavior(body);
+		AssignmentsUtil.addAjaxOnUpdateBehavior(body);
 	}
 	
 	private void updateAssignmentName(AjaxRequestTarget target, Boolean isManager){
@@ -759,28 +734,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return tenantRefContainer;
 	}
 
-	private void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
-		component.setOutputMarkupId(true);
-		component.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-			}
-		});
-	}
-
-	protected void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
-		container.visitChildren(new IVisitor<Component, Object>() {
-			@Override
-			public void component(Component component, IVisit<Object> objectIVisit) {
-				if (component instanceof InputPanel) {
-					addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
-				} else if (component instanceof FormComponent) {
-					addAjaxOnBlurUpdateBehaviorToComponent(component);
-				}
-			}
-		});
-	}
 
 	private void initAttributesLayout(WebMarkupContainer constructionContainer) {
 		WebMarkupContainer attributes = new WebMarkupContainer(ID_ATTRIBUTES);
