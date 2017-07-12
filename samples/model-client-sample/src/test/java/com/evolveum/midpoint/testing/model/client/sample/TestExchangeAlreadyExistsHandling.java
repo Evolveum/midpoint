@@ -364,6 +364,7 @@ public class TestExchangeAlreadyExistsHandling extends AbstractTestForExchangeCo
 //        cleanup();
     }
 
+    @FunctionalInterface
     private interface OperationResultMatcher {
         boolean match(OperationResultType operationResultType);
     }
