@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * 
  * @author Radovan Semancik
  */
+@FunctionalInterface
 public interface ShadowResultHandler {
 
     /**

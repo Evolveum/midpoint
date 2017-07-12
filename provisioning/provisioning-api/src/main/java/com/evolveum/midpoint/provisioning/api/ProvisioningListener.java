@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.api;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface ProvisioningListener {
 	
 	/**
