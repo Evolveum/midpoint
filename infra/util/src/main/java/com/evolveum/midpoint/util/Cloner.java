@@ -19,6 +19,7 @@ package com.evolveum.midpoint.util;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface Cloner<T> {
 
 	public T clone(T original);

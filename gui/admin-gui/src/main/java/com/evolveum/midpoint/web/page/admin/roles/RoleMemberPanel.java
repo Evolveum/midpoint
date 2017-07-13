@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -24,10 +25,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -43,6 +47,8 @@ import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -51,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -236,22 +243,30 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 				allowedTypes, new QNameChoiceRenderer());
 		add(typeSelect);
 		
-
-		DropDownChoice<OrgType> tenant = createDropDown(ID_TENANT, new Model(),
-				createTenantList(), new ObjectTypeChoiceRenderer<OrgType>());
+		ChooseTypePanel<OrgType> tenant = createParameterPanel(ID_TENANT, true);
+		
+//			DropDownChoice<OrgType> tenant = createDropDown(ID_TENANT, new Model(),
+//				createTenantList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(tenant);
 		tenant.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return isRole();
 			}
 		});
 		
-		DropDownChoice<OrgType> project = createDropDown(ID_PROJECT, new Model(),
-				createProjectList(), new ObjectTypeChoiceRenderer<OrgType>());
+		ChooseTypePanel<OrgType> project = createParameterPanel(ID_PROJECT, false);
+//		DropDownChoice<OrgType> project = createDropDown(ID_PROJECT, new Model(),
+//				createProjectList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(project);
 		
 		project.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return isRole();
@@ -268,6 +283,50 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		add(includeIndirectMembers);
 		includeIndirectMembers.add(new VisibleBehaviour(this::isRole));		// TODO shouldn't we hide also the label?
 
+	}
+	
+	private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {
+		
+		ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, Model.of(new ObjectViewDto())) {
+		
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void executeCustomAction(AjaxRequestTarget target, OrgType object) {
+				refreshTable(target);
+			}
+			
+			@Override
+			protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+				refreshTable(target);
+			}
+			
+			@Override
+			protected ObjectQuery getChooseQuery() {
+				ObjectFilter tenantFilter = QueryBuilder.queryFor(OrgType.class, getPrismContext()).item(OrgType.F_TENANT).eq(true).buildFilter();
+				
+				if (isTenant) {
+					return ObjectQuery.createObjectQuery(tenantFilter);
+				} 
+				return ObjectQuery.createObjectQuery(NotFilter.createNot(tenantFilter));
+				
+			}
+			
+			@Override
+			protected boolean isSearchEnabled() {
+				return true;
+			}
+			
+			@Override
+			public Class<OrgType> getObjectTypeClass() {
+				return OrgType.class;
+			}
+			
+			
+		};
+		
+		return orgSelector;
+		
 	}
 
 	@Override
@@ -339,16 +398,16 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, getPrismContext())
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
 				.ref(createReferenceValuesList());
-		DropDownChoice<OrgType> tenantChoice = (DropDownChoice) get(createComponentPath(ID_TENANT));
-		OrgType tenant = tenantChoice.getModelObject();
-		if (tenant != null) {
-			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(createReference(tenant).asReferenceValue());
+		ChooseTypePanel<OrgType> tenantChoice = (ChooseTypePanel) get(createComponentPath(ID_TENANT));
+		ObjectViewDto<OrgType> tenant = tenantChoice.getModelObject();
+		if (tenant != null && tenant.getObjectType() != null) {
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(createReference(tenant.getObjectType()).asReferenceValue());
 		}
 
-		DropDownChoice<OrgType> projectChoice = (DropDownChoice) get(createComponentPath(ID_PROJECT));
-		OrgType project = projectChoice.getModelObject();
-		if (project != null) {
-			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(createReference(project).asReferenceValue());
+		ChooseTypePanel<OrgType> projectChoice = (ChooseTypePanel) get(createComponentPath(ID_PROJECT));
+		ObjectViewDto<OrgType> project = projectChoice.getModelObject();
+		if (project != null && project.getObjectType() !=null) {
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(createReference(project.getObjectType()).asReferenceValue());
 		}
 
 		query = q.build();

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.prism.polystring;
  * @see PolyString
  * @author Radovan Semancik
  */
+@FunctionalInterface
 public interface PolyStringNormalizer {
 
 	/**

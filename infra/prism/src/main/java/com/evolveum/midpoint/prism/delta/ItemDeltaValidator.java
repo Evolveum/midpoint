@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismValue;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface ItemDeltaValidator<V extends PrismValue> {
 	
 	void validate(PlusMinusZero plusMinusZero, V itemValue);

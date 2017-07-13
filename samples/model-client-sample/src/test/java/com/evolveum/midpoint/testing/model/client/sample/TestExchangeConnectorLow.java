@@ -637,6 +637,7 @@ public class TestExchangeConnectorLow extends AbstractTestForExchangeConnector {
         cleanup();
     }
 
+    @FunctionalInterface
     private interface OperationResultMatcher {
         boolean match(OperationResultType operationResultType);
     }

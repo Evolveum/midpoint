@@ -1411,21 +1411,38 @@ public class ChangeExecutor {
 			return null;
 		}
 		OperationProvisioningScriptsType resourceScripts = resource.getScripts();
-		PrismObject<? extends ShadowType> resourceObject = (PrismObject<? extends ShadowType>) changedObject;
+		PrismObject<ShadowType> resourceObject = (PrismObject<ShadowType>) changedObject;
 
 		PrismObject<F> user = null;
 		if (context.getFocusContext() != null) {
 			if (context.getFocusContext().getObjectNew() != null) {
 				user = context.getFocusContext().getObjectNew();
+			} else if (context.getFocusContext().getObjectCurrent() != null) {
+				user = context.getFocusContext().getObjectCurrent();
 			} else if (context.getFocusContext().getObjectOld() != null) {
 				user = context.getFocusContext().getObjectOld();
 			}
+		}
+		
+		LensProjectionContext projectionCtx = (LensProjectionContext) objectContext;
+		PrismObject<ShadowType> shadow = null;
+		if (projectionCtx.getObjectNew() != null) {
+			shadow = projectionCtx.getObjectNew();
+		} else if (projectionCtx.getObjectCurrent() != null) {
+			shadow = projectionCtx.getObjectCurrent();
+		} else {
+			shadow = projectionCtx.getObjectOld();
+		}
+		
+		if (shadow == null) {
+			//put at least something
+			shadow = resourceObject.clone();
 		}
 
 		ResourceShadowDiscriminator discr = ((LensProjectionContext) objectContext)
 				.getResourceShadowDiscriminator();
 
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr,
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow, discr,
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
 		try {

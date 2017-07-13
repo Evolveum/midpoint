@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface PathVisitable {
 	
 	void accept(Visitor visitor, ItemPath path, boolean recursive);

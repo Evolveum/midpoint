@@ -19,6 +19,7 @@ package com.evolveum.midpoint.util.aspect;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface ObjectFormatter {
 	
 	public String format(Object o);

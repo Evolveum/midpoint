@@ -51,13 +51,13 @@
     </repository>
     <repository>
       <id>evolveum-nexus-relases</id>
-      <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+      <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
       <releases><enabled>true</enabled></releases>
       <snapshots><enabled>false</enabled></snapshots>
     </repository>
     <repository>
       <id>evolveum-nexus-snapshots</id>
-      <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+      <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
       <releases><enabled>false</enabled></releases>
       <snapshots><enabled>true</enabled></snapshots>
     </repository>
@@ -66,12 +66,12 @@
       <repository>
         <id>evolveum-nexus</id>
         <name>Internal Releases</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
       </repository>
       <snapshotRepository>
         <id>evolveum-nexus</id>
         <name>Internal Snapshots</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
       </snapshotRepository>
     </distributionManagement>
   <dependencies>

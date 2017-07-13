@@ -23,6 +23,7 @@ import org.xml.sax.ErrorHandler;
 /**
  * @author lazyman
  */
+@FunctionalInterface
 public interface Processor {
 
     boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws Exception;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	 */
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,
 							  PageBase parentPage, ObjectFilter queryFilter) {
-		this(id, defaultType, supportedTypes, multiselect, parentPage, null, new ArrayList<O>());
+		this(id, defaultType, supportedTypes, multiselect, parentPage, queryFilter, new ArrayList<O>());
 	}
 
 	public ObjectBrowserPanel(String id, final Class<? extends O> defaultType, List<QName> supportedTypes, boolean multiselect,

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface PrismContextFactory {
 	
 	/**

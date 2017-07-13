@@ -57,7 +57,7 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 		OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
         result.recordInProgress();
 
-        LOGGER.info("WaitForTasksTaskHandler run starting; in task " + task.getName());
+        LOGGER.debug("WaitForTasksTaskHandler run starting; in task " + task.getName());
         try {
             // todo resolve this brutal hack
             taskManagerImpl.pauseTask(task, TaskWaitingReason.OTHER, result);
@@ -67,7 +67,7 @@ public class WaitForTasksTaskHandler implements TaskHandler {
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
         }
-        LOGGER.info("WaitForTasksTaskHandler run finishing; in task " + task.getName());
+        LOGGER.debug("WaitForTasksTaskHandler run finishing; in task " + task.getName());
 
         result.computeStatus();
 
