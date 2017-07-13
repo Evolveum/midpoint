@@ -644,23 +644,6 @@ public abstract class ResourceContentPanel extends Panel {
 
 			}
 		});
-
-		IColumn<SelectableBean<ShadowType>, String> isProtectedAccountColumn =
-				new AbstractExportableColumn<SelectableBean<ShadowType>, String>(createStringResource("pageContentAccounts.isProtected")) {
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                                             String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
-                        Boolean isProtected = rowModel.getObject().getValue().isProtectedObject();
-                        cellItem.add(new Label(componentId, isProtected != null ? Boolean.toString(isProtected) : Boolean.toString(false)));
-
-                    }
-                    @Override
-                    public IModel<String> getDataModel(IModel<SelectableBean<ShadowType>> rowModel) {
-                        Boolean isProtected = rowModel.getObject().getValue().isProtectedObject();
-                        return Model.of(isProtected != null ? Boolean.toString(isProtected) : Boolean.toString(false));
-                    }
-                };
-		columns.add(isProtectedAccountColumn);
 		return columns;
 	}
 

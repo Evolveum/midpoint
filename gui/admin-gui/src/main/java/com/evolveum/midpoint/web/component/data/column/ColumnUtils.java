@@ -23,7 +23,9 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -245,6 +247,27 @@ public class ColumnUtils {
 						}
 					}
 				};
+			}
+
+			@Override
+			public Component getHeader(String componentId) {
+				return new Label(componentId, "");
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
+				T shadow = rowModel.getObject().getValue();
+				if (shadow == null){
+					return super.getDataModel(rowModel);
+				}
+				return ShadowUtil.isProtected(shadow.asPrismContainer()) ?
+						createStringResource("ThreeStateBooleanPanel.true") : createStringResource("ThreeStateBooleanPanel.false");
+			}
+
+
+			@Override
+			public IModel<String> getDisplayModel(){
+				return createStringResource("pageContentAccounts.isProtected");
 			}
 		};
 	}
