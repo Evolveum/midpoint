@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -176,6 +177,13 @@ public class PageResource extends PageAdminResources {
 				refreshSchemaPerformed(target);
 			}
 		};
+		refreshSchema.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(refreshSchema);
 		AjaxButton editXml = new AjaxButton(BUTTON_EDIT_XML_ID,
 				createStringResource("pageResource.button.editXml")) {
@@ -198,6 +206,13 @@ public class PageResource extends PageAdminResources {
 				startWizard(true, false);
 			}
 		};
+		configurationEdit.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(configurationEdit);
 		AjaxButton wizardShow = new AjaxButton(BUTTON_WIZARD_SHOW_ID,
 				createStringResource("pageResource.button.wizardShow")) {
@@ -207,6 +222,13 @@ public class PageResource extends PageAdminResources {
 				startWizard(false, true);
 			}
 		};
+		wizardShow.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(wizardShow);
 		AjaxButton wizardEdit = new AjaxButton(BUTTON_WIZARD_EDIT_ID,
 				createStringResource("pageResource.button.wizardEdit")) {
@@ -216,6 +238,13 @@ public class PageResource extends PageAdminResources {
 				startWizard(false, false);
 			}
 		};
+		wizardEdit.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(wizardEdit);
 
 		AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
@@ -230,6 +259,14 @@ public class PageResource extends PageAdminResources {
 
 	}
 
+	private boolean canEdit(LoadableModel<PrismObject<ResourceType>> resourceModel) {
+		ResourceType resource = resourceModel.getObject().asObjectable();
+		if (!resource.getAdditionalConnector().isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+	
 	private void startWizard(boolean configOnly, boolean readOnly) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, resourceModel.getObject().getOid());		// compatibility with PageAdminResources
