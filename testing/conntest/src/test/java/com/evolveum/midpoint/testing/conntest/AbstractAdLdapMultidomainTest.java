@@ -37,6 +37,7 @@ import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.name.Ava;
 import org.apache.directory.api.ldap.model.name.Rdn;
+import org.apache.directory.api.util.GeneralizedTime;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
@@ -816,11 +817,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
-        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ResourceAttribute<String> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        Long createTimestamp = createTimestampAttribute.getRealValue();
+        String createTimestamp = createTimestampAttribute.getRealValue();
+        GeneralizedTime createTimestampGt = new GeneralizedTime(createTimestamp);
+		long createTimestampMillis = createTimestampGt.getCalendar().getTimeInMillis();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
         
 //        assertLdapConnectorInstances(2);
 	}
@@ -1826,11 +1829,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
-        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ResourceAttribute<String> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        Long createTimestamp = createTimestampAttribute.getRealValue();
+        String createTimestamp = createTimestampAttribute.getRealValue();
+        GeneralizedTime createTimestampGt = new GeneralizedTime(createTimestamp);
+		long createTimestampMillis = createTimestampGt.getCalendar().getTimeInMillis();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
         
 //        assertLdapConnectorInstances(2);
 	}

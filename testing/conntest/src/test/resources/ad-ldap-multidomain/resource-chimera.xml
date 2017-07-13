@@ -48,6 +48,7 @@
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
             <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
+            <icfcldap:timestampPresentation>string</icfcldap:timestampPresentation>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:winRmUsername>midpoint</icfcldap:winRmUsername>
             <icfcldap:winRmDomain>midpoint</icfcldap:winRmDomain>
