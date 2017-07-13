@@ -88,7 +88,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_PASSWORD_AA_CLEAR = "AA"; // too short
 	protected static final String USER_PASSWORD_A_CLEAR = "A"; // too short
 	protected static final String USER_PASSWORD_JACK_CLEAR = "12jAcK34"; // contains username
-	protected static final String USER_PASSWORD_SPARROW_CLEAR = "saRRow123"; // contains familyName
+	protected static final String USER_PASSWORD_SPARROW_CLEAR = "spaRRow123"; // contains familyName
 	protected static final String USER_PASSWORD_VALID_1 = "abcd123";
 	protected static final String USER_PASSWORD_VALID_2 = "abcd223";
 	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
@@ -935,8 +935,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
         
-		PrismReferenceValue passPolicyRef = new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE);
-		
 		// WHEN
 		displayWhen(TEST_NAME);
 		applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, getSecurityPolicyOid(), task, result);
