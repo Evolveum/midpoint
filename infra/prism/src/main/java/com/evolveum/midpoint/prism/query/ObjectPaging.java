@@ -16,17 +16,16 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 
 public class ObjectPaging implements DebugDumpable, Serializable {
 	
@@ -58,7 +57,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	}
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, QName orderBy, OrderDirection direction) {
-		return new ObjectPaging(offset, maxSize, new ItemPath(orderBy), direction);
+		return new ObjectPaging(offset, maxSize, orderBy != null ? new ItemPath(orderBy) : null, direction);
 	}
 
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
