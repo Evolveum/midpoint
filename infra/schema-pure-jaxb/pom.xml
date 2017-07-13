@@ -138,7 +138,8 @@
                             <patterns>
                                 <pattern>annotation-3\.xsd</pattern>
                                 <pattern>query-3\.xsd</pattern>
-                                <pattern>^types-3\.xsd</pattern>
+                                <pattern>\\types-3\.xsd</pattern>       <!-- to match types but not api-types -->
+                                <pattern>/types-3\.xsd</pattern>        <!-- to match types but not api-types -->
                                 <pattern>common-.*\.xsd</pattern>
                                 <pattern>scripting-3\.xsd</pattern>
                                 <pattern>resource-schema-3\.xsd</pattern>
