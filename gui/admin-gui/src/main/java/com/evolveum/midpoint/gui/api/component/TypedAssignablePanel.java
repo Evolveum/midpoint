@@ -79,7 +79,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     private static final Trace LOGGER = TraceManager.getTrace(TypedAssignablePanel.class);
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
-    private IModel<QName> typeModel;
+    protected IModel<QName> typeModel;
     private PageBase parentPage;
 
 //	private PageBase parentPage;

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -63,6 +62,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     private static final String ID_RELATION = "relation";
     private static final String ID_ASSIGNMENTS_TABLE = "assignmentsTable";
     private static final String ID_NEW_ASSIGNMENT_BUTTON = "newAssignmentButton";
+    private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
     private Map<RelationTypes, List<AssignmentEditorDto>> relationAssignmentsMap = new HashMap<>();
     private IModel<RelationTypes> relationModel = Model.of(RelationTypes.MEMBER);
@@ -101,7 +101,8 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
                 };
                 panel.setOutputMarkupId(true);
-                getPageBase().showMainPopup(panel, target);           }
+                getPageBase().showMainPopup(panel, target);
+            }
         };
         assignmentsContainer.add(newObjectIcon);
 
@@ -140,6 +141,15 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
         assignmentsContainer.addOrReplace(relation);
+
+//        AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
+//                createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
+//            @Override
+//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//
+//            }
+//        };
+//        assignmentsContainer.addOrReplace(showAllAssignmentsButton);
 
         ListDataProvider<AssignmentEditorDto> assignmentsProvider = new ListDataProvider<AssignmentEditorDto>(this,
                 Model.ofList(relationAssignmentsMap.get(relationModel.getObject())), false);
@@ -184,7 +194,16 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                         AssignmentDataTablePanel.this, true);
             }
         });
-        columns.add(new DirectlyEditablePropertyColumn<>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION));
+        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
+                                     final IModel<AssignmentEditorDto> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
+            }
+        });
         columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.organizationColumnName")){
             private static final long serialVersionUID = 1L;
 
@@ -197,6 +216,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                 ChooseTypePanel orgPanel = getChooseOrgPanel(componentId, rowModel, orgQuery);
                 orgPanel.add(visibleIfRoleBehavior(rowModel));
                 cellItem.add(orgPanel);
+                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
             }
 
         });
@@ -211,11 +231,19 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                 ChooseTypePanel tenantPanel = getChooseOrgPanel(componentId, rowModel, tenantQuery);
                 tenantPanel.add(visibleIfRoleBehavior(rowModel));
                 cellItem.add(tenantPanel);
+                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
             }
 
         });
         columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
+                                     final IModel<AssignmentEditorDto> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
+            }
 
             @Override
             protected IModel createLinkModel(IModel<AssignmentEditorDto> rowModel) {
@@ -308,6 +336,10 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         for (RelationTypes relation : RelationTypes.values()){
             List<AssignmentEditorDto> assignmentList = new ArrayList<>();
             for (AssignmentEditorDto assignmentDto : getAssignmentModel().getObject()){
+                if (relation.equals(RelationTypes.MEMBER) && AssignmentEditorDtoType.CONSTRUCTION.equals(assignmentDto.getType())){
+                    assignmentList.add(assignmentDto);
+                    continue;
+                }
                 String relationLocalPart = relation.getRelation() == null ? SchemaConstants.ORG_DEFAULT.getLocalPart() : relation.getRelation().getLocalPart();
                 if (relationLocalPart.equals(assignmentDto.getRelation())){
                     assignmentList.add(assignmentDto);
@@ -315,20 +347,6 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
             }
             relationAssignmentsMap.put(relation, assignmentList);
         }
-    }
-
-    private void updateRelationAssignmentMap(List<ObjectType> newAssignments, RelationTypes relation){
-        if (newAssignments == null){
-            return;
-        }
-        for (ObjectType object : newAssignments) {
-            AssignmentEditorDto newAssignment = createAssignmentFromSelectedObjects(object, relation);
-            if (newAssignment != null){
-                relationAssignmentsMap.get(newAssignment.getRelationQName() == null ? RelationTypes.MEMBER :
-                        RelationTypes.getRelationType(newAssignment.getRelationQName())).add(newAssignment);
-            }
-        }
-
     }
 
     private WebMarkupContainer getAssignmentsContainer(){

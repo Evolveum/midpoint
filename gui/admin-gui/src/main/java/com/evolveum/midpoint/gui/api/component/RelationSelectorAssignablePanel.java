@@ -19,7 +19,9 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.model.IModel;
@@ -51,6 +53,14 @@ public class RelationSelectorAssignablePanel<T extends ObjectType> extends Typed
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+        relationSelector.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return !ResourceType.COMPLEX_TYPE.equals(typeModel.getObject());
             }
         });
         relationSelector.setOutputMarkupId(true);

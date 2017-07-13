@@ -1,3 +1,4 @@
-"username","firstname","lastname","disabled","password"
-"user01","Firstname","Lastname","false","secret"
-"user02","Test","Lastname","false","secret"
+username,firstname,lastname,disabled,password
+user01,Firstname,Lastname,false,secret
+user02,Test,Lastname,false,secret
+test,test,test,false,password

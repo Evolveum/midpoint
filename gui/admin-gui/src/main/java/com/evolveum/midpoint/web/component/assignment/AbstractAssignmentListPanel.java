@@ -128,7 +128,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
         try {
 
             if (object instanceof ResourceType) {
-                AssignmentEditorDto dto = addSelectedResourceAssignPerformed((ResourceType) object, pageBase);
+                AssignmentEditorDto dto = addSelectedResourceAssignPerformed((ResourceType) object);
                 return dto;
             }
             if (object instanceof UserType) {
@@ -150,13 +150,13 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
     }
 
-    protected AssignmentEditorDto addSelectedResourceAssignPerformed(ResourceType resource, PageBase pageBase) {
+    protected AssignmentEditorDto addSelectedResourceAssignPerformed(ResourceType resource) {
         AssignmentType assignment = new AssignmentType();
         ConstructionType construction = new ConstructionType();
         assignment.setConstruction(construction);
 
         try {
-            pageBase.getPrismContext().adopt(assignment, UserType.class,
+            getPageBase().getPrismContext().adopt(assignment, UserType.class,
                     new ItemPath(UserType.F_ASSIGNMENT));
         } catch (SchemaException e) {
             error(getString("Could not create assignment", resource.getName(), e.getMessage()));
@@ -166,7 +166,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
         construction.setResource(resource);
 
-        AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, pageBase);
+        AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, assignment, getPageBase());
 
         dto.setMinimized(true);
         dto.setShowEmpty(true);
