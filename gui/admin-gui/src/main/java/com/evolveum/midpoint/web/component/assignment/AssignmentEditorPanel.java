@@ -337,15 +337,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
-		return new AbstractReadOnlyModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				AssignmentEditorDto dto = model.getObject();
-				return dto.getStatus().name().toLowerCase();
-			}
-		};
+		return AssignmentsUtil.createAssignmentStatusClassModel(model);
 	}
 
 	protected void initBodyLayout(WebMarkupContainer body) {

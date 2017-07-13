@@ -106,6 +106,18 @@ public class AssignmentsUtil {
         });
     }
 
+    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
+        return new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                AssignmentEditorDto dto = model.getObject();
+                return dto.getStatus().name().toLowerCase();
+            }
+        };
+    }
+
     private static void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
         component.setOutputMarkupId(true);
         component.add(new AjaxFormComponentUpdatingBehavior("blur") {

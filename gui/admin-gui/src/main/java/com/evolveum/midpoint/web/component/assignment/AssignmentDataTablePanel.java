@@ -33,11 +33,16 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -94,9 +99,6 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                     @Override
                     protected void addPerformed(AjaxRequestTarget target, List selected, RelationTypes relation) {
                         addSelectedAssignmentsPerformed(target, selected, relation);
-                        addOrReplaceAssignmentsTable(getAssignmentsContainer());
-                        target.add(getAssignmentsContainer());
-
                     }
 
                 };
@@ -155,7 +157,14 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                 Model.ofList(relationAssignmentsMap.get(relationModel.getObject())), false);
         BoxedTablePanel<AssignmentEditorDto> assignmentTable = new BoxedTablePanel<AssignmentEditorDto>(ID_ASSIGNMENTS_TABLE,
                 assignmentsProvider, initColumns(), UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE,
-                pageBase.getSessionStorage().getUserProfile().getPagingSize(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE));
+                pageBase.getSessionStorage().getUserProfile().getPagingSize(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)){
+            protected Item<AssignmentEditorDto> customizeNewRowItem(Item<AssignmentEditorDto> item, IModel<AssignmentEditorDto> model) {
+                if (UserDtoStatus.DELETE.equals(model.getObject().getStatus())){
+                    item.add(AttributeModifier.append("class", AssignmentsUtil.createAssignmentStatusClassModel(model)));
+                }
+                return item;
+            }
+        };
         assignmentTable.setOutputMarkupId(true);
         assignmentTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
         assignmentTable.setShowPaging(true);
@@ -167,6 +176,27 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         List<IColumn<AssignmentEditorDto, String>> columns = new ArrayList<>();
 
         columns.add(new CheckBoxHeaderColumn<AssignmentEditorDto>());
+
+        columns.add(new IconColumn<AssignmentEditorDto>(Model.of("")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createIconModel(IModel<AssignmentEditorDto> rowModel) {
+                switch (rowModel.getObject().getType()){
+                    case ORG_UNIT:
+                        return Model.of(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
+                    case ROLE:
+                        return Model.of(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
+                    case SERVICE:
+                        return Model.of(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
+                    case CONSTRUCTION:
+                        return Model.of(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON);
+                    default:
+                        return Model.of("");
+                }
+
+            }
+        });
 
         columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.targetColumnName")){
             private static final long serialVersionUID = 1L;
@@ -340,8 +370,12 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                     assignmentList.add(assignmentDto);
                     continue;
                 }
+                if (AssignmentEditorDtoType.USER.equals(assignmentDto.getType()) || AssignmentEditorDtoType.POLICY_RULE.equals(assignmentDto.getType())){
+                    continue;
+                }
                 String relationLocalPart = relation.getRelation() == null ? SchemaConstants.ORG_DEFAULT.getLocalPart() : relation.getRelation().getLocalPart();
-                if (relationLocalPart.equals(assignmentDto.getRelation())){
+                String assignmentDtoRelation = assignmentDto.getRelation();
+                if (relationLocalPart.equals(assignmentDtoRelation) || (relation.getRelation() == null && assignmentDtoRelation == null)){
                     assignmentList.add(assignmentDto);
                 }
             }
