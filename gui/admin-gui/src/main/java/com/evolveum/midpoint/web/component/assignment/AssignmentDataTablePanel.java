@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -50,6 +52,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import javax.jws.WebParam;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -103,6 +106,15 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                 getPageBase().showMainPopup(panel, target);
             }
         };
+        newObjectIcon.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)
+                        && !(getPageBase() instanceof PageSelfProfile);
+            }
+        });
         assignmentsContainer.add(newObjectIcon);
 
 
@@ -156,9 +168,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                 assignmentsProvider, initColumns(), UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE,
                 pageBase.getSessionStorage().getUserProfile().getPagingSize(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)){
             protected Item<AssignmentEditorDto> customizeNewRowItem(Item<AssignmentEditorDto> item, IModel<AssignmentEditorDto> model) {
-                if (UserDtoStatus.DELETE.equals(model.getObject().getStatus())){
                     item.add(AttributeModifier.append("class", AssignmentsUtil.createAssignmentStatusClassModel(model)));
-                }
                 return item;
             }
         };
@@ -179,20 +189,17 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
             @Override
             protected IModel<String> createIconModel(IModel<AssignmentEditorDto> rowModel) {
-                switch (rowModel.getObject().getType()){
-                    case ORG_UNIT:
-                        return Model.of(GuiStyleConstants.CLASS_OBJECT_ORG_ICON);
-                    case ROLE:
-                        return Model.of(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON);
-                    case SERVICE:
-                        return Model.of(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON);
-                    case CONSTRUCTION:
-                        return Model.of(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON);
-                    default:
-                        return Model.of("");
+                if (rowModel.getObject().getType() == null){
+                    return Model.of("");
                 }
-
+                return Model.of(rowModel.getObject().getType().getIconCssClass());
             }
+
+            @Override
+            protected IModel<String> createTitleModel(IModel<AssignmentEditorDto> rowModel) {
+                return AssignmentsUtil.createAssignmentIconTitleModel(AssignmentDataTablePanel.this, rowModel.getObject().getType());
+            }
+
         });
 
         columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.targetColumnName")){
@@ -211,6 +218,9 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
             @Override
             protected IModel createLinkModel(IModel<AssignmentEditorDto> rowModel) {
                 String targetObjectName = rowModel.getObject().getName();
+                if (targetObjectName != null && targetObjectName.trim().endsWith("-")){
+                    targetObjectName = targetObjectName.substring(0, targetObjectName.lastIndexOf("-"));
+                }
                 return Model.of(targetObjectName != null ? targetObjectName : "");
             }
 
@@ -221,47 +231,47 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                         AssignmentDataTablePanel.this, true);
             }
         });
-        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
-                                     final IModel<AssignmentEditorDto> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-            }
-        });
-        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.organizationColumnName")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
-                ObjectQuery orgQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
-                        .item(OrgType.F_TENANT).eq(false)
-                        .or().item(OrgType.F_TENANT).isNull()
-                        .build();
-                ChooseTypePanel orgPanel = getChooseOrgPanel(componentId, rowModel, orgQuery);
-                orgPanel.add(visibleIfRoleBehavior(rowModel));
-                cellItem.add(orgPanel);
-                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-            }
-
-        });
-        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.tenantColumnName")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
-                ObjectQuery tenantQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
-                        .item(OrgType.F_TENANT).eq(true)
-                        .build();
-                ChooseTypePanel tenantPanel = getChooseOrgPanel(componentId, rowModel, tenantQuery);
-                tenantPanel.add(visibleIfRoleBehavior(rowModel));
-                cellItem.add(tenantPanel);
-                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-            }
-
-        });
+//        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
+//                                     final IModel<AssignmentEditorDto> rowModel) {
+//                super.populateItem(cellItem, componentId, rowModel);
+//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
+//            }
+//        });
+//        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.organizationColumnName")){
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
+//                ObjectQuery orgQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+//                        .item(OrgType.F_TENANT).eq(false)
+//                        .or().item(OrgType.F_TENANT).isNull()
+//                        .build();
+//                ChooseTypePanel orgPanel = getChooseOrgPanel(componentId, rowModel, orgQuery);
+//                orgPanel.add(visibleIfRoleBehavior(rowModel));
+//                cellItem.add(orgPanel);
+//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
+//            }
+//
+//        });
+//        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.tenantColumnName")){
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId, final IModel<AssignmentEditorDto> rowModel) {
+//                ObjectQuery tenantQuery = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
+//                        .item(OrgType.F_TENANT).eq(true)
+//                        .build();
+//                ChooseTypePanel tenantPanel = getChooseOrgPanel(componentId, rowModel, tenantQuery);
+//                tenantPanel.add(visibleIfRoleBehavior(rowModel));
+//                cellItem.add(tenantPanel);
+//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
+//            }
+//
+//        });
         columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
             private static final long serialVersionUID = 1L;
 
