@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.util;
 
@@ -28,19 +28,18 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jboss.vfs.*;
+
 /**
  * @author Radovan Semancik
- * 
+ *
  */
 public class ClassPathUtil {
 
@@ -49,7 +48,7 @@ public class ClassPathUtil {
 	public static Set<Class> listClasses(Package pkg) {
 		return listClasses(pkg.getName());
 	}
-	
+
 	public static Set<Class> listClasses(String packageName) {
 
 		Set<Class> classes = new HashSet<Class>();
@@ -67,14 +66,16 @@ public class ClassPathUtil {
 			LOGGER.trace("Candidates from: " + candidateUrl);
 
 			// test if it is a directory or JAR
-            String protocol = candidateUrl.getProtocol(); 
+            String protocol = candidateUrl.getProtocol();
             if ("file".contentEquals(protocol)) {
             	classes.addAll(getFromDirectory(candidateUrl, packageName));
-            } else if ("jar".contentEquals(protocol) || "zip".contentEquals(protocol)) {
-            	classes.addAll(getFromJar(candidateUrl, packageName));
+			} else if ("jar".contentEquals(protocol) || "zip".contentEquals(protocol) ) {
+				classes.addAll(getFromJar(candidateUrl, packageName));
+			} else if ("vfs".contentEquals(protocol)) {
+				classes.addAll(getFromVfs(candidateUrl, packageName));
             } else {
                 LOGGER.warn("Unsupported protocol for candidate URL {}", candidateUrl);
-            }		
+            }
         }
 
 		return classes;
@@ -82,7 +83,7 @@ public class ClassPathUtil {
 
 	/**
 	 * Extract specified source on class path to file system dst
-	 * 
+	 *
 	 * @param src
 	 *            source
 	 * @param dst
@@ -98,7 +99,7 @@ public class ClassPathUtil {
 
 		return copyFile(is, src, dst);
 	}
-	
+
 	public static boolean copyFile(InputStream srcStream, String srcName, String dstPath) {
 		OutputStream dstStream = null;
 		try {
@@ -109,7 +110,7 @@ public class ClassPathUtil {
 		}
 		return copyFile(srcStream, srcName, dstStream, dstPath);
 	}
-	
+
 	public static boolean copyFile(InputStream srcStream, String srcName, File dstFile) {
 		OutputStream dstStream = null;
 		try {
@@ -120,7 +121,7 @@ public class ClassPathUtil {
 		}
 		return copyFile(srcStream, srcName, dstStream, dstFile.toString());
 	}
-	
+
 	public static boolean copyFile(InputStream srcStream, String srcName, OutputStream dstStream, String dstName) {
 		byte buf[] = new byte[655360];
 		int len;
@@ -152,7 +153,7 @@ public class ClassPathUtil {
 
 		return true;
 	}
-	
+
 	/**
 	 * Extracts all files in a directory on a classPath (system resource) to
 	 * a directory on a file system.
@@ -180,21 +181,21 @@ public class ClassPathUtil {
 					LOGGER.trace("Not relevant: ", jarEntry.getName());
 					continue;
 				}
-				
+
 				// prepare destination file
 				String filepath = jarEntry.getName().substring(srcPath.length());
 				File dstFile = new File(dstPath, filepath);
-				
+
 				if (!overwrite && dstFile.exists()) {
 					LOGGER.debug("Skipping file {}: exists", dstFile);
 					continue;
 				}
-				
+
 				if (jarEntry.isDirectory()) {
 					dstFile.mkdirs();
 					continue;
 				}
-				
+
 				InputStream is = ClassLoader.getSystemResourceAsStream(jarEntry.getName());
 				LOGGER.debug("Copying {} from {} to {} ", jarEntry.getName(), srcFile, dstFile);
 				copyFile(is, jarEntry.getName(), dstFile);
@@ -223,7 +224,7 @@ public class ClassPathUtil {
 
 	/**
 	 * Get clasess from JAR
-	 * 
+	 *
 	 * @param srcUrl
 	 * @param packageName
 	 * @return
@@ -242,12 +243,12 @@ public class ClassPathUtil {
 		//in Tomcat the form is jar:file:/
 		//in Weblogic the form is only zip:/
 		LOGGER.trace("srcUrl.getProtocol(): {}", srcUrl.getProtocol());
-		
+
 		if ("zip".equals(srcUrl.getProtocol())) {
 			srcName = "file:" + srcName;
 		}
 		LOGGER.trace("srcName: {}", srcName);
-		
+
 		// Probably hepls fix error in windows with URI
 		File jarTmp = null;
 		try {
@@ -311,7 +312,7 @@ public class ClassPathUtil {
 
 	/**
 	 * get classes from directory
-	 * 
+	 *
 	 * @param candidateUrl
 	 * @param packageName
 	 * @return
@@ -353,4 +354,55 @@ public class ClassPathUtil {
 		}
 		return classes;
 	}
+
+	/**
+	 * get classes from directory
+	 *
+	 * @param candidateUrl
+	 * @param packageName
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+    private static Collection<Class> getFromVfs(URL candidateUrl, String packageName) {
+
+        @SuppressWarnings("rawtypes")
+        Set<Class> classes = new HashSet<>();
+
+        // JBoss Virtual File System
+        try {
+            Object content = candidateUrl.getContent();
+            if (content != null && content instanceof VirtualFile) {
+                VirtualFile vf = (VirtualFile) content;
+                if (vf.isDirectory()) {
+                    for (VirtualFile file : vf.getChildrenRecursively()) {
+                        Class clazz = getClassFromFileName(file.getName(), packageName, file.getPathName());
+                        if (clazz != null)
+                            classes.add(clazz);
+                    }
+                } else {
+                    Class clazz = getClassFromFileName(vf.getName(), packageName, vf.getPathName());
+                    if (clazz != null)
+                        classes.add(clazz);
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.error("Error while attempting to get content from URL: " + candidateUrl.getPath(), e);
+            return classes;
+        }
+
+        return classes;
+    }
+
+    private static Class getClassFromFileName(String fileName, String packageName, String filePath) {
+        if (!fileName.endsWith(".class")) {
+            return null;
+        }
+        try {
+            LOGGER.trace("DIR Candidate: {}", filePath);
+            return Class.forName(packageName + "." + fileName.replace(".class", ""));
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("Error during loading class {} from {}. ", fileName, filePath);
+            return null;
+        }
+    }
 }
