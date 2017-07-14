@@ -56,8 +56,8 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInte
 public abstract class BaseSortableDataProvider<T extends Serializable> extends SortableDataProvider<T, String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
-    String DOT_CLASS = BaseSortableDataProvider.class.getName() + ".";
-    String OPERATION_GET_EXPORT_SIZE_LIMIT = DOT_CLASS + "getDefaultExportSizeLimit";
+    private static final String DOT_CLASS = BaseSortableDataProvider.class.getName() + ".";
+    private static final String OPERATION_GET_EXPORT_SIZE_LIMIT = DOT_CLASS + "getDefaultExportSizeLimit";
 
     private Component component;
     private List<T> availableData;
