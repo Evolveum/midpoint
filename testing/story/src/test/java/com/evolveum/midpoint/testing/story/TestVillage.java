@@ -303,12 +303,12 @@ public class TestVillage extends AbstractStoryTest {
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        rememberResourceSchemaFetchCount();
-        rememberResourceSchemaParseCount();
-        rememberConnectorCapabilitiesFetchCount();
-        rememberConnectorInitializationCount();
-        rememberConnectorSchemaParseCount();
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -322,11 +322,11 @@ public class TestVillage extends AbstractStoryTest {
         // variable number of clones because of trigger scanner task
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 1, 2);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 	
 	/**
@@ -343,12 +343,12 @@ public class TestVillage extends AbstractStoryTest {
         ResourceSchema resourceSchemaBefore = RefinedResourceSchema.getResourceSchema(resourceBefore, prismContext);
         RefinedResourceSchema refinedSchemaBefore = RefinedResourceSchema.getRefinedSchema(resourceBefore);
         
-        rememberResourceSchemaFetchCount();
-        rememberResourceSchemaParseCount();
-        rememberConnectorCapabilitiesFetchCount();
-        rememberConnectorInitializationCount();
-        rememberConnectorSchemaParseCount();
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
+        rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -373,11 +373,11 @@ public class TestVillage extends AbstractStoryTest {
         // variable number of clones: 1 or 2 because of trigger scanner task
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 1, 2);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         assertTrue("Resource schema has changed", resourceSchemaBefore == resourceSchemaAfter );
         assertTrue("Refined schema has changed", refinedSchemaBefore == refinedSchemaAfter );

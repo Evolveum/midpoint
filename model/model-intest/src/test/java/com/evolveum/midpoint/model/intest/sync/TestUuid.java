@@ -43,6 +43,7 @@ import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListen
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -138,7 +139,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
         
 		// WHEN
@@ -191,7 +192,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
 		getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
         
         Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
@@ -272,7 +273,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
 		getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
         
 		// WHEN
@@ -353,7 +354,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         
 		getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
         
 		// WHEN

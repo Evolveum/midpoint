@@ -256,7 +256,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
@@ -294,7 +294,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		assertSteadyResource();
 	}
@@ -313,7 +313,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
@@ -340,7 +340,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
 		checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
 		
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		
 		assertSteadyResource();
 	}
@@ -356,7 +356,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = 
 				SelectorOptions.createCollection(GetOperationOptions.createStaleness(1L));
@@ -372,7 +372,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -414,7 +414,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		// Modify this back so won't break subsequent tests
@@ -431,7 +431,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -510,7 +510,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 				return true;
 			}
 		};
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		// WHEN
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
@@ -521,7 +521,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
@@ -542,7 +542,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		// And again ...
 
 		foundObjects.clear();
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		XMLGregorianCalendar startTs2 = clock.currentTimeXMLGregorianCalendar();
 		
@@ -552,7 +552,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		// THEN
 
 		XMLGregorianCalendar endTs2 = clock.currentTimeXMLGregorianCalendar();
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		
 		display("Found shadows", foundObjects);
 		
@@ -611,7 +611,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		Collection<SelectorOptions<GetOperationOptions>> options = 
 				SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		// WHEN
 		provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
@@ -620,7 +620,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		display("Found shadows", foundObjects);
 		
@@ -653,7 +653,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 			}
 		};
 		
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		// WHEN
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, null, result);
@@ -662,7 +662,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
 		display("Found shadows", foundObjects);
 		
@@ -835,7 +835,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 				SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME, prismContext);
 		display("All shadows query", query);
 		
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		Collection<SelectorOptions<GetOperationOptions>> options = 
 				SelectorOptions.createCollection(GetOperationOptions.createStaleness(1000000L));
@@ -854,7 +854,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertFalse("No shadows found", allShadows.isEmpty());
 		assertEquals("Wrong number of results", 4, allShadows.size());
 		
-		assertShadowFetchOperationCountIncrement(1);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 		
 		checkConsistency(allShadows);
 		assertProtected(allShadows, 1);
@@ -2823,7 +2823,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		
 		syncServiceMock.reset();
 		rememberDummyResourceGroupMembersReadCount(null);
-		rememberConnectorOperationCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
 		// WHEN
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
@@ -2834,7 +2834,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		
 		display(result);
 		TestUtil.assertSuccess(result);
-		assertConnectorOperationIncrement(2);
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		
@@ -2901,7 +2901,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		
 		display(result);
 		TestUtil.assertSuccess(result);
-		assertConnectorOperationIncrement(3);
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 3);
 		
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		

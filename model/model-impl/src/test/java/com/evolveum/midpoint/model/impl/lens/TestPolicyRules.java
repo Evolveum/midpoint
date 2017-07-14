@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -93,7 +94,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Input context", context);
 
 		assertFocusModificationSanity(context);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -128,7 +129,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Input context", context);
 
 		assertFocusModificationSanity(context);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -191,7 +192,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Input context", context);
 
 		assertFocusModificationSanity(context);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -228,7 +229,7 @@ public class TestPolicyRules extends AbstractLensTest {
         display("Input context", context);
 
         assertFocusModificationSanity(context);
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -267,7 +268,7 @@ public class TestPolicyRules extends AbstractLensTest {
         display("Input context", context);
 
         assertFocusModificationSanity(context);
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -316,7 +317,7 @@ public class TestPolicyRules extends AbstractLensTest {
         display("Input context", context);
 
         assertFocusModificationSanity(context);
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -361,7 +362,7 @@ public class TestPolicyRules extends AbstractLensTest {
         display("Input context", context);
 
         assertFocusModificationSanity(context);
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -422,7 +423,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Input context", context);
 
 		assertFocusModificationSanity(context);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -497,7 +498,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Input context", context);
 
 		assertFocusModificationSanity(context);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -542,7 +543,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Input context", context);
 
 		assertFocusModificationSanity(context);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);

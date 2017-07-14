@@ -156,12 +156,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
         // precondition
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
-        rememberPrismObjectCloneCount();
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 		
@@ -182,11 +182,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 1);
 	}
 	
 	/**
@@ -203,12 +203,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
         // precondition
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
-        rememberPrismObjectCloneCount();
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
 				GetOperationOptions.createNoFetch());
@@ -231,11 +231,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 	
 	/**
@@ -252,12 +252,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
         // precondition
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
-        rememberPrismObjectCloneCount();
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
         GetOperationOptions option = GetOperationOptions.createNoFetch();
         option.setReadOnly(true);
@@ -281,11 +281,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertNull("Schema sneaked in", ResourceTypeUtil.getResourceXsdSchema(resource));
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 	
 	/**
@@ -303,7 +303,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         // precondition
         assertSteadyResources();
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
         
@@ -326,11 +326,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         	assertResource(resource, false);
         }
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         assertSteadyResources();
 	}
@@ -350,7 +350,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         // precondition
         assertSteadyResources();
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
         GetOperationOptions option = GetOperationOptions.createNoFetch();
         option.setReadOnly(true);
@@ -375,11 +375,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         	assertResource(resource, false);
         }
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         assertSteadyResources();
 	}
@@ -399,7 +399,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         // precondition
         assertSteadyResources();
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
         		
@@ -425,11 +425,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         assertSteadyResources();
 	}
@@ -449,7 +449,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         // precondition
         assertSteadyResources();
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
         		
@@ -477,11 +477,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         assertSteadyResources();
 	}
@@ -496,7 +496,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -511,11 +511,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertResourceDummy(resource, true);
         
-        assertResourceSchemaFetchIncrement(1);
-        assertResourceSchemaParseCountIncrement(1);
-        assertConnectorCapabilitiesFetchIncrement(1);
-		assertConnectorInitializationCountIncrement(1);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
         
@@ -532,7 +532,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
 				GetOperationOptions.createReadOnly());
@@ -551,11 +551,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertResourceDummy(resource, true);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 	}
@@ -591,11 +591,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         	assertResource(resource, true);
         }
         
-        assertResourceSchemaFetchIncrement(1);
-        assertResourceSchemaParseCountIncrement(1);
-        assertConnectorCapabilitiesFetchIncrement(1);
-		assertConnectorInitializationCountIncrement(1);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 	
 	@Test
@@ -759,7 +759,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -773,11 +773,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertResourceDummy(resource, true);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
         
@@ -795,12 +795,12 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
         // precondition
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
-        rememberPrismObjectCloneCount();
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 		
@@ -820,11 +820,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
 		assertResourceDummy(resource, true);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
     
     @Test
@@ -837,7 +837,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -852,11 +852,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertResourceDummy(resource, true);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 	}
@@ -885,7 +885,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     			getConfigurationPropertyPath(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME),
     			"whatever wherever");
     	
-    	assertResourceSchemaParseCountIncrement(1);
+    	assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
     }
     
     @Test
@@ -913,7 +913,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     			getConfigurationPropertyPath(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME),
     			"whatever raw wherever");
     	
-    	assertResourceSchemaParseCountIncrement(1);
+    	assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
     }
     
     @Test
@@ -953,10 +953,10 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     	OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
     	TestUtil.assertSuccess("Dummy resource test", testResult);
     	
-    	assertConnectorInitializationCountIncrement(1);
-    	assertResourceSchemaFetchIncrement(1);
-    	assertConnectorCapabilitiesFetchIncrement(1);
-    	assertResourceSchemaParseCountIncrement(1);
+    	assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+    	assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
+    	assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
+    	assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
     	
     	PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
     	display("Resource after", resourceAfter);
@@ -965,7 +965,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     	
 		// TODO: strictly speaking, this should not be necessary. 
 		// But now the schema is re-parsed a bit more than is needed
-    	assertResourceSchemaParseCountIncrement(1);
+    	assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
     }
     
     private ObjectDelta<ResourceType> createConfigurationPropertyDelta(QName elementQName, String newValue) {
@@ -993,7 +993,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1008,11 +1008,11 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         
         assertResourceDummy(resource, true);
         
-        assertResourceSchemaFetchIncrement(0);
-        assertResourceSchemaParseCountIncrement(0);
-        assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-        assertConnectorSchemaParseIncrement(0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
         
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 	}
@@ -1083,6 +1083,6 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();
         prepareNotifications();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	}
 }

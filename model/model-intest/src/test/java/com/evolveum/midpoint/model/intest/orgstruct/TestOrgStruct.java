@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -524,7 +525,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -536,7 +537,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertRefs23x();
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
     }
     
     /**
@@ -554,8 +555,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         
         clearUserOrgAndRoleRefs(USER_JACK_OID);
         
-        rememberShadowFetchOperationCount();
-        rememberConnectorOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -567,8 +568,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertRefs23x();
-        assertShadowFetchOperationCountIncrement(1);
-        assertConnectorOperationIncrement(4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 4);
     }
     
     /**
@@ -586,8 +587,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         
         clearUserOrgAndRoleRefs(USER_JACK_OID);
         
-        rememberShadowFetchOperationCount();
-        rememberConnectorOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
         PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
         partialProcessing.setInbound(PartialProcessingTypeType.SKIP);
@@ -608,8 +609,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertRefs23x();
-        assertShadowFetchOperationCountIncrement(0);
-        assertConnectorOperationIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
     }
 
     

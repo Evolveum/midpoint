@@ -91,7 +91,7 @@ public class TestDummyCaching extends TestDummy {
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Nice Pirate");
@@ -114,7 +114,7 @@ public class TestDummyCaching extends TestDummy {
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -142,7 +142,7 @@ public class TestDummyCaching extends TestDummy {
 		
 		assertCachingMetadata(shadow, true, null, startTs);
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		assertSteadyResource();
 	}
@@ -159,7 +159,7 @@ public class TestDummyCaching extends TestDummy {
 		displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
-		rememberShadowFetchOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 		
 		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
@@ -181,7 +181,7 @@ public class TestDummyCaching extends TestDummy {
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -209,7 +209,7 @@ public class TestDummyCaching extends TestDummy {
 		
 		assertCachingMetadata(shadow, true, null, startTs);
 		
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		
 		assertSteadyResource();
 	}
