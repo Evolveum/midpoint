@@ -216,6 +216,8 @@ public class SchemaTransformer {
 				}
 				Collection<ItemPath> full = definitionProcession.get(DefinitionProcessingOption.FULL);
 				object.trimDefinitionTree(full);
+				// temporarily (?) turned off
+				//object.unifyDefinitionTree();
 			}
 		}
 		

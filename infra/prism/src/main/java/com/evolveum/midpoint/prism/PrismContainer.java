@@ -940,4 +940,38 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		});
 		return paths;
 	}
+
+	/**
+	 * Unifies definition tree, so that this.definition.child would point to the same object as this.child.definition
+	 * for each of the children.
+	 *
+	 * Ignores value-specific definitions for now.
+	 * Ignores multivalued containers for now.
+	 *
+	 * To be used as part of definition processing. (Turned off now, mainly because it complicates situation too much.)
+	 */
+	public void unifyDefinitionTree() {
+		if (values.size() != 1) {
+			return;		// TODO also if multivalued by definition?
+		}
+		PrismContainerDefinition<C> definition = getDefinition();
+		if (definition == null || definition.getComplexTypeDefinition() == null || definition.getComplexTypeDefinition().isShared()) {
+			return;
+		}
+		ComplexTypeDefinition ctd = definition.getComplexTypeDefinition();
+		PrismContainerValue<C> pcv = values.get(0);
+		for (Item<?, ?> item : CollectionUtils.emptyIfNull(pcv.getItems())) {
+			ItemDefinition realDef = item.getDefinition();
+			if (realDef == null) {
+				continue;
+			}
+			ItemDefinition masterDef = ctd.findItemDefinition(item.getElementName());
+			if (masterDef != null && masterDef != realDef) {
+				ctd.replaceItemDefinition(item.getElementName(), realDef);
+			}
+			if (item instanceof PrismContainer) {
+				((PrismContainer) item).unifyDefinitionTree();
+			}
+		}
+	}
 }

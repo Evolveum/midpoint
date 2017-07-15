@@ -1278,6 +1278,12 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	@Override
+	public void replaceItemDefinition(QName itemName, ItemDefinition itemDefinition) {
+		// nothing to do TODO TODO TODO implement this somehow
+		// but take care about the definition that is to be put here
+	}
+
+	@Override
 	public boolean isShared() {
 		return shared;
 	}

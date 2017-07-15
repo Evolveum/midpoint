@@ -683,6 +683,12 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		auxiliaryObjectClassDefinitions.forEach(def -> def.trimTo(paths));
 	}
 
+	@Override
+	public void replaceItemDefinition(QName itemName, ItemDefinition itemDefinition) {
+		structuralObjectClassDefinition.replaceItemDefinition(itemName, itemDefinition);
+		auxiliaryObjectClassDefinitions.forEach(def -> def.replaceItemDefinition(itemName, itemDefinition));
+	}
+
 	// TODO
 	@Override
 	public boolean isShared() {

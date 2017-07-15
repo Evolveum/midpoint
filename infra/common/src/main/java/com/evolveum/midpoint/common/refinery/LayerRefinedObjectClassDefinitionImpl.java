@@ -619,6 +619,13 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
+	public void replaceItemDefinition(QName itemName, ItemDefinition itemDefinition) {
+		if (refinedObjectClassDefinition != null) {
+			refinedObjectClassDefinition.replaceItemDefinition(itemName, itemDefinition);
+		}
+	}
+
+	@Override
 	public boolean isShared() {
 		if (refinedObjectClassDefinition != null) {
 			return refinedObjectClassDefinition.isShared();

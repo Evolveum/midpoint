@@ -448,9 +448,20 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		}
 	}
 
-	//	@Override
-//	public void accept(Visitor visitor) {
-//		super.accept(visitor);
-//		itemDefinitions.forEach(def -> def.accept(visitor));
-//	}
+	@Override
+	public void replaceItemDefinition(QName itemName, ItemDefinition itemDefinition) {
+		if (shared) {
+			// TODO switch this to warning before releasing this code (3.6.1 or 3.7)
+			throw new IllegalStateException("Couldn't modify shared definition: " + this);
+		}
+		for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
+			ItemDefinition<?> itemDef = iterator.next();
+			if (QNameUtil.match(itemName, itemDef.getName())) {
+				iterator.remove();
+				itemDefinitions.add(itemDefinition);
+				return;
+			}
+		}
+		// not found -> nothing to do
+	}
 }
