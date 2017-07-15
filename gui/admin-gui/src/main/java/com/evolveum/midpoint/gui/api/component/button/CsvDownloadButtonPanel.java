@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
@@ -41,15 +42,23 @@ private static final long serialVersionUID = 1L;
     		@Override
     		public <T> void exportData(IDataProvider<T> dataProvider, List<IExportableColumn<T, ?>> columns,
     				OutputStream outputStream) throws IOException {
-    			if (isAudit) {
-    			        ((AuditEventRecordProvider) dataProvider).setExportSize(true);
-                        super.exportData(dataProvider, columns, outputStream);
-                        ((AuditEventRecordProvider) dataProvider).setExportSize(false);
-                
-    			} else {
-    				super.exportData(dataProvider, columns, outputStream);
-    			}
-    			
+    			try {
+    				if (dataProvider instanceof SelectableBeanObjectDataProvider) {
+						((SelectableBeanObjectDataProvider) dataProvider).setExport(true);
+					}
+					if (isAudit) {
+						((AuditEventRecordProvider) dataProvider).setExportSize(true);
+						super.exportData(dataProvider, columns, outputStream);
+						((AuditEventRecordProvider) dataProvider).setExportSize(false);
+
+					} else {
+						super.exportData(dataProvider, columns, outputStream);
+					}
+				} finally {
+					if (dataProvider instanceof SelectableBeanObjectDataProvider) {
+						((SelectableBeanObjectDataProvider) dataProvider).setExport(false);
+					}
+				}
     		}
     	};
         final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {

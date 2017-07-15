@@ -2222,6 +2222,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 int count = countHolder.getValue();
                 countHolder.setValue(count+1);
                 if (!useConnectorPaging) {
+                	// TODO allow offset or maxSize be null
                     if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
                             && query.getPaging().getMaxSize() != null) {
                         if (count < query.getPaging().getOffset()) {

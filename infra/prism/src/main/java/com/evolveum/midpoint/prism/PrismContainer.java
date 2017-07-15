@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -911,5 +912,32 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
 		}
 		PrismContainer<?> rv = (PrismContainer) definition.instantiate();
 		rv.add(value);
+	}
+
+	/**
+	 * Optimizes (trims) definition tree by removing any definitions not corresponding to items in this container.
+	 * Works recursively by sub-containers of this one.
+	 * USE WITH CARE. Make sure the definitions are not shared by other objects!
+	 */
+	public void trimDefinitionTree(Collection<ItemPath> alwaysKeep) {
+		PrismContainerDefinition<C> def = getDefinition();
+		if (def == null || def.getComplexTypeDefinition() == null) {
+			return;
+		}
+		Set<ItemPath> allPaths = getAllItemPaths(alwaysKeep);
+		def.getComplexTypeDefinition().trimTo(allPaths);
+		values.forEach(v -> v.trimItemsDefinitionsTrees(alwaysKeep));
+	}
+
+	// TODO implement more efficiently
+	private Set<ItemPath> getAllItemPaths(Collection<ItemPath> alwaysKeep) {
+		Set<ItemPath> paths = new HashSet<>();
+		paths.addAll(CollectionUtils.emptyIfNull(alwaysKeep));
+		this.accept(v -> {
+			if (v instanceof PrismValue) {
+				paths.add(((PrismValue) v).getPath());
+			}
+		});
+		return paths;
 	}
 }

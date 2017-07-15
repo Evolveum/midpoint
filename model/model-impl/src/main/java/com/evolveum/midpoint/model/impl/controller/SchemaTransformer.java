@@ -22,8 +22,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -71,24 +74,26 @@ public class SchemaTransformer {
 
 	// TODO why are the following two methods distinct? Clarify their names.
 	public <T extends ObjectType> void applySchemasAndSecurityToObjectTypes(List<T> objectTypes,
-			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
+			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
+			AuthorizationPhaseType phase, Task task, OperationResult result)
 					throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException {
 		for (int i = 0; i < objectTypes.size(); i++) {
 			PrismObject<T> object = (PrismObject<T>) objectTypes.get(i).asPrismObject();
 			object = object.cloneIfImmutable();
 			objectTypes.set(i, object.asObjectable());
-			applySchemasAndSecurity(object, options, phase, task, result);
+			applySchemasAndSecurity(object, rootOptions, options, phase, task, result);
 		}
 	}
 	
 	public <T extends ObjectType> void applySchemasAndSecurityToObjects(List<PrismObject<T>> objects,
-			GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result) 
+			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options,
+			AuthorizationPhaseType phase, Task task, OperationResult result)
 					throws SecurityViolationException, SchemaException {
 		for (int i = 0; i < objects.size(); i++) {
 			PrismObject<T> object = objects.get(i);
 			object = object.cloneIfImmutable();
 			objects.set(i, object);
-			applySchemaAndSecurityToObject(object, options, phase, task);
+			applySchemaAndSecurityToObject(object, rootOptions, options, phase, task);
 		}
 	}
 
@@ -96,7 +101,7 @@ public class SchemaTransformer {
 	// Expecting that container values point to their respective parents (in order to evaluate the security!)
 	public <C extends Containerable, T extends ObjectType>
 	SearchResultList<C> applySchemasAndSecurityToContainers(SearchResultList<C> originalResultList, Class<T> parentObjectType, QName childItemName,
-															GetOperationOptions options, AuthorizationPhaseType phase, Task task, OperationResult result)
+			GetOperationOptions rootOptions, Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ConfigurationException {
 
 		List<C> newValues = new ArrayList<>();
@@ -121,7 +126,7 @@ public class SchemaTransformer {
 			}
 			if (!wasProcessed) {
 				// TODO what if parent is immutable?
-				applySchemasAndSecurity(parent, options, phase, task, result);
+				applySchemasAndSecurity(parent, rootOptions, options, phase, task, result);
 				processedParents.put(parent, null);
 			}
 			PrismContainer<C> updatedChildContainer = parent.findContainer(childItemPath);
@@ -135,10 +140,11 @@ public class SchemaTransformer {
 		return new SearchResultList<>(newValues, originalResultList.getMetadata());
 	}
 
-	protected <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions options, AuthorizationPhaseType phase, Task task) {
+	protected <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions rootOptions,
+			Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task) {
 		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObjects");
 		try {
-            applySchemasAndSecurity(object, options, phase, task, subresult);
+            applySchemasAndSecurity(object, rootOptions, options, phase, task, subresult);
         } catch (IllegalArgumentException|IllegalStateException|SchemaException |SecurityViolationException |ConfigurationException |ObjectNotFoundException e) {
             LOGGER.error("Error post-processing object {}: {}", object, e.getMessage(), e);
             OperationResultType fetchResult = object.asObjectable().getFetchResult();
@@ -158,6 +164,7 @@ public class SchemaTransformer {
 	 * any object that is returned from the Model Service.  
 	 */
 	public <O extends ObjectType> void applySchemasAndSecurity(PrismObject<O> object, GetOperationOptions rootOptions,
+			Collection<SelectorOptions<GetOperationOptions>> options,
 			AuthorizationPhaseType phase, Task task, OperationResult parentResult) 
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		LOGGER.trace("applySchemasAndSecurity starting");
@@ -196,6 +203,21 @@ public class SchemaTransformer {
 			throw e;
 		}
 		applyObjectTemplateToObject(object, objectTemplateType, result);
+
+		if (CollectionUtils.isNotEmpty(options)) {
+			Map<DefinitionProcessingOption, Collection<ItemPath>> definitionProcession = SelectorOptions.extractOptionValues(options, (o) -> o.getDefinitionProcessing());
+			if (CollectionUtils.isNotEmpty(definitionProcession.get(DefinitionProcessingOption.NONE))) {
+				throw new UnsupportedOperationException("'NONE' definition processing is not supported now");
+			}
+			Collection<ItemPath> onlyIfExists = definitionProcession.get(DefinitionProcessingOption.ONLY_IF_EXISTS);
+			if (CollectionUtils.isNotEmpty(onlyIfExists)) {
+				if (onlyIfExists.size() != 1 || !ItemPath.isNullOrEmpty(onlyIfExists.iterator().next())) {
+					throw new UnsupportedOperationException("'ONLY_IF_EXISTS' definition processing is currently supported on root level only; not on " + onlyIfExists);
+				}
+				Collection<ItemPath> full = definitionProcession.get(DefinitionProcessingOption.FULL);
+				object.trimDefinitionTree(full);
+			}
+		}
 		
 		result.computeStatus();
 		result.recordSuccessIfUnknown();
@@ -216,7 +238,7 @@ public class SchemaTransformer {
 			
 			AuthorizationDecisionType globalAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-			applySecurityConstraints((List)object.getValue().getItems(), securityConstraints, globalReadDecision,
+			applySecurityConstraints(object.getValue().getItems(), securityConstraints, globalReadDecision,
 					globalAddDecision, globalModifyDecision, phase);
 			if (object.isEmpty()) {
 				// let's make it explicit

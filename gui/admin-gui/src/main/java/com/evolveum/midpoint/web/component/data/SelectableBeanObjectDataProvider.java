@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -45,6 +47,9 @@ import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.FULL;
+import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EXISTS;
+
 /**
  * @author lazyman
  * @author semancik
@@ -61,6 +66,9 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     
     private boolean emptyListOnNullQuery = false;
     private boolean useObjectCounting = true;
+
+    // we use special options when exporting to CSV (due to bulk nature of the operation)
+    private boolean export;
     
     /**
      *  The number of all objects that the query can return. Defaults to a really big number
@@ -151,7 +159,21 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
             if (ResourceType.class.equals(type) && (options == null || options.isEmpty())){
             	options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
-            List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, options, task, result);
+			Collection<SelectorOptions<GetOperationOptions>> currentOptions = options;
+			if (export) {
+				// TODO also for other classes
+				if (ShadowType.class.equals(type)) {
+					currentOptions = SelectorOptions.set(currentOptions, ItemPath.EMPTY_PATH, () -> new GetOperationOptions(),
+							(o) -> o.setDefinitionProcessing(ONLY_IF_EXISTS));
+					currentOptions = SelectorOptions
+							.set(currentOptions, new ItemPath(ShadowType.F_FETCH_RESULT), GetOperationOptions::new,
+									(o) -> o.setDefinitionProcessing(FULL));
+					currentOptions = SelectorOptions
+							.set(currentOptions, new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS), GetOperationOptions::new,
+									(o) -> o.setDefinitionProcessing(FULL));
+				}
+			}
+            List<PrismObject<? extends O>> list = (List)getModel().searchObjects(type, query, currentOptions, task, result);
             
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("Query {} resulted in {} objects", type.getSimpleName(), list.size());
@@ -268,7 +290,15 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 		this.emptyListOnNullQuery = emptyListOnNullQuery;
 	}
 
-//    public int getSize() {
+	public boolean isExport() {
+		return export;
+	}
+
+	public void setExport(boolean export) {
+		this.export = export;
+	}
+
+	//    public int getSize() {
 //        return size;
 //    }
 //
