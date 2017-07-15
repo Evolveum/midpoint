@@ -47,10 +47,19 @@ private static final long serialVersionUID = 1L;
     		@Override
     		public <T> void exportData(IDataProvider<T> dataProvider, List<IExportableColumn<T, ?>> columns,
     				OutputStream outputStream) throws IOException {
-				((BaseSortableDataProvider) dataProvider).setExportSize(true);
-				super.exportData(dataProvider, columns, outputStream);
-				((BaseSortableDataProvider) dataProvider).setExportSize(false);
-    		}
+    			if (dataProvider instanceof SelectableBeanObjectDataProvider) {
+					((SelectableBeanObjectDataProvider) dataProvider).setExport(true);	    // TODO implement more nicely
+				}
+				try {
+					((BaseSortableDataProvider) dataProvider).setExportSize(true);
+					super.exportData(dataProvider, columns, outputStream);
+					((BaseSortableDataProvider) dataProvider).setExportSize(false);
+				} finally {
+					if (dataProvider instanceof SelectableBeanObjectDataProvider) {
+						((SelectableBeanObjectDataProvider) dataProvider).setExport(false);
+					}
+				}
+			}
     	};
         final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
         	private static final long serialVersionUID = 1L;
