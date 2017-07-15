@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -120,6 +121,9 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
     }
 
+    protected void showAllAssignments(AjaxRequestTarget target) {
+    }
+
     private void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<ObjectType> assignmentsList, RelationTypes relation){
         if (assignmentsList == null || assignmentsList.isEmpty()){
                 warn(pageBase.getString("AssignmentTablePanel.message.noAssignmentSelected"));
@@ -153,14 +157,14 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         relation.setOutputMarkupPlaceholderTag(true);
         assignmentsContainer.addOrReplace(relation);
 
-//        AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
-//                createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
-//            @Override
-//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-//
-//            }
-//        };
-//        assignmentsContainer.addOrReplace(showAllAssignmentsButton);
+        AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
+                createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                showAllAssignments(ajaxRequestTarget);
+            }
+        };
+        assignmentsContainer.addOrReplace(showAllAssignmentsButton);
 
         ListDataProvider<AssignmentEditorDto> assignmentsProvider = new ListDataProvider<AssignmentEditorDto>(this,
                 Model.ofList(relationAssignmentsMap.get(relationModel.getObject())), false);
@@ -231,6 +235,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                         AssignmentDataTablePanel.this, true);
             }
         });
+        //commented since these columns are not used
 //        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
 //            private static final long serialVersionUID = 1L;
 //
@@ -279,7 +284,8 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
                 super.populateItem(cellItem, componentId, rowModel);
-                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
+                cellItem.setEnabled(false);
+//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
             }
 
             @Override
@@ -303,7 +309,9 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
             }
         });
 
-        columns.add(new InlineMenuButtonColumn<AssignmentEditorDto>(getAssignmentMenuActions(), 1, pageBase));
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
+            columns.add(new InlineMenuButtonColumn<AssignmentEditorDto>(getAssignmentMenuActions(), 1, pageBase));
+        }
         return columns;
     }
 

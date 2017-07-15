@@ -71,7 +71,15 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 
 		Component panel;
 		if (isEnableExperimentalFeatures()){
-			panel = new AssignmentDataTablePanel(ID_ASSIGNMENTS_PANEL, assignmentsModel, pageBase);
+			panel = new AssignmentDataTablePanel(ID_ASSIGNMENTS_PANEL, assignmentsModel, pageBase){
+				@Override
+				protected void showAllAssignments(AjaxRequestTarget target) {
+					List<AssignmentsPreviewDto> assignmentsPreviewDtos = ((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(target);
+					AssignmentPreviewDialog dialog = new AssignmentPreviewDialog(getPageBase().getMainPopupBodyId(),
+							assignmentsPreviewDtos, new ArrayList<String>(), getPageBase());
+					getPageBase().showMainPopup(dialog, target);
+				}
+			};
 		} else {
 			panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
 					createStringResource("FocusType.assignment"), assignmentsModel) {
