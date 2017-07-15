@@ -40,9 +40,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
 	private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
 
-	private static final int MAX_EXPORT_ROWS_COUNT = 1000;
-	private boolean exportSize = false;
-
 	public AuditEventRecordProvider(Component component){
 		this(component, AUDIT_RECORDS_QUERY_CORE, new HashMap<String, Object>());
 	}
@@ -94,8 +91,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			throw new SystemException(e.getMessage(), e);
 		}
  
- 		int providerSize = ((Long)count).intValue();
-		return !exportSize ? providerSize : (providerSize < MAX_EXPORT_ROWS_COUNT ? providerSize : MAX_EXPORT_ROWS_COUNT);
+		return ((Long)count).intValue();
  	}
  
 
@@ -256,11 +252,4 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
 	}
 
-	public boolean isExportSize() {
-		return exportSize;
-	}
-
-	public void setExportSize(boolean exportSize) {
-		this.exportSize = exportSize;
-	}
 }

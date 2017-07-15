@@ -469,7 +469,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-            	CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id,true) {
+            	CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id) {
 					
 					private static final long serialVersionUID = 1L;
 

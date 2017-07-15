@@ -608,7 +608,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(10);
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
         displayWhen(TEST_NAME);
@@ -625,7 +625,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
         
-        assertShadowFetchOperationCountIncrement(2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
                 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -689,7 +689,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(10);
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
 		// WHEN
         displayWhen(TEST_NAME);
@@ -706,7 +706,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(task.getResult());
         
-        assertShadowFetchOperationCountIncrement(2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
                 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -778,7 +778,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
         
 		// WHEN
@@ -792,7 +792,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
         
@@ -946,7 +946,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
         reconciliationTaskResultListener.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
 		// WHEN
         displayWhen(TEST_NAME);
@@ -955,7 +955,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
         // THEN
         displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
         
@@ -1101,7 +1101,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
         
 		// WHEN
@@ -1111,7 +1111,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
         // THEN
         displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
         
@@ -1192,7 +1192,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         getDummyResource().purgeScriptHistory();
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         reconciliationTaskResultListener.clear();
         
 		// WHEN
@@ -1202,7 +1202,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		
         // THEN
         displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(4);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 4);
         
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 1);
         
@@ -2271,7 +2271,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Preconditions
         assertUsers(11);
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
 		// WHEN
         displayWhen(TEST_NAME);
@@ -2288,7 +2288,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 //        assertShadowFetchOperationCountIncrement(2);
         
         // WHY???
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
                 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -2338,7 +2338,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Preconditions
         assertUsers(12);
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
 		// WHEN
         displayWhen(TEST_NAME);
@@ -2422,7 +2422,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Preconditions
 		assertUsers(12);
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
 		// WHEN
         displayWhen(TEST_NAME);
@@ -2543,7 +2543,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Preconditions
 		assertUsers(18);
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
      // WHEN
         displayWhen(TEST_NAME);
@@ -2556,7 +2556,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_SHADOWS_OID);
         OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
@@ -2589,7 +2589,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Preconditions
 		assertUsers(18);
         dummyAuditService.clear();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         displayWhen(TEST_NAME);
@@ -2602,7 +2602,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
         
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_DUMMY_ACCOUNTS_OID);
         OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();

@@ -26,12 +26,14 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -54,6 +56,9 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInte
 public abstract class BaseSortableDataProvider<T extends Serializable> extends SortableDataProvider<T, String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
+    private static final String DOT_CLASS = BaseSortableDataProvider.class.getName() + ".";
+    private static final String OPERATION_GET_EXPORT_SIZE_LIMIT = DOT_CLASS + "getDefaultExportSizeLimit";
+
     private Component component;
     private List<T> availableData;
     private ObjectQuery query;
@@ -63,6 +68,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private Map<Serializable, CachedSize> cache = new HashMap<Serializable, CachedSize>();
     private int cacheCleanupThreshold = 60;
     private boolean useCache;
+    private boolean exportSize = false;
+    private long exportLimit = -1;
 
     public BaseSortableDataProvider(Component component) {
         this(component, false, true);
@@ -80,6 +87,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         if (useDefaultSortingField) {
             setSort("name", SortOrder.ASCENDING);
         }
+        setExportLimitValue();
     }
 
     protected ModelService getModel() {
@@ -229,7 +237,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     public long size() {
         LOGGER.trace("begin::size()");
         if (!useCache) {
-            return internalSize();
+            int internalSize = internalSize();
+            return exportSize && exportLimit >= 0 && exportLimit < internalSize ? exportLimit : internalSize;
         }
 
         long size;
@@ -251,7 +260,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         }
 
         LOGGER.trace("end::size(): {}", size);
-        return size;
+        return exportSize && exportLimit >= 0 && exportLimit < size ? exportLimit : size;
     }
 
     protected abstract int internalSize();
@@ -306,5 +315,26 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         public String toString() {
             return "CachedSize(size=" + size + ", timestamp=" + timestamp + ")";
         }
+    }
+
+    private void setExportLimitValue(){
+        OperationResult result = new OperationResult(OPERATION_GET_EXPORT_SIZE_LIMIT);
+        try {
+            AdminGuiConfigurationType adminGui = getModelInteractionService().getAdminGuiConfiguration(null, result);
+            if (adminGui != null && adminGui.getDefaultExportSettings() != null &&
+                    adminGui.getDefaultExportSettings().getSizeLimit() != null){
+                exportLimit = adminGui.getDefaultExportSettings().getSizeLimit();
+            }
+        } catch (Exception ex){
+            LOGGER.error("Unable to get default export size limit, ", ex);
+        }
+    }
+
+    public boolean isExportSize() {
+        return exportSize;
+    }
+
+    public void setExportSize(boolean exportSize) {
+        this.exportSize = exportSize;
     }
 }

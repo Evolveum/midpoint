@@ -37,6 +37,7 @@ import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.name.Ava;
 import org.apache.directory.api.ldap.model.name.Rdn;
+import org.apache.directory.api.util.GeneralizedTime;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
@@ -398,8 +399,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         String jackDn = toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME);
         ObjectQuery query = createAccountShadowQueryByAttribute("dn", jackDn, resource);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         displayWhen(TEST_NAME);
@@ -417,7 +418,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAccountShadow(shadow, jackDn);
         
 //        assertConnectorOperationIncrement(2);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -445,8 +446,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         String dn = toAccountDn("idonoexist", "I am a Fiction");
         ObjectQuery query = createAccountShadowQueryByAttribute("dn", dn, resource);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         displayWhen(TEST_NAME);
@@ -460,7 +461,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Unexpected search result: "+shadows, 0, shadows.size());
                 
 //        assertConnectorOperationIncrement(2);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         assertLdapConnectorInstances(1);
 	}
@@ -477,8 +478,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
 		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         displayWhen(TEST_NAME);
@@ -495,7 +496,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         groupPiratesOid = shadow.getOid();
         
 //        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -514,8 +515,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         displayWhen(TEST_NAME);
@@ -538,8 +539,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAttribute(shadow, "sAMAccountName", ACCOUNT_JACK_SAM_ACCOUNT_NAME);
         assertAttribute(shadow, "lastLogon", 0L);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         assertLdapConnectorInstances(1);
 	}
@@ -559,8 +560,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
-        rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
         
         // WHEN
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 
@@ -568,7 +569,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         // TODO: why 11? should be 1
 //        assertConnectorOperationIncrement(11);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -599,7 +600,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
                 
 //        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -816,11 +817,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
-        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ResourceAttribute<String> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        Long createTimestamp = createTimestampAttribute.getRealValue();
+        String createTimestamp = createTimestampAttribute.getRealValue();
+        GeneralizedTime createTimestampGt = new GeneralizedTime(createTimestamp);
+		long createTimestampMillis = createTimestampGt.getCalendar().getTimeInMillis();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
         
 //        assertLdapConnectorInstances(2);
 	}
@@ -1826,11 +1829,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         
-        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ResourceAttribute<String> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        Long createTimestamp = createTimestampAttribute.getRealValue();
+        String createTimestamp = createTimestampAttribute.getRealValue();
+        GeneralizedTime createTimestampGt = new GeneralizedTime(createTimestamp);
+		long createTimestampMillis = createTimestampGt.getCalendar().getTimeInMillis();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
         
 //        assertLdapConnectorInstances(2);
 	}

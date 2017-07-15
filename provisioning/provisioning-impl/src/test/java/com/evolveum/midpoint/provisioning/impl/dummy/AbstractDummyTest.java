@@ -59,6 +59,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -537,11 +538,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 	
 	protected void assertSteadyResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		assertResourceSchemaFetchIncrement(0);
-		assertConnectorCapabilitiesFetchIncrement(0);
-		assertConnectorSchemaParseIncrement(0);
-		assertConnectorInitializationCountIncrement(0);
-		assertResourceSchemaParseCountIncrement(0);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		assertResourceVersionIncrement(resource, 0);
 		assertSchemaMetadataUnchanged(resource);
 		assertConnectorInstanceUnchanged(resource);

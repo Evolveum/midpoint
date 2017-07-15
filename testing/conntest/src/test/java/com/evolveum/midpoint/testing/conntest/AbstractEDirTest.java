@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -234,8 +235,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -254,8 +255,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         jackAccountOid = shadow.getOid();
         assertNotNull("Null OID in "+shadow, jackAccountOid);
         
-        assertConnectorOperationIncrement(2);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -275,8 +276,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
 		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -292,8 +293,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         display("Shadow", shadow);
         groupPiratesOid = shadow.getOid();
         
-        assertConnectorOperationIncrement(2);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -312,8 +313,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -330,8 +331,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 	
 	@Test
@@ -352,8 +353,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -371,8 +372,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertShadowLockout(shadow, LockoutStatusType.LOCKED);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -396,8 +397,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, NUMBER_OF_ACCOUNTS, task, result);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -420,8 +421,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 1, task, result);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         PrismObject<ShadowType> shadow = searchResultList.get(0);
         display("Shadow", shadow);
@@ -902,8 +903,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         
         ObjectQuery query = createUidQuery(ACCOUNT_JACK_UID);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -921,8 +922,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_UID));
         assertShadowLockout(shadow, LockoutStatusType.NORMAL);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -944,8 +945,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 				.build();
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 0, task, result);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);        
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);        
     }
 	
 	@Test
@@ -976,8 +977,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
         assertAccountShadow(shadowLocked, toAccountDn(ACCOUNT_JACK_UID));
         assertShadowLockout(shadowLocked, LockoutStatusType.LOCKED);
 		
-        rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -990,8 +991,8 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 		
 		PrismObject<ShadowType> shadowAfter = getObject(ShadowType.class, shadowLocked.getOid());
         display("Shadow after", shadowAfter);

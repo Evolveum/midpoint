@@ -12,6 +12,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
+import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -106,6 +108,18 @@ public class AssignmentsUtil {
         });
     }
 
+    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
+        return new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                AssignmentEditorDto dto = model.getObject();
+                return dto.getStatus().name().toLowerCase();
+            }
+        };
+    }
+
     private static void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
         component.setOutputMarkupId(true);
         component.add(new AjaxFormComponentUpdatingBehavior("blur") {
@@ -123,6 +137,36 @@ public class AssignmentsUtil {
             @Override
             public boolean isEnabled(){
                 return dtoModel.getObject().isEditable();
+            }
+        };
+    }
+
+    public static IModel<String> createAssignmentIconTitleModel(BasePanel panel, AssignmentEditorDtoType type){
+        return new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                if (type == null) {
+                    return "";
+                }
+
+                switch (type) {
+                    case CONSTRUCTION:
+                        return panel.getString("MyAssignmentsPanel.type.accountConstruction");
+                    case ORG_UNIT:
+                        return panel.getString("MyAssignmentsPanel.type.orgUnit");
+                    case ROLE:
+                        return panel.getString("MyAssignmentsPanel.type.role");
+                    case SERVICE:
+                        return panel.getString("MyAssignmentsPanel.type.service");
+                    case USER:
+                        return panel.getString("MyAssignmentsPanel.type.user");
+                    case POLICY_RULE:
+                        return panel.getString("MyAssignmentsPanel.type.policyRule");
+                    default:
+                        return panel.getString("MyAssignmentsPanel.type.error");
+                }
             }
         };
     }

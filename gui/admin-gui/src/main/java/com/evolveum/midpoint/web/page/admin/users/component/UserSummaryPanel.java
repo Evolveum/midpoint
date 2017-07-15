@@ -20,6 +20,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -60,12 +62,17 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				boolean isSuperuser = false;
 				boolean isEndUser = false;
 				for (AssignmentType assignment: assignments) {
-					if (assignment.getTargetRef() != null) {
-						if (SystemObjectsType.ROLE_SUPERUSER.value().equals(assignment.getTargetRef().getOid())) {
-							isSuperuser = true;
-						} else if (SystemObjectsType.ROLE_END_USER.value().equals(assignment.getTargetRef().getOid())) {
-							isEndUser = true;
-						}
+					if (assignment.getTargetRef() == null) {
+						continue;
+					}
+					QName relation = assignment.getTargetRef().getRelation();
+					if (relation != null && !QNameUtil.match(SchemaConstants.ORG_DEFAULT, relation)) {
+						continue;
+					}
+					if (SystemObjectsType.ROLE_SUPERUSER.value().equals(assignment.getTargetRef().getOid())) {
+						isSuperuser = true;
+					} else if (SystemObjectsType.ROLE_END_USER.value().equals(assignment.getTargetRef().getOid())) {
+						isEndUser = true;
 					}
 				}
 				if (isSuperuser) {

@@ -758,7 +758,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -826,7 +826,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         accountJackOid = accountDelta.getOid();
         assertNotNull("No account OID in resulting delta", accountJackOid);
@@ -901,7 +901,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("executeChanges result", result);
         
         // There is strong mapping. Complete account is fetched.
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack);
@@ -968,7 +968,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -1028,7 +1028,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -1088,7 +1088,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("previewChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1123,7 +1123,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
         
-        rememberPrismObjectCloneCount();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                   
@@ -1136,7 +1136,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 66); 
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1217,7 +1217,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // There is strong mapping. Complete account is fetched.
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1368,7 +1368,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1441,7 +1441,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1518,7 +1518,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // the previous command changes resource, therefore let's explicitly re-read it before test
         // to refresh the cache and not affect the performance results (monitor).
         modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
-        assertResourceSchemaParseCountIncrement(1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1529,7 +1529,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // There is strong mapping. Complete account is fetched.
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1578,7 +1578,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // the previous command changes resource, therefore let's explicitly re-read it before test
         // to refresh the cache and not affect the performance results (monitor).
         modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
-        assertResourceSchemaParseCountIncrement(1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
     }
 
 	/**
@@ -1611,7 +1611,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1681,7 +1681,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1753,7 +1753,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1820,7 +1820,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -1892,7 +1892,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1962,7 +1962,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2033,7 +2033,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -2107,7 +2107,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertFailure("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -2161,7 +2161,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 			
 		// THEN
 		XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-		assertShadowFetchOperationCountIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 		// Check accountRef
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
@@ -2233,7 +2233,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -2296,7 +2296,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2368,7 +2368,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(dummyResource, prismContext);
         // This explicitly parses the schema, therefore ...
-        assertResourceSchemaParseCountIncrement(1);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
         
         RefinedObjectClassDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
         PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new QName(
@@ -2425,7 +2425,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // First fetch: initial account read
         // Second fetch: fetchback after modification to correctly process inbound
-        assertShadowFetchOperationCountIncrement(2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2485,7 +2485,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2555,7 +2555,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2623,7 +2623,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertFailure(result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         assertNoProvisioningScripts();
         
@@ -2655,7 +2655,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -2707,7 +2707,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		try {
 			PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -2776,7 +2776,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userBlackbeard = modelService.getObject(UserType.class, USER_BLACKBEARD_OID, null, task, result);
         UserType userBlackbeardType = userBlackbeard.asObjectable();
@@ -2862,7 +2862,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
 		display("User morgan after", userMorgan);
@@ -2939,7 +2939,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -3026,7 +3026,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         PrismObject<UserType> userAfter = findUserByUsername("charles");
         assertNotNull("No charles", userAfter);
@@ -3070,7 +3070,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         PrismObject<UserType> userAfter = findUserByUsername("charles");
         assertNull("Charles is not gone", userAfter);

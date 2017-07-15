@@ -24,6 +24,7 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -89,7 +90,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -150,7 +151,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -216,7 +217,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -287,7 +288,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -343,7 +344,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
@@ -374,6 +375,6 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();
         prepareNotifications();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	}
 }

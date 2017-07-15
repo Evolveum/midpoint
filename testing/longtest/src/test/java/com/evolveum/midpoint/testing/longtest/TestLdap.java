@@ -62,6 +62,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -513,7 +514,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -527,7 +528,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         
         
@@ -562,7 +563,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -576,7 +577,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
         // THEN
         TestUtil.displayThen(TEST_NAME);
         
-        assertShadowFetchOperationCountIncrement((2*NUM_LDAP_ENTRIES)/100+2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, (2*NUM_LDAP_ENTRIES)/100+2);
         
         
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);

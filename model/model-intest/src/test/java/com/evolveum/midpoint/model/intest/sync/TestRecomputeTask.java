@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBElement;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -401,8 +402,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		clearUserOrgAndRoleRefs(USER_JACK_OID);
 		clearUserOrgAndRoleRefs(USER_GUYBRUSH_OID);
 		
-		rememberShadowFetchOperationCount();
-		rememberConnectorOperationCount();
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -423,8 +424,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
 		display("Users after recompute", users);
 
-		assertShadowFetchOperationCountIncrement(0);
-		assertConnectorOperationIncrement(0);
+		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
 		
 		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
 		assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,

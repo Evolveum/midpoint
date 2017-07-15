@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -209,13 +210,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowName";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
     }
 
     @Test
@@ -223,13 +224,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowKindIntentUsername";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
     }
     
     @Test
@@ -237,13 +238,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowKindIntentFullname";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_FULLNAME);
         
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
     }
     
     @Test
@@ -251,13 +252,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowNameRepo";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
     }
 
     @Test
@@ -265,13 +266,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowKindIntentUsernameRepo";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
     }
     
     @Test
@@ -279,13 +280,13 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         final String TEST_NAME = "testGetLinkedShadowKindIntentFullnameRepo";
         TestUtil.displayTestTile(this, TEST_NAME);
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         ExpressionVariables variables = ExpressionVariables.create(ExpressionConstants.VAR_USER, getUser(USER_GUYBRUSH_OID));
         
         assertExecuteScriptExpressionString(TEST_NAME, variables, null);
         
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
     }
 
     

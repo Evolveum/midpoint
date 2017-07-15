@@ -910,76 +910,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		lastCountMap.put(counter, currentCount);
 	}
 	
-	@Deprecated
-	protected void rememberResourceSchemaFetchCount() {
-		rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
-	}
-
-	@Deprecated
-	protected void assertResourceSchemaFetchIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, expectedIncrement);
-	}
-	
-	@Deprecated
-	protected void rememberConnectorSchemaParseCount() {
-		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
-	}
-
-	@Deprecated
-	protected void assertConnectorSchemaParseIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, expectedIncrement);
-	}
-	
-	@Deprecated
-	protected void rememberConnectorCapabilitiesFetchCount() {
-		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
-	}
-
-	@Deprecated
-	protected void assertConnectorCapabilitiesFetchIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, expectedIncrement);
-	}
-
-	@Deprecated
-	protected void rememberConnectorInitializationCount() {
-		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
-	}
-
-	@Deprecated
-	protected void assertConnectorInitializationCountIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, expectedIncrement);
-	}
-	
-	@Deprecated
-	protected void rememberResourceSchemaParseCount() {
-		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
-	}
-
-	@Deprecated
-	protected void assertResourceSchemaParseCountIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, expectedIncrement);
-	}
-	
-	@Deprecated
-	protected void rememberConnectorOperationCount() {
-		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
-	}
-
-	@Deprecated
-	protected void assertConnectorOperationIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, expectedIncrement);
-	}
-	
-	@Deprecated
-	protected void rememberConnectorSimulatedPagingSearchCount() {
-		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
-	}
-
-	@Deprecated
-	protected void assertConnectorSimulatedPagingSearchIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, expectedIncrement);
-	}
-	
 	protected void rememberResourceCacheStats() {
 		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
 	}
@@ -1004,11 +934,6 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		lastStats.setMisses(currentStats.getMisses());
 	}
 
-	@Deprecated
-	protected void rememberPrismObjectCloneCount() {
-		rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
-	}
-				
 	protected void assertSteadyResources() {
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
@@ -1024,17 +949,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
-	
-	@Deprecated
-	protected void rememberShadowFetchOperationCount() {
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-	}
-
-	@Deprecated
-	protected void assertShadowFetchOperationCountIncrement(int expectedIncrement) {
-		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, expectedIncrement);
-	}
-	
+		
 	protected void rememberDummyResourceGroupMembersReadCount(String instanceName) {
 		lastDummyResourceGroupMembersReadCount  = DummyResource.getInstance(instanceName).getGroupMembersReadCount();
 	}

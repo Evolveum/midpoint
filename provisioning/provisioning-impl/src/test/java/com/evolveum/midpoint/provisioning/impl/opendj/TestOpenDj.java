@@ -85,6 +85,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -1619,8 +1620,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_ALL_ACCOUNTS_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
 		SearchResultList<PrismObject<ShadowType>> searchResults = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
@@ -1633,7 +1634,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals("Unexpected number of search results", 14, searchResults.size());
 		
 		assertConnectorOperationIncrement(1, 29);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 
 	@Test
@@ -1649,8 +1650,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		provisioningService.applyDefinition(ShadowType.class, query, task, result);
 
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1670,7 +1671,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals("Unexpected number of objects found", 1, objListType.size());
 		
 		assertConnectorOperationIncrement(1, 3);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 	
 	@Test
@@ -1683,8 +1684,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(ACCOUNT_BARBOSSA_DN, resource);
 
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1707,7 +1708,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertAttribute(shadow, "dn", ACCOUNT_BARBOSSA_DN);
 		
 		assertConnectorOperationIncrement(1, 3);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 	
 	/**
@@ -1726,8 +1727,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(
 				"uid=DoesNOTeXXXiSt,ou=People,dc=example,dc=com", resource);
 
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1747,7 +1748,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertEquals("Unexpected number of objects found", 0, objListType.size());
 		
 		assertConnectorOperationIncrement(1, 1);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 
 	@Test
@@ -1764,8 +1765,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectPaging paging = ObjectPaging.createPaging(null, 3);
 		query.setPaging(paging);
 		
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1781,7 +1782,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertSearchResults(searchResults, "cook", "drake", "hbarbossa" );
 		
 		assertConnectorOperationIncrement(1, 7);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 	
 	@Test
@@ -1798,8 +1799,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectPaging paging = ObjectPaging.createPaging(0, 4);
 		query.setPaging(paging);
 		
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1815,7 +1816,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertSearchResults(searchResults, "cook", "drake", "hbarbossa", "idm");
 		
 		assertConnectorOperationIncrement(1, 9);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 	
 	@Test
@@ -1832,8 +1833,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		ObjectPaging paging = ObjectPaging.createPaging(2, 5);
 		query.setPaging(paging);
 		
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1849,7 +1850,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs" );
 		
 		assertConnectorOperationIncrement(1, 11);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 	
 	@Test
@@ -1868,8 +1869,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 		
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1885,7 +1886,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertSearchResults(searchResults, "monk", "hbarbossa", "jbeckett", "jbond" );
 		
 		assertConnectorOperationIncrement(1, 9);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 	
 	@Test
@@ -1904,8 +1905,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 				new ItemPath(ShadowType.F_ATTRIBUTES, new QName(RESOURCE_NS, "sn")), OrderDirection.ASCENDING));
 		query.setPaging(paging);
 		
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1921,7 +1922,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertSearchResults(searchResults, "jbeckett", "jbond", "cook", "drake" );
 		
 		assertConnectorOperationIncrement(1, 9);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
 		
 	private void assertSearchResults(List<PrismObject<ShadowType>> searchResults, String... expectedUids) {
@@ -2173,8 +2174,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		
 		Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_POSIX_VANHELGEN_LDIF_FILE);
 
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
 		// WHEN
 		List<PrismObject<ShadowType>> objListType = 
@@ -2194,7 +2195,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertAttribute(provisioningShadow, "uidNumber", 1002);
 		
 		assertConnectorOperationIncrement(1, 3);
-		assertConnectorSimulatedPagingSearchIncrement(0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 		
 		assertShadows(17);
 	}
@@ -2912,6 +2913,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
 	}
 	
 	protected void assertConnectorOperationIncrement(int expectedIncrementSmart, int expectedIncrementDumb) {
-		super.assertConnectorOperationIncrement(expectedIncrementSmart);
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, expectedIncrementSmart);
 	}
 }

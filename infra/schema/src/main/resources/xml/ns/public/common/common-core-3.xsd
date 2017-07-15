@@ -11194,6 +11194,21 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="defaultExportSettings" type="tns:GuiExportSettingsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the default settings for GUI object export.
+							This setting apply to object export that is accessible to common users
+							(e.g. the user list page, resource list). 
+							This does NOT necessarily controls the export of repository objects.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -14889,6 +14904,7 @@
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
            		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>
            		<!-- TODO: number of results per page (MID-1931) -->
+           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
            	</xsd:sequence>
     </xsd:complexType>
     
@@ -15027,6 +15043,31 @@
        				</xsd:annotation>
        			</xsd:element>
        			<!-- TODO later: sorting, expression -->
+           	</xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiExportSettingsType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the settings for GUI object export.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="sizeLimit" type="xsd:long" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Maximum number of entries to include in the export.
+       						This limit is used to limit the file size and memory consumption,
+       						so the user attempting to export a large data set will not
+       						bring down the system.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<!-- TODO: later: default data language, sync/async, whether to show detail dialog or just run the export, etc. -->
            	</xsd:sequence>
     </xsd:complexType>
 

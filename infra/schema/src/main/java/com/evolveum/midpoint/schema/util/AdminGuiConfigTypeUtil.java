@@ -63,6 +63,9 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration.isEnableExperimentalFeatures() != null) {
 			composite.setEnableExperimentalFeatures(adminGuiConfiguration.isEnableExperimentalFeatures());
 		}
+		if (adminGuiConfiguration.getDefaultExportSettings() != null) {
+			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings());
+		}
 		if (adminGuiConfiguration.getObjectLists() != null) {
 			if (composite.getObjectLists() == null) {
 				composite.setObjectLists(adminGuiConfiguration.getObjectLists().clone());

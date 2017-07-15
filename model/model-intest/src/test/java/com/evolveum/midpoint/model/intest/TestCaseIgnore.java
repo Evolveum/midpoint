@@ -183,7 +183,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_UPCASE_OID, 
         		new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyUpcaseType),
                 SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext);
-        rememberShadowFetchOperationCount();    
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);    
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -195,7 +195,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         display("Shadows", foundShadows);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertEquals("Wrong number of shadows found", 1, foundShadows.size());
         PrismObject<ShadowType> foundShadow = foundShadows.get(0);
         assertAccountShadowModel(foundShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
@@ -233,7 +233,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_UPCASE_OID, null, false);
@@ -245,7 +245,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
@@ -293,17 +293,17 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, "X-jack", resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModel, accountOid, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -335,17 +335,17 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertEquals("Account OID has changed", accountOid, accountOidAfter);
         
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, "X-JACK", resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModel, accountOid, "X-JACK", resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, "X-"+ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -415,17 +415,17 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -465,17 +465,17 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountRepoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountRepoShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountRepoShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModelShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModelShadow);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModelShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -517,17 +517,17 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -601,17 +601,17 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         assertDummyAccount(RESOURCE_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_UPCASE_NAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -709,19 +709,19 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         assertShadows(6);
 
 		// Check shadow
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
         assertShadows(6);
         
         // Check account
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Model shadow", accountModel);
-        assertShadowFetchOperationCountIncrement(1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_UPCASE_NAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
         
 //        assertShadows(6);

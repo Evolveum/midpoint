@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -157,7 +158,7 @@ public class TestClockwork extends AbstractLensTest {
 	        assertFocusModificationSanity(context);
 	        mockClockworkHook.reset();
 	        mockClockworkHook.setRecord(true);
-	        rememberShadowFetchOperationCount();
+	        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
 	        
 	        // WHEN
 	        displayWhen(TEST_NAME);
@@ -168,7 +169,7 @@ public class TestClockwork extends AbstractLensTest {
 	        mockClockworkHook.setRecord(false);
 	        display("Output context", context);
 	        display("Hook contexts", mockClockworkHook);
-	        assertShadowFetchOperationCountIncrement(0);
+	        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 	        
 	        assertJackAssignAccountContext(context);
 	        assertJackAccountShadow(context);
@@ -298,7 +299,7 @@ public class TestClockwork extends AbstractLensTest {
         mockClockworkHook.reset();
         mockClockworkHook.setRecord(true);
         mockClockworkHook.setAsynchronous(true);
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         displayWhen(testName);
@@ -310,7 +311,7 @@ public class TestClockwork extends AbstractLensTest {
         	
         	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
         	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
-        	assertShadowFetchOperationCountIncrement(0);
+        	assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         	
         	if (serialize) {
 
@@ -335,7 +336,7 @@ public class TestClockwork extends AbstractLensTest {
         mockClockworkHook.setRecord(false);
 //        display("Output context", context);
 //        display("Hook contexts", mockClockworkHook);
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         assertJackAssignAccountContext(context);
         assertJackAccountShadow(context);

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -218,7 +219,7 @@ public class TestProjector extends AbstractLensTest {
 
         assertFocusModificationSanity(context);
         
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -228,7 +229,7 @@ public class TestProjector extends AbstractLensTest {
         TestUtil.displayThen(TEST_NAME);
         display("Output context", context);
         // Not loading anything. The account is already loaded in the context
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         assertNull("Unexpected user primary changes "+context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
@@ -284,7 +285,7 @@ public class TestProjector extends AbstractLensTest {
         display("Input context", context);
 
         assertFocusModificationSanity(context);
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         projector.project(context, "test", task, result);
@@ -316,7 +317,7 @@ public class TestProjector extends AbstractLensTest {
         
         // Let's break it a bit...
         breakAssignmentDelta(context);
-        rememberShadowFetchOperationCount();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
         // WHEN
         projector.project(context, "test", task, result);
@@ -328,7 +329,7 @@ public class TestProjector extends AbstractLensTest {
 	private void assertAssignAccountToJack(LensContext<UserType> context) {
         display("Output context", context);
         // Not loading anything. The account is already loaded in the context
-        assertShadowFetchOperationCountIncrement(0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);

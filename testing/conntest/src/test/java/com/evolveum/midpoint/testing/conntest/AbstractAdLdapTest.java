@@ -281,8 +281,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         ObjectQuery query = createSamAccountNameQuery(ACCOUNT_JACK_SAM_ACCOUNT_NAME);
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -299,8 +299,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
         jackAccountOid = shadow.getOid();
         
-        assertConnectorOperationIncrement(2);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -322,8 +322,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
 		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME));
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -339,8 +339,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         display("Shadow", shadow);
         groupPiratesOid = shadow.getOid();
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
@@ -359,8 +359,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-		rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -382,8 +382,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAttribute(shadow, "sAMAccountName", ACCOUNT_JACK_SAM_ACCOUNT_NAME);
         assertAttribute(shadow, "lastLogon", 0L);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         assertLdapConnectorInstances(1);
 	}
@@ -403,16 +403,16 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
         
-        rememberConnectorOperationCount();
-		rememberConnectorSimulatedPagingSearchCount();
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
         
         // WHEN
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 
         		NUMBER_OF_ACCOUNTS, task, result);
         
         // TODO: why 11? should be 1
-        assertConnectorOperationIncrement(12);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 12);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -442,8 +442,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
                 
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -473,8 +473,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
                 
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -502,8 +502,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -534,8 +534,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
         
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
@@ -572,8 +572,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		// THEN
 		allowDuplicateSearchResults = false;
 		
-        assertConnectorOperationIncrement(1);
-        assertConnectorSimulatedPagingSearchIncrement(0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
         
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {

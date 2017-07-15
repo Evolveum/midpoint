@@ -153,7 +153,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             }
 
             @Override
-            protected String getAssignmentsDeleteMessage(int size) {
+            protected String getAssignmentsDeleteMessage(AssignmentEditorDto dto, int size) {
                 return createStringResource("AssignmentTablePanel.modal.message.deleteDelegation",
                         size).getString();
             }

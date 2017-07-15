@@ -70,7 +70,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
             @Override
             public String getObject() {
-                return getAssignmentsDeleteMessage(getSelectedAssignments().size());
+                return getAssignmentsDeleteMessage(dto, getSelectedAssignments().size());
             }
         }) {
 
@@ -95,14 +95,19 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
         };
     }
 
-    protected String getAssignmentsDeleteMessage(int size){
-        return createStringResource("AssignmentTablePanel.modal.message.delete",
-                size).getString();
+    protected String getAssignmentsDeleteMessage(AssignmentEditorDto dto, int size){
+        if (dto != null){
+            return createStringResource("pageUser.message.deleteAssignmentRowConfirm",
+                    dto.getName()).getString();
+        } else {
+            return createStringResource("AssignmentTablePanel.modal.message.delete",
+                    size).getString();
+        }
     }
 
     protected void reloadMainFormButtons(AjaxRequestTarget target){}
 
-    private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
+    protected void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
 			List<AssignmentEditorDto> toDelete) {
 		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 
