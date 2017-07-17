@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-window.onload = initAjaxStatusSigns;
-
 $(window).load(function() {
     //dom not only ready, but everything is loaded MID-3668
     $("body").removeClass("custom-hold-transition");
+
+    initAjaxStatusSigns();
 });
 
 function clickFuncWicket6(eventData) {
