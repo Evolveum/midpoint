@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
@@ -577,6 +578,10 @@ public class PageSelfDashboard extends PageSelf {
 			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
 		}
 
+		if (RelationTypes.APPROVER.getRelation().equals(assignment.getValue().getTargetRef().getRelation()) ||
+                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())){
+		    return null;
+        }
 		PrismReferenceValue refValue = targetRef.getValue();
 		PrismObject value = refValue.getObject();
 		if (value == null) {
