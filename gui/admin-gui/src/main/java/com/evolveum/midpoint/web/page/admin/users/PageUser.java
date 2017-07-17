@@ -211,7 +211,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
-                                getDelegatedToMeModel()) {
+                                getDelegatedToMeModel(), PageUser.this) {
                             private static final long serialVersionUID = 1L;
 
                             @Override

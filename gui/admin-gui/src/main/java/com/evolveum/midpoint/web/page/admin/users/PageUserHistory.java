@@ -211,7 +211,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
-                                getDelegatedToMeModel()) {
+                                getDelegatedToMeModel(), PageUserHistory.this) {
                             private static final long serialVersionUID = 1L;
 
                             @Override

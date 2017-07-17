@@ -80,7 +80,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
         add(delegations);
 
         AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_DELEGATIONS_PANEL, createStringResource("FocusType.delegations"),
-                delegationsModel) {
+                delegationsModel, pageBase) {
             private static final long serialVersionUID = 1L;
 
             @Override

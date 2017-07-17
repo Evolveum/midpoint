@@ -210,7 +210,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new AssignmentTablePanel<R>(panelId, parentPage.createStringResource("FocusType.inducement"), inducementsModel) {
+				return new AssignmentTablePanel<R>(panelId, parentPage.createStringResource("FocusType.inducement"), inducementsModel, parentPage) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
