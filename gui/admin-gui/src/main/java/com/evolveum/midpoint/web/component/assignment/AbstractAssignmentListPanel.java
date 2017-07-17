@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -105,7 +106,12 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
         }
     }
 
-    protected void reloadMainFormButtons(AjaxRequestTarget target){}
+    protected void reloadMainFormButtons(AjaxRequestTarget target){
+        AbstractObjectMainPanel panel = AbstractAssignmentListPanel.this.findParent(AbstractObjectMainPanel.class);
+        if (panel != null){
+            panel.reloadSavePreviewButtons(target);
+        }
+    }
 
     protected void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
 			List<AssignmentEditorDto> toDelete) {

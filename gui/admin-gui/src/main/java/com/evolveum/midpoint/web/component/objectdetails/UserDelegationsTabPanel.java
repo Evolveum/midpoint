@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -194,7 +195,18 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
     }
 
     public boolean isDelegationsModelChanged(){
-        return getDelegationsTablePanel().isModelChanged();
+        if (delegationsModel == null && delegationsModel.getObject() == null){
+            return false;
+        }
+        if (delegationsModel.getObject().isEmpty()){
+            return false;
+        }
+        for (AssignmentEditorDto dto : delegationsModel.getObject()){
+            if (UserDtoStatus.DELETE.equals(dto.getStatus()) || UserDtoStatus.ADD.equals(dto.getStatus())){
+                return true;
+            }
+        }
+        return false;
     }
 
     private AssignmentTablePanel getDelegationsTablePanel(){

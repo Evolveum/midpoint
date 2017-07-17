@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -306,7 +307,21 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	@Override
     protected boolean areSavePreviewButtonsEnabled(){
-        return assignmentsTabPanel == null ?
-                super.areSavePreviewButtonsEnabled() : assignmentsTabPanel.isAssignmentsModelChanged();
+        return isAssignmentsModelChanged();
     }
+
+    private boolean isAssignmentsModelChanged(){
+    	if (assignmentsModel == null && assignmentsModel.getObject() == null){
+    		return false;
+		}
+		if (assignmentsModel.getObject().isEmpty()){
+    		return false;
+		}
+		for (AssignmentEditorDto dto : assignmentsModel.getObject()){
+			if (UserDtoStatus.DELETE.equals(dto.getStatus()) || UserDtoStatus.ADD.equals(dto.getStatus())){
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -82,7 +82,7 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 			};
 		} else {
 			panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
-					createStringResource("FocusType.assignment"), assignmentsModel) {
+					createStringResource("FocusType.assignment"), assignmentsModel, pageBase) {
 
 				@Override
 				protected boolean getAssignmentMenuVisibility() {
@@ -120,10 +120,6 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 		return adminGuiConfig != null && adminGuiConfig.isEnableExperimentalFeatures() != null &&
 				adminGuiConfig.isEnableExperimentalFeatures();
 
-	}
-
-	public boolean isAssignmentsModelChanged(){
-		return getAssignmentTablePanel().isModelChanged();
 	}
 
 	private AssignmentTablePanel getAssignmentTablePanel(){

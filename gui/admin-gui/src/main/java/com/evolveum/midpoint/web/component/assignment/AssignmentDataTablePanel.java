@@ -112,8 +112,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
             @Override
             public boolean isVisible(){
-                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)
-                        && !(getPageBase() instanceof PageSelfProfile);
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
             }
         });
         assignmentsContainer.add(newObjectIcon);
@@ -137,6 +136,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         fillInRelationAssignmentsMap();
         relationModel.setObject(relation);
         addOrReplaceAssignmentsTable(getAssignmentsContainer());
+        reloadMainFormButtons(target);
         target.add(getAssignmentsContainer());
     }
 
@@ -277,35 +277,44 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 //            }
 //
 //        });
-        columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
-            private static final long serialVersionUID = 1L;
-
+//        columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
+//                                     final IModel<AssignmentEditorDto> rowModel) {
+//                super.populateItem(cellItem, componentId, rowModel);
+//                cellItem.setEnabled(false);
+////                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
+//            }
+//
+//            @Override
+//            protected IModel createLinkModel(IModel<AssignmentEditorDto> rowModel) {
+//                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModel(rowModel,"", AssignmentDataTablePanel.this);
+//                return StringUtils.isEmpty(activationLabelModel.getObject()) ?
+//                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel;
+//            }
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
+//                        AssignmentActivationPopupPanel popupPanel = new AssignmentActivationPopupPanel(pageBase.getMainPopupBodyId(), rowModel){
+//                            private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            protected void reloadDateComponent(AjaxRequestTarget target) {
+//                                target.add(getAssignmentsContainer());
+//                            }
+//                        };
+//                        pageBase.showMainPopup(popupPanel, target);
+//            }
+//        });
+        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
             @Override
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
-                super.populateItem(cellItem, componentId, rowModel);
-                cellItem.setEnabled(false);
-//                cellItem.add(AssignmentsUtil.getEnableBehavior(rowModel));
-            }
-
-            @Override
-            protected IModel createLinkModel(IModel<AssignmentEditorDto> rowModel) {
                 IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModel(rowModel,"", AssignmentDataTablePanel.this);
-                return StringUtils.isEmpty(activationLabelModel.getObject()) ?
-                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel;
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
-                        AssignmentActivationPopupPanel popupPanel = new AssignmentActivationPopupPanel(pageBase.getMainPopupBodyId(), rowModel){
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void reloadDateComponent(AjaxRequestTarget target) {
-                                target.add(getAssignmentsContainer());
-                            }
-                        };
-                        pageBase.showMainPopup(popupPanel, target);
+                cellItem.add(new Label(componentId, StringUtils.isEmpty(activationLabelModel.getObject()) ?
+                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel));
             }
         });
 

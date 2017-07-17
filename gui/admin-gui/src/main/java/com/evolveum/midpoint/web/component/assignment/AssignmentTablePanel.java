@@ -93,7 +93,6 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 	private static final String ID_MENU = "assignmentsMenu";
 	private static final String ID_LIST = "assignmentList";
 	protected static final String ID_ROW = "assignmentEditor";
-    private boolean isModelChanged = false;
 
 	public AssignmentTablePanel(String id, IModel<String> label,
 			IModel<List<AssignmentEditorDto>> assignmentModel) {
@@ -457,15 +456,4 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 		return false;
 	}
 
-	protected void reloadMainFormButtons(AjaxRequestTarget target){
-        isModelChanged = true;
-        AbstractObjectMainPanel panel = AssignmentTablePanel.this.findParent(AbstractObjectMainPanel.class);
-        if (panel != null){
-            panel.reloadSavePreviewButtons(target);
-        }
-    }
-
-    public boolean isModelChanged() {
-        return isModelChanged;
-    }
 }
