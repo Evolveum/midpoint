@@ -30,8 +30,12 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +115,16 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			@Override
 			public SecurityEnforcer getSecurityEnforcer() {
 				return securityEnforcer;
+			}
+
+			@Override
+			public AdminGuiConfigurationType getAdminGuiConfiguration() {
+				Task task = createSimpleTask("getAdminGuiConfiguration");
+				try {
+					return getModelInteractionService().getAdminGuiConfiguration(task, task.getResult());
+				} catch (ObjectNotFoundException | SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
 			}
 		};
 	}

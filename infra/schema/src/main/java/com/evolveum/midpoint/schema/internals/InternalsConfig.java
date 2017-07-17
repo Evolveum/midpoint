@@ -162,4 +162,9 @@ public class InternalsConfig {
 		prismMonitoring = true;
 		allowClearDataLogging = true;
 	}
+
+	public static boolean nonCriticalExceptionsAreFatal() {
+		// TODO: return true in development mode: MID-3529
+		return false;
+	}
 }

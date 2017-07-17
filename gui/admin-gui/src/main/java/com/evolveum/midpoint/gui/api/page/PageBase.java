@@ -88,6 +88,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -266,6 +267,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	private LoadableModel<Integer> workItemCountModel;
 	private LoadableModel<Integer> certWorkItemCountModel;
 	private LoadableModel<DeploymentInformationType> deploymentInfoModel;
+
+	// No need to store this in the session. Retrieval is cheap.
+	private transient AdminGuiConfigurationType adminGuiConfiguration;
 
 	public PageBase(PageParameters parameters) {
 		super(parameters);
@@ -474,6 +478,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	protected ModelDiagnosticService getModelDiagnosticService() {
 		return modelDiagnosticService;
+	}
+
+	@Override
+	public AdminGuiConfigurationType getAdminGuiConfiguration() {
+		if (adminGuiConfiguration == null) {
+			Task task = createSimpleTask(PageBase.DOT_CLASS + "getAdminGuiConfiguration");
+			try {
+				adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(task, task.getResult());
+			} catch (ObjectNotFoundException | SchemaException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Cannot retrieve admin GUI configuration", e);
+				if (InternalsConfig.nonCriticalExceptionsAreFatal()) {
+					throw new SystemException("Cannot retrieve admin GUI configuration: "+e.getMessage(), e);
+				} else {
+					// Just return empty admin GUI config, so the GUI can go on (and the problem may get fixed)
+					return new AdminGuiConfigurationType();
+				}
+			}
+		}
+		return adminGuiConfiguration;
 	}
 
 	public MidpointFormValidatorRegistry getFormValidatorRegistry() {

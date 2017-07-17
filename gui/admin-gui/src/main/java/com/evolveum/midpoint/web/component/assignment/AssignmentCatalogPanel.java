@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -113,7 +114,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
          if (AssignmentViewType.getViewTypeFromSession(pageBase) == null) {
              AssignmentViewType.saveViewTypeToSession(pageBase, viewType);
          }
-         initLayout();
+         initLayout(pageBase);
     }
 
     private void initProvider() {
@@ -145,7 +146,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             };
     }
 
-    private void initLayout() {
+    private void initLayout(ModelServiceLocator serviceLocator) {
         initModels();
         initProvider();
         setOutputMarkupId(true);
@@ -155,7 +156,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         panelContainer.setOutputMarkupId(true);
         add(panelContainer);
 
-        addOrReplaceLayout(null, panelContainer);
+        addOrReplaceLayout(null, panelContainer, serviceLocator);
     }
 
     private void initHeaderPanel(){
@@ -168,13 +169,14 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         initCartButton(headerPanel);
         addOrReplaceSearchPanel(headerPanel);
     }
-    public void addOrReplaceLayout(AjaxRequestTarget target, WebMarkupContainer panelContainer) {
+    
+    public void addOrReplaceLayout(AjaxRequestTarget target, WebMarkupContainer panelContainer, ModelServiceLocator serviceLocator) {
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);
         panelContainer.addOrReplace(treePanelContainer);
         if (AssignmentViewType.ROLE_CATALOG_VIEW.equals(AssignmentViewType.getViewTypeFromSession(pageBase)) && StringUtils.isNotEmpty(rootOid)) {
             // not let tree panel initializing in case of empty role catalog oid
-            OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, Model.of(rootOid), false, "AssignmentShoppingCartPanel.treeTitle") {
+            OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, Model.of(rootOid), false, serviceLocator, "AssignmentShoppingCartPanel.treeTitle") {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -269,7 +271,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         }
         selectedTreeItemOidModel.setObject(selectedOrg.getOid());
         AssignmentViewType.saveViewTypeToSession(pageBase, AssignmentViewType.ROLE_CATALOG_VIEW);
-        AssignmentCatalogPanel.this.addOrReplaceLayout(null, getCatalogItemsPanelContainer());
+        AssignmentCatalogPanel.this.addOrReplaceLayout(null, getCatalogItemsPanelContainer(), getPageBase());
         target.add(getCatalogItemsPanelContainer());
 
     }
@@ -363,7 +365,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 } else {
                     searchModel.reset();
                     AssignmentCatalogPanel.this.addOrReplaceSearchPanel(getHeaderPanel());
-                    AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
+                    AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer(), getPageBase());
                     target.add(getCatalogItemsPanelContainer());
                     target.add(getHeaderPanel());
                 }
@@ -411,7 +413,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 //        setCurrentPage(0);
         objectProvider.setQuery(createContentQuery(query));
-        AssignmentCatalogPanel.this.addOrReplaceLayout(null, getCatalogItemsPanelContainer());
+        AssignmentCatalogPanel.this.addOrReplaceLayout(null, getCatalogItemsPanelContainer(), getPageBase());
         target.add(getCatalogItemsPanelContainer());
     }
 
@@ -580,7 +582,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
             protected void onSelectPerformed(AjaxRequestTarget target, UserType targetUser) {
                 super.onSelectPerformed(target, targetUser);
                 getRoleCatalogStorage().setAssignmentsUserOwner(targetUser.asPrismContainer());
-                AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer());
+                AssignmentCatalogPanel.this.addOrReplaceLayout(target, getCatalogItemsPanelContainer(), getPageBase());
                 target.add(getCatalogItemsPanelContainer());
                 target.add(getHeaderPanel());
                 target.add(getViewSelectComponent());

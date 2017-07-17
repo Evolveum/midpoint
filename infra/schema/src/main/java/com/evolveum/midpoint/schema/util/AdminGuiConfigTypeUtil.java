@@ -22,6 +22,7 @@ import org.apache.commons.collections.map.HashedMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.BooleanSupplier;
 
 /**
  * @author semancik
@@ -92,6 +93,9 @@ public class AdminGuiConfigTypeUtil {
 					mergeWidget(composite.getUserDashboard(), widget);
 				}
 			}
+		}
+		for (UserInterfaceFeatureType feature: adminGuiConfiguration.getFeature()) {
+			mergeFeature(composite.getFeature(), feature);
 		}
 		if (composite.getObjectLists() != null && composite.getObjectLists().getObjectList() != null){
 			for (GuiObjectListType objectListType : composite.getObjectLists().getObjectList()){
@@ -171,19 +175,85 @@ public class AdminGuiConfigTypeUtil {
 			mergeWidget(compositeWidget, newWidget);
 		}
 	}
+	
+	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
+		return findFeature(dashboard.getWidget(), widgetIdentifier);
+	}
 
 	private static void mergeWidget(DashboardWidgetType compositeWidget, DashboardWidgetType newWidget) {
-		UserInterfaceElementVisibilityType newCompositeVisibility = mergeVisibility(compositeWidget.getVisibility(), newWidget.getVisibility());
-		compositeWidget.setVisibility(newCompositeVisibility);
+		mergeFeature(compositeWidget, newWidget, UserInterfaceElementVisibilityType.VACANT);
+		// merge other widget properties (in the future)
+	}
+	
+	private static void mergeFeature(List<UserInterfaceFeatureType> compositeFeatures, UserInterfaceFeatureType newFeature) {
+		String newIdentifier = newFeature.getIdentifier();
+		UserInterfaceFeatureType compositeFeature = findFeature(compositeFeatures, newIdentifier);
+		if (compositeFeature == null) {
+			compositeFeatures.add(newFeature.clone());
+		} else {
+			mergeFeature(compositeFeature, newFeature, UserInterfaceElementVisibilityType.AUTOMATIC);
+		}
+	}
+	
+	private static <T extends UserInterfaceFeatureType> void mergeFeature(T compositeFeature, T newFeature, UserInterfaceElementVisibilityType defaultVisibility) {
+		UserInterfaceElementVisibilityType newCompositeVisibility = mergeVisibility(compositeFeature.getVisibility(), newFeature.getVisibility(), defaultVisibility);
+		compositeFeature.setVisibility(newCompositeVisibility);
+	}
+	
+	public static <T extends UserInterfaceFeatureType> T findFeature(List<T> features, String identifier) {
+		for (T feature: features) {
+			if (feature.getIdentifier().equals(identifier)) {
+				return feature;
+			}
+		}
+		return null;
+	}
+	
+	public static UserInterfaceElementVisibilityType getFeatureVisibility(AdminGuiConfigurationType adminGuiConfig, String identifier) {
+		UserInterfaceFeatureType feature = findFeature(adminGuiConfig.getFeature(), identifier);
+		if (feature == null) {
+			return UserInterfaceElementVisibilityType.AUTOMATIC;
+		}
+		UserInterfaceElementVisibilityType visibility = feature.getVisibility();
+		if (visibility == null) {
+			return UserInterfaceElementVisibilityType.AUTOMATIC;
+		}
+		return visibility;
+	}
+	
+	public static boolean isFeatureVisible(AdminGuiConfigurationType adminGuiConfig, String identifier) {
+		return isFeatureVisible(adminGuiConfig, identifier, null);
+	}
+	
+	public static boolean isFeatureVisible(AdminGuiConfigurationType adminGuiConfig, String identifier, BooleanSupplier automaticPredicate) {
+		UserInterfaceElementVisibilityType visibility = getFeatureVisibility(adminGuiConfig, identifier);
+		return isVisible(visibility, automaticPredicate);
+	}
+	
+	public static boolean isVisible(UserInterfaceElementVisibilityType visibility, BooleanSupplier automaticPredicate) {
+		if (visibility == UserInterfaceElementVisibilityType.HIDDEN) {
+			return false;
+		}
+		if (visibility == UserInterfaceElementVisibilityType.VISIBLE) {
+			return true;
+		}
+		if (visibility == UserInterfaceElementVisibilityType.AUTOMATIC) {
+			if (automaticPredicate == null) {
+				return true;
+			} else {
+				return automaticPredicate.getAsBoolean();
+			}
+		}
+		return false;
 	}
 
 	private static UserInterfaceElementVisibilityType mergeVisibility(
-			UserInterfaceElementVisibilityType compositeVisibility, UserInterfaceElementVisibilityType newVisibility) {
+			UserInterfaceElementVisibilityType compositeVisibility, UserInterfaceElementVisibilityType newVisibility, UserInterfaceElementVisibilityType defaultVisibility) {
 		if (compositeVisibility == null) {
-			compositeVisibility = UserInterfaceElementVisibilityType.VACANT;
+			compositeVisibility = defaultVisibility;
 		}
 		if (newVisibility == null) {
-			newVisibility = UserInterfaceElementVisibilityType.VACANT;
+			newVisibility = defaultVisibility;
 		}
 		if (compositeVisibility == UserInterfaceElementVisibilityType.HIDDEN || newVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
 			return UserInterfaceElementVisibilityType.HIDDEN;
@@ -195,15 +265,6 @@ public class AdminGuiConfigTypeUtil {
 			return UserInterfaceElementVisibilityType.AUTOMATIC;
 		}
 		return UserInterfaceElementVisibilityType.VACANT;
-	}
-
-	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
-		for (DashboardWidgetType widget: dashboard.getWidget()) {
-			if (widget.getIdentifier().equals(widgetIdentifier)) {
-				return widget;
-			}
-		}
-		return null;
 	}
 
 	/*

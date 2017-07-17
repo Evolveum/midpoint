@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -100,12 +101,12 @@ public class TreeTablePanel extends BasePanel<String> {
 		super(id, rootOid);
 		this.parentPage = parentPage;
 		setParent(parentPage);
-		initLayout();
+		initLayout(parentPage);
 	}
 
-	protected void initLayout() {
+	protected void initLayout(ModelServiceLocator serviceLocator) {
 
-		OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false) {
+		OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false, serviceLocator) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
