@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -612,5 +613,13 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(prismResource, fetchedResource);
     }
 
+    /**
+     * MID-3999
+     */
+    @Test(expectedExceptions = SchemaException.class)
+    public void test950AddBinary() throws Exception {
+        final File user = new File(FOLDER_BASE, "./get/user-binary.xml");
+        addGetCompare(user);
+    }
 }
 

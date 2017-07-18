@@ -736,7 +736,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {
             List<Item<?,?>> items = containerValue.getItems();
-            //TODO: is this ehought??should we try items without definitions??
+            //TODO: is this enough? should we try items without definitions?
             if (items != null) {
                 for (Item item : items) {
                     values.addAll(converter.convertToRValue(item, false));
