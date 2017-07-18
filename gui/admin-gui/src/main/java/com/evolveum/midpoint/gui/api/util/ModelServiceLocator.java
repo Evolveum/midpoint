@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 
 /**
  * Interface that allows location of model and model-like services, 
@@ -41,5 +42,14 @@ public interface ModelServiceLocator {
 	PrismContext getPrismContext();
 	
 	SecurityEnforcer getSecurityEnforcer();
+	
+	/**
+	 * Returns adminGuiConfiguraiton applicable to currently logged-in user.
+	 * Strictly speaking, this can be retrieved from modelInteractionService.
+	 * But having a separate function for that allows to get rid of
+	 * task and result parameters. And more importantly: this allows to
+	 * cache adminGuiConfig in the page (in case many components need it).
+	 */
+	AdminGuiConfigurationType getAdminGuiConfiguration();
 
 }

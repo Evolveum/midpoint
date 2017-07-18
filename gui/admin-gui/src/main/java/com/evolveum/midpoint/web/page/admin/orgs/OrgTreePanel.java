@@ -39,7 +39,11 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.GuiFeature;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.FeatureVisibleEnableBehaviour;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -55,9 +59,11 @@ import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderCont
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(OrgTreePanel.class);
 	
@@ -66,11 +72,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	SessionStorage storage;
 
 
-	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable) {
-        this(id, rootOid, selectable, "");
+	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator) {
+        this(id, rootOid, selectable, serviceLocator, "");
     }
 
-	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, String treeTitleKey) {
+	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey) {
 		super(id, rootOid);
 
 		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
@@ -105,7 +111,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			}
 		};
 
-		initLayout();
+		initLayout(serviceLocator);
 	}
 
 	public SelectableBean<OrgType> getSelected() {
@@ -120,9 +126,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		return ((OrgTreeProvider) getTree().getProvider()).getSelectedObjects();
 	}
 
-	private static final long serialVersionUID = 1L;
-
-	private void initLayout() {
+	private void initLayout(ModelServiceLocator serviceLocator) {
 		WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
 		treeHeader.setOutputMarkupId(true);
 		add(treeHeader);
@@ -132,7 +136,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeHeader.add(treeTitle);
 
 		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
-				new Model<>((Serializable) createTreeMenuInternal()));
+				new Model<>((Serializable) createTreeMenuInternal(serviceLocator.getAdminGuiConfiguration())));
 		treeHeader.add(treeMenu);
 
 		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
@@ -326,29 +330,33 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		}
 	}
 
-	private List<InlineMenuItem> createTreeMenuInternal() {
+	private List<InlineMenuItem> createTreeMenuInternal(AdminGuiConfigurationType adminGuiConfig) {
 		List<InlineMenuItem> items = new ArrayList<>();
 
-		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
-				new InlineMenuItemAction() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						collapseAllPerformed(target);
-					}
-				});
-		items.add(item);
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
-				new InlineMenuItemAction() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						expandAllPerformed(target);
-					}
-				});
-		items.add(item);
+		if (AdminGuiConfigTypeUtil.isFeatureVisible(adminGuiConfig, GuiFeature.ORGTREE_COLLAPSE_ALL.getUri())) {
+			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
+	
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							collapseAllPerformed(target);
+						}
+					});
+			items.add(item);
+		}
+		if (AdminGuiConfigTypeUtil.isFeatureVisible(adminGuiConfig, GuiFeature.ORGTREE_EXPAND_ALL.getUri())) {
+			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
+	
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							expandAllPerformed(target);
+						}
+					});
+			items.add(item);
+		}
 
 		List<InlineMenuItem> additionalActions = createTreeMenu();
 		if (additionalActions != null) {

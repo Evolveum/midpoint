@@ -11209,10 +11209,21 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="feature" type="tns:UserInterfaceFeatureType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Generic configuration for individual UI features. Mostly specifies whether to show
+						them or hide them. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
-       <xsd:complexType name="DashboardLayoutType">
+    <xsd:complexType name="DashboardLayoutType">
         <xsd:annotation>
         	<xsd:documentation>
         		Specifies layout of a dashboard, such as the user dashboard (home screen)
@@ -11233,39 +11244,60 @@
         <xsd:annotation>
         	<xsd:documentation>
         		Defines properties of a specific dashboard widget.
+        		
+        		The identifier property defines the identity of the widget and currently
+				also the placement on the dashboard. The widget specifications that come
+				from different roles will be merged if they have the same identifier.
         	</xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:UserInterfaceFeatureType">
+	       		<xsd:sequence>
+	           		<!-- TODO: type
+	           		<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+	           			<xsd:annotation>
+	           				<xsd:documentation>
+	           					Type of the widget. It is an identifier that specifies the content
+	           					of the winget (e.g. what will be inside the box).
+	           					THIS IS NOT USED YET. It is only for future use.
+	           				</xsd:documentation>
+	           			</xsd:annotation>
+	           		</xsd:element>
+	           		 -->
+	           		<!-- TODO: placement -->
+	           	</xsd:sequence>	
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+	<xsd:complexType name="UserInterfaceFeatureType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Defines properties of a specific user interface feature (e.g. button, button set, widget, etc.)
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.6.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
        		<xsd:sequence>
        			<xsd:element name="identifier" type="xsd:anyURI" minOccurs="1" maxOccurs="1">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Widget identifier. It defines the identity of the widget and currently
-           					also the placement on the dashboard. The widget specifications that come
+           					Widget identifier. The feature specifications that come
            					from different roles will be merged if they have the same identifier.
            				</xsd:documentation>
            			</xsd:annotation>
            		</xsd:element>
-           		<!-- TODO: type
-           		<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
-           			<xsd:annotation>
-           				<xsd:documentation>
-           					Type of the widget. It is an identifier that specifies the content
-           					of the winget (e.g. what will be inside the box).
-           					THIS IS NOT USED YET. It is only for future use.
-           				</xsd:documentation>
-           			</xsd:annotation>
-           		</xsd:element>
-           		 -->
-           		<!-- TODO: placement -->
            		<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
            		             minOccurs="0" maxOccurs="1" default="vacant">
            			<xsd:annotation>
            				<xsd:documentation>
-           					Defines, whether this widget will be visible or it will be hidden.
+           					Defines, whether this feature will be visible or it will be hidden.
            				</xsd:documentation>
            			</xsd:annotation>
            		</xsd:element>
