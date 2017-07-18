@@ -277,7 +277,7 @@ public class PageResource extends PageAdminResources {
 
 	private ResourceSummaryPanel createResourceSummaryPanel(){
 		 ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
-					resourceModel);
+					resourceModel, this);
 		 resourceSummaryPanel.setOutputMarkupId(true);
 			return resourceSummaryPanel;
 	}

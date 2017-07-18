@@ -124,7 +124,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel() {
-    	return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+    	return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {

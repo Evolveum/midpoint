@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 		@AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL, label = PageAdminRoles.AUTH_ROLE_ALL_LABEL, description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
 public class PageRole extends PageAdminAbstractRole<RoleType> implements ProgressReportingAwarePage {
+	private static final long serialVersionUID = 1L;
 
 	public static final String AUTH_ROLE_ALL = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL;
 	public static final String AUTH_ROLE_ALL_LABEL = "PageAdminRoles.auth.roleAll.label";
@@ -56,7 +57,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 		initialize(null);
 	}
 
-	public PageRole(PrismObject<RoleType> roleToEdit){
+	public PageRole(PrismObject<RoleType> roleToEdit) {
 		initialize(roleToEdit);
 	}
 	
@@ -159,7 +160,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 
 	@Override
 	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
-    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
     }
 
 	@Override

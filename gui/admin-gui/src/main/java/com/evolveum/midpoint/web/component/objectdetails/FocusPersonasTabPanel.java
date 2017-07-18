@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -63,10 +65,10 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                                  PageBase page) {
         super(id, mainForm, focusModel, page);
         this.pageBase = page;
-        initLayout();
+        initLayout(page);
     }
 
-    private void initLayout(){
+    private void initLayout(ModelServiceLocator serviceLocator) {
         WebMarkupContainer container = new WebMarkupContainer(ID_PERSONAS_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
@@ -96,19 +98,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             personaPanel.setOutputMarkupId(true);
             view.add(personaPanel);
 
-            if (personaObject.getCompileTimeClass().equals(UserType.class)) {
-                personaPanel.add(new UserSummaryPanel(ID_PERSONAS_SUMMARY,
-                        new Model<ObjectWrapper<UserType>>((ObjectWrapper) personaWrapper)));
-            } else if (personaObject.getCompileTimeClass().equals(RoleType.class)) {
-                personaPanel.add(new RoleSummaryPanel(ID_PERSONAS_SUMMARY,
-                        new Model<ObjectWrapper<RoleType>>((ObjectWrapper) personaWrapper)));
-            } else if (personaObject.getCompileTimeClass().equals(OrgType.class)) {
-                personaPanel.add(new OrgSummaryPanel(ID_PERSONAS_SUMMARY,
-                        new Model<ObjectWrapper<OrgType>>((ObjectWrapper) personaWrapper)));
-            } else if (personaObject.getCompileTimeClass().equals(ServiceType.class)) {
-                personaPanel.add(new ServiceSummaryPanel(ID_PERSONAS_SUMMARY,
-                        new Model<ObjectWrapper<ServiceType>>((ObjectWrapper) personaWrapper)));
-            }
+            FocusSummaryPanel.addSummaryPanel(personaPanel, personaObject, personaWrapper, ID_PERSONAS_SUMMARY, serviceLocator);
         }
 
     }

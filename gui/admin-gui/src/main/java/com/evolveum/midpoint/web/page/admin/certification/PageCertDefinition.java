@@ -151,7 +151,7 @@ public class PageCertDefinition extends PageAdminCertification {
 	//region Layout
 	private void initLayout() {
 		CertDefinitionSummaryPanel summaryPanel = new CertDefinitionSummaryPanel(ID_SUMMARY_PANEL,
-				new PropertyModel<>(definitionModel, CertDefinitionDto.F_PRISM_OBJECT));
+				new PropertyModel<>(definitionModel, CertDefinitionDto.F_PRISM_OBJECT), this);
 		add(summaryPanel);
 
 		Form mainForm = new Form(ID_MAIN_FORM);

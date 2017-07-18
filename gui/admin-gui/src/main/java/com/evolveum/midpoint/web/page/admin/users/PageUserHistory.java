@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -99,7 +100,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel() {
-        return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+        return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {

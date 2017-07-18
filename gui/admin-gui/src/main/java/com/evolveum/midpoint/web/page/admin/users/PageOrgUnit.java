@@ -75,7 +75,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 	@Override
 	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
-    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
     }
 
 	@Override
