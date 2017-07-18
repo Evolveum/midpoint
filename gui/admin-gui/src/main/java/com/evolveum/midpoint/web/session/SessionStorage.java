@@ -48,6 +48,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_RESOURCE_OBJECT_CLASS_CONTENT = "resourceObjectClassContent";
     public static final String KEY_RESOURCE_PAGE_RESOURCE_CONTENT = "Resource";
     public static final String KEY_RESOURCE_PAGE_REPOSITORY_CONTENT = "Repository";
+    public static final String KEY_ASSIGNMENTS_TAB = "assignmentsTab";
 
     private static final String KEY_TASKS = "tasks";
 
@@ -143,6 +144,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         return (ResourceContentStorage)pageStorageMap.get(key);
 
+	}
+
+    public AssignmentsTabStorage getAssignmentsTabStorage() {
+        if (pageStorageMap.get(KEY_ASSIGNMENTS_TAB) == null) {
+            pageStorageMap.put(KEY_ASSIGNMENTS_TAB, new AssignmentsTabStorage());
+        }
+        return (AssignmentsTabStorage)pageStorageMap.get(KEY_ASSIGNMENTS_TAB);
 	}
 
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.RelationSelectorAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
+import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -60,6 +62,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
+
 /**
  * Created by honchar.
  */
@@ -75,7 +79,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 
     public AssignmentDataTablePanel(String id, IModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase){
         super(id, assignmentsModel, pageBase);
-        fillInRelationAssignmentsMap();
+        initPaging();
         initLayout();
     }
 
@@ -131,16 +135,17 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         }
         for (ObjectType object : assignmentsList){
             AssignmentEditorDto dto = createAssignmentFromSelectedObjects(object, relation);
-            getAssignmentModel().getObject().add(dto);
+            getAssignmentModel().getObject().add(0, dto);
         }
-        fillInRelationAssignmentsMap();
         relationModel.setObject(relation);
+        initPaging();
         addOrReplaceAssignmentsTable(getAssignmentsContainer());
         reloadMainFormButtons(target);
         target.add(getAssignmentsContainer());
     }
 
     private void addOrReplaceAssignmentsTable(WebMarkupContainer assignmentsContainer){
+        fillInRelationAssignmentsMap();
         DropDownChoicePanel relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), relationModel, this, false);
         relation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
@@ -167,18 +172,34 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
         assignmentsContainer.addOrReplace(showAllAssignmentsButton);
 
         ListDataProvider<AssignmentEditorDto> assignmentsProvider = new ListDataProvider<AssignmentEditorDto>(this,
-                Model.ofList(relationAssignmentsMap.get(relationModel.getObject())), false);
+                Model.ofList(relationAssignmentsMap.get(relationModel.getObject())), false){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                getAssignmentsStorage().setPaging(paging);
+            }
+
+        };
         BoxedTablePanel<AssignmentEditorDto> assignmentTable = new BoxedTablePanel<AssignmentEditorDto>(ID_ASSIGNMENTS_TABLE,
                 assignmentsProvider, initColumns(), UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE,
-                pageBase.getSessionStorage().getUserProfile().getPagingSize(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)){
+                (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)){
+            private static final long serialVersionUID = 1L;
+
+            @Override
             protected Item<AssignmentEditorDto> customizeNewRowItem(Item<AssignmentEditorDto> item, IModel<AssignmentEditorDto> model) {
                     item.add(AttributeModifier.append("class", AssignmentsUtil.createAssignmentStatusClassModel(model)));
                 return item;
             }
+
+            @Override
+            public int getItemsPerPage() {
+                return pageBase.getSessionStorage().getUserProfile().getTables().get(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
+            }
+
         };
         assignmentTable.setOutputMarkupId(true);
-        assignmentTable.setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
-        assignmentTable.setShowPaging(true);
+        assignmentTable.setCurrentPage(getAssignmentsStorage().getPaging());
         assignmentsContainer.addOrReplace(assignmentTable);
 
     }
@@ -414,5 +435,13 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
     protected void reloadMainAssignmentsComponent(AjaxRequestTarget target){
         addOrReplaceAssignmentsTable(getAssignmentsContainer());
         target.add(getAssignmentsContainer());
+    }
+
+    private AssignmentsTabStorage getAssignmentsStorage(){
+        return pageBase.getSessionStorage().getAssignmentsTabStorage();
+    }
+
+    private void initPaging(){
+        getAssignmentsStorage().setPaging(ObjectPaging.createPaging(0, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 }
