@@ -225,12 +225,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			return null;
 		}
 		
-		ObjectTemplateType objectTemplateType;
+		ObjectTemplateType objectTemplateType = null;
 		try {
 			objectTemplateType = schemaTransformer.determineObjectTemplate(object, phase, result);
 		} catch (ConfigurationException | ObjectNotFoundException e) {
 			result.recordFatalError(e);
-			throw e;
 		}
 		schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplateType, result);
 		

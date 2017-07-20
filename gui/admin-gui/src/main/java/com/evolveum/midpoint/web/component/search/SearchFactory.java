@@ -160,15 +160,13 @@ public class SearchFactory {
             Class<T> type, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator) {
 
+        Task task = modelServiceLocator.createSimpleTask(LOAD_OBJECT_DEFINITION);
+        OperationResult result = task.getResult();
         try {
             if (Modifier.isAbstract(type.getModifiers())) {
                 SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
                 return registry.findObjectDefinitionByCompileTimeClass(type);
             }
-
-            Task task = modelServiceLocator.createSimpleTask(LOAD_OBJECT_DEFINITION);
-            OperationResult result = task.getResult();
-
             PrismObject empty = modelServiceLocator.getPrismContext().createObject(type);
 
             if (ShadowType.class.equals(type)) {
@@ -179,7 +177,8 @@ public class SearchFactory {
                         empty, AuthorizationPhaseType.REQUEST, task, result);
             }
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException ex) {
-            throw new SystemException(ex);
+            result.recordFatalError(ex.getMessage());
+            throw new SystemException();
         }
     }
 
