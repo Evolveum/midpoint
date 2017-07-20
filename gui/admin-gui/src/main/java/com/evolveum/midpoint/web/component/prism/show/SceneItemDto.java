@@ -92,6 +92,22 @@ public class SceneItemDto implements Serializable {
 		return sceneItem instanceof SceneDeltaItem;
 	}
 
+	public boolean isNullEstimatedOldValues(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().getEstimatedOldValues() == null;
+	}
+
+	public boolean isAdd(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isAdd();
+	}
+
+	public boolean isDelete(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isDelete();
+	}
+
+	public boolean isReplace(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isReplace();
+	}
+
 	public boolean isDeltaScene() {
 		return sceneDto.containsDeltaItems();
 	}

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 
 import java.io.Serializable;
@@ -71,6 +72,23 @@ public class SceneItemLineDto implements Serializable {
 	public boolean isDeltaScene() {
 		return sceneItemDto.isDeltaScene();
 	}
+
+	public boolean isNullEstimatedOldValues(){
+		return sceneItemDto.isNullEstimatedOldValues();
+	}
+
+	public boolean isAdd(){
+		return sceneItemDto.isAdd();
+	}
+
+	public boolean isDelete(){
+		return sceneItemDto.isDelete();
+	}
+
+	public boolean isReplace(){
+		return sceneItemDto.isReplace();
+	}
+
 
 	@Override
 	public boolean equals(Object o) {
