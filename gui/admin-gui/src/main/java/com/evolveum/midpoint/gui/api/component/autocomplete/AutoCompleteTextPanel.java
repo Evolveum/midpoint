@@ -20,11 +20,14 @@ import com.evolveum.midpoint.web.component.prism.PrismValuePanel;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.time.Duration;
 
 import java.util.Iterator;
 
@@ -54,8 +57,12 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
             protected Iterator<T> getChoices(String input) {
                 return getIterator(input);
             }
-            
-            
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes){
+                super.updateAjaxAttributes(attributes);
+                attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true));
+            }
         };
         
         input.setType(type);
@@ -67,12 +74,18 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 protected void onUpdate(AjaxRequestTarget target) {
                     checkInputValue(input, target, (LookupPropertyModel<T>)model);
                 }
+
+                @Override
+                protected void updateAjaxAttributes(AjaxRequestAttributes attributes){
+                    super.updateAjaxAttributes(attributes);
+                    attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true));
+                }
             });
         }
         add(input);
     }
 
-	/**
+    /**
      *  This method takes care of retrieving an iterator over all
      *  options that can be completed. The generation of options can be
      *  affected by using current users input in 'input' variable.
