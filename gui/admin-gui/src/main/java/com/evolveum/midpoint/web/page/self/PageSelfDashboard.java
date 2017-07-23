@@ -22,9 +22,11 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
@@ -281,8 +283,12 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
 
         try {
-            ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-                    .item(WorkItemType.F_ASSIGNEE_REF).ref(user.getOid())
+            // TODO try to use current state (user) instead of potentially obsolete principal
+            // but this requires some computation (of deputy relation)
+            // (Note that the current code is consistent with the other places where work items are displayed.)
+            S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+            ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS)
                     .desc(F_CREATE_TIMESTAMP)
                     .build();
             Collection<SelectorOptions<GetOperationOptions>> options =
