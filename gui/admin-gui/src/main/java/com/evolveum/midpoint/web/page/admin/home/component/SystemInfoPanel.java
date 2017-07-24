@@ -141,7 +141,7 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoPanel.SystemInfoDto> 
         final WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
         table.setOutputMarkupId(true);
         add(table);
-        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(1500)));
+        table.add(new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(10000)));
 
         Label cpuUsage = new Label(ID_CPU_USAGE, new PropertyModel<>(getModel(), SystemInfoDto.F_CPU_USAGE));
         table.add(cpuUsage);

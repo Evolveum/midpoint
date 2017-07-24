@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -165,15 +166,15 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	protected AssignmentType createMemberAssignmentToModify(QName relation) throws SchemaException {
 		AssignmentType assignmentToModify = createAssignmentToModify(relation);
 
-		DropDownChoice<OrgType> tenantChoice = (DropDownChoice<OrgType>) get(ID_TENANT);
-		OrgType tenant = tenantChoice.getModelObject();
-		if (tenant != null) {
-			assignmentToModify.setTenantRef(ObjectTypeUtil.createObjectRef(tenant.getOid(), ObjectTypes.ORG));
+		ChooseTypePanel<OrgType> tenantChoice = (ChooseTypePanel) get(createComponentPath(ID_TENANT));
+		ObjectViewDto<OrgType> tenant = tenantChoice.getModelObject();
+		if (tenant != null && tenant.getObjectType() != null) {
+			assignmentToModify.setTenantRef(ObjectTypeUtil.createObjectRef(tenant.getObjectType().getOid(), ObjectTypes.ORG));
 		}
-		DropDownChoice<OrgType> projectChoice = (DropDownChoice<OrgType>) get(ID_PROJECT);
-		OrgType project = projectChoice.getModelObject();
-		if (project != null) {
-			assignmentToModify.setOrgRef(ObjectTypeUtil.createObjectRef(project.getOid(), ObjectTypes.ORG));
+		ChooseTypePanel<OrgType> projectChoice = (ChooseTypePanel) get(createComponentPath(ID_PROJECT));
+		ObjectViewDto<OrgType> project = projectChoice.getModelObject();
+		if (project != null && project.getObjectType() != null) {
+			assignmentToModify.setOrgRef(ObjectTypeUtil.createObjectRef(project.getObjectType().getOid(), ObjectTypes.ORG));
 		}
 
 		return assignmentToModify;

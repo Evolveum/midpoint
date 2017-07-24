@@ -27,18 +27,19 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
+import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
-import org.apache.wicket.ajax.AjaxNewWindowNotifyingBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -313,9 +314,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			protected Integer load() {
 				try {
 					Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-					ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-					        .item(WorkItemType.F_ASSIGNEE_REF).ref(getPrincipal().getOid())
-					        .build();
+					S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+					ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
+							OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
 					return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
 				} catch (SchemaException|SecurityViolationException e) {
 					LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
