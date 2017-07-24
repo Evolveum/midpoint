@@ -48,12 +48,15 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
 
-	public AssociationFromLinkExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService) {
+	public AssociationFromLinkExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
-		this.objectResolver = objectResolver;
 		this.modelService = modelService;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
 	}
 
 	/* (non-Javadoc)

@@ -48,12 +48,15 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
 	private ObjectResolver objectResolver;
 	private ValuePolicyProcessor valuePolicyGenerator;
 
-	public GenerateExpressionEvaluatorFactory(Protector protector, ObjectResolver objectResolver, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
+	public GenerateExpressionEvaluatorFactory(Protector protector, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
 		super();
 		this.protector = protector;
 		this.prismContext = prismContext;
-		this.objectResolver = objectResolver;
 		this.valuePolicyGenerator = valuePolicyGenerator;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
 	}
 
 	@Override

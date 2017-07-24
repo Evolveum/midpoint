@@ -57,7 +57,8 @@ public class ExpressionTestUtil {
 	
 	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, ProtectorImpl protector, 
 			PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-    	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, securityEnforcer, prismContext);
+    	ExpressionFactory expressionFactory = new ExpressionFactory(securityEnforcer, prismContext);
+    	expressionFactory.setObjectResolver(resolver);
     	
     	// asIs
     	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
@@ -74,20 +75,23 @@ public class ExpressionTestUtil {
     	expressionFactory.addEvaluatorFactory(constFactory);
     	
     	// path
-    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, resolver, protector);
+    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, protector);
+    	pathFactory.setObjectResolver(resolver);
     	expressionFactory.addEvaluatorFactory(pathFactory);
     	
     	// generate
     	ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
     	valuePolicyGenerator.setExpressionFactory(expressionFactory);
-    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, resolver, valuePolicyGenerator, prismContext);
+    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(protector, valuePolicyGenerator, prismContext);
+    	generateFactory.setObjectResolver(resolver);
     	expressionFactory.addEvaluatorFactory(generateFactory);
 
     	// script
     	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
         functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, protector);
+        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector);
+        scriptExpressionFactory.setObjectResolver(resolver);
         scriptExpressionFactory.setFunctions(functions);
         XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);

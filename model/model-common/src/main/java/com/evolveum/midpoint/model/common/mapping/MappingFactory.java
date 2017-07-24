@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  */
 public class MappingFactory {
 
-	ObjectFactory objectFactory = new ObjectFactory();
+//	ObjectFactory objectFactory = new ObjectFactory();
 	
 	private ExpressionFactory expressionFactory;
 	private ObjectResolver objectResolver;

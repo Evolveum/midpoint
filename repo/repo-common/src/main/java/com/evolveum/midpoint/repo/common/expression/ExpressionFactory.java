@@ -42,16 +42,18 @@ public class ExpressionFactory {
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
 	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<ExpressionIdentifier, Expression<?,?>>();
 	final private PrismContext prismContext;
-	final private ObjectResolver objectResolver;
+	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
 	final private SecurityEnforcer securityEnforcer;
 	
-	public ExpressionFactory(ObjectResolver objectResolver, SecurityEnforcer securityEnforcer, PrismContext prismContext) {
-		super();
-		this.objectResolver = objectResolver;
+	public ExpressionFactory(SecurityEnforcer securityEnforcer, PrismContext prismContext) {
 		this.prismContext = prismContext;
 		this.securityEnforcer = securityEnforcer;
 	}
-		
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
+	}
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}

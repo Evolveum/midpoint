@@ -46,12 +46,14 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	private ObjectResolver objectResolver;
 	private Protector protector;
 
-	public PathExpressionEvaluatorFactory(PrismContext prismContext, ObjectResolver objectResolver,
-			Protector protector) {
+	public PathExpressionEvaluatorFactory(PrismContext prismContext, Protector protector) {
 		super();
 		this.prismContext = prismContext;
-		this.objectResolver = objectResolver;
 		this.protector = protector;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
 	}
 
 	@Override

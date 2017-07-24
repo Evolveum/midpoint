@@ -42,13 +42,11 @@ public class ScriptExpressionFactory {
 	private Collection<FunctionLibrary> functions;
 	private Protector protector;
 	
-	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext,
-			Protector protector) {
+	public ScriptExpressionFactory(PrismContext prismContext, Protector protector) {
 		this.prismContext = prismContext;
-		this.objectResolver = objectResolver;
 		this.protector = protector;
 	}
-		
+
 	public ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
