@@ -18,7 +18,10 @@ package com.evolveum.midpoint.web.security;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
@@ -51,6 +54,10 @@ import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
+import org.apache.wicket.core.util.objects.checker.IObjectChecker;
+import org.apache.wicket.core.util.objects.checker.NotDetachedModelChecker;
+import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
@@ -59,6 +66,7 @@ import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
+import org.apache.wicket.serialize.java.JavaSerializer;
 import org.apache.wicket.settings.ApplicationSettings;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -262,6 +270,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
             getDebugSettings().setDevelopmentUtilitiesEnabled(true);
+            initializeDevelopmentSerializers();
         }
 
         //pretty url for resources (e.g. images)
@@ -285,7 +294,23 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         new DescriptorLoader().loadData(this);
     }
 
-    private void mountFiles(String path, Class<?> clazz) {
+    private void initializeDevelopmentSerializers() {
+    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() )
+    	{
+    	    @Override
+    	    protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException
+    	    {
+    	    	IObjectChecker checker1 = new MidPointObjectChecker();
+//    	        IObjectChecker checker2 = new NotDetachedModelChecker();
+    	        IObjectChecker checker3 = new ObjectSerializationChecker();
+    	        return new CheckingObjectOutputStream(out, checker1, checker3);
+    	    }
+    	};
+    	getFrameworkSettings().setSerializer( javaSerializer );
+		
+	}
+
+	private void mountFiles(String path, Class<?> clazz) {
         try {
             List<Resource> list = new ArrayList<>();
             String packagePath = clazz.getPackage().getName().replace('.', '/');
