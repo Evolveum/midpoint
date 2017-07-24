@@ -141,6 +141,12 @@ public class TestStrings extends AbstractStoryTest {
 	private static String userGuybrushOid;
 	private static final File USER_LECHUCK_FILE = new File(USERS_DIR, "lechuck.xml");
 	private static String userLechuckOid;
+	private static final File USER_LECHUCK_DEPUTY_FILE = new File(USERS_DIR, "lechuck-deputy.xml");
+	private static String userLechuckDeputyOid;
+	private static final File USER_LECHUCK_DEPUTY_DEPUTY_FILE = new File(USERS_DIR, "lechuck-deputy-deputy.xml");
+	private static String userLechuckDeputyDeputyOid;
+	private static final File USER_LECHUCK_DEPUTY_LIMITED_FILE = new File(USERS_DIR, "lechuck-deputy-limited.xml");
+	private static String userLechuckDeputyLimitedOid;
 
 	private static final File CONFIG_WITH_GLOBAL_RULES_FILE = new File(ROLES_DIR, "global-policy-rules.xml");
 
@@ -197,6 +203,9 @@ public class TestStrings extends AbstractStoryTest {
 		userElaineOid = addAndRecomputeUser(USER_ELAINE_FILE, initTask, initResult);
 		userGuybrushOid = addAndRecomputeUser(USER_GUYBRUSH_FILE, initTask, initResult);
 		userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
+		userLechuckDeputyOid = addAndRecomputeUser(USER_LECHUCK_DEPUTY_FILE, initTask, initResult);
+		userLechuckDeputyDeputyOid = addAndRecomputeUser(USER_LECHUCK_DEPUTY_DEPUTY_FILE, initTask, initResult);
+		userLechuckDeputyLimitedOid = addAndRecomputeUser(USER_LECHUCK_DEPUTY_LIMITED_FILE, initTask, initResult);
 
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
@@ -255,12 +264,22 @@ public class TestStrings extends AbstractStoryTest {
 		display("work items allocation notifications", allocationMessages);
 		display("processes notifications", processMessages);
 
-		assertEquals("Wrong # of work items lifecycle messages", 1, lifecycleMessages.size());
-		assertMessage(lifecycleMessages.get(0), "lechuck@evolveum.com", "A new work item has been created",
+		assertEquals("Wrong # of work items lifecycle messages", 3, lifecycleMessages.size());
+		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
+		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "A new work item has been created",
+				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
+		assertMessage(sorted.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "A new work item has been created",
+				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
+		assertMessage(sorted.get("lechuck-deputy-deputy@evolveum.com"), "lechuck-deputy-deputy@evolveum.com", "A new work item has been created",
 				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
 
-		assertEquals("Wrong # of work items allocation messages", 1, allocationMessages.size());
-		assertMessage(allocationMessages.get(0), "lechuck@evolveum.com", "Work item has been allocated to you",
+		assertEquals("Wrong # of work items allocation messages", 3, allocationMessages.size());
+		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
+		assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been allocated to you",
+				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
+		assertMessage(sorted2.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "Work item has been allocated to you",
+				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
+		assertMessage(sorted2.get("lechuck-deputy-deputy@evolveum.com"), "lechuck-deputy-deputy@evolveum.com", "Work item has been allocated to you",
 				"Stage: Line managers (1/3)", "Allocated to: Captain LeChuck (lechuck)", "(in 5 days)");
 
 		assertEquals("Wrong # of process messages", 1, processMessages.size());
@@ -310,12 +329,18 @@ public class TestStrings extends AbstractStoryTest {
 		display("processes notifications", processMessages);
 		dummyTransport.clearMessages();
 
-		assertEquals("Wrong # of work items lifecycle messages", 3, lifecycleMessages.size());
-		assertEquals("Wrong # of work items allocation messages", 3, allocationMessages.size());
+		assertEquals("Wrong # of work items lifecycle messages", 5, lifecycleMessages.size());
+		assertEquals("Wrong # of work items allocation messages", 5, allocationMessages.size());
 		assertNull("process messages", processMessages);
 
 		Map<String,Message> sorted = sortByRecipientsSingle(lifecycleMessages);
 		assertMessage(sorted.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted.get("lechuck-deputy-deputy@evolveum.com"), "lechuck-deputy-deputy@evolveum.com", "Work item has been completed",
 				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
 				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
 		assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com", "A new work item has been created",
@@ -327,6 +352,12 @@ public class TestStrings extends AbstractStoryTest {
 
 		Map<String,Message> sorted2 = sortByRecipientsSingle(allocationMessages);
 		assertMessage(sorted2.get("lechuck@evolveum.com"), "lechuck@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted2.get("lechuck-deputy@evolveum.com"), "lechuck-deputy@evolveum.com", "Work item has been completed",
+				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
+				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
+		assertMessage(sorted2.get("lechuck-deputy-deputy@evolveum.com"), "lechuck-deputy-deputy@evolveum.com", "Work item has been completed",
 				"Work item: Approve assigning a-test-1 to bob", "Stage: Line managers (1/3)",
 				"Allocated to: Captain LeChuck (lechuck)", "Result: APPROVED", "^Deadline:");
 		assertMessage(sorted2.get("elaine@evolveum.com"), "elaine@evolveum.com", "Work item has been allocated to you",

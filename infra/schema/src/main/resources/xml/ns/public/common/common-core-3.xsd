@@ -2274,7 +2274,7 @@
                             <xsd:documentation>
                                 <p>
 									References to objects (abstract roles as well as users) obtained via delegation.
-									If A1 is a deputy of A, its delegatedRef contains a union of A.roleMembershipRef and
+									If A1 is a deputy of A, its delegatedRef contains a union of A, A.roleMembershipRef and
 									A.delegatedRef.
 								</p>
                                 <p>

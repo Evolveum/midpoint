@@ -16,21 +16,42 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
+import com.evolveum.midpoint.model.impl.UserComputer;
+import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
@@ -48,8 +69,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.lens.ContextFactory;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -68,31 +87,14 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -126,6 +128,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private ModelService modelService;
 	@Autowired private ModelCrudService modelCrudService;
 	@Autowired private SecurityHelper securityHelper;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private ActivationComputer activationComputer;
+	@Autowired private Clock clock;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1157,5 +1163,99 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		return null;
 	}
 
+	@NotNull
+	@Override
+	public List<ObjectReferenceType> getDeputyAssignees(AbstractWorkItemType workItem, Task task,
+			OperationResult parentResult)
+			throws SchemaException {
+		OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
+		RepositoryCache.enter();
+		try {
+			Set<String> oidsToSkip = new HashSet<>();
+			List<ObjectReferenceType> deputies = new ArrayList<>();
+			workItem.getAssigneeRef().forEach(a -> oidsToSkip.add(a.getOid()));
+			getDeputyAssignees(deputies, workItem, oidsToSkip, task, result);
+			result.computeStatusIfUnknown();
+			return deputies;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			RepositoryCache.exit();
+		}
+	}
 
+	private void getDeputyAssignees(List<ObjectReferenceType> deputies, AbstractWorkItemType workItem, Set<String> oidsToSkip,
+			Task task, OperationResult result) throws SchemaException {
+		List<PrismReferenceValue> assigneeReferencesToQuery = workItem.getAssigneeRef().stream()
+				.map(assigneeRef -> assigneeRef.clone().relation(PrismConstants.Q_ANY).asReferenceValue())
+				.collect(Collectors.toList());
+		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+				.item(UserType.F_DELEGATED_REF).ref(assigneeReferencesToQuery)
+				.build();
+		SearchResultList<PrismObject<UserType>> potentialDeputies = cacheRepositoryService
+				.searchObjects(UserType.class, query, null, result);
+		for (PrismObject<UserType> potentialDeputy : potentialDeputies) {
+			if (oidsToSkip.contains(potentialDeputy.getOid())) {
+				continue;
+			}
+			if (determineDeputyValidity(potentialDeputy, workItem, task, result)) {
+				deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
+				oidsToSkip.add(potentialDeputy.getOid());
+			}
+		}
+	}
+
+	private boolean determineDeputyValidity(PrismObject<UserType> potentialDeputy,
+			AbstractWorkItemType workItem, Task task, OperationResult result) {
+		AssignmentEvaluator.Builder<UserType> builder =
+				new AssignmentEvaluator.Builder<UserType>()
+						.repository(cacheRepositoryService)
+						.focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy))
+						.channel(null)
+						.objectResolver(objectResolver)
+						.systemObjectCache(systemObjectCache)
+						.prismContext(prismContext)
+						.mappingFactory(mappingFactory)
+						.mappingEvaluator(mappingEvaluator)
+						.activationComputer(activationComputer)
+						.now(clock.currentTimeXMLGregorianCalendar())
+						.loginMode(true)
+						// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
+						// will need something to push on the stack. So give them context placeholder.
+						.lensContext(new LensContextPlaceholder<>(potentialDeputy, prismContext));
+		AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
+
+		for (AssignmentType assignmentType: potentialDeputy.asObjectable().getAssignment()) {
+			if (!DeputyUtils.isDelegationAssignment(assignmentType)) {
+				continue;
+			}
+			try {
+				ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+				assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+				assignmentIdi.recompute();
+				// TODO some special mode for verification of the validity - we don't need complete calculation here!
+				EvaluatedAssignment<UserType> assignment = assignmentEvaluator
+						.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),
+								potentialDeputy.toString(), task, result);
+				if (!assignment.isValid()) {
+					continue;
+				}
+				for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+					if (target.getTarget() != null && target.getTarget().getOid() != null
+							&& DeputyUtils.isDelegationPath(target.getAssignmentPath())
+							&& ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), target.getTarget().getOid())) {
+						List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
+						if (DeputyUtils.limitationsAllow(limitations, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, workItem)) {
+							return true;
+						}
+					}
+				}
+			} catch (CommonException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't verify 'deputy' relation between {} and {} for work item {}; assignment: {}",
+						e, potentialDeputy, workItem.getAssigneeRef(), workItem, assignmentType);
+			}
+		}
+		return false;
+	}
 }
