@@ -249,7 +249,9 @@ public class WorkItemManager {
 				throw new SecurityViolationException("You are not authorized to delegate this work item.");
 			}
 
+			com.evolveum.midpoint.task.api.Task opTask = taskManager.createTaskInstance(OPERATION_DELEGATE_WORK_ITEM);
 			List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
+			List<ObjectReferenceType> assigneesAndDeputiesBefore = wfTaskController.getAssigneesAndDeputies(workItem, opTask, result);
 
 			WorkItemOperationKindType operationKind = escalation != null ? ESCALATE : DELEGATE;
 
@@ -259,7 +261,7 @@ public class WorkItemManager {
 			}
 			com.evolveum.midpoint.task.api.Task wfTask = taskManager.getTask(taskOid, result);
 			WorkItemAllocationChangeOperationInfo operationInfoBefore =
-					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesBefore, null);
+					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, null);
 			WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
 			wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfoBefore, sourceInfo, null, wfTask, result);
 
@@ -300,8 +302,9 @@ public class WorkItemManager {
 
 			WorkItemType workItemAfter = workItemProvider.getWorkItem(workItemId, result);
 			com.evolveum.midpoint.task.api.Task wfTaskAfter = taskManager.getTask(wfTask.getOid(), result);
+			List<ObjectReferenceType> assigneesAndDeputiesAfter = wfTaskController.getAssigneesAndDeputies(workItemAfter, opTask, result);
 			WorkItemAllocationChangeOperationInfo operationInfoAfter =
-					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesBefore, workItemAfter.getAssigneeRef());
+					new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
 			wfTaskController.notifyWorkItemAllocationChangeNewActors(workItemAfter, operationInfoAfter, sourceInfo, wfTaskAfter, result);
 		} catch (SecurityViolationException|RuntimeException|ObjectNotFoundException|SchemaException e) {
 			result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);
