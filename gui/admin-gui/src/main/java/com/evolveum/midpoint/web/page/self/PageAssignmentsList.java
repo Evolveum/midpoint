@@ -230,6 +230,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
             result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
             showResult(result);
+            clearStorage();
             setResponsePage(PageAssignmentShoppingKart.class);
             return;
         }
@@ -279,6 +280,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())) {
                 result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
                 showResult(result);
+                clearStorage();
                 setResponsePage(PageAssignmentShoppingKart.class);
                 return;
             }
