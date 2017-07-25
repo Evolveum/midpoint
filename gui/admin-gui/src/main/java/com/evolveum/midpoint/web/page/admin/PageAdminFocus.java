@@ -40,6 +40,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
@@ -74,6 +75,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private CountableLoadableModel<AssignmentEditorDto> assignmentsModel;
+	private CountableLoadableModel<AssignmentEditorDto> policyRulesModel;
     private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
@@ -111,6 +113,20 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		};
 
+		policyRulesModel = new CountableLoadableModel<AssignmentEditorDto>(false) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<AssignmentEditorDto> load() {
+				return loadPolicyRules();
+			}
+
+			@Override
+			public int countInternal() {
+				return countPolicyRules();
+			}
+		};
+
         delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
             @Override
             protected List<AssignmentEditorDto> load() {
@@ -126,6 +142,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	public CountableLoadableModel<AssignmentEditorDto> getAssignmentsModel() {
 		return assignmentsModel;
+	}
+
+	public CountableLoadableModel<AssignmentEditorDto> getPolicyRulesModel() {
+		return policyRulesModel;
 	}
 
 	public LoadableModel<List<AssignmentEditorDto>> getDelegatedToMeModel() {
@@ -378,7 +398,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = getObjectModel().getObject().getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (isAssignmentRelevant(assignment)) {
+			if (!isPolicyRuleAssignment(assignment) && isAssignmentRelevant(assignment)) {
 				rv++;
 			}
 		}
@@ -392,7 +412,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = focusWrapper.getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (isAssignmentRelevant(assignment)) {
+			if (!isPolicyRuleAssignment(assignment) && isAssignmentRelevant(assignment)) {
 				list.add(new AssignmentEditorDto(StringUtils.isEmpty(focusWrapper.getOid()) ?
 						UserDtoStatus.ADD : UserDtoStatus.MODIFY, assignment, this));
 			}
@@ -403,9 +423,43 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return list;
 	}
 
+	private int countPolicyRules() {
+		int policyRuleCounter = 0;
+		PrismObject<F> focus = getObjectModel().getObject().getObject();
+		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		for (AssignmentType assignment : assignments) {
+			if (isPolicyRuleAssignment(assignment)) {
+				policyRuleCounter++;
+			}
+		}
+		return policyRuleCounter;
+	}
+
+    private List<AssignmentEditorDto> loadPolicyRules() {
+		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+
+		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+		PrismObject<F> focus = focusWrapper.getObject();
+		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		for (AssignmentType assignment : assignments) {
+			if (isPolicyRuleAssignment(assignment)) {
+				list.add(new AssignmentEditorDto(StringUtils.isEmpty(focusWrapper.getOid()) ?
+						UserDtoStatus.ADD : UserDtoStatus.MODIFY, assignment, this));
+			}
+		}
+
+		Collections.sort(list);
+		return list;
+	}
+
 	private boolean isAssignmentRelevant(AssignmentType assignment) {
 		return assignment.getTargetRef() == null ||
 				!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
+	}
+
+	private boolean isPolicyRuleAssignment(AssignmentType assignment) {
+		return assignment.asPrismContainerValue() != null
+				&& assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null;
 	}
 
 	@Override

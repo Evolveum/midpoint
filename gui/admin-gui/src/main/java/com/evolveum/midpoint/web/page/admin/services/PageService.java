@@ -77,7 +77,8 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 	@Override
 	protected AbstractObjectMainPanel<ServiceType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<ServiceType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this) {
+		return new AbstractRoleMainPanel<ServiceType>(id, getObjectModel(), getAssignmentsModel(), getPolicyRulesModel(),
+				getProjectionModel(), getInducementsModel(), this) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

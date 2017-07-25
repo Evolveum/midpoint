@@ -147,5 +147,6 @@ public class GuiStyleConstants {
 	public static final String CLASS_CIRCLE_FULL = "fa fa-circle";
 
 	public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
+	public static final String CLASS_POLICY_RULES = "fa fa-balance-scale";
 
 }

@@ -220,7 +220,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
 		}
 		if (assignment.asPrismContainerValue() != null
-				&& assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null){
+				&& getPolicyRuleContainer(assignment) != null){
 			return AssignmentEditorDtoType.POLICY_RULE;
 		}
 		// account assignment through account construction
@@ -401,7 +401,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		}
 
 		if (AssignmentEditorDtoType.POLICY_RULE.equals(type)){
-			PrismContainer<PolicyRuleType> policyRuleContainer = (PrismContainer<PolicyRuleType>)assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE);
+			PrismContainer<PolicyRuleType> policyRuleContainer = getPolicyRuleContainer(assignment);
 			PrismProperty policyRuleNameProperty = policyRuleContainer != null && policyRuleContainer.getValue() != null ?
 					(PrismProperty)policyRuleContainer.getValue().find(new ItemPath(PolicyRuleType.F_NAME)) : null;
 			String policyRuleName = policyRuleNameProperty != null ?
@@ -710,6 +710,17 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 	public AssignmentConstraintsType getDefaultAssignmentConstraints() {
 		return defualtAssignmentConstraints;
+	}
+
+	public PrismContainer<PolicyRuleType> getPolicyRuleContainer(AssignmentType assignment){
+		if (assignment == null){
+			assignment = this.newAssignment;
+		}
+		if (assignment == null){
+			return null;
+		}
+		PrismContainer policyRuleContainer = assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE);
+		return policyRuleContainer != null ? (PrismContainer<PolicyRuleType>) policyRuleContainer : null;
 	}
 
 	public void setDefualtAssignmentConstraints(AssignmentConstraintsType defualtAssignmentConstraints) {

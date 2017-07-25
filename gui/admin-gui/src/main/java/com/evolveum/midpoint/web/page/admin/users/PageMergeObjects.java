@@ -129,7 +129,9 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
-        return new FocusMainPanel<UserType>(id, getObjectModel(), new CountableLoadableModel<AssignmentEditorDto>() {
+        return new FocusMainPanel<UserType>(id, getObjectModel(),
+                //empty assignments model
+                new CountableLoadableModel<AssignmentEditorDto>() {
         	private static final long serialVersionUID = 1L;
         	
             @Override
@@ -137,7 +139,17 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
                 return new ArrayList<>();
             }
         },
-            new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
+                //empty policy rules model
+                new CountableLoadableModel<AssignmentEditorDto>() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<AssignmentEditorDto> load() {
+                return new ArrayList<>();
+            }
+        },
+                //empty projections model
+                new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
         	private static final long serialVersionUID = 1L;
                     @Override
                     protected List<FocusSubwrapperDto<ShadowType>> load() {
