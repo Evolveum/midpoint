@@ -75,7 +75,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
 
 /**
  * Task Manager implementation using Quartz scheduler.
@@ -1648,8 +1650,24 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         try {
             // todo do in one modify operation
 			// todo deduplicate
+			boolean resultChanged = false;
+			OperationResult taskResult = task.getResult();
+			if (taskResult != null) {		// should always be
+				// this is a bit of magic to ensure closed tasks will not stay with IN_PROGRESS result (and, if possible, also not with UNKNOWN)
+				if (taskResult.getStatus() == IN_PROGRESS || taskResult.getStatus() == UNKNOWN) {
+					taskResult.computeStatus();
+					if (taskResult.getStatus() == IN_PROGRESS) {
+						taskResult.setStatus(SUCCESS);
+					}
+					resultChanged = true;
+				}
+			}
 			if (shouldPurgeResult(task)) {
-				task.setResultImmediate(OperationResult.keepRootOnly(task.getResult()), parentResult);
+				taskResult = OperationResult.keepRootOnly(taskResult);
+				resultChanged = true;
+			}
+			if (resultChanged && taskResult != null) {
+				task.setResultImmediate(taskResult, parentResult);
 			}
             ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);
             ((TaskQuartzImpl) task).setCompletionTimestampImmediate(System.currentTimeMillis(), parentResult);
