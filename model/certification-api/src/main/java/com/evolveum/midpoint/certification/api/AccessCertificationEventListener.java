@@ -77,25 +77,19 @@ public interface AccessCertificationEventListener {
 
     /**
      * This method is called when a review is requested
-     *
-     * @param reviewerRef
-     * @param aCase TODO
-     * @param campaign TODO
-     * @param task
      * @param result implementer should report its result here
      */
-    void onReviewRequested(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result);
+    void onReviewRequested(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result);
 
     /**
      * This method is called by certification module when a certification case review deadline is approaching.
      * The strategy for calling this method (e.g. how often and exactly how many days/hours before the deadline)
      * will be configurable in the future.
-     * @param reviewerRef
-     * @param campaign TODO
-     * @param task
      * @param result implementer should report its result here
      */
-    void onReviewDeadlineApproaching(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result);
+    void onReviewDeadlineApproaching(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result);
 
     /**
      * This method is called by certification module when a certification case is decided.

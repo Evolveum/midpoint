@@ -36,8 +36,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-
 /**
  * Default implementation of a notifier dealing with workflow events (related to both work items and process instances).
  *
@@ -207,7 +205,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 			} else {
 				beforePhrase = "";
 			}
-			sb.append("Deadline: ").append(formatDateTime(deadline)).append(beforePhrase).append("\n");
+			sb.append("Deadline: ").append(textFormatter.formatDateTime(deadline)).append(beforePhrase).append("\n");
 			sb.append("\n");
 		}
 	}
@@ -230,7 +228,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 			SimpleObjectRef initiator = event.getInitiator();
 			if (initiator != null && !isCancelled(event)) {
 				UserType initiatorFull = (UserType) functions.getObjectType(initiator, true, result);
-				sb.append("Carried out by: ").append(formatUserName(initiatorFull, initiator.getOid())).append("\n");
+				sb.append("Carried out by: ").append(textFormatter.formatUserName(initiatorFull, initiator.getOid())).append("\n");
 				atLeastOne = true;
 			}
 		}
@@ -246,7 +244,8 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 		boolean atLeastOne = false;
 		if (currentAssignees.size() != 1 || !java.util.Objects.equals(originalAssignee.getOid(), currentAssignees.get(0).getOid())) {
 			UserType originalAssigneeObject = (UserType) functions.getObjectType(originalAssignee, true, result);
-			sb.append("Originally allocated to: ").append(formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
+			sb.append("Originally allocated to: ").append(
+					textFormatter.formatUserName(originalAssigneeObject, originalAssignee.getOid())).append("\n");
 			atLeastOne = true;
 		}
 		if (!workItem.getAssigneeRef().isEmpty()) {
@@ -258,7 +257,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 			}
 			sb.append(": ");
 			sb.append(workItem.getAssigneeRef().stream()
-					.map(ref -> formatUserName(ref, result))
+					.map(ref -> textFormatter.formatUserName(ref, result))
 					.collect(Collectors.joining(", ")));
 			sb.append("\n");
 			atLeastOne = true;
@@ -285,28 +284,6 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 		return (event instanceof WorkItemLifecycleEvent || event instanceof WorkItemAllocationEvent)
 				&& event.isDelete()
 				&& (event.getOperationKind() == null || event.getOperationKind() == WorkItemOperationKindType.CANCEL);
-	}
-
-	private String formatUserName(ObjectReferenceType ref, OperationResult result) {
-		UserType user = (UserType) functions.getObjectType(ref, true, result);
-		return formatUserName(user, ref.getOid());
-	}
-
-	// TODO implement seriously
-	private String formatDateTime(XMLGregorianCalendar timestamp) {
-		//DateFormatUtils.format(timestamp.toGregorianCalendar(), DateFormatUtils.SMTP_DATETIME_FORMAT.getPattern());
-		return String.valueOf(XmlTypeConverter.toDate(timestamp));
-	}
-
-	private String formatUserName(UserType user, String oid) {
-    	if (user == null || (user.getName() == null && user.getFullName() == null)) {
-    		return oid;
-		}
-		if (user.getFullName() != null) {
-    		return getOrig(user.getFullName()) + " (" + getOrig(user.getName()) + ")";
-		} else {
-    		return getOrig(user.getName());
-		}
 	}
 
 	private void appendEscalationInformation(StringBuilder sb, WorkItemEvent workItemEvent) {

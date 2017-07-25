@@ -78,16 +78,18 @@ public class AccCertEventHelper implements AccessCertificationEventListener {
     }
 
     @Override
-    public void onReviewRequested(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+    public void onReviewRequested(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         for (AccessCertificationEventListener listener : listeners) {
-            listener.onReviewRequested(reviewerRef, cases, campaign, task, result);
+            listener.onReviewRequested(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
         }
     }
 
     @Override
-    public void onReviewDeadlineApproaching(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+    public void onReviewDeadlineApproaching(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         for (AccessCertificationEventListener listener : listeners) {
-            listener.onReviewDeadlineApproaching(reviewerRef, cases, campaign, task, result);
+            listener.onReviewDeadlineApproaching(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
         }
     }
 
