@@ -1100,6 +1100,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 						hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
 					}
 				}
+				if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
+					workflowManager.augmentTaskObject(object, options, task, result);
+				}
 				resolve(object, options, task, result);
 				schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, parentResult1);
 			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException

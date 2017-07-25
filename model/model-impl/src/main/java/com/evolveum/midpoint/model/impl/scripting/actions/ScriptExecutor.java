@@ -106,7 +106,11 @@ public class ScriptExecutor extends BaseActionExecutor {
 				if (outObject != null) {
 					addToData(outObject, item.getResult(), output);
 				} else {
-					output.add(item);
+					// no definition means we don't plan to provide any output - so let's just copy the input item to the output
+					// (actually, null definition with non-null outObject should not occur)
+					if (outputDefinition == null) {
+						output.add(item);
+					}
 				}
 				if (value instanceof PrismObjectValue) {
 					operationsHelper.recordEnd(context, asObjectType(value), started, null);
