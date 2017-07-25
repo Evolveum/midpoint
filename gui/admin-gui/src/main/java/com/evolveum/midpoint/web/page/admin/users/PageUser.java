@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -363,6 +364,12 @@ public class PageUser extends PageAdminFocus<UserType> {
         }
 
         showResult(result);
+    }
+
+    public boolean isLoggedInUserPage(){
+        return getObjectWrapper() != null && getObjectWrapper().getObject() != null &&
+                StringUtils.isNotEmpty(getObjectWrapper().getObject().asObjectable().getOid()) &&
+                getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInUserOid());
     }
 
 }
