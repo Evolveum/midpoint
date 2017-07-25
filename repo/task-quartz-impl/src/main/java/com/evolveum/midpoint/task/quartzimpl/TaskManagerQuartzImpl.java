@@ -52,6 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -1650,23 +1651,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         try {
             // todo do in one modify operation
 			// todo deduplicate
-			boolean resultChanged = false;
-			OperationResult taskResult = task.getResult();
-			if (taskResult != null) {		// should always be
-				// this is a bit of magic to ensure closed tasks will not stay with IN_PROGRESS result (and, if possible, also not with UNKNOWN)
-				if (taskResult.getStatus() == IN_PROGRESS || taskResult.getStatus() == UNKNOWN) {
-					taskResult.computeStatus();
-					if (taskResult.getStatus() == IN_PROGRESS) {
-						taskResult.setStatus(SUCCESS);
-					}
-					resultChanged = true;
-				}
-			}
-			if (shouldPurgeResult(task)) {
-				taskResult = OperationResult.keepRootOnly(taskResult);
-				resultChanged = true;
-			}
-			if (resultChanged && taskResult != null) {
+			OperationResult taskResult = updateTaskResult(task);
+			if (taskResult != null) {
 				task.setResultImmediate(taskResult, parentResult);
 			}
             ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.CLOSED, parentResult);
@@ -1686,15 +1672,40 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	// do not forget to kick dependent tasks when closing this one (currently only done in finishHandler)
     public void closeTaskWithoutSavingState(Task task, OperationResult parentResult) {
 		// todo deduplicate
-		if (shouldPurgeResult(task)) {
-			task.setResult(OperationResult.keepRootOnly(task.getResult()));
+		OperationResult taskResult = updateTaskResult(task);
+		if (taskResult != null) {
+			task.setResult(taskResult);
 		}
         ((TaskQuartzImpl) task).setExecutionStatus(TaskExecutionStatus.CLOSED);
         ((TaskQuartzImpl) task).setCompletionTimestamp(System.currentTimeMillis());
         executionManager.removeTaskFromQuartz(task.getOid(), parentResult);
     }
 
-    @Override
+    // returns null if no change is needed in the task
+	@Nullable
+	private OperationResult updateTaskResult(Task task) {
+		OperationResult taskResult = task.getResult();
+		if (taskResult == null) {
+			// should not occur
+			return null;
+		}
+		boolean resultChanged = false;
+		// this is a bit of magic to ensure closed tasks will not stay with IN_PROGRESS result (and, if possible, also not with UNKNOWN)
+		if (taskResult.getStatus() == IN_PROGRESS || taskResult.getStatus() == UNKNOWN) {
+			taskResult.computeStatus();
+			if (taskResult.getStatus() == IN_PROGRESS) {
+				taskResult.setStatus(SUCCESS);
+			}
+			resultChanged = true;
+		}
+		if (shouldPurgeResult(task)) {
+			taskResult = OperationResult.keepRootOnly(taskResult);
+			resultChanged = true;
+		}
+		return resultChanged ? taskResult : null;
+	}
+
+	@Override
     public ParseException validateCronExpression(String cron) {
         return TaskQuartzImplUtil.validateCronExpression(cron);
     }
