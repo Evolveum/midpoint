@@ -180,8 +180,8 @@ public class PasswordPanel extends InputPanel {
                 if (pageBase instanceof PageSelfProfile){
                     return false;
                 }
-                if (pageBase instanceof PageUser
-                        && model.getObject() != null && !model.getObject().isEmpty()){
+                if (pageBase instanceof PageUser && !((PageUser) pageBase).isLoggedInUserPage()
+                        && model.getObject() != null){
                     return true;
                 }
                 return false;
