@@ -172,8 +172,10 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         requestAssignments.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isEnabled(){
-                return getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
-                        onlyWarnings() || areConflictsResolved();
+                return (getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
+                        onlyWarnings() || areConflictsResolved()) &&
+                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart() != null &&
+                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0;
             }
         });
         mainForm.add(requestAssignments);
