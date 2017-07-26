@@ -18,6 +18,7 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -101,6 +102,7 @@ public class AccCertUpdateHelper {
     @Autowired private AccCertEventHelper eventHelper;
     @Autowired private PrismContext prismContext;
     @Autowired private ModelService modelService;
+    @Autowired private ModelInteractionService modelInteractionService;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -357,10 +359,21 @@ public class AccCertUpdateHelper {
 							.anyMatch(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid) &&
 											(wi.getOutput() == null || wi.getOutput().getOutcome() == null));
 			if (notify) {
-				ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-				eventHelper.onReviewRequested(reviewerRef, cases, campaign, task, result);
+				ObjectReferenceType actualReviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+				for (ObjectReferenceType reviewerOrDeputyRef : getReviewerAndDeputies(actualReviewerRef, task, result)) {
+					eventHelper.onReviewRequested(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
+				}
 			}
 		}
+	}
+
+	@NotNull
+	public List<ObjectReferenceType> getReviewerAndDeputies(ObjectReferenceType actualReviewerRef, Task task,
+			OperationResult result) throws SchemaException {
+		List<ObjectReferenceType> reviewerOrDeputiesRef = new ArrayList<>();
+		reviewerOrDeputiesRef.add(actualReviewerRef);
+		reviewerOrDeputiesRef.addAll(modelInteractionService.getDeputyAssignees(actualReviewerRef, OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS, task, result));
+		return reviewerOrDeputiesRef;
 	}
 
 	//endregion

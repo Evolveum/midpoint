@@ -105,7 +105,13 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
         AccessCertificationCampaignType campaign = reviewEvent.getCampaign();
 
         body.append("You have been requested to provide a review in a certification campaign.");
-        body.append("\n\nCampaign: ").append(certHelper.getCampaignNameAndOid(reviewEvent));
+        body.append("\n");
+        body.append("\nReviewer: ").append(textFormatter.formatUserName(reviewEvent.getActualReviewer(), result));
+        if (!reviewEvent.getActualReviewer().getOid().equals(reviewEvent.getRequesteeOid())) {
+            body.append("\nDeputy: ").append(textFormatter.formatUserName(reviewEvent.getRequestee(), result));
+        }
+        body.append("\n");
+        body.append("\nCampaign: ").append(certHelper.getCampaignNameAndOid(reviewEvent));
         body.append("\nState: ").append(certHelper.formatState(reviewEvent));
         body.append("\n\n");
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
@@ -131,8 +137,8 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
                 }
             }
             body.append("\n\n");
-            body.append("There are ").append(reviewEvent.getCases().size()).append(" cases assigned to you. ");
-            body.append("Out of them, ").append(reviewEvent.getCasesAwaitingResponseFromRequestee().size()).append(" have no response from you yet.");
+            body.append("There are ").append(reviewEvent.getCases().size()).append(" cases to be reviewed by you. ");
+            body.append("Out of them, ").append(reviewEvent.getCasesAwaitingResponseFromActualReviewer().size()).append(" are still waiting for your response.");
         }
 
         return body.toString();

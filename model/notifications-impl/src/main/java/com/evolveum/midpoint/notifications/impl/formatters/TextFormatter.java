@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.formatters;
 
+import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -38,19 +40,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.*;
+
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 /**
  * @author mederly
@@ -58,9 +60,8 @@ import java.util.*;
 @Component
 public class TextFormatter {
 
-    @Autowired(required = true)
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired protected NotificationFunctionsImpl functions;
 
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(
 			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
@@ -520,5 +521,30 @@ public class TextFormatter {
         return toBeDisplayed;
     }
 
+    public String formatUserName(SimpleObjectRef ref, OperationResult result) {
+        return formatUserName((UserType) ref.resolveObjectType(result, true), ref.getOid());
+    }
+
+    public String formatUserName(ObjectReferenceType ref, OperationResult result) {
+        UserType user = (UserType) functions.getObjectType(ref, true, result);
+        return formatUserName(user, ref.getOid());
+    }
+
+    public String formatUserName(UserType user, String oid) {
+        if (user == null || (user.getName() == null && user.getFullName() == null)) {
+            return oid;
+        }
+        if (user.getFullName() != null) {
+            return getOrig(user.getFullName()) + " (" + getOrig(user.getName()) + ")";
+        } else {
+            return getOrig(user.getName());
+        }
+    }
+
+    // TODO implement seriously
+    public String formatDateTime(XMLGregorianCalendar timestamp) {
+		//DateFormatUtils.format(timestamp.toGregorianCalendar(), DateFormatUtils.SMTP_DATETIME_FORMAT.getPattern());
+		return String.valueOf(XmlTypeConverter.toDate(timestamp));
+	}
 
 }

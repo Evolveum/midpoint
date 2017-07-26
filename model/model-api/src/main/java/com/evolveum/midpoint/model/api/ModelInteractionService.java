@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
@@ -274,8 +274,13 @@ public interface ModelInteractionService {
 	 * Gets "deputy assignees" i.e. users that are deputies of assignees. Takes limitations into account.
 	 *
 	 * MAY NOT CHECK AUTHORIZATIONS (uses repository directly, at least at some places) - TODO
+	 * TODO parameterize on limitation kind
 	 */
 	@NotNull
 	List<ObjectReferenceType> getDeputyAssignees(AbstractWorkItemType workItem, Task task, OperationResult parentResult)
+			throws SchemaException;
+
+	@NotNull
+	List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assignee, QName limitationItemName, Task task, OperationResult parentResult)
 			throws SchemaException;
 }

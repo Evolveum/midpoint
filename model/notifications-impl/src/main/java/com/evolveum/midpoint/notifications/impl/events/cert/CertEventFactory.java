@@ -60,9 +60,11 @@ public class CertEventFactory {
         }
     }
 
-    protected void fillInReviewerRelatedEvent(ObjectReferenceType reviewerRef, Task task, AccessCertificationEvent event) {
-        event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, reviewerRef));
-        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));        // or campaign owner?
+    protected void fillInReviewerRelatedEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+			Task task, CertReviewEvent event) {
+        event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, reviewerOrDeputyRef));
+        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));        			// or campaign owner?
+		event.setActualReviewer(new SimpleObjectRefImpl(notificationsUtil, actualReviewerRef));
     }
 
     public CertCampaignEvent createOnCampaignEndEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {
@@ -89,15 +91,17 @@ public class CertEventFactory {
         return event;
     }
 
-    public CertReviewEvent createReviewRequestedEvent(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+    public CertReviewEvent createReviewRequestedEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertReviewEvent event = new CertReviewEvent(idGenerator, cases, campaign, EventOperationType.ADD);
-        fillInReviewerRelatedEvent(reviewerRef, task, event);
+        fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event);
         return event;
     }
 
-    public CertReviewEvent createReviewDeadlineApproachingEvent(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+    public CertReviewEvent createReviewDeadlineApproachingEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
         CertReviewEvent event = new CertReviewEvent(idGenerator, cases, campaign, EventOperationType.MODIFY);
-        fillInReviewerRelatedEvent(reviewerRef, task, event);
+        fillInReviewerRelatedEvent(reviewerOrDeputyRef, actualReviewerRef, task, event);
         return event;
     }
 }
