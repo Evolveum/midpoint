@@ -82,7 +82,7 @@ public class MailTransport implements Transport {
     public void send(Message mailMessage, String transportName, Event event, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
-        result.addCollectionOfSerializablesAsParam("mailMessage recipient(s)", mailMessage.getTo());
+        result.addArbitraryObjectCollectionAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));

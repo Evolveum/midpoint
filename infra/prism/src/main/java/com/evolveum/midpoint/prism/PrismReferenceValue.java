@@ -53,7 +53,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private static final QName F_TYPE = new QName(PrismConstants.NS_TYPES, "type");
     private static final QName F_RELATION = new QName(PrismConstants.NS_TYPES, "relation");
 	private String oid = null;
-    private PrismObject<?> object = null;
+    private transient PrismObject<?> object = null;
     private QName targetType = null;
     private QName relation = null;
     private String description = null;
@@ -104,6 +104,15 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		this.oid = oid;
 	}
 	
+	/**
+	 * Returns object that this reference points to. The object is supposed to be used
+	 * for caching and optimizations. Only oid and type of the object really matters for
+	 * the reference.
+	 * 
+	 * The object is transient. It will NOT be serialized. Therefore the client must
+	 * expect that the object can disappear when serialization boundary is crossed.
+	 * The client must expect that the object is null. 
+	 */
 	public PrismObject getObject() {
 		return object;
 	}

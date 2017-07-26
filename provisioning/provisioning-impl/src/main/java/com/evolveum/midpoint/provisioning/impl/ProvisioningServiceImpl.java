@@ -168,7 +168,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".getObject");
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam(OperationResult.PARAM_TYPE, type);
-		result.addCollectionOfSerializablesAsParam("options", options);
+		result.addArbitraryObjectCollectionAsParam("options", options);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 		
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -653,7 +653,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".modifyObject");
-		result.addCollectionOfSerializablesAsParam("modifications", modifications);
+		result.addArbitraryObjectCollectionAsParam("modifications", modifications);
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam("scripts", scripts);
 		result.addParam("options", options);

@@ -1377,8 +1377,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		connIdResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-		connIdResult.addArbitraryCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
-		connIdResult.addArbitraryCollectionAsParam("attributes", attributes);
+		connIdResult.addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
+		connIdResult.addArbitraryObjectCollectionAsParam("attributes", attributes);
 		connIdResult.addArbitraryObjectAsParam("options", options);
 		connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
@@ -1476,7 +1476,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".modifyObject");
 		result.addParam("objectClass", objectClassDef);
-		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
+		result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
 		result.addArbitraryCollectionAsParam("changes", changes);
 		
 		if (changes.isEmpty()){
@@ -1931,7 +1931,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".deleteObject");
-		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
+		result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
 
 		ObjectClass objClass = connIdNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		Uid uid;

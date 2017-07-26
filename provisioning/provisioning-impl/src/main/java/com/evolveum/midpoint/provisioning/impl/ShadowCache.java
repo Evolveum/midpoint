@@ -1634,7 +1634,7 @@ public abstract class ShadowCache {
 		RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
 		ResourceType resourceType = ctx.getResource();
 		CountObjectsCapabilityType countObjectsCapabilityType = objectClassDef
-				.getEffectiveCapability(CountObjectsCapabilityType.class);
+				.getEffectiveCapability(CountObjectsCapabilityType.class, resourceType);
 		if (countObjectsCapabilityType == null) {
 			// Unable to count. Return null which means "I do not know"
 			result.recordNotApplicableIfUnknown();
@@ -1650,7 +1650,7 @@ public abstract class ShadowCache {
 					int count;
 					try {
 						count = connector.count(objectClassDef.getObjectClassDefinition(), attributeQuery,
-								objectClassDef.getPagedSearches(), ctx, result);
+								objectClassDef.getPagedSearches(resourceType), ctx, result);
 					} catch (CommunicationException | GenericFrameworkException | SchemaException
 							| UnsupportedOperationException e) {
 						result.recordFatalError(e);
@@ -1668,7 +1668,7 @@ public abstract class ShadowCache {
 
 			} else if (simulate == CountObjectsSimulateType.PAGED_SEARCH_ESTIMATE) {
 
-				if (!objectClassDef.isPagedSearchEnabled()) {
+				if (!objectClassDef.isPagedSearchEnabled(resourceType)) {
 					throw new ConfigurationException(
 							"Configured count object capability to be simulated using a paged search but paged search capability is not present");
 				}

@@ -262,8 +262,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public ResourceType getResourceType() {
-		return structuralObjectClassDefinition.getResourceType();
+	public String getResourceOid() {
+		return structuralObjectClassDefinition.getResourceOid();
 	}
 
 	@Override
@@ -321,23 +321,23 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.matches(shadowType);
 	}
 
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-		return structuralObjectClassDefinition.getEffectiveCapability(capabilityClass);
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
+		return structuralObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
 	}
 
 	@Override
-	public PagedSearchCapabilityType getPagedSearches() {
-		return structuralObjectClassDefinition.getPagedSearches();
+	public PagedSearchCapabilityType getPagedSearches(ResourceType resourceType) {
+		return structuralObjectClassDefinition.getPagedSearches(resourceType);
 	}
 
 	@Override
-	public boolean isPagedSearchEnabled() {
-		return structuralObjectClassDefinition.isPagedSearchEnabled();
+	public boolean isPagedSearchEnabled(ResourceType resourceType) {
+		return structuralObjectClassDefinition.isPagedSearchEnabled(resourceType);
 	}
 
 	@Override
-	public boolean isObjectCountingEnabled() {
-		return structuralObjectClassDefinition.isObjectCountingEnabled();
+	public boolean isObjectCountingEnabled(ResourceType resourceType) {
+		return structuralObjectClassDefinition.isObjectCountingEnabled(resourceType);
 	}
 
 	@Override
@@ -484,11 +484,6 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
 		throw new UnsupportedOperationException("TODO implement if needed");
-	}
-
-	@Override
-	public String getResourceNamespace() {
-		return structuralObjectClassDefinition.getResourceNamespace();
 	}
 
 	// TODO

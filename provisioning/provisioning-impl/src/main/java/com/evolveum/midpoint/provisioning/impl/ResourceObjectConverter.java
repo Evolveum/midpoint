@@ -753,7 +753,7 @@ public class ResourceObjectConverter {
 			boolean inProgress = false;
 			String asyncronousOperationReference = null;
 			for (Collection<Operation> operationsWave : operationsWaves) {
-				Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(operationsWave, objectClassDefinition);
+				Collection<RefinedAttributeDefinition> readReplaceAttributes = determineReadReplace(ctx, operationsWave, objectClassDefinition);
 				LOGGER.trace("Read+Replace attributes: {}", readReplaceAttributes);
 				if (!readReplaceAttributes.isEmpty()) {
 					AttributesToReturn attributesToReturn = new AttributesToReturn();
@@ -850,11 +850,11 @@ public class ResourceObjectConverter {
 		return currentShadow;
 	}
 
-	private Collection<RefinedAttributeDefinition> determineReadReplace(Collection<Operation> operations, RefinedObjectClassDefinition objectClassDefinition) {
+	private Collection<RefinedAttributeDefinition> determineReadReplace(ProvisioningContext ctx, Collection<Operation> operations, RefinedObjectClassDefinition objectClassDefinition) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Collection<RefinedAttributeDefinition> retval = new ArrayList<>();
 		for (Operation operation : operations) {
 			RefinedAttributeDefinition rad = getRefinedAttributeDefinitionIfApplicable(operation, objectClassDefinition);
-			if (rad != null && isReadReplaceMode(rad, objectClassDefinition) && operation instanceof PropertyModificationOperation) {		// third condition is just to be sure
+			if (rad != null && isReadReplaceMode(ctx, rad, objectClassDefinition) && operation instanceof PropertyModificationOperation) {		// third condition is just to be sure
 				PropertyDelta propertyDelta = ((PropertyModificationOperation) operation).getPropertyDelta();
 				if (propertyDelta.isAdd() || propertyDelta.isDelete()) {
 					retval.add(rad);		// REPLACE operations are not needed to be converted to READ+REPLACE
@@ -864,12 +864,12 @@ public class ResourceObjectConverter {
 		return retval;
 	}
 
-	private boolean isReadReplaceMode(RefinedAttributeDefinition rad, RefinedObjectClassDefinition objectClassDefinition) {
+	private boolean isReadReplaceMode(ProvisioningContext ctx, RefinedAttributeDefinition rad, RefinedObjectClassDefinition objectClassDefinition) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (rad.getReadReplaceMode() != null) {
 			return rad.getReadReplaceMode();
 		}
 		// READ+REPLACE mode is if addRemoveAttributeCapability is NOT present
-		return objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class) == null;
+		return objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
 	}
 
 	private RefinedAttributeDefinition getRefinedAttributeDefinitionIfApplicable(Operation operation, RefinedObjectClassDefinition objectClassDefinition) {
@@ -894,7 +894,7 @@ public class ResourceObjectConverter {
 				if (isAttributeDelta(propertyDelta)) {
 					QName attributeName = propertyDelta.getElementName();
 					RefinedAttributeDefinition rad = ctx.getObjectClassDefinition().findAttributeDefinition(attributeName);
-					if (isReadReplaceMode(rad, ctx.getObjectClassDefinition()) && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
+					if (isReadReplaceMode(ctx, rad, ctx.getObjectClassDefinition()) && (propertyDelta.isAdd() || propertyDelta.isDelete())) {
 						PropertyModificationOperation newOp = convertToReplace(propertyDelta, currentShadow, rad.getMatchingRuleQName());
 						newOp.setMatchingRuleQName(((PropertyModificationOperation) operation).getMatchingRuleQName());
 						retval.add(newOp);
@@ -1241,7 +1241,7 @@ public class ResourceObjectConverter {
 							RepositoryCache.exit();
 						}
 					},
-					attributesToReturn, objectClassDef.getPagedSearches(), searchHierarchyConstraints, 
+					attributesToReturn, objectClassDef.getPagedSearches(ctx.getResource()), searchHierarchyConstraints, 
 					ctx, parentResult);
 			
 		} catch (GenericFrameworkException e) {

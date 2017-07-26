@@ -93,8 +93,10 @@ public class WorkItemManager {
 			throws SecurityViolationException, SchemaException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
-        result.addParams(new String[] { "workItemId", "decision", "comment", "additionalDelta" },
-				workItemId, outcome, comment, additionalDelta);
+        result.addParam("workItemId", workItemId);
+        result.addParam("decision", outcome);
+        result.addParam("comment", comment);
+        result.addParam("additionalDelta", additionalDelta);
 
 		try {
 			final String userDescription = toShortString(securityEnforcer.getPrincipal().getUser());
@@ -232,7 +234,7 @@ public class WorkItemManager {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addParam("workItemId", workItemId);
 		result.addParam("escalation", escalation);
-		result.addCollectionOfSerializablesAsParam("delegates", delegates);
+		result.addArbitraryObjectCollectionAsParam("delegates", delegates);
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();
 			result.addContext("user", toShortString(principal.getUser()));

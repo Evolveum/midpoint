@@ -94,8 +94,9 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".countContainers");
-        result.addParams(new String[] { "type", "query" }, type, query);
-        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addParam(OperationResult.PARAM_TYPE, type);
+        result.addParam(OperationResult.PARAM_QUERY, query);
+        result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
 		try {
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("countContainers is available only for work items");
@@ -114,8 +115,9 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchContainers");
-		result.addParams(new String[] { "type", "query" }, type, query);
-		result.addCollectionOfSerializablesAsParam("options", options);
+		result.addParam(OperationResult.PARAM_TYPE, type);
+        result.addParam(OperationResult.PARAM_QUERY, query);
+        result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
 		try {
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("searchContainers is available only for work items");

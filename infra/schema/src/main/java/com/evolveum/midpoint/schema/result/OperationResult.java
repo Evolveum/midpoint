@@ -19,24 +19,35 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
@@ -92,9 +103,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
-	private Map<String, Serializable> params;
-	private Map<String, Serializable> context;
-	private Map<String, Serializable> returns;
+	private Map<String, Collection<String>> params;
+	private Map<String, Collection<String>> context;
+	private Map<String, Collection<String>> returns;
 	private long token;
 	private String messageCode;
 	private String message;
@@ -151,31 +162,31 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this(operation, null, status, token, messageCode, message, null, cause, null);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message) {
 		this(operation, params, status, token, messageCode, message, null, null, null);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, List<OperationResult> subresults) {
 		this(operation, params, status, token, messageCode, message, null, null, subresults);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage, Throwable cause,
 			List<OperationResult> subresults) {
 		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
 	}
 	
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
 			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
 		this(operation, params, null, null, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, Map<String, Serializable> context, Map<String, Serializable> returns, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, Map<String, Collection<String>> context, Map<String, Collection<String>> returns, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
 			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
 		if (StringUtils.isEmpty(operation)) {
@@ -713,87 +724,224 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
 	 * described in module interface for every operation.
-	 * 
-	 * @return never returns null
 	 */
-	public Map<String, Serializable> getParams() {
+	public Map<String, Collection<String>> getParams() {
 		if (params == null) {
 			params = new HashMap<>();
 		}
 		return params;
 	}
 
-	public void addParam(String paramName, Serializable paramValue) {
-		getParams().put(paramName, paramValue);
+	public void addParam(String name, String value) {
+		getParams().put(name, collectionize(value));
 	}
-
-    public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
-        addParam(paramName, String.valueOf(paramValue));
-    }
-
-    // Copies a collection to a OperationResult's param field. Primarily used to overcome the fact that Collection is not Serializable
-    public void addCollectionOfSerializablesAsParam(String paramName, Collection<? extends Serializable> paramValue) {
-        addParam(paramName, paramValue != null ? new ArrayList<>(paramValue) : null);
-    }
-
-    public void addCollectionOfSerializablesAsReturn(String name, Collection<? extends Serializable> value) {
-        addReturn(name, value != null ? new ArrayList<>(value) : null);
-    }
-
-    public void addArbitraryCollectionAsParam(String paramName, Collection values) {
-        if (values != null) {
-            ArrayList<String> valuesAsStrings = new ArrayList<>();
-            for (Object value : values) {
-                valuesAsStrings.add(String.valueOf(value));
-            }
-            addParam(paramName, valuesAsStrings);
-        } else {
-            addParam(paramName, null);
-        }
-    }
-
-
-    public void addParams(String[] names, Serializable... objects) {
-		if (names.length != objects.length) {
-			throw new IllegalArgumentException("Bad result parameters size, names '" + names.length
-					+ "', objects '" + objects.length + "'.");
-		}
-
-		for (int i = 0; i < names.length; i++) {
-			addParam(names[i], objects[i]);
+	
+	public void addParam(String name, PrismObject<? extends ObjectType> value) {
+		getParams().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addParam(String name, boolean value) {
+		getParams().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addParam(String name, long value) {
+		getParams().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addParam(String name, int value) {
+		getParams().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addParam(String name, Class<?> value) {
+		if (ObjectType.class.isAssignableFrom(ObjectType.class)) {
+			getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+		} else {
+			getParams().put(name, collectionize(String.valueOf(value)));
 		}
 	}
+	
+	public void addParam(String name, QName value) {
+		getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+	}
+	
+	public void addParam(String name, PolyString value) {
+		getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+	}
+	
+	public void addParam(String name, ObjectQuery value) {
+		getParams().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addParam(String name, ObjectDelta value) {
+		getParams().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	
+	public void addParam(String name, String... values) {
+		getParams().put(name, collectionize(values));
+	}
 
-	public Map<String, Serializable> getContext() {
+	public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
+		getParams().put(paramName, collectionize(String.valueOf(paramValue)));
+    }
+
+    public void addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
+		getParams().put(name, stringifyCol(value));
+    }
+
+    public Map<String, Collection<String>> getContext() {
 		if (context == null) {
 			context = new HashMap<>();
 		}
 		return context;
 	}
-
-	@SuppressWarnings("unchecked")
-	public <T> T getContext(Class<T> type, String contextName) {
-		return (T) getContext().get(contextName);
+    
+	public void addContext(String name, String value) {
+		getContext().put(name, collectionize(value));
+	}
+	
+	public void addContext(String name, PrismObject<? extends ObjectType> value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addContext(String name, boolean value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addContext(String name, long value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addContext(String name, int value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addContext(String name, Class<?> value) {
+		if (ObjectType.class.isAssignableFrom(ObjectType.class)) {
+			getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+		} else {
+			getContext().put(name, collectionize(String.valueOf(value)));
+		}
+	}
+	
+	public void addContext(String name, QName value) {
+		getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+	}
+	
+	public void addContext(String name, PolyString value) {
+		getContext().put(name, collectionize(value == null ? null : value.getOrig()));
+	}
+	
+	public void addContext(String name, ObjectQuery value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addContext(String name, ObjectDelta value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	
+	public void addContext(String name, String... values) {
+		getContext().put(name, collectionize(values));
 	}
 
-	public void addContext(String contextName, Serializable value) {
-		getContext().put(contextName, value);
-	}
+	public void addArbitraryObjectAsContext(String name, Object value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+    }
 
-	public Map<String, Serializable> getReturns() {
+    public void addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
+    	getContext().put(paramName, stringifyCol(paramValue));
+    }
+    
+	public Map<String, Collection<String>> getReturns() {
 		if (returns == null) {
 			returns = new HashMap<>();
 		}
 		return returns;
 	}
 
-	public void addReturn(String returnName, Serializable value) {
-		getReturns().put(returnName, value);
+	public void addReturn(String name, String value) {
+		getReturns().put(name, collectionize(value));
+	}
+	
+	public void addReturn(String name, PrismObject<? extends ObjectType> value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addReturn(String name, boolean value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addReturn(String name, long value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addReturn(String name, int value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addReturn(String name, Class<?> value) {
+		if (ObjectType.class.isAssignableFrom(ObjectType.class)) {
+			getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+		} else {
+			getReturns().put(name, collectionize(String.valueOf(value)));
+		}
+	}
+	
+	public void addReturn(String name, QName value) {
+		getReturns().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+	}
+	
+	public void addReturn(String name, PolyString value) {
+		getReturns().put(name, collectionize(value == null ? null : value.getOrig()));
+	}
+	
+	public void addReturn(String name, ObjectQuery value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addReturn(String name, ObjectDelta value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	
+	public void addReturn(String name, String... values) {
+		getReturns().put(name, collectionize(values));
 	}
 
-	public Serializable getReturn(String returnName) {
-		return getReturns().get(returnName);
+	public void addArbitraryObjectAsReturn(String name, Object value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+    }
+
+    public void addArbitraryObjectCollectionAsReturn(String paramName, Collection<?> paramValue) {
+    	getReturns().put(paramName, stringifyCol(paramValue));
+    }	
+    
+    private Collection<String> collectionize(String value) {
+    	Collection<String> out = new ArrayList<>(1);
+    	out.add(value);
+    	return out;
+    }
+    
+    private Collection<String> collectionize(String... values) {
+    	return Arrays.asList(values);
+    }
+    
+    private Collection<String> stringifyCol(Collection<?> values) {
+		if (values == null) {
+			return null;
+		}
+		Collection<String> out = new ArrayList<>(values.size());
+		for (Object value: values) {
+			if (value == null) {
+				out.add(null);
+			} else {
+				out.add(value.toString());
+			}
+		}
+		return out;
 	}
+
 
 	/**
 	 * @return Contains random long number, for better searching in logs.
@@ -1005,9 +1153,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
             return null;
         }
 
-		Map<String, Serializable> params = ParamsTypeUtil.fromParamsType(result.getParams());
-		Map<String, Serializable> context = ParamsTypeUtil.fromParamsType(result.getContext());
-		Map<String, Serializable> returns = ParamsTypeUtil.fromParamsType(result.getReturns());
+		Map<String, Collection<String>> params = ParamsTypeUtil.fromParamsType(result.getParams());
+		Map<String, Collection<String>> context = ParamsTypeUtil.fromParamsType(result.getContext());
+		Map<String, Collection<String>> returns = ParamsTypeUtil.fromParamsType(result.getReturns());
 
 		List<OperationResult> subresults = null;
 		if (!result.getPartialResults().isEmpty()) {

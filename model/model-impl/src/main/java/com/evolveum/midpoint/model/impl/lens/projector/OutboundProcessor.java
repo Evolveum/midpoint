@@ -139,8 +139,8 @@ public class OutboundProcessor {
 			
 			Mapping.Builder<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> builder = mappingFactory.createMappingBuilder(outboundMappingType,
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
-			        + " in " + rOcDef.getResourceType());
-			builder = builder.originObject(rOcDef.getResourceType())
+			        + " in " + projCtx.getResource());
+			builder = builder.originObject(projCtx.getResource())
 					.originType(OriginType.OUTBOUND);
 			Mapping<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(builder, attributeName, refinedAttributeDefinition,
 					focusOdo, projectionOdo, operation, rOcDef, null, context, projCtx, task, result);
@@ -165,7 +165,7 @@ public class OutboundProcessor {
 			
 			Mapping.Builder<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mappingBuilder = mappingFactory.createMappingBuilder(outboundMappingType,
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(associationDefinition.getName())
-			        + " in " + rOcDef.getResourceType());
+			        + " in " + projCtx.getResource());
 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
 			Mapping<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = (Mapping) evaluateMapping(mappingBuilder,

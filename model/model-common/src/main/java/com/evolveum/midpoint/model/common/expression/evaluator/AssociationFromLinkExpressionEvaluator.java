@@ -108,7 +108,7 @@ public class AssociationFromLinkExpressionEvaluator
 		PrismContainer<ShadowAssociationType> output = outputDefinition.instantiate();
 		
 		QName assocName = context.getMappingQName();
-		String resourceOid = rAssocTargetDef.getResourceType().getOid();
+		String resourceOid = rAssocTargetDef.getResourceOid();
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
 		
 		// Always process the first role (myself) regardless of recursion setting

@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -97,24 +98,14 @@ public class ParamsTypeUtil {
 		return null;
 	}
 	
-	public static Map<String, Serializable> fromParamsType(ParamsType paramsType) {
+	public static Map<String, Collection<String>> fromParamsType(ParamsType paramsType) {
 		if (paramsType != null) {
-			Map<String, Serializable> params = new HashMap<String, Serializable>();
+			Map<String, Collection<String>> params = new HashMap<>();
 			Serializable realValue = null;
 			for (EntryType entry : paramsType.getEntry()) {
-				if (entry.getEntryValue() != null){
+				if (entry.getEntryValue() != null) {
 					
-//					Serializable value = (Serializable) entry.getEntryValue().getValue();
-//					if (value instanceof RawType){
-//						XNode xnode = ((RawType) value).getXnode();
-//						if (xnode instanceof PrimitiveXNode){
-//							realValue = ((PrimitiveXNode) xnode).getGuessedFormattedValue();
-//						}
-//					} else {
-//						realValue = value;
-//					}
-//				}
-				params.put(entry.getKey(), (Serializable) entry.getEntryValue());
+				params.put(entry.getKey(), entry.getEntryValue());
 				}
 			}
 			

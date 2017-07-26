@@ -45,7 +45,8 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObjectClassDefinition {
-	
+	private static final long serialVersionUID = 1L;
+
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private LayerType layer;
     /**
@@ -247,7 +248,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 
     @Override
 	public LayerRefinedAttributeDefinition<?> findAttributeDefinition(String elementLocalname) {
-		return findAttributeDefinition(new QName(getResourceNamespace(), elementLocalname));        // todo or should we use ns-less matching?
+    	return LayerRefinedAttributeDefinitionImpl.wrap(refinedObjectClassDefinition.findAttributeDefinition(elementLocalname), layer);
 	}
 
     @Override
@@ -291,8 +292,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-    public ResourceType getResourceType() {
-		return refinedObjectClassDefinition.getResourceType();
+    public String getResourceOid() {
+		return refinedObjectClassDefinition.getResourceOid();
 	}
 
     @Override
@@ -432,23 +433,23 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-		return (T) refinedObjectClassDefinition.getEffectiveCapability(capabilityClass);
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
+		return (T) refinedObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
 	}
 
 	@Override
-	public PagedSearchCapabilityType getPagedSearches() {
-		return refinedObjectClassDefinition.getPagedSearches();
+	public PagedSearchCapabilityType getPagedSearches(ResourceType resourceType) {
+		return refinedObjectClassDefinition.getPagedSearches(resourceType);
 	}
 
 	@Override
-	public boolean isPagedSearchEnabled() {
-		return refinedObjectClassDefinition.isPagedSearchEnabled();
+	public boolean isPagedSearchEnabled(ResourceType resourceType) {
+		return refinedObjectClassDefinition.isPagedSearchEnabled(resourceType);
 	}
 
 	@Override
-	public boolean isObjectCountingEnabled() {
-		return refinedObjectClassDefinition.isObjectCountingEnabled();
+	public boolean isObjectCountingEnabled(ResourceType resourceType) {
+		return refinedObjectClassDefinition.isObjectCountingEnabled(resourceType);
 	}
 
     @Override
@@ -563,11 +564,6 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
 		return new LayerRefinedObjectClassDefinitionImpl(refinedObjectClassDefinition.deepClone(ctdMap), layer);
 	}
-
-	@Override
-	public String getResourceNamespace() {
-        return refinedObjectClassDefinition.getResourceNamespace();
-    }
 
     @Override
     public ResourceObjectReferenceType getBaseContext() {

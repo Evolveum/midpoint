@@ -467,7 +467,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + ".checkObjectProperty." + propName);
 		PrismProperty<T> prop = object.findProperty(propQName);
 		Collection<T> actualValues = prop.getRealValues();
-		result.addArbitraryCollectionAsParam("actualValues", actualValues);
+		result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
 		assertMultivalue("User, property '"+propName+"'", expectedValues, actualValues, result);
 		result.recordSuccessIfUnknown();
 	}
@@ -497,7 +497,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
 		PrismProperty<PolyString> prop = object.findProperty(propQName);
 		Collection<PolyString> actualValues = prop.getRealValues();
-		result.addArbitraryCollectionAsParam("actualValues", actualValues);
+		result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
 		assertMultivaluePolyString("User, property '"+propName+"'", expectedValues, actualValues, result);
 		result.recordSuccessIfUnknown();
 	}

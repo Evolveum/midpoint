@@ -227,7 +227,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		PrismObject<T> object;
 		OperationResult result = parentResult.createMinorSubresult(GET_OBJECT);
         result.addParam("oid", oid);
-        result.addCollectionOfSerializablesAsParam("options", rawOptions);
+        result.addArbitraryObjectCollectionAsParam("options", rawOptions);
         result.addParam("class", clazz);
 
 		Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
@@ -379,7 +379,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
-		result.addParam(OperationResult.PARAM_OPTIONS, options);
+		result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
 
 		// Search filters treatment: if reevaluation is requested, we have to deal with three cases:
 		// 1) for ADD operation: filters contained in object-to-be-added -> these are treated here
@@ -681,7 +681,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	public <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 			
 		OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
-		result.addParams(new String[] { "oid", "type" }, oid, type);
+		result.addParam(OperationResult.PARAM_OID, oid);
+		result.addParam(OperationResult.PARAM_TYPE, type);
 		
 		RepositoryCache.enter();
 		
@@ -785,8 +786,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
 
 		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-		result.addParams(new String[] { "query", "paging", "searchProvider" },
-                query, (query != null ? query.getPaging() : "undefined"), searchProvider);
+		result.addParam(OperationResult.PARAM_TYPE, type);
+		result.addParam(OperationResult.PARAM_QUERY, query);
+		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
 		query = preProcessQuerySecurity(type, query);
 		if (isFilterNone(query, result)) {
@@ -901,8 +903,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
-		result.addParams(new String[] { "type", "query", "paging" },
-				type, query, (query != null ? query.getPaging() : "undefined"));
+		result.addParam(OperationResult.PARAM_TYPE, type);
+		result.addParam(OperationResult.PARAM_QUERY, query);
 
 		query = ctx.refinedQuery;
 
@@ -975,7 +977,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
-		result.addParams(new String[] { "type", "query"}, type, query);
+		result.addParam(OperationResult.PARAM_TYPE, type);
+		result.addParam(OperationResult.PARAM_QUERY, query);
 
 		query = ctx.refinedQuery;
 
@@ -1084,8 +1087,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
 
 		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-		result.addParams(new String[] { "query", "paging", "searchProvider" },
-                query, (query != null ? query.getPaging() : "undefined"), searchProvider);
+		result.addParam(OperationResult.PARAM_QUERY, query);
+		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 		
 		query = preProcessQuerySecurity(type, query);
 		if (isFilterNone(query, result)) {
@@ -1161,8 +1164,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, CommunicationException, ExpressionEvaluationException {
 
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
-		result.addParams(new String[] { "query", "paging"},
-                query, (query != null ? query.getPaging() : "undefined"));
+		result.addParam(OperationResult.PARAM_QUERY, query);
 		
 		query = preProcessQuerySecurity(type, query);
 		if (isFilterNone(query, result)) {
@@ -1213,7 +1215,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{accountOid});
 
 		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
-		result.addParams(new String[] { "accountOid" }, accountOid);
+		result.addParam("accountOid", accountOid);
 
 		try {
 			
@@ -1267,7 +1269,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{shadowOid});
 
 		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
-		result.addParams(new String[] { "accountOid" }, shadowOid);
+		result.addParams("shadowOid", shadowOid);
 
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);
@@ -1326,8 +1328,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					paging.getOrderBy(), paging.getDirection());
 
 			OperationResult result = parentResult.createSubresult(LIST_RESOURCE_OBJECTS);
-			result.addParams(new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
-					objectClass, paging);
+			result.addParam("resourceOid", resourceOid);
+			result.addParam("objectType", objectClass);
 
 			try {
 
@@ -1405,7 +1407,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
         result.addParam("resourceOid", resourceOid);
         result.addParam("objectClass", objectClass);
-        result.addArbitraryObjectAsParam("task", task);
+        result.addArbitraryObjectAsParam(OperationResult.PARAM_TASK, task);
 		// TODO: add context to the result
 
 		// Fetch resource definition from the repo/provisioning
@@ -1459,7 +1461,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
         result.addParam(OperationResult.PARAM_OID, shadowOid);
-        result.addArbitraryObjectAsParam("task", task);
+        result.addArbitraryObjectAsParam(OperationResult.PARAM_TASK, task);
 		// TODO: add context to the result
 
         try {
@@ -1517,7 +1519,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			OperationResult parentResult) {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
-		result.addParam("options", options);
+		result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
 		objectImporter.importObjects(input, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Import result:\n{}", result.debugDump());
@@ -1607,11 +1609,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		OperationResult result = parentResult.createMinorSubresult(COMPARE_OBJECT);
-		result.addParam("oid", provided.getOid());
-		result.addParam("name", provided.getName());
-		result.addCollectionOfSerializablesAsParam("readOptions", rawReadOptions);
-		result.addParam("compareOptions", compareOptions);
-		result.addCollectionOfSerializablesAsParam("ignoreItems", ignoreItems);
+		result.addParam(OperationResult.PARAM_OID, provided.getOid());
+		result.addParam(OperationResult.PARAM_NAME, provided.getName());
+		result.addArbitraryObjectCollectionAsParam("readOptions", rawReadOptions);
+		result.addArbitraryObjectAsParam("compareOptions", compareOptions);
+		result.addArbitraryObjectCollectionAsParam("ignoreItems", ignoreItems);
 
 		Collection<SelectorOptions<GetOperationOptions>> readOptions = preProcessOptionsSecurity(rawReadOptions);
 
