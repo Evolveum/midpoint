@@ -432,9 +432,11 @@ public class PrismValuePanel extends Panel {
 
 //              if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(definition.getName())) {
 //                  return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
-//              } else if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
-//                  return new LockoutStatusPanel(id, valueWrapperModel.getObject(), new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
-//              } else {
+//              } else
+                if(ActivationType.F_LOCKOUT_STATUS.equals(definition.getName())){
+                  return new LockoutStatusPanel(id, valueWrapperModel.getObject(), new PropertyModel<LockoutStatusType>(valueWrapperModel, baseExpression));
+                }
+//              else {
 //                  if (definition.getTypeName().getLocalPart().equals(ActivationStatusType.class.getSimpleName())) {
 //                      return WebComponentUtil.createEnumPanel(ActivationStatusType.class, id, new PropertyModel<ActivationStatusType>(valueWrapperModel, baseExpression), this);
 //                  }
