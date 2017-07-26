@@ -423,7 +423,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return list;
 	}
 
-	private int countPolicyRules() {
+	protected int countPolicyRules() {
 		int policyRuleCounter = 0;
 		PrismObject<F> focus = getObjectModel().getObject().getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
@@ -436,19 +436,21 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
     private List<AssignmentEditorDto> loadPolicyRules() {
-		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
-
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
-		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		List<AssignmentEditorDto> list = getPolicyRulesList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
+				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
+		Collections.sort(list);
+		return list;
+	}
+
+	protected List<AssignmentEditorDto> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
+		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
 		for (AssignmentType assignment : assignments) {
 			if (isPolicyRuleAssignment(assignment)) {
-				list.add(new AssignmentEditorDto(StringUtils.isEmpty(focusWrapper.getOid()) ?
-						UserDtoStatus.ADD : UserDtoStatus.MODIFY, assignment, this));
+				list.add(new AssignmentEditorDto(status, assignment, this));
 			}
 		}
-
-		Collections.sort(list);
 		return list;
 	}
 

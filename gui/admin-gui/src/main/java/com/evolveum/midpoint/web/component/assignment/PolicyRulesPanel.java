@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -151,14 +152,32 @@ public class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
                 PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                String constraintValue;
+                String actionValue;
                 if (policyRuleContainer == null){
-                    constraintValue = "";
+                    actionValue = "";
                 } else {
                     PolicyActionsType policyActions = policyRuleContainer.getValue().getValue().getPolicyActions();
-                    constraintValue = policyActions != null ? PolicyRuleUtil.getPolicyActionsAsString(policyActions) : "";
+                    actionValue = policyActions != null ? PolicyRuleUtil.getPolicyActionsAsString(policyActions) : "";
                 }
-                cellItem.add(new Label(componentId, Model.of(constraintValue)));
+                cellItem.add(new Label(componentId, Model.of(actionValue)));
+            }
+
+        });
+        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.orderColumn")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
+                                     final IModel<AssignmentEditorDto> rowModel) {
+                PrismContainerValue<AssignmentType> assignment = rowModel.getObject().getOldValue();
+
+                String orderValue;
+                if (assignment == null || assignment.getValue() == null){
+                    orderValue = "";
+                } else {
+                    orderValue = Integer.toString(assignment.getValue().getOrder());
+                }
+                cellItem.add(new Label(componentId, Model.of(orderValue)));
             }
 
         });
