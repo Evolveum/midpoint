@@ -102,14 +102,16 @@ public class CertificationListener implements AccessCertificationEventListener {
     }
 
     @Override
-    public void onReviewRequested(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertReviewEvent event = certEventFactory.createReviewRequestedEvent(reviewerRef, cases, campaign, task, result);
+    public void onReviewRequested(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+        CertReviewEvent event = certEventFactory.createReviewRequestedEvent(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
         processEvent(event, task, result);
     }
 
     @Override
-    public void onReviewDeadlineApproaching(ObjectReferenceType reviewerRef, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
-        CertReviewEvent event = certEventFactory.createReviewDeadlineApproachingEvent(reviewerRef, cases, campaign, task, result);
+    public void onReviewDeadlineApproaching(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
+            List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, Task task, OperationResult result) {
+        CertReviewEvent event = certEventFactory.createReviewDeadlineApproachingEvent(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
         processEvent(event, task, result);
     }
 

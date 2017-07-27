@@ -308,7 +308,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		display("dummy transport", dummyTransport);
 		List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
-		assertEquals("Wrong # of dummy notifications", 2, messages.size());			// original + new approver
+		assertEquals("Wrong # of dummy notifications", 3, messages.size());			// original + new approver + deputy of administrator
 	}
 
 	@Test

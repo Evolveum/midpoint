@@ -45,24 +45,16 @@
     
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory" 
     		scope="singleton">
-        <constructor-arg>
-        	<ref bean="repoObjectResolver"/>
-        </constructor-arg>
-        <constructor-arg>
-        	<ref bean="securityEnforcer"/>
-        </constructor-arg>
-        <constructor-arg>
-        	<ref bean="prismContext"/>
-        </constructor-arg>
+        <constructor-arg ref="securityEnforcer"/>
+        <constructor-arg ref="prismContext"/>
         <property name="evaluatorFactories">
         	<list>
         		<ref bean="literalExpressionEvaluatorFactory"/>
         		<ref bean="asisExpressionEvaluatorFactory"/>
         	</list>
         </property>
-        <property name="defaultEvaluatorFactory">
-            <ref bean="asisExpressionEvaluatorFactory"/>
-        </property>
+        <property name="defaultEvaluatorFactory" ref="asisExpressionEvaluatorFactory"/>
+		<property name="objectResolver" ref="repoObjectResolver"/>
     </bean>
     
 </beans>

@@ -172,8 +172,10 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         requestAssignments.add(new VisibleEnableBehaviour(){
             @Override
             public boolean isEnabled(){
-                return getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
-                        onlyWarnings() || areConflictsResolved();
+                return (getSessionStorage().getRoleCatalog().isMultiUserRequest() ||
+                        onlyWarnings() || areConflictsResolved()) &&
+                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart() != null &&
+                        getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0;
             }
         });
         mainForm.add(requestAssignments);
@@ -230,6 +232,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
             result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
             showResult(result);
+            clearStorage();
             setResponsePage(PageAssignmentShoppingKart.class);
             return;
         }
@@ -238,6 +241,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             target.add(getFeedbackPanel());
             target.add(PageAssignmentsList.this.get(ID_FORM));
         } else {
+            clearStorage();
             setResponsePage(PageAssignmentShoppingKart.class);
         }
     }
@@ -278,24 +282,30 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                     && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())) {
                 result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
                 showResult(result);
+                clearStorage();
                 setResponsePage(PageAssignmentShoppingKart.class);
                 return;
             }
             if (WebComponentUtil.isSuccessOrHandledError(result)
                     || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
-                SessionStorage storage = getSessionStorage();
-                if (storage.getRoleCatalog().getAssignmentShoppingCart() != null) {
-                    storage.getRoleCatalog().getAssignmentShoppingCart().clear();
-                }
-                if (storage.getRoleCatalog().getTargetUserList() != null){
-                    storage.getRoleCatalog().getTargetUserList().clear();
-                }
+                clearStorage();
                 setResponsePage(PageAssignmentShoppingKart.class);
             } else {
                 showResult(result);
                 target.add(getFeedbackPanel());
                 target.add(PageAssignmentsList.this.get(ID_FORM));
             }
+    }
+
+    private void clearStorage(){
+        SessionStorage storage = getSessionStorage();
+        if (storage.getRoleCatalog().getAssignmentShoppingCart() != null) {
+            storage.getRoleCatalog().getAssignmentShoppingCart().clear();
+        }
+        if (storage.getRoleCatalog().getTargetUserList() != null){
+            storage.getRoleCatalog().getTargetUserList().clear();
+        }
+        storage.getRoleCatalog().setRequestDescription("");
     }
 
     private ContainerDelta handleAssignmentDeltas(ObjectDelta<UserType> focusDelta,

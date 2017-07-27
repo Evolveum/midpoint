@@ -83,7 +83,8 @@ public class TestScriptCaching {
     	Protector protector = new ProtectorImpl();
         Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector));
-		scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext, protector);
+		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector);
+		scriptExpressionfactory.setObjectResolver(resolver);
 		scriptExpressionfactory.setFunctions(functions);
         evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector);
         String languageUrl = evaluator.getLanguageUrl();

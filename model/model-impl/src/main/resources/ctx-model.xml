@@ -112,7 +112,6 @@
 
     <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
-        <constructor-arg ref="modelObjectResolver"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <property name="functions">
@@ -131,6 +130,7 @@
         		<ref bean="velocityScriptEvaluator"/>
         	</list>
         </property>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory"
@@ -141,17 +141,17 @@
     
     <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
           scope="singleton">
-          <constructor-arg ref="protector"/>
-          <constructor-arg ref="modelObjectResolver"/>
-          <constructor-arg ref="valuePolicyProcessor"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg ref="protector"/>
+        <constructor-arg ref="valuePolicyProcessor"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
     <bean id="pathExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory"
           scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg ref="modelObjectResolver"/>
-          <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
     <bean id="literalExpressionEvaluatorFactory" class="com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory"
@@ -179,9 +179,9 @@
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
           <constructor-arg ref="securityEnforcer"/>
+          <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
     <bean id="referenceSearchExpressionEvaluatorFactory" 
@@ -189,9 +189,9 @@
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
           <constructor-arg ref="securityEnforcer"/>
+          <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
 	<bean id="associationTargetSearchExpressionEvaluatorFactory" 
@@ -199,9 +199,9 @@
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
           <constructor-arg ref="securityEnforcer"/>
+          <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
 	<bean id="associationFromLinkExpressionEvaluatorFactory" 
@@ -209,8 +209,8 @@
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
+          <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
     <bean id="sequentialValueExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluatorFactory"
@@ -222,9 +222,6 @@
     
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory" 
     		scope="singleton">
-        <constructor-arg>
-        	<ref bean="modelObjectResolver"/>
-        </constructor-arg>
         <constructor-arg>
         	<ref bean="securityEnforcer"/>
         </constructor-arg>
@@ -249,28 +246,17 @@
         <property name="defaultEvaluatorFactory">
             <ref bean="asisExpressionEvaluatorFactory"/>
         </property>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory"
           scope="singleton">
-        <property name="expressionFactory">
-            <ref bean="expressionFactory"/>
-        </property>
-        <property name="objectResolver">
-            <ref bean="modelObjectResolver"/>
-        </property>
-        <property name="protector">
-            <ref bean="protector"/>
-        </property>
-        <property name="prismContext">
-            <ref bean="prismContext"/>
-        </property>
-        <property name="filterManager">
-            <ref bean="filterManager"/>
-        </property>
-        <property name="securityEnforcer">
-            <ref bean="securityEnforcer"/>
-        </property>
+        <property name="expressionFactory" ref="expressionFactory"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
+        <property name="protector" ref="protector"/>
+        <property name="prismContext" ref="prismContext"/>
+        <property name="filterManager" ref="filterManager"/>
+        <property name="securityEnforcer" ref="securityEnforcer"/>
     </bean>
     
     <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
@@ -348,27 +334,13 @@
                  -->
             </map>
         </property>
-        <property name="modelObjectResolver">
-            <ref bean="modelObjectResolver"/>
-        </property>
-        <property name="clockwork">
-            <ref bean="clockwork"/>
-        </property>
-        <property name="changeExecutor">
-            <ref bean="changeExecutor"/>
-        </property>
-        <property name="prismContext">
-            <ref bean="prismContext"/>
-        </property>
-        <property name="auditService">
-            <ref bean="auditService"/>
-        </property>
-        <property name="provisioningService">
-            <ref bean="provisioningService"/>
-        </property>
-        <property name="contextFactory">
-            <ref bean="contextFactory"/>
-        </property>
+        <property name="modelObjectResolver" ref="modelObjectResolver"/>
+        <property name="clockwork" ref="clockwork"/>
+        <property name="changeExecutor" ref="changeExecutor"/>
+        <property name="prismContext" ref="prismContext"/>
+        <property name="auditService" ref="auditService"/>
+        <property name="provisioningService" ref="provisioningService"/>
+        <property name="contextFactory" ref="contextFactory"/>
     </bean>
 
     <bean id="filterManager" class="com.evolveum.midpoint.common.filter.FilterManagerImpl">

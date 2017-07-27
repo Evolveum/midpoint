@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,23 +53,22 @@ import java.util.List;
  */
 public interface ModelInteractionService {
 	
-	static final String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
-	static final String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
-	static final String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
-	static final String GET_EDIT_SHADOW_DEFINITION = CLASS_NAME_WITH_DOT + "getEditShadowDefinition";
-	static final String GET_ALLOWED_REQUEST_ASSIGNMENT_ITEMS = CLASS_NAME_WITH_DOT + "getAllowedRequestAssignmentItems";
-	static final String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
-	static final String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
-	static final String GET_AUTHENTICATIONS_POLICY = CLASS_NAME_WITH_DOT + "getAuthenticationsPolicy";
-	static final String GET_REGISTRATIONS_POLICY = CLASS_NAME_WITH_DOT + "getRegistrationsPolicy";
-	static final String GET_SECURITY_POLICY = CLASS_NAME_WITH_DOT + "resolveSecurityPolicy";
-	static final String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
-	static final String GET_CONNECTOR_OPERATIONAL_STATUS = CLASS_NAME_WITH_DOT + "getConnectorOperationalStatus";
-	static final String MERGE_OBJECTS_PREVIEW_DELTA = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewDelta";
-	static final String MERGE_OBJECTS_PREVIEW_OBJECT = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewObject";
-	
-	
-	
+	String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
+	String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
+	String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
+	String GET_EDIT_SHADOW_DEFINITION = CLASS_NAME_WITH_DOT + "getEditShadowDefinition";
+	String GET_ALLOWED_REQUEST_ASSIGNMENT_ITEMS = CLASS_NAME_WITH_DOT + "getAllowedRequestAssignmentItems";
+	String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
+	String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
+	String GET_AUTHENTICATIONS_POLICY = CLASS_NAME_WITH_DOT + "getAuthenticationsPolicy";
+	String GET_REGISTRATIONS_POLICY = CLASS_NAME_WITH_DOT + "getRegistrationsPolicy";
+	String GET_SECURITY_POLICY = CLASS_NAME_WITH_DOT + "resolveSecurityPolicy";
+	String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
+	String GET_CONNECTOR_OPERATIONAL_STATUS = CLASS_NAME_WITH_DOT + "getConnectorOperationalStatus";
+	String MERGE_OBJECTS_PREVIEW_DELTA = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewDelta";
+	String MERGE_OBJECTS_PREVIEW_OBJECT = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewObject";
+	String GET_DEPUTY_ASSIGNEES = CLASS_NAME_WITH_DOT + "getDeputyAssignees";
+
 	/**
 	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
 	 * add of a user or change of a shadow. The resulting context will sort that out to "focus" and "projection" as needed.
@@ -269,4 +269,18 @@ public interface ModelInteractionService {
 	<O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task,
 			OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException;
+
+	/**
+	 * Gets "deputy assignees" i.e. users that are deputies of assignees. Takes limitations into account.
+	 *
+	 * MAY NOT CHECK AUTHORIZATIONS (uses repository directly, at least at some places) - TODO
+	 * TODO parameterize on limitation kind
+	 */
+	@NotNull
+	List<ObjectReferenceType> getDeputyAssignees(AbstractWorkItemType workItem, Task task, OperationResult parentResult)
+			throws SchemaException;
+
+	@NotNull
+	List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assignee, QName limitationItemName, Task task, OperationResult parentResult)
+			throws SchemaException;
 }

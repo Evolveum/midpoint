@@ -51,13 +51,16 @@ public class AssociationTargetSearchExpressionEvaluatorFactory implements Expres
 	private ModelService modelService;
     private SecurityEnforcer securityEnforcer;
 
-	public AssociationTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService, SecurityEnforcer securityEnforcer) {
+	public AssociationTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ModelService modelService, SecurityEnforcer securityEnforcer) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
-		this.objectResolver = objectResolver;
 		this.modelService = modelService;
         this.securityEnforcer = securityEnforcer;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
 	}
 
 	/* (non-Javadoc)

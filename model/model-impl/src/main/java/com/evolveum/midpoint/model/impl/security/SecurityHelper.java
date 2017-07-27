@@ -380,7 +380,7 @@ public class SecurityHelper {
 	}
 	
 	private Duration daysToDuration(int days) {
-		return XmlTypeConverter.createDuration(days * 1000 * 60 * 60 * 24);
+		return XmlTypeConverter.createDuration((long) days * 1000 * 60 * 60 * 24);
 	}
 
 	public SecurityEnforcer getSecurityEnforcer() {

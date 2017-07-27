@@ -38,29 +38,44 @@ import java.util.List;
 public class CertReviewEvent extends AccessCertificationEvent {
 
     private List<AccessCertificationCaseType> cases;
+    private SimpleObjectRef actualReviewer;					// Actual reviewer - the person which the work item is assigned to. I.e. _not_ his deputy.
+															// Must be set to non-null value just after instantiation (TODO do more cleanly)
 
     public CertReviewEvent(LightweightIdentifierGenerator idGenerator, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, EventOperationType opType) {
         super(idGenerator, campaign, opType);
         this.cases = cases;
     }
 
-    @Override
+	public SimpleObjectRef getActualReviewer() {
+		return actualReviewer;
+	}
+
+	public void setActualReviewer(SimpleObjectRef actualReviewer) {
+		this.actualReviewer = actualReviewer;
+	}
+
+	@Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
         return super.isCategoryType(eventCategoryType) ||
                 EventCategoryType.CERT_CASE_EVENT.equals(eventCategoryType);
     }
 
+    @Deprecated	// obsolete name
     public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromRequestee() {
+    	return getCasesAwaitingResponseFromActualReviewer();
+	}
+
+    public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromActualReviewer() {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
         for (AccessCertificationCaseType aCase : cases) {
-            if (awaitsResponseFromRequestee(aCase, getRequesteeOid(), campaign.getStageNumber())) {
+            if (awaitsResponseFrom(aCase, actualReviewer.getOid(), campaign.getStageNumber())) {
                 rv.add(aCase);
             }
         }
         return rv;
     }
 
-    private boolean awaitsResponseFromRequestee(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
+    private boolean awaitsResponseFrom(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
             if (workItem.getStageNumber() == currentStageNumber
 					&& WorkItemTypeUtil.getOutcome(workItem) == null
