@@ -211,7 +211,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		OperationResult connectionResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
 		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ManualConnectorInstance.class);
-		connectionResult.addContext("connector", getConnectorObject());
+		connectionResult.addContext("connector", getConnectorObject().toString());
 		
 		if (repositoryService == null) {
 			connectionResult.recordFatalError("No repository service");

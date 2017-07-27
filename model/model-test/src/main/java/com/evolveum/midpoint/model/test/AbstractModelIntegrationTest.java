@@ -389,7 +389,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void importObjectFromFile(File file, OperationResult result) throws FileNotFoundException {
 		OperationResult subResult = result.createSubresult(AbstractModelIntegrationTest.class+".importObjectFromFile");
-		subResult.addParam("filename", file);
+		subResult.addParam("filename", file.getPath());
 		LOGGER.trace("importObjectFromFile: {}", file);
 		Task task = taskManager.createTaskInstance();
 		importObjectFromFile(file, task, result);

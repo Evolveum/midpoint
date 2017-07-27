@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -387,7 +387,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         OperationResult subResult = result.createSubresult(ADD_OBJECT);
         subResult.addParam("object", object);
-        subResult.addParam("options", options);
+        subResult.addParam("options", options.toString());
 
         // TODO use executeAttempts
         final String operation = "adding";
@@ -475,7 +475,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
-        subResult.addCollectionOfSerializablesAsParam("modifications", modifications);
+        subResult.addArbitraryObjectCollectionAsParam("modifications", modifications);
 
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
@@ -904,7 +904,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
 
         OperationResult subResult = result.createMinorSubresult(EXECUTE_QUERY_DIAGNOSTICS);
-        subResult.addParam("query", request);
+        subResult.addParam("query", request.toString());
 
         // TODO executeAttempts
         SqlPerformanceMonitor pm = getPerformanceMonitor();

@@ -160,7 +160,7 @@ public class ValuePolicyProcessor {
 		Validate.notNull(pp, "Value policy must not be null.");
 
 		OperationResult result = parentResult.createSubresult(OPERATION_STRING_POLICY_VALIDATION);
-		result.addParam("policyName", pp.getName());
+		result.addArbitraryObjectAsParam("policyName", pp.getName());
 		normalize(pp);
 
 		if (newValue == null && 

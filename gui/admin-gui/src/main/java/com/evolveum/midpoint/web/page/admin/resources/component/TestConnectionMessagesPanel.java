@@ -83,7 +83,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
             for (OperationResult subresult: result.getSubresults()) {
             	if (isConnectorResult(subresult)) {
             		ConnectorStruct connectorStruct = new ConnectorStruct();
-            		connectorStruct.connectorName = (String) subresult.getParams().get(OperationResult.PARAM_NAME);
+            		connectorStruct.connectorName = subresult.getParamSingle(OperationResult.PARAM_NAME);
             		if (connectorStruct.connectorName == null) {
             			connectorStruct.connectorName = "";
             		}

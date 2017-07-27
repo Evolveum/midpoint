@@ -233,7 +233,7 @@ public class WorkItemManager {
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addParam("workItemId", workItemId);
-		result.addParam("escalation", escalation);
+		result.addArbitraryObjectAsParam("escalation", escalation);
 		result.addArbitraryObjectCollectionAsParam("delegates", delegates);
 		try {
 			MidPointPrincipal principal = securityEnforcer.getPrincipal();

@@ -431,7 +431,7 @@ public class CertificationManagerImpl implements CertificationManager {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEMS);
 		result.addParam("campaignOid", campaignOid);
 		result.addArbitraryObjectCollectionAsParam("workItems", workItems);	// TODO only IDs?
-		result.addParam("delegateAction", delegateAction);
+		result.addArbitraryObjectAsParam("delegateAction", delegateAction);
 		try {
 			// TODO security
 			securityEnforcer.authorize(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS.getUrl(), null,

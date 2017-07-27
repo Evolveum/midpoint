@@ -37,6 +37,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -187,11 +189,15 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
     	SelectableBean<O> selectable = new SelectableBean<O>(obj);
-    	if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())){
-    		selectable.setResult(obj.getFetchResult());
+    	if (!WebComponentUtil.isSuccessOrHandledError(obj.getFetchResult())) {
+    		try {
+				selectable.setResult(obj.getFetchResult());
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
     	}
     	for (O s : selected){
-    		if (s.getOid().equals(obj.getOid())){
+    		if (s.getOid().equals(obj.getOid())) {
     			selectable.setSelected(true);
     		}
     	}

@@ -845,7 +845,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 					continue;
 				}
 				
-				result.addParam("policyItemPath", path);
+				result.addArbitraryObjectAsParam("policyItemPath", path);
 				
 				PrismPropertyDefinition<?> propertyDef = getItemDefinition(object, path);
 				if (propertyDef == null) {
@@ -1111,7 +1111,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 		for (String newValue : valuesToValidate) {
 			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
-			if (path != null ) result.addParam("path", path);
+			if (path != null ) result.addArbitraryObjectAsParam("path", path);
 			result.addParam("valueToValidate", newValue);
 			if (!policyProcessor.validateValue(newValue, stringPolicy, object, "validate value " + (path!= null ? "for " + path : "") + " for " + object + " value " + valueToValidate, task, result)) {
 				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");

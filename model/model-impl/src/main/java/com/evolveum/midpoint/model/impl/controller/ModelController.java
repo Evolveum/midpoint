@@ -1272,7 +1272,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{shadowOid});
 
 		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
-		result.addParams("shadowOid", shadowOid);
+		result.addParam("shadowOid", shadowOid);
 
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions);

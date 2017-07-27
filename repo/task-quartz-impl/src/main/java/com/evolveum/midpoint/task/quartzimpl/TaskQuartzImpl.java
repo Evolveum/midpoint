@@ -254,7 +254,11 @@ public class TaskQuartzImpl implements Task {
             }
             taskPrism.asObjectable().setResult(resultInPrism);
         }
-        taskResult = OperationResult.createOperationResult(resultInPrism);
+        try {
+			taskResult = OperationResult.createOperationResult(resultInPrism);
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
     }
     //endregion
 

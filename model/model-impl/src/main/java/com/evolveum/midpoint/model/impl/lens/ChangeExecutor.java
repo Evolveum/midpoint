@@ -236,9 +236,9 @@ public class ChangeExecutor {
 
 			OperationResult subResult = result.createSubresult(
 					OPERATION_EXECUTE_PROJECTION + "." + projCtx.getObjectTypeClass().getSimpleName());
-			subResult.addContext("discriminator", projCtx.getResourceShadowDiscriminator());
+			subResult.addArbitraryObjectAsContext("discriminator", projCtx.getResourceShadowDiscriminator());
 			if (projCtx.getResource() != null) {
-				subResult.addParam("resource", projCtx.getResource().getName());
+				subResult.addParam("resource", projCtx.getResource());
 			}
 			try {
 
@@ -711,7 +711,7 @@ public class ChangeExecutor {
 		String projectionOid = projectionCtx.getOid();
 
 		OperationResult result = new OperationResult(OPERATION_UPDATE_SITUATION_ACCOUNT);
-		result.addParam("situation", situation);
+		result.addArbitraryObjectAsParam("situation", situation);
 		result.addParam("accountRef", projectionOid);
 
 		PrismObject<ShadowType> account = null;

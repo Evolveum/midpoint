@@ -421,7 +421,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 							GetOperationOptions.createRetrieve(subquery));
 					PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, result);
 
-					subresult.addParam("subquery", subquery);
+					subresult.addArbitraryObjectAsParam("subquery", subquery);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Self-test:lookupTable getObject by row key:\n{}", DebugUtil.debugDump(lookupTableRetrieved));
 					}

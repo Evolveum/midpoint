@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
@@ -70,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
+	private static final String VARIOUS_VALUES = "[various values]";
 	private static final String INDENT_STRING = "    ";
 
     /**
@@ -731,12 +733,34 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		return params;
 	}
+	
+	public Collection<String> getParam(String name) {
+		return getParams().get(name);
+	}
+	
+	public String getParamSingle(String name) {
+		Collection<String> values = getParams().get(name);
+		if (values == null) {
+			return null;
+		}
+		if (values.isEmpty()) {
+			return null;
+		}
+		if (values.size() > 1) {
+			throw new IllegalStateException("More than one parameter "+name+" in "+this);
+		}
+		return values.iterator().next();
+	}
 
 	public void addParam(String name, String value) {
 		getParams().put(name, collectionize(value));
 	}
 	
 	public void addParam(String name, PrismObject<? extends ObjectType> value) {
+		getParams().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addParam(String name, ObjectType value) {
 		getParams().put(name, collectionize(String.valueOf(value)));
 	}
 	
@@ -804,6 +828,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		getContext().put(name, collectionize(String.valueOf(value)));
 	}
 	
+	public void addContext(String name, ObjectType value) {
+		getContext().put(name, collectionize(String.valueOf(value)));
+	}
+	
 	public void addContext(String name, boolean value) {
 		getContext().put(name, collectionize(String.valueOf(value)));
 	}
@@ -859,12 +887,34 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		return returns;
 	}
+	
+	public Collection<String> getReturn(String name) {
+		return getReturns().get(name);
+	}
+	
+	public String getReturnSingle(String name) {
+		Collection<String> values = getReturns().get(name);
+		if (values == null) {
+			return null;
+		}
+		if (values.isEmpty()) {
+			return null;
+		}
+		if (values.size() > 1) {
+			throw new IllegalStateException("More than one return "+name+" in "+this);
+		}
+		return values.iterator().next();
+	}
 
 	public void addReturn(String name, String value) {
 		getReturns().put(name, collectionize(value));
 	}
 	
 	public void addReturn(String name, PrismObject<? extends ObjectType> value) {
+		getReturns().put(name, collectionize(String.valueOf(value)));
+	}
+	
+	public void addReturn(String name, ObjectType value) {
 		getReturns().put(name, collectionize(String.valueOf(value)));
 	}
 	
@@ -1146,9 +1196,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return "R(" + operation + " " + status + " " + message + ")";
 	}
 
-
-
-	public static OperationResult createOperationResult(OperationResultType result) {
+	public static OperationResult createOperationResult(OperationResultType result) throws SchemaException {
 		if (result == null) {
             return null;
         }
@@ -1345,27 +1393,33 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		target.incrementCount();
 	}
 
-	private void mergeMap(Map<String, Serializable> targetMap, Map<String, Serializable> sourceMap) {
-		for (Entry<String, Serializable> targetEntry: targetMap.entrySet()) {
+	private void mergeMap(Map<String, Collection<String>> targetMap, Map<String, Collection<String>> sourceMap) {
+		for (Entry<String, Collection<String>> targetEntry: targetMap.entrySet()) {
 			String targetKey = targetEntry.getKey();
-			Serializable targetValue = targetEntry.getValue();
-			if (targetValue instanceof VariousValues) {
+			Collection<String> targetValues = targetEntry.getValue();
+			if (targetValues.contains(VARIOUS_VALUES)) {
 				continue;
 			}
-			Serializable sourceValue = sourceMap.get(targetKey);
-			if (MiscUtil.equals(targetValue, sourceValue)) {
+			Collection<String> sourceValues = sourceMap.get(targetKey);
+			if (MiscUtil.equals(targetValues, sourceValues)) {
 				// Entries match, nothing to do
 				continue;
 			}
 			// Entries do not match. The target entry needs to be marked as VariousValues
-			targetEntry.setValue(new VariousValues());
+			targetEntry.setValue(createVariousValues());
 		}
-		for (Entry<String, Serializable> sourceEntry: sourceMap.entrySet()) {
+		for (Entry<String, Collection<String>> sourceEntry: sourceMap.entrySet()) {
 			String sourceKey = sourceEntry.getKey();
 			if (!targetMap.containsKey(sourceKey)) {
-				targetMap.put(sourceKey, new VariousValues());
+				targetMap.put(sourceKey, createVariousValues());
 			}
 		}
+	}
+
+	private Collection<String> createVariousValues() {
+		List<String> out = new ArrayList<>(1);
+		out.add(VARIOUS_VALUES);
+		return out;
 	}
 
 	private OperationResult findSimilarSubresult(OperationResult subresult) {
@@ -1472,7 +1526,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		sb.append("\n");
 
-		for (Map.Entry<String, Serializable> entry : getParams().entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : getParams().entrySet()) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[p]");
 			sb.append(entry.getKey());
@@ -1481,7 +1535,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("\n");
 		}
 
-		for (Map.Entry<String, Serializable> entry : getContext().entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : getContext().entrySet()) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[c]");
 			sb.append(entry.getKey());
@@ -1490,7 +1544,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("\n");
 		}
 		
-		for (Map.Entry<String, Serializable> entry : getReturns().entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : getReturns().entrySet()) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[r]");
 			sb.append(entry.getKey());
@@ -1524,19 +1578,17 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 	}
 
-	private String dumpEntry(int indent, Serializable value) {
-		if (value instanceof Element) {
-			Element element = (Element)value;
-			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
-				try {
-					String cvalue = SchemaDebugUtil.prettyPrint(XmlTypeConverter.toJavaValue(element));
-					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, cvalue);
-				} catch (Exception e) {
-					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, "value: " + element.getTextContent());
-				}
-			}
+	private String dumpEntry(int indent, Collection<String> values) {
+		if (values == null) {
+			return null;
 		}
-		return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, SchemaDebugUtil.prettyPrint(value));
+		if (values.size() == 0) {
+			return "(empty)";
+		}
+		if (values.size() == 1) {
+			return values.iterator().next();
+		}
+		return values.toString();
 	}
 
 	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {

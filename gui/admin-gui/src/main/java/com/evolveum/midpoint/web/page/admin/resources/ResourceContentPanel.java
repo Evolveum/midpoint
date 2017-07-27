@@ -84,6 +84,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -634,7 +635,12 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
 				OperationResultType resultType = getResult(rowModel);
-				OperationResult result = OperationResult.createOperationResult(resultType);
+				OperationResult result;
+				try {
+					result = OperationResult.createOperationResult(resultType);
+				} catch (SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
 
 				OperationResultPanel body = new OperationResultPanel(
 						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),

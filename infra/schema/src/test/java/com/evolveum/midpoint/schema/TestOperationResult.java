@@ -43,7 +43,6 @@ public class TestOperationResult {
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 	
-	
 	@Test
 	public void testCleanup() throws Exception {
 		System.out.println("===[ testCleanup ]===");
@@ -205,7 +204,7 @@ public class TestOperationResult {
 		checkResultConversion(root);
 	}
 
-	private void checkResultConversion(OperationResult result) {
+	private void checkResultConversion(OperationResult result) throws SchemaException {
 		// WHEN
 		OperationResultType resultType = result.createOperationResultType();
 		OperationResult result1 = OperationResult.createOperationResult(resultType);

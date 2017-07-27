@@ -86,7 +86,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		OperationResult operationResult = parentResult
 				.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.ObjectAlreadyExistHandler.handleError." + op.name());
 		operationResult.addParam("shadow", shadow);
-		operationResult.addParam("currentOperation", op);
+		operationResult.addArbitraryObjectAsParam("currentOperation", op);
 		operationResult.addParam("exception", ex.getMessage());
 
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();

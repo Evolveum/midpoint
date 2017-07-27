@@ -277,7 +277,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			// temporary hack: how to see thread name for this task
 			workerTask.setName(workerTask.getName().getOrig() + " (" + Thread.currentThread().getName() + ")");
-			workerSpecificResult.addContext("subtaskName", workerTask.getName());
+			workerSpecificResult.addArbitraryObjectAsContext("subtaskName", workerTask.getName());
 
 			while (workerTask.canRun()) {
 				ProcessingRequest request;

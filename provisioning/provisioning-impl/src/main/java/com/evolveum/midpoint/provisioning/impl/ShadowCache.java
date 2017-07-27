@@ -1878,7 +1878,7 @@ public abstract class ShadowCache {
 			}
 			OperationResult notifyChangeResult = new OperationResult(
 					ShadowCache.class.getName() + "notifyChange");
-			notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription);
+			notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription.toString());
 	
 			try {
 				notifyResourceObjectChangeListeners(shadowChangeDescription, ctx.getTask(), notifyChangeResult);

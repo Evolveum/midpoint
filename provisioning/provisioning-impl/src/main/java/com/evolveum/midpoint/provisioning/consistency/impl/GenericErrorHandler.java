@@ -91,7 +91,7 @@ public class GenericErrorHandler extends ErrorHandler{
 		result.addContext("compensatedOperation", operation);
 		result.addContext("operationType",op.name());
 		result.addParam("shadow", shadow);
-		result.addParam("currentOperation", op);
+		result.addArbitraryObjectAsParam("currentOperation", op);
 		result.addParam("reconciled", true);
 		
 		switch (op) {
