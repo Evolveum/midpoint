@@ -61,15 +61,6 @@ public class AssignmentActivationPopupPanel extends BasePanel<AssignmentEditorDt
 
         WebMarkupContainer adminStatusContainer = new WebMarkupContainer(ID_ADMIN_STATUS_CONTAINER);
         adminStatusContainer.setOutputMarkupId(true);
-//        adminStatusContainer.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
-//                        ActivationType.F_ADMINISTRATIVE_STATUS));
-//            }
-//        });
         activationBlock.add(adminStatusContainer);
 
         DropDownChoicePanel administrativeStatus = WebComponentUtil.createEnumPanel(
@@ -77,66 +68,24 @@ public class AssignmentActivationPopupPanel extends BasePanel<AssignmentEditorDt
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()),
                 this);
-//        administrativeStatus.add(new VisibleEnableBehaviour(){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isEnabled(){
-//                return getModel().getObject().isEditable();
-//            }
-//        });
         adminStatusContainer.add(administrativeStatus);
 
         WebMarkupContainer validFromContainer = new WebMarkupContainer(ID_VALID_FROM_CONTAINER);
         validFromContainer.setOutputMarkupId(true);
-//        validFromContainer.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
-//                        ActivationType.F_VALID_FROM));
-//            }
-//        });
         activationBlock.add(validFromContainer);
 
         DateInput validFrom = new DateInput(ID_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
-//        validFrom.add(new VisibleEnableBehaviour(){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isEnabled(){
-//                return getModel().getObject().isEditable();
-//            }
-//        });
         validFromContainer.add(validFrom);
 
         WebMarkupContainer validToContainer = new WebMarkupContainer(ID_VALID_TO_CONTAINER);
         validToContainer.setOutputMarkupId(true);
-//        validToContainer.add(new VisibleEnableBehaviour() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return isItemAllowed(new ItemPath(FocusType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
-//                        ActivationType.F_VALID_TO));
-//            }
-//        });
         activationBlock.add(validToContainer);
 
         DateInput validTo = new DateInput(ID_VALID_TO,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
                         AssignmentEditorDto.F_ACTIVATION + ".validTo")));
-//        validTo.add(new VisibleEnableBehaviour(){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isEnabled(){
-//                return getModel().getObject().isEditable();
-//            }
-//        });
         validToContainer.add(validTo);
 
         activationBlock.add(new VisibleEnableBehaviour() {

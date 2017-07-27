@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.assignment.AssignmentDataTablePanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.PolicyRuleDetailsPanel;
 import com.evolveum.midpoint.web.component.assignment.PolicyRulesPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,8 +57,24 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
         policyRules.setOutputMarkupId(true);
         add(policyRules);
 
-        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase);
-        policyRules.add(policyRulesPanel);
+        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase){
+            private static final long serialVersionUID = 1L;
 
+            @Override
+            protected void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, AjaxRequestTarget target){
+                FocusPolicyRulesTabPanel.this.assignmentDetailsPerformed(policyRuleModel, target);
+            }
+        };
+        policyRules.add(policyRulesPanel);
+    }
+
+    private void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, AjaxRequestTarget target){
+        PolicyRuleDetailsPanel detailsPanel = new PolicyRuleDetailsPanel(ID_POLICY_RULES_PANEL, policyRuleModel);
+        getPolicyRulesContainer().replace(detailsPanel);
+        target.add(getPolicyRulesContainer());
+    }
+
+    private WebMarkupContainer getPolicyRulesContainer(){
+        return (WebMarkupContainer) get(ID_POLICY_RULES_CONTAINER);
     }
 }
