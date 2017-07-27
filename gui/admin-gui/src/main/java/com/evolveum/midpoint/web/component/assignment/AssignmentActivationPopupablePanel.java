@@ -36,8 +36,12 @@ import org.apache.wicket.model.StringResourceModel;
 
 /**
  * Created by honchar.
+ * the panel could be used as a content panel for popup
+ * window as well as a standard page activation panel
  */
-public class AssignmentActivationPopupPanel extends BasePanel<AssignmentEditorDto> implements Popupable{
+public class AssignmentActivationPopupablePanel extends BasePanel<AssignmentEditorDto> implements Popupable{
+    private static final long serialVersionUID = 1L;
+
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
@@ -48,15 +52,17 @@ public class AssignmentActivationPopupPanel extends BasePanel<AssignmentEditorDt
     private static final String ID_VALID_TO_CONTAINER = "validToContainer";
     private static final String ID_OK_BUTTON = "okButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
+    private static final String ID_BUTTONS_PANEL = "buttonsPanel";
 
 
-    public AssignmentActivationPopupPanel(String id, IModel<AssignmentEditorDto> assignmentModel){
+    public AssignmentActivationPopupablePanel(String id, IModel<AssignmentEditorDto> assignmentModel){
         super(id, assignmentModel);
         initLayout();
     }
 
     private void initLayout(){
         WebMarkupContainer activationBlock = new WebMarkupContainer(ID_ACTIVATION_BLOCK);
+        activationBlock.setOutputMarkupId(true);
         add(activationBlock);
 
         WebMarkupContainer adminStatusContainer = new WebMarkupContainer(ID_ADMIN_STATUS_CONTAINER);
@@ -97,22 +103,37 @@ public class AssignmentActivationPopupPanel extends BasePanel<AssignmentEditorDt
             }
         });
 
+        WebMarkupContainer buttonsPanel = new WebMarkupContainer(ID_BUTTONS_PANEL);
+        buttonsPanel.setOutputMarkupId(true);
+        buttonsPanel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return getButtonsPanelVisibility();
+            }
+        });
+        add(buttonsPanel);
+
         AjaxButton okButton = new AjaxButton(ID_OK_BUTTON, createStringResource("AssignmentActivationPopupPanel.okButton")) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 getPageBase().hideMainPopup(ajaxRequestTarget);
                 reloadDateComponent(ajaxRequestTarget);
             }
         };
-        add(okButton);
+        buttonsPanel.add(okButton);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON, createStringResource("AssignmentActivationPopupPanel.cancelButton")) {
+            private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 getPageBase().hideMainPopup(ajaxRequestTarget);
             }
         };
-        add(cancelButton);
+        buttonsPanel.add(cancelButton);
 
         AssignmentsUtil.addAjaxOnUpdateBehavior((WebMarkupContainer)get(ID_ACTIVATION_BLOCK));
 
@@ -121,17 +142,26 @@ public class AssignmentActivationPopupPanel extends BasePanel<AssignmentEditorDt
     protected void reloadDateComponent(AjaxRequestTarget target){
     }
 
+    protected boolean getButtonsPanelVisibility(){
+        return true;
+    }
+
+    @Override
     public int getWidth(){
         return 600;
     }
 
+    @Override
     public int getHeight(){
         return 300;
     }
 
+    @Override
     public StringResourceModel getTitle(){
         return createStringResource("AssignmentActivationPopupPanel.title");
     }
+
+    @Override
     public Component getComponent(){
         return this;
     }

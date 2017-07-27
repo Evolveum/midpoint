@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -25,9 +27,16 @@ import org.apache.wicket.model.Model;
 public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
     private static final long serialVersionUID = 1L;
 
-    public PolicyRuleDetailsPanel(String id, IModel<AssignmentEditorDto> model){
-        super(id, model);
+    public PolicyRuleDetailsPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase){
+        super(id, model, pageBase);
+    }
 
+    protected Component initPropertiesContainer(String id){
+        return new PolicyRulePropertiesPanel(id, getModel(), pageBase);
+    }
+
+    protected IModel<String> getAdditionalNameLabelStyleClass() {
+        return Model.of("text-danger text-bold");
     }
 
     protected IModel<String> createHeaderModel(){

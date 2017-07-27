@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -31,6 +32,28 @@ import java.util.List;
  */
 public class PolicyRuleUtil {
     private static final long serialVersionUID = 1L;
+
+    public static String convertPolicyConstraintsContainerToString(PrismContainer<PolicyRuleType> policyRuleContainer, PageBase pageBase){
+        String constraintValue;
+        if (policyRuleContainer == null){
+            constraintValue = "";
+        } else {
+            PolicyConstraintsType constraints = policyRuleContainer.getValue().getValue().getPolicyConstraints();
+            constraintValue = constraints != null ? getPolicyConstraintsAsString(constraints, pageBase) : "";
+        }
+        return constraintValue;
+    }
+
+    public static String convertPolicyActionsContainerToString(PrismContainer<PolicyRuleType> policyRuleContainer){
+        String actionValue;
+        if (policyRuleContainer == null){
+            actionValue = "";
+        } else {
+            PolicyActionsType policyActions = policyRuleContainer.getValue().getValue().getPolicyActions();
+            actionValue = policyActions != null ? getPolicyActionsAsString(policyActions) : "";
+        }
+        return actionValue;
+    }
 
     public static String getPolicyConstraintsAsString(PolicyConstraintsType policyConstraints, PageBase pageBase){
         if (policyConstraints == null){

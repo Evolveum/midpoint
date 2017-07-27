@@ -45,6 +45,8 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
     private static final String ID_POLICY_RULES_PANEL = "policyRulesPanel";
     private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
 
+    private PolicyRulesPanel policyRulesPanel = null;
+
     public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
                                     LoadableModel<List<AssignmentEditorDto>> policyRulesModel, PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
@@ -57,20 +59,39 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
         policyRules.setOutputMarkupId(true);
         add(policyRules);
 
-        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, AjaxRequestTarget target){
-                FocusPolicyRulesTabPanel.this.assignmentDetailsPerformed(policyRuleModel, target);
-            }
-        };
+        initPolicyRulesPanel();
         policyRules.add(policyRulesPanel);
     }
 
-    private void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, AjaxRequestTarget target){
-        PolicyRuleDetailsPanel detailsPanel = new PolicyRuleDetailsPanel(ID_POLICY_RULES_PANEL, policyRuleModel);
+    private void initPolicyRulesPanel(){
+        policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase, AjaxRequestTarget target){
+                FocusPolicyRulesTabPanel.this.assignmentDetailsPerformed(policyRuleModel, pageBase, target);
+            }
+        };
+    }
+
+    private void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase, AjaxRequestTarget target){
+        PolicyRuleDetailsPanel detailsPanel = new PolicyRuleDetailsPanel(ID_POLICY_RULES_PANEL, policyRuleModel, pageBase){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void redirectBack(AjaxRequestTarget target) {
+                redirectBackFromAssignmentDetailsPanelPerformed(target);
+            }
+        };
         getPolicyRulesContainer().replace(detailsPanel);
+        target.add(getPolicyRulesContainer());
+    }
+
+    private void redirectBackFromAssignmentDetailsPanelPerformed(AjaxRequestTarget target){
+        if (policyRulesPanel == null){
+            initPolicyRulesPanel();
+        }
+        getPolicyRulesContainer().replace(policyRulesPanel);
         target.add(getPolicyRulesContainer());
     }
 

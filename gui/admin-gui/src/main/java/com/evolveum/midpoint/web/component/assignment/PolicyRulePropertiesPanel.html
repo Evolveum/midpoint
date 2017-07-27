@@ -17,29 +17,19 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="row">
-        <div class="container-fluid prism-container">
-            <div class="box-header ">
-                <i wicket:id="typeImage"></i>
-                <div class="box-title" wicket:id="assignmentName" />
-            </div>
-            <div wicket:id="description" />
-        </div>
+    <div class="prism-properties">
+    <div class="row prism-property">
+        <div class="col-md-2"><wicket:message key="PolicyRule.constraintsLabel"/></div>
+        <div class="col-md-10" wicket:id="constraintsValue" />
     </div>
     <div class="row">
-        <div class="container-fluid prism-container">
-            <div wicket:id="propertiesPanel" />
-        </div>
+        <div class="col-md-2"><wicket:message key="PolicyRule.situationLabel"/></div>
+        <div class="col-md-10" wicket:id="situationValue" />
     </div>
     <div class="row">
-        <div class="container-fluid prism-container">
-            <div wicket:id="activationPanel" />
-        </div>
+        <div class="col-md-2"><wicket:message key="PolicyRule.actionLabel"/></div>
+        <div class="col-md-10" wicket:id="actionValue" />
     </div>
-    <div class="row">
-        <div class="container-fluid prism-container">
-            <div class="btn btn-default" wicket:id="doneButton"/>
-        </div>
     </div>
 </wicket:panel>
 </body>

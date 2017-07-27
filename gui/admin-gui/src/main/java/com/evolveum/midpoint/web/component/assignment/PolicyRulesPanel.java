@@ -114,7 +114,7 @@ public abstract class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDt
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
-                assignmentDetailsPerformed(rowModel, target);
+                assignmentDetailsPerformed(rowModel, pageBase, target);
             }
         });
         columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
@@ -124,14 +124,7 @@ public abstract class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDt
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
                 PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                String constraintValue;
-                if (policyRuleContainer == null){
-                    constraintValue = "";
-                } else {
-                    PolicyConstraintsType constraints = policyRuleContainer.getValue().getValue().getPolicyConstraints();
-                    constraintValue = constraints != null ? PolicyRuleUtil.getPolicyConstraintsAsString(constraints, pageBase) : "";
-                }
-                    cellItem.add(new Label(componentId, Model.of(constraintValue)));
+                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleContainer, pageBase))));
             }
 
         });
@@ -154,14 +147,7 @@ public abstract class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDt
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
                 PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                String actionValue;
-                if (policyRuleContainer == null){
-                    actionValue = "";
-                } else {
-                    PolicyActionsType policyActions = policyRuleContainer.getValue().getValue().getPolicyActions();
-                    actionValue = policyActions != null ? PolicyRuleUtil.getPolicyActionsAsString(policyActions) : "";
-                }
-                cellItem.add(new Label(componentId, Model.of(actionValue)));
+                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleContainer))));
             }
 
         });
@@ -186,7 +172,7 @@ public abstract class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDt
         return columns;
     }
 
-    protected abstract void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, AjaxRequestTarget target);
+    protected abstract void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase, AjaxRequestTarget target);
 
 //    private AssignmentsTabStorage getPolicyRulesTabStorage(){
 //        return pageBase.getSessionStorage().getAssignmentsTabStorage();
