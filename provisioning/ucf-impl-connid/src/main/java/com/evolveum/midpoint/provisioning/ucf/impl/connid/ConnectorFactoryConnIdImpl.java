@@ -276,7 +276,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			throws CommunicationException {
 		OperationResult result = parentRestul.createSubresult(ConnectorFactory.OPERATION_LIST_CONNECTOR);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
-		result.addParam("host", host.toString());
+		result.addParam("host", host);
 
 		try {
 			if (host == null) {

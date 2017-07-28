@@ -42,8 +42,12 @@ public class ParamsTypeUtil {
 			ParamsType paramsType = new ParamsType();
 			
 			for (Entry<String, Collection<String>> entry : params) {
-				for (String value: entry.getValue()) {
-					paramsType.getEntry().add(createEntryElement(entry.getKey(), value));
+				if (entry.getValue() == null) {
+					paramsType.getEntry().add(createEntryElement(entry.getKey(), null));
+				} else {
+					for (String value: entry.getValue()) {
+						paramsType.getEntry().add(createEntryElement(entry.getKey(), value));
+					}
 				}
 			}
 			return paramsType;
@@ -109,8 +113,8 @@ public class ParamsTypeUtil {
 		Object value = jaxbElement.getValue();
 		if (value instanceof RawType){
 			XNode xnode = ((RawType) value).getXnode();
-			if (xnode instanceof PrimitiveXNode){
-				value = ((PrimitiveXNode) xnode).getGuessedFormattedValue();
+			if (xnode instanceof PrimitiveXNode) {
+				value = ((PrimitiveXNode) xnode).getStringValue();
 			}
 		}
 		return value.toString();

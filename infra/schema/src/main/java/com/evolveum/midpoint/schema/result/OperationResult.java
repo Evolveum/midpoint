@@ -105,9 +105,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
+	
+	// Values of the following maps should NOT be null. But in reality it does happen.
+	// If there is a null value, it should be stored as a single-item collection, where the item is null.
+	// But the collection should not be null. TODO; fix this
 	private Map<String, Collection<String>> params;
 	private Map<String, Collection<String>> context;
 	private Map<String, Collection<String>> returns;
+	
 	private long token;
 	private String messageCode;
 	private String message;
@@ -435,7 +440,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 					(status == OperationResultStatus.PARTIAL_ERROR);
 	}
 
-	public boolean isFatalError(){
+	public boolean isFatalError() {
 		return (status == OperationResultStatus.FATAL_ERROR);
 	}
 	
@@ -757,30 +762,31 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 	
 	public void addParam(String name, PrismObject<? extends ObjectType> value) {
-		getParams().put(name, collectionize(String.valueOf(value)));
+		getParams().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addParam(String name, ObjectType value) {
-		getParams().put(name, collectionize(String.valueOf(value)));
+		getParams().put(name, collectionize(stringify(value)));
 	}
-	
+
 	public void addParam(String name, boolean value) {
-		getParams().put(name, collectionize(String.valueOf(value)));
+		getParams().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addParam(String name, long value) {
-		getParams().put(name, collectionize(String.valueOf(value)));
+		getParams().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addParam(String name, int value) {
-		getParams().put(name, collectionize(String.valueOf(value)));
+		getParams().put(name, collectionize(stringify(value)));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void addParam(String name, Class<?> value) {
-		if (ObjectType.class.isAssignableFrom(ObjectType.class)) {
+		if (ObjectType.class.isAssignableFrom(value)) {
 			getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
-			getParams().put(name, collectionize(String.valueOf(value)));
+			getParams().put(name, collectionize(stringify(value)));
 		}
 	}
 	
@@ -793,11 +799,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 	
 	public void addParam(String name, ObjectQuery value) {
-		getParams().put(name, collectionize(String.valueOf(value)));
+		getParams().put(name, collectionize(stringify(value)));
 	}
 	
-	public void addParam(String name, ObjectDelta value) {
-		getParams().put(name, collectionize(String.valueOf(value)));
+	public void addParam(String name, ObjectDelta<?> value) {
+		getParams().put(name, collectionize(stringify(value)));
 	}
 	
 	
@@ -806,7 +812,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
-		getParams().put(paramName, collectionize(String.valueOf(paramValue)));
+		getParams().put(paramName, collectionize(stringify(paramValue)));
     }
 
     public void addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
@@ -825,30 +831,31 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 	
 	public void addContext(String name, PrismObject<? extends ObjectType> value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+		getContext().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addContext(String name, ObjectType value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+		getContext().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addContext(String name, boolean value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+		getContext().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addContext(String name, long value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+		getContext().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addContext(String name, int value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+		getContext().put(name, collectionize(stringify(value)));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void addContext(String name, Class<?> value) {
-		if (ObjectType.class.isAssignableFrom(ObjectType.class)) {
+		if (ObjectType.class.isAssignableFrom(value)) {
 			getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
-			getContext().put(name, collectionize(String.valueOf(value)));
+			getContext().put(name, collectionize(stringify(value)));
 		}
 	}
 	
@@ -861,11 +868,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 	
 	public void addContext(String name, ObjectQuery value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+		getContext().put(name, collectionize(stringify(value)));
 	}
 	
-	public void addContext(String name, ObjectDelta value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+	public void addContext(String name, ObjectDelta<?> value) {
+		getContext().put(name, collectionize(stringify(value)));
 	}
 	
 	
@@ -874,7 +881,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public void addArbitraryObjectAsContext(String name, Object value) {
-		getContext().put(name, collectionize(String.valueOf(value)));
+		getContext().put(name, collectionize(stringify(value)));
     }
 
     public void addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
@@ -911,30 +918,31 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 	
 	public void addReturn(String name, PrismObject<? extends ObjectType> value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+		getReturns().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addReturn(String name, ObjectType value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+		getReturns().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addReturn(String name, boolean value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+		getReturns().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addReturn(String name, long value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+		getReturns().put(name, collectionize(stringify(value)));
 	}
 	
 	public void addReturn(String name, int value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+		getReturns().put(name, collectionize(stringify(value)));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void addReturn(String name, Class<?> value) {
-		if (ObjectType.class.isAssignableFrom(ObjectType.class)) {
+		if (ObjectType.class.isAssignableFrom(value)) {
 			getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
-			getReturns().put(name, collectionize(String.valueOf(value)));
+			getReturns().put(name, collectionize(stringify(value)));
 		}
 	}
 	
@@ -947,11 +955,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 	
 	public void addReturn(String name, ObjectQuery value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+		getReturns().put(name, collectionize(stringify(value)));
 	}
 	
-	public void addReturn(String name, ObjectDelta value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+	public void addReturn(String name, ObjectDelta<?> value) {
+		getReturns().put(name, collectionize(stringify(value)));
 	}
 	
 	
@@ -960,12 +968,20 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public void addArbitraryObjectAsReturn(String name, Object value) {
-		getReturns().put(name, collectionize(String.valueOf(value)));
+		getReturns().put(name, collectionize(stringify(value)));
     }
 
     public void addArbitraryObjectCollectionAsReturn(String paramName, Collection<?> paramValue) {
     	getReturns().put(paramName, stringifyCol(paramValue));
     }	
+    
+    private String stringify(Object value) {
+		if (value == null) {
+			return null;
+		} else {
+			return value.toString();
+		}
+	}
     
     private Collection<String> collectionize(String value) {
     	Collection<String> out = new ArrayList<>(1);
@@ -1397,7 +1413,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		for (Entry<String, Collection<String>> targetEntry: targetMap.entrySet()) {
 			String targetKey = targetEntry.getKey();
 			Collection<String> targetValues = targetEntry.getValue();
-			if (targetValues.contains(VARIOUS_VALUES)) {
+			if (targetValues != null && targetValues.contains(VARIOUS_VALUES)) {
 				continue;
 			}
 			Collection<String> sourceValues = sourceMap.get(targetKey);
@@ -1619,8 +1635,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public String getBackgroundTaskOid() {
-		Object oid = getReturns().get(RETURN_BACKGROUND_TASK_OID);
-		return oid != null ? String.valueOf(oid) : null;
+		return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
 	}
 
 	public void setMinor(boolean value) {
@@ -1673,9 +1688,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         OperationResult clone = new OperationResult(operation);
 
         clone.status = status;
-        clone.params = CloneUtil.clone(params);
-        clone.context = CloneUtil.clone(context);
-        clone.returns = CloneUtil.clone(returns);
+        clone.params = cloneParams(params);
+        clone.context = cloneParams(context);
+        clone.returns = cloneParams(returns);
         clone.token = token;
         clone.messageCode = messageCode;
         clone.message = message;
@@ -1701,6 +1716,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
         return clone;
     }
+
+	private Map<String, Collection<String>> cloneParams(Map<String, Collection<String>> map) {
+		// TODO: implement more efficient clone
+		return CloneUtil.clone(map);
+	}
 
 	public static int getSubresultStripThreshold() {
 		return subresultStripThreshold;

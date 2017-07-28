@@ -53,7 +53,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private static final QName F_TYPE = new QName(PrismConstants.NS_TYPES, "type");
     private static final QName F_RELATION = new QName(PrismConstants.NS_TYPES, "relation");
 	private String oid = null;
-    private transient PrismObject<?> object = null;
+    private PrismObject<?> object = null;
     private QName targetType = null;
     private QName relation = null;
     private String description = null;
