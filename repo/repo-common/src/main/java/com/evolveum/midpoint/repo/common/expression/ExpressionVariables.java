@@ -132,9 +132,13 @@ public class ExpressionVariables implements DebugDumpable {
             LOGGER.warn("Duplicate definition of variable {}", name);
             return;
         }
-        variables.put(name, value);
+        replaceVariableDefinition(name, value);
     }
     
+    public void replaceVariableDefinition(QName name, Object value) {
+        variables.put(name, value);
+    }
+
     public boolean hasVariableDefinition(QName name) {
     	return variables.containsKey(name);
     }

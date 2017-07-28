@@ -125,6 +125,10 @@ public class SimpleSmsTransport implements Transport {
         }
 
         SmsConfigurationType smsConfigurationType = found;
+        String logToFile = smsConfigurationType.getLogToFile();
+        if (logToFile != null) {
+            TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
+        }
         String file = smsConfigurationType.getRedirectToFile();
         if (file != null) {
             writeToFile(message, file, null, result);

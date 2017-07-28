@@ -113,7 +113,10 @@ public class CustomTransport implements Transport {
             result.recordWarning(msg);
             return;
         }
-
+        String logToFile = configuration.getLogToFile();
+        if (logToFile != null) {
+            TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
+        }
         String file = configuration.getRedirectToFile();
         if (file != null) {
             writeToFile(message, file, result);
