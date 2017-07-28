@@ -16,8 +16,21 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NamedConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author mederly
@@ -29,5 +42,41 @@ public class TransportUtil {
         fw.append(text);
         fw.close();
     }
+
+	public static <T extends NamedConfigurationType> T getTransportConfiguration(String transportName, String baseTransportName,
+			Function<NotificationConfigurationType, List<T>> getter, RepositoryService cacheRepositoryService,
+			OperationResult result) {
+
+		SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
+		if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
+			return null;
+		}
+
+		String transportConfigName = transportName.length() > baseTransportName.length() ? transportName.substring(baseTransportName.length() + 1) : null;      // after e.g. "sms:" or "file:"
+		for (T namedConfiguration: getter.apply(systemConfiguration.getNotificationConfiguration())) {
+			if ((transportConfigName == null && namedConfiguration.getName() == null) || (transportConfigName != null && transportConfigName.equals(namedConfiguration.getName()))) {
+				return namedConfiguration;
+			}
+		}
+		return null;
+	}
+
+	public static void appendToFile(String fileName, String messageText, Trace logger, OperationResult result) {
+		try {
+			TransportUtil.appendToFile(fileName, messageText);
+			result.recordSuccess();
+		} catch (Throwable t) {
+			LoggingUtils.logException(logger, "Couldn't write the notification to a file {}", t, fileName);
+			result.recordPartialError("Couldn't write the notification to a file " + fileName, t);
+		}
+	}
+
+	public static String formatToFileOld(Message message) {
+		return "============================================ " + "\n" +new Date() + "\n" + message.toString() + "\n\n";
+	}
+
+	public static String formatToFileNew(Message message, String transport) {
+		return "================ " + new Date() + " ======= [" + transport + "]\n" + message.debugDump() + "\n\n";
+	}
 
 }

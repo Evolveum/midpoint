@@ -186,6 +186,10 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="NamedConfigurationType">
+        <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
+
     <xsd:complexType name="SmsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -220,6 +224,30 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="FileConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Where and how to store "file" notifications.
+            </xsd:documentation>
+            <!--<xsd:appinfo>-->
+            <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:NamedConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="file" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                File to store notifications into.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="CustomTransportConfigurationType">
@@ -310,6 +338,7 @@
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
             <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0"/>
             <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="file" type="tns:FileConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="customTransport" type="tns:CustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
