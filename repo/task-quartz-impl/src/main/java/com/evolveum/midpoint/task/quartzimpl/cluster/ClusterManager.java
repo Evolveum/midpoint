@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Responsible for keeping the cluster consistent.
@@ -69,18 +70,16 @@ public class ClusterManager {
     }
 
     /**
-     * Verifies cluster consistency (currently checks whether there is no other node with the same ID, and whether clustered/non-clustered nodes are OK).
-
-     * @param result
-     * @return
+     * Verifies cluster consistency (currently checks whether there is no other node with the same ID,
+	 * and whether clustered/non-clustered nodes are OK).
+	 *
+     * @return Current node record from repository, if everything is OK. Otherwise returns null.
      */
-    public void checkClusterConfiguration(OperationResult result) {
-
-//        LOGGER.trace("taskManager = " + taskManager);
-//        LOGGER.trace("taskManager.getNodeRegistrar() = " + taskManager.getNodeRegistrar());
-
-        nodeRegistrar.verifyNodeObject(result);     // if error, sets the error state and stops the scheduler
-        nodeRegistrar.checkNonClusteredNodes(result); // the same
+    @Nullable
+    public NodeType checkClusterConfiguration(OperationResult result) {
+        NodeType currentNode = nodeRegistrar.verifyNodeObject(result);     // if error, sets the error state and stops the scheduler
+        nodeRegistrar.checkNonClusteredNodes(result);                       // the same
+        return currentNode;
     }
 
     public boolean isClusterManagerThreadActive() {
@@ -108,8 +107,8 @@ public class ClusterManager {
         nodeRegistrar.deleteNode(nodeOid, result);
     }
 
-    public void createNodeObject(OperationResult result) throws TaskManagerInitializationException {
-        nodeRegistrar.createNodeObject(result);
+    public NodeType createOrUpdateNodeInRepo(OperationResult result) throws TaskManagerInitializationException {
+        return nodeRegistrar.createOrUpdateNodeInRepo(result);
     }
 
     public PrismObject<NodeType> getNodePrism() {
@@ -134,12 +133,12 @@ public class ClusterManager {
                 OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
 
                 try {
-
                     checkSystemConfigurationChanged(result);
 
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
-                        checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
+                        NodeType node = checkClusterConfiguration(result);         				// if error, the scheduler will be stopped
+                        taskManager.getExecutionManager().setLocalExecutionCapabilities(node);	// we want to set capabilities ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
                     } catch (Throwable t) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking cluster configuration; continuing execution.", t);
@@ -157,7 +156,7 @@ public class ClusterManager {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking stalled tasks; continuing execution.", t);
                     }
 
-                } catch(Throwable t) {
+                } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
                 }
 

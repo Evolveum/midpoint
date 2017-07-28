@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -615,6 +616,15 @@ public class ExecutionManager {
         } catch (SchedulerException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot pause job for task {}", e, task);
             result.recordFatalError("Cannot pause job for task " + task, e);
+        }
+    }
+
+    public void setLocalExecutionCapabilities(NodeType node) {
+        Collection<String> newCapabilities = node != null ? node.getExecutionCapability() : Collections.emptySet();
+        Collection<String> oldCapabilities = quartzScheduler.getExecutionCapabilities();
+        quartzScheduler.setExecutionCapabilities(newCapabilities);
+        if (!MiscUtil.unorderedCollectionEquals(oldCapabilities, newCapabilities)) {
+            LOGGER.info("Quartz scheduler execution capabilities set to: {} (were: {})", newCapabilities, oldCapabilities);
         }
     }
 }
