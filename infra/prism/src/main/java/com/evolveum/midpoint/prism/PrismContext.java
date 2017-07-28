@@ -197,7 +197,7 @@ public interface PrismContext {
 	//endregion
 
 	/**
-	 * Creates a new PrismObject of a given static type.
+	 * Creates a new PrismObject of a given type.
 	 * @param clazz Static type of the object to be created.
 	 * @return New PrismObject.
 	 * @throws SchemaException If a definition for the given class couldn't be found.
@@ -206,13 +206,32 @@ public interface PrismContext {
 	<O extends Objectable> PrismObject<O> createObject(@NotNull Class<O> clazz) throws SchemaException;
 
 	/**
-	 * Creates a new Objectable of a given static type.
+	 * Creates a new Objectable of a given type.
 	 * @param clazz Static type of the object to be created.
 	 * @return New PrismObject's objectable content.
 	 * @throws SchemaException If a definition for the given class couldn't be found.
 	 */
 	@NotNull
 	<O extends Objectable> O createObjectable(@NotNull Class<O> clazz) throws SchemaException;
+
+	/**
+	 * Creates a new PrismObject of a given static type. It is expected that the type exists, so any SchemaExceptions
+	 * will be thrown as run-time exception.
+	 * @param clazz Static type of the object to be created.
+	 * @return New PrismObject.
+	 */
+	@NotNull
+	<O extends Objectable> PrismObject<O> createKnownObject(@NotNull Class<O> clazz);
+
+	/**
+	 * Creates a new Objectable of a given static type. It is expected that the type exists, so any SchemaExceptions
+	 * will be thrown as run-time exception.
+	 * @param clazz Static type of the object to be created.
+	 * @return New PrismObject's objectable content.
+	 * @throws SchemaException If a definition for the given class couldn't be found.
+	 */
+	@NotNull
+	<O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz);
 
 	/**
 	 * TODO hide this from PrismContext interface?
