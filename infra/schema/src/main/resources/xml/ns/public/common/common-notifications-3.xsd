@@ -79,6 +79,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to sending mail via SMTP, writes all messages to a file. Useful for debugging.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -222,6 +229,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to sending messages via SMS, writes all messages to a file. Useful for debugging.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" />
     </xsd:complexType>
@@ -273,6 +287,13 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Instead of executing the expression, writes all messages to a file. Useful for debugging.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						In addition to executing the expression, writes all messages to a file. Useful for debugging.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

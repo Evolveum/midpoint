@@ -66,8 +66,16 @@ public class TransportUtil {
 			TransportUtil.appendToFile(fileName, messageText);
 			result.recordSuccess();
 		} catch (Throwable t) {
-			LoggingUtils.logException(logger, "Couldn't write the notification to a file {}", t, fileName);
+			LoggingUtils.logUnexpectedException(logger, "Couldn't write the notification to a file {}", t, fileName);
 			result.recordPartialError("Couldn't write the notification to a file " + fileName, t);
+		}
+	}
+
+	public static void logToFile(String fileName, String messageText, Trace logger) {
+		try {
+			TransportUtil.appendToFile(fileName, messageText);
+		} catch (Throwable t) {
+			LoggingUtils.logUnexpectedException(logger, "Couldn't write the notification to a file {}", t, fileName);
 		}
 	}
 

@@ -117,6 +117,10 @@ public class MailTransport implements Transport {
 //		if (mailConfigurationType == null) {
 			MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
 //		}
+		String logToFile = mailConfigurationType.getLogToFile();
+		if (logToFile != null) {
+			TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
+		}
         String redirectToFile = mailConfigurationType.getRedirectToFile();
         if (redirectToFile != null) {
             TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
