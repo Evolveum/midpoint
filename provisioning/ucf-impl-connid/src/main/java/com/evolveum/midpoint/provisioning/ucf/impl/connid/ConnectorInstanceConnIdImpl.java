@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAtt
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -1301,7 +1302,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 		
 		// getting icf object class from resource object class
-		ObjectClass icfObjectClass = connIdNameMapper.objectClassToIcf(shadow, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass = connIdNameMapper.objectClassToIcf(shadow, getSchemaNamespace(), connectorType, BooleanUtils.isNotFalse(legacySchema));
 
 		if (icfObjectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from " + shadow);
