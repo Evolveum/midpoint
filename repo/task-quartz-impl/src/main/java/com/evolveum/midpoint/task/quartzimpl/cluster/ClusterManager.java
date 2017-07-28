@@ -108,7 +108,11 @@ public class ClusterManager {
     }
 
     public PrismObject<NodeType> getLocalNodeObject() {
-        return nodeRegistrar.getLocalNodeObject();
+        return nodeRegistrar.getCachedLocalNodeObject();
+    }
+
+    public NodeType getFreshVerifiedLocalNodeObject(OperationResult result) {
+        return nodeRegistrar.verifyNodeObject(result);
     }
 
     public boolean isUp(NodeType nodeType) {

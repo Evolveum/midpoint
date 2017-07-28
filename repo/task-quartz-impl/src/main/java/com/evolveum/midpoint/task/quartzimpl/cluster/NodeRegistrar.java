@@ -70,7 +70,7 @@ public class NodeRegistrar {
      * Problem is if the object in repository gets corrupted (e.g. overwritten by some other node).
      * In such cases we keep last 'good' information here.
      */
-    private PrismObject<NodeType> localNodeObject;
+    private PrismObject<NodeType> cachedLocalNodeObject;
 
     public NodeRegistrar(TaskManagerQuartzImpl taskManager, ClusterManager clusterManager) {
         Validate.notNull(taskManager);
@@ -109,7 +109,7 @@ public class NodeRegistrar {
                 getRepositoryService().modifyObject(NodeType.class, nodeInRepo.getOid(), nodeDelta.getModifications(), result);
                 LOGGER.debug("Node was successfully updated in the repository.");
                 nodeToBe.setOid(nodeInRepo.getOid());
-                setLocalNodeObject(nodeToBe.asPrismObject());
+                setCachedLocalNodeObject(nodeToBe.asPrismObject());
                 return nodeToBe;
             } catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update node object on system initialization; will re-create the node", e);
@@ -135,7 +135,7 @@ public class NodeRegistrar {
         try {
             String oid = getRepositoryService().addObject(nodeToBe.asPrismObject(), null, result);
             nodeToBe.setOid(oid);
-            setLocalNodeObject(nodeToBe.asPrismObject());
+            setCachedLocalNodeObject(nodeToBe.asPrismObject());
         } catch (ObjectAlreadyExistsException e) {
             taskManager.setNodeErrorStatus(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node, because it already exists (this should not happen, as nodes with such a name were just removed)", e);
@@ -224,7 +224,7 @@ public class NodeRegistrar {
     void updateNodeObject(OperationResult result) {
         String nodeOid = getLocalNodeObjectOid();
         String nodeName = taskManager.getNodeId();
-        LOGGER.trace("Updating this node registration:\n{}", localNodeObject.debugDumpLazily());
+        LOGGER.trace("Updating this node registration:\n{}", cachedLocalNodeObject.debugDumpLazily());
         try {
             List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(NodeType.class, getPrismContext())
                     .item(NodeType.F_HOSTNAME).replace(getMyHostname())
@@ -291,12 +291,12 @@ public class NodeRegistrar {
         }
 
         // check the internalNodeIdentifier
-        String existingId = localNodeObject.asObjectable().getInternalNodeIdentifier();
+        String existingId = cachedLocalNodeObject.asObjectable().getInternalNodeIdentifier();
         String idInRepo = nodeInRepo.asObjectable().getInternalNodeIdentifier();
         if (!existingId.equals(idInRepo)) {
             LOGGER.error("Internal node identifier has been overwritten in the repository. " +
                     "Probably somebody has overwritten it in the meantime, i.e. another node with the name of '" +
-                    localNodeObject.asObjectable().getName() + "' is running. Stopping the scheduler.");
+                    cachedLocalNodeObject.asObjectable().getName() + "' is running. Stopping the scheduler.");
             registerNodeError(NodeErrorStatusType.DUPLICATE_NODE_ID_OR_NAME);
             return null;
         }
@@ -465,16 +465,16 @@ public class NodeRegistrar {
 		return false;
 	}
 
-    PrismObject<NodeType> getLocalNodeObject() {
-        return localNodeObject;
+    PrismObject<NodeType> getCachedLocalNodeObject() {
+        return cachedLocalNodeObject;
     }
 
     private String getLocalNodeObjectOid() {
-        return localNodeObject.getOid();
+        return cachedLocalNodeObject.getOid();
     }
 
-    private void setLocalNodeObject(PrismObject<NodeType> localNodeObject) {
-        this.localNodeObject = localNodeObject;
+    private void setCachedLocalNodeObject(PrismObject<NodeType> cachedLocalNodeObject) {
+        this.cachedLocalNodeObject = cachedLocalNodeObject;
     }
 
     boolean isCurrentNode(PrismObject<NodeType> node) {

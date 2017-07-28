@@ -621,10 +621,14 @@ public class ExecutionManager {
     }
 
     public void setLocalExecutionCapabilities(NodeType node) {
+        setLocalExecutionCapabilities(quartzScheduler, node);
+    }
+
+    void setLocalExecutionCapabilities(Scheduler scheduler, NodeType node) {
         try {
             Collection<String> newCapabilities = node != null ? node.getExecutionCapability() : Collections.emptySet();
-            Collection<String> oldCapabilities = quartzScheduler.getExecutionCapabilities();
-            quartzScheduler.setExecutionCapabilities(newCapabilities);
+            Collection<String> oldCapabilities = scheduler.getExecutionCapabilities();
+            scheduler.setExecutionCapabilities(newCapabilities);
             if (!MiscUtil.unorderedCollectionEquals(oldCapabilities, newCapabilities)) {
                 LOGGER.info("Quartz scheduler execution capabilities set to: {} (were: {})", newCapabilities, oldCapabilities);
             }
