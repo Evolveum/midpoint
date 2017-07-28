@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -37,7 +38,6 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleWriterExporterOutput;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +80,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubreportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.fill.JRAbstractLRUVirtualizer;
@@ -226,6 +225,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
             saveReportOutputType(reportFilePath, parentReport, task, result);
             LOGGER.trace("create report output type : {}", reportFilePath);
 
+            processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, task);
             result.computeStatus();
 
         } catch (Exception ex) {
@@ -509,6 +509,22 @@ public class ReportCreateTaskHandler implements TaskHandler {
 		task.setExtensionPropertyImmediate(outputOidProperty, subResult);
 
         subResult.computeStatus();
+    }
+
+    private void processPostReportScript(String code,String reportOutputFilePath, Task task){
+
+        if (code!=null && !code.isEmpty()){
+
+            try{
+                CommandLineScriptExecutor commandLineScriptExecutor = new CommandLineScriptExecutor(code,reportOutputFilePath,null);
+            }catch (Exception e) {
+                LOGGER.error("An exception has occurred {}",e.getLocalizedMessage());
+               // LoggingUtils.logExceptionAsWarning(LOGGER,"And unexpected exception occurred during post report script execution",e, task);
+            }
+
+        } else{
+            LOGGER.debug("No post report script found");
+        }
     }
 
     @Override
