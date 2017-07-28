@@ -25,13 +25,21 @@ import java.util.Collection;
  */
 public interface S_ValuesEntry {
 
+    // Note: the names in this interface are to be kept as simple as possible.
+    //
+    // An exception is addRealValues, deleteRealValues, replaceRealValues: they must have a different name because
+    // Java cannot distinguish between Collection<? extends PrismValue> and Collection<?>.
+
     S_MaybeDelete add(Object... realValues);
+    S_MaybeDelete addRealValues(Collection<?> realValues);
     S_MaybeDelete add(PrismValue... values);
     S_MaybeDelete add(Collection<? extends PrismValue> values);
     S_ItemEntry delete(Object... realValues);
+    S_ItemEntry deleteRealValues(Collection<?> realValues);
     S_ItemEntry delete(PrismValue... values);
     S_ItemEntry delete(Collection<? extends PrismValue> values);
     S_ItemEntry replace(Object... realValues);
+    S_ItemEntry replaceRealValues(Collection<?> realValues);
     S_ItemEntry replace(PrismValue... values);
     S_ItemEntry replace(Collection<? extends PrismValue> values);
 
