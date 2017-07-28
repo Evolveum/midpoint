@@ -295,18 +295,18 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     private void initializeDevelopmentSerializers() {
-    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() )
-    	{
-    	    @Override
-    	    protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException
-    	    {
-    	    	IObjectChecker checker1 = new MidPointObjectChecker();
-//    	        IObjectChecker checker2 = new NotDetachedModelChecker();
-    	        IObjectChecker checker3 = new ObjectSerializationChecker();
-    	        return new CheckingObjectOutputStream(out, checker1, checker3);
-    	    }
-    	};
-    	getFrameworkSettings().setSerializer( javaSerializer );
+//    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
+//    	    @Override
+//    	    protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
+//    	    	LOGGER.info("XXXXXXX YX Y");
+////    	    	IObjectChecker checker1 = new MidPointObjectChecker();
+//////    	        IObjectChecker checker2 = new NotDetachedModelChecker();
+////    	        IObjectChecker checker3 = new ObjectSerializationChecker();
+////    	        return new CheckingObjectOutputStream(out, checker1, checker3);
+//    	        return new ObjectOutputStream(out);
+//    	    }
+//    	};
+//    	getFrameworkSettings().setSerializer( javaSerializer );
 		
 	}
 

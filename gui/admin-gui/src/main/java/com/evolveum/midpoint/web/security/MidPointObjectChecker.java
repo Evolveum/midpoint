@@ -67,9 +67,9 @@ public class MidPointObjectChecker implements IObjectChecker {
 		} else if (object instanceof Document) {
 			return new Result( Result.Status.FAILURE, "Storage of DOM documents not allowed: "+object);
 //			LOGGER.warn("Attempt to serialize DOM element: {}", DOMUtil.getQName((Element)object));
-		} else if (object instanceof Element) {
-			return new Result( Result.Status.FAILURE, "Storage of DOM elements not allowed: "+object);
-//			LOGGER.warn("Attempt to serialize DOM element: {}", DOMUtil.getQName((Element)object));
+//		} else if (object instanceof Element) {
+//			return new Result( Result.Status.FAILURE, "Storage of DOM elements not allowed: "+object);
+////			LOGGER.warn("Attempt to serialize DOM element: {}", DOMUtil.getQName((Element)object));
 			
 		// JAXBElement: expression evaluator in expressions, it is JAXBElement even in prism objects
 //		} else if (object instanceof JAXBElement) {
@@ -84,10 +84,10 @@ public class MidPointObjectChecker implements IObjectChecker {
 	
 	private <O extends ObjectType> Result checkObject(PrismObject<O> object) {
 		
-		LOGGER.info("Serializing prism object: {}", object);
-		if (object.canRepresent(ResourceType.class)) {
-			return new Result( Result.Status.FAILURE, "Storage of ResourceType objects not allowed: "+object);
-		}
+		LOGGER.info("Check for serialization of prism object: {}", object);
+//		if (object.canRepresent(ResourceType.class)) {
+//			return new Result( Result.Status.FAILURE, "Storage of ResourceType objects not allowed: "+object);
+//		}
 		
 		return Result.SUCCESS;
 	}
