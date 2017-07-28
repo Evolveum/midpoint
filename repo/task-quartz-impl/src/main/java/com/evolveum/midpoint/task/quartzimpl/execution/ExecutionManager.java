@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -154,7 +155,7 @@ public class ExecutionManager {
                 addNodeAndTaskInformation(retval, node, result);
             }
         } else {
-            addNodeAndTaskInformation(retval, taskManager.getClusterManager().getNodePrism(), result);
+            addNodeAndTaskInformation(retval, taskManager.getClusterManager().getLocalNodeObject(), result);
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("cluster state information = {}", retval.dump());
@@ -620,11 +621,16 @@ public class ExecutionManager {
     }
 
     public void setLocalExecutionCapabilities(NodeType node) {
-        Collection<String> newCapabilities = node != null ? node.getExecutionCapability() : Collections.emptySet();
-        Collection<String> oldCapabilities = quartzScheduler.getExecutionCapabilities();
-        quartzScheduler.setExecutionCapabilities(newCapabilities);
-        if (!MiscUtil.unorderedCollectionEquals(oldCapabilities, newCapabilities)) {
-            LOGGER.info("Quartz scheduler execution capabilities set to: {} (were: {})", newCapabilities, oldCapabilities);
+        try {
+            Collection<String> newCapabilities = node != null ? node.getExecutionCapability() : Collections.emptySet();
+            Collection<String> oldCapabilities = quartzScheduler.getExecutionCapabilities();
+            quartzScheduler.setExecutionCapabilities(newCapabilities);
+            if (!MiscUtil.unorderedCollectionEquals(oldCapabilities, newCapabilities)) {
+                LOGGER.info("Quartz scheduler execution capabilities set to: {} (were: {})", newCapabilities, oldCapabilities);
+            }
+        } catch (SchedulerException e) {
+            // should never occur, as local scheduler shouldn't throw such exceptions
+            throw new SystemException("Couldn't set local Quartz scheduler execution capabilities: " + e.getMessage(), e);
         }
     }
 }

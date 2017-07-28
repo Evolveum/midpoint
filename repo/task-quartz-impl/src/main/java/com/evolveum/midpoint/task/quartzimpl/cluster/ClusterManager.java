@@ -90,10 +90,6 @@ public class ClusterManager {
         nodeRegistrar.recordNodeShutdown(result);
     }
 
-    public String getNodeId() {
-        return nodeRegistrar.getNodeId();
-    }
-
     public boolean isCurrentNode(PrismObject<NodeType> node) {
         return nodeRegistrar.isCurrentNode(node);
     }
@@ -111,8 +107,8 @@ public class ClusterManager {
         return nodeRegistrar.createOrUpdateNodeInRepo(result);
     }
 
-    public PrismObject<NodeType> getNodePrism() {
-        return nodeRegistrar.getNodePrism();
+    public PrismObject<NodeType> getLocalNodeObject() {
+        return nodeRegistrar.getLocalNodeObject();
     }
 
     public boolean isUp(NodeType nodeType) {
