@@ -122,8 +122,4 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 
 	}
 
-	private AssignmentTablePanel getAssignmentTablePanel(){
-		return (AssignmentTablePanel) get(ID_ASSIGNMENTS).get(ID_ASSIGNMENTS_PANEL);
-	}
-
 }

@@ -21,6 +21,7 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Objects;
 
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -81,9 +82,8 @@ public class TaskQuartzImplUtil {
             return null;
         }
 
-		TriggerBuilder<Trigger> tb = TriggerBuilder.newTrigger()
-		      .withIdentity(createTriggerKeyForTask(task))
-		      .forJob(createJobKeyForTask(task));
+		TriggerBuilder<Trigger> tb = createBasicTriggerBuilderForTask(task)
+		      .withIdentity(createTriggerKeyForTask(task));
 
         if (task.getSchedule() != null) {
 
@@ -174,15 +174,20 @@ public class TaskQuartzImplUtil {
 		return tb.build();
 	}
 
-    public static Trigger createTriggerNowForTask(Task task) {
-        return TriggerBuilder.newTrigger()
-                .forJob(createJobKeyForTask(task)).startNow()
+	private static TriggerBuilder<Trigger> createBasicTriggerBuilderForTask(Task task) {
+		return TriggerBuilder.newTrigger()
+				.forJob(createJobKeyForTask(task))
+				.requiredCapability(task.getTaskPrismObject().asObjectable().getRequiredCapability());
+	}
+
+	public static Trigger createTriggerNowForTask(Task task) {
+        return createBasicTriggerBuilderForTask(task)
+				.startNow()
 		        .build();
     }
 
     public static Trigger createTriggerForTask(Task task, long startAt) {
-        return TriggerBuilder.newTrigger()
-                .forJob(createJobKeyForTask(task))
+        return createBasicTriggerBuilderForTask(task)
 		        .startAt(new Date(startAt))
 		        .build();
     }
@@ -205,8 +210,13 @@ public class TaskQuartzImplUtil {
         }
     }
 
-    // compares scheduling-related data maps of triggers
-    public static boolean triggerDataMapsDiffer(Trigger triggerAsIs, Trigger triggerToBe) {
+    public static boolean triggersDiffer(Trigger triggerAsIs, Trigger triggerToBe) {
+		return !Objects.equals(triggerAsIs.getRequiredCapability(), triggerToBe.getRequiredCapability())
+				|| triggerDataMapsDiffer(triggerAsIs, triggerToBe);
+	}
+
+	// compares scheduling-related data maps of triggers
+    private static boolean triggerDataMapsDiffer(Trigger triggerAsIs, Trigger triggerToBe) {
 
         JobDataMap asIs = triggerAsIs.getJobDataMap();
         JobDataMap toBe = triggerToBe.getJobDataMap();

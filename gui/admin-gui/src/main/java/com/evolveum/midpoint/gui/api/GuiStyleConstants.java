@@ -97,8 +97,8 @@ public class GuiStyleConstants {
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_REJECTED_COLORED = "fa fa-times text-danger";
 	public static final String CLASS_APPROVAL_OUTCOME_ICON_IN_PROGRESS_COLORED = "fa fa-clock-o text-info";
 
-	public static final String CLASS_ICON_EXPAND = "fa fa-plus";
-	public static final String CLASS_ICON_COLLAPSE = "fa fa-minus";
+	public static final String CLASS_ICON_EXPAND = "fa fa-chevron-left";
+	public static final String CLASS_ICON_COLLAPSE = "fa  fa-chevron-down";
 	public static final String CLASS_ICON_SORT_AMOUNT_ASC = "fa fa-sort-amount-asc";
 	public static final String CLASS_ICON_SORT_ALPHA_ASC = "fa fa-sort-alpha-asc";
 	public static final String CLASS_ICON_SHOW_EMPTY_FIELDS = "fa fa-square-o";
@@ -147,5 +147,6 @@ public class GuiStyleConstants {
 	public static final String CLASS_CIRCLE_FULL = "fa fa-circle";
 
 	public static final String CLASS_FILE_TEXT = "fa fa-file-text-o";
+	public static final String CLASS_POLICY_RULES = "fa fa-balance-scale";
 
 }

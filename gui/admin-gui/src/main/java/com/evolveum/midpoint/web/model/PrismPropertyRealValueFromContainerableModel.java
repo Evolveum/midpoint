@@ -40,8 +40,9 @@ import javax.xml.namespace.QName;
  * @author mederly
  */
 public class PrismPropertyRealValueFromContainerableModel<T, C extends Containerable> implements IModel<T> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromContainerableModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromContainerableModel.class);
 
     private IModel<C> model;
     private ItemPath path;

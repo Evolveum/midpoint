@@ -368,7 +368,6 @@ public class PrismContextImpl implements PrismContext {
 
     //endregion
 
-
     @NotNull
 	@Override
 	public <T extends Objectable> PrismObject<T> createObject(@NotNull Class<T> clazz) throws SchemaException {
@@ -383,6 +382,22 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public <T extends Objectable> T createObjectable(@NotNull Class<T> clazz) throws SchemaException {
 		return createObject(clazz).asObjectable();
+	}
+
+	@NotNull
+	@Override
+	public <O extends Objectable> PrismObject<O> createKnownObject(@NotNull Class<O> clazz) {
+		try {
+			return createObject(clazz);
+		} catch (SchemaException e) {
+			throw new SystemException("Unexpected SchemaException while instantiating " + clazz + ": " + e.getMessage(), e);
+		}
+	}
+
+	@NotNull
+	@Override
+	public <O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz) {
+		return createKnownObject(clazz).asObjectable();
 	}
 
 	@NotNull

@@ -65,16 +65,19 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private CountableLoadableModel<AssignmentEditorDto> assignmentsModel;
+	private CountableLoadableModel<AssignmentEditorDto> policyRulesModel;
 	private TaskDtoProvider taskDtoProvider;
     private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
 	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
 			CountableLoadableModel<AssignmentEditorDto> assignmentsModel,
+			CountableLoadableModel<AssignmentEditorDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.assignmentsModel = assignmentsModel;
+		this.policyRulesModel = policyRulesModel;
 		this.projectionModel = projectionModel;
 		initLayout(parentPage);
 	}
@@ -207,6 +210,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
         return assignmentsTabPanel;
 	}
 
+	protected WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+        return new FocusPolicyRulesTabPanel<F>(panelId, getMainForm(), getObjectModel(), policyRulesModel, parentPage);
+	}
+
 	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
 		return new ObjectHistoryTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 	}
@@ -283,6 +290,23 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					@Override
 					public String getCount() {
 						return Integer.toString(assignmentsModel.count());
+					}
+				});
+
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL);
+		tabs.add(
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public WebMarkupContainer createPanel(String panelId) {
+						return createFocusPolicyRulesTabPanel(panelId, parentPage);
+					}
+
+					@Override
+					public String getCount() {
+						return Integer.toString(policyRulesModel.count());
 					}
 				});
 

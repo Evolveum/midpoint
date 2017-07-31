@@ -38,8 +38,9 @@ import org.apache.wicket.model.StringResourceModel;
  * @author semancik
  */
 public class BasePanel<T> extends Panel {
+	private static final long serialVersionUID = 1L;
 
-    private IModel<T> model;
+	private IModel<T> model;
 
     public BasePanel(String id) {
         this(id, null);

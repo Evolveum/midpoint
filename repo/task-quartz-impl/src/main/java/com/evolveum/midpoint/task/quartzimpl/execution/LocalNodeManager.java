@@ -29,8 +29,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.listeners.SchedulerListenerSupport;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -132,11 +134,29 @@ public class LocalNodeManager {
             LOGGER.trace("Quartz scheduler properties: {}", quartzProperties);
             StdSchedulerFactory sf = new StdSchedulerFactory();
             sf.initialize(quartzProperties);
-            getGlobalExecutionManager().setQuartzScheduler(sf.getScheduler());
+            Scheduler scheduler = sf.getScheduler();
+            scheduler.getListenerManager().addSchedulerListener(createSchedulerStartingListener(scheduler));
+            getGlobalExecutionManager().setQuartzScheduler(scheduler);
             LOGGER.info("... Quartz scheduler initialized.");
         } catch (SchedulerException e) {
             throw new TaskManagerInitializationException("Cannot initialize the Quartz scheduler", e);
         }
+    }
+
+    // This is necessary e.g. when the scheduler is started using JMX from remote node
+    private SchedulerListener createSchedulerStartingListener(final Scheduler scheduler) {
+        return new SchedulerListenerSupport() {
+            @Override
+            public void schedulerStarting() {
+                OperationResult result = new OperationResult(LocalNodeManager.class.getName() + ".schedulerStarting");
+                NodeType node = taskManager.getClusterManager().getFreshVerifiedLocalNodeObject(result);
+                if (node != null) {
+                    getGlobalExecutionManager().setLocalExecutionCapabilities(scheduler, node);
+                } else {
+                    LOGGER.warn("Couldn't set Quartz scheduler execution capabilities, because local node object couldn't be correctly read.");
+                }
+            }
+        };
     }
 
     /**

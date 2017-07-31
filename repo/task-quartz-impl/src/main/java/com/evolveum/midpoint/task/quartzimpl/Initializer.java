@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
@@ -87,9 +88,9 @@ public class Initializer {
         }
 
         // register node
-        taskManager.getClusterManager().createNodeObject(result);     // may throw initialization exception
+        NodeType node = taskManager.getClusterManager().createOrUpdateNodeInRepo(result);     // may throw initialization exception
         if (!taskManager.getConfiguration().isTestMode()) {  // in test mode do not start cluster manager thread nor verify cluster config
-            taskManager.getClusterManager().checkClusterConfiguration(result);      // does not throw exceptions, sets the ERROR state if necessary, however
+            taskManager.getClusterManager().checkClusterConfiguration(result);      // Does not throw exceptions. Sets the ERROR state if necessary, however.
         }
 
         NoOpTaskHandler.instantiateAndRegister(taskManager);
@@ -99,7 +100,9 @@ public class Initializer {
         JobStarter.setTaskManagerQuartzImpl(taskManager);        // the same here
 
         taskManager.getExecutionManager().initializeLocalScheduler();
-        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
+        if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
+            taskManager.getExecutionManager().setLocalExecutionCapabilities(node);
+        } else {
             taskManager.getExecutionManager().shutdownLocalSchedulerChecked();
         }
 

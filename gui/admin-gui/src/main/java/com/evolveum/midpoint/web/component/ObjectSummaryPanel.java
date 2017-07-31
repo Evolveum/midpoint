@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,37 @@
  */
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.model.IModel;
 
-public abstract class ObjectSummaryPanel <O extends ObjectType> extends AbstractSummaryPanel<O> {
+public abstract class ObjectSummaryPanel<O extends ObjectType> extends AbstractSummaryPanel<O> {
 	private static final long serialVersionUID = -3755521482914447912L;
 	
-	public ObjectSummaryPanel(String id, final IModel<PrismObject<O>> model) {
-		super(id, new ContainerableFromPrismObjectModel(model));
-		initLayoutCommon();
+	public ObjectSummaryPanel(String id, Class<O> type, final IModel<PrismObject<O>> model, ModelServiceLocator serviceLocator) {
+		super(id, new ContainerableFromPrismObjectModel(model), serviceLocator, determineConfig(type, serviceLocator.getAdminGuiConfiguration()));
 	}
 
+	private static <O extends ObjectType> SummaryPanelSpecificationType determineConfig(Class<O> type, AdminGuiConfigurationType adminGuiConfig) {
+		if (adminGuiConfig == null) {
+			return null;
+		}
+		GuiObjectDetailsSetType objectDetailsSetType = adminGuiConfig.getObjectDetails();
+		if (objectDetailsSetType == null) {
+			return null;
+		}
+		GuiObjectDetailsPageType guiObjectDetailsType = AdminGuiConfigTypeUtil.findObjectConfiguration(objectDetailsSetType.getObjectDetailsPage(), type);
+		if (guiObjectDetailsType == null) {
+			return null;
+		}
+		return guiObjectDetailsType.getSummaryPanel();
+	}
 }

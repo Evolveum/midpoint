@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -79,6 +80,16 @@ public abstract class AbstractGuiUnitTest {
 
 			@Override
 			public AdminGuiConfigurationType getAdminGuiConfiguration() {
+				return null;
+			}
+
+			@Override
+			public Task getPageTask() {
+				return null;
+			}
+
+			@Override
+			public ExpressionFactory getExpressionFactory() {
 				return null;
 			}
 		};

@@ -114,6 +114,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_NOT_START_BEFORE = "notStartBefore";
 	public static final String F_NOT_START_AFTER = "notStartAfter";
 	public static final String F_MISFIRE_ACTION = "misfireActionType";
+	public static final String F_REQUIRED_CAPABILITY = "requiredCapability";
 	public static final String F_OBJECT_REF_NAME = "objectRefName";
 	public static final String F_OBJECT_TYPE = "objectType";
 	public static final String F_OBJECT_QUERY = "objectQuery";
@@ -171,6 +172,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		this.currentEditableState.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
 		this.currentEditableState.description = taskType.getDescription();
 
+		this.currentEditableState.requiredCapability = taskType.getRequiredCapability();
 		fillInScheduleAttributes(taskType);
 
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
@@ -511,6 +513,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public void setMisfireActionType(MisfireActionType misfireActionType) {
 		this.currentEditableState.misfireActionType = misfireActionType;
+	}
+
+	public String getRequiredCapability() {
+    	return currentEditableState.requiredCapability;
+	}
+
+	public void setRequiredCapability(String value) {
+    	this.currentEditableState.requiredCapability = value;
 	}
 
 	public ThreadStopActionType getThreadStopActionType() {

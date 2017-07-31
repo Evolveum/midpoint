@@ -63,7 +63,9 @@ import java.util.List;
                 label = "PageMergeObjects.auth.mergeObjects.label",
                 description = "PageMergeObjects.auth.mergeObjects.description") })
 public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
-    private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
+	private static final long serialVersionUID = 1L;
+
+	private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
     private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
     private static final String OPERATION_MERGE_OBJECTS = DOT_CLASS + "mergeObjects";
     private static final Trace LOGGER = TraceManager.getTrace(PageMergeObjects.class);
@@ -127,24 +129,39 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
-        return new FocusMainPanel<UserType>(id, getObjectModel(), new CountableLoadableModel<AssignmentEditorDto>() {
+        return new FocusMainPanel<UserType>(id, getObjectModel(),
+                //empty assignments model
+                new CountableLoadableModel<AssignmentEditorDto>() {
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             protected List<AssignmentEditorDto> load() {
                 return new ArrayList<>();
             }
         },
+                //empty policy rules model
+                new CountableLoadableModel<AssignmentEditorDto>() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<AssignmentEditorDto> load() {
+                return new ArrayList<>();
+            }
+        },
+                //empty projections model
                 new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
+        	private static final long serialVersionUID = 1L;
                     @Override
                     protected List<FocusSubwrapperDto<ShadowType>> load() {
                         return new ArrayList<>();
                     }
-                }, this){
-            @Override
+                }, this) {
+
+			@Override
             protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {
                 List<ITab> tabs = new ArrayList<>();
                 tabs.add(
                         new PanelTab(parentPage.createStringResource("PageMergeObjects.tabTitle"), new VisibleEnableBehaviour()){
-
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -167,9 +184,10 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
             }
         };
     }
+    
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel(){
-        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
         setSummaryPanelVisibility(summaryPanel);
         return summaryPanel;
     }
@@ -178,6 +196,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel){
         summaryPanel.setVisible(false);
     }
+    
     @Override
     protected Class getRestartResponsePage() {
         return PageUsers.class;

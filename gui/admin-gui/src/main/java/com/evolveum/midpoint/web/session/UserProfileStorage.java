@@ -78,8 +78,9 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
 		PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
         PAGE_AUDIT_LOG_VIEWER,
         TASK_EVENTS_TABLE,
-        ASSIGNMENTS_TAB_TABLE
-		
+        ASSIGNMENTS_TAB_TABLE,
+        POLICY_RULES_TAB_TABLE
+
     }
 
     private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();

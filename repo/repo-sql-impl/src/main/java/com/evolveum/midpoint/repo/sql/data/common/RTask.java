@@ -413,7 +413,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         repo.setNode(jaxb.getNode());
         repo.setBinding(RUtil.getRepoEnumValue(jaxb.getBinding(), RTaskBinding.class));
         repo.setRecurrence(RUtil.getRepoEnumValue(jaxb.getRecurrence(), RTaskRecurrence.class));
-        repo.setCanRunOnNode(jaxb.getCanRunOnNode());
+        repo.setCanRunOnNode(jaxb.getRequiredCapability());
         repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
