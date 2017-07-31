@@ -82,7 +82,7 @@ public class EnableDisableExecutor extends BaseActionExecutor {
                     if (objectType instanceof FocusType) {
                         operationsHelper.applyDelta(createEnableDisableDelta((FocusType) objectType, isEnable), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
                     } else if (objectType instanceof ShadowType) {
-                        operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), context, result);
+                        operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
                     } else {
                         throw new ScriptExecutionException("Item is not a FocusType nor ShadowType: " + value.toString());
                     }
