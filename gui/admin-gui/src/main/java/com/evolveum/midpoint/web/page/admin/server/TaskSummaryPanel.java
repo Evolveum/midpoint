@@ -58,7 +58,8 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	private PageTaskEdit parentPage;
 
 	public TaskSummaryPanel(String id, IModel<PrismObject<TaskType>> model, IModel<AutoRefreshDto> refreshModel, final PageTaskEdit parentPage) {
-		super(id, model);
+		super(id, TaskType.class, model, parentPage);
+		initLayoutCommon(parentPage);
 		this.parentPage = parentPage;
 		IModel<TaskType> containerModel = new ContainerableFromPrismObjectModel<>(model);
 

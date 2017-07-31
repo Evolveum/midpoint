@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
@@ -31,8 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 public class ServiceSummaryPanel extends FocusSummaryPanel<ServiceType> {
 	private static final long serialVersionUID = -5457446213855746564L;
 
-	public ServiceSummaryPanel(String id, IModel model) {
-		super(id, model);
+	public ServiceSummaryPanel(String id, IModel model, ModelServiceLocator serviceLocator) {
+		super(id, ServiceType.class, model, serviceLocator);
 	}
 
 	@Override

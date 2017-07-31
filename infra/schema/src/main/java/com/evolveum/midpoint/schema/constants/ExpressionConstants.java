@@ -46,6 +46,7 @@ public class ExpressionConstants {
 	public static final QName VAR_CONFIGURATION = new QName(SchemaConstants.NS_C, "configuration");
     public static final QName VAR_ACTOR = new QName(SchemaConstants.NS_C, "actor");
 	public static final QName VAR_VALUE = new QName(SchemaConstants.NS_C, "value");
+	public static final QName VAR_ORGS = new QName(SchemaConstants.NS_C, "orgs");
 
 	public static final QName VAR_TARGET = new QName(SchemaConstants.NS_C, "target");
 

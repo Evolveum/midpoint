@@ -271,6 +271,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	// No need to store this in the session. Retrieval is cheap.
 	private transient AdminGuiConfigurationType adminGuiConfiguration;
+	
+	// No need for this to store in session. It is used only during single init and render.
+	private transient Task pageTask;
 
 	public PageBase(PageParameters parameters) {
 		super(parameters);
@@ -498,6 +501,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		}
 		return adminGuiConfiguration;
+	}
+
+	@Override
+	public Task getPageTask() {
+		if (pageTask == null) {
+			pageTask = createSimpleTask(this.getClass().getName());
+		}
+		return pageTask;
 	}
 
 	public MidpointFormValidatorRegistry getFormValidatorRegistry() {

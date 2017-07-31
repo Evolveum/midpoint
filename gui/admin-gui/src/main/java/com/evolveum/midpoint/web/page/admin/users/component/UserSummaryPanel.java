@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,12 @@ import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -44,8 +46,8 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 	private static final String ID_TAG_ORG = "summaryTagOrg";
 
-	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model) {
-		super(id, model);
+	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model, ModelServiceLocator serviceLocator) {
+		super(id, UserType.class, model, serviceLocator);
 		
 		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, model) {
 			private static final long serialVersionUID = 1L;

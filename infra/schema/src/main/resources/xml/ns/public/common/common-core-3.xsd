@@ -11137,6 +11137,19 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="objectDetails" type="tns:GuiObjectDetailsSetType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the look and feel of the pages for displaying object details and
+      						editing of objects, such as User, Role, Org, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="userDashboard" type="tns:DashboardLayoutType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -15103,6 +15116,101 @@
            	</xsd:sequence>
     </xsd:complexType>
 
+	<xsd:complexType name="GuiObjectDetailsSetType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the set of default forms that are used for displaying and
+      						editing of objects, such as User, Role, Org, ...
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="objectDetailsPage" type="tns:GuiObjectDetailsPageType" minOccurs="0" maxOccurs="unbounded"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="AbstractObjectTypeConfigurationType" abstract="true">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Abstract supertype for all data types that specify configuration properties for
+        		a specific object type (User, Role, Org, Resource, ...)
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiObjectDetailsPageType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies form that are used for displaying and
+        		editing of specific object type
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:AbstractObjectTypeConfigurationType">
+	       		<xsd:sequence>
+	           		<xsd:element name="summaryPanel" type="tns:SummaryPanelSpecificationType" minOccurs="0" maxOccurs="1"/>
+	           	</xsd:sequence>	
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="SummaryPanelSpecificationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the look and feel of the summary panel.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="displayName" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="identifier" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="title1" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="title2" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="title3" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="organization" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiFlexibleLabelType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Flexible configurable label. Used to specify behavior of summary panel fields, list table columns and so on.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
+           		             minOccurs="0" maxOccurs="1" default="automatic">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Defines, whether this field will be visible or it will be hidden.
+           					Can be used to hide the default fields.
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+           		<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
     
   <!-- ============================================================== -->
   <!--  FORMS                                                         -->
@@ -15136,11 +15244,14 @@
                 <a:since>3.4</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-       		<xsd:sequence>
-       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
-           		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1"/>
-           		<xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
-           	</xsd:sequence>	
+        <xsd:complexContent>
+        	<xsd:extension base="tns:AbstractObjectTypeConfigurationType">
+	       		<xsd:sequence>
+	           		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1"/>
+	           		<xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+	           	</xsd:sequence>	
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:complexType name="FormSpecificationType">

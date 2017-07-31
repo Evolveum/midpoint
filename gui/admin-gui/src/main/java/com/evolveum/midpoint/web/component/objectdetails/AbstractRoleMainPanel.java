@@ -85,9 +85,10 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
 			CountableLoadableModel<AssignmentEditorDto> assignmentsModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel, 
+			CountableLoadableModel<AssignmentEditorDto> policyRulesModel,
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
-		super(id, objectModel, assignmentsModel, projectionModel, parentPage);
+		super(id, objectModel, assignmentsModel, policyRulesModel, projectionModel, parentPage);
 		this.inducementsModel = inducementsModel;
 	}
 

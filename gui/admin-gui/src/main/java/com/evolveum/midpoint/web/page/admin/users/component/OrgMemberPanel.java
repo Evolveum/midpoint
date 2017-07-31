@@ -45,6 +45,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -172,12 +173,12 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected void initCustomLayout(Form form) {
-		WebMarkupContainer managerContainer = createManagerContainer();
+	protected void initCustomLayout(Form form, ModelServiceLocator serviceLocator) {
+		WebMarkupContainer managerContainer = createManagerContainer(serviceLocator);
 		form.addOrReplace(managerContainer);
 	}
 
-	private WebMarkupContainer createManagerContainer() {
+	private WebMarkupContainer createManagerContainer(ModelServiceLocator serviceLocator) {
 		WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
 		managerContainer.setOutputMarkupId(true);
 		managerContainer.setOutputMarkupPlaceholderTag(true);
@@ -228,19 +229,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				}
 			});
 
-			if (manager.getCompileTimeClass().equals(UserType.class)) {
-				managerMarkup.add(new UserSummaryPanel(ID_MANAGER_SUMMARY,
-						new Model<ObjectWrapper<UserType>>((ObjectWrapper) managerWrapper)));
-			} else if (manager.getCompileTimeClass().equals(RoleType.class)) {
-				managerMarkup.add(new RoleSummaryPanel(ID_MANAGER_SUMMARY,
-						new Model<ObjectWrapper<RoleType>>((ObjectWrapper) managerWrapper)));
-			} else if (manager.getCompileTimeClass().equals(OrgType.class)) {
-				managerMarkup.add(new OrgSummaryPanel(ID_MANAGER_SUMMARY,
-						new Model<ObjectWrapper<OrgType>>((ObjectWrapper) managerWrapper)));
-			} else if (manager.getCompileTimeClass().equals(ServiceType.class)) {
-				managerMarkup.add(new ServiceSummaryPanel(ID_MANAGER_SUMMARY,
-						new Model<ObjectWrapper<ServiceType>>((ObjectWrapper) managerWrapper)));
-			}
+			FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, serviceLocator);
+			
 			link.setOutputMarkupId(true);
 			managerMarkup.setOutputMarkupId(true);
 			managerMarkup.add(link);
