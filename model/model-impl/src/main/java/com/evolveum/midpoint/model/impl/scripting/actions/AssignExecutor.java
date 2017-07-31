@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
@@ -64,7 +65,7 @@ public class AssignExecutor extends BaseActionExecutor {
     @Override
     public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        boolean raw = getParamRaw(expression, input, context, globalResult);
+        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
         boolean dryRun = getParamDryRun(expression, input, context, globalResult);
 
         ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
@@ -95,18 +96,19 @@ public class AssignExecutor extends BaseActionExecutor {
             OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof FocusType) {
+                @SuppressWarnings({"unchecked", "raw"})
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 Throwable exception = null;
                 try {
-                    operationsHelper.applyDelta(createDelta(objectType, resources, roles), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
+                    operationsHelper.applyDelta(createDelta(objectType, resources, roles), executionOptions, dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
 					exception = processActionException(ex, NAME, value, context);
                 }
-                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + rawDrySuffix(raw, dryRun) + exceptionSuffix(exception));
+                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
             } else {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Item is not a PrismObject of FocusType"), NAME, value, context);
@@ -116,7 +118,7 @@ public class AssignExecutor extends BaseActionExecutor {
         return input;           // TODO updated objects?
     }
 
-    private ObjectDelta createDelta(ObjectType objectType, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles) throws ScriptExecutionException {
+    private ObjectDelta<? extends ObjectType> createDelta(ObjectType objectType, Collection<ObjectReferenceType> resources, Collection<ObjectReferenceType> roles) throws ScriptExecutionException {
 
         List<AssignmentType> assignments = new ArrayList<>();
 
@@ -138,7 +140,7 @@ public class AssignExecutor extends BaseActionExecutor {
             }
         }
 
-        ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(objectType.getClass(), objectType.getOid(), prismContext);
+        ObjectDelta<? extends ObjectType> delta = ObjectDelta.createEmptyModifyDelta(objectType.getClass(), objectType.getOid(), prismContext);
         try {
             delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, assignments.toArray(new AssignmentType[0]));
         } catch (SchemaException e) {

@@ -691,4 +691,8 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		return clone;
     }
 
+	public boolean notEmpty() {
+    	// hack but quite effective
+		return !toString().equals(new ModelExecuteOptions().toString());
+	}
 }

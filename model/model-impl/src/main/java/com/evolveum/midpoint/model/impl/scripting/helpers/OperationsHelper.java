@@ -71,18 +71,18 @@ public class OperationsHelper {
 
     public void applyDelta(ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
-            modelService.executeChanges((Collection) Collections.singleton(delta), options, context.getTask(), result);
+            modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
         } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
         }
     }
 
-    public void applyDelta(ObjectDelta delta, ModelExecuteOptions options, boolean dryRun, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public void applyDelta(ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, boolean dryRun, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
             if (dryRun) {
-                modelInteractionService.previewChanges((Collection) Collections.singleton(delta), options, context.getTask(), result);
+                modelInteractionService.previewChanges(Collections.singleton(delta), options, context.getTask(), result);
             } else {
-                modelService.executeChanges((Collection) Collections.singleton(delta), options, context.getTask(), result);
+                modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
             }
         } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
