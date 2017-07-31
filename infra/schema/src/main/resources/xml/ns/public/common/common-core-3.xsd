@@ -4470,6 +4470,22 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="useProposedShadows" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then midPoint will try to create shadows in "proposed" lifecycle
+        				state even before an operation is executed. The proposed shadows may be used
+        				in combination with shadowConstraintsCheck to reduce probability of identifier
+        				conflicts for resources with slow create/rename operations.
+        				
+        				This feature is EXPERIMENTAL. Use with care.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.6.1</a:since>
+        				<a:experimental>true</a:experimental>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="validateSchema" type="xsd:boolean" minOccurs="0" default="false">
         		<xsd:annotation>
         			<xsd:documentation>

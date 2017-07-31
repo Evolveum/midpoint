@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
 import java.util.Collection;
+import java.util.Random;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -63,6 +64,10 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	private ManualConnectorConfiguration configuration;
 	
 	private RepositoryService repositoryService;
+	
+	private static int randomDelayRange = 0;
+	
+	protected static final Random RND = new Random();
 	
 	@ManagedConnectorConfiguration
 	public ManualConnectorConfiguration getConfiguration() {
@@ -130,6 +135,17 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	private PrismObject<CaseType> addCase(String description, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		PrismObject<CaseType> acase = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).instantiate();
 		CaseType caseType = acase.asObjectable();
+		
+		if (randomDelayRange != 0) {
+			int waitMillis = RND.nextInt(randomDelayRange);
+			LOGGER.info("Manual connector waiting {} ms before creating the case", waitMillis);
+			try {
+				Thread.sleep(waitMillis);
+			} catch (InterruptedException e) {
+				LOGGER.error("Manual connector wait is interrupted");
+			}
+			LOGGER.info("Manual connector wait is over");
+		}
 		
 		String caseOid = OidUtil.generateOid();
 		
@@ -224,6 +240,14 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	@Override
 	public void dispose() {
 		// Nothing to dispose
+	}
+
+	public static int getRandomDelayRange() {
+		return randomDelayRange;
+	}
+
+	public static void setRandomDelayRange(int randomDelayRange) {
+		ManualConnectorInstance.randomDelayRange = randomDelayRange;
 	}
 
 }

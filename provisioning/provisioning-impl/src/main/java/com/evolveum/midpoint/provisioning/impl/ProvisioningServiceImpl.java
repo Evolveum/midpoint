@@ -107,22 +107,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Service(value = "provisioningService")
 @Primary
 public class ProvisioningServiceImpl implements ProvisioningService {
-	
-	@Autowired(required = true)
-	private ShadowCacheFactory shadowCacheFactory;
-	
-	@Autowired(required = true)
-	private ResourceManager resourceManager;
+
+	@Autowired ShadowCacheFactory shadowCacheFactory;	
+	@Autowired ResourceManager resourceManager;
+	@Autowired ConnectorManager connectorManager;
+	@Autowired ProvisioningContextFactory ctxFactory;
+	@Autowired PrismContext prismContext;
 	
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
-
-	@Autowired(required = true)
-	private ConnectorManager connectorManager;
-	
-	@Autowired(required = true)
-	private PrismContext prismContext;
 	
 	private PrismObjectDefinition<ShadowType> resourceObjectShadowDefinition;	
 	
@@ -1290,11 +1284,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		checker.setRepositoryService(cacheRepositoryService);
 		checker.setShadowCache(getShadowCache(Mode.STANDARD));
 		checker.setPrismContext(prismContext);
-		checker.setShadowDefinition(shadowDefinition);
+		ProvisioningContext ctx = ctxFactory.create(shadowObject, task, parentResult);
+		ctx.setObjectClassDefinition(shadowDefinition);
+		ctx.setResource(resourceType);
+		ctx.setShadowCoordinates(resourceShadowDiscriminator);
+		checker.setProvisioningContext(ctx);
 		checker.setShadowObject(shadowObject);
-		checker.setResourceType(resourceType);
 		checker.setShadowOid(shadowOid);
-		checker.setResourceShadowDiscriminator(resourceShadowDiscriminator);
 		checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
 		try {
 			ConstraintsCheckingResult retval = checker.check(task, result);
