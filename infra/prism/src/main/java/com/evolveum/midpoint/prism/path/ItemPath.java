@@ -23,13 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author semancik
@@ -148,7 +142,12 @@ public class ItemPath implements Serializable, Cloneable {
 		this.segments = new ArrayList<>(segments.length);
 		Collections.addAll(this.segments, segments);
 	}
-	
+
+	private ItemPath(Iterator<ItemPathSegment> iterator) {
+		this.segments = new ArrayList<>();		// default size
+		iterator.forEachRemaining(segments::add);
+	}
+
 	public ItemPath(ItemPath parentPath, ItemPathSegment subSegment) {
 		this.segments = new ArrayList<>(parentPath.segments.size() + 1);
 		this.segments.addAll(parentPath.segments);
@@ -571,11 +570,15 @@ public class ItemPath implements Serializable, Cloneable {
 	}
 
 	public QName asSingleName() {
-		if (size() == 1 && startsWith(NameItemPathSegment.class)) {
+		if (isSingleName()) {
 			return ((NameItemPathSegment) first()).getName();
 		} else {
 			return null;
 		}
+	}
+
+	public boolean isSingleName() {
+		return size() == 1 && startsWith(NameItemPathSegment.class);
 	}
 
 	public static QName asSingleName(ItemPath path) {
@@ -639,25 +642,9 @@ public class ItemPath implements Serializable, Cloneable {
 		return compareComplex(otherPath) == CompareResult.EQUIVALENT;
 	}
 
+	@Deprecated // use remainder instead
 	public ItemPath substract(ItemPath otherPath) {
-//        return remainder(otherPath);                        // the code seems to be equivalent to the one of remainder()
-		ItemPath thisNormalized = this.normalize();
-		ItemPath otherNormalized = otherPath.normalize();
-		if (thisNormalized.size() < otherNormalized.size()) {
-			throw new IllegalArgumentException("Cannot substract path '"+otherPath+"' from '"+this+"' because it is not a subset");
-		}
-		int i = 0;
-		while (i < otherNormalized.segments.size()) {
-			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
-			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
-			if (!thisSegment.equivalent(otherSegment)) {
-				throw new IllegalArgumentException("Cannot subtract segment '"+otherSegment+"' from path '"+this+
-						"' because it does not contain corresponding segment; it has '"+thisSegment+"' instead.");
-			}
-			i++;
-		}
-		List<ItemPathSegment> substractSegments = thisNormalized.segments.subList(i, thisNormalized.segments.size());
-		return new ItemPath(substractSegments);
+        return remainder(otherPath);                        // the code seems to be equivalent to the one of remainder()
 	}
 
     /**
@@ -665,24 +652,38 @@ public class ItemPath implements Serializable, Cloneable {
      * (I.e. this path must begin with the content of the other path. Throws an exception when
      * it is not the case.)
      */
-	public ItemPath remainder(ItemPath otherPath) {
-		ItemPath thisNormalized = this.normalize();
-		ItemPath otherNormalized = otherPath.normalize();
-		if (thisNormalized.size() < otherNormalized.size()) {
-			throw new IllegalArgumentException("Cannot compute remainder of path '"+this+"' after '"+otherPath+"' because this path is not a superset");
-		}
-		int i = 0;
-		while (i < otherNormalized.segments.size()) {
-			ItemPathSegment thisSegment = thisNormalized.segments.get(i);
-			ItemPathSegment otherSegment = otherNormalized.segments.get(i);
-			if (!thisSegment.equivalent(otherSegment)) {
-				throw new IllegalArgumentException("Cannot subtract segment '"+otherSegment+"' from path '"+this+
+	public ItemPath remainder(ItemPath prefix) {
+		ItemPathNormalizingIterator thisIterator = this.normalizingIterator();
+		ItemPathNormalizingIterator prefixIterator = prefix.normalizingIterator();
+		while (prefixIterator.hasNext()) {
+			if (!thisIterator.hasNext()) {
+				throw new IllegalArgumentException("Cannot subtract '"+prefix+"' from path '"+this+
+						"' because it is not a prefix (subpath): it is a superpath instead.");
+			}
+			ItemPathSegment thisSegment = thisIterator.next();
+			ItemPathSegment prefixSegment = prefixIterator.next();
+			if (!thisSegment.equivalent(prefixSegment)) {
+				throw new IllegalArgumentException("Cannot subtract segment '"+prefixSegment+"' from path '"+this+
 						"' because it does not contain corresponding segment; it has '"+thisSegment+"' instead.");
 			}
-			i++;
 		}
-		List<ItemPathSegment> substractSegments = thisNormalized.segments.subList(i, thisNormalized.segments.size());
-		return new ItemPath(substractSegments);
+		return new ItemPath(thisIterator);
+	}
+
+	/**
+	 * Strips the prefix from a set of paths.
+	 *
+	 * @param alsoEquivalent If true, 'prefix' in paths is processed as well (resulting in empty path). Otherwise, it is skipped.
+	 */
+	public static Collection<ItemPath> remainder(Collection<ItemPath> paths, ItemPath prefix, boolean alsoEquivalent) {
+		Set<ItemPath> rv = new HashSet<>();
+		for (ItemPath path : paths) {
+			if (alsoEquivalent && path.isSuperPathOrEquivalent(prefix)
+					|| !alsoEquivalent && path.isSuperPath(prefix)) {
+				rv.add(path.remainder(prefix));
+			}
+		}
+		return rv;
 	}
 	
 	/**

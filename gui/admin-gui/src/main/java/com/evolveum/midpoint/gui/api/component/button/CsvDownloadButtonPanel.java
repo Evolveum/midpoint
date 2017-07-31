@@ -10,6 +10,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
@@ -46,10 +47,19 @@ private static final long serialVersionUID = 1L;
     		@Override
     		public <T> void exportData(IDataProvider<T> dataProvider, List<IExportableColumn<T, ?>> columns,
     				OutputStream outputStream) throws IOException {
-				((BaseSortableDataProvider) dataProvider).setExportSize(true);
-				super.exportData(dataProvider, columns, outputStream);
-				((BaseSortableDataProvider) dataProvider).setExportSize(false);
-    		}
+    			if (dataProvider instanceof SelectableBeanObjectDataProvider) {
+					((SelectableBeanObjectDataProvider) dataProvider).setExport(true);	    // TODO implement more nicely
+				}
+				try {
+					((BaseSortableDataProvider) dataProvider).setExportSize(true);
+					super.exportData(dataProvider, columns, outputStream);
+					((BaseSortableDataProvider) dataProvider).setExportSize(false);
+				} finally {
+					if (dataProvider instanceof SelectableBeanObjectDataProvider) {
+						((SelectableBeanObjectDataProvider) dataProvider).setExport(false);
+					}
+				}
+			}
     	};
         final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
         	private static final long serialVersionUID = 1L;

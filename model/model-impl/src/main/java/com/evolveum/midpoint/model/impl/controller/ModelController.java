@@ -252,7 +252,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             object = (PrismObject<T>) objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
 
             object = object.cloneIfImmutable();
-            schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, result);
+            schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, result);
 			resolve(object, options, task, result);
 
 		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
@@ -330,7 +330,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					if (refObject == null) {
 						refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
 						refObject = refObject.cloneIfImmutable();
-						schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), null, task, result);
+						schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(), SelectorOptions.createCollection(option.getOptions()), null, task, result);
 						refVal.setObject(refObject);
 					}
 					if (!rest.isEmpty()) {
@@ -849,7 +849,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 			// better to use cache here (MID-4059)
-			schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, null, task, result);
+			schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options,null, task, result);
 
 		} finally {
 			RepositoryCache.exit();
@@ -951,7 +951,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		if (ctx.isCase) {
 			list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
-					AccessCertificationCampaignType.F_CASE, rootOptions, null, task, result);
+					AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
 		} else if (ctx.isWorkItem) {
 			// TODO implement security post processing for WorkItems
 		} else {
@@ -1104,7 +1104,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					workflowManager.augmentTaskObject(object, options, task, result);
 				}
 				resolve(object, options, task, result);
-				schemaTransformer.applySchemasAndSecurity(object, rootOptions, null, task, parentResult1);
+				schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
 			} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 					| CommunicationException | ConfigurationException ex) {
 				parentResult1.recordFatalError(ex);
@@ -1243,7 +1243,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (user != null) {
 			try {
 				user = user.cloneIfImmutable();
-				schemaTransformer.applySchemasAndSecurity(user, null, null, task, result);
+				schemaTransformer.applySchemasAndSecurity(user, null, null,null, task, result);
 			} catch (SchemaException | SecurityViolationException | ConfigurationException
 					| ObjectNotFoundException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
@@ -1293,7 +1293,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (focus != null) {
 			try {
 				focus = focus.cloneIfImmutable();
-				schemaTransformer.applySchemasAndSecurity(focus, null, null, task, result);
+				schemaTransformer.applySchemasAndSecurity(focus, null, null, null, task, result);
 			} catch (SchemaException | SecurityViolationException | ConfigurationException
 					| ObjectNotFoundException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
@@ -1553,7 +1553,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			throw e;
 		}
 		List<ConnectorType> connectorList = new ArrayList<>(discoverConnectors);
-		schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null, task, result);
+		schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null,null, task, result);
 		result.computeStatus("Connector discovery failed");
 		RepositoryCache.exit();
 		result.cleanupResult();
@@ -1822,7 +1822,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 		task = task.cloneIfImmutable();
-		schemaTransformer.applySchemasAndSecurity(task, rootOptions, null, null, parentResult);
+		schemaTransformer.applySchemasAndSecurity(task, rootOptions, options,null, null, parentResult);
 		return task;
     }
 
