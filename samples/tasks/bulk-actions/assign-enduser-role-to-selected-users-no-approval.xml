@@ -15,18 +15,17 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <task>
         <name>Assign Enduser role to users starting with 'a' (skipping approvals)</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
-                <s:search >
+                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                <s:search>
                     <s:type>c:UserType</s:type>
                     <s:searchFilter>
                         <q:substring>
@@ -40,7 +39,12 @@
                         <s:type>assign</s:type>
                         <s:parameter>
                             <s:name>role</s:name>
-							<c:value xsi:type="xsd:string">00000000-0000-0000-0000-000000000008</c:value>
+							<c:value xsi:type="q:SearchFilterType">
+                                <q:equal>
+                                    <q:path>name</q:path>
+                                    <q:value>End user</q:value>
+                                </q:equal>
+                            </c:value>
                         </s:parameter>
                         <s:parameter>
                             <s:name>options</s:name>
