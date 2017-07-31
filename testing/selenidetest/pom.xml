@@ -6,12 +6,12 @@
     <name>Selenide tests</name>
     <groupId>com.evolveum.midpoint.testing</groupId>
     <artifactId>selenidetest</artifactId>
-    <version>3.7-SNAPSHOT</version>
+    <version>3.6.1-SNAPSHOT</version>
 
     <parent>
         <artifactId>testing</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.7-SNAPSHOT</version>
+        <version>3.6.1-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.7-SNAPSHOT</version>
+            <version>3.6.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
