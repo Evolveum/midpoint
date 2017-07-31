@@ -61,10 +61,10 @@ public class ShadowCacheProvisioner extends ShadowCache {
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheProvisioner.class);
 	
 	@Override
-	public String afterAddOnResource(ProvisioningContext ctx, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult)
+	public String afterAddOnResource(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult)
 					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
 	
-		return shadowManager.addNewRepositoryShadow(ctx, addResult, parentResult);
+		return shadowManager.addNewActiveRepositoryShadow(ctx, existingShadowOid, addResult, parentResult);
 	}
 
 	@Override
