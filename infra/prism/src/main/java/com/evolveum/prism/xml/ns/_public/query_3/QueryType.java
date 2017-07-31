@@ -115,6 +115,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
         this.description = value;
     }
 
+    public QueryType description(String value) {
+        setDescription(value);
+        return this;
+    }
+
     /**
      * Gets the value of the filter property.
      * 
@@ -139,6 +144,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
         this.filter = value;
     }
 
+    public QueryType filter(SearchFilterType value) {
+        setFilter(value);
+        return this;
+    }
+
     /**
      * Gets the value of the paging property.
      * 
@@ -161,6 +171,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
      */
     public void setPaging(PagingType value) {
         this.paging = value;
+    }
+
+    public QueryType paging(PagingType value) {
+        setPaging(value);
+        return this;
     }
 
 	@Override

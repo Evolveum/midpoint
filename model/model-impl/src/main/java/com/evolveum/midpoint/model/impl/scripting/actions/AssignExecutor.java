@@ -24,19 +24,15 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -71,24 +67,39 @@ public class AssignExecutor extends BaseActionExecutor {
         ActionParameterValueType resourceParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
         ActionParameterValueType roleParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
 
-        Collection<ObjectReferenceType> resources;
-        if (resourceParameterValue != null) {
-            PipelineData data = expressionHelper.evaluateParameter(resourceParameterValue, null, input, context, globalResult);
-            resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE);
-        } else {
-            resources = null;
+	    Collection<ObjectReferenceType> resources;
+        try {
+	        if (resourceParameterValue != null) {
+		        PipelineData data = expressionHelper
+				        .evaluateParameter(resourceParameterValue, null, input, context, globalResult);
+		        resources = data.getDataAsReferences(ResourceType.COMPLEX_TYPE, ResourceType.class, context, globalResult);
+	        } else {
+		        resources = null;
+	        }
+        } catch (CommonException e) {
+        	throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_RESOURCE + "' parameter of a scripting expression: " + e.getMessage(), e);
         }
 
         Collection<ObjectReferenceType> roles;
-        if (roleParameterValue != null) {
-            PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
-            roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE);
-        } else {
-            roles = null;
+        try {
+	        if (roleParameterValue != null) {
+		        PipelineData data = expressionHelper.evaluateParameter(roleParameterValue, null, input, context, globalResult);
+		        roles = data.getDataAsReferences(RoleType.COMPLEX_TYPE, AbstractRoleType.class, context, globalResult);        // if somebody wants to assign Org, he has to use full reference value (including object type)
+	        } else {
+		        roles = null;
+	        }
+        } catch (CommonException e) {
+	        throw new ScriptExecutionException("Couldn't evaluate '" + PARAM_ROLE + "' parameter of a scripting expression: " + e.getMessage(), e);
         }
 
         if (resources == null && roles == null) {
             throw new ScriptExecutionException("Nothing to assign: neither resource nor role specified");
+        }
+
+        if (CollectionUtils.isEmpty(resources) && CollectionUtils.isEmpty(roles)) {
+        	LOGGER.warn("No resources and no roles to assign in a scripting expression");
+        	context.println("Warning: no resources and no roles to assign");        // TODO some better handling?
+	        return input;
         }
 
         for (PipelineItem item : input.getData()) {

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.expressions.FilterContentEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
@@ -59,6 +60,7 @@ public class ScriptingExpressionEvaluator {
     @Autowired private SearchEvaluator searchEvaluator;
     @Autowired private SelectEvaluator selectEvaluator;
     @Autowired private FilterContentEvaluator filterContentEvaluator;
+    @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
 
     private ObjectFactory objectFactory = new ObjectFactory();
@@ -153,7 +155,7 @@ public class ScriptingExpressionEvaluator {
     // main entry point from the outside
 	private ExecutionContext evaluateExpression(ScriptingExpressionType expression, PipelineData data,
 			ScriptingExpressionEvaluationOptionsType options, Task task, OperationResult result) throws ScriptExecutionException {
-		ExecutionContext context = new ExecutionContext(options, task);
+		ExecutionContext context = new ExecutionContext(options, task, this);
 		PipelineData output;
 		try {
 			output = evaluateExpression(expression, data, context, result);
@@ -269,4 +271,11 @@ public class ScriptingExpressionEvaluator {
         actionExecutors.put(actionName, executor);
     }
 
+    ModelService getModelService() {
+        return modelService;
+    }
+
+    PrismContext getPrismContext() {
+        return prismContext;
+    }
 }
