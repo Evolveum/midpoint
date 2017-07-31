@@ -110,6 +110,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	
 	protected static final File RESOURCE_SEMI_MANUAL_DISABLE_FILE = new File(TEST_DIR, "resource-semi-manual-disable.xml");
 	protected static final String RESOURCE_SEMI_MANUAL_DISABLE_OID = "5e497cb0-5cdb-11e7-9cfe-4bfe0342d181";
+	
+	protected static final File RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_FILE = new File(TEST_DIR, "resource-semi-manual-slow-proposed.xml");
+	protected static final String RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_OID = "512d749a-75ff-11e7-8176-8be7fb6f4e45";
 
 	protected static final File ROLE_ONE_MANUAL_FILE = new File(TEST_DIR, "role-one-manual.xml");
 	protected static final String ROLE_ONE_MANUAL_OID = "9149b3ca-5da1-11e7-8e84-130a91fb5876";
@@ -119,6 +122,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	
 	protected static final File ROLE_ONE_SEMI_MANUAL_DISABLE_FILE = new File(TEST_DIR, "role-one-semi-manual-disable.xml");
 	protected static final String ROLE_ONE_SEMI_MANUAL_DISABLE_OID = "3b8cb17a-5da2-11e7-b260-a760972b54fb";
+	
+	protected static final File ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_FILE = new File(TEST_DIR, "role-one-semi-manual-slow-proposed.xml");
+	protected static final String ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_OID = "ca7fefc6-75ff-11e7-9833-572f6bf86a81";
 	
 	public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 	
@@ -2574,7 +2580,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		final int THREADS = 4;
+		final int THREADS = getConcurrentTestNumberOfThreads();
 		final long TIMEOUT = 60000L;
 
 		// WHEN
@@ -2583,7 +2589,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		for (int i = 0; i < THREADS; i++) {
 			threads[i] = new Thread(() -> {
 				try {
-					Thread.sleep(RND.nextInt(1000)); // Random start delay
+					Thread.sleep(RND.nextInt(getConcurrentTestRandomStartDelayRange())); // Random start delay
 					LOGGER.info("{} starting", Thread.currentThread().getName());
 					login(userAdministrator);
 					Task localTask = createTask(TEST_NAME + ".local");
@@ -2610,6 +2616,14 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertEquals("Wrong # of links", 1, barbossa.asObjectable().getLinkRef().size());
 	}
 	
+	protected int getConcurrentTestNumberOfThreads() {
+		return 4;
+	}
+	
+	protected int getConcurrentTestRandomStartDelayRange() {
+		return 1000;
+	}
+
 	protected void backingStoreProvisionWill(String interest) throws IOException {
 		// nothing to do here
 	}
