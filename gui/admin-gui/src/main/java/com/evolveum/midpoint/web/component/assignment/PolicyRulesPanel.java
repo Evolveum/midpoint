@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -40,9 +41,10 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
+public abstract class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
+    private static final long serialVersionUID = 1L;
     private static final String ID_POLICY_RULES = "policyRules";
-    private static final String ID_POLICY_RULES_TABLE = "policyRulesTable";
+    private static final String ID_MAIN_POLICY_RULE_PANEL = "mainPolicyRulesPanel";
 
     private PageBase pageBase;
 
@@ -58,7 +60,7 @@ public class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
         add(policyRulesContainer);
 
         ListDataProvider<AssignmentEditorDto> provider = new ListDataProvider<AssignmentEditorDto>(this, getModel(), false);
-        BoxedTablePanel<AssignmentEditorDto> policyRulesTable = new BoxedTablePanel<AssignmentEditorDto>(ID_POLICY_RULES_TABLE,
+        BoxedTablePanel<AssignmentEditorDto> policyRulesTable = new BoxedTablePanel<AssignmentEditorDto>(ID_MAIN_POLICY_RULE_PANEL,
                 provider, initColumns(), UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE,
                 (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE)){
             private static final long serialVersionUID = 1L;
@@ -112,6 +114,7 @@ public class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
+                assignmentDetailsPerformed(rowModel, pageBase, target);
             }
         });
         columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
@@ -121,14 +124,7 @@ public class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
                 PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                String constraintValue;
-                if (policyRuleContainer == null){
-                    constraintValue = "";
-                } else {
-                    PolicyConstraintsType constraints = policyRuleContainer.getValue().getValue().getPolicyConstraints();
-                    constraintValue = constraints != null ? PolicyRuleUtil.getPolicyConstraintsAsString(constraints, pageBase) : "";
-                }
-                    cellItem.add(new Label(componentId, Model.of(constraintValue)));
+                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleContainer, pageBase))));
             }
 
         });
@@ -151,19 +147,32 @@ public class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
             public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
                                      final IModel<AssignmentEditorDto> rowModel) {
                 PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                String constraintValue;
-                if (policyRuleContainer == null){
-                    constraintValue = "";
+                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleContainer))));
+            }
+
+        });
+        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.orderColumn")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
+                                     final IModel<AssignmentEditorDto> rowModel) {
+                PrismContainerValue<AssignmentType> assignment = rowModel.getObject().getOldValue();
+
+                String orderValue;
+                if (assignment == null || assignment.getValue() == null || assignment.getValue().getOrder() == null){
+                    orderValue = "";
                 } else {
-                    PolicyActionsType policyActions = policyRuleContainer.getValue().getValue().getPolicyActions();
-                    constraintValue = policyActions != null ? PolicyRuleUtil.getPolicyActionsAsString(policyActions) : "";
+                    orderValue = Integer.toString(assignment.getValue().getOrder());
                 }
-                cellItem.add(new Label(componentId, Model.of(constraintValue)));
+                cellItem.add(new Label(componentId, Model.of(orderValue)));
             }
 
         });
         return columns;
     }
+
+    protected abstract void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase, AjaxRequestTarget target);
 
 //    private AssignmentsTabStorage getPolicyRulesTabStorage(){
 //        return pageBase.getSessionStorage().getAssignmentsTabStorage();

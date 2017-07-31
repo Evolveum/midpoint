@@ -2857,9 +2857,10 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.assertFailure(testResult);
 		
 		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
-		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
-		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
+		OperationResult connectResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
+		assertNotNull("No connector connect result", connectResult);
+		assertTrue("Unexpected connector initialization message: "+connectResult.getMessage(), connectResult.getMessage().contains("invalidCredentials"));
+		assertTrue("Unexpected connector initialization message: "+connectResult.getMessage(), connectResult.getMessage().contains("49"));
 	}
 	
 	@Test
@@ -2899,7 +2900,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		TestUtil.assertFailure(testResult);
 		
 		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		OperationResult initResult = connectorResult.findSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("invalidCredentials"));
 		assertTrue("Unexpected connector initialization message: "+initResult.getMessage(), initResult.getMessage().contains("49"));
 	}

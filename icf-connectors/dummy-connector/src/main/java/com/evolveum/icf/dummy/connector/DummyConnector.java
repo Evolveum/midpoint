@@ -18,6 +18,7 @@ package com.evolveum.icf.dummy.connector;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
@@ -154,6 +155,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
 
         resource.setUselessString(this.configuration.getUselessString());
+        if (this.configuration.isRequireUselessString() && StringUtils.isBlank((this.configuration.getUselessString()))) {
+        	throw new ConfigurationException("No useless string");
+        }
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
         if (uselessGuardedString == null) {
         	resource.setUselessGuardedString(null);

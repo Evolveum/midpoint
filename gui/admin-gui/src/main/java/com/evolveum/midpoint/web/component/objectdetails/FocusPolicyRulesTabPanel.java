@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.assignment.AssignmentDataTablePanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.PolicyRuleDetailsPanel;
 import com.evolveum.midpoint.web.component.assignment.PolicyRulesPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,8 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
     private static final String ID_POLICY_RULES_PANEL = "policyRulesPanel";
     private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
 
+    private PolicyRulesPanel policyRulesPanel = null;
+
     public FocusPolicyRulesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
                                     LoadableModel<List<AssignmentEditorDto>> policyRulesModel, PageBase page) {
         super(id, mainForm, focusWrapperModel, page);
@@ -55,8 +59,43 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
         policyRules.setOutputMarkupId(true);
         add(policyRules);
 
-        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase);
+        initPolicyRulesPanel();
         policyRules.add(policyRulesPanel);
+    }
 
+    private void initPolicyRulesPanel(){
+        policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase, AjaxRequestTarget target){
+                FocusPolicyRulesTabPanel.this.assignmentDetailsPerformed(policyRuleModel, pageBase, target);
+            }
+        };
+    }
+
+    private void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase, AjaxRequestTarget target){
+        PolicyRuleDetailsPanel detailsPanel = new PolicyRuleDetailsPanel(ID_POLICY_RULES_PANEL, policyRuleModel, pageBase){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void redirectBack(AjaxRequestTarget target) {
+                redirectBackFromAssignmentDetailsPanelPerformed(target);
+            }
+        };
+        getPolicyRulesContainer().replace(detailsPanel);
+        target.add(getPolicyRulesContainer());
+    }
+
+    private void redirectBackFromAssignmentDetailsPanelPerformed(AjaxRequestTarget target){
+        if (policyRulesPanel == null){
+            initPolicyRulesPanel();
+        }
+        getPolicyRulesContainer().replace(policyRulesPanel);
+        target.add(getPolicyRulesContainer());
+    }
+
+    private WebMarkupContainer getPolicyRulesContainer(){
+        return (WebMarkupContainer) get(ID_POLICY_RULES_CONTAINER);
     }
 }

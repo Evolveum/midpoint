@@ -794,17 +794,15 @@ public class ResourceManager {
 
 		OperationResult initResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION.getOperation());
+		
 		ConnectorInstance connector;
 		try {
-
-			// TODO: this returns configured instance. Then there is another configuration down below.
-			// this means double configuration of the connector. TODO: clean this up
-			connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, true, initResult);
+			// Make sure we are getting non-configured instance.
+			connector = connectorManager.createConnectorInstance(connectorSpec, initResult);
 			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
 			// The connector was not found. The resource definition is either
-			// wrong or the connector is not
-			// installed.
+			// wrong or the connector is not installed.
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			initResult.recordFatalError("The connector was not found: "+e.getMessage(), e);
 			return;
@@ -840,7 +838,9 @@ public class ResourceManager {
 			PrismObjectDefinition<ResourceType> newResourceDefinition = resource.getDefinition().clone();
 			applyConnectorSchemaToResource(connectorSpec, newResourceDefinition, resource, task, configResult);
 			PrismContainerValue<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration().getValue();
+			
 			connector.configure(connectorConfiguration, configResult);
+						
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
@@ -892,9 +892,17 @@ public class ResourceManager {
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
 
 		try {
+			// We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
+			// cannot be detected by the connector and therefore are provided in the resource
+			// TODO: maybe this is not entirely correct. Maybe it needs its own test step. Or maybe
+			//       there must be a larger refactoring.
+			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
+			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
+			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
+
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
-			Collection<Object> capabilities = connector.fetchCapabilities(capabilitiesResult);
-			capabilityMap.put(connectorSpec.getConnectorName(), capabilities);
+			Collection<Object> retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
+			capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
 			capabilitiesResult.recordSuccess();
 		} catch (CommunicationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
@@ -908,12 +916,17 @@ public class ResourceManager {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			capabilitiesResult.recordFatalError("Configuration error", e);
 			return;
+		} catch (SchemaException e) {
+			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
+			capabilitiesResult.recordFatalError("Schema error", e);
+			return;
 		} catch (RuntimeException | Error e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			capabilitiesResult.recordFatalError("Unexpected runtime error", e);
 			return;
 		}
 		
+		connectorManager.cacheConfifuredConnector(connectorSpec, connector);
 	}
 	
 	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType status, OperationResult result){
