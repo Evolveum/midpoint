@@ -824,8 +824,6 @@ public class ResourceManager {
 			return;
 		}
 		
-			
-		
 		LOGGER.debug("Testing connection using {}", connectorSpec);
 
 		// === test CONFIGURATION ===
@@ -840,7 +838,15 @@ public class ResourceManager {
 			PrismContainerValue<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration().getValue();
 			
 			connector.configure(connectorConfiguration, configResult);
-						
+		
+			// We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
+			// cannot be detected by the connector and therefore are provided in the resource
+			// TODO: this is not entirely correct. Maybe it needs its own test step. Or maybe
+			//       there must be a larger refactoring.
+			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
+			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
+			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
+			
 			configResult.recordSuccess();
 		} catch (CommunicationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
@@ -871,7 +877,7 @@ public class ResourceManager {
 			configResult.recordFatalError("Unexpected runtime error", e);
 			return;
 		}
-
+		
 		// === test CONNECTION ===
 
 		// delegate the main part of the test to the connector
@@ -892,14 +898,6 @@ public class ResourceManager {
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
 
 		try {
-			// We need to explicitly initialize the instance, e.g. in case that the schema and capabilities
-			// cannot be detected by the connector and therefore are provided in the resource
-			// TODO: maybe this is not entirely correct. Maybe it needs its own test step. Or maybe
-			//       there must be a larger refactoring.
-			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
-			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
-			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), configResult);
-
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 			Collection<Object> retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
 			capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
@@ -915,10 +913,6 @@ public class ResourceManager {
 		} catch (ConfigurationException e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
 			capabilitiesResult.recordFatalError("Configuration error", e);
-			return;
-		} catch (SchemaException e) {
-			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
-			capabilitiesResult.recordFatalError("Schema error", e);
 			return;
 		} catch (RuntimeException | Error e) {
 			modifyResourceAvailabilityStatus(connectorSpec.getResource(), AvailabilityStatusType.BROKEN, parentResult);
