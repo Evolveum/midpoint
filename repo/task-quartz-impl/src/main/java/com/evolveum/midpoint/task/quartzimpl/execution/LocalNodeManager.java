@@ -123,7 +123,7 @@ public class LocalNodeManager {
         quartzProperties.put("org.quartz.scheduler.jmx.export", "true");
 
         if (configuration.isTestMode()) {
-            LOGGER.info("ReusableQuartzScheduler is set: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
+            LOGGER.info("QuartzScheduler is set to be reusable: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
             quartzProperties.put("org.quartz.scheduler.makeSchedulerThreadDaemon", "true");
             quartzProperties.put("org.quartz.threadPool.makeThreadsDaemons", "true");
         }
@@ -135,7 +135,7 @@ public class LocalNodeManager {
             StdSchedulerFactory sf = new StdSchedulerFactory();
             sf.initialize(quartzProperties);
             Scheduler scheduler = sf.getScheduler();
-            scheduler.getListenerManager().addSchedulerListener(createSchedulerStartingListener(scheduler));
+            setMySchedulerListener(scheduler);
             getGlobalExecutionManager().setQuartzScheduler(scheduler);
             LOGGER.info("... Quartz scheduler initialized.");
         } catch (SchedulerException e) {
@@ -143,20 +143,29 @@ public class LocalNodeManager {
         }
     }
 
-    // This is necessary e.g. when the scheduler is started using JMX from remote node
-    private SchedulerListener createSchedulerStartingListener(final Scheduler scheduler) {
-        return new SchedulerListenerSupport() {
-            @Override
-            public void schedulerStarting() {
-                OperationResult result = new OperationResult(LocalNodeManager.class.getName() + ".schedulerStarting");
-                NodeType node = taskManager.getClusterManager().getFreshVerifiedLocalNodeObject(result);
-                if (node != null) {
-                    getGlobalExecutionManager().setLocalExecutionCapabilities(scheduler, node);
-                } else {
-                    LOGGER.warn("Couldn't set Quartz scheduler execution capabilities, because local node object couldn't be correctly read.");
-                }
+    private void setMySchedulerListener(Scheduler scheduler) throws SchedulerException {
+        for (SchedulerListener listener : scheduler.getListenerManager().getSchedulerListeners()) {
+            if (listener instanceof MySchedulerListener) {
+                scheduler.getListenerManager().removeSchedulerListener(listener);
             }
-        };
+        }
+        scheduler.getListenerManager().addSchedulerListener(new MySchedulerListener());
+    }
+
+    private class MySchedulerListener extends SchedulerListenerSupport {
+        @Override
+        public void schedulerStarting() {
+            OperationResult result = new OperationResult(LocalNodeManager.class.getName() + ".schedulerStarting");
+            NodeType node = taskManager.getClusterManager().getFreshVerifiedLocalNodeObject(result);
+            if (node != null) {
+                Scheduler quartzScheduler = taskManager.getExecutionManager().getQuartzScheduler();
+                if (quartzScheduler != null) {
+                    getGlobalExecutionManager().setLocalExecutionCapabilities(quartzScheduler, node);
+                }
+            } else {
+                LOGGER.warn("Couldn't set Quartz scheduler execution capabilities, because local node object couldn't be correctly read.");
+            }
+        }
     }
 
     /**
