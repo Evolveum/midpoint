@@ -65,6 +65,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	
 	private RepositoryService repositoryService;
 	
+	private boolean connected = false;
+	
 	private static int randomDelayRange = 0;
 	
 	protected static final Random RND = new Random();
@@ -76,6 +78,10 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	public void setConfiguration(ManualConnectorConfiguration configuration) {
 		this.configuration = configuration;
+	}
+
+	public boolean isConnected() {
+		return connected;
 	}
 
 	@Override
@@ -219,7 +225,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	@Override
 	protected void connect(OperationResult result) {
-		// Nothing to do
+		if (connected && InternalsConfig.isSanityChecks()) {
+			throw new IllegalStateException("Double connect in "+this);
+		}
+		connected = true;
+		// Nothing else to do
 	}
 
 	@Override
@@ -234,12 +244,17 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			return;
 		}
 		
+		if (!connected && InternalsConfig.isSanityChecks()) {
+			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+		}
+		
 		connectionResult.recordSuccess();
 	}
 	
 	@Override
 	public void dispose() {
 		// Nothing to dispose
+		connected = false;
 	}
 
 	public static int getRandomDelayRange() {

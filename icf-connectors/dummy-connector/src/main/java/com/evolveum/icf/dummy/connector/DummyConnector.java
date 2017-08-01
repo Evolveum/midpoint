@@ -115,6 +115,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     
 	private DummyResource resource;
 	
+	private boolean connected = false;
+	
 	private static String staticVal;
 
     /**
@@ -166,6 +168,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         }
         resource.setMonsterization(this.configuration.isMonsterized());
         
+        if (connected) {
+			throw new IllegalStateException("Double connect in "+this);
+		}
+		connected = true;
+        
         resource.connect();
         
         if (staticVal == null) {
@@ -181,13 +188,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      * @see Connector#dispose()
      */
     public void dispose() {
+    	connected = false;
     	resource.disconnect();
     	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
     }
     
     @Override
 	public void checkAlive() {
-		// notthig to do. always alive.
+    	if (!connected) {
+			throw new IllegalStateException("checkAlive on non-connected connector instance "+this);
+		}
 	}
 
     /******************
@@ -1591,6 +1601,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public void test() {
         log.info("test::begin");
+        
+        if (!connected) {
+			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+		}
+        
         log.info("Validating configuration.");
         configuration.validate();
         
