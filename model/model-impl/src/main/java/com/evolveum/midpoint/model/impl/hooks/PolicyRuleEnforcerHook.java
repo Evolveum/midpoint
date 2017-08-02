@@ -16,9 +16,14 @@
 package com.evolveum.midpoint.model.impl.hooks;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,10 +44,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnforcementPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 
 /**
  * Hook used to enforce the policy rules that have the enforce action.
@@ -57,8 +58,8 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	
 	public static final String HOOK_URI = SchemaConstants.NS_MODEL + "/policy-rule-enforcer-hook-3";
 	
-	@Autowired(required = true)
-    private HookRegistry hookRegistry;
+	@Autowired private HookRegistry hookRegistry;
+	@Autowired private PrismContext prismContext;
 	
 	@PostConstruct
     public void init() {
@@ -76,22 +77,46 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		if (context.getState() != ModelState.PRIMARY) {
             return HookOperationMode.FOREGROUND;
         }
-	
+		return invokeInternal(context, task, result);
+	}
+
+	@Override
+	public void invokePreview(@NotNull ModelContext<? extends ObjectType> context, Task task, OperationResult result) {
+		// TODO check partial processing option (when present)
+		PolicyRuleEnforcerHookPreviewOutputType output = new PolicyRuleEnforcerHookPreviewOutputType(prismContext);
+		String message = null;
+		try {
+			invokeInternal(context, task, result);
+		} catch (PolicyViolationException e) {
+			message = e.getMessage();
+		} catch (Throwable t) {
+			message = t.getClass() + ": " + t.getMessage();
+			LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception when doing preview in PolicyRuleEnforcerHook", t);
+		}
+		if (message != null) {
+			output.getExceptionMessage().add(message);
+		}
+		((LensContext) context).addHookPreviewResults(HOOK_URI, Collections.singletonList(output));
+	}
+
+	@NotNull
+	private <O extends ObjectType> HookOperationMode invokeInternal(@NotNull ModelContext<O> context, @NotNull Task task,
+			@NotNull OperationResult result) throws PolicyViolationException {
 		ModelElementContext<O> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return HookOperationMode.FOREGROUND;
 		}
-		
+
 		if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			return HookOperationMode.FOREGROUND;
     	}
-		
+
 		evaluateFocusRules((ModelContext<FocusType>) context, task, result);
 		evaluateAssignmentRules((ModelContext<FocusType>) context, task, result);
-		
+
 		return HookOperationMode.FOREGROUND;
 	}
-	
+
 	private <F extends FocusType> void evaluateFocusRules(ModelContext<F> context, Task task,
 			OperationResult result) throws PolicyViolationException {
 		ModelElementContext<F> focusContext = context.getFocusContext();

@@ -256,10 +256,18 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element name="taskRef" type="c:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task that was or would be created to approve give operation. This object reference should
+						contain the actual object (TODO).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="stage" type="c:ApprovalStageExecutionInformationType" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Information related to a given stage.
+						Information related to a given stage of the approval process.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

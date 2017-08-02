@@ -22,6 +22,12 @@
 	<assignment> <!-- Role22 (special-approver) -->
 		<targetRef oid="00000001-d34d-b33f-f00d-000000000022" type="RoleType" relation="special-approver"/>
 	</assignment>
+	<assignment> <!-- Role25 -->
+		<targetRef oid="00000001-d34d-b33f-f00d-000000000025" type="RoleType" relation="extraordinary"/>
+	</assignment>
+	<assignment> <!-- Leads2122 -->
+		<targetRef oid="00000001-d34d-b33f-f00d-000000002122" type="OrgType"/>
+	</assignment>
 	<fullName>Lead22</fullName>
 	<familyName>Lead22</familyName>
 </user>

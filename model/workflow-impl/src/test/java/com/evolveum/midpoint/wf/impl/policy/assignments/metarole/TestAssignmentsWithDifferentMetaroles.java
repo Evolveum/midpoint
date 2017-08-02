@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -68,6 +69,8 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	protected static final File ROLE_ROLE22_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role22-special.xml");
 	protected static final File ROLE_ROLE23_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role23-special-and-security.xml");
 	protected static final File ROLE_ROLE24_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role24-approval-and-enforce.xml");
+	protected static final File ROLE_ROLE25_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role25-very-complex-approval.xml");
+	protected static final File ORG_LEADS2122_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "org-leads2122.xml");
 
 	protected static final File USER_LEAD21_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead21.xml");
 	protected static final File USER_LEAD22_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead22.xml");
@@ -78,6 +81,8 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	protected String roleRole22Oid;
 	protected String roleRole23Oid;
 	protected String roleRole24Oid;
+	protected String roleRole25Oid;
+	protected String orgLeads2122Oid;
 
 	protected String userLead21Oid;
 	protected String userLead22Oid;
@@ -92,31 +97,13 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		roleRole22Oid = repoAddObjectFromFile(ROLE_ROLE22_FILE, initResult).getOid();
 		roleRole23Oid = repoAddObjectFromFile(ROLE_ROLE23_FILE, initResult).getOid();
 		roleRole24Oid = repoAddObjectFromFile(ROLE_ROLE24_FILE, initResult).getOid();
+		roleRole25Oid = repoAddObjectFromFile(ROLE_ROLE25_FILE, initResult).getOid();
+		orgLeads2122Oid = repoAddObjectFromFile(ORG_LEADS2122_FILE, initResult).getOid();
 
 		userLead21Oid = addAndRecomputeUser(USER_LEAD21_FILE, initTask, initResult);
 		userLead22Oid = addAndRecomputeUser(USER_LEAD22_FILE, initTask, initResult);
 		userLead23Oid = addAndRecomputeUser(USER_LEAD23_FILE, initTask, initResult);
 		userLead24Oid = addAndRecomputeUser(USER_LEAD24_FILE, initTask, initResult);
-	}
-
-	@Test
-	public void test100AddRoles123AssignmentPreview() throws Exception {
-		final String TEST_NAME = "test100AddRoles123AssignmentPreview";
-		TestUtil.displayTestTile(this, TEST_NAME);
-		login(userAdministrator);
-
-		unassignAllRoles(userJackOid, true);
-		previewAssignRoles123ToJack(TEST_NAME, false);
-	}
-
-	@Test
-	public void test101AddRoles123AssignmentPreviewImmediate() throws Exception {
-		final String TEST_NAME = "test101AddRoles123AssignmentPreviewImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
-		login(userAdministrator);
-
-		unassignAllRoles(userJackOid, true);
-		previewAssignRoles123ToJack(TEST_NAME, true);
 	}
 
 	@Test
@@ -291,6 +278,38 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
 	}
 
+	// preview-related tests
+
+	@Test
+	public void test400AddRoles123AssignmentPreview() throws Exception {
+		final String TEST_NAME = "test400AddRoles123AssignmentPreview";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(userJackOid, true);
+		previewAssignRolesToJack(TEST_NAME, false, false);
+	}
+
+	@Test
+	public void test410AddRoles1234AssignmentPreview() throws Exception {
+		final String TEST_NAME = "test410AddRoles1234AssignmentPreview";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(userJackOid, true);
+		previewAssignRolesToJack(TEST_NAME, false, true);
+	}
+
+	@Test
+	public void test420AddRoles123AssignmentPreviewImmediate() throws Exception {
+		final String TEST_NAME = "test420AddRoles123AssignmentPreviewImmediate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(userJackOid, true);
+		previewAssignRolesToJack(TEST_NAME, true, false);
+	}
+
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate,
 			boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
 		Task task = createTask("executeAssignRoles123ToJack");
@@ -434,31 +453,44 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		}, 3, immediate);
 	}
 
-	private void previewAssignRoles123ToJack(String TEST_NAME, boolean immediate) throws Exception {
-		Task task = createTask("previewAssignRoles123ToJack");
+	private void previewAssignRolesToJack(String TEST_NAME, boolean immediate, boolean also24) throws Exception {
+		Task task = createTask("previewAssignRolesToJack");
 		OperationResult result = task.getResult();
+		List<AssignmentType> assignmentsToAdd = new ArrayList<>();
+		assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext));
+		assignmentsToAdd.add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext));
+		assignmentsToAdd.add(createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE, prismContext));
+		assignmentsToAdd.add(createAssignmentTo(roleRole25Oid, ObjectTypes.ROLE, prismContext));
+		if (also24) {
+			assignmentsToAdd.add(createAssignmentTo(roleRole24Oid, ObjectTypes.ROLE, prismContext));
+		}
 		@SuppressWarnings("unchecked")
 		ObjectDelta<UserType> primaryDelta = (ObjectDelta<UserType>) DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
-				.item(UserType.F_ASSIGNMENT).add(
-						createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext),
-						createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext),
-						createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE, prismContext))
+				.item(UserType.F_ASSIGNMENT).addRealValues(assignmentsToAdd)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
 
-		ModelExecuteOptions options = immediate ? ModelExecuteOptions.createExecuteImmediatelyAfterApproval() : null;
+		ModelExecuteOptions options = immediate ? ModelExecuteOptions.createExecuteImmediatelyAfterApproval() : new ModelExecuteOptions();
+		options.setPartialProcessing(new PartialProcessingOptionsType().approvals(PROCESS));
 		ModelContext<ObjectType> modelContext = modelInteractionService
 				.previewChanges(Collections.singleton(primaryDelta), options, task, result);
 
-		List<ApprovalSchemaExecutionInformationType> infos = workflowManager
-				.getApprovalSchemaPreview(modelContext, task, result);
-
-		displayContainerablesCollection("Infos", infos);
+		List<ApprovalSchemaExecutionInformationType> approvalInfo = modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class);
+		List<PolicyRuleEnforcerHookPreviewOutputType> enforceInfo = modelContext.getHookPreviewResults(PolicyRuleEnforcerHookPreviewOutputType.class);
+		displayContainerablesCollection("Approval infos", approvalInfo);
+		displayContainerablesCollection("Enforce infos", enforceInfo);
 		result.computeStatus();
 		assertSuccess(result);
 
-		assertEquals("Wrong # of schema execution information pieces", 3, infos.size());
+		assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
+		assertEquals("Wrong # of enforcement hook preview output items", 1, enforceInfo.size());
+		List<String> enforcementMessages = enforceInfo.get(0).getExceptionMessage();
+		if (also24) {
+			assertEquals("Wrong # of enforcement exception message", 1, enforcementMessages.size());
+		} else {
+			assertEquals("Wrong # of enforcement exception message", 0, enforcementMessages.size());
+		}
 	}
 
 	private void executeUnassignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve, boolean byId, boolean has1and2) throws Exception {

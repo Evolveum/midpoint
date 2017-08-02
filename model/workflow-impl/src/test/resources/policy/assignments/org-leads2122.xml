@@ -14,17 +14,7 @@
   ~ limitations under the License.
   -->
 
-<user oid="00000001-d34d-b33f-f00d-L00000000023">
-	<name>lead23</name>
-	<assignment> <!-- approver -->
-		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
-	</assignment>
-	<assignment> <!-- Role23 (special-approver) -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000023" type="RoleType" relation="special-approver"/>
-	</assignment>
-	<assignment> <!-- Role25 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000025" type="RoleType" relation="extraordinary"/>
-	</assignment>
-	<fullName>Lead23</fullName>
-	<familyName>Lead23</familyName>
-</user>
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="00000001-d34d-b33f-f00d-000000002122">
+	<name>Leads2122</name>
+</org>

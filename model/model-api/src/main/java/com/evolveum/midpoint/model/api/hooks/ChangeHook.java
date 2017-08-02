@@ -70,4 +70,13 @@ public interface ChangeHook {
     default int getPriority() {
         return Integer.MAX_VALUE;
     }
+
+    /**
+     * Invokes the hook in "preview mode". It is expected that hook will set its output into "hookPreviewResultsMap" in the model context.
+     * Hooks can decide whether to do anything based on partial processing options. The defaults are expected to be different
+     * from defaults during normal processing, e.g. they might be set to "skip". If the caller wants preview processing by
+     * a particular hook, it might enable it using partial processing option set to "process".
+     */
+	default void invokePreview(@NotNull ModelContext<? extends ObjectType> context, Task task, OperationResult result) {
+    }
 }

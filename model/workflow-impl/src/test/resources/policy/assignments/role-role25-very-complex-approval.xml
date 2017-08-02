@@ -1,0 +1,235 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="00000001-d34d-b33f-f00d-000000000025">
+	<name>Role25</name>
+	<!-- approver by relation -->
+	<assignment id="1">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>10</order>
+					</compositionStrategy>
+					<approverRelation>extraordinary</approverRelation>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- approver by expression -->
+	<assignment id="2">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>20</order>
+					</compositionStrategy>
+					<approverExpression>
+						<script>
+							<code>'00000001-d34d-b33f-f00d-L00000000023'</code>
+						</script>
+					</approverExpression>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- approver as a group (no expansion) -->
+	<assignment id="3">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>30</order>
+					</compositionStrategy>
+					<approverRef oid="00000001-d34d-b33f-f00d-000000002122" type="OrgType" />
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- approver as a group (expanded) -->
+	<assignment id="4">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>40</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRef oid="00000001-d34d-b33f-f00d-000000002122" type="OrgType" />
+							<groupExpansion>onWorkItemCreation</groupExpansion>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- pre-approved (old way) -->
+	<assignment id="5">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>50</order>
+					</compositionStrategy>
+					<approverRelation>extraordinary</approverRelation>
+					<automaticallyApproved>
+						<script>
+							<code>true</code>
+						</script>
+					</automaticallyApproved>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- pre-approved (new way: approve) -->
+	<assignment id="6">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>60</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRelation>extraordinary</approverRelation>
+							<automaticallyCompleted>
+								<script>
+									<code>'approve'</code>
+								</script>
+							</automaticallyCompleted>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- pre-approved (new way: skip) -->
+	<assignment id="7">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>70</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRelation>extraordinary</approverRelation>
+							<automaticallyCompleted>
+								<script>
+									<code>'skip'</code>
+								</script>
+							</automaticallyCompleted>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- pre-approved (new way: reject) -->
+	<assignment id="8">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>80</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRelation>extraordinary</approverRelation>
+							<automaticallyCompleted>
+								<script>
+									<code>'reject'</code>
+								</script>
+							</automaticallyCompleted>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- pre-approved (exception) -->
+	<assignment id="9">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>90</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRelation>extraordinary</approverRelation>
+							<automaticallyCompleted>
+								<script>
+									<code>a = 200; b = 0; return a/b</code>
+								</script>
+							</automaticallyCompleted>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<!-- no approvers (reject) -->
+	<assignment id="10">
+		<policyRule>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>100</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRelation>not-matching</approverRelation>
+							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</assignment>
+</role>

@@ -26,6 +26,9 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -130,6 +133,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private MappingEvaluator mappingEvaluator;
 	@Autowired private ActivationComputer activationComputer;
 	@Autowired private Clock clock;
+	@Autowired private HookRegistry hookRegistry;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -179,6 +183,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			
 			projector.projectAllWaves(context, "preview", task, result);
 			context.distributeResource();
+
+			if (hookRegistry != null) {
+				for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
+					hook.invokePreview(context, task, result);
+				}
+			}
 			
 		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
 				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |

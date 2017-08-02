@@ -192,7 +192,7 @@ public class WfStageComputeHelper {
 
 			if (rv.approverRefs.isEmpty()) {
 				rv.noApproversFound = true;
-				if (stageDef.getOutcomeIfNoApprovers() != null) {
+				if (stageDef.getOutcomeIfNoApprovers() != null) {       // should be always the case (default is REJECT)
 					rv.predeterminedOutcome = stageDef.getOutcomeIfNoApprovers();
 					rv.automatedCompletionReason = NO_ASSIGNEES_FOUND;
 				}
