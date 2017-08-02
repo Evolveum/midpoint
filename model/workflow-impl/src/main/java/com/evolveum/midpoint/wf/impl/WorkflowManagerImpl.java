@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -281,6 +282,22 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 			return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(taskOid, opTask, result);
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't determine schema execution information: " + t.getMessage(), t);
+			throw t;
+		} finally {
+			result.recordSuccessIfUnknown();
+		}
+	}
+
+	@Override
+	public List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
+			OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getApprovalSchemaPreview");
+		try {
+			return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, opTask, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't compute approval schema preview: " + t.getMessage(), t);
 			throw t;
 		} finally {
 			result.recordSuccessIfUnknown();

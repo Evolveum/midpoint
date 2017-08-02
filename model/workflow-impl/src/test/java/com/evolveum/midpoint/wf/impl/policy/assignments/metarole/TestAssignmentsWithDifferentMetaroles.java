@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.wf.impl.policy.assignments.metarole;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -30,9 +32,7 @@ import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
@@ -96,6 +97,26 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		userLead22Oid = addAndRecomputeUser(USER_LEAD22_FILE, initTask, initResult);
 		userLead23Oid = addAndRecomputeUser(USER_LEAD23_FILE, initTask, initResult);
 		userLead24Oid = addAndRecomputeUser(USER_LEAD24_FILE, initTask, initResult);
+	}
+
+	@Test
+	public void test100AddRoles123AssignmentPreview() throws Exception {
+		final String TEST_NAME = "test100AddRoles123AssignmentPreview";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(userJackOid, true);
+		previewAssignRoles123ToJack(TEST_NAME, false);
+	}
+
+	@Test
+	public void test101AddRoles123AssignmentPreviewImmediate() throws Exception {
+		final String TEST_NAME = "test101AddRoles123AssignmentPreviewImmediate";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		login(userAdministrator);
+
+		unassignAllRoles(userJackOid, true);
+		previewAssignRoles123ToJack(TEST_NAME, true);
 	}
 
 	@Test
@@ -411,6 +432,33 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 				return instructions;
 			}
 		}, 3, immediate);
+	}
+
+	private void previewAssignRoles123ToJack(String TEST_NAME, boolean immediate) throws Exception {
+		Task task = createTask("previewAssignRoles123ToJack");
+		OperationResult result = task.getResult();
+		@SuppressWarnings("unchecked")
+		ObjectDelta<UserType> primaryDelta = (ObjectDelta<UserType>) DeltaBuilder
+				.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(
+						createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext),
+						createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext),
+						createAssignmentTo(roleRole23Oid, ObjectTypes.ROLE, prismContext))
+				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
+				.asObjectDelta(userJackOid);
+
+		ModelExecuteOptions options = immediate ? ModelExecuteOptions.createExecuteImmediatelyAfterApproval() : null;
+		ModelContext<ObjectType> modelContext = modelInteractionService
+				.previewChanges(Collections.singleton(primaryDelta), options, task, result);
+
+		List<ApprovalSchemaExecutionInformationType> infos = workflowManager
+				.getApprovalSchemaPreview(modelContext, task, result);
+
+		displayContainerablesCollection("Infos", infos);
+		result.computeStatus();
+		assertSuccess(result);
+
+		assertEquals("Wrong # of schema execution information pieces", 3, infos.size());
 	}
 
 	private void executeUnassignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve, boolean byId, boolean has1and2) throws Exception {

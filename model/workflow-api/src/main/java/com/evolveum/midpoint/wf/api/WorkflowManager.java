@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -132,6 +133,20 @@ public interface WorkflowManager {
 	 * @param parentResult operation result
 	 */
 	ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException;
+
+	/**
+	 * Retrieves information about expected approval schema and its execution.
+	 * (So, this is restricted to approvals using this mechanism.)
+	 *
+	 * Does not need authorization checks before execution; it uses model calls in order to gather any information needed.
+	 *
+	 * @param modelContext model context with the projector run already carried out (so the policy rules are evaluated)
+	 * @param opTask task under which this operation is carried out
+	 * @param parentResult operation result
+	 */
+	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException;
 }

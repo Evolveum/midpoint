@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -30,10 +31,17 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -48,14 +56,43 @@ public class ApprovalSchemaExecutionInformationHelper {
 	@Autowired private ModelService modelService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private WfStageComputeHelper computeHelper;
+	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;
+	@Autowired private BaseConfigurationHelper baseConfigurationHelper;
+	@Autowired private WfTaskController wfTaskController;
 
-	public ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask,
+	ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask,
 			OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
 		Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions
 				.retrieveItemsNamed(new ItemPath(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM));
 		TaskType wfTask = modelService.getObject(TaskType.class, taskOid, options, opTask, result).asObjectable();
+		return getApprovalSchemaExecutionInformation(wfTask, false, opTask, result);
+	}
+
+	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
+			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		WfConfigurationType wfConfiguration = baseConfigurationHelper.getWorkflowConfiguration(modelContext, result);
+		List<PcpChildWfTaskCreationInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(modelContext, wfConfiguration, opTask, result);
+		List<ApprovalSchemaExecutionInformationType> rv = new ArrayList<>();
+		for (PcpChildWfTaskCreationInstruction taskInstruction : taskInstructions) {
+			OperationResult childResult = result.createMinorSubresult(ApprovalSchemaExecutionInformationHelper.class + ".getApprovalSchemaPreview");
+			try {
+				Task wfTask = taskInstruction.createTask(wfTaskController, opTask, wfConfiguration);
+				TaskType wfTaskBean = wfTask.getTaskPrismObject().asObjectable();
+				CollectionUtils.addIgnoreNull(rv,
+						getApprovalSchemaExecutionInformation(wfTaskBean, true, opTask, childResult));
+				childResult.computeStatus();
+			} catch (Throwable t) {
+				childResult.recordFatalError("Couldn't preview approval schema for " + taskInstruction.getProcessName(), t);
+			}
+		}
+		return rv;
+	}
+
+	@Nullable
+	private ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(TaskType wfTask, boolean purePreview, Task opTask,
+			OperationResult result) {
 		WfContextType wfc = wfTask.getWorkflowContext();
 		if (wfc == null) {
 			result.recordFatalError("Workflow context in " + wfTask + " is missing or not accessible.");
@@ -77,13 +114,12 @@ public class ApprovalSchemaExecutionInformationHelper {
 			result.recordFatalError("Approval schema in " + wfTask + " is missing or not accessible.");
 			return null;
 		}
-		Integer stageNumber = wfc.getStageNumber();
+		Integer stageNumber = !purePreview ? wfc.getStageNumber() : 0;
 		if (stageNumber == null) {
 			result.recordFatalError("Information on current stage number in " + wfTask + " is missing or not accessible.");
 			return null;
 		}
 		List<ApprovalStageDefinitionType> stagesDef = WfContextUtil.sortAndCheckStages(approvalSchema);
-
 		ApprovalSchemaExecutionInformationType rv = new ApprovalSchemaExecutionInformationType(prismContext);
 		for (ApprovalStageDefinitionType stageDef : stagesDef) {
 			ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType(prismContext);

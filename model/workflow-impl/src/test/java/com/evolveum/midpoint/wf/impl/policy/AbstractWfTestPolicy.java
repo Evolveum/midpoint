@@ -302,7 +302,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems, OperationResult result) throws Exception {
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
 				if (immediate) {
 					assertFalse("There is model context in the root task (it should not be there)",
 							wfTaskUtil.hasModelContext(rootTask));
@@ -366,7 +367,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems, OperationResult result) throws Exception {
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
 				if (immediate) {
 					assertFalse("There is model context in the root task (it should not be there)",
 							wfTaskUtil.hasModelContext(rootTask));
@@ -424,7 +426,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems, OperationResult result) throws Exception {
+			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+					OperationResult result) throws Exception {
 				if (immediate) {
 					assertFalse("There is model context in the root task (it should not be there)",
 							wfTaskUtil.hasModelContext(rootTask));
@@ -910,8 +913,11 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					for (Task subtask : subtasks) {
 						if (subtask.getWorkflowContext() != null && subtask.getWorkflowContext().getProcessInstanceId() != null) {
 							Task opTask = taskManager.createTaskInstance("afterFirstClockworkRun");
-							ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subtask.getOid(), opTask, result);
+							OperationResult opResult = opTask.getResult();
+							ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subtask.getOid(), opTask, opResult);
 							display("Execution info for " + subtask, info);
+							opResult.computeStatus();
+							assertSuccess("Unexpected problem when looking at getApprovalSchemaExecutionInformation result", opResult);
 						}
 					}
 				}

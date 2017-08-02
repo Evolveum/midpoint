@@ -38,7 +38,6 @@ import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
@@ -101,15 +100,35 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     //region Processing model invocation
     // =================================================================================== Processing model invocation
 
+	// beware, may damage model context during execution
+	public List<PcpChildWfTaskCreationInstruction> previewModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
+			@NotNull Task opTask, @NotNull OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		List<PcpChildWfTaskCreationInstruction> rv = new ArrayList<>();
+		previewOrProcessModelInvocation(context, wfConfigurationType, true, rv, opTask, result);
+		return rv;
+	}
+
     @Override
     public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
 			@NotNull Task taskFromModel, @NotNull OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+    	if (context.getState() != PRIMARY) {
+    		return null;
+	    }
+	    return previewOrProcessModelInvocation(context, wfConfigurationType, false, null, taskFromModel, result);
+    }
 
-        if (context.getState() != PRIMARY || context.getFocusContext() == null) {
+    // quite a mess (code tangling) - will sort that out later
+    private HookOperationMode previewOrProcessModelInvocation(@NotNull ModelContext<?> context,
+		    WfConfigurationType wfConfigurationType,
+		    boolean previewOnly, List<PcpChildWfTaskCreationInstruction> childTaskInstructionsHolder, @NotNull Task taskFromModel,
+		    @NotNull OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+
+        if (context.getFocusContext() == null) {
             return null;
         }
-
 		PrimaryChangeProcessorConfigurationType processorConfigurationType =
 				wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
 
@@ -135,7 +154,12 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             LOGGER.debug("There are no workflow processes to be started, exiting.");
             return null;
         }
-		return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, wfConfigurationType, result);
+        if (previewOnly) {
+        	childTaskInstructionsHolder.addAll(childTaskInstructions);
+        	return null;
+        } else {
+	        return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, wfConfigurationType, result);
+        }
     }
 
     private void removeEmptyProcesses(List<PcpChildWfTaskCreationInstruction> instructions, ModelInvocationContext ctx,
