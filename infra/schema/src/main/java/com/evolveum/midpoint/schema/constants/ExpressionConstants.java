@@ -89,4 +89,5 @@ public class ExpressionConstants {
 	public static final QName VAR_CAMPAIGN = new QName(SchemaConstants.NS_C, "campaign");
 	public static final QName VAR_REVIEWER_SPECIFICATION = new QName(SchemaConstants.NS_C, "reviewerSpecification");
 
+	public static final QName VAR_CHANNEL = new QName(SchemaConstants.NS_C, "channel");
 }

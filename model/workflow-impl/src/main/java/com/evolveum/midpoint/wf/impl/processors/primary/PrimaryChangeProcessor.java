@@ -39,6 +39,7 @@ import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
 import com.evolveum.midpoint.wf.impl.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
@@ -81,9 +82,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	@Autowired private PcpRepoAccessHelper pcpRepoAccessHelper;
 	@Autowired private ProcessInterfaceFinder processInterfaceFinder;
 	@Autowired private MiscDataUtil miscDataUtil;
-	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
-
-    public static final String UNKNOWN_OID = "?";
+	@Autowired private WfStageComputeHelper stageComputeHelper;
 
     private List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
 
@@ -145,7 +144,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			PcpChildWfTaskCreationInstruction instruction = iterator.next();
 			instruction.createProcessorContent();		// brutal hack
 			if (instruction.startsWorkflowProcess() &&
-					instruction.getProcessContent().checkEmpty(instruction, evaluationHelper, ctx, result)) {
+					instruction.getProcessContent().checkEmpty(instruction, stageComputeHelper, ctx, result)) {
 				LOGGER.debug("Skipping empty processing instruction: {}", DebugUtil.debugDumpLazily(instruction));
 				iterator.remove();
 			}

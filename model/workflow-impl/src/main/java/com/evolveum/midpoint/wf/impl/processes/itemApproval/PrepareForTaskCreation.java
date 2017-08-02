@@ -75,7 +75,8 @@ public class PrepareForTaskCreation implements JavaDelegate {
         if (stageDef.getAdditionalInformation() != null) {
 			try {
 				WfExpressionEvaluationHelper evaluator = SpringApplicationContextHolder.getExpressionEvaluationHelper();
-				ExpressionVariables variables = evaluator.getDefaultVariables(execution, wfTask, result);
+				WfStageComputeHelper stageComputer = SpringApplicationContextHolder.getStageComputeHelper();
+				ExpressionVariables variables = stageComputer.getDefaultVariables(execution, wfTask, result);
 				additionalInformation = evaluator.evaluateExpression(stageDef.getAdditionalInformation(), variables,
 						"additional information expression", Object.class, DOMUtil.XSD_STRING, null, opTask, result);
 			} catch (Throwable t) {

@@ -291,8 +291,7 @@ public class WfContextUtil {
 
 	public static void normalizeStages(ApprovalSchemaType schema) {
 		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
-		List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
-		stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+		List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
 		for (int i = 0; i < stages.size(); i++) {
 			stages.get(i).setOrder(null);
 			stages.get(i).setNumber(i+1);
@@ -300,6 +299,27 @@ public class WfContextUtil {
 		schema.getLevel().clear();
 		schema.getStage().clear();
 		schema.getStage().addAll(CloneUtil.cloneCollectionMembers(stages));
+	}
+
+	@NotNull
+	private static List<ApprovalStageDefinitionType> getSortedStages(ApprovalSchemaType schema) {
+		List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
+		stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+		return stages;
+	}
+
+	public static List<ApprovalStageDefinitionType> sortAndCheckStages(ApprovalSchemaType schema) {
+		List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
+		for (int i = 0; i < stages.size(); i++) {
+			ApprovalStageDefinitionType stage = stages.get(i);
+			Integer number = getNumber(stage);
+			if (number == null || number != i+1) {
+				throw new IllegalArgumentException("Missing or wrong number of stage #" + (i+1) + ": " + number);
+			}
+			stage.setOrder(null);
+			stage.setNumber(number);
+		}
+		return stages;
 	}
 
 	private static Integer getNumber(ApprovalStageDefinitionType stage) {

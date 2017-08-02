@@ -244,6 +244,147 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="ApprovalSchemaExecutionInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information on actual or expected execution of an approval schema.
+				Contains information on the approval schema stages as defined, as executed, and as estimated to be executed.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="stage" type="c:ApprovalStageExecutionInformationType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Information related to a given stage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ApprovalStageExecutionInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information of an actual or expected execution of an approval stage.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="number" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of this approval stage. May be missing if the stage definition and its number is provided.
+						If both numbers are present, they must be equal.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="definition" type="c:ApprovalStageDefinitionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition of this approval stage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="executionRecord" type="c:ApprovalStageExecutionRecordType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Approvers that are expected to be part of this stage.
+						(Some might be "for sure" and some might be "expected", but currently we do not distinguish between these.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="executionPreview" type="c:ApprovalStageExecutionPreviewType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ApprovalStageExecutionPreviewType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Preview of an execution of an approval stage.
+
+				Contains estimation of what approvers there would be; also - if applicable - any result
+				that is expected to be automatically determined, and so on.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="expectedApproverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Approvers that are expected to be part of this stage.
+						(Some might be "for sure" and some might be "expected", but currently we do not distinguish between these.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="expectedAutomatedOutcome" type="c:ApprovalLevelOutcomeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Expected outcome that would occur automatically, i.e. not based on the decision of human approvers.
+						E.g. in case of no approvers, or because of automaticallyApproved/automaticallyCompleted feature.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="expectedAutomatedCompletionReason" type="c:AutomatedCompletionReasonType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reason of expected automated completion.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="errorMessage" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Error message if preview couldn't be computed. (TODO)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ApprovalStageExecutionRecordType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Record of an actual execution of an approval stage.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="event" type="c:CaseEventType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Events related to this stage. Currently might contain WorkItemEventType and StageCompletionEventType instances.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workItem" type="c:WorkItemType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Currently active work items.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:simpleType name="ApprovalLevelOutcomeType">
 		<xsd:annotation>
 			<xsd:documentation>

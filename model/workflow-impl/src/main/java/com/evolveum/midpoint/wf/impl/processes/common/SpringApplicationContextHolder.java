@@ -108,6 +108,10 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 		return getBean(WfExpressionEvaluationHelper.class);
 	}
 
+	public static WfStageComputeHelper getStageComputeHelper() {
+	    return getBean(WfStageComputeHelper.class);
+    }
+
     public static ExpressionFactory getExpressionFactory() {
 		return getBean(ExpressionFactory.class);
 	}

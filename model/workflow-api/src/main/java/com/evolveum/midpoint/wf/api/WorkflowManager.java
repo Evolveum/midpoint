@@ -27,9 +27,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -122,4 +120,18 @@ public interface WorkflowManager {
 	void synchronizeWorkflowRequests(OperationResult parentResult);
 
 	void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException;
+
+	/**
+	 * Retrieves information about actual or expected execution of an approval schema.
+	 * (So, this is restricted to approvals using this mechanism.)
+	 *
+	 * Does not need authorization checks before execution; it uses model calls in order to gather any information needed.
+	 *
+	 * @param taskOid OID of an approval task that should be analyzed
+	 * @param opTask task under which this operation is carried out
+	 * @param parentResult operation result
+	 */
+	ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException;
 }

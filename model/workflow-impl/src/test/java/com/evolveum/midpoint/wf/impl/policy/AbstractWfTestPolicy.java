@@ -171,29 +171,14 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String userTemplateAssigningRole1aOid;
 	protected String userTemplateAssigningRole1aOidAfter;
 
-	@Autowired
-	protected Clockwork clockwork;
-
-	@Autowired
-	protected TaskManager taskManager;
-
-	@Autowired
-	protected WorkflowManager workflowManager;
-
-	@Autowired
-	protected WfTaskUtil wfTaskUtil;
-
-	@Autowired
-	protected ActivitiEngine activitiEngine;
-
-	@Autowired
-	protected MiscDataUtil miscDataUtil;
-
-	@Autowired
-	protected PrimaryChangeProcessor primaryChangeProcessor;
-
-	@Autowired
-	protected GeneralChangeProcessor generalChangeProcessor;
+	@Autowired protected Clockwork clockwork;
+	@Autowired protected TaskManager taskManager;
+	@Autowired protected WorkflowManager workflowManager;
+	@Autowired protected WfTaskUtil wfTaskUtil;
+	@Autowired protected ActivitiEngine activitiEngine;
+	@Autowired protected MiscDataUtil miscDataUtil;
+	@Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
+	@Autowired protected GeneralChangeProcessor generalChangeProcessor;
 
 	protected PrismObject<UserType> userAdministrator;
 
@@ -305,8 +290,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}
 	}
 
-	public void createObject(final String TEST_NAME, ObjectType object, boolean immediate, boolean approve,
-	                         String assigneeOid) throws Exception {
+	public void createObject(final String TEST_NAME, ObjectType object, boolean immediate, boolean approve, String assigneeOid) throws Exception {
 		ObjectDelta<RoleType> addObjectDelta = ObjectDelta.createAddDelta((PrismObject) object.asPrismObject());
 
 		executeTest(TEST_NAME, new TestDetails() {
@@ -923,6 +907,13 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 					assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
 							testDetails2.getObjectOid(),
 							testDetails2.getExpectedTasks(), testDetails2.getExpectedWorkItems());
+					for (Task subtask : subtasks) {
+						if (subtask.getWorkflowContext() != null && subtask.getWorkflowContext().getProcessInstanceId() != null) {
+							Task opTask = taskManager.createTaskInstance("afterFirstClockworkRun");
+							ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subtask.getOid(), opTask, result);
+							display("Execution info for " + subtask, info);
+						}
+					}
 				}
 				testDetails2.afterFirstClockworkRun(rootTask, subtasks, workItems, result);
 			}
