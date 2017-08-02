@@ -174,6 +174,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		InternalsConfig.encryptionChecks = false;
 				
 		super.initSystem(initTask, initResult);
+		
+		InternalsConfig.setSanityChecks(true);
 	}
 	
 	protected abstract File getResourceFile();

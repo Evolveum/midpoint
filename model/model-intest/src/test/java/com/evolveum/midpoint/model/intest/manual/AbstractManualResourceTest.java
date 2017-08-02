@@ -59,6 +59,7 @@ import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -216,6 +217,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		userWillOid = userWill.getOid();
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		
+		// Turns on checks for connection in manual connector
+		InternalsConfig.setSanityChecks(true);
 
 	}
 	
