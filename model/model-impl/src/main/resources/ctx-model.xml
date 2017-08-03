@@ -397,6 +397,7 @@
     <jaxrs:server id="restService" address="/rest/">
         <jaxrs:serviceBeans>
             <ref bean="modelRestService"/>
+            <ref bean="extensionSchemaRestService"/>
         </jaxrs:serviceBeans>
         <jaxrs:providers>
             <ref bean="jaxbProvider"/>
@@ -408,6 +409,8 @@
             <ref bean="loggingFeature"/>
         </jaxrs:features>
     </jaxrs:server>
+
+    <bean id="extensionSchemaRestService" class="com.evolveum.midpoint.model.impl.ExtensionSchemaRestService"/>
      
       <bean id="modelRestService" class="com.evolveum.midpoint.model.impl.ModelRestService"/>
      <bean id="jaxbProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider"/>
