@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
@@ -39,14 +40,15 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 /**
  * A special test dealing with assigning roles that have different metarole-induced approval policies.
@@ -491,6 +493,82 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		} else {
 			assertEquals("Wrong # of enforcement exception message", 0, enforcementMessages.size());
 		}
+		
+		// shortcuts
+		final String l1 = userLead21Oid, l2 = userLead22Oid, l3 = userLead23Oid, l4 = userLead24Oid;
+
+		assertApprovalInfo(approvalInfo, roleRole21Oid,
+				new ExpectedStagePreview(1, set(l1), set(l1)));
+		assertApprovalInfo(approvalInfo, roleRole22Oid,
+				new ExpectedStagePreview(1, set(l2), set(l2)));
+		assertApprovalInfo(approvalInfo, roleRole23Oid,
+				new ExpectedStagePreview(1, set(l3), set(l3)),
+				new ExpectedStagePreview(2, set(userSecurityApproverOid), set(userSecurityApproverOid)));
+		if (also24) {
+			assertApprovalInfo(approvalInfo, roleRole24Oid,
+					new ExpectedStagePreview(1, set(l4), set(l4)));
+		}
+		assertApprovalInfo(approvalInfo, roleRole25Oid,
+				new ExpectedStagePreview(1, set(l1, l2, l3, l4), set(l1, l2, l3, l4)),
+				new ExpectedStagePreview(2, set(), set(l3)),
+				new ExpectedStagePreview(3, set(orgLeads2122Oid), set(orgLeads2122Oid)),
+				new ExpectedStagePreview(4, set(orgLeads2122Oid), set(l1, l2)),
+				new ExpectedStagePreview(5, set(l1, l2, l3, l4), set(), APPROVE, AUTO_COMPLETION_CONDITION),
+				new ExpectedStagePreview(6, set(l1, l2, l3, l4), set(), APPROVE, AUTO_COMPLETION_CONDITION),
+				new ExpectedStagePreview(7, set(l1, l2, l3, l4), set(), SKIP, AUTO_COMPLETION_CONDITION),
+				new ExpectedStagePreview(8, set(l1, l2, l3, l4), set(), REJECT, AUTO_COMPLETION_CONDITION),
+				new ExpectedStagePreview(9, set(l1, l2, l3, l4), set(l1, l2, l3, l4), true),
+				new ExpectedStagePreview(10, set(), set(), REJECT, NO_ASSIGNEES_FOUND));
+				
+	}
+
+	private Set<String> set(String... values) {
+		return new HashSet<>(Arrays.asList(values));
+	}
+	
+	private void assertApprovalInfo(List<ApprovalSchemaExecutionInformationType> infos, String targetOid,
+			ExpectedStagePreview... expectedStagePreviews) {
+		ApprovalSchemaExecutionInformationType found = null;
+		for (ApprovalSchemaExecutionInformationType info : infos) {
+			assertNotNull("No taskRef", info.getTaskRef());
+			PrismObject object = info.getTaskRef().asReferenceValue().getObject();
+			assertNotNull("No task in taskRef", object);
+			WfContextType wfc = ((TaskType) object.asObjectable()).getWorkflowContext();
+			assertNotNull("No wf context in taskRef", wfc);
+			assertNotNull("No targetRef in taskRef", wfc.getTargetRef());
+			if (targetOid.equals(wfc.getTargetRef().getOid())) {
+				found = info;
+				break;
+			}
+		}
+		assertNotNull("No approval info for target '" + targetOid + "' found", found);
+		String taskName = getOrig(found.getTaskRef().getTargetName());
+		assertEquals("Wrong # of stage info in " + taskName, expectedStagePreviews.length, found.getStage().size());
+		for (int i = 0; i < expectedStagePreviews.length; i++) {
+			ExpectedStagePreview expectedStagePreview = expectedStagePreviews[i];
+			ApprovalStageExecutionInformationType stagePreview = found.getStage().get(i);
+			String pos = taskName + "/" + (i + 1);
+			assertNotNull("no stage definition at " + pos, stagePreview.getDefinition());
+			assertNotNull("no execution preview at " + pos, stagePreview.getExecutionPreview());
+			assertNull("execution record present at " + pos, stagePreview.getExecutionRecord());
+
+			assertEquals("Wrong preview stage number at " + pos, (Integer) (i+1), stagePreview.getNumber());
+			assertEquals("Wrong definition stage number at " + pos, (Integer) (i+1), stagePreview.getDefinition().getNumber());
+
+			assertEquals("Stage definition approver ref info differs at " + pos, expectedStagePreview.definitionApproverOids, getOids(stagePreview.getDefinition().getApproverRef()));
+			assertEquals("Stage expected approver ref info differs at " + pos, expectedStagePreview.expectedApproverOids, getOids(stagePreview.getExecutionPreview().getExpectedApproverRef()));
+			assertEquals("Unexpected outcome at " + pos, expectedStagePreview.outcome, stagePreview.getExecutionPreview().getExpectedAutomatedOutcome());
+			assertEquals("Unexpected completion reason at " + pos, expectedStagePreview.reason, stagePreview.getExecutionPreview().getExpectedAutomatedCompletionReason());
+			if (expectedStagePreview.hasError) {
+				assertNotNull("Error should be present at "+ pos, stagePreview.getExecutionPreview().getErrorMessage());
+			} else {
+				assertEquals("Error message differs at " + pos, null, stagePreview.getExecutionPreview().getErrorMessage());
+			}
+		}
+	}
+
+	private Set<String> getOids(List<ObjectReferenceType> refs) {
+		return new HashSet<>(ObjectTypeUtil.objectReferenceListToOids(refs));
 	}
 
 	private void executeUnassignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve, boolean byId, boolean has1and2) throws Exception {
@@ -644,4 +722,33 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		unsetSystemInitialized();
 	}
 
+	private class ExpectedStagePreview {
+		private int number;
+		private final Set<String> definitionApproverOids;
+		private final Set<String> expectedApproverOids;
+		private final ApprovalLevelOutcomeType outcome;
+		private final AutomatedCompletionReasonType reason;
+		private final boolean hasError;
+		
+		ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids) {
+			this(number, definitionApproverOids, expectedApproverOids, null, null, false);
+		}
+		ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids,
+				ApprovalLevelOutcomeType outcome, AutomatedCompletionReasonType reason) {
+			this(number, definitionApproverOids, expectedApproverOids, outcome, reason, false);
+		}
+		ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids,
+				boolean hasError) {
+			this(number, definitionApproverOids, expectedApproverOids, null, null, hasError);
+		}
+		ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids,
+				ApprovalLevelOutcomeType outcome, AutomatedCompletionReasonType reason, boolean hasError) {
+			this.number = number;
+			this.definitionApproverOids = definitionApproverOids;
+			this.expectedApproverOids = expectedApproverOids;
+			this.outcome = outcome;
+			this.reason = reason;
+			this.hasError = hasError;
+		}
+	}
 }

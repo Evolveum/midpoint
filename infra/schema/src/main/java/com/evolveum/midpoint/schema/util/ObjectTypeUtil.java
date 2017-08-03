@@ -479,6 +479,14 @@ public class ObjectTypeUtil {
         return rv;
     }
 
+    public static List<String> objectReferenceListToOids(Collection<ObjectReferenceType> refList) {
+        List<String> rv = new ArrayList<>();
+        for (ObjectReferenceType ref : refList) {
+            rv.add(ref.getOid());
+        }
+        return rv;
+    }
+
     public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		for (PrismReferenceValue prv : prismReference.getValues()) {
