@@ -166,7 +166,6 @@
 		<module>icf-connectors</module>
 		<module>samples</module>
 		<module>testing</module>
-		<module>cli</module>
 	</modules>
 	<profiles>
 		<profile>
