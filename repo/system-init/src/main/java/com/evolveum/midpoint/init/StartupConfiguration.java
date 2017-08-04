@@ -161,9 +161,7 @@ public class StartupConfiguration implements MidpointConfiguration {
         File midpointHome = new File(midPointHomePath);
         
         setupInitialLogging(midpointHome);
-        
-        welcome();
-        
+
         loadConfiguration(midpointHome);
 
         if (isSafeMode()) {
@@ -307,33 +305,5 @@ public class StartupConfiguration implements MidpointConfiguration {
             sb.append("; ");
         }
         return sb.toString();
-    }
-
-    private void welcome() {
-        try {
-            Configuration info = new PropertiesConfiguration("midpoint.info");
-            DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
-            LOGGER_WELCOME.info("+--------------------------------------------------------------------------------------------+");
-            LOGGER_WELCOME.info("|             _    | |  _  \\     _     _| |_");
-            LOGGER_WELCOME.info("|   ___ ____ (_) __| | |_) |___ (_)___|_   _|");
-            LOGGER_WELCOME.info("|  |  _ ` _ `| |/ _  |  __/  _ \\| |  _` | |");
-            LOGGER_WELCOME.info("|  | | | | | | | (_| | |  | (_) | | | | | |_");
-            LOGGER_WELCOME.info("|  |_| |_| |_|_|\\____|_|  \\____/|_|_| |_|\\__|  by Evolveum and partners");
-            LOGGER_WELCOME.info("|");
-            LOGGER_WELCOME.info("|  Licensed under the Apache License, Version 2.0 see: http://www.apache.org/licenses/LICENSE-2.0");
-            LOGGER_WELCOME.info("|  Version :  " + info.getString("midpoint.version"));
-//			try {
-//				LOGGER_WELCOME.info("|  Build   :  " + info.getString("midpoint.build") + " at "
-//						+ formatter.format(new Date(info.getLong("midpoint.timestamp"))));
-//			} catch (NumberFormatException ex) {
-//				LOGGER_WELCOME.info("|  Build   :  " + info.getString("midpoint.build"));
-//			}
-            LOGGER_WELCOME.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  " + info.getString("midpoint.branch"));
-            LOGGER_WELCOME.info("|  Bug reporting system : " + info.getString("midpoint.jira"));
-            LOGGER_WELCOME.info("|  Product information : http://wiki.evolveum.com/display/midPoint");
-            LOGGER_WELCOME.info("+---------------------------------------------------------------------------------------------+");
-        } catch (ConfigurationException e) {
-            //NOTHING just skip
-        }
     }
 }
