@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
@@ -205,6 +206,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
 		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
+		
+		AddRemoveAttributeValuesCapabilityType addRemoveAttributeValuesCap = new AddRemoveAttributeValuesCapabilityType();
+		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemoveAttributeValuesCap));
 		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
 		setManual(deleteCap);
