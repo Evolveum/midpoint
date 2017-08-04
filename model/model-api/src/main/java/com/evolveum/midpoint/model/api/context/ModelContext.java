@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -72,4 +73,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
 	@NotNull
 	<T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
+
+	@Nullable
+	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
 }

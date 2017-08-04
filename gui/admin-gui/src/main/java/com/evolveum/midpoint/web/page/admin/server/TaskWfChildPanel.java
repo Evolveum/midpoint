@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.ApprovalProcessPreviewsPanel;
+import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
@@ -130,7 +130,7 @@ public class TaskWfChildPanel extends Panel {
 
 		IModel<String> taskOidModel = new PropertyModel<>(taskDtoModel, TaskDto.F_OID);
 		IModel<Boolean> showNextStagesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_IN_STAGE_BEFORE_LAST_ONE);
-		add(new ApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, parentPage));
+		add(new SwitchableApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, parentPage));
 		add(new AjaxFallbackLink(ID_SHOW_PARENT) {
 			public void onClick(AjaxRequestTarget target) {
 				String oid = taskDtoModel.getObject().getParentTaskOid();

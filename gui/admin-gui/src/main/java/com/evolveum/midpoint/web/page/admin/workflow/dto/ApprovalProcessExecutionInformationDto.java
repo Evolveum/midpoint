@@ -18,8 +18,10 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,24 +37,36 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String F_PROCESS_NAME = "processName";
+	public static final String F_TARGET_NAME = "targetName";
+
 	private final boolean wholeProcess;                                   // do we represent whole process or only the future stages?
 	private final int currentStageNumber;                                 // current stage number (0 if there's no current stage, i.e. process has not started yet)
 	private final int numberOfStages;
+	private final String processName;
+	private final String targetName;
 	private final List<ApprovalStageExecutionInformationDto> stages = new ArrayList<>();
 
-	public ApprovalProcessExecutionInformationDto(boolean wholeProcess, int currentStageNumber, int numberOfStages) {
+	private ApprovalProcessExecutionInformationDto(boolean wholeProcess, int currentStageNumber, int numberOfStages,
+			String processName, String targetName) {
 		this.wholeProcess = wholeProcess;
 		this.currentStageNumber = currentStageNumber;
 		this.numberOfStages = numberOfStages;
+		this.processName = processName;
+		this.targetName = targetName;
 	}
 
+	@NotNull
 	public static ApprovalProcessExecutionInformationDto createFrom(ApprovalSchemaExecutionInformationType info,
 			ObjectResolver resolver, boolean wholeProcess, Task opTask,
 			OperationResult result) {
 		int currentStageNumber = info.getCurrentStageNumber() != null ? info.getCurrentStageNumber() : 0;
 		int numberOfStages = info.getStage().size();
 		ObjectResolver.Session session = resolver.openResolutionSession(null);
-		ApprovalProcessExecutionInformationDto rv = new ApprovalProcessExecutionInformationDto(wholeProcess, currentStageNumber, numberOfStages);
+		String processName = WfContextUtil.getProcessName(info);
+		String targetName = WfContextUtil.getTargetName(info);
+		ApprovalProcessExecutionInformationDto rv =
+				new ApprovalProcessExecutionInformationDto(wholeProcess, currentStageNumber, numberOfStages, processName, targetName);
 		int startingStageNumber = wholeProcess ? 1 : currentStageNumber+1;
 		for (int i = startingStageNumber - 1; i < numberOfStages; i++) {
 			rv.stages.add(ApprovalStageExecutionInformationDto.createFrom(info, i, resolver, session, opTask, result));
@@ -74,5 +88,13 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 
 	public List<ApprovalStageExecutionInformationDto> getStages() {
 		return stages;
+	}
+
+	public String getProcessName() {
+		return processName;
+	}
+
+	public String getTargetName() {
+		return targetName;
 	}
 }

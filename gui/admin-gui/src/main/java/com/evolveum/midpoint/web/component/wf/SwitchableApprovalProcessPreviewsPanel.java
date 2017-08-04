@@ -40,9 +40,9 @@ import java.util.Collections;
 /**
  * @author mederly
  */
-public class ApprovalProcessPreviewsPanel extends BasePanel<String> {       // model is task OID
+public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {       // model is task OID
 
-	private static final Trace LOGGER = TraceManager.getTrace(ApprovalProcessPreviewsPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SwitchableApprovalProcessPreviewsPanel.class);
 
 	private static final String ID_NEXT_STAGES_CONTAINER = "nextStagesContainer";
 	private static final String ID_NEXT_STAGES = "nextStages";
@@ -61,7 +61,7 @@ public class ApprovalProcessPreviewsPanel extends BasePanel<String> {       // m
 	private LoadableModel<ApprovalProcessExecutionInformationDto> nextStagesModel;
 	private LoadableModel<ApprovalProcessExecutionInformationDto> wholeProcessModel;
 
-	public ApprovalProcessPreviewsPanel(String id,
+	public SwitchableApprovalProcessPreviewsPanel(String id,
 			IModel<String> taskOidModel, IModel<Boolean> showNextStagesModel, PageBase parentPage) {
 		super(id, taskOidModel);
 		initModels(parentPage);
@@ -89,8 +89,8 @@ public class ApprovalProcessPreviewsPanel extends BasePanel<String> {       // m
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get approval schema execution information for {}", t, getModelObject());
 					opTask.getResult().recordFatalError("Couldn't get approval schema execution information: " + t.getMessage(), t);
 				}
-				if (!result.isSuccess()) {
-					WebComponentUtil.showResultInPage(result);
+				if (WebComponentUtil.showResultInPage(result)) {
+					parentPage.showResult(result);
 				}
 				return rv;
 			}
@@ -126,8 +126,8 @@ public class ApprovalProcessPreviewsPanel extends BasePanel<String> {       // m
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create approval process execution information for {}", t, getModelObject());
 			opTask.getResult().recordFatalError("Couldn't create approval process execution information: " + t.getMessage(), t);
 		}
-		if (!result.isSuccess()) {
-			WebComponentUtil.showResultInPage(result);
+		if (WebComponentUtil.showResultInPage(result)) {
+			;
 		}
 		return rv;
 	}
@@ -151,7 +151,7 @@ public class ApprovalProcessPreviewsPanel extends BasePanel<String> {       // m
 		showNextStagesContainer.add(new AjaxFallbackLink(ID_SHOW_NEXT_STAGES) {
 			public void onClick(AjaxRequestTarget target) {
 				displayedProcessInfoBox = ProcessInfoBox.NEXT_STAGES;
-				target.add(ApprovalProcessPreviewsPanel.this);
+				target.add(SwitchableApprovalProcessPreviewsPanel.this);
 			}
 		});
 		showNextStagesContainer.add(WebComponentUtil.createHelp(ID_SHOW_NEXT_STAGES_HELP));
@@ -163,7 +163,7 @@ public class ApprovalProcessPreviewsPanel extends BasePanel<String> {       // m
 		showWholeProcessContainer.add(new AjaxFallbackLink(ID_SHOW_WHOLE_PROCESS) {
 			public void onClick(AjaxRequestTarget target) {
 				displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
-				target.add(ApprovalProcessPreviewsPanel.this);
+				target.add(SwitchableApprovalProcessPreviewsPanel.this);
 			}
 		});
 		showWholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox != ProcessInfoBox.WHOLE_PROCESS));

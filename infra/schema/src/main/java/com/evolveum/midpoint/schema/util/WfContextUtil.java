@@ -36,6 +36,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 /**
  * TODO clean up these formatting methods
  *
@@ -382,6 +384,15 @@ public class WfContextUtil {
 		return (WfContextType) parentReal;
 	}
 
+	public static WfContextType getWorkflowContext(ApprovalSchemaExecutionInformationType info) {
+		if (info == null || info.getTaskRef() == null || info.getTaskRef().asReferenceValue().getObject() == null) {
+			return null;
+		}
+		@SuppressWarnings({ "unchecked", "raw" })
+		PrismObject<TaskType> task = info.getTaskRef().asReferenceValue().getObject();
+		return task.asObjectable().getWorkflowContext();
+	}
+
 	@Nullable
 	public static String getTaskOid(WorkItemType workItem) {
 		TaskType task = getTask(workItem);
@@ -721,5 +732,14 @@ public class WfContextUtil {
 			return false;
 		}
 		return wfc.getStageNumber() < info.getApprovalSchema().getStage().size();
+	}
+
+	public static String getProcessName(ApprovalSchemaExecutionInformationType info) {
+		return info != null ? getOrig(ObjectTypeUtil.getName(info.getTaskRef())) : null;
+	}
+
+	public static String getTargetName(ApprovalSchemaExecutionInformationType info) {
+		WfContextType wfc = getWorkflowContext(info);
+		return wfc != null ? getOrig(ObjectTypeUtil.getName(wfc.getTargetRef())) : null;
 	}
 }

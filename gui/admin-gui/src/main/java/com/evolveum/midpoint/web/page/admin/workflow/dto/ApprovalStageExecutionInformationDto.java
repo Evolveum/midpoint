@@ -30,6 +30,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * GUI-friendly information about historic, current or future execution of a given approval stage.
  *
@@ -63,7 +65,8 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 		ApprovalStageExecutionInformationType stageInfo = processInfo.getStage().get(stageIndex);
 		ApprovalStageExecutionInformationDto rv = new ApprovalStageExecutionInformationDto(stageInfo.getDefinition());
 		int stageNumber = stageIndex+1;
-		if (stageNumber <= processInfo.getCurrentStageNumber()) {
+		int currentStageNumber = defaultIfNull(processInfo.getCurrentStageNumber(), 0);
+		if (stageNumber <= currentStageNumber) {
 			addInformationFromRecordedStage(rv, stageInfo.getExecutionRecord(), resolver, session, opTask, result);
 		} else {
 			addInformationFromPreviewedStage(rv, stageInfo.getExecutionPreview(), resolver, session, opTask, result);

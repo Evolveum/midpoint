@@ -64,7 +64,6 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -81,7 +80,6 @@ import org.joda.time.format.DateTimeFormat;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -117,7 +115,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1960,31 +1957,31 @@ public final class WebComponentUtil {
 		return true;
 	}
 	
-		public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName, ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
-	    	List<AR> selectedRoles =  new ArrayList<>(); 
-			if (action.getRowModel() == null) {
-				selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
-			} else {
-				selectedRoles.add(((SelectableBean<AR>) action.getRowModel().getObject()).getValue());
+	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName, ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
+		List<AR> selectedRoles =  new ArrayList<>();
+		if (action.getRowModel() == null) {
+			selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
+		} else {
+			selectedRoles.add(((SelectableBean<AR>) action.getRowModel().getObject()).getValue());
+		}
+		OperationResult result = new OperationResult("Search Members");
+		boolean atLeastOneWithMembers = false;
+		for (AR selectedRole : selectedRoles) {
+			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext()).item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(ObjectTypeUtil.createObjectRef(selectedRole).asReferenceValue()).maxSize(1).build();
+			List<PrismObject<FocusType>> members = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
+			if (CollectionUtils.isNotEmpty(members)) {
+				atLeastOneWithMembers = true;
+				break;
 			}
-	    	OperationResult result = new OperationResult("Search Members");
-	    	boolean atLeastOneWithMembers = false;
-	    	for (AR selectedRole : selectedRoles) {
-	    		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext()).item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(ObjectTypeUtil.createObjectRef(selectedRole).asReferenceValue()).maxSize(1).build();
-	    		List<PrismObject<FocusType>> members = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
-	    		if (CollectionUtils.isNotEmpty(members)) {
-	    			atLeastOneWithMembers = true;
-	    			break;
-	    		}
-	    	}
-	    	String members = atLeastOneWithMembers ? ".members" : "";
-	        if (action.getRowModel() == null) {
-	            return pageBase.createStringResource("pageRoles.message.confirmationMessageForMultipleObject" + members,
-	                    actionName, abstractRoleTable.getSelectedObjectsCount() );
-	        } else {
-	            return pageBase.createStringResource("pageRoles.message.confirmationMessageForSingleObject" + members,
-	                    actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
-	        }
-	    }
+		}
+		String members = atLeastOneWithMembers ? ".members" : "";
+		if (action.getRowModel() == null) {
+			return pageBase.createStringResource("pageRoles.message.confirmationMessageForMultipleObject" + members,
+					actionName, abstractRoleTable.getSelectedObjectsCount() );
+		} else {
+			return pageBase.createStringResource("pageRoles.message.confirmationMessageForSingleObject" + members,
+					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+		}
+	}
 
 }

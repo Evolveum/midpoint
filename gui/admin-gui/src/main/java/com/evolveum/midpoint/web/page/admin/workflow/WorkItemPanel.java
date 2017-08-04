@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.ApprovalProcessPreviewsPanel;
+import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
@@ -126,7 +126,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 
 		IModel<String> taskOidModel = new PropertyModel<>(getModel(), WorkItemDto.F_TASK_OID);
 	    IModel<Boolean> showNextStagesModel = new PropertyModel<>(getModel(), WorkItemDto.F_IN_STAGE_BEFORE_LAST_ONE);
-	    additionalInfoColumn.add(new ApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, pageBase));
+	    additionalInfoColumn.add(new SwitchableApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, pageBase));
 
 		WebMarkupContainer relatedWorkItemsContainer = new WebMarkupContainer(ID_RELATED_WORK_ITEMS_CONTAINER);
 		final IModel<List<WorkItemDto>> relatedWorkItemsModel = new PropertyModel<>(getModel(), WorkItemDto.F_OTHER_WORK_ITEMS);
