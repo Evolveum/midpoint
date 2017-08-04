@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -261,6 +262,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
 
+	@SpringBean(name = "modelObjectResolver")
+	private ObjectResolver modelObjectResolver;
+
 	private List<Breadcrumb> breadcrumbs;
 
 	private boolean initialized = false;
@@ -460,6 +464,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@Override
 	public ModelService getModelService() {
 		return modelService;
+	}
+
+	@Override
+	public ObjectResolver getModelObjectResolver() {
+		return modelObjectResolver;
 	}
 
 	public ScriptingService getScriptingService() {

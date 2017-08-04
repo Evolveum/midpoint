@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="box" wicket:id="nextStagesContainer">
+        <div class="box-header">
+            <h3 class="box-title"><wicket:message key="ItemApprovalPanel.nextStages"/></h3> <i wicket:id="nextStagesHelp" wicket:message="title:TaskWfChildPanel.nextStagesHelp"/>
+        </div>
+        <div class="box-body">
+            <div wicket:id="nextStages" />
+        </div>
+    </div>
+    <div class="box" wicket:id="wholeProcessContainer">
+        <div class="box-header">
+            <h3 class="box-title"><wicket:message key="ItemApprovalPanel.wholeProcess"/></h3> <i wicket:id="wholeProcessHelp" wicket:message="title:TaskWfChildPanel.wholeProcessHelp"/>
+        </div>
+        <div class="box-body">
+            <div wicket:id="wholeProcess" />
+        </div>
+    </div>
+    <div style="padding-bottom:15px">   <!-- TODO use some css here -->
+        <span wicket:id="showNextStagesContainer">
+                    <a href="#" wicket:id="showNextStages"><wicket:message key="taskWfChildPanel.showNextStages"/></a> <i wicket:id="showNextStagesHelp" wicket:message="title:TaskWfChildPanel.showNextStagesHelp"/>&nbsp;&nbsp;&nbsp;
+                </span>
+        <span wicket:id="showWholeProcessContainer">
+                    <a href="#" wicket:id="showWholeProcess"><wicket:message key="taskWfChildPanel.showWholeProcess"/></a> <i wicket:id="showWholeProcessHelp" wicket:message="title:TaskWfChildPanel.showWholeProcessHelp"/>
+                </span>
+    </div>
+</wicket:panel>
+</html>

@@ -711,4 +711,15 @@ public class WfContextUtil {
 		rv.add(duration);
 		return rv;
 	}
+
+	public static boolean isInStageBeforeLastOne(WfContextType wfc) {
+		if (wfc == null || wfc.getStageNumber() == null) {
+			return false;
+		}
+		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
+		if (info == null) {
+			return false;
+		}
+		return wfc.getStageNumber() < info.getApprovalSchema().getStage().size();
+	}
 }

@@ -116,8 +116,9 @@ public class ApprovalSchemaExecutionInformationHelper {
 			result.recordFatalError("Approval schema in " + wfTask + " is missing or not accessible.");
 			return rv;
 		}
-		Integer stageNumber = !purePreview ? wfc.getStageNumber() : 0;
-		if (stageNumber == null) {
+		rv.setCurrentStageNumber(wfc.getStageNumber());
+		Integer currentStageNumber = !purePreview ? wfc.getStageNumber() : 0;
+		if (currentStageNumber == null) {
 			result.recordFatalError("Information on current stage number in " + wfTask + " is missing or not accessible.");
 			return rv;
 		}
@@ -126,8 +127,8 @@ public class ApprovalSchemaExecutionInformationHelper {
 			ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType(prismContext);
 			stageExecution.setNumber(stageDef.getNumber());
 			stageExecution.setDefinition(stageDef);
-			if (stageDef.getNumber() <= stageNumber) {
-				stageExecution.setExecutionRecord(createStageExecutionRecord(wfc, stageNumber));
+			if (stageDef.getNumber() <= currentStageNumber) {
+				stageExecution.setExecutionRecord(createStageExecutionRecord(wfc, stageDef.getNumber(), currentStageNumber));
 			} else {
 				stageExecution.setExecutionPreview(createStageExecutionPreview(wfc, wfTask.getChannel(), stageDef, opTask, result));
 			}
@@ -154,12 +155,15 @@ public class ApprovalSchemaExecutionInformationHelper {
 	}
 
 	private ApprovalStageExecutionRecordType createStageExecutionRecord(WfContextType wfc,
-			int stageNumber) {
+			Integer stageNumberObject, int currentStageNumber) {
+		int stageNumber = stageNumberObject;
 		ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);
 		wfc.getEvent().stream()
 				.filter(e -> e.getStageNumber() != null && e.getStageNumber() == stageNumber)
 				.forEach(e -> rv.getEvent().add(e));
-		rv.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(wfc.getWorkItem()));
+		if (stageNumber == currentStageNumber) {
+			rv.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(wfc.getWorkItem()));
+		}
 		return rv;
 	}
 }

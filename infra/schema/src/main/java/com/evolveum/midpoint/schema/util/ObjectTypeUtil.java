@@ -698,4 +698,8 @@ public class ObjectTypeUtil {
     	return prismObject != null ? prismObject.asObjectable() : null;
 	}
 
+	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
+		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
+				&& ref1.getOid().equals(ref2.getOid());
+	}
 }

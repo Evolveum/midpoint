@@ -786,6 +786,14 @@ public final class WebComponentUtil {
 		return displayName != null ? displayName : getName(object);
 	}
 
+	public static String getDisplayNameOrName(ObjectReferenceType ref) {
+		if (ref == null) {
+			return null;
+		}
+		String displayName = getDisplayName(ref);
+		return displayName != null ? displayName : getName(ref);
+	}
+
 	// <display-name> (<name>) OR simply <name> if there's no display name
 	private static String getDisplayNameAndName(ObjectReferenceType ref) {
 		if (ref == null) {

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wf.ApprovalProcessPreviewsPanel;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,6 +65,7 @@ public class TaskWfChildPanel extends Panel {
 	private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
 	private static final String ID_SHOW_PARENT = "showParent";
 	private static final String ID_SHOW_PARENT_HELP = "showParentHelp";
+	private static final String ID_PREVIEWS_PANEL = "previewsPanel";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
@@ -127,6 +128,9 @@ public class TaskWfChildPanel extends Panel {
 				ProcessInstancesPanel.View.TASKS_FOR_PROCESS, null));
 		relatedRequestsContainer.add(WebComponentUtil.createHelp(ID_RELATED_REQUESTS_HELP));
 
+		IModel<String> taskOidModel = new PropertyModel<>(taskDtoModel, TaskDto.F_OID);
+		IModel<Boolean> showNextStagesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_IN_STAGE_BEFORE_LAST_ONE);
+		add(new ApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, parentPage));
 		add(new AjaxFallbackLink(ID_SHOW_PARENT) {
 			public void onClick(AjaxRequestTarget target) {
 				String oid = taskDtoModel.getObject().getParentTaskOid();

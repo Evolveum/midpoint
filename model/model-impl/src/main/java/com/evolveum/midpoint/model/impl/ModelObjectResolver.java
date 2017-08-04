@@ -15,15 +15,14 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -34,11 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -91,36 +85,36 @@ public class ModelObjectResolver implements ObjectResolver {
 	
 	@Override
 	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
-											String contextDescription, Object task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-				String oid = ref.getOid();
-				Class<?> typeClass = null;
-				QName typeQName = ref.getType();
-				if (typeQName != null) {
-					typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
-				}
-				if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
-					expectedType = (Class<O>) typeClass;
-				}
-				try {
-					return getObject(expectedType, oid, options, (Task) task, result);
-				} catch (SystemException ex) {
-					throw ex;
-				} catch (ObjectNotFoundException ex) {
-					throw ex;
-				} catch (CommonException ex) {
-					LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
-					// Add to result only a short version of the error, the details will be in subresults
-					result.recordFatalError(
-							"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
-					throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
-				}
+			String contextDescription, Object task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		String oid = ref.getOid();
+		Class<?> typeClass = null;
+		QName typeQName = ref.getType();
+		if (typeQName != null) {
+			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
+		}
+		if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
+			expectedType = (Class<O>) typeClass;
+		}
+		try {
+			return getObject(expectedType, oid, options, (Task) task, result);
+		} catch (SystemException ex) {
+			throw ex;
+		} catch (ObjectNotFoundException ex) {
+			throw ex;
+		} catch (CommonException ex) {
+			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
+			// Add to result only a short version of the error, the details will be in subresults
+			result.recordFatalError(
+					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
+			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
+		}
 	}
 	
 	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {
 		return resolve(refVal, string, null, task, result);
 	}
 
-	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task, 
+	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task,
 			OperationResult result) throws ObjectNotFoundException {
 		String oid = refVal.getOid();
 		Class<?> typeClass = ObjectType.class;
@@ -346,5 +340,42 @@ public class ModelObjectResolver implements ObjectResolver {
 		
 		return null;
 	}
-	
+
+	@Override
+	public void resolveAllReferences(Collection<PrismContainerValue> pcvs, Object taskObject, OperationResult result) {
+		Session session = openResolutionSession(null);
+		Task task = (Task) taskObject;
+		Visitor visitor = (o) -> {
+			if (o instanceof PrismReferenceValue) {
+				resolveReference((PrismReferenceValue) o, "resolving object reference", session, task, result);
+			}
+		};
+		pcvs.forEach(pcv -> pcv.accept(visitor));
+	}
+
+	@Override
+	public void resolveReference(PrismReferenceValue prv, String contextDescription,
+			Session session, Object taskObject, OperationResult result) {
+		Task task = (Task) taskObject;
+		String oid = prv.getOid();
+		if (oid == null) {
+			// nothing to do
+		} else if (prv.getObject() != null) {
+			if (!session.contains(oid)) {
+				session.put(oid, prv.getObject());
+			}
+		} else {
+			PrismObject<?> object = session.get(oid);
+			if (object == null) {
+				try {
+					object = resolve(prv, "resolving object reference", session.getOptions(), task, result);
+					session.put(oid, object);
+				} catch (Throwable t) {
+					LoggingUtils.logException(LOGGER, "Couldn't resolve reference {}", t, prv);
+					// but let's continue (hoping the issue is already recorded in the operation result)
+				}
+			}
+			prv.setObject(object);
+		}
+	}
 }
