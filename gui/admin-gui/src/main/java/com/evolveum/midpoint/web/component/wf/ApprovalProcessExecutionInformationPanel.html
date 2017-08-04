@@ -17,6 +17,34 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="text"/>
+    <table>
+        <div wicket:id="stages">
+            <tr wicket:id="arrow">
+                <td></td>
+                <td style="text-align:center"><i class="fa fa-long-arrow-down fa-lg" style="margin: 12px"></i></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    <i wicket:id="currentStageMarker" style="margin-right: 20px" class="fa fa-hand-o-right fa-2x text-danger"></i>
+                </td>
+                <td style="text-align:center">
+                    <div style="border: 1px dotted; border-radius: 10px; padding: 10px; margin: 10px">
+                        <span wicket:id="approvers">
+                            <span wicket:id="approverName" style="border: 1px solid; border-radius: 5px; padding: 5px; margin: 5px"></span>
+                            <span wicket:id="performerName"></span>
+                            <span wicket:id="outcome"></span>
+                            <span wicket:id="junction" style="font-size:120%; margin: 10px"></span>
+                        </span>
+                        <span wicket:id="automatedOutcome"></span>
+                    </div>
+                </td>
+                <td style="text-align:center; font-style:italic; padding-left: 30px">
+                    <span wicket:id="stageName"></span>
+                    <span wicket:id="stageOutcome"></span>
+                </td>
+            </tr>
+        </div>
+    </table>
 </wicket:panel>
 </html>

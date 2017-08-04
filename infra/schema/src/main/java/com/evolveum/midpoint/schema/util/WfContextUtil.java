@@ -742,4 +742,9 @@ public class WfContextUtil {
 		WfContextType wfc = getWorkflowContext(info);
 		return wfc != null ? getOrig(ObjectTypeUtil.getName(wfc.getTargetRef())) : null;
 	}
+
+	public static String getOutcome(ApprovalSchemaExecutionInformationType info) {
+		WfContextType wfc = getWorkflowContext(info);
+		return wfc != null ? wfc.getOutcome() : null;
+	}
 }

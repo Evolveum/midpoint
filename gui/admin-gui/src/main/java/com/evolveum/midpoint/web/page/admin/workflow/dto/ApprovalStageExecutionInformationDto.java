@@ -43,6 +43,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ApprovalStageExecutionInformationDto.class);
+	public static final String F_APPROVER_ENGAGEMENTS = "approverEngagements";
 
 	private final int stageNumber;
 	private final String stageName;
@@ -52,6 +53,9 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 	private AutomatedCompletionReasonType automatedCompletionReason;                        // if the stage was (is to be) automatically completed, here is the reason
 	private final List<ApproverEngagementDto> approverEngagements = new ArrayList<>();      // approvers (to be) engaged during this stage, potentially with their responses
 	private String errorMessage;                                                            // error message indicating that the preview couldn't be computed
+	private ApprovalLevelOutcomeType outcome;                                               // real outcome (automated or "normal")
+	private boolean reachable;                                                              // is it possible that this stage would be reachable (if the process would be running)
+																							// currently all stages after first rejected one are not reachable, as the process would stop there
 
 	private ApprovalStageExecutionInformationDto(ApprovalStageDefinitionType definition) {
 		stageNumber = definition.getNumber();
@@ -70,6 +74,22 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 			addInformationFromRecordedStage(rv, stageInfo.getExecutionRecord(), resolver, session, opTask, result);
 		} else {
 			addInformationFromPreviewedStage(rv, stageInfo.getExecutionPreview(), resolver, session, opTask, result);
+		}
+		// computing stage outcome that is to be displayed
+		if (rv.automatedOutcome != null) {
+			rv.outcome = rv.automatedOutcome;
+		} else {
+			if (stageNumber < currentStageNumber) {
+				rv.outcome = ApprovalLevelOutcomeType.APPROVE;      // no stage before current stage could be manually rejected
+			} else if (stageNumber == currentStageNumber) {
+				rv.outcome = ApprovalUtils.approvalLevelOutcomeFromUri(WfContextUtil.getOutcome(processInfo));
+			} else {
+				rv.outcome = null;
+			}
+		}
+		// set 'last' flag for all approvers at this stage
+		for (int i = 0; i < rv.getApproverEngagements().size(); i++) {
+			rv.getApproverEngagements().get(i).setLast(i == rv.getApproverEngagements().size()-1);
 		}
 		return rv;
 	}
@@ -203,5 +223,21 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 	// TODO tweak this as needed
 	public String getNiceStageName(int totalStageNumber) {
 		return WfContextUtil.getStageInfo(stageNumber, totalStageNumber, stageName, stageDisplayName);
+	}
+
+	public boolean isFirstDecides() {
+		return evaluationStrategy == LevelEvaluationStrategyType.FIRST_DECIDES;
+	}
+
+	public ApprovalLevelOutcomeType getOutcome() {
+		return outcome;
+	}
+
+	public boolean isReachable() {
+		return reachable;
+	}
+
+	public void setReachable(boolean reachable) {
+		this.reachable = reachable;
 	}
 }

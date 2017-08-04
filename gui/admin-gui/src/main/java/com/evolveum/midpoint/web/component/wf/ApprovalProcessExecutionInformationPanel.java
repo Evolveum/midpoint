@@ -18,16 +18,25 @@ package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.component.input.TextAreaPanel;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.data.column.ImagePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalStageExecutionInformationDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApproverEngagementDto;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-
-import java.util.List;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * TEMPORARY IMPLEMENTATION. Replace with something graphically nice.
@@ -36,54 +45,147 @@ import java.util.List;
  */
 public class ApprovalProcessExecutionInformationPanel extends BasePanel<ApprovalProcessExecutionInformationDto> {
 
-    private static final String ID_TEXT = "text";
+    private static final String ID_STAGES = "stages";
+    private static final String ID_CURRENT_STAGE_MARKER = "currentStageMarker";
+    private static final String ID_AUTOMATED_OUTCOME = "automatedOutcome";
+    private static final String ID_APPROVERS = "approvers";
+    private static final String ID_APPROVER_NAME = "approverName";
+    private static final String ID_OUTCOME = "outcome";
+    private static final String ID_PERFORMER_NAME = "performerName";
+    private static final String ID_JUNCTION = "junction";
+    private static final String ID_STAGE_NAME = "stageName";
+    private static final String ID_STAGE_OUTCOME = "stageOutcome";
+    private static final String ID_ARROW = "arrow";
 
-    // todo options to select which columns will be shown
     public ApprovalProcessExecutionInformationPanel(String id, IModel<ApprovalProcessExecutionInformationDto> model) {
         super(id, model);
         initLayout();
     }
 
     protected void initLayout() {
-    	add(new TextAreaPanel<>(ID_TEXT, new AbstractReadOnlyModel<String>() {
+
+    	// TODO clean this code up!!!
+
+        ListView<ApprovalStageExecutionInformationDto> stagesList = new ListView<ApprovalStageExecutionInformationDto>(ID_STAGES,
+                new PropertyModel<>(getModel(), ApprovalProcessExecutionInformationDto.F_STAGES)) {
             @Override
-            public String getObject() {
-                ApprovalProcessExecutionInformationDto processInfo = getModelObject();
-                if (processInfo == null) {
-                    return null;
-                }
-                int currentStageNumber = processInfo.getCurrentStageNumber();
-                int numberOfStages = processInfo.getNumberOfStages();
-                StringBuilder sb = new StringBuilder();
-                List<ApprovalStageExecutionInformationDto> stages = processInfo.getStages();
-                for (ApprovalStageExecutionInformationDto stageInfo : stages) {
-                    if (stageInfo.getStageNumber() == currentStageNumber) {
-                        sb.append("====> ");
-                    }
-                    sb.append(stageInfo.getNiceStageName(numberOfStages));
-                    sb.append(" ");
-                    if (stageInfo.getAutomatedOutcome() != null) {
-                        sb.append("[").append(stageInfo.getAutomatedOutcome()).append("] because of ")
-                                .append(stageInfo.getAutomatedCompletionReason());      // the reason is localizable
-                    } else {
-                        for (ApproverEngagementDto engagement : stageInfo.getApproverEngagements()) {
-                            sb.append("[").append(WebComponentUtil.getDisplayNameOrName(engagement.getApproverRef())).append("] ");
-                            if (engagement.getOutput() != null) {
-                                sb.append("(").append(ApprovalUtils.fromUri(engagement.getOutput().getOutcome()));
-                                if (engagement.getCompletedBy() != null && !ObjectTypeUtil.matchOnOid(engagement.getApproverRef(), engagement.getCompletedBy())) {
-                                    sb.append(" by ").append(WebComponentUtil.getDisplayNameOrName(engagement.getCompletedBy()));
-                                }
-                                sb.append(") ");
+            protected void populateItem(ListItem<ApprovalStageExecutionInformationDto> stagesListItem) {
+                ApprovalProcessExecutionInformationDto process = ApprovalProcessExecutionInformationPanel.this.getModelObject();
+                ApprovalStageExecutionInformationDto stage = stagesListItem.getModelObject();
+                int stageNumber = stage.getStageNumber();
+                int numberOfStages = process.getNumberOfStages();
+                int currentStageNumber = process.getCurrentStageNumber();
+
+	            WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
+	            arrow.add(new VisibleBehaviour(() -> stageNumber > 1));
+	            stagesListItem.add(arrow);
+
+	            WebMarkupContainer currentStageMarker = new WebMarkupContainer(ID_CURRENT_STAGE_MARKER);
+                currentStageMarker.add(new VisibleBehaviour(() -> stageNumber == currentStageNumber && process.isRunning()));
+                stagesListItem.add(currentStageMarker);
+
+                ListView<ApproverEngagementDto> approversList = new ListView<ApproverEngagementDto>(ID_APPROVERS,
+                        new PropertyModel<>(stagesListItem.getModel(), ApprovalStageExecutionInformationDto.F_APPROVER_ENGAGEMENTS)) {
+                    @Override
+                    protected void populateItem(ListItem<ApproverEngagementDto> approversListItem) {
+                        ApproverEngagementDto ae = approversListItem.getModelObject();
+
+                        // original approver name
+                        approversListItem.add(new Label(ID_APPROVER_NAME, nameOf(ae.getApproverRef())));
+
+                        // outcome
+                        WorkItemOutcomeType outcome = ae.getOutput() != null
+                                ? ApprovalUtils.fromUri(ae.getOutput().getOutcome())
+                                : null;
+                        ApprovalOutcomeIcon outcomeIcon;
+                        if (outcome != null) {
+                            switch (outcome) {
+                                case APPROVE: outcomeIcon = ApprovalOutcomeIcon.APPROVED; break;
+                                case REJECT: outcomeIcon = ApprovalOutcomeIcon.REJECTED; break;
+                                default: outcomeIcon = ApprovalOutcomeIcon.UNKNOWN; break;          // perhaps should throw AssertionError instead
+                            }
+                        } else {
+                            if (stageNumber < currentStageNumber) {
+                                outcomeIcon = ApprovalOutcomeIcon.EMPTY;         // history: do not show anything for work items with no outcome
+                            } else if (stageNumber == currentStageNumber) {
+                                outcomeIcon = process.isRunning() && stage.isReachable() ?
+		                                ApprovalOutcomeIcon.IN_PROGRESS : ApprovalOutcomeIcon.CANCELLED;      // currently open
                             } else {
-                                sb.append("(?) ");
+                                outcomeIcon = process.isRunning() && stage.isReachable()
+		                                ? ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
                             }
                         }
+                        ImagePanel outcomePanel = new ImagePanel(ID_OUTCOME,
+                                Model.of(outcomeIcon.getIcon()),
+                                Model.of(getString(outcomeIcon.getTitle())));
+                        outcomePanel.add(new VisibleBehaviour(() -> outcomeIcon != ApprovalOutcomeIcon.EMPTY));
+                        approversListItem.add(outcomePanel);
+
+                        // performer
+                        approversListItem.add(new Label(ID_PERFORMER_NAME,
+		                        ae.getCompletedBy() != null ? "(" + nameOf(ae.getCompletedBy()) + ")": ""));
+
+                        // junction
+	                    Label junctionLabel = new Label(ID_JUNCTION, stage.isFirstDecides() ? "" : " & ");      // or "+" for first decides? probably not
+	                    junctionLabel.setVisible(!ae.isLast());
+	                    approversListItem.add(junctionLabel);
                     }
-                    sb.append("\n");
+                };
+                approversList.setVisible(stage.getAutomatedCompletionReason() == null);
+                stagesListItem.add(approversList);
+
+                String autoCompletionKey;
+                if (stage.getAutomatedCompletionReason() != null) {
+                	switch (stage.getAutomatedCompletionReason()) {
+		                case AUTO_COMPLETION_CONDITION: autoCompletionKey = "DecisionDto.AUTO_COMPLETION_CONDITION"; break;
+		                case NO_ASSIGNEES_FOUND: autoCompletionKey = "DecisionDto.NO_ASSIGNEES_FOUND"; break;
+		                default: autoCompletionKey = null;      // or throw an exception?
+	                }
+                } else {
+                	autoCompletionKey = null;
                 }
-                return sb.toString();
+	            Label automatedOutcomeLabel = new Label(ID_AUTOMATED_OUTCOME, autoCompletionKey != null ? getString(autoCompletionKey) : "");
+                automatedOutcomeLabel.setVisible(stage.getAutomatedCompletionReason() != null);
+                stagesListItem.add(automatedOutcomeLabel);
+
+                stagesListItem.add(new Label(ID_STAGE_NAME,
+                        stage.getStageName() != null || stage.getStageDisplayName() != null
+                                ? WfContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName())
+                                : ApprovalProcessExecutionInformationPanel.this.getString("ApprovalProcessExecutionInformationPanel.stage",
+                                stageNumber, numberOfStages)));
+
+	            ApprovalLevelOutcomeType stageOutcome = stage.getOutcome();
+	            ApprovalOutcomeIcon stageOutcomeIcon;
+	            if (stageOutcome != null) {
+		            switch (stageOutcome) {
+			            case APPROVE: stageOutcomeIcon = ApprovalOutcomeIcon.APPROVED; break;
+			            case REJECT: stageOutcomeIcon = ApprovalOutcomeIcon.REJECTED; break;
+			            case SKIP: stageOutcomeIcon = ApprovalOutcomeIcon.APPROVED; break;          // TODO something more specific?
+			            default: stageOutcomeIcon = ApprovalOutcomeIcon.UNKNOWN; break;          // perhaps should throw AssertionError instead
+		            }
+	            } else {
+		            if (stageNumber < currentStageNumber) {
+			            stageOutcomeIcon = ApprovalOutcomeIcon.EMPTY;         // history: do not show anything (shouldn't occur, as historical stages are filled in)
+		            } else if (stageNumber == currentStageNumber) {
+			            stageOutcomeIcon = process.isRunning() && stage.isReachable() ?
+					            ApprovalOutcomeIcon.IN_PROGRESS : ApprovalOutcomeIcon.CANCELLED;      // currently open
+		            } else {
+			            stageOutcomeIcon = process.isRunning() && stage.isReachable() ?
+					            ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
+		            }
+	            }
+	            ImagePanel stageOutcomePanel = new ImagePanel(ID_STAGE_OUTCOME,
+			            Model.of(stageOutcomeIcon.getIcon()),
+			            Model.of(getString(stageOutcomeIcon.getTitle())));
+	            stageOutcomePanel.add(new VisibleBehaviour(() -> stageOutcomeIcon != ApprovalOutcomeIcon.EMPTY));
+	            stagesListItem.add(stageOutcomePanel);
             }
-        }, 8));
+        };
+        add(stagesList);
+    }
+
+    private String nameOf(ObjectReferenceType ref) {
+        return MiscUtil.emptyIfNull(WebComponentUtil.getName(ref));
     }
 
 }

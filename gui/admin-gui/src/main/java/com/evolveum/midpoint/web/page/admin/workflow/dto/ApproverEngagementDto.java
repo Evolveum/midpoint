@@ -38,6 +38,7 @@ public class ApproverEngagementDto implements Serializable {
 	@Nullable private AbstractWorkItemOutputType output;
 	@Nullable private XMLGregorianCalendar completedAt;
 	@Nullable private ObjectReferenceType completedBy;                // the user that really completed the work item originally assigned to that approver
+	private boolean last;
 
 	ApproverEngagementDto(@NotNull ObjectReferenceType approverRef, @Nullable String externalWorkItemId) {
 		this.approverRef = approverRef;
@@ -79,5 +80,13 @@ public class ApproverEngagementDto implements Serializable {
 
 	void setCompletedBy(@Nullable ObjectReferenceType completedBy) {
 		this.completedBy = completedBy;
+	}
+
+	public boolean isLast() {
+		return last;
+	}
+
+	public void setLast(boolean last) {
+		this.last = last;
 	}
 }
