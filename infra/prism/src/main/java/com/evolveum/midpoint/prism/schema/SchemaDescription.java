@@ -203,6 +203,16 @@ public class SchemaDescription implements DebugDumpable {
         }
     }
 
+	public static SchemaDescription parseInputStream(final InputStream input, String description) throws SchemaException {
+		if (input == null) {
+			throw new NullPointerException("Input stream must not be null");
+		}
+		SchemaDescription desc = new SchemaDescription("inputStream " + description);
+		desc.path = null;
+		desc.streamable = () -> input;
+		desc.parseFromInputStream();
+		return desc;
+	}
 
     public static SchemaDescription parseFile(final File file) throws FileNotFoundException, SchemaException {
 		SchemaDescription desc = new SchemaDescription("file "+file.getPath());
