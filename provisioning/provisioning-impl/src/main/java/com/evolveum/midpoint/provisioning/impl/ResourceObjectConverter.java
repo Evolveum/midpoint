@@ -913,12 +913,14 @@ public class ResourceObjectConverter {
 			// this was probably checked before
 			throw new IllegalStateException("PropertyDelta is both ADD/DELETE and REPLACE");
 		}
-		// let's extract (parent-less) current values
-		PrismProperty<?> currentProperty = currentShadow.findProperty(propertyDelta.getPath());
 		Collection<PrismPropertyValue> currentValues = new ArrayList<>();
-		if (currentProperty != null) {
-			for (PrismPropertyValue currentValue : currentProperty.getValues()) {
-				currentValues.add(currentValue.clone());
+		if (currentShadow != null) {
+			// let's extract (parent-less) current values
+			PrismProperty<?> currentProperty = currentShadow.findProperty(propertyDelta.getPath());
+			if (currentProperty != null) {
+				for (PrismPropertyValue currentValue : currentProperty.getValues()) {
+					currentValues.add(currentValue.clone());
+				}
 			}
 		}
 		final MatchingRule matchingRule;
@@ -1804,6 +1806,9 @@ public class ResourceObjectConverter {
 	private PrismObject<ShadowType> postProcessResourceObjectRead(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceObject, boolean fetchAssociations,
             OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		if (resourceObject == null) {
+			return null;
+		}
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		
 		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry);

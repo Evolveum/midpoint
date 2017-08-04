@@ -110,6 +110,9 @@ public class ConstructionProcessor {
 	            if (plusConstructionPack.hasValidAssignment()) {
 	            	LOGGER.trace("Construction {}: assigned (valid)", desc);
 	            	consumer.onAssigned(key, desc);
+	            } else if (zeroConstructionPack != null && zeroConstructionPack.hasValidAssignment()) {
+	            	LOGGER.trace("Construction {}: unchanged (valid) + assignned (invalid)", desc);
+	            	consumer.onUnchangedValid(key, desc);
 	            } else {
 	            	// Just ignore it, do not even create projection context
 	            	LOGGER.trace("Construction {} ignoring: assigned (invalid)", desc);

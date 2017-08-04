@@ -570,6 +570,9 @@
 				(Can be overriden at the level of individual attributes via readReplaceMode property.)
 
 				BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
+				
+				TODO: This should really be an option of the Update capability, not a capability on its own.
+				TODO: also unify with delta update capability.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
