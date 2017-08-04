@@ -42,9 +42,9 @@
             classpath:ctx-certification.xml,
             classpath:ctx-interceptor.xml,
             classpath*:ctx-overlay.xml,
-            /WEB-INF/ctx-init.xml,
-            /WEB-INF/ctx-webapp.xml  
-            /WEB-INF/ctx-web-security.xml
+            /ctx-init.xml,
+            /ctx-webapp.xml
+            /ctx-web-security.xml
         </param-value>
     </context-param>
 
