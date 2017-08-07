@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.common.commandline;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang3.SystemUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -42,9 +43,7 @@ public class CommandLineScriptExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(CommandLineScriptExecutor.class);
 
     public CommandLineScriptExecutor(String code, String generatedOutputFilePath, Map<String, String> variables) throws IOException, InterruptedException {
-        StringBuilder pathEscapedSpaces = new StringBuilder("'").append(generatedOutputFilePath).append("'"); // Appending single quotes
-        // to remedy the spaces in filename
-        this.generatedOutputFilePath = pathEscapedSpaces.toString();
+        this.generatedOutputFilePath = modifyFilepathDependingOnOS(generatedOutputFilePath);
         LOGGER.debug("The shell code to be executed: {}", code);
         executeScript(code, variables);
     }
@@ -76,7 +75,6 @@ public class CommandLineScriptExecutor {
                 environmentVariables.put(variableName, variables.get(variableName));
             }
         }
-
         LOGGER.debug("Starting process ", processBuilder.command());
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
@@ -113,11 +111,24 @@ public class CommandLineScriptExecutor {
     }
 
     private void evaluateExitValue(Integer exitValue, String message) {
-
         if (exitValue != EXIT_SUCCESS) {
             LOGGER.warn("Process exited with an error, the exit value {}. Only a part of the script might have been executed, the output containing the error message: {}", exitValue, message);
         } else {
             LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
         }
     }
+
+    private String modifyFilepathDependingOnOS(String filepath) {
+        StringBuilder pathEscapedSpaces = new StringBuilder();
+        if (SystemUtils.IS_OS_LINUX) {
+            pathEscapedSpaces.append("'").append(filepath).append("'");
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            filepath = filepath.replace("/", "\\");
+            pathEscapedSpaces.append(QOTATION_MARK).append(filepath).append(QOTATION_MARK);
+        } else {
+            return filepath;
+        }
+        return pathEscapedSpaces.toString();
+    }
+
 }
