@@ -21,15 +21,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -41,6 +35,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -53,6 +48,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -61,8 +57,12 @@ import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -75,8 +75,9 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -90,6 +91,20 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -740,9 +755,54 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
+	public String addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency == null) {
+			return null;
+		}
+		if (!BooleanUtils.isTrue(consistency.isUseProposedShadows())) {
+			return null;
+		}
+		
+		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, shadow);
+		repoShadow.asObjectable().setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
+		addPendingOperationAdd(repoShadow, shadow, task.getTaskIdentifier());
+		
+		ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
+		String oid = repositoryService.addObject(repoShadow, null, result);
+		LOGGER.trace("Draft shadow added to the repository: {}", repoShadow);
+		return oid;
+	}
+	
+	// Called when there is an provisioing error and proposed shadow is already created
+	public void handlePropesedShadowError(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+			String proposedShadowOid, Exception cause, Task task, OperationResult parentResult) {
+		// For now just remove the proposed shadow. Maybe later we can figure out something smarter,
+		// e.g. recording the error in the shadow.
+		// Anyway, if this is alreadyExistsException we need to remove the shadow otherwise it will
+		// lead to duplicities.
+		try {
+			repositoryService.deleteObject(ShadowType.class, proposedShadowOid, parentResult);
+		} catch (ObjectNotFoundException e) {
+			// Seems that it is already gone. Good. But log the error anyway. This should not happen.
+			LOGGER.error("Proposed shadow {} already gone when trying to delete it: {}", proposedShadowOid, e.getMessage(), e);
+		}
+		
+	}
+	
 	// Used after ADD operation on resource
-	public String addNewRepositoryShadow(ProvisioningContext ctx, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+	public String addNewActiveRepositoryShadow(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+		if (existingShadowOid != null) {
+			// We know that we have draft shadow
+			updateProposedShadowAfterAdd(ctx, existingShadowOid, addResult, parentResult);
+			return existingShadowOid;
+		}
+		
+		//	TODO: check for proposed Shadow. There may be a draft shadow even if we do not have explicit draft shadow OID
+		// (e.g. in case that the add operation failed). If draft shadow is present do modify instead of add.
+		
 		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
+		
 		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceShadow);
 
 		if (repoShadow == null) {
@@ -755,7 +815,7 @@ public class ShadowManager {
 		addPendingOperationAdd(repoShadow, addResult);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Adding repository shadow\n{}", repoShadow.debugDump());
+			LOGGER.trace("Adding repository shadow\n{}", repoShadow.debugDump(1));
 		}
 		String oid = null;
 		try {
@@ -776,11 +836,65 @@ public class ShadowManager {
 		}
 		repoShadow.setOid(oid);
 
-		LOGGER.trace("Object added to the repository successfully.");
+		LOGGER.trace("Active shadow added to the repository: {}", repoShadow);
 
 		parentResult.recordSuccess();
 
 		return repoShadow.getOid();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void updateProposedShadowAfterAdd(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
+		
+		PrismObject<ShadowType> proposedShadow = repositoryService.getObject(ShadowType.class, existingShadowOid, null, parentResult);
+
+		if (proposedShadow == null) {
+			parentResult
+					.recordFatalError("Error while creating account shadow object to save in the reposiotory. Draft shadow is gone.");
+			throw new IllegalStateException(
+					"Error while creating account shadow object to save in the reposiotory. Draft shadow is gone.");
+		}
+
+		// TODO: do better (full) update. There may be UID that came from the resource and so on.
+		// for now we are just updating lifecycle state and pending operation. This is good for manual connectors.
+		// But not for regular use.
+		
+		Collection<ItemDelta> shadowChanges = new ArrayList<>();
+		for (PendingOperationType pendingOperation: proposedShadow.asObjectable().getPendingOperation()) {
+			// Remove old ADD pending delta. We'll replace it with newer version below ... if needed.
+			if (pendingOperation.getDelta().getChangeType() == ChangeTypeType.ADD) {
+				@SuppressWarnings("unchecked")
+				PrismContainer<PendingOperationType> container = (PrismContainer<PendingOperationType>) pendingOperation.asPrismContainerValue().getParent();
+				ContainerDelta<PendingOperationType> pendingOpDelta = container.getDefinition().createEmptyDelta(container.getPath());
+				pendingOpDelta.addValuesToDelete(pendingOperation.asPrismContainerValue().clone());
+				shadowChanges.add(pendingOpDelta);
+			}
+		}
+		
+		if (addResult.isInProgress()) {
+			
+			PrismContainerDefinition<PendingOperationType> containerDefinition = proposedShadow.getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
+			ContainerDelta<PendingOperationType> pendingOperationDelta =containerDefinition.createEmptyDelta(new ItemPath(ShadowType.F_PENDING_OPERATION));
+			pendingOperationDelta.addValuesToAdd(createPendingOperationAdd(proposedShadow, resourceShadow, addResult.getOperationResult().getAsynchronousOperationReference()).asPrismContainerValue());
+			shadowChanges.add(pendingOperationDelta);
+						
+		}
+		
+		PrismPropertyDefinition<String> lifecycleDef = proposedShadow.getDefinition().findPropertyDefinition(ShadowType.F_LIFECYCLE_STATE);
+		PropertyDelta<String> lifecycleDelta = lifecycleDef.createEmptyDelta(new ItemPath(ShadowType.F_LIFECYCLE_STATE));
+		lifecycleDelta.setValuesToReplace(new PrismPropertyValue<>(SchemaConstants.LIFECYCLE_ACTIVE));
+		shadowChanges.add(lifecycleDelta);
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Updading draft repository shadow\n{}", DebugUtil.debugDump(shadowChanges, 1));
+		}
+
+		repositoryService.modifyObject(ShadowType.class, proposedShadow.getOid(), shadowChanges, parentResult);
+
+		LOGGER.trace("Draft shadow updated");
+
+		parentResult.recordSuccess();
 	}
 	
 	private void addPendingOperationAdd(PrismObject<ShadowType> repoShadow, 
@@ -789,18 +903,26 @@ public class ShadowManager {
 			return;
 		}
 		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
+		addPendingOperationAdd(repoShadow, resourceShadow, addResult.getOperationResult().getAsynchronousOperationReference());
+	}
+	
+	private void addPendingOperationAdd(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow, String asyncOperationReference) throws SchemaException {
 		ShadowType repoShadowType = repoShadow.asObjectable();
-		
+		repoShadowType.getPendingOperation().add(createPendingOperationAdd(repoShadow, resourceShadow, asyncOperationReference));
+		repoShadowType.setExists(false);
+	}
+	
+	private PendingOperationType createPendingOperationAdd(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow, String asyncOperationReference) throws SchemaException {
 		ObjectDelta<ShadowType> addDelta = resourceShadow.createAddDelta();
 		ObjectDeltaType addDeltaType = DeltaConvertor.toObjectDeltaType(addDelta);
-		
 		PendingOperationType pendingOperation = new PendingOperationType();
 		pendingOperation.setDelta(addDeltaType);
 		pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
 		pendingOperation.setResultStatus(OperationResultStatusType.IN_PROGRESS);
-		pendingOperation.setAsynchronousOperationReference(addResult.getOperationResult().getAsynchronousOperationReference());
-		repoShadowType.getPendingOperation().add(pendingOperation);
-		repoShadowType.setExists(false);
+		if (asyncOperationReference != null) {
+			pendingOperation.setAsynchronousOperationReference(asyncOperationReference);
+		}
+		return pendingOperation;
 	}
 
 	private void addPendingOperationModify(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> pendingModifications, 
@@ -889,7 +1011,7 @@ public class ShadowManager {
 			}
 
 			repoShadowType.setCachingMetadata(null);
-
+			
 			ProvisioningUtil.cleanupShadowActivation(repoShadowType);
 
 		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
@@ -1430,4 +1552,5 @@ public class ShadowManager {
 		Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
 	}
+
 }

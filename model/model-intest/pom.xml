@@ -211,6 +211,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>ucf-impl-builtin</artifactId>
+			<version>3.6.1-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.polygon</groupId>
 			<artifactId>connector-ldap</artifactId>
 			<scope>test</scope>

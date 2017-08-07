@@ -220,6 +220,18 @@
         <xsd:annotation>
             <xsd:documentation>
                 Marks deprecated parts of the schema.
+                Deprecated parts are supposed to work, but their use is discouraged.
+                Deprecated functionality may be removed in any future release.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="experimental" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks experimental functionality.
+                Experimental functionality is not stable and it may be changed in any
+                future release without any warning. Use at your own risk.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
