@@ -155,6 +155,10 @@ public class PageTaskController implements Serializable {
 			addDelta(rv, TaskType.F_THREAD_STOP_ACTION, curr.getThreadStopActionType());
 		}
 
+		if (!StringUtils.equals(orig.getRequiredCapability(), curr.getRequiredCapability())) {
+			addDelta(rv, TaskType.F_REQUIRED_CAPABILITY, curr.getRequiredCapability());
+		}
+
 		if (!ObjectUtils.equals(orig.getWorkerThreads(), curr.getWorkerThreads())) {
 			SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
 			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);

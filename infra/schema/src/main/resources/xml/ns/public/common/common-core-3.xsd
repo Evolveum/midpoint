@@ -1121,6 +1121,16 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="executionCapability" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Execution capabilities possessed by this node.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1560,23 +1570,41 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                Whether a task is constrained to be run on a particular node,
-                                i.e. it will *not* be executed on a different node.
-                                If this attribute is not specified, the task will be executed on any available node.
+									Whether a task is constrained to be run on a particular node,
+									i.e. it will *not* be executed on a different node.
+									If this attribute is not specified, the task will be executed on any available node.
                                 </p>
-
                                 <p>
-                                (There may be other constraints on the node(s) where this task may be run,
-                                determined e.g. by task handler.)
-                                </p>
-
+									(There may be other constraints on the node(s) where this task may be run,
+									determined e.g. by task handler.)
+								</p>
                                 <p>
-                                NOTE: This attribute is not used. Please use executionConstraints/allowedNode instead.
+									DEPRECATED. This attribute is not used. Please use requiredCapability instead.
                                 </p>
                             </xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requiredCapability" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+									Whether a task is constrained to be run on node having particular capability,
+									i.e. it will *not* be executed on any other node.
+									If this attribute is not specified, the task will be executed on any available node.
+								</p>
+                                <p>
+									The name of any node is used as a capability by default (unless overridden by the administrator).
+									So by simply specifying a node name here one can bind execution of this task to the given node.
+									However, there can be any other capabilities defined, e.g. "long-running tasks", "reconciliation",
+									"liveSync", or any other. Each of these capabilities can be assigned to one or more nodes.
+                                </p>
+                            </xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.7</a:since>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1674,7 +1702,12 @@
 						Node(s) that this task is allowed to be executed on. If not specified, the task is allowed
 						to be executed on any cluster node (if not restricted by disallowedNode item).
 						EXPERIMENTAL. MAY OR MAY NOT WORK.
+						DEPRECATED. Use TaskType.requiredCapability instead.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.7</a:deprecatedSince>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="disallowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -1682,7 +1715,12 @@
 					<xsd:documentation>
 						Node(s) that this task is NOT allowed to be executed on.
 						EXPERIMENTAL. MAY OR MAY NOT WORK.
+						DEPRECATED. Use TaskType.requiredCapability instead.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>3.7</a:deprecatedSince>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="retryAfter" type="xsd:duration" minOccurs="0">
@@ -4430,6 +4468,22 @@
         				used in case that the resource cannot check uniqueness by itself (e.g. in case of
         				manual or asynchronous resources).
         			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="useProposedShadows" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				If set to true then midPoint will try to create shadows in "proposed" lifecycle
+        				state even before an operation is executed. The proposed shadows may be used
+        				in combination with shadowConstraintsCheck to reduce probability of identifier
+        				conflicts for resources with slow create/rename operations.
+        				
+        				This feature is EXPERIMENTAL. Use with care.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.6.1</a:since>
+        				<a:experimental>true</a:experimental>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="validateSchema" type="xsd:boolean" minOccurs="0" default="false">
@@ -11137,6 +11191,19 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="objectDetails" type="tns:GuiObjectDetailsSetType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the look and feel of the pages for displaying object details and
+      						editing of objects, such as User, Role, Org, ...
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="userDashboard" type="tns:DashboardLayoutType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -15103,6 +15170,101 @@
            	</xsd:sequence>
     </xsd:complexType>
 
+	<xsd:complexType name="GuiObjectDetailsSetType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the set of default forms that are used for displaying and
+      						editing of objects, such as User, Role, Org, ...
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="objectDetailsPage" type="tns:GuiObjectDetailsPageType" minOccurs="0" maxOccurs="unbounded"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="AbstractObjectTypeConfigurationType" abstract="true">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Abstract supertype for all data types that specify configuration properties for
+        		a specific object type (User, Role, Org, Resource, ...)
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiObjectDetailsPageType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies form that are used for displaying and
+        		editing of specific object type
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:AbstractObjectTypeConfigurationType">
+	       		<xsd:sequence>
+	           		<xsd:element name="summaryPanel" type="tns:SummaryPanelSpecificationType" minOccurs="0" maxOccurs="1"/>
+	           	</xsd:sequence>	
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="SummaryPanelSpecificationType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Specifies the look and feel of the summary panel.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+           		<xsd:element name="displayName" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="identifier" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="title1" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="title2" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="title3" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           		<xsd:element name="organization" type="tns:GuiFlexibleLabelType" minOccurs="0" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
+    
+    <xsd:complexType name="GuiFlexibleLabelType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Flexible configurable label. Used to specify behavior of summary panel fields, list table columns and so on.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
+           		             minOccurs="0" maxOccurs="1" default="automatic">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Defines, whether this field will be visible or it will be hidden.
+           					Can be used to hide the default fields.
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
+           		<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
+           	</xsd:sequence>	
+    </xsd:complexType>
     
   <!-- ============================================================== -->
   <!--  FORMS                                                         -->
@@ -15136,11 +15298,14 @@
                 <a:since>3.4</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-       		<xsd:sequence>
-       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
-           		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1"/>
-           		<xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
-           	</xsd:sequence>	
+        <xsd:complexContent>
+        	<xsd:extension base="tns:AbstractObjectTypeConfigurationType">
+	       		<xsd:sequence>
+	           		<xsd:element name="formSpecification" type="tns:FormSpecificationType" minOccurs="0" maxOccurs="1"/>
+	           		<xsd:element name="includeDefaultForms" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+	           	</xsd:sequence>	
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:complexType name="FormSpecificationType">

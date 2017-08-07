@@ -16,33 +16,48 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.workflow.InformationPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
@@ -55,6 +70,10 @@ public class PagePreviewChanges extends PageAdmin {
 
 	private static final String ID_PRIMARY_DELTAS_SCENE = "primaryDeltas";
 	private static final String ID_SECONDARY_DELTAS_SCENE = "secondaryDeltas";
+	private static final String ID_APPROVALS_CONTAINER = "approvalsContainer";
+	private static final String ID_APPROVALS = "approvals";
+	private static final String ID_POLICY_VIOLATIONS_CONTAINER = "policyViolationsContainer";
+	private static final String ID_POLICY_VIOLATIONS = "policyViolations";
 	private static final String ID_CONTINUE_EDITING = "continueEditing";
 	private static final String ID_SAVE = "save";
 
@@ -62,6 +81,8 @@ public class PagePreviewChanges extends PageAdmin {
 
 	private IModel<SceneDto> primaryDeltasModel;
 	private IModel<SceneDto> secondaryDeltasModel;
+	private IModel<InformationType> policyViolationsModel;
+	private IModel<List<ApprovalProcessExecutionInformationDto>> approvalsModel;
 
 	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService) {
 		final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
@@ -113,6 +134,38 @@ public class PagePreviewChanges extends PageAdmin {
 				return secondarySceneDto;
 			}
 		};
+
+		PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
+				? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
+				: null;
+		List<String> violations = enforcements != null ? enforcements.getExceptionMessage() : Collections.emptyList();
+		InformationType information = MiscSchemaUtil.createInformationType(violations);
+		policyViolationsModel = Model.of(information);
+
+		List<ApprovalSchemaExecutionInformationType> approvalsExecutionList = modelContext != null
+				? modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class)
+				: Collections.emptyList();
+		List<ApprovalProcessExecutionInformationDto> approvals = new ArrayList<>();
+		if (!approvalsExecutionList.isEmpty()) {
+			Task opTask = createSimpleTask(PagePreviewChanges.class + ".createApprovals");      // TODO
+			OperationResult result = opTask.getResult();
+			ObjectResolver modelObjectResolver = getModelObjectResolver();
+			try {
+				for (ApprovalSchemaExecutionInformationType execution : approvalsExecutionList) {
+					approvals.add(ApprovalProcessExecutionInformationDto
+							.createFrom(execution, modelObjectResolver, true, opTask, result)); // TODO reuse session
+				}
+				result.computeStatus();
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare approval information", t);
+				result.recordFatalError("Couldn't prepare approval information: " + t.getMessage(), t);
+			}
+			if (WebComponentUtil.showResultInPage(result)) {
+				showResult(result);
+			}
+		}
+		approvalsModel = Model.ofList(approvals);
+
 		initLayout();
 	}
 
@@ -128,6 +181,17 @@ public class PagePreviewChanges extends PageAdmin {
 
 		mainForm.add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel));
 		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
+
+		WebMarkupContainer policyViolationsContainer = new WebMarkupContainer(ID_POLICY_VIOLATIONS_CONTAINER);
+		policyViolationsContainer.add(new VisibleBehaviour(() -> !policyViolationsModel.getObject().getPart().isEmpty()));
+		policyViolationsContainer.add(new InformationPanel(ID_POLICY_VIOLATIONS, policyViolationsModel));
+		mainForm.add(policyViolationsContainer);
+
+		WebMarkupContainer approvalsContainer = new WebMarkupContainer(ID_APPROVALS_CONTAINER);
+		approvalsContainer.add(new VisibleBehaviour(() -> !approvalsModel.getObject().isEmpty()));
+		approvalsContainer.add(new ApprovalProcessesPreviewPanel(ID_APPROVALS, approvalsModel));
+		mainForm.add(approvalsContainer);
+
 		initButtons(mainForm);
 	}
 

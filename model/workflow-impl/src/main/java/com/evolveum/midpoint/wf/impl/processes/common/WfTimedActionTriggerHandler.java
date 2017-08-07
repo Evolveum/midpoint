@@ -64,6 +64,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	@Autowired private WfTaskController wfTaskController;
 	@Autowired private TaskManager taskManager;
 	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
+	@Autowired private WfStageComputeHelper stageComputeHelper;
 
 	@PostConstruct
 	private void initialize() {
@@ -169,7 +170,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
 		if (!delegateAction.getApproverExpression().isEmpty()) {
-			ExpressionVariables variables = evaluationHelper.getDefaultVariables(null, wfTask, result);
+			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(null, wfTask, result);
 			variables.addVariableDefinition(SchemaConstants.C_WORK_ITEM, workItem);
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", triggerScannerTask, result));

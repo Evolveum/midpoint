@@ -36,6 +36,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 /**
  * TODO clean up these formatting methods
  *
@@ -291,8 +293,7 @@ public class WfContextUtil {
 
 	public static void normalizeStages(ApprovalSchemaType schema) {
 		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
-		List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
-		stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+		List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
 		for (int i = 0; i < stages.size(); i++) {
 			stages.get(i).setOrder(null);
 			stages.get(i).setNumber(i+1);
@@ -300,6 +301,27 @@ public class WfContextUtil {
 		schema.getLevel().clear();
 		schema.getStage().clear();
 		schema.getStage().addAll(CloneUtil.cloneCollectionMembers(stages));
+	}
+
+	@NotNull
+	private static List<ApprovalStageDefinitionType> getSortedStages(ApprovalSchemaType schema) {
+		List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
+		stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+		return stages;
+	}
+
+	public static List<ApprovalStageDefinitionType> sortAndCheckStages(ApprovalSchemaType schema) {
+		List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
+		for (int i = 0; i < stages.size(); i++) {
+			ApprovalStageDefinitionType stage = stages.get(i);
+			Integer number = getNumber(stage);
+			if (number == null || number != i+1) {
+				throw new IllegalArgumentException("Missing or wrong number of stage #" + (i+1) + ": " + number);
+			}
+			stage.setOrder(null);
+			stage.setNumber(number);
+		}
+		return stages;
 	}
 
 	private static Integer getNumber(ApprovalStageDefinitionType stage) {
@@ -360,6 +382,15 @@ public class WfContextUtil {
 			throw new IllegalStateException("WorkItem's parent is not a WfContextType; it is " + parentReal);
 		}
 		return (WfContextType) parentReal;
+	}
+
+	public static WfContextType getWorkflowContext(ApprovalSchemaExecutionInformationType info) {
+		if (info == null || info.getTaskRef() == null || info.getTaskRef().asReferenceValue().getObject() == null) {
+			return null;
+		}
+		@SuppressWarnings({ "unchecked", "raw" })
+		PrismObject<TaskType> task = info.getTaskRef().asReferenceValue().getObject();
+		return task.asObjectable().getWorkflowContext();
 	}
 
 	@Nullable
@@ -690,5 +721,30 @@ public class WfContextUtil {
 		XMLGregorianCalendar rv = XmlTypeConverter.createXMLGregorianCalendar(baseTime);
 		rv.add(duration);
 		return rv;
+	}
+
+	public static boolean isInStageBeforeLastOne(WfContextType wfc) {
+		if (wfc == null || wfc.getStageNumber() == null) {
+			return false;
+		}
+		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
+		if (info == null) {
+			return false;
+		}
+		return wfc.getStageNumber() < info.getApprovalSchema().getStage().size();
+	}
+
+	public static String getProcessName(ApprovalSchemaExecutionInformationType info) {
+		return info != null ? getOrig(ObjectTypeUtil.getName(info.getTaskRef())) : null;
+	}
+
+	public static String getTargetName(ApprovalSchemaExecutionInformationType info) {
+		WfContextType wfc = getWorkflowContext(info);
+		return wfc != null ? getOrig(ObjectTypeUtil.getName(wfc.getTargetRef())) : null;
+	}
+
+	public static String getOutcome(ApprovalSchemaExecutionInformationType info) {
+		WfContextType wfc = getWorkflowContext(info);
+		return wfc != null ? wfc.getOutcome() : null;
 	}
 }

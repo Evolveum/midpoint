@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -38,15 +38,18 @@ import java.util.Map;
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
-    private final Task task;
     private final ScriptingExpressionEvaluationOptionsType options;
+    private final Task task;
+    private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     private final StringBuilder consoleOutput = new StringBuilder();
     private final Map<String, PipelineData> variables = new HashMap<>();
     private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
 
-    public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task) {
-        this.task = task;
+    public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
+            ScriptingExpressionEvaluator scriptingExpressionEvaluator) {
         this.options = options;
+        this.task = task;
+        this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
     }
 
     public Task getTask() {
@@ -120,4 +123,12 @@ public class ExecutionContext {
             finalOutput.getData().forEach(i -> i.computeResult());
         }
     }
+
+    public ModelService getModelService() {
+        return scriptingExpressionEvaluator.getModelService();
+    }
+
+	public PrismContext getPrismContext() {
+		return scriptingExpressionEvaluator.getPrismContext();
+	}
 }

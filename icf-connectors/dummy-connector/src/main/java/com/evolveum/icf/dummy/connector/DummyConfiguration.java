@@ -15,8 +15,10 @@
  */
 package com.evolveum.icf.dummy.connector;
 
+import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 
@@ -53,6 +55,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean referentialIntegrity = false; 
     private String uselessString;
     private GuardedString uselessGuardedString;
+    private boolean requireUselessString = false;
 	private boolean generateAccountDescriptionOnCreate = false;		   // simulates volatile behavior (on create)
 	private boolean generateAccountDescriptionOnUpdate = false;        // simulates volatile behavior (on update)
 	private String[] forbiddenNames = new String[0];
@@ -253,6 +256,16 @@ public class DummyConfiguration extends AbstractConfiguration {
 	public void setUselessGuardedString(GuardedString uselessGuardedString) {
 		this.uselessGuardedString = uselessGuardedString;
 	}
+	
+	@ConfigurationProperty(displayMessageKey = "UI_REQUIRE_USELESS_STRING",
+    		helpMessageKey = "UI_REQUIRE_USELESS_STRING_HELP")
+	public boolean isRequireUselessString() {
+		return requireUselessString;
+	}
+
+	public void setRequireUselessString(boolean requireUselessString) {
+		this.requireUselessString = requireUselessString;
+	}
 
 	@ConfigurationProperty(displayMessageKey = "UI_VARY_LETTER_CASE",
 			helpMessageKey = "UI_VARY_LETTER_CASE_HELP")
@@ -376,6 +389,11 @@ public class DummyConfiguration extends AbstractConfiguration {
 
         if (uidMode.equals(UID_MODE_NAME) && !enforceUniqueName) {
         	throw new IllegalArgumentException("Cannot use name UID mode without enforceUniqueName");
+        }
+        
+        log.info("uselessString: {0}", uselessString);
+        if (requireUselessString && StringUtils.isBlank(uselessString)) {
+        	throw new ConfigurationException("No useless string");
         }
 
         log.info("end");

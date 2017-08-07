@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -513,6 +514,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		super.initSystem(initTask, initResult);
 			
 		modelService.postInit(initResult);
+		ManualConnectorInstance.setRandomDelayRange(0);
 		
 		// System Configuration
 		try {

@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -62,14 +63,8 @@ import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.util.time.Duration;
+import org.jetbrains.annotations.NotNull;
 
 /** 
  * @author semancik
@@ -443,7 +438,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
 		
 		ModelExecuteOptions options = getExecuteChangesOptions();
-		LOGGER.debug("Using execute options {}.", new Object[] { options });
+		if (previewOnly) {
+			options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
+		}
+		LOGGER.debug("Using execute options {}.", options);
 
 		try {
 			reviveModels();
@@ -598,6 +596,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		target.add(mainPanel);
 	}
 
+	@NotNull
 	protected ModelExecuteOptions getExecuteChangesOptions() {
 		return mainPanel.getExecuteChangeOptionsDto().createOptions();
 	}

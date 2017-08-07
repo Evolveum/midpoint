@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import java.io.Serializable;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -24,7 +26,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 /**
  * @author mederly
  */
-public class ExpressionWrapper implements Cloneable {
+public class ExpressionWrapper implements Cloneable, Serializable {
 
 	private QName elementName;
     private Object expression;

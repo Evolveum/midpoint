@@ -18,6 +18,7 @@ package com.evolveum.icf.dummy.connector;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
@@ -114,6 +115,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     
 	private DummyResource resource;
 	
+	private boolean connected = false;
+	
 	private static String staticVal;
 
     /**
@@ -154,6 +157,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
 
         resource.setUselessString(this.configuration.getUselessString());
+        if (this.configuration.isRequireUselessString() && StringUtils.isBlank((this.configuration.getUselessString()))) {
+        	throw new ConfigurationException("No useless string");
+        }
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
         if (uselessGuardedString == null) {
         	resource.setUselessGuardedString(null);
@@ -161,6 +167,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         	uselessGuardedString.access(chars -> resource.setUselessGuardedString(new String(chars)));
         }
         resource.setMonsterization(this.configuration.isMonsterized());
+        
+        if (connected) {
+			throw new IllegalStateException("Double connect in "+this);
+		}
+		connected = true;
         
         resource.connect();
         
@@ -177,13 +188,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      * @see Connector#dispose()
      */
     public void dispose() {
+    	connected = false;
     	resource.disconnect();
     	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
     }
     
     @Override
 	public void checkAlive() {
-		// notthig to do. always alive.
+    	if (!connected) {
+			throw new IllegalStateException("checkAlive on non-connected connector instance "+this);
+		}
 	}
 
     /******************
@@ -1587,6 +1601,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public void test() {
         log.info("test::begin");
+        
+        if (!connected) {
+			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+		}
+        
         log.info("Validating configuration.");
         configuration.validate();
         

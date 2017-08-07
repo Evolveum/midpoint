@@ -184,8 +184,23 @@ public class ConnectorManager {
 
 		return configuredConnectorInstance;
 	}
+	
+	// should only be used by this class and testConnection in Resource manager
+	void cacheConfifuredConnector(ConnectorSpec connectorSpec, ConnectorInstance connectorInstance) {
+			ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
+			if (connectorInstanceCache.containsKey(cacheKey)) {
+				connectorInstanceCache.remove(cacheKey);
+			}
+			
+			ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
+			cacheEntry.connectorOid = connectorSpec.getConnectorOid();
+			cacheEntry.configuration = connectorSpec.getConnectorConfiguration();
+			cacheEntry.connectorInstance = connectorInstance;
+			connectorInstanceCache.put(cacheKey, cacheEntry);
+		}
 
-	private ConnectorInstance createConfiguredConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
+	// should only be used by this class and testConnection in Resource manager
+	ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		
 		ConnectorType connectorType = getConnectorTypeReadOnly(connectorSpec, result);
@@ -195,6 +210,8 @@ public class ConnectorManager {
 		ConnectorInstance connector = null;
 		try {
 
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+			
 			connector = connectorFactory.createConnectorInstance(connectorType,
 					ResourceTypeUtil.getResourceNamespace(connectorSpec.getResource()), connectorSpec.toString());
 
@@ -202,6 +219,22 @@ public class ConnectorManager {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
+		
+		// This log message should be INFO level. It happens only occasionally.
+		// If it happens often, it may be an
+		// indication of a problem. Therefore it is good for admin to see it.
+		LOGGER.info("Created new connector instance for {}: {} v{}",
+				connectorSpec, connectorType.getConnectorType(), connectorType.getConnectorVersion());
+
+		return connector;
+		
+	}
+	
+	private ConnectorInstance createConfiguredConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		
+		ConnectorInstance connector = createConnectorInstance(connectorSpec, result);
+		
 		PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration().getValue();
 		if (connectorConfigurationVal == null) {
 			SchemaException e = new SchemaException("No connector configuration in "+connectorSpec);
@@ -216,8 +249,6 @@ public class ConnectorManager {
 			
 			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), result);
 			
-			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
-			
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);
@@ -230,12 +261,6 @@ public class ConnectorManager {
 			throw e;
 		}
 		
-		// This log message should be INFO level. It happens only occasionally.
-		// If it happens often, it may be an
-		// indication of a problem. Therefore it is good for admin to see it.
-		LOGGER.info("Created new connector instance for {}: {} v{}",
-				connectorSpec, connectorType.getConnectorType(), connectorType.getConnectorVersion());
-
 		return connector;
 	}
 

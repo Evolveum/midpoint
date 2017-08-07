@@ -16,12 +16,10 @@
 package com.evolveum.midpoint.schema;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
 
@@ -30,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -99,6 +98,25 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 		}
 		return optionsCollection;
 	}
+
+	// modifies existing options collection, or creates a new collection
+	// if options for given path exist, reuses them; or creates new ones instead
+	public static <T> Collection<SelectorOptions<T>> set(Collection<SelectorOptions<T>> options, ItemPath path,
+			Supplier<T> constructor, Consumer<T> setter) {
+		if (options == null) {
+			options = new ArrayList<>();
+		}
+		Collection<T> optionsForPath = findOptionsForPath(options, path);
+		T option;
+		if (optionsForPath.isEmpty()) {
+			option = constructor.get();
+			options.add(SelectorOptions.create(path, option));
+		} else {
+			option = optionsForPath.iterator().next();
+		}
+		setter.accept(option);
+		return options;
+	}
 	//endregion
 
     //region Simple getters
@@ -131,6 +149,24 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Finds all the options for given path. TODO could there be more than one?
+	 * Returns live objects that could be modified by client.
+	 */
+	@NotNull
+	public static <T> Collection<T> findOptionsForPath(Collection<SelectorOptions<T>> options, ItemPath path) {
+		if (path == null) {
+			path = ItemPath.EMPTY_PATH;
+		}
+		Collection<T> rv = new ArrayList<>();
+		for (SelectorOptions<T> oooption: CollectionUtils.emptyIfNull(options)) {
+			if (oooption.getItemPath().equivalent(path)) {
+				rv.add(oooption.getOptions());
+			}
+		}
+		return rv;
 	}
 
 	public boolean isRoot() {
@@ -243,7 +279,20 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable {
 
         return retrieveOptions;
     }
-    //endregion
+
+	public static <T> Map<T, Collection<ItemPath>> extractOptionValues(Collection<SelectorOptions<GetOperationOptions>> options, Function<GetOperationOptions, T> supplier) {
+		Map<T, Collection<ItemPath>> rv = new HashMap<>();
+		for (SelectorOptions<GetOperationOptions> selectorOption : CollectionUtils.emptyIfNull(options)) {
+			T value = supplier.apply(selectorOption.getOptions());
+			if (value != null) {
+				Collection<ItemPath> itemPaths = rv.computeIfAbsent(value, t -> new HashSet<>());
+				itemPaths.add(selectorOption.getItemPath());
+			}
+		}
+		return rv;
+	}
+
+	//endregion
 
     //region hashCode, equals, toString
     @Override

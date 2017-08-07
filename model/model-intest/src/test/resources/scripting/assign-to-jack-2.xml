@@ -17,6 +17,7 @@
 
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <s:type>c:UserType</s:type>
@@ -30,7 +31,12 @@
         <s:type>assign</s:type>
         <s:parameter>
             <s:name>role</s:name>
-            <c:value xsi:type="xsd:string">12345678-d34d-b33f-f00d-555555556677</c:value>
+            <c:value xsi:type="q:SearchFilterType">
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>Nice Pirate</q:value>
+                </q:equal>
+            </c:value>
         </s:parameter>
     </s:action>
 </s:search>

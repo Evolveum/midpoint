@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -51,7 +52,7 @@ public class AddExecutor extends BaseActionExecutor {
     @Override
     public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        boolean raw = getParamRaw(expression, input, context, globalResult);
+        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
         boolean dryRun = getParamDryRun(expression, input, context, globalResult);
 
         for (PipelineItem item : input.getData()) {
@@ -65,13 +66,13 @@ public class AddExecutor extends BaseActionExecutor {
                 long started = operationsHelper.recordStart(context, objectType);
                 Throwable exception = null;
                 try {
-                    operationsHelper.applyDelta(createAddDelta(objectType), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
+                    operationsHelper.applyDelta(createAddDelta(objectType), executionOptions, dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
                     exception = processActionException(ex, NAME, value, context);
                 }
-				context.println((exception != null ? "Attempted to add " : "Added ") + prismObject.toString() + rawDrySuffix(raw, dryRun) + exceptionSuffix(exception));
+				context.println((exception != null ? "Attempted to add " : "Added ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
             } else {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
@@ -81,7 +82,7 @@ public class AddExecutor extends BaseActionExecutor {
         return input;
     }
 
-	private ObjectDelta createAddDelta(ObjectType objectType) {
+	private ObjectDelta<? extends ObjectType> createAddDelta(ObjectType objectType) {
         return ObjectDelta.createAddDelta(objectType.asPrismObject());
     }
 }

@@ -318,7 +318,7 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
 //
 //            @Override
 //            public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
-//                        AssignmentActivationPopupPanel popupPanel = new AssignmentActivationPopupPanel(pageBase.getMainPopupBodyId(), rowModel){
+//                        AssignmentActivationPopupablePanel popupPanel = new AssignmentActivationPopupablePanel(pageBase.getMainPopupBodyId(), rowModel){
 //                            private static final long serialVersionUID = 1L;
 //
 //                            @Override

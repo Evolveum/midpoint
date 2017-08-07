@@ -19,18 +19,27 @@ package com.evolveum.midpoint.model.impl.scripting;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Data that are passed between individual scripting actions.
@@ -163,7 +172,10 @@ public class PipelineData implements DebugDumpable {
 //        }
     }
 
-    public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType) throws ScriptExecutionException {
+    public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType, Class<? extends ObjectType> typeForQuery,
+		    ExecutionContext context, OperationResult result)
+		    throws ScriptExecutionException, CommunicationException, ObjectNotFoundException, SchemaException,
+		    SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         Collection<ObjectReferenceType> retval = new ArrayList<>(data.size());
         for (PipelineItem item : data) {
         	PrismValue value = item.getValue();
@@ -175,7 +187,14 @@ public class PipelineData implements DebugDumpable {
                 retval.add(ref);
             } else if (value instanceof PrismPropertyValue) {
                 Object realValue = ((PrismPropertyValue) value).getRealValue();
-                if (realValue instanceof String) {
+                if (realValue instanceof SearchFilterType) {
+	                retval.addAll(
+	                		resolveQuery(
+	                				typeForQuery, new QueryType().filter((SearchFilterType) realValue), context, result));
+                } else if (realValue instanceof QueryType) {
+                	retval.addAll(
+                			resolveQuery(typeForQuery, (QueryType) realValue, context, result));
+                } else if (realValue instanceof String) {
                     ObjectReferenceType ref = new ObjectReferenceType();
                     ref.setType(defaultTargetType);
                     ref.setOid((String) realValue);                         // todo implement search by name
@@ -194,6 +213,16 @@ public class PipelineData implements DebugDumpable {
         }
         return retval;
     }
+
+	private Collection<ObjectReferenceType> resolveQuery(Class<? extends ObjectType> type, QueryType queryBean,
+			ExecutionContext context, OperationResult result)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, queryBean, context.getPrismContext());
+		SearchResultList<? extends PrismObject<? extends ObjectType>> objects = context.getModelService()
+				.searchObjects(type, query, null, context.getTask(), result);
+		return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o)).collect(Collectors.toList());
+	}
 
 	static PipelineData parseFrom(ValueListType input, PrismContext prismContext) {
 		PipelineData rv = new PipelineData();

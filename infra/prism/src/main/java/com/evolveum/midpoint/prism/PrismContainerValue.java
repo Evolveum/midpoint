@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -1309,6 +1310,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	}
 
 	protected void deepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef) {
+		// special treatment of CTD (we must not simply overwrite it with clonedPCD.CTD!)
+		PrismContainerable parent = getParent();
+		if (parent != null && complexTypeDefinition != null) {
+			if (complexTypeDefinition == parent.getComplexTypeDefinition()) {
+				replaceComplexTypeDefinition(clonedContainerDef.getComplexTypeDefinition());
+			} else {
+				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>() ));		// OK?
+			}
+		}
 		if (items != null) {
 			for (Item<?,?> item: items) {
 				deepCloneDefinitionItem(item, ultraDeep, clonedContainerDef);
@@ -1326,16 +1336,6 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			clonedItemDef = clonedContainerDef.findItemDefinition(itemName);
 		} else {
 			clonedItemDef = (ID) oldItemDef.deepClone(ultraDeep);
-		}
-
-		// special treatment of CTD (we must not simply overwrite it with clonedPCD.CTD!)
-		PrismContainerable parent = getParent();
-		if (parent != null && complexTypeDefinition != null) {
-			if (complexTypeDefinition == parent.getComplexTypeDefinition()) {
-				replaceComplexTypeDefinition(clonedContainerDef.getComplexTypeDefinition());
-			} else {
-				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>() ));		// OK?
-			}
 		}
 		item.propagateDeepCloneDefinition(ultraDeep, clonedItemDef);		// propagate to items in values
 		item.setDefinition(clonedItemDef);									// sets CTD in values only if null!
@@ -1681,4 +1681,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 	}
 
+	// Removes all unused definitions, in order to conserve heap. Assumes that the definition is not shared. Use with care!
+	void trimItemsDefinitionsTrees(Collection<ItemPath> alwaysKeep) {
+		// to play safe, we won't touch PCV-specific complexTypeDefinition
+		for (Item<?, ?> item : CollectionUtils.emptyIfNull(items)) {
+			if (item instanceof PrismContainer) {
+				Collection<ItemPath> alwaysKeepInSub = ItemPath.remainder(CollectionUtils.emptyIfNull(alwaysKeep),
+						new ItemPath(item.getElementName()), false);
+				((PrismContainer<?>) item).trimDefinitionTree(alwaysKeepInSub);
+			}
+		}
+	}
 }

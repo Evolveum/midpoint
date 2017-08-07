@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
@@ -38,11 +39,11 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 
 	private final IModel<WorkItemDto> dtoModel;
 
-	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel) {
-		super(id, model);
+	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel, ModelServiceLocator serviceLocator) {
+		super(id, model, serviceLocator, null);
 		this.dtoModel = dtoModel;
 
-		initLayoutCommon();
+		initLayoutCommon(serviceLocator);
 
 		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_ASSIGNED_TAG, model) {
 			@Override

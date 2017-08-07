@@ -152,6 +152,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	 */
 	private Boolean attachDiagData;
 
+	private DefinitionProcessingOption definitionProcessing;
+
 	public RetrieveOption getRetrieve() {
 		return retrieve;
 	}
@@ -677,6 +679,27 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	public static GetOperationOptions createAttachDiagData() {
 		GetOperationOptions opts = new GetOperationOptions();
 		opts.setAttachDiagData(true);
+		return opts;
+	}
+
+	public DefinitionProcessingOption getDefinitionProcessing() {
+		return definitionProcessing;
+	}
+
+	public void setDefinitionProcessing(DefinitionProcessingOption definitionProcessing) {
+		this.definitionProcessing = definitionProcessing;
+	}
+
+	public static DefinitionProcessingOption getDefinitionProcessing(GetOperationOptions options) {
+		return options != null ? options.definitionProcessing : null;
+	}
+
+	/**
+	 * Whether to attach diagnostics data to the returned object(s).
+	 */
+	public static GetOperationOptions createDefinitionProcessing(DefinitionProcessingOption value) {
+		GetOperationOptions opts = new GetOperationOptions();
+		opts.setDefinitionProcessing(value);
 		return opts;
 	}
 

@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -236,6 +237,9 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 
 	@NotNull
 	ObjectClassComplexTypeDefinition clone();
+
+	@NotNull
+	ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
 
 	boolean matches(ShadowType shadowType);
 }

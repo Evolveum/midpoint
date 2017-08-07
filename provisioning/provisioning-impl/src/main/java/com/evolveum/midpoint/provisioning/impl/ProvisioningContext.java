@@ -119,6 +119,14 @@ public class ProvisioningContext extends StateReporter {
 		this.useRefinedDefinition = useRefinedDefinition;
 	}
 
+	public void setObjectClassDefinition(RefinedObjectClassDefinition objectClassDefinition) {
+		this.objectClassDefinition = objectClassDefinition;
+	}
+
+	public void setResource(ResourceType resource) {
+		this.resource = resource;
+	}
+
 	public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (resource == null) {
 			if (getResourceOid() == null) {

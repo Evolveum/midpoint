@@ -99,6 +99,8 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	public static final String ID_MISFIRE_ACTION = "misfireAction";
 	public static final String ID_THREAD_STOP_CONTAINER = "threadStopContainer";
 	public static final String ID_THREAD_STOP = "threadStop";
+	public static final String ID_REQUIRED_CAPABILITY_CONTAINER = "requiredCapabilityContainer";
+	public static final String ID_REQUIRED_CAPABILITY = "requiredCapability";
 
 	private PageTaskEdit parentPage;
 	private IModel<TaskDto> taskDtoModel;
@@ -319,6 +321,12 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_THREAD_STOP_ACTION));
 			}
 		};
+		final VisibleEnableBehaviour enabledIfEditAndRequiredCapabilityIsEditable = new VisibleEnableBehaviour() {
+			@Override
+			public boolean isEnabled() {
+				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_REQUIRED_CAPABILITY));
+			}
+		};
 
 		// components
 		final WebMarkupContainer schedulingTable = new WebMarkupContainer(ID_SCHEDULING_TABLE);
@@ -463,6 +471,13 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		threadStopContainer.add(threadStop);
 		threadStopContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_THREAD_STOP_ACTION));
 		schedulingTable.add(threadStopContainer);
+
+		WebMarkupContainer requiredCapabilityContainer = new WebMarkupContainer(ID_REQUIRED_CAPABILITY_CONTAINER);
+		TextField<String> requiredCapability = new TextField<>(ID_REQUIRED_CAPABILITY, new PropertyModel<String>(taskDtoModel, TaskDto.F_REQUIRED_CAPABILITY));
+		requiredCapability.add(enabledIfEditAndRequiredCapabilityIsEditable);
+		requiredCapabilityContainer.add(requiredCapability);
+		requiredCapabilityContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_REQUIRED_CAPABILITY));
+		schedulingTable.add(requiredCapabilityContainer);
 
 		org.apache.wicket.markup.html.form.Form<?> form = parentPage.getForm();
 		// if not removed, the validators will accumulate on the form

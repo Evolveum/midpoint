@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.schema;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -256,12 +257,24 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		loadPrismSchemaFileDescription(file);
 	}
 
+	public void registerPrismSchema(InputStream input, String sourceDescription) throws SchemaException {
+		loadPrismSchemaDescription(input, sourceDescription);
+	}
+
 	public SchemaDescription loadPrismSchemaFileDescription(File file) throws FileNotFoundException, SchemaException {
 		 if (!(file.getName().matches(".*\\.xsd$"))){
          	LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
          	return null;
          }
 		SchemaDescription desc = SchemaDescription.parseFile(file);
+		desc.setPrismSchema(true);
+		registerSchemaDescription(desc);
+		return desc;
+	}
+
+	public SchemaDescription loadPrismSchemaDescription(InputStream input, String sourceDescription)
+			throws SchemaException {
+		SchemaDescription desc = SchemaDescription.parseInputStream(input, sourceDescription);
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
 		return desc;

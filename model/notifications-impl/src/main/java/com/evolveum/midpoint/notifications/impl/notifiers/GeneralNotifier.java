@@ -108,14 +108,13 @@ public class GeneralNotifier extends BaseHandler {
                     ExpressionVariables variables = getDefaultVariables(event, result);
 
                     if (event instanceof ModelEvent) {
-                        ((ModelEvent) event).getModelContext().reportProgress(
-                                new ProgressInformation(NOTIFICATIONS, ENTERING));
+                        ((ModelEvent) event).getModelContext().reportProgress(new ProgressInformation(NOTIFICATIONS, ENTERING));
                     }
 
                     try {
                         for (String transportName : generalNotifierType.getTransport()) {
 
-                            variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
+                            variables.replaceVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
                             Transport transport = notificationManager.getTransport(transportName);
 
                             List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables,

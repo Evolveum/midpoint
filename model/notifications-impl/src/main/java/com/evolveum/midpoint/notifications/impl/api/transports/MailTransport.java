@@ -51,6 +51,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
+
 /**
  * @author mederly
  */
@@ -115,15 +117,13 @@ public class MailTransport implements Transport {
 //		if (mailConfigurationType == null) {
 			MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
 //		}
+		String logToFile = mailConfigurationType.getLogToFile();
+		if (logToFile != null) {
+			TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
+		}
         String redirectToFile = mailConfigurationType.getRedirectToFile();
         if (redirectToFile != null) {
-            try {
-                TransportUtil.appendToFile(redirectToFile, formatToFile(mailMessage));
-                result.recordSuccess();
-            } catch (IOException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't write to mail redirect file {}", e, redirectToFile);
-                result.recordPartialError("Couldn't write to mail redirect file " + redirectToFile, e);
-            }
+            TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
             return;
         }
 

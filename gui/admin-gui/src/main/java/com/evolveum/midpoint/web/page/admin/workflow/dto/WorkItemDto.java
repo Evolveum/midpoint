@@ -97,6 +97,8 @@ public class WorkItemDto extends Selectable {
 	public static final String F_CHANGES = "changes";
 
 	public static final String F_REQUESTER_COMMENT = "requesterComment";
+	public static final String F_TASK_OID = "taskOid";
+	public static final String F_IN_STAGE_BEFORE_LAST_ONE = "isInStageBeforeLastOne";
 
 	// workItem may or may not contain resolved taskRef;
     // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
@@ -330,6 +332,10 @@ public class WorkItemDto extends Selectable {
 	public String getTaskOid() {
 		final TaskType task = getTaskType();
 		return task != null ? task.getOid() : null;
+	}
+
+	public boolean isInStageBeforeLastOne() {
+		return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
 	}
 
 	// TODO deduplicate

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -261,6 +262,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
 
+	@SpringBean(name = "modelObjectResolver")
+	private ObjectResolver modelObjectResolver;
+
 	private List<Breadcrumb> breadcrumbs;
 
 	private boolean initialized = false;
@@ -271,6 +275,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
 	// No need to store this in the session. Retrieval is cheap.
 	private transient AdminGuiConfigurationType adminGuiConfiguration;
+	
+	// No need for this to store in session. It is used only during single init and render.
+	private transient Task pageTask;
 
 	public PageBase(PageParameters parameters) {
 		super(parameters);
@@ -459,6 +466,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return modelService;
 	}
 
+	@Override
+	public ObjectResolver getModelObjectResolver() {
+		return modelObjectResolver;
+	}
+
 	public ScriptingService getScriptingService() {
 		return scriptingService;
 	}
@@ -498,6 +510,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 		}
 		return adminGuiConfiguration;
+	}
+
+	@Override
+	public Task getPageTask() {
+		if (pageTask == null) {
+			pageTask = createSimpleTask(this.getClass().getName());
+		}
+		return pageTask;
 	}
 
 	public MidpointFormValidatorRegistry getFormValidatorRegistry() {

@@ -50,6 +50,10 @@
 		<label>Español</label>
 	</row>
 	<row>
+		<key>fi</key>
+		<label>Suomi</label>
+	</row>
+	<row>
 		<key>hu</key>
 		<label>Magyar</label>
 	</row>

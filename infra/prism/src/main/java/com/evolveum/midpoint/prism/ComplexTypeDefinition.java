@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +47,14 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	 */
 	@NotNull
 	List<? extends ItemDefinition> getDefinitions();
+
+	/**
+	 * Is this definition shared, i.e. used by more than one prism object?
+	 * If so, it should not be e.g. trimmed.
+	 *
+	 * EXPERIMENTAL
+ 	 */
+	boolean isShared();
 
 	/**
 	 * If not null, indicates that this type defines the structure of 'extension' element of a given type.
@@ -122,4 +132,10 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	 */
 	@NotNull
 	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+
+	/**
+	 * Trims the definition (and any definitions it refers to) to contain only items related to given paths.
+	 * USE WITH CARE. Be sure no shared definitions would be affected by this operation!
+	 */
+	void trimTo(@NotNull Collection<ItemPath> paths);
 }

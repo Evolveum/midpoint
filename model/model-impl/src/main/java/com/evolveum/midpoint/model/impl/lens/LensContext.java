@@ -35,9 +35,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -172,6 +174,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * serialize to XML
 	 */
 	private List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
+
+	transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
 
 	public LensContext(Class<F> focusClass, PrismContext prismContext,
 			ProvisioningService provisioningService) {
@@ -1253,5 +1257,44 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			}
 		}
 		return false;
+	}
+
+	@NotNull
+	public Map<String, Collection<Containerable>> getHookPreviewResultsMap() {
+		if (hookPreviewResultsMap == null) {
+			hookPreviewResultsMap = new HashMap<>();
+		}
+		return hookPreviewResultsMap;
+	}
+
+	public void addHookPreviewResults(String hookUri, Collection<Containerable> results) {
+		getHookPreviewResultsMap().put(hookUri, results);
+	}
+
+	@NotNull
+	@Override
+	public <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz) {
+		List<T> rv = new ArrayList<>();
+		for (Collection<Containerable> collection : getHookPreviewResultsMap().values()) {
+			for (Containerable item : CollectionUtils.emptyIfNull(collection)) {
+				if (item != null && clazz.isAssignableFrom(item.getClass())) {
+					rv.add((T) item);
+				}
+			}
+		}
+		return rv;
+	}
+
+	@Nullable
+	@Override
+	public <T> T getHookPreviewResult(@NotNull Class<T> clazz) {
+		List<T> results = getHookPreviewResults(clazz);
+		if (results.size() > 1) {
+			throw new IllegalStateException("More than one preview result of type " + clazz);
+		} else if (results.size() == 1) {
+			return results.get(0);
+		} else {
+			return null;
+		}
 	}
 }

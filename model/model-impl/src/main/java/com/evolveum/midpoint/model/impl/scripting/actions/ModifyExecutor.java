@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
@@ -56,7 +57,7 @@ public class ModifyExecutor extends BaseActionExecutor {
     @Override
     public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        boolean raw = getParamRaw(expression, input, context, globalResult);
+        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
         boolean dryRun = getParamDryRun(expression, input, context, globalResult);
 
         ActionParameterValueType deltaParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
@@ -67,20 +68,21 @@ public class ModifyExecutor extends BaseActionExecutor {
             OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue) {
+                @SuppressWarnings({"unchecked", "raw"})
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 Throwable exception = null;
                 try {
-                    ObjectDelta<?> delta = createDelta(objectType, deltaData);
+                    ObjectDelta<? extends ObjectType> delta = createDelta(objectType, deltaData);
                     result.addParam("delta", delta);
-                    operationsHelper.applyDelta(delta, operationsHelper.createExecutionOptions(raw), dryRun, context, result);
+                    operationsHelper.applyDelta(delta, executionOptions, dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
 					exception = processActionException(ex, NAME, value, context);
                 }
-                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + rawDrySuffix(raw, dryRun) + exceptionSuffix(exception));
+                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
             } else {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
@@ -90,10 +92,11 @@ public class ModifyExecutor extends BaseActionExecutor {
         return input;
     }
 
-    private ObjectDelta createDelta(ObjectType objectType, PipelineData deltaData) throws ScriptExecutionException {
+    private ObjectDelta<? extends ObjectType> createDelta(ObjectType objectType, PipelineData deltaData) throws ScriptExecutionException {
         if (deltaData.getData().size() != 1) {
             throw new ScriptExecutionException("Expected exactly one delta to apply, found "  + deltaData.getData().size() + " instead.");
         }
+        @SuppressWarnings({"unchecked", "raw"})
         ObjectDeltaType deltaType = ((PrismPropertyValue<ObjectDeltaType>) deltaData.getData().get(0).getValue()).clone().getRealValue();
         if (deltaType.getChangeType() == null) {
             deltaType.setChangeType(ChangeTypeType.MODIFY);

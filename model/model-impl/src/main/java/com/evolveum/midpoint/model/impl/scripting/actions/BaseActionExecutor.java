@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
@@ -36,8 +37,12 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * @author mederly
@@ -48,6 +53,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
 	private static final String PARAM_RAW = "raw";
     private static final String PARAM_DRY_RUN = "dryRun";
+	private static final String PARAM_SKIP_APPROVALS = "skipApprovals";
+	private static final String PARAM_OPTIONS = "options";
 
     @Autowired
     protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -71,24 +78,45 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 	protected SecurityEnforcer securityEnforcer;
 
     // todo move to some helper?
-    protected boolean getParamRaw(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        return expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_RAW, input, context, false, PARAM_RAW, result);
-    }
+
+	protected ModelExecuteOptions getOptions(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws  ScriptExecutionException {
+		boolean raw = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_RAW, input, context, false, PARAM_RAW, result);
+		boolean skipApprovals = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_SKIP_APPROVALS, input, context, false, PARAM_RAW, result);
+		ModelExecuteOptionsType optionsBean = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OPTIONS, false, false, "options", input, context,
+				ModelExecuteOptionsType.class, result);
+		ModelExecuteOptions options;
+		if (optionsBean != null) {
+			options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean);
+		} else {
+			options = new ModelExecuteOptions();
+		}
+		if (raw) {
+			options.setRaw(true);
+		}
+		if (skipApprovals) {
+			if (options.getPartialProcessing() != null) {
+				options.getPartialProcessing().setApprovals(SKIP);
+			} else {
+				options.setPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
+			}
+		}
+		return options;
+	}
 
     protected boolean getParamDryRun(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         return expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_DRY_RUN, input, context, false, PARAM_DRY_RUN, result);
     }
 
-    protected String rawSuffix(boolean raw) {
-        return raw ? " (raw)" : "";
+    private String optionsSuffix(ModelExecuteOptions options) {
+        return options.notEmpty() ? " " + options : "";
     }
 
     protected String drySuffix(boolean dry) {
         return dry ? " (dry run)" : "";
     }
 
-    protected String rawDrySuffix(boolean raw, boolean dry) {
-        return rawSuffix(raw) + drySuffix(dry);
+    protected String optionsSuffix(ModelExecuteOptions options, boolean dry) {
+        return optionsSuffix(options) + drySuffix(dry);
     }
 
     protected String exceptionSuffix(Throwable t) {
