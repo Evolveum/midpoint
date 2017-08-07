@@ -21,6 +21,8 @@ import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -51,6 +53,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     protected static final File ASSIGNMENT_ROLE_VISITOR_FILE = new File(TEST_DIR, "assignment-role-visitor.xml");
 
 	protected static final File USER_DRAKE_FILE = new File(TEST_DIR, "user-drake.xml");
+	protected static final String USER_DRAKE_OID = "c0c010c0-d34d-b33f-f00d-888888888888";
 
 //	protected static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
 //            "/user-jack-modify-add-assignment-account-opendj.xml";
@@ -149,8 +152,15 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	@Autowired(required = true)
 	protected TaskManager taskManager;
 
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
 
-    protected AssignmentType getAssignmentType(File assignmentFile) throws java.io.IOException, JAXBException, SchemaException {
+		//enable if really needed
+		// repoAddObjectFromFile(USER_DRAKE_FILE, initResult);
+	}
+
+	protected AssignmentType getAssignmentType(File assignmentFile) throws java.io.IOException, JAXBException, SchemaException {
         AssignmentType assignmentType = unmarshallValueFromFile(assignmentFile, AssignmentType.class);
 
         // We need to make sure that the assignment has a parent
