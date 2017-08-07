@@ -217,7 +217,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
 						}
 						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-							if (target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+							if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
 									&& DeputyUtils.isDelegationPath(target.getAssignmentPath())) {
 								List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
 								principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
@@ -266,13 +266,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        ObjectType object = repositoryService.getObject(UserType.class, oid,
-        		null, result).asObjectable();
-        if (object != null && (object instanceof UserType)) {
-            return (UserType) object;
-        }
-
-        return null;
+	    return repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
     }
 
 	@Override
@@ -289,7 +283,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		} else if (object.canRepresent(UserType.class)) {
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
-			SearchResultList<PrismObject<UserType>> owners = null;
+			SearchResultList<PrismObject<UserType>> owners;
 			try {
 				owners = repositoryService.searchObjects(UserType.class, query, null, result);
 				if (owners.isEmpty()) {
