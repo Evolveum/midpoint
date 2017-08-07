@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.MultiStateHorizontalButton;
+import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -56,9 +57,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 @PageDescriptor(url = "/admin/config/debug", action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
@@ -70,7 +69,6 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
-    private static final String OPERATION_VALIDATE_OBJECT = DOT_CLASS + "validateObject";
     private static final String ID_PLAIN_TEXTAREA = "plain-textarea";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
 
@@ -298,52 +296,27 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void initViewButton(Form mainForm) {
-        List<String> propertyKeysList = Arrays.asList("PageDebugView.xmlViewButton",
-                "PageDebugView.xmlJsonButton", "PageDebugView.xmlYamlButton");
-        int selectedIndex = 0;
-        if (PrismContext.LANG_JSON.equals(dataLanguage)){
-            selectedIndex = 1;
-        } else if (PrismContext.LANG_YAML.equals(dataLanguage)){
-            selectedIndex = 2;
-        }
-        MultiStateHorizontalButton viewButtonPanel =
-                new MultiStateHorizontalButton(ID_VIEW_BUTTON_PANEL, selectedIndex, propertyKeysList,PageDebugView.this){
-                    @Override
-                    protected void onStateChanged(int index, AjaxRequestTarget target){
-                        OperationResult result = new OperationResult(OPERATION_VALIDATE_OBJECT);
-                        Holder<PrismObject<ObjectType>> objectHolder = new Holder<>(null);
-
-                        try {
-                            validateObject(result, objectHolder);
-                            if (result.isAcceptable()) {
-                                if (index == 1){
-                                    dataLanguage = PrismContext.LANG_JSON;
-                                } else if (index == 2){
-                                    dataLanguage = PrismContext.LANG_YAML;
-                                } else {
-                                    dataLanguage = PrismContext.LANG_XML;
-                                }
-                                PrismObject<ObjectType> updatedObject = objectHolder.getValue();
-                                PrismContext context = getMidpointApplication().getPrismContext();
-                                String objectStr = context.serializerFor(dataLanguage).serialize(updatedObject);
-                                objectViewDto.setXml(objectStr);
-                                setSelectedIndex(index);
-                                addOrReplaceEditor();
-                                target.add(mainForm);
-                                target.add(getFeedbackPanel());
-                            } else {
-                                showResult(result);
-                                target.add(getFeedbackPanel());
-                            }
-                        } catch (Exception ex) {
-                            result.recordFatalError("Couldn't change the language.", ex);
-                            showResult(result);
-                            target.add(getFeedbackPanel());
-                        }
-                    }
+        DataLanguagePanel<Objectable> dataLanguagePanel =
+                new DataLanguagePanel<Objectable>(ID_VIEW_BUTTON_PANEL, dataLanguage, Objectable.class, PageDebugView.this) {
+	                @Override
+	                protected void onLanguageSwitched(AjaxRequestTarget target, int updatedIndex, String updatedLanguage,
+			                String objectString) {
+		                objectViewDto.setXml(objectString);
+		                dataLanguage = updatedLanguage;
+		                addOrReplaceEditor();
+		                target.add(mainForm);
+	                }
+	                @Override
+	                protected String getObjectStringRepresentation() {
+		                return objectViewDto.getXml();
+	                }
+	                @Override
+	                protected boolean isValidateSchema() {
+		                return validateSchema.getObject();
+	                }
                 };
-        viewButtonPanel.setOutputMarkupId(true);
-        mainForm.add(viewButtonPanel);
+        dataLanguagePanel.setOutputMarkupId(true);
+        mainForm.add(dataLanguagePanel);
     }
 
     private void initButtons(final Form mainForm) {
@@ -400,11 +373,11 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> oldObject = dto.getObject();
             oldObject.revive(getPrismContext());
 
-            Holder<PrismObject<ObjectType>> objectHolder = new Holder<>(null);
+            Holder<Objectable> objectHolder = new Holder<>(null);
             validateObject(result, objectHolder);
 
 			if (result.isAcceptable()) {
-                PrismObject<ObjectType> newObject = objectHolder.getValue();
+                PrismObject<ObjectType> newObject = (PrismObject<ObjectType>) objectHolder.getValue().asPrismObject();
 
 				ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
 
@@ -451,7 +424,7 @@ public class PageDebugView extends PageAdminConfiguration {
         }
     }
 
-    private void validateObject(OperationResult result, Holder<PrismObject<ObjectType>> objectHolder){
-            validateObject(objectViewDto.getXml(), objectHolder, dataLanguage, validateSchema.getObject(), result);
+    private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
+	    validateObject(objectViewDto.getXml(), objectHolder, dataLanguage, validateSchema.getObject(), Objectable.class, result);
     }
 }

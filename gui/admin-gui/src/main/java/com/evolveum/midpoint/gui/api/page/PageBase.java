@@ -27,6 +27,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.*;
@@ -82,9 +83,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -1079,14 +1077,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return new RestartResponseException(defaultBackPageClass);
 	}
 
-	protected <O extends ObjectType> void validateObject(String lexicalRepresentation, final Holder<PrismObject<O>> objectHolder,
-			String language, boolean validateSchema, OperationResult result) {
+	public <T> void validateObject(String lexicalRepresentation, final Holder<T> objectHolder,
+			String language, boolean validateSchema, Class<T> clazz, OperationResult result) {
 
-		if (language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)) {
-			PrismObject<O> object;
+		boolean isObjectable = Objectable.class.isAssignableFrom(clazz);
+		if (language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)
+				|| !isObjectable) {
+			T object;
 			try {
-				object = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
-				object.checkConsistence();
+				if (isObjectable) {
+					PrismObject<ObjectType> prismObject = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
+					prismObject.checkConsistence();
+					object = (T) prismObject.asObjectable();
+				} else {
+					object = getPrismContext().parserFor(lexicalRepresentation).language(language).type(clazz).parseRealValue();
+				}
 				objectHolder.setValue(object);
 			} catch (RuntimeException | SchemaException e) {
 				result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
@@ -1103,9 +1108,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 
 			@Override
-			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+			public <O extends Objectable> EventResult postMarshall(PrismObject<O> object, Element objectElement,
 					OperationResult objectResult) {
-				objectHolder.setValue((PrismObject<O>) object);
+				@SuppressWarnings({"unchecked", "raw"})
+				T value = (T) object.asObjectable();
+				objectHolder.setValue(value);
 				return EventResult.cont();
 			}
 

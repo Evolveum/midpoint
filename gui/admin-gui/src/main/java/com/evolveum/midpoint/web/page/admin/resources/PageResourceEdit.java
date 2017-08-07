@@ -213,11 +213,11 @@ public class PageResourceEdit extends PageAdminResources {
         Task task = createSimpleTask(OPERATION_SAVE_RESOURCE);
         OperationResult result = task.getResult();
         try {
-            Holder<PrismObject<ResourceType>> objectHolder = new Holder<PrismObject<ResourceType>>(null);
-            validateObject(dto.getXml(), objectHolder, PrismContext.LANG_XML, false, result);
+            Holder<ResourceType> objectHolder = new Holder<>(null);
+            validateObject(dto.getXml(), objectHolder, PrismContext.LANG_XML, false, ResourceType.class, result);
 
             if (result.isAcceptable()) {
-                PrismObject<ResourceType> newResource = objectHolder.getValue();
+                PrismObject<ResourceType> newResource = objectHolder.getValue().asPrismObject();
                 updateConnectorRef(newResource, task, result);
 
                 if (!isEditing()) {

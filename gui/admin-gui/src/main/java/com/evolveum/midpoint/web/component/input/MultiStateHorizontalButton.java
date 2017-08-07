@@ -31,13 +31,13 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class MultiStateHorizontalButton extends BasePanel{
+public class MultiStateHorizontalButton extends BasePanel {
 
     private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
     private static final String ID_BUTTON = "button";
 
     private int selectedIndex = 0;
-    PageBase pageBase;
+    private PageBase pageBase;
     private List<String> propertyKeysList;  //contains property keys for button labels. if button doesn't have
                                             //label, should be just "". the size of this list defines the
                                             //count of the buttons panel
