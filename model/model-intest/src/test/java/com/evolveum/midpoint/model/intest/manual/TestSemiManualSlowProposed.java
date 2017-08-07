@@ -71,7 +71,17 @@ public class TestSemiManualSlowProposed extends TestSemiManual {
 	protected File getRoleOneFile() {
 		return ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_FILE;
 	}
+
+	@Override
+	protected String getRoleTwoOid() {
+		return ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_OID;
+	}
 	
+	@Override
+	protected File getRoleTwoFile() {
+		return ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_FILE;
+	}
+
 	// Make the test fast ...
 	@Override
 	protected int getConcurrentTestRandomStartDelayRange() {

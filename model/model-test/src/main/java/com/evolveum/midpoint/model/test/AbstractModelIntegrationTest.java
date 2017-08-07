@@ -1199,6 +1199,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return assignmentDelta;
 	}
+	
+	protected ContainerDelta<AssignmentType> createAssignmentModification(long id, boolean add) throws SchemaException {
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>(prismContext);
+		cval.setId(id);
+		if (add) {
+			assignmentDelta.addValueToAdd(cval);
+		} else {
+			assignmentDelta.addValueToDelete(cval);
+		}
+		return assignmentDelta;
+	}
 		
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, 
 			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
@@ -4401,4 +4413,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
+	protected XMLGregorianCalendar getTimestamp(String duration) {
+		return XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), duration);
+	}
+	
+	protected void clockForward(String duration) {
+		XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+		clock.overrideDuration(duration);
+		XMLGregorianCalendar after = clock.currentTimeXMLGregorianCalendar();
+		display("Clock going forward", before + " --[" + duration + "]--> " + after);
+	}
 }
