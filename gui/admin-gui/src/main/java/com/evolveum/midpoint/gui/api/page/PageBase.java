@@ -1711,11 +1711,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return item;
 	}
 
-	public PrismObject<UserType> loadUserSelf(PageBase page) {
+	public PrismObject<UserType> loadUserSelf() {
 		Task task = createSimpleTask(OPERATION_LOAD_USER);
 		OperationResult result = task.getResult();
 		PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
-				WebModelServiceUtils.getLoggedInUserOid(), page, task, result);
+				WebModelServiceUtils.getLoggedInUserOid(), PageBase.this, task, result);
 		result.computeStatus();
 
 		showResult(result, null, false);
@@ -1871,7 +1871,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
     protected void setTimeZone(PageBase page){
-        PrismObject<UserType> user = loadUserSelf(page);
+        PrismObject<UserType> user = loadUserSelf();
         String timeZone = null;
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null){

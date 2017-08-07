@@ -51,10 +51,14 @@ import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -1144,12 +1148,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		if (pageBase == null || getModelObject().getTargetRef() == null){
 			return null;
 		}
-		PrismObject<UserType> user = null;
-		List<PrismObject<UserType>> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
-		if (targetUserList == null || targetUserList.size() == 0){
-			user = pageBase.loadUserSelf(pageBase);
-		} else {
-			user = targetUserList.get(0);
+		PrismObject<? extends FocusType> operationObject = null;
+		if (pageBase instanceof PageAdminFocus){
+			operationObject = ((PageAdminFocus)pageBase).getObjectWrapper().getObject();
+		} else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
+				&& !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
+			List<PrismObject<UserType>> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
+			if (targetUserList == null || targetUserList.size() == 0){
+				operationObject = pageBase.loadUserSelf();
+			} else {
+				operationObject = targetUserList.get(0);
+			}
+		}
+		if (operationObject == null){
+			return null;
 		}
 		String targetObjectOid = getModelObject().getTargetRef().getOid();
 
@@ -1160,7 +1172,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		ItemSecurityDecisions decisions = null;
 		try{
 			decisions =
-					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(user, targetRefObject);
+					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject);
 
 		} catch (SchemaException|SecurityViolationException ex){
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
