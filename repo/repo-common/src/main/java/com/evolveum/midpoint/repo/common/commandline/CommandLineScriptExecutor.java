@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.common.commandline;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang.SystemUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -76,30 +76,43 @@ public class CommandLineScriptExecutor {
             }
         }
         LOGGER.debug("Starting process ", processBuilder.command());
-        processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
         Integer exitValue = process.waitFor();
 
         if (exitValue == null) {
             LOGGER.error("Unknown process error, process did not return an exit value.");
         } else {
-            evaluateExitValue(exitValue, readOutput(process.getInputStream())); // input stream closed by finally block
-        }
 
+            try (InputStream errorInputStream = process.getErrorStream();
+                 InputStream processInputStream = process.getInputStream()) {
+                if (errorInputStream == null) {
+                    evaluateExitValue(exitValue, readOutput(processInputStream));
+                } else {
+                    evaluateExitValue(exitValue, readOutput(processInputStream, errorInputStream));
+                }
+            }
+        }
     }
 
-    private String readOutput(InputStream inputStream) throws IOException {
+    private String readOutput(InputStream processInputStream) throws IOException {
+        return readOutput(processInputStream, null);
+    }
+
+    private String readOutput(InputStream processInputStream, InputStream errorStream) throws IOException {
         // LOGGER.debug("Evaluating output ");
         StringBuilder outputBuilder = new StringBuilder();
-        BufferedReader bufferedProcessOutputReader = null;
-        try {
-            bufferedProcessOutputReader = new BufferedReader(new InputStreamReader(inputStream));
+        try (BufferedReader bufferedProcessOutputReader = new BufferedReader(new InputStreamReader(processInputStream))) {
             String line = null;
+            if (errorStream != null) {
+                try (BufferedReader bufferedProcessErrorOutputReader = new BufferedReader(new InputStreamReader(errorStream))) {
+                    while ((line = bufferedProcessErrorOutputReader.readLine()) != null) {
+                        outputBuilder.append(line + System.getProperty("line.separator"));
+                    }
+                }
+            }
             while ((line = bufferedProcessOutputReader.readLine()) != null) {
                 outputBuilder.append(line + System.getProperty("line.separator"));
             }
-        } finally {
-            bufferedProcessOutputReader.close();
         }
         if (outputBuilder != null) {
             String outputString = outputBuilder.toString();
