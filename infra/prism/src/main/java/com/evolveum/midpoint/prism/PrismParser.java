@@ -221,6 +221,23 @@ public interface PrismParser {
 	@NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException;
 
+	interface ObjectHandler {
+		/**
+		 * Called when an object was successfully retrieved from the input.
+		 * @return true if the processing should continue
+		 */
+		boolean handleData(PrismObject<?> object);
+
+		/**
+		 * Called when an object could not be successfully retrieved from the input.
+		 * No data is provided; instead a Throwable is given to the caller.
+		 * @return true if the processing should continue
+		 */
+		boolean handleError(Throwable t);
+	}
+
+	void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException;
+
 	// ============= other methods (convenience ones, deprecated ones etc) =============
 
 	//	/**
