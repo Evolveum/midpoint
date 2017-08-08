@@ -89,7 +89,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	@NotNull
 	@Override
-	public List<RootXNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
+	public List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		InputStream is = source.getInputStream();
 		try {
 			Document document = DOMUtil.parse(is);
@@ -336,7 +336,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		return xlist;
 	}
 
-    // changed from anonymous to be able to make it static (serializable independently of DomParser)
+	// changed from anonymous to be able to make it static (serializable independently of DomParser)
     private static class PrimitiveValueParser<T> implements ValueParser<T>, Serializable {
 
         private Element element;
@@ -506,7 +506,21 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		Element element = serializer.serialize(xnode);
 		return DOMUtil.serializeDOMToString(element);
 	}
-	
+
+	@NotNull
+	@Override
+	public String write(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName,
+			@Nullable SerializationContext context) throws SchemaException {
+		Element aggregateElement = writeXRootListToElement(roots, aggregateElementName);
+		return DOMUtil.serializeDOMToString(aggregateElement);
+	}
+
+	@NotNull
+	public Element writeXRootListToElement(@NotNull List<RootXNode> roots, QName aggregateElementName) throws SchemaException {
+		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
+		return serializer.serialize(roots, aggregateElementName);
+	}
+
 	public Element serializeUnderElement(XNode xnode, QName rootElementName, Element parentElement) throws SchemaException {
 		DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
 		RootXNode xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
@@ -529,7 +543,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		return serializer.serialize(xroot);
 	}
 
-    private Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
+	private Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
         Validate.notNull(xnode);
         Validate.notNull(elementName);
 		if (xnode instanceof MapXNode) {

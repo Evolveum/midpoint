@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.common.validator;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -156,6 +157,16 @@ public class Validator {
 
 	public long getErrors() {
 		return errors;
+	}
+
+	public void validate(String lexicalRepresentation, OperationResult validationResult, String objectResultOperationName) {
+		try {
+			try (ByteArrayInputStream is = new ByteArrayInputStream(lexicalRepresentation.getBytes("utf-8"))) {
+				validate(is, validationResult, objectResultOperationName);
+			}
+		} catch (IOException e) {
+			throw new SystemException(e);       // shouldn't really occur
+		}
 	}
 
 	public void validate(InputStream inputStream, OperationResult validatorResult,

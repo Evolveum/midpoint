@@ -1516,18 +1516,28 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
-	public void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task,
-			OperationResult parentResult) {
+	public void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task, OperationResult parentResult) {
+		importObjectsFromStream(input, PrismContext.LANG_XML, options, task, parentResult);
+	}
+
+	@Override
+	public void importObjectsFromStream(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult) {
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		result.addParam("options", options);
-		objectImporter.importObjects(input, options, task, result);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Import result:\n{}", result.debugDump());
+		result.addParam("language", language);
+		try {
+			objectImporter.importObjects(input, language, options, task, result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Import result:\n{}", result.debugDump());
+			}
+			// No need to compute status. The validator inside will do it.
+			// result.computeStatus("Couldn't import object from input stream.");
+		} catch (RuntimeException e) {
+			result.recordFatalError(e.getMessage(), e);     // shouldn't really occur
+		} finally {
+			RepositoryCache.exit();
 		}
-		// No need to compute status. The validator inside will do it.
-		// result.computeStatus("Couldn't import object from input stream.");
-		RepositoryCache.exit();
 		result.cleanupResult();
 	}
 

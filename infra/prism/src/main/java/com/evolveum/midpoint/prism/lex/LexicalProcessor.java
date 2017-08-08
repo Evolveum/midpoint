@@ -43,7 +43,7 @@ public interface LexicalProcessor<T> {
 	RootXNode read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
 	@NotNull
-	List<RootXNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException;
+	List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
 	/**
 	 * Checks if the processor can read from a given file. (Guessed by file extension, for now.)
@@ -72,4 +72,16 @@ public interface LexicalProcessor<T> {
 	@NotNull
 	T write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext) throws SchemaException;
 
+	/**
+	 * TODO
+	 *
+	 * Not supported for NullLexicalProcessor, though.
+	 * @param roots
+	 * @param aggregateElementName
+	 * @param context
+	 * @return
+	 * @throws SchemaException
+	 */
+	@NotNull
+	T write(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
 }

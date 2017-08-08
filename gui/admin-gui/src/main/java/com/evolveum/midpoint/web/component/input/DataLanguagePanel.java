@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.input;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +30,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Temporary implementation. Should be replaced with something like "ace field + language panel" combo.
+ * And cleaned-up heavily.
+ *
  * @author honchar
  * @author mederly
  */
@@ -67,7 +72,7 @@ public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 
 		String currentObjectString = getObjectStringRepresentation();
 		if (StringUtils.isBlank(currentObjectString)) {
-			onLanguageSwitched(target, updatedIndex, updatedLanguage, currentObjectString);
+			processLanguageSwitch(target, updatedIndex, updatedLanguage, currentObjectString);
 			return;
 		}
 
@@ -77,21 +82,19 @@ public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 		try {
 			pageBase.validateObject(currentObjectString, objectHolder, LANGUAGES.get(currentLanguageIndex), isValidateSchema(), dataType, result);
 			if (result.isAcceptable()) {
-
 				Object updatedObject = objectHolder.getValue();
 				String updatedObjectString;
-				if (Objectable.class.isAssignableFrom(dataType)) {
+				if (List.class.isAssignableFrom(dataType)) {
+					updatedObjectString = pageBase.getPrismContext().serializerFor(updatedLanguage)
+							.serializeObjects((List<PrismObject<?>>) updatedObject, SchemaConstants.C_OBJECTS);
+				} else if (Objectable.class.isAssignableFrom(dataType)) {
 					updatedObjectString = pageBase.getPrismContext().serializerFor(updatedLanguage)
 							.serialize(((Objectable) updatedObject).asPrismObject());
 				} else {
 					updatedObjectString = pageBase.getPrismContext().serializerFor(updatedLanguage)
 							.serializeRealValue(updatedObject);
 				}
-				setSelectedIndex(updatedIndex);
-				currentLanguageIndex = updatedIndex;
-				onLanguageSwitched(target, updatedIndex, updatedLanguage, updatedObjectString);
-				target.add(this);
-				target.add(pageBase.getFeedbackPanel());
+				processLanguageSwitch(target, updatedIndex, updatedLanguage, updatedObjectString);
 			} else {
 				pageBase.showResult(result);
 				target.add(pageBase.getFeedbackPanel());
@@ -102,6 +105,15 @@ public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 			target.add(this);
 			target.add(pageBase.getFeedbackPanel());
 		}
+	}
+
+	private void processLanguageSwitch(AjaxRequestTarget target, int updatedIndex,
+			String updatedLanguage, String updatedObjectString) {
+		setSelectedIndex(updatedIndex);
+		currentLanguageIndex = updatedIndex;
+		onLanguageSwitched(target, updatedIndex, updatedLanguage, updatedObjectString);
+		target.add(this);
+		target.add(pageBase.getFeedbackPanel());
 	}
 
 	protected abstract void onLanguageSwitched(AjaxRequestTarget target, int index, String updatedLanguage,

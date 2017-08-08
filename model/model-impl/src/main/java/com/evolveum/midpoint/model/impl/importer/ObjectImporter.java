@@ -41,6 +41,7 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -55,6 +57,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
@@ -95,170 +98,186 @@ public class ObjectImporter {
     
     private Migrator migrator = new Migrator();
 
-    public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult) {
-        importObjectsInternal(input, options, true, task, parentResult);
+    // this method is responsible for computing the operation result!
+    public void importObjects(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult) {
+        importObjectsInternal(input, language, options, true, task, parentResult);
     }
 
     // TODO provide "noRaw" option in ImportOptionsType?
-    public void importObjectsNotRaw(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult) {
-        importObjectsInternal(input, options, false, task, parentResult);
+//    public void importObjectsNotRaw(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult) {
+//        importObjectsInternal(input, options, false, task, parentResult);
+//    }
+
+    private void importObjectsInternal(InputStream input, String language, final ImportOptionsType options,
+		    final boolean raw, final Task task, final OperationResult parentResult) {
+
+    	if (options != null) {
+		    if (BooleanUtils.isTrue(options.isSummarizeErrors())) {
+			    parentResult.setSummarizeErrors(true);
+		    }
+		    if (BooleanUtils.isTrue(options.isSummarizeSucceses())) {
+			    parentResult.setSummarizeSuccesses(true);
+		    }
+	    }
+
+	    if (!PrismContext.LANG_XML.equals(language)) {
+		    List<PrismObject<? extends Objectable>> prismObjects;
+		    try {
+			    prismObjects = prismContext.parserFor(input).language(language).parseObjects();
+		    } catch (SchemaException|IOException e) {
+			    parentResult.recordFatalError("Couldn't parse objects to be imported: " + e.getMessage(), e);
+			    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse objects to be imported", e);
+			    return;
+		    }
+		    int i = 0;
+		    for (PrismObject<? extends Objectable> prismObject : prismObjects) {
+		    	OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
+		    	objectResult.addContext("objectNumber", ++i);
+			    importParsedObject(prismObject, null, objectResult, options, task, raw);
+			    objectResult.computeStatusIfUnknown();
+		    }
+		    parentResult.computeStatusIfUnknown();      // TODO some statistics here
+	    } else {
+		    EventHandler handler = new EventHandler() {
+
+			    @Override
+			    public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+				    return EventResult.cont();
+			    }
+
+			    @Override
+			    public <T extends Objectable> EventResult postMarshall(PrismObject<T> prismObjectObjectable,
+					    Element objectElement, OperationResult objectResult) {
+				    return importParsedObject(prismObjectObjectable, objectElement, objectResult, options, task, raw);
+			    }
+
+			    @Override
+			    public void handleGlobalError(OperationResult currentResult) {
+				    // No reaction
+			    }
+		    };
+
+		    Validator validator = new Validator(prismContext, handler);
+		    validator.setVerbose(true);
+		    if (options != null) {
+			    validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
+			    if (options.getStopAfterErrors() != null) {
+				    validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
+			    }
+		    }
+		    validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
+	    }
     }
 
-    private void importObjectsInternal(InputStream input, final ImportOptionsType options, final boolean raw, final Task task, final OperationResult parentResult) {
+	@NotNull
+	private <T extends Objectable> EventResult importParsedObject(PrismObject<T> prismObjectObjectable, Element objectElement,
+			OperationResult objectResult, ImportOptionsType options, Task task, boolean raw) {
+		LOGGER.debug("Importing object {}", prismObjectObjectable);
 
-        EventHandler handler = new EventHandler() {
+		T objectable = prismObjectObjectable.asObjectable();
+		if (!(objectable instanceof ObjectType)) {
+			String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
+			objectResult.recordFatalError(message);
+		    LOGGER.error("Import of object {} failed: {}",
+		            new Object[]{prismObjectObjectable, message});
+		    return EventResult.skipObject(message);
+		}
+		PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
 
-            @Override
-            public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
-                return EventResult.cont();
-            }
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("IMPORTING object:\n{}", object.debugDump());
+		}
 
-            @Override
-            public <T extends Objectable> EventResult postMarshall(PrismObject<T> prismObjectObjectable, Element objectElement, OperationResult objectResult) {
-                LOGGER.debug("Importing object {}", prismObjectObjectable);
-                
-                T objectable = prismObjectObjectable.asObjectable();
-                if (!(objectable instanceof ObjectType)) {
-                	String message = "Cannot process type "+objectable.getClass()+" as it is not a subtype of "+ObjectType.class;
-                	objectResult.recordFatalError(message);
-                    LOGGER.error("Import of object {} failed: {}",
-                            new Object[]{prismObjectObjectable, message});
-                    return EventResult.skipObject(message);
-                }
-                PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
-                
-                if (LOGGER.isTraceEnabled()) {
-                	LOGGER.trace("IMPORTING object:\n{}", object.debugDump());
-                }
-                
-                object = migrator.migrate(object);
-                
-                Utils.resolveReferences(object, repository, 
-                		(options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(),
-                        false, EvaluationTimeType.IMPORT, false, prismContext, objectResult);
-                
-                objectResult.computeStatus();
-                if (!objectResult.isAcceptable()) {
-                	return EventResult.skipObject(objectResult.getMessage());
-                }
-                
-                generateIdentifiers(object, repository,  objectResult);
-                
-                objectResult.computeStatus();
-                if (!objectResult.isAcceptable()) {
-                	return EventResult.skipObject(objectResult.getMessage());
-                }
+		object = migrator.migrate(object);
 
-                if (options != null && BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
-                    validateWithDynamicSchemas(object, objectElement, repository, objectResult);
-                }
+		Utils.resolveReferences(object, repository,
+				(options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(),
+		        false, EvaluationTimeType.IMPORT, false, prismContext, objectResult);
 
-                objectResult.computeStatus();
-                if (!objectResult.isAcceptable()) {
-                	return EventResult.skipObject(objectResult.getMessage());
-                }
-                
-                if (options != null && BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
-                	OperationResult opResult = objectResult.createMinorSubresult(ObjectImporter.class.getName()+".encryptValues");
-                    try {
-						CryptoUtil.encryptValues(protector, object);
-						opResult.recordSuccess();
-					} catch (EncryptionException e) {
-						opResult.recordFatalError(e);
-					}
-                }
-                
-                if (options == null || (options != null && !BooleanUtils.isTrue(options.isKeepMetadata()))) {
-                	MetadataType metaData = new MetadataType();
-            		String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
-            		metaData.setCreateChannel(channel);
-            		metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
-            		if (task.getOwner() != null) {
-            			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
-            		}
-            		object.asObjectable().setMetadata(metaData);
-                }
+		objectResult.computeStatus();
+		if (!objectResult.isAcceptable()) {
+			return EventResult.skipObject(objectResult.getMessage());
+		}
 
-                objectResult.computeStatus();
-                if (!objectResult.isAcceptable()) {
-                	return EventResult.skipObject(objectResult.getMessage());
-                }
-                
-                try {
+		generateIdentifiers(object, repository,  objectResult);
 
-                    importObjectToRepository(object, options, raw, task, objectResult);
+		objectResult.computeStatus();
+		if (!objectResult.isAcceptable()) {
+			return EventResult.skipObject(objectResult.getMessage());
+		}
 
-                    LOGGER.info("Imported object {}", object);
+		if (objectElement != null && options != null && BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
+		    validateWithDynamicSchemas(object, objectElement, repository, objectResult);
+		}
 
-                } catch (SchemaException e) {
-                    objectResult.recordFatalError("Schema violation: "+e.getMessage(), e);
-                    LOGGER.error("Import of object {} failed: Schema violation: {}",
-							object, e.getMessage(), e);
-                } catch (ObjectAlreadyExistsException e) {
-                	objectResult.recordFatalError("Object already exists: "+e.getMessage(), e);
-                    LOGGER.error("Import of object {} failed: Object already exists: {}",
-							object, e.getMessage(), e);
-                    LOGGER.error("Object already exists", e);
-                } catch (RuntimeException e) {
-                    objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
-                    LOGGER.error("Import of object {} failed: Unexpected problem: {}",
-							object, e.getMessage(), e);
-                } catch (ObjectNotFoundException e) {
-                	LOGGER.error("Import of object {} failed: Object referred from this object was not found: {}",
-							object, e.getMessage(), e);
-				} catch (ExpressionEvaluationException e) {
-					LOGGER.error("Import of object {} failed: Expression evaluation error: {}",
-							object, e.getMessage(), e);
-				} catch (CommunicationException e) {
-					LOGGER.error("Import of object {} failed: Communication error: {}",
-							object, e.getMessage(), e);
-				} catch (ConfigurationException e) {
-					LOGGER.error("Import of object {} failed: Configuration error: {}",
-							object, e.getMessage(), e);
-				} catch (PolicyViolationException e) {
-					LOGGER.error("Import of object {} failed: Policy violation: {}",
-							object, e.getMessage(), e);
-				} catch (SecurityViolationException e) {
-					LOGGER.error("Import of object {} failed: Security violation: {}",
-							object, e.getMessage(), e);
+		objectResult.computeStatus();
+		if (!objectResult.isAcceptable()) {
+			return EventResult.skipObject(objectResult.getMessage());
+		}
+
+		if (options != null && BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
+			OperationResult opResult = objectResult.createMinorSubresult(ObjectImporter.class.getName()+".encryptValues");
+			try {
+				CryptoUtil.encryptValues(protector, object);
+				opResult.recordSuccess();
+			} catch (EncryptionException e) {
+				opResult.recordFatalError(e);
+			}
+		}
+
+		if (options == null || !BooleanUtils.isTrue(options.isKeepMetadata())) {
+			MetadataType metaData = new MetadataType();
+				String channel = SchemaConstants.CHANNEL_OBJECT_IMPORT_URI;
+				metaData.setCreateChannel(channel);
+				metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+				if (task.getOwner() != null) {
+					metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
 				}
+				object.asObjectable().setMetadata(metaData);
+		}
 
-                objectResult.recordSuccessIfUnknown();
-                if (objectResult.isAcceptable()) {
-                    // Continue import
-                    return EventResult.cont();
-                } else {
-                    return EventResult.skipObject(objectResult.getMessage());
-                }
-            }
+		objectResult.computeStatus();
+		if (!objectResult.isAcceptable()) {
+			return EventResult.skipObject(objectResult.getMessage());
+		}
 
-			@Override
-            public void handleGlobalError(OperationResult currentResult) {
-                // No reaction
-            }
+		try {
+			importObjectToRepository(object, options, raw, task, objectResult);
+		    LOGGER.info("Imported object {}", object);
+		} catch (SchemaException e) {
+		    objectResult.recordFatalError("Schema violation: "+e.getMessage(), e);
+		    LOGGER.error("Import of object {} failed: Schema violation: {}", object, e.getMessage(), e);
+		} catch (ObjectAlreadyExistsException e) {
+			objectResult.recordFatalError("Object already exists: "+e.getMessage(), e);
+		    LOGGER.error("Import of object {} failed: Object already exists: {}", object, e.getMessage(), e);
+		    LOGGER.error("Object already exists", e);
+		} catch (RuntimeException e) {
+		    objectResult.recordFatalError("Unexpected problem: "+e.getMessage(), e);
+		    LOGGER.error("Import of object {} failed: Unexpected problem: {}", object, e.getMessage(), e);
+		} catch (ObjectNotFoundException e) {
+			LOGGER.error("Import of object {} failed: Object referred from this object was not found: {}", object, e.getMessage(), e);
+		} catch (ExpressionEvaluationException e) {
+			LOGGER.error("Import of object {} failed: Expression evaluation error: {}", object, e.getMessage(), e);
+		} catch (CommunicationException e) {
+			LOGGER.error("Import of object {} failed: Communication error: {}", object, e.getMessage(), e);
+		} catch (ConfigurationException e) {
+			LOGGER.error("Import of object {} failed: Configuration error: {}", object, e.getMessage(), e);
+		} catch (PolicyViolationException e) {
+			LOGGER.error("Import of object {} failed: Policy violation: {}", object, e.getMessage(), e);
+		} catch (SecurityViolationException e) {
+			LOGGER.error("Import of object {} failed: Security violation: {}", object, e.getMessage(), e);
+		}
 
-        };
+		objectResult.recordSuccessIfUnknown();
+		if (objectResult.isAcceptable()) {
+		    // Continue import
+		    return EventResult.cont();
+		} else {
+		    return EventResult.skipObject(objectResult.getMessage());
+		}
+	}
 
-        Validator validator = new Validator(prismContext, handler);
-        validator.setVerbose(true);
-        if (options != null) {
-	        validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
-	        if (options.getStopAfterErrors() != null) {
-	            validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
-	        }
-	        if (BooleanUtils.isTrue(options.isSummarizeErrors())) {
-	        	parentResult.setSummarizeErrors(true);
-	        }
-	        if (BooleanUtils.isTrue(options.isSummarizeSucceses())) {
-	        	parentResult.setSummarizeSuccesses(true);
-	        }
-        }
-
-        validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
-
-    }
-
-    private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, boolean raw,
+	private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options, boolean raw,
                                          Task task, OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 				ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
 

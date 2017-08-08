@@ -224,4 +224,8 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Seri
 	public boolean isHeterogeneousList() {
 		return false;
 	}
+
+	public final boolean isSingleEntryMap() {
+		return this instanceof MapXNode && ((MapXNode) this).size() == 1;
+	}
 }

@@ -114,21 +114,6 @@ public class PageDebugView extends PageAdminConfiguration {
         initLayout();
     }
 
-    private String determineDataLanguage() {
-        AdminGuiConfigurationType config = loadAdminGuiConfiguration();
-        if (config != null && config.getPreferredDataLanguage() != null) {
-            if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())){
-                return PrismContext.LANG_JSON;
-            } else if (PrismContext.LANG_YAML.equals(config.getPreferredDataLanguage())){
-                return PrismContext.LANG_YAML;
-            } else {
-                return PrismContext.LANG_XML;
-            }
-        } else {
-            return PrismContext.LANG_XML;
-        }
-    }
-
     @Override
     protected IModel<String> createPageTitleModel() {
         return new AbstractReadOnlyModel<String>() {
@@ -284,7 +269,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void addOrReplaceEditor(){
-        editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        editor = new AceEditor("aceEditor", new PropertyModel<>(model, ObjectViewDto.F_XML));
         editor.setModeForDataLanguage(dataLanguage);
         editor.add(new AjaxFormComponentUpdatingBehavior("blur") {
 

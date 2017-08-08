@@ -56,6 +56,17 @@ public class LexicalProcessorRegistry {
 	}
 
 	@NotNull
+	public String detectLanguage(File file) throws IOException {
+		for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
+			LexicalProcessor aLexicalProcessor = entry.getValue();
+			if (aLexicalProcessor.canRead(file)) {
+				return entry.getKey();
+			}
+		}
+		throw new SystemException("Data language couldn't be auto-detected for file '"+file+"'");
+	}
+
+	@NotNull
 	private LexicalProcessor findProcessor(File file) throws IOException {
 		for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
 			LexicalProcessor aLexicalProcessor = entry.getValue();

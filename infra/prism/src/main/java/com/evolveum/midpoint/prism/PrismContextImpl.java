@@ -260,7 +260,14 @@ public class PrismContextImpl implements PrismContext {
 	public PrismParserNoIO parserFor(@NotNull Element data) {
 		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
-    //endregion
+
+	@NotNull
+	@Override
+	public String detectLanguage(@NotNull File file) throws IOException {
+		return lexicalProcessorRegistry.detectLanguage(file);
+	}
+
+	//endregion
 
     //region adopt(...) methods
     /**

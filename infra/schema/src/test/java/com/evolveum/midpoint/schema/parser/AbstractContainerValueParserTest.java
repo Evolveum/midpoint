@@ -19,8 +19,6 @@ package com.evolveum.midpoint.schema.parser;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
@@ -28,7 +26,8 @@ import javax.xml.namespace.QName;
 /**
  * @author mederly
  */
-public abstract class AbstractContainerValueParserTest<C extends Containerable> extends AbstractParserTest<PrismContainerValue<C>> {
+public abstract class AbstractContainerValueParserTest<C extends Containerable> extends
+		AbstractPrismValueParserTest<PrismContainerValue<C>> {
 
 	@SuppressWarnings("Convert2MethodRef")
 	protected void processParsings(Class<C> clazz, Class<? extends C> specificClass, QName type, QName specificType, SerializingFunction<PrismContainerValue<C>> serializer, String serId) throws Exception {
@@ -105,9 +104,5 @@ public abstract class AbstractContainerValueParserTest<C extends Containerable> 
 	}
 
 	protected abstract void assertPrismContainerValueLocal(PrismContainerValue<C> value) throws SchemaException;
-
-	protected PrismContext getPrismContext() {
-		return PrismTestUtil.getPrismContext();
-	}
 
 }

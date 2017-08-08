@@ -87,7 +87,16 @@ public class DomLexicalWriter {
         return serializeInternal(rootxnode, null);
     }
 
-    // this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
+	public Element serialize(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName) throws SchemaException {
+		initialize();
+		Element aggregateElement = createElement(aggregateElementName, null);
+		for (RootXNode root : roots) {
+			serializeInternal(root, aggregateElement);
+		}
+		return aggregateElement;
+	}
+
+	// this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
     @Deprecated
     public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
         initializeWithExistingDocument(document);
