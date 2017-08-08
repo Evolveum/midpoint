@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,6 +72,16 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 public class TestParseDiffPatch {
 
 	private static final String TEST_DIR = "src/test/resources/diff/";
+	
+	private static final File USER_BEFORE_FILE = new File(TEST_DIR, "user-before.xml");
+	private static final File USER_AFTER_FILE = new File(TEST_DIR, "user-after.xml");
+	private static final File TASK_BEFORE_FILE = new File(TEST_DIR, "task-before.xml");
+	private static final File TASK_AFTER_FILE = new File(TEST_DIR, "task-after.xml");
+	private static final File RESOURCE_BEFORE_FILE = new File(TEST_DIR, "resource-before.xml");
+	private static final File RESOURCE_AFTER_FILE = new File(TEST_DIR, "resource-after.xml");
+	private static final File RESOURCE_AFTER_CONST_FILE = new File(TEST_DIR, "resource-after-const.xml");
+	private static final File RESOURCE_AFTER_NS_CHANGE_FILE = new File(TEST_DIR, "resource-after-ns-change.xml");
+	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -83,11 +93,9 @@ public class TestParseDiffPatch {
     public void testUserCredentialsDiff() throws Exception {
         System.out.println("===[ testUserCredentialsDiff ]===");
 
-        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(
-                new File(TEST_DIR, "user-before.xml"));
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_BEFORE_FILE);
         userBefore.checkConsistence();
-        PrismObject<UserType> userAfter = PrismTestUtil.parseObject(
-                new File(TEST_DIR, "user-after.xml"));
+        PrismObject<UserType> userAfter = PrismTestUtil.parseObject(USER_AFTER_FILE);
         userAfter.checkConsistence();
 
         ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
@@ -113,8 +121,7 @@ public class TestParseDiffPatch {
     public void testAssignmentActivationDiff() throws Exception {
         System.out.println("===[ testUserCredentialsDiff ]===");
 
-        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(
-                new File(TEST_DIR, "user-before.xml"));
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_BEFORE_FILE);
         PrismObject<UserType> userAfter = userBefore.clone();
         AssignmentType assignmentBefore = new AssignmentType();
         ActivationType activation = new ActivationType();
@@ -333,7 +340,7 @@ public class TestParseDiffPatch {
 
         // WHEN
 
-        ObjectDelta<TaskType> diffDelta = DiffUtil.diff(new File(TEST_DIR, "task-before.xml"),
+        ObjectDelta<TaskType> diffDelta = DiffUtil.diff(TASK_BEFORE_FILE,
         		new File(TEST_DIR, "task-after.xml"), TaskType.class, getPrismContext());
 
         // THEN
@@ -368,7 +375,7 @@ public class TestParseDiffPatch {
 
         // ROUNDTRIP
 
-        PrismObject<TaskType> taskPatch = PrismTestUtil.parseObject(new File(TEST_DIR, "task-before.xml"));
+        PrismObject<TaskType> taskPatch = PrismTestUtil.parseObject(TASK_BEFORE_FILE);
         taskPatch.checkConsistence();
 
         // patch
@@ -379,7 +386,7 @@ public class TestParseDiffPatch {
 
         diffDelta.checkConsistence();
         taskPatch.checkConsistence();
-        PrismObject<TaskType> taskAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "task-after.xml"));
+        PrismObject<TaskType> taskAfter = PrismTestUtil.parseObject(TASK_AFTER_FILE);
         taskAfter.checkConsistence();
 
         assertTrue("Not equivalent",taskPatch.equivalent(taskAfter));
@@ -401,11 +408,11 @@ public class TestParseDiffPatch {
 	}
 
 	@Test
-	public void testResource() throws SchemaException, SAXException, IOException, JAXBException {
+	public void testResource() throws Exception {
 		System.out.println("===[ testResource ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));
-        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after.xml"));
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_FILE);
 
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
@@ -427,7 +434,7 @@ public class TestParseDiffPatch {
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
 
-        assertEquals("Wrong delta OID", "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", resourceDelta.getOid());
+        assertEquals("Wrong delta OID", RESOURCE_OID, resourceDelta.getOid());
         assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
         Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
         assertEquals("Unexpected number of modifications", 7, modifications.size());
@@ -447,6 +454,77 @@ public class TestParseDiffPatch {
         resourceAfter.checkConsistence();
 	}
 
+	@Test
+	public void testResourceConst() throws Exception {
+		System.out.println("===[ testResourceConst ]===");
+
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_CONST_FILE);
+
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
+        // sanity
+        assertFalse("Equals does not work", resourceBefore.equals(resourceAfter));
+
+        // WHEN
+
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter);
+
+        // THEN
+
+        System.out.println("DELTA:");
+        System.out.println(resourceDelta.debugDump());
+
+        resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
+        assertEquals("Wrong delta OID", RESOURCE_OID, resourceDelta.getOid());
+        assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
+        Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
+        assertEquals("Unexpected number of modifications", 2, modifications.size());
+        assertConfigurationPropertyChange(resourceDelta, "host");
+        assertConfigurationPropertyChange(resourceDelta, "port");
+
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+	}
+
+	@Test
+	public void testResourceConstLiteral() throws Exception {
+		System.out.println("===[ testResourceConstLiteral ]===");
+
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_CONST_FILE);
+
+        // WHEN
+
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, true, true);
+
+        // THEN
+
+        System.out.println("DELTA:");
+        System.out.println(resourceDelta.debugDump());
+
+        resourceDelta.checkConsistence();
+        resourceDelta.assertDefinitions(true);
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+
+        assertEquals("Wrong delta OID", RESOURCE_OID, resourceDelta.getOid());
+        assertEquals("Wrong change type", ChangeType.MODIFY, resourceDelta.getChangeType());
+        Collection<? extends ItemDelta> modifications = resourceDelta.getModifications();
+        assertEquals("Unexpected number of modifications", 2, modifications.size());
+        assertConfigurationPropertyChange(resourceDelta, "host");
+        assertConfigurationPropertyChange(resourceDelta, "port");
+
+        resourceDelta.checkConsistence();
+        resourceBefore.checkConsistence();
+        resourceAfter.checkConsistence();
+	}
 
 	private void assertConfigurationPropertyChange(ObjectDelta<ResourceType> resourceDelta, String propName) {
 		resourceDelta.checkConsistence();
@@ -470,8 +548,8 @@ public class TestParseDiffPatch {
 	public void testResourceRoundTrip() throws SchemaException, SAXException, IOException, JAXBException {
 		System.out.println("===[ testResourceRoundTrip ]===");
 
-        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));
-        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after.xml"));
+        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_FILE);
 
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
@@ -538,8 +616,8 @@ public class TestParseDiffPatch {
 	public void testResourceNsChange() throws SchemaException, SAXException, IOException, JAXBException {
 		System.out.println("===[ testResourceNsChange ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-before.xml"));
-        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-after-ns-change.xml"));
+		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_NS_CHANGE_FILE);
 
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
