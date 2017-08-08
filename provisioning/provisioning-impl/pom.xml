@@ -116,6 +116,11 @@
 			<artifactId>jul-to-slf4j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.jboss</groupId>
+			<artifactId>jboss-vfs</artifactId>
+			<version>3.2.2.Final</version>
+		</dependency>
 
 		<!-- Testing dependecies -->
 		<dependency>
