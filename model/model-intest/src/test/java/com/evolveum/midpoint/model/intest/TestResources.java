@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -36,8 +37,12 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -63,6 +68,8 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.FailableFunction;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -917,8 +924,48 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     }
     
     @Test
-    public void test765ModifyConfigurationDiffExpressionRaw() throws Exception {
-		final String TEST_NAME = "test765ModifyConfigurationDiffExpressionRaw";
+    public void test765ModifyConfigurationDiffExpressionRawPrismContextParse() throws Exception {
+		final String TEST_NAME = "test765ModifyConfigurationDiffExpressionRawPrismContextParse";		
+		modifyConfigurationDiffExpressionRaw(TEST_NAME, xml -> prismContext.parseObject(xml));
+    }
+    
+    /**
+     * This is what GUI "Repository objects" page really does with XML.
+     */
+    @Test
+    public void test767ModifyConfigurationDiffExpressionRawValidatorParse() throws Exception {
+		final String TEST_NAME = "test767ModifyConfigurationDiffExpressionRawValidatorParse";		
+		modifyConfigurationDiffExpressionRaw(TEST_NAME, xml -> {
+			final Holder<PrismObject<ResourceType>> objectHolder = new Holder<>();
+			EventHandler handler = new EventHandler() {
+
+				@Override
+				public EventResult preMarshall(Element objectElement, Node postValidationTree,
+						OperationResult objectResult) {
+					return EventResult.cont();
+				}
+
+				@Override
+				public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+						OperationResult objectResult) {
+					objectHolder.setValue((PrismObject<ResourceType>) object);
+					return EventResult.cont();
+				}
+
+				@Override
+				public void handleGlobalError(OperationResult currentResult) {
+				}
+			};
+			Validator validator = new Validator(prismContext, handler);
+			validator.setVerbose(true);
+			validator.setValidateSchema(false);
+			OperationResult result = new OperationResult("validator");
+			validator.validateObject(xml, result);
+			return objectHolder.getValue();
+		});
+    }
+    
+    public void modifyConfigurationDiffExpressionRaw(final String TEST_NAME, FailableFunction<String, PrismObject<ResourceType>> parser) throws Exception {
         displayTestTile(TEST_NAME);
     	
         Task task = createTask(TEST_NAME);
@@ -931,14 +978,15 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         String modifiedResourceXml = serializedResource.replace("whatever raw wherever", 
         		"<expression><const xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"c:ConstExpressionEvaluatorType\">useless</const></expression>");
         display("New resource XML", modifiedResourceXml);
-        PrismObject<ResourceType> modifiedResource = prismContext.parseObject(modifiedResourceXml);
+        
+        PrismObject<ResourceType> modifiedResource = parser.apply(modifiedResourceXml);
         display("New resource", modifiedResource);
         
         // just for fun
         String serializedModifiedResource = prismContext.serializerFor(PrismContext.LANG_XML).serialize(modifiedResource);
         assertNotNull(serializedModifiedResource);
         
-        ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource);
+        ObjectDelta<ResourceType> diffDelta = resourceBefore.diff(modifiedResource, true, true);
         display("Diff delta", diffDelta);
     	
     	// WHEN
