@@ -132,6 +132,9 @@ public class BeanUnmarshaller {
 	}
 
 	private <T> T unmarshalInternal(@NotNull XNode xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+		if (beanClass == null) {
+			throw new IllegalStateException("No bean class for node: " + xnode.debugDump());
+		}
 		if (xnode instanceof RootXNode) {
 			XNode subnode = ((RootXNode) xnode).getSubnode();
 			if (subnode == null) {
@@ -163,8 +166,11 @@ public class BeanUnmarshaller {
 			}
 		} else {
 			
-			if (beanClass.getPackage().getName().equals("java.lang")) {
-				// We obviously have primitive data type, but we have are asked to unmarshall from map xnode
+			if (beanClass.getPackage() == null || beanClass.getPackage().getName().equals("java.lang")) {
+				// We obviously have primitive data type, but we are asked to unmarshall from map xnode
+				// NOTE: this may happen in XML when we have "empty" element, but it has some whitespace in it
+				//       such as those troublesome newlines. This also happens if there is "empty" element
+				//       but it contains an expression (so it is not PrimitiveXNode but MapXNode).
 				// TODO: more robust implementation
 				// TODO: look for "value" subnode with primitive value and try that.
 				// This is most likely attempt to parse primitive value with dynamic expression.
