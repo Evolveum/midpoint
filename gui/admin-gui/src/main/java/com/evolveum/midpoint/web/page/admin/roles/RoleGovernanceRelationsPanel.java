@@ -278,5 +278,9 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
         return oidsList;
     }
 
+    @Override
+    protected boolean isGovernance(){
+        return true;
+    }
 
 }
