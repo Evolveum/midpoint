@@ -3470,7 +3470,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Pssst! hear this: dead men tell no tales");
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Singer");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_WEAK_SINGER_TITLE);
 
 	}
 	
@@ -3838,7 +3838,7 @@ public class TestRbac extends AbstractRbacTest {
         assertNoDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Singer");
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, ROLE_WEAK_SINGER_TITLE);
 	}
 	
 	/**
