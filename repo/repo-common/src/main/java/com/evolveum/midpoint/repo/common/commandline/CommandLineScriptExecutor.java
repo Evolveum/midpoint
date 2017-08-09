@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.common.commandline;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.SystemUtils;
@@ -38,13 +39,19 @@ public class CommandLineScriptExecutor {
     //-> [bash,-c,"echo Im not a number, im a ; echo free man"]
     public static final String VARIABLE_REPORT = "$report";
 
+    private OperationResult result;
     private String generatedOutputFilePath;
 
     private static final Trace LOGGER = TraceManager.getTrace(CommandLineScriptExecutor.class);
 
-    public CommandLineScriptExecutor(String code, String generatedOutputFilePath, Map<String, String> variables) throws IOException, InterruptedException {
+    public CommandLineScriptExecutor(String code, String generatedOutputFilePath, Map<String, String> variables, OperationResult parentResult) throws IOException, InterruptedException {
+        this.result = parentResult.createSubresult(CommandLineScriptExecutor.class.getSimpleName() + ".run");
         this.generatedOutputFilePath = modifyFilepathDependingOnOS(generatedOutputFilePath);
-        LOGGER.debug("The shell code to be executed: {}", code);
+        if (!LOGGER.isDebugEnabled()) {
+        } else {
+            LOGGER.debug("The shell code to be executed: {}", code);
+        }
+
         executeScript(code, variables);
     }
 
@@ -65,8 +72,10 @@ public class CommandLineScriptExecutor {
             }
             scriptParts.add(processedCommand);
         }
-
-        LOGGER.debug("The constructed list of commands: {}", scriptParts);
+        if (!LOGGER.isDebugEnabled()) {
+        } else {
+            LOGGER.debug("The constructed list of commands: {}", scriptParts);
+        }
         ProcessBuilder processBuilder = new ProcessBuilder(scriptParts);
 
         if (variables != null && !variables.isEmpty()) {
@@ -75,7 +84,10 @@ public class CommandLineScriptExecutor {
                 environmentVariables.put(variableName, variables.get(variableName));
             }
         }
-        LOGGER.debug("Starting process ", processBuilder.command());
+        if (!LOGGER.isDebugEnabled()) {
+        } else {
+            LOGGER.debug("Starting process ", processBuilder.command());
+        }
         Process process = processBuilder.start();
         Integer exitValue = process.waitFor();
 
@@ -105,11 +117,20 @@ public class CommandLineScriptExecutor {
             String line = null;
             if (errorStream != null) {
                 try (BufferedReader bufferedProcessErrorOutputReader = new BufferedReader(new InputStreamReader(errorStream))) {
+                    outputBuilder.append(" Error output: "); // TODO REMOVE
                     while ((line = bufferedProcessErrorOutputReader.readLine()) != null) {
                         outputBuilder.append(line + System.getProperty("line.separator"));
                     }
+                    String aWarning = outputBuilder.toString();
+                    if (!LOGGER.isWarnEnabled()) {
+                    } else {
+                        LOGGER.warn(aWarning);
+                    }
+                    result.isPartialError();
+                    result.recordWarning(aWarning);
                 }
             }
+            outputBuilder = new StringBuilder();
             while ((line = bufferedProcessOutputReader.readLine()) != null) {
                 outputBuilder.append(line + System.getProperty("line.separator"));
             }
@@ -124,10 +145,22 @@ public class CommandLineScriptExecutor {
     }
 
     private void evaluateExitValue(Integer exitValue, String message) {
+        StringBuilder messageBuilder = new StringBuilder();
         if (exitValue != EXIT_SUCCESS) {
-            LOGGER.warn("Process exited with an error, the exit value {}. Only a part of the script might have been executed, the output containing the error message: {}", exitValue, message);
+            messageBuilder.append("Process exited with an error, the exit value ").append(exitValue).append(". Only a part of the script might have been executed, the output containing the error message: ").append(message);
+            String warnMessage = messageBuilder.toString();
+            if (!LOGGER.isWarnEnabled()) {
+            } else {
+                LOGGER.warn(warnMessage);
+            }
+            result.recordWarning(warnMessage);
         } else {
-            LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
+            if (!LOGGER.isDebugEnabled()) {
+            } else {
+                LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
+            }
+            result.recordSuccess();
+
         }
     }
 
@@ -142,6 +175,10 @@ public class CommandLineScriptExecutor {
             return filepath;
         }
         return pathEscapedSpaces.toString();
+    }
+
+    public OperationResult getResult() {
+        return this.result;
     }
 
 }

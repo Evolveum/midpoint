@@ -225,7 +225,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
             saveReportOutputType(reportFilePath, parentReport, task, result);
             LOGGER.trace("create report output type : {}", reportFilePath);
 
-            processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, task);
+            processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, parentResult);
             result.computeStatus();
 
         } catch (Exception ex) {
@@ -511,19 +511,19 @@ public class ReportCreateTaskHandler implements TaskHandler {
         subResult.computeStatus();
     }
 
-    private void processPostReportScript(String code,String reportOutputFilePath, Task task){
-
+    private void processPostReportScript(String code,String reportOutputFilePath,OperationResult parentResult ){
         if (code!=null && !code.isEmpty()){
 
             try{
-                CommandLineScriptExecutor commandLineScriptExecutor = new CommandLineScriptExecutor(code,reportOutputFilePath,null);
+                CommandLineScriptExecutor commandLineScriptExecutor = new CommandLineScriptExecutor(code,reportOutputFilePath,null, parentResult);
             }catch (Exception e) {
                 LOGGER.error("An exception has occurred {}",e.getLocalizedMessage());
                // LoggingUtils.logExceptionAsWarning(LOGGER,"And unexpected exception occurred during post report script execution",e, task);
             }
-
         } else{
-            LOGGER.debug("No post report script found");
+            if(LOGGER.isDebugEnabled()){
+                LOGGER.debug("No post report script found");
+            }
         }
     }
 
