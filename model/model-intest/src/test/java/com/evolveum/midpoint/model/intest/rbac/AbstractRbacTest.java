@@ -115,6 +115,7 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 
 	protected static final File ROLE_WEAK_SINGER_FILE = new File(TEST_DIR, "role-weak-singer.xml");
 	protected static final String ROLE_WEAK_SINGER_OID = "caa7daf2-dd68-11e6-a780-ef610c7c3a06";
+	protected static final String ROLE_WEAK_SINGER_TITLE = "Singer";
 
 	protected static final File ROLE_IMMUTABLE_FILE = new File(TEST_DIR, "role-immutable.xml");
 	protected static final String ROLE_IMMUTABLE_OID = "e53baf94-aa99-11e6-962a-5362ec2dd7df";

@@ -255,6 +255,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_STRONG_SAILOR_FILE, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {

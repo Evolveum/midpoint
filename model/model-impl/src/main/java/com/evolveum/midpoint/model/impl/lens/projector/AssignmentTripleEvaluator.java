@@ -501,6 +501,9 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, task, result);
         	context.rememberResources(evaluatedAssignment.getResources(task, result));
         	result.recordSuccess();
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment == null ? null : evaluatedAssignment.debugDump(1));
+        	}
         	return evaluatedAssignment;
         } catch (ObjectNotFoundException ex) {
         	if (LOGGER.isTraceEnabled()) {
@@ -532,6 +535,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 			}
         	return null;
         } catch (ExpressionEvaluationException | PolicyViolationException e) {
+        	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Processing of assignment resulted in error {}: {}", e, SchemaDebugUtil.prettyPrint(assignmentType));
+            }
         	result.recordFatalError(e);
         	throw e;
         }
