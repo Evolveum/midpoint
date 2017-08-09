@@ -1202,8 +1202,8 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	 * MID-4110
 	 */
 	@Test
-    public void test174JackAssignRoleSailorAgain() throws Exception {
-		final String TEST_NAME = "test174JackAssignRoleSailorAgain";
+    public void test174JackAssignRoleSingerAgain() throws Exception {
+		final String TEST_NAME = "test174JackAssignRoleSingerAgain";
         displayTestTile(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
@@ -1235,6 +1235,113 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test179JackUnassignAll() throws Exception {
 		unassignAll("test179JackUnassignAll");
+	}
+	
+	/**
+	 * This time do both assigns as raw. And do NOT recompute until everything is set up.
+	 * MID-4110
+	 */
+	@Test
+    public void test180JackAssignRoleSailorValidToRaw() throws Exception {
+		final String TEST_NAME = "test180JackAssignRoleSailorValidToRaw";
+        displayTestTile(TEST_NAME);
+
+        Task task =  createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        ActivationType activationType = new ActivationType();
+        jackPirateValidTo = getTimestamp("PT10M");
+        activationType.setValidTo(jackPirateValidTo);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+		modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null, 
+        		task, null, activationType, true, ModelExecuteOptions.createRaw(), result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        assertAssignments(userAfter, 1);
+        AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
+        assertEffectiveActivation(assignmentTypeAfter, null);
+        assertRoleMembershipRef(userAfter);
+		assertDelegatedRef(userAfter);
+		
+		assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+		
+	/**
+	 * MID-4110
+	 */
+	@Test
+    public void test182Forward15minAndAssignRaw() throws Exception {
+		final String TEST_NAME = "test142Forward15min";
+        displayTestTile(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        clockForward("PT15M");
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null, 
+        		task, null, null, true, ModelExecuteOptions.createRaw(), result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        assertAssignments(userAfter, 2);
+        assertRoleMembershipRef(userAfter);
+
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	/**
+	 * MID-4110
+	 */
+	@Test
+    public void test184RecomputeJack() throws Exception {
+		final String TEST_NAME = "test184RecomputeJack";
+        displayTestTile(TEST_NAME);
+
+        Task task =  createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User jack after", userAfter);
+        assertAssignments(userAfter, 2);
+        assertRoleMembershipRef(userAfter, ROLE_STRONG_SAILOR_OID);
+		assertDelegatedRef(userAfter);
+		
+		assertJackDummySailorAccount();
+	}
+	
+	/**
+	 * MID-4110
+	 */
+	@Test
+    public void test189JackUnassignAll() throws Exception {
+		unassignAll("test189JackUnassignAll");
 	}
 
 	

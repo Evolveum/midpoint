@@ -684,9 +684,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		LOGGER.debug("Evaluating RBAC [{}]", ctx.assignmentPath.shortDumpLazily());
 		InternalMonitor.recordRoleEvaluation(targetType, true);
 		
-		// Cache it immediately, even before evaluation. So if there is a cycle in the role path
-		// then we can detect it and skip re-evaluation of aggressively idempotent roles.
-		evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
+		if (isValid) {
+			// Cache it immediately, even before evaluation. So if there is a cycle in the role path
+			// then we can detect it and skip re-evaluation of aggressively idempotent roles.
+			evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
+		}
 		
 		if (isTargetValid && targetType instanceof AbstractRoleType) {
 			MappingType roleCondition = ((AbstractRoleType)targetType).getCondition();
