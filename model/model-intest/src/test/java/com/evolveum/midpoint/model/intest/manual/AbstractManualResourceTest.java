@@ -86,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
@@ -2626,18 +2627,13 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		OperationResult result = task.getResult();
 		
 		PrismObject<UserType> userBefore = getUser(userWillOid);
-		
-		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();	
-		modifications.add((createAssignmentModification(userBefore.asObjectable().getAssignment().get(0).getId(), false)));
-		modifications.add((createAssignmentModification(userBefore.asObjectable().getAssignment().get(1).getId(), false)));
-		ObjectDelta<UserType> focusDelta = ObjectDelta.createModifyDelta(userWillOid, modifications, UserType.class, prismContext);
-		
+				
 		accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 		
 		// WHEN
 		displayWhen(TEST_NAME);
 		
-		modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
+		unassignAll(userBefore, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -2655,7 +2651,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
-	
+		
 	protected void assertTest526Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
 		assertPendingOperationDeltas(shadowRepo, 3);
 		

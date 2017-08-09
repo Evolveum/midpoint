@@ -1147,11 +1147,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
 		modelService.executeChanges(deltas, options, task, result);
 	}
+	
+	/**
+	 * Executes unassign delta by removing each assignment individually by id.
+	 */
+	protected <F extends FocusType> void unassignAll(PrismObject<F> focusBefore, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> focusDelta = createUnassignAllDelta(focusBefore);
+		modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
+	}
 
+	/**
+	 * Creates unassign delta by removing each assignment individually by id.
+	 */
+	protected <F extends FocusType> ObjectDelta<F> createUnassignAllDelta(PrismObject<F> focusBefore) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		for (AssignmentType assignmentType: focusBefore.asObjectable().getAssignment()) {
+			modifications.add((createAssignmentModification(assignmentType.getId(), false)));
+		}
+		return ObjectDelta.createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass(), prismContext);
+	}
+	
 	/**
 	 * Executes assignment replace delta with empty values.
 	 */
-	protected void unassignAll(String userOid, Task task, OperationResult result) 
+	protected void unassignAllReplace(String userOid, Task task, OperationResult result) 
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
