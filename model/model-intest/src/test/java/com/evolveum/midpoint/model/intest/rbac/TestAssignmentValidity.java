@@ -100,7 +100,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
 	/**
 	 * Assignment expires.
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test102Forward15min() throws Exception {
@@ -124,7 +124,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -190,7 +190,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -247,7 +247,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	}
 
 	/**
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test111RecomputeJack() throws Exception {
@@ -272,7 +272,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
 		assertDelegatedRef(userAfter);
 		
@@ -281,7 +281,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
 	/**
 	 * Assignment expires.
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test112Forward15min() throws Exception {
@@ -305,7 +305,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -399,7 +399,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	
 	/**
 	 * Assignment expires.
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test122Forward15min() throws Exception {
@@ -423,7 +423,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -516,7 +516,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	}
 	
 	/**
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test131RecomputeJack() throws Exception {
@@ -541,7 +541,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.ENABLED);
         assertRoleMembershipRef(userAfter, ROLE_STRONG_SAILOR_OID);
 		assertDelegatedRef(userAfter);
 		
@@ -550,7 +550,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	
 	/**
 	 * Assignment expires.
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test132Forward15min() throws Exception {
@@ -574,7 +574,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -689,7 +689,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         display("User jack after", userAfter);
         assertAssignments(userAfter, 1);
         AssignmentType assignmentTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
-//        assertEffectiveActivation(assignmentTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentTypeAfter, null); // Not recomputed
         assertRoleMembershipRef(userAfter);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -818,7 +818,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	
 	/**
 	 * Assignment expires.
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test153Forward15min() throws Exception {
@@ -844,7 +844,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         AssignmentType assignmentPirateTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertEffectiveActivation(assignmentPirateTypeAfter, ActivationStatusType.ENABLED);
         AssignmentType assignmentSailorTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
-//        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
 
         assertJackDummyPirateAccount();
@@ -1002,7 +1002,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         
         assertAssignments(userAfter, 2);
         AssignmentType assignmentSailorTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
-//        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.ENABLED);
+        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.ENABLED);
         AssignmentType assignmentPirateTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertEffectiveActivation(assignmentPirateTypeAfter, ActivationStatusType.ENABLED);
         
@@ -1014,7 +1014,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 		
 	/**
 	 * Assignment expires.
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test163Forward15min() throws Exception {
@@ -1040,7 +1040,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         AssignmentType assignmentPirateTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertEffectiveActivation(assignmentPirateTypeAfter, ActivationStatusType.ENABLED);
         AssignmentType assignmentSailorTypeAfter = assertAssignedRole(userAfter, ROLE_STRONG_SAILOR_OID);
-//        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
 
         assertJackDummyPirateAccount();
@@ -1164,7 +1164,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	
 	/**
 	 * Assignment expires.
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test173Forward15min() throws Exception {
@@ -1190,7 +1190,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         AssignmentType assignmentPirateTypeAfter = assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertEffectiveActivation(assignmentPirateTypeAfter, ActivationStatusType.ENABLED);
         AssignmentType assignmentSailorTypeAfter = assertAssignedRole(userAfter, ROLE_WEAK_SINGER_OID);
-//        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.DISABLED);
+        assertEffectiveActivation(assignmentSailorTypeAfter, ActivationStatusType.DISABLED);
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID);
 
         // Dummy attribute "title" is tolerant, so the singer value remains
@@ -1306,7 +1306,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	}
 	
 	/**
-	 * MID-4110
+	 * MID-4110, MID-4114
 	 */
 	@Test
     public void test184RecomputeJack() throws Exception {
