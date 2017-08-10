@@ -41,8 +41,8 @@
     <import resource="classpath*:ctx-workflow.xml" />
     <import resource="classpath*:ctx-notifications.xml" />
     <import resource="classpath:ctx-certification.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-init.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-web-security.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-webapp.xml" />
-    <import resource="file:src/main/webapp/WEB-INF/ctx-web-security-basic.xml" />
+    <import resource="classpath:ctx-init.xml" />
+    <import resource="classpath:ctx-web-security.xml" />
+    <import resource="classpath:ctx-webapp.xml" />
+    <import resource="classpath:ctx-web-security-basic.xml" />
 </beans>
