@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
 import com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -35,12 +36,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Order(5)
 @Configuration
 @EnableGlobalMethodSecurity(securedEnabled = true)
 @EnableWebSecurity
@@ -61,28 +62,7 @@ public class WebSecurityConfig {
         return filter;
     }
 
-    @Order(10)
-    @Configuration
-    public static class WsConfig extends WebSecurityConfigurerAdapter {
-
-        @Override
-        public void configure(WebSecurity web) throws Exception {
-            web.ignoring().antMatchers("/model/**");
-            web.ignoring().antMatchers("/ws/**");
-        }
-    }
-
-    @Order(20)
-    @Configuration
-    public static class RestConfig extends WebSecurityConfigurerAdapter {
-
-        @Override
-        public void configure(WebSecurity web) throws Exception {
-            web.ignoring().antMatchers("/rest/**");
-        }
-    }
-
-    @Order(30)
+    @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
     @Configuration
     public static class WebConfig extends WebSecurityConfigurerAdapter {
 
@@ -91,6 +71,11 @@ public class WebSecurityConfig {
 
         @Override
         public void configure(WebSecurity web) throws Exception {
+            web.ignoring().antMatchers("/model/**");
+            web.ignoring().antMatchers("/ws/**");
+
+            web.ignoring().antMatchers("/rest/**");
+
             web.ignoring().antMatchers("/js/**");
             web.ignoring().antMatchers("/css/**");
             web.ignoring().antMatchers("/img/**");
@@ -102,32 +87,29 @@ public class WebSecurityConfig {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.authorizeRequests()
-                    .anyRequest().permitAll();
-//            http.authorizeRequests()
-//                    .antMatchers("/j_spring_security_check",
-//                            "/spring_security_login",
-//                            "/login",
-//                            "/bootstrap").permitAll()
-//                    .anyRequest().fullyAuthenticated();
-////                    .antMatchers("/admin/**", "/**").fullyAuthenticated();
-//
-//            http.logout()
-//                    .logoutUrl("/j_spring_security_logout")
-//                    .invalidateHttpSession(true)
-//                    .logoutSuccessHandler(logoutHandler());
-//
-//            http.sessionManagement()
-//                    .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-//                    .maximumSessions(1)
-//                    .maxSessionsPreventsLogin(true);
-//
-//            http.formLogin()
-//                    .loginPage("/login")
-//                    .loginProcessingUrl("/spring_security_login")
-//                    .successHandler(authenticationSuccessHandler()).permitAll();
-//
-//            http.csrf().disable();
-//            http.headers().disable();
+                    .antMatchers("/j_spring_security_check",
+                            "/spring_security_login",
+                            "/login",
+                            "/bootstrap").permitAll()
+                    .anyRequest().fullyAuthenticated();
+
+            http.logout()
+                    .logoutUrl("/j_spring_security_logout")
+                    .invalidateHttpSession(true)
+                    .logoutSuccessHandler(logoutHandler());
+
+            http.sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                    .maximumSessions(1)
+                    .maxSessionsPreventsLogin(true);
+
+            http.formLogin()
+                    .loginPage("/login")
+                    .loginProcessingUrl("/spring_security_login")
+                    .successHandler(authenticationSuccessHandler()).permitAll();
+
+            http.csrf().disable();
+            http.headers().disable();
         }
 
         @ConditionalOnMissingBean
