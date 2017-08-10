@@ -54,22 +54,28 @@
                 </label>
                 <label class="col-lg-2 checkbox-inline">
                     <input wicket:id="validateDynamicSchema" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.validateDynamicSchema"/>
+                    <wicket:message key="importOptionsPanel.validateDynamicSchema"/>*
                 </label>
                 <label class="col-lg-2 checkbox-inline">
                     <input wicket:id="validateStaticSchema" type="checkbox" name="optionsRadios" checked>
-                    <wicket:message key="importOptionsPanel.validateStaticSchema"/>
+                    <wicket:message key="importOptionsPanel.validateStaticSchema"/>*
                 </label>
             </div>
         </div>
     </div>
     <div class="form-group">
-        <label class="col-lg-2 control-label"><wicket:message key="importOptionsPanel.stopAfter"/></label>
+        <label class="col-lg-2 control-label"><wicket:message key="importOptionsPanel.stopAfter"/>*</label>
 
         <div class="col-lg-1">
             <input wicket:id="errors" wicket:message="placeholder:ImportOptionsPanel.errorCount" type="text"
                    class="form-control input-sm">
         </div>
+    </div>
+    <div>
+        <label class="col-lg-2"></label>
+        <label class="col-lg-10" style="font-weight: normal">
+            <wicket:message key="importOptionsPanel.note"/>
+        </label>
     </div>
 </wicket:panel>
 </html>

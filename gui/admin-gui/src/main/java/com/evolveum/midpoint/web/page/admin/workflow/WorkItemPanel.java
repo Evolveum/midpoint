@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
@@ -81,6 +82,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_HISTORY_CONTAINER = "historyContainer";
     private static final String ID_HISTORY = "history";
     private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
+	private static final String ID_PREVIEWS_PANEL = "previewsPanel";
     private static final String ID_RELATED_WORK_ITEMS_CONTAINER = "relatedWorkItemsContainer";
     private static final String ID_RELATED_WORK_ITEMS = "relatedWorkItems";
 	private static final String ID_RELATED_WORK_ITEMS_HELP = "otherWorkItemsHelp";
@@ -95,7 +97,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 	private static final String ID_REQUESTER_COMMENT_CONTAINER = "requesterCommentContainer";
 	private static final String ID_REQUESTER_COMMENT_MESSAGE = "requesterCommentMessage";
 	private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
-	
+
 	private static final String DOT_CLASS = WorkItemPanel.class.getName() + ".";
 	private static final String OPERATION_LOAD_CUSTOM_FORM = DOT_CLASS + "loadCustomForm";
 
@@ -121,6 +123,10 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		historyContainer.add(historyContainerVisible);
 		historyContainer.add(WebComponentUtil.createHelp(ID_HISTORY_HELP));
 		additionalInfoColumn.add(historyContainer);
+
+		IModel<String> taskOidModel = new PropertyModel<>(getModel(), WorkItemDto.F_TASK_OID);
+	    IModel<Boolean> showNextStagesModel = new PropertyModel<>(getModel(), WorkItemDto.F_IN_STAGE_BEFORE_LAST_ONE);
+	    additionalInfoColumn.add(new SwitchableApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, pageBase));
 
 		WebMarkupContainer relatedWorkItemsContainer = new WebMarkupContainer(ID_RELATED_WORK_ITEMS_CONTAINER);
 		final IModel<List<WorkItemDto>> relatedWorkItemsModel = new PropertyModel<>(getModel(), WorkItemDto.F_OTHER_WORK_ITEMS);

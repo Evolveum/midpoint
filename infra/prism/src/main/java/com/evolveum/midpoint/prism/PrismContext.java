@@ -109,6 +109,9 @@ public interface PrismContext {
 	@NotNull
 	PrismParserNoIO parserFor(@NotNull Element element);
 
+	@NotNull
+	String detectLanguage(@NotNull File file) throws IOException;
+
 	default <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
 		return parserFor(file).parse();
 	}

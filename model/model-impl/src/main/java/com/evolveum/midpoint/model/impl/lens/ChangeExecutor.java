@@ -942,17 +942,8 @@ public class ChangeExecutor {
 			return objectDelta;
 		}
 
-		ObjectDeltaOperation<T> lastRelated = findLastRelatedDelta(executedDeltas, objectDelta); // any
-																									// delta
-																									// related
-																									// to
-																									// our
-																									// OID,
-																									// not
-																									// ending
-																									// with
-																									// fatal
-																									// error
+		// any delta related to our OID, not ending with fatal error
+		ObjectDeltaOperation<T> lastRelated = findLastRelatedDelta(executedDeltas, objectDelta);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("findLastRelatedDelta returned:\n{}",
 					lastRelated != null ? lastRelated.debugDump() : "(null)");

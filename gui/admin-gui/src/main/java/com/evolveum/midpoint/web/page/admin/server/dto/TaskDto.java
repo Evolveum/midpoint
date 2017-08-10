@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -89,6 +90,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
+    public static final String F_OID = "oid";
     public static final String F_DESCRIPTION = "description";
     public static final String F_CATEGORY = "category";
     public static final String F_PARENT_TASK_NAME = "parentTaskName";
@@ -123,6 +125,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
 	public static final String F_HANDLER_DTO = "handlerDto";
+	public static final String F_IN_STAGE_BEFORE_LAST_ONE = "isInStageBeforeLastOne";
 	public static final long RUNS_CONTINUALLY = -1L;
 	public static final long ALREADY_PASSED = -2L;
 	public static final long NOW = 0L;
@@ -1110,4 +1113,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return originalEditableState;
 	}
 
+	public boolean isInStageBeforeLastOne() {
+		return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+	}
 }

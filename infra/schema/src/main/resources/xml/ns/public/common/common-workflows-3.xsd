@@ -264,6 +264,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="currentStageNumber" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Current stage, if any. Null usually means that the approval process has not started yet.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="stage" type="c:ApprovalStageExecutionInformationType" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>

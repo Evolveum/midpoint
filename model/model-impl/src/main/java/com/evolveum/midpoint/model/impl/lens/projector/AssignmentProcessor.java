@@ -285,6 +285,10 @@ public class AssignmentProcessor {
 		if (context.getPartialProcessingOptions().getProjection() != PartialProcessingTypeType.SKIP) {
 
 			// PROCESSING PROJECTIONS
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump(1));
+			}
 
 			// Evaluate the constructions in assignments now. These were not evaluated in the first pass of AssignmentEvaluator
 			// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
@@ -334,6 +338,8 @@ public class AssignmentProcessor {
 					if (projectionContext.getAssignmentPolicyEnforcementType() != AssignmentPolicyEnforcementType.NONE) {
 						LOGGER.trace("Projection {} legal: assigned (valid)", desc);
 						projectionContext.setLegal(true);
+					} else {
+						LOGGER.trace("Projection {} skip: assigned (valid), NONE enforcement", desc);
 					}
 				}
 
@@ -342,6 +348,7 @@ public class AssignmentProcessor {
 					LensProjectionContext projectionContext = context.findProjectionContext(key);
 					if (projectionContext == null) {
 						if (processOnlyExistingProjCxts) {
+							LOGGER.trace("Projection {} skip: unchanged (valid), processOnlyExistingProjCxts", desc);
 							return;
 						}
 						// The projection should exist before the change but it does not
@@ -366,6 +373,7 @@ public class AssignmentProcessor {
 					LensProjectionContext projectionContext = context.findProjectionContext(rat);
 					if (projectionContext == null) {
 						if (processOnlyExistingProjCxts) {
+							LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjCxts", desc);
 							return;
 						}
 						// The projection should exist before the change but it does not
@@ -395,6 +403,7 @@ public class AssignmentProcessor {
 						LensProjectionContext projectionContext = context.findProjectionContext(rat);
 						if (projectionContext == null) {
 							if (processOnlyExistingProjCxts) {
+								LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
 								return;
 							}
 							projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
@@ -457,6 +466,10 @@ public class AssignmentProcessor {
 					construction -> getConstructionMapKey(context, construction, task, result),
 					consumer,
 					task, result);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Projection processing done");
+			}
 
 			removeIgnoredContexts(context);
 			finishLegalDecisions(context);
@@ -629,6 +642,7 @@ public class AssignmentProcessor {
                 projectionContext.setAssignedOld(false);
 				projectionContext.setLegal(true);
 				projectionContext.setLegalOld(false);
+				
 			} else {
 			
 				AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();

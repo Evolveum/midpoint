@@ -340,7 +340,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
                 return search;
             }
         };
-        selfUser = pageBase.loadUserSelf(pageBase);
+        selfUser = pageBase.loadUserSelf();
     }
 
     private void initUserSelectionPanel(WebMarkupContainer headerPanel){
@@ -616,7 +616,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
 
     private PrismObject<UserType> getTargetUser(){
         if (getRoleCatalogStorage().isSelfRequest()){
-            return selfUser == null ? pageBase.loadUserSelf(pageBase) : selfUser;
+            return selfUser == null ? pageBase.loadUserSelf() : selfUser;
         }
         return getRoleCatalogStorage().getTargetUserList().get(0);
     }

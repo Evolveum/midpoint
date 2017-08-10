@@ -185,77 +185,73 @@ public class PageReport extends PageAdminReports {
         initButtons(mainForm);
     }
 
-    private IValidator<String> createFullXmlValidator() {
-        return new IValidator<String>() {
+//    private IValidator<String> createFullXmlValidator() {
+//        return (IValidator<String>) validatable -> {
+//            String value = validatable.getValue();
+//
+//            OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+//            Holder<ReportType> reportHolder = new Holder<>(null);
+//
+//            OpResult opResult;
+//            try {
+//                validateObject(value, reportHolder, PrismContext.LANG_XML, true, ReportType.class, result);
+//
+//                if (!result.isAcceptable()) {
+//                    result.recordFatalError("Could not validate object", result.getCause());
+//                    opResult = OpResult.getOpResult((PageBase)getPage(),result);
+//                    validatable.error(new RawValidationError(opResult));
+//                }
+//            } catch (Exception e) {
+//                LOGGER.error("Validation problem occurred." + e.getMessage());
+//                result.recordFatalError("Could not validate object.", e);
+//                try {
+//                    opResult = OpResult.getOpResult((PageBase) getPage(), result);
+//                    validatable.error(new RawValidationError(opResult));
+//                } catch (Exception ex) {
+//                    error(ex);
+//                }
+//            }
+//        };
+//    }
 
-            @Override
-            public void validate(IValidatable<String> validatable) {
-                String value = validatable.getValue();
-
-                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
-                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
-
-                OpResult opResult = null;
-                try {
-                    validateObject(value, reportHolder, PrismContext.LANG_XML, true, result);
-
-                    if(!result.isAcceptable()){
-                        result.recordFatalError("Could not validate object", result.getCause());
-                        opResult = OpResult.getOpResult((PageBase)getPage(),result);
-                        validatable.error(new RawValidationError(opResult));
-                    }
-                } catch (Exception e){
-                    LOGGER.error("Validation problem occured." + e.getMessage());
-                    result.recordFatalError("Could not validate object.", e);
-                    try {
-                        opResult = OpResult.getOpResult((PageBase) getPage(), result);
-                        validatable.error(new RawValidationError(opResult));
-                    } catch (Exception ex){
-                        error(ex);
-                    }
-                }
-            }
-        };
-    }
-
-    private IModel<String> createFullXmlModel() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                PrismObject report = model.getObject().getObject();
-                if (report == null) {
-                    return null;
-                }
-
-                try {
-                    return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
-                } catch (SchemaException ex) {
-                    getSession().error(getString("PageReport.message.cantSerializeFromObjectToString") + ex);
-                    throw new RestartResponseException(PageError.class);
-                }
-            }
-
-            @Override
-            public void setObject(String object) {
-                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
-                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
-
-                try {
-                    validateObject(object, reportHolder, PrismContext.LANG_XML, true, result);
-                    model.getObject().setObject(reportHolder.getValue());
-                } catch (Exception e){
-                    LOGGER.error("Could not set object. Validation problem occured." + result.getMessage());
-                    result.recordFatalError("Could not set object. Validation problem occured,", e);
-                    showResult(result, "Could not set object. Validation problem occured.");
-                }
-            }
-
-            @Override
-            public void detach() {
-            }
-        };
-    }
+//    private IModel<String> createFullXmlModel() {
+//        return new IModel<String>() {
+//
+//            @Override
+//            public String getObject() {
+//                PrismObject report = model.getObject().getObject();
+//                if (report == null) {
+//                    return null;
+//                }
+//
+//                try {
+//                    return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
+//                } catch (SchemaException ex) {
+//                    getSession().error(getString("PageReport.message.cantSerializeFromObjectToString") + ex);
+//                    throw new RestartResponseException(PageError.class);
+//                }
+//            }
+//
+//            @Override
+//            public void setObject(String object) {
+//                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+//                Holder<ReportType> reportHolder = new Holder<>(null);
+//
+//                try {
+//                    validateObject(object, reportHolder, PrismContext.LANG_XML, true, ReportType.class, result);
+//                    model.getObject().setObject(reportHolder.getValue().asPrismObject());
+//                } catch (Exception e){
+//                    LOGGER.error("Could not set object. Validation problem occurred." + result.getMessage());
+//                    result.recordFatalError("Could not set object. Validation problem occurred,", e);
+//                    showResult(result, "Could not set object. Validation problem occurred.");
+//                }
+//            }
+//
+//            @Override
+//            public void detach() {
+//            }
+//        };
+//    }
 
     private void initButtons(Form mainForm) {
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {

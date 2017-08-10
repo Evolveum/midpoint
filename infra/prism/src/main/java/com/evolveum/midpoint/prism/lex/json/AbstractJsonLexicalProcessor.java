@@ -80,10 +80,26 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 	}
 
+	// TODO support also multi-document YAML files
 	@NotNull
 	@Override
-	public List<RootXNode> readObjects(ParserSource source, ParsingContext parsingContext) throws SchemaException, IOException {
-		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");			// why?
+	public List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+		RootXNode root = read(source, parsingContext);
+		if (root.getSubnode() instanceof ListXNode) {
+			// TODO we could check if we really get 'objects' node here, just to be sure we can parse it as a list of objects
+			ListXNode items = (ListXNode) root.getSubnode();
+			List<RootXNode> rv = new ArrayList<>();
+			for (XNode item : items) {
+				if (!item.isSingleEntryMap()) {
+					throw new SchemaException("When reading list of objects: Expected single-entry MapXNode, got " + item + " instead: " + item.debugDump());
+				}
+				rv.add(((MapXNode) item).getSingleEntryMapAsRoot());
+			}
+			return rv;
+		} else {
+			// seems to be a single node
+			return Collections.singletonList(root);
+		}
 	}
 
     protected abstract JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException;
@@ -507,6 +523,19 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			throw new SchemaException("Error during serializing to JSON/YAML: " + ex.getMessage(), ex);
 		}
 		return out.toString();
+	}
+
+	// TODO support also multi-document YAML files
+	@NotNull
+	@Override
+	public String write(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName,
+			@Nullable SerializationContext prismSerializationContext) throws SchemaException {
+		ListXNode objectsList = new ListXNode();
+		for (RootXNode root : roots) {
+			objectsList.add(root.toMapXNode());
+		}
+		RootXNode aggregate = new RootXNode(aggregateElementName, objectsList);
+		return write(aggregate, prismSerializationContext);
 	}
 
 	private void serialize(XNode xnode, JsonSerializationContext ctx, boolean inValueWrapMode) throws IOException {

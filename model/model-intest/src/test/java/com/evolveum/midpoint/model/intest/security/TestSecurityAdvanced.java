@@ -367,7 +367,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertSearch(OrgType.class, null, NUMBER_OF_ALL_ORGS);
         
         // The appr-read-roles authorization is maySkipOnSearch and the readonly role allows read.
-        assertSearch(RoleType.class, null, NUMBER_OF_ALL_ROLES);
+        assertSearch(RoleType.class, null, getNumberOfRoles());
 
         // The appr-read-users authorization is maySkipOnSearch and the readonly role allows read.
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
@@ -408,7 +408,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
         
         assertSearch(OrgType.class, null, NUMBER_OF_ALL_ORGS);        
-        assertSearch(RoleType.class, null, NUMBER_OF_ALL_ROLES);
+        assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         
 		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
@@ -530,7 +530,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
         
-        assertSearch(RoleType.class, null, NUMBER_OF_ALL_ROLES);
+        assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(OrgType.class, null, 0);
         
@@ -583,7 +583,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
         
-        assertSearch(RoleType.class, null, NUMBER_OF_ALL_ROLES);
+        assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(OrgType.class, null, 0);
         
@@ -636,7 +636,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
         
-        assertSearch(RoleType.class, null, NUMBER_OF_ALL_ROLES);
+        assertSearch(RoleType.class, null, getNumberOfRoles());
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(OrgType.class, null, 0);
         

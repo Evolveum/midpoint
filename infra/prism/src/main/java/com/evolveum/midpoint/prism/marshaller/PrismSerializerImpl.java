@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mederly
@@ -125,6 +127,19 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	@Override
 	public T serialize(@NotNull RootXNode xnode) throws SchemaException {
 		return target.write(xnode, context);
+	}
+
+	@NotNull
+	@Override
+	public T serializeObjects(@NotNull List<PrismObject<?>> objects, QName aggregateElementName) throws SchemaException {
+		List<RootXNode> roots = new ArrayList<>();
+		for (PrismObject<?> object : objects) {
+			// itemName and itemDefinition might be set only if they apply to all the objects
+			RootXNode xroot = getMarshaller().marshalItemAsRoot(object, itemName, itemDefinition, context);
+			checkPostconditions(xroot);			// TODO find better way
+			roots.add(xroot);
+		}
+		return target.write(roots, aggregateElementName, context);
 	}
 
 	@Override

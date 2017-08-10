@@ -27,7 +27,10 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.result.OperationConstants;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
@@ -81,9 +84,6 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -260,6 +260,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	
 	@SpringBean
 	private MidpointFormValidatorRegistry formValidatorRegistry;
+
+	@SpringBean(name = "modelObjectResolver")
+	private ObjectResolver modelObjectResolver;
 
 	private List<Breadcrumb> breadcrumbs;
 
@@ -460,6 +463,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	@Override
 	public ModelService getModelService() {
 		return modelService;
+	}
+
+	@Override
+	public ObjectResolver getModelObjectResolver() {
+		return modelObjectResolver;
 	}
 
 	public ScriptingService getScriptingService() {
@@ -1070,14 +1078,30 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return new RestartResponseException(defaultBackPageClass);
 	}
 
-	protected <O extends ObjectType> void validateObject(String lexicalRepresentation, final Holder<PrismObject<O>> objectHolder,
-			String language, boolean validateSchema, OperationResult result) {
+	// TODO untangle this brutal code (list vs objectable vs other cases)
+	public <T> void validateObject(String lexicalRepresentation, final Holder<T> objectHolder,
+			String language, boolean validateSchema, Class<T> clazz, OperationResult result) {
 
-		if (language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)) {
-			PrismObject<O> object;
+    	boolean isListOfObjects = List.class.isAssignableFrom(clazz);
+		boolean isObjectable = Objectable.class.isAssignableFrom(clazz);
+		if (language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)
+				|| (!isObjectable && !isListOfObjects)) {
+			T object;
 			try {
-				object = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
-				object.checkConsistence();
+				if (isListOfObjects) {
+					List<PrismObject<? extends Objectable>> prismObjects = getPrismContext().parserFor(lexicalRepresentation)
+							.language(language).parseObjects();
+					for (PrismObject<? extends Objectable> prismObject : prismObjects) {
+						prismObject.checkConsistence();
+					}
+					object = (T) prismObjects;
+				} else if (isObjectable) {
+					PrismObject<ObjectType> prismObject = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
+					prismObject.checkConsistence();
+					object = (T) prismObject.asObjectable();
+				} else {
+					object = getPrismContext().parserFor(lexicalRepresentation).language(language).type(clazz).parseRealValue();
+				}
 				objectHolder.setValue(object);
 			} catch (RuntimeException | SchemaException e) {
 				result.recordFatalError("Couldn't parse object: " + e.getMessage(), e);
@@ -1085,6 +1109,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			return;
 		}
 
+		List<PrismObject<?>> list = new ArrayList<>();
+		if (isListOfObjects) {
+			objectHolder.setValue((T) list);
+		}
 		EventHandler handler = new EventHandler() {
 
 			@Override
@@ -1094,9 +1122,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			}
 
 			@Override
-			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+			public <O extends Objectable> EventResult postMarshall(PrismObject<O> object, Element objectElement,
 					OperationResult objectResult) {
-				objectHolder.setValue((PrismObject<O>) object);
+				if (isListOfObjects) {
+					list.add(object);
+				} else {
+					@SuppressWarnings({ "unchecked", "raw" })
+					T value = (T) object.asObjectable();
+					objectHolder.setValue(value);
+				}
 				return EventResult.cont();
 			}
 
@@ -1107,7 +1141,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		Validator validator = new Validator(getPrismContext(), handler);
 		validator.setVerbose(true);
 		validator.setValidateSchema(validateSchema);
-		validator.validateObject(lexicalRepresentation, result);
+		validator.validate(lexicalRepresentation, result, OperationConstants.IMPORT_OBJECT);        // TODO the operation name
 
 		result.computeStatus();
 	}
@@ -1722,11 +1756,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return item;
 	}
 
-	public PrismObject<UserType> loadUserSelf(PageBase page) {
+	public PrismObject<UserType> loadUserSelf() {
 		Task task = createSimpleTask(OPERATION_LOAD_USER);
 		OperationResult result = task.getResult();
 		PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
-				WebModelServiceUtils.getLoggedInUserOid(), page, task, result);
+				WebModelServiceUtils.getLoggedInUserOid(), PageBase.this, task, result);
 		result.computeStatus();
 
 		showResult(result, null, false);
@@ -1882,7 +1916,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
     protected void setTimeZone(PageBase page){
-        PrismObject<UserType> user = loadUserSelf(page);
+        PrismObject<UserType> user = loadUserSelf();
         String timeZone = null;
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         if (user != null && user.asObjectable().getTimezone() != null){
@@ -1971,5 +2005,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 								&& WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
 			}
 		};
+	}
+
+	protected String determineDataLanguage() {
+		AdminGuiConfigurationType config = loadAdminGuiConfiguration();
+		if (config != null && config.getPreferredDataLanguage() != null) {
+			if (PrismContext.LANG_JSON.equals(config.getPreferredDataLanguage())){
+				return PrismContext.LANG_JSON;
+			} else if (PrismContext.LANG_YAML.equals(config.getPreferredDataLanguage())){
+				return PrismContext.LANG_YAML;
+			} else {
+				return PrismContext.LANG_XML;
+			}
+		} else {
+			return PrismContext.LANG_XML;
+		}
 	}
 }

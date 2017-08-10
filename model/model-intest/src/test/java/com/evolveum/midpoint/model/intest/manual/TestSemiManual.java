@@ -108,6 +108,16 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	}
 	
 	@Override
+	protected String getRoleTwoOid() {
+		return ROLE_TWO_SEMI_MANUAL_OID;
+	}
+	
+	@Override
+	protected File getRoleTwoFile() {
+		return ROLE_TWO_SEMI_MANUAL_FILE;
+	}
+	
+	@Override
 	protected boolean supportsBackingStore() {
 		return true;
 	}

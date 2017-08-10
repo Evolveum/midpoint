@@ -81,7 +81,7 @@ public class PageDashboard extends PageAdminHome {
     private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
 
     public PageDashboard() {
-        principalModel.setObject(loadUserSelf(PageDashboard.this));
+        principalModel.setObject(loadUserSelf());
         setTimeZone(PageDashboard.this);
         initLayout();
     }

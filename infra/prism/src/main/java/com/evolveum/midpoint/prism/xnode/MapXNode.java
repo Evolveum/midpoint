@@ -380,6 +380,15 @@ public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 		return xnode != null ? new RootXNode(key, xnode) : null;
 	}
 
+	@NotNull
+	public RootXNode getSingleEntryMapAsRoot() {
+		if (!isSingleEntryMap()) {
+			throw new IllegalStateException("Expected to be called on single-entry map");
+		}
+		QName key = keySet().iterator().next();
+		return new RootXNode(key, get(key));
+	}
+
 	private class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;

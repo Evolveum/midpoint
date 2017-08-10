@@ -139,11 +139,9 @@ public class OperationalDataManager {
 
 			if (objectContext != null && objectContext.getObjectOld() != null) {
 				// a null value of objectOld means that we execute MODIFY delta
-				// that is a part of primary ADD operation (in a wave greater
-				// than 0)
+				// that is a part of primary ADD operation (in a wave greater than 0)
 				// i.e. there are NO modifyApprovers set (theoretically they
-				// could be set in previous waves, but because in these waves
-				// the data
+				// could be set in previous waves, but because in these waves the data
 				// are taken from the same source as in this step - so there are
 				// none modify approvers).
 
@@ -232,6 +230,9 @@ public class OperationalDataManager {
 		
 		transplantRequestMetadata(context, metadataType);
 		
+		// This applies the effective status only to assginments that are completely new (whole container is added/replaced)
+		// The effectiveStatus of existing assignments is processes in FocusProcessor.processAssignmentActivation()
+		// We cannot process that here. Because this code is not even triggered when there is no delta. So recompute will not work.
 		ActivationType activationType = assignmentType.getActivation();
 		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), activationType);
 		if (activationType == null) {

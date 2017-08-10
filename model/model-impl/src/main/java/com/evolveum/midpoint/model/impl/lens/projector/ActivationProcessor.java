@@ -464,6 +464,8 @@ public class ActivationProcessor {
     		throw new IllegalStateException("Null 'legal' for "+projCtxDesc);
     	}
     	
+    	LOGGER.trace("Evaluating intended existence of projection {}; legal={}", projCtxDesc, legal);
+    	
     	ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
         if (resourceAccountDefType == null) {
             return legal;

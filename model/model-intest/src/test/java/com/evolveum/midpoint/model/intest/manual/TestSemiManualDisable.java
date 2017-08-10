@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * @author Radovan Semancik
@@ -77,7 +79,17 @@ public class TestSemiManualDisable extends TestSemiManual {
 	protected File getRoleOneFile() {
 		return ROLE_ONE_SEMI_MANUAL_DISABLE_FILE;
 	}
+
+	@Override
+	protected String getRoleTwoOid() {
+		return ROLE_TWO_SEMI_MANUAL_DISABLE_OID;
+	}
 	
+	@Override
+	protected File getRoleTwoFile() {
+		return ROLE_TWO_SEMI_MANUAL_DISABLE_FILE;
+	}
+
 	@Override
 	protected void deprovisionInCsv(String username) throws IOException {
 		disableInCsv(username);
@@ -144,5 +156,42 @@ public class TestSemiManualDisable extends TestSemiManual {
 		display("User after", userAfter);
 		assertLinks(userAfter, 0);
 		assertNoShadow(accountOid);
+	}
+	
+	@Override
+	protected void assertTest526Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
+		assertPendingOperationDeltas(shadowRepo, 3);
+		
+		ObjectDeltaType deltaModify = null;
+		ObjectDeltaType deltaAdd = null;
+		ObjectDeltaType deltaDisable = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (ChangeTypeType.ADD.equals(delta.getChangeType())) {
+				deltaAdd = delta;
+				assertEquals("Wrong status in add delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
+			}
+			if (ChangeTypeType.MODIFY.equals(delta.getChangeType()) && OperationResultStatusType.SUCCESS.equals(pendingOperation.getResultStatus())) {
+				deltaModify = delta;
+			}
+			if (ChangeTypeType.MODIFY.equals(delta.getChangeType()) && OperationResultStatusType.IN_PROGRESS.equals(pendingOperation.getResultStatus())) {
+				deltaDisable = delta;
+			}
+		}
+		assertNotNull("No add pending delta", deltaAdd);
+		assertNotNull("No modify pending delta", deltaModify);
+		assertNotNull("No disable pending delta", deltaDisable);				
+	}
+	
+	@Override
+	protected void assertTest528Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
+		assertPendingOperationDeltas(shadowRepo, 3);
+		
+		ObjectDeltaType deltaModify = null;
+		ObjectDeltaType deltaAdd = null;
+		ObjectDeltaType deltaDelete = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			assertEquals("Wrong status in pending delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
+		}
 	}
 }

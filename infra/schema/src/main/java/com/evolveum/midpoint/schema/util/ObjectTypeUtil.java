@@ -551,6 +551,16 @@ public class ObjectTypeUtil {
 		return ref != null ? getDisplayName(ref.asReferenceValue().getObject()) : null;
 	}
 
+	public static PolyStringType getName(ObjectReferenceType ref) {
+    	if (ref == null) {
+    		return null;
+	    } else if (ref.asReferenceValue().getObject() != null && ref.asReferenceValue().getObject().getName() != null) {
+    		return new PolyStringType(ref.asReferenceValue().getObject().getName());
+	    } else {
+    		return ref.getTargetName();
+	    }
+	}
+
 	public static ObjectType toObjectable(PrismObject object) {
     	return object != null ? (ObjectType) object.asObjectable() : null;
 	}
@@ -698,4 +708,8 @@ public class ObjectTypeUtil {
     	return prismObject != null ? prismObject.asObjectable() : null;
 	}
 
+	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
+		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
+				&& ref1.getOid().equals(ref2.getOid());
+	}
 }
