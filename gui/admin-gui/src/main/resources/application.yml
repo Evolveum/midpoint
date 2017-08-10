@@ -1,6 +1,0 @@
-logging:
-  level:
-    ROOT: WARN
-#    org.hibernate.tool.hbm2ddl: WARN
-#    org.springframework: DEBUG
-    org.springframework.security: DEBUG
