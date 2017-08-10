@@ -268,11 +268,16 @@ public class LoggingConfigurationManager {
 			isRolling = true;
 			appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
 		}
-		
-		prepareCommonAppenderHeader(sb, appender, config, appenderClass);
+				
+				prepareCommonAppenderHeader(sb, appender, config, appenderClass);
 
-		appendProp(sb, "file", fileName);
-		appendProp(sb, "append", appender.isAppend());
+		if(!appender.isPrudent()){
+			appendProp(sb, "file", fileName);
+			appendProp(sb, "append", appender.isAppend());
+		}else{
+			appendProp(sb, "prudent", appender.isPrudent());
+		}
+
 		if (isRolling) {
 			//rolling policy
 			sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">\n");
