@@ -41,7 +41,7 @@ public class CommandLineScriptExecutor {
 
     private OperationResult result;
     private String generatedOutputFilePath;
-
+    private Boolean partialErrorHasEmerged =false;
     private static final Trace LOGGER = TraceManager.getTrace(CommandLineScriptExecutor.class);
 
     public CommandLineScriptExecutor(String code, String generatedOutputFilePath, Map<String, String> variables, OperationResult parentResult) throws IOException, InterruptedException {
@@ -104,6 +104,7 @@ public class CommandLineScriptExecutor {
                 }
             }
         }
+        result.computeStatus();
     }
 
     private String readOutput(InputStream processInputStream) throws IOException {
@@ -117,17 +118,18 @@ public class CommandLineScriptExecutor {
             String line = null;
             if (errorStream != null) {
                 try (BufferedReader bufferedProcessErrorOutputReader = new BufferedReader(new InputStreamReader(errorStream))) {
-                    outputBuilder.append(" Error output: "); // TODO REMOVE
+                    outputBuilder.append(" Partial error while executing post report script: ").append(System.getProperty("line.separator"));
                     while ((line = bufferedProcessErrorOutputReader.readLine()) != null) {
-                        outputBuilder.append(line + System.getProperty("line.separator"));
+                        outputBuilder.append(" * " + line + System.getProperty("line.separator"));
                     }
                     String aWarning = outputBuilder.toString();
                     if (!LOGGER.isWarnEnabled()) {
                     } else {
                         LOGGER.warn(aWarning);
                     }
-                    result.isPartialError();
-                    result.recordWarning(aWarning);
+
+                    result.recordPartialError(aWarning);
+                    partialErrorHasEmerged =true;
                 }
             }
             outputBuilder = new StringBuilder();
@@ -153,14 +155,15 @@ public class CommandLineScriptExecutor {
             } else {
                 LOGGER.warn(warnMessage);
             }
-            result.recordWarning(warnMessage);
+            result.recordPartialError(warnMessage);
         } else {
             if (!LOGGER.isDebugEnabled()) {
             } else {
                 LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
             }
+            if (!partialErrorHasEmerged){
             result.recordSuccess();
-
+            }
         }
     }
 
@@ -177,8 +180,5 @@ public class CommandLineScriptExecutor {
         return pathEscapedSpaces.toString();
     }
 
-    public OperationResult getResult() {
-        return this.result;
-    }
 
 }

@@ -225,7 +225,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
             saveReportOutputType(reportFilePath, parentReport, task, result);
             LOGGER.trace("create report output type : {}", reportFilePath);
 
-            processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, parentResult);
+            processPostReportScript(parentReport.getPostReportScript().getCode(), reportFilePath, result);
             result.computeStatus();
 
         } catch (Exception ex) {
