@@ -532,6 +532,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
 	}
+	
+	protected int getNumberOfRoles() {
+		return 1; // Superuser role
+	}
     	
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
