@@ -75,6 +75,10 @@ public class AppenderConfiguration<T extends AppenderConfigurationType, O extend
     public boolean isAppending() {
         return false;
     }
+	
+	public boolean isPrudent() {
+        return false;
+    }
 
     public boolean isEditing() {
         return editing;
