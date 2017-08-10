@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -38,7 +37,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.model.intest.sync.TestImportRecon;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -109,7 +107,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 	private static final String EMPLOYEE_TYPE_MAROONED = "marooned";
 
-	private static final int NUMBER_OF_ROLES = 20;
+	private static final int NUMBER_OF_IMPORTED_ROLES = 5;
 
 	private static String jackEmployeeNumber;
 	
@@ -127,6 +125,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
+	}
+	
+	protected int getNumberOfRoles() {
+		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 	
 	@Test
@@ -154,7 +156,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, null, USER_TEMPLATE_COMPLEX_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
         
-        assertRoles(NUMBER_OF_ROLES);
+        assertRoles(getNumberOfRoles());
 	}
 		
 	private void assertObjectTemplate(List<ObjectPolicyConfigurationType> defaultObjectPolicyConfigurations,
@@ -1341,7 +1343,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
 		assertAssignments(userAfter, 2);
 		
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1392,7 +1394,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 4);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1443,7 +1445,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 4);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1490,7 +1492,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 2);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1533,7 +1535,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 2);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1575,7 +1577,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 3);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1614,7 +1616,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 4);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1664,7 +1666,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 6);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1711,7 +1713,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 5);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1753,7 +1755,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 4);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1794,7 +1796,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		assertAssignments(userAfter, 3);
 		
 		// Make sure nothing was created on demand
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	/**
@@ -1828,7 +1830,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
 		assertAssignedNoRole(userAfter);
 		
-		assertRoles(NUMBER_OF_ROLES);
+		assertRoles(getNumberOfRoles());
 	}
 	
 	@Test
