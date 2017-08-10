@@ -268,8 +268,8 @@ public class LoggingConfigurationManager {
 			isRolling = true;
 			appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
 		}
-				
-				prepareCommonAppenderHeader(sb, appender, config, appenderClass);
+		
+		prepareCommonAppenderHeader(sb, appender, config, appenderClass);
 
 		if(!appender.isPrudent()){
 			appendProp(sb, "file", fileName);
