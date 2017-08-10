@@ -20,16 +20,14 @@ import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
 import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.protocol.http.WicketFilter;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.DispatcherServletAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.EmbeddedServletContainerAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.*;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
 import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -37,12 +35,15 @@ import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
+import ro.isdc.wro.http.ConfigurableWroFilter;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
+import java.io.IOException;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -73,6 +74,8 @@ import javax.servlet.DispatcherType;
 @ImportAutoConfiguration(classes = {
         EmbeddedServletContainerAutoConfiguration.class,
         DispatcherServletAutoConfiguration.class,
+        WebMvcAutoConfiguration.class,
+        HttpMessageConvertersAutoConfiguration.class,
         PropertyPlaceholderAutoConfiguration.class,
         SecurityAutoConfiguration.class,
         SecurityFilterAutoConfiguration.class,
@@ -121,9 +124,9 @@ public class MidPointSpringApplication {
     }
 
     @Bean
-    public FilterRegistrationBean webResourceOptimizer() {
+    public FilterRegistrationBean webResourceOptimizer(WroFilter wroFilter) throws IOException {
         FilterRegistrationBean registration = new FilterRegistrationBean();
-        registration.setFilter(new WroFilter());
+        registration.setFilter(wroFilter);
         registration.addUrlPatterns("/wro/*");
         return registration;
     }

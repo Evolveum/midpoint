@@ -1501,6 +1501,7 @@
 								<!-- There are dependencies in this master POM. So they are projected 
 									everywhere, used or unused. -->
 								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
 
 								<!-- Common "drill" for all modules. -->
 								<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>

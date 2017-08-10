@@ -19,7 +19,7 @@
     <name>midPoint User Interface - admin web gui</name>
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <version>3.7-SNAPSHOT</version>
     <parent>
         <artifactId>gui</artifactId>
@@ -95,7 +95,12 @@
                 </includes>
             </testResource>
         </testResources>
-       
+       <plugins>
+           <plugin>
+               <groupId>org.springframework.boot</groupId>
+               <artifactId>spring-boot-maven-plugin</artifactId>
+           </plugin>
+       </plugins>
     </build>
 
     <dependencyManagement>
@@ -116,6 +121,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
@@ -178,7 +196,7 @@
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
-            <scope>runtime</scope> <!-- used to compile less files -->
+            <!--<scope>runtime</scope> &lt;!&ndash; used to compile less files &ndash;&gt;-->
             <exclusions>
                 <exclusion>
                     <groupId>org.webjars</groupId>
@@ -246,11 +264,6 @@
                     <!-- unused library -->
                     <groupId>org.webjars</groupId>
                     <artifactId>json2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <!-- unused library -->
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.darrinholst</groupId>
