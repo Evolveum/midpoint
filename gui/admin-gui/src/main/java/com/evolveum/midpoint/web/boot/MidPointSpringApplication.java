@@ -28,11 +28,13 @@ import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoCon
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.*;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
 import org.springframework.boot.web.servlet.ErrorPage;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.io.ClassPathResource;
@@ -68,8 +70,7 @@ import java.io.IOException;
         "classpath:ctx-interceptor.xml",
         "classpath*:ctx-overlay.xml",
         "classpath:ctx-init.xml",
-        "classpath:ctx-webapp.xml",
-//        "classpath:ctx-web-security.xml"
+        "classpath:ctx-webapp.xml"
 })
 @ImportAutoConfiguration(classes = {
         EmbeddedServletContainerAutoConfiguration.class,
@@ -82,10 +83,15 @@ import java.io.IOException;
         ServerPropertiesAutoConfiguration.class
 })
 @SpringBootConfiguration
-public class MidPointSpringApplication {
+public class MidPointSpringApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
         SpringApplication.run(MidPointSpringApplication.class, args);
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(MidPointSpringApplication.class);
     }
 
     @Bean
