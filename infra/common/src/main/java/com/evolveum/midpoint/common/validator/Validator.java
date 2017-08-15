@@ -76,7 +76,6 @@ public class Validator {
 	private boolean validateSchemas = true;
 	private boolean allowAnyType = false;
 	private EventHandler handler;
-	private DOMConverter domConverter = new DOMConverter();
 	private Unmarshaller unmarshaller = null;
 	private PrismContext prismContext;
 	private Schema midPointJavaxSchema;
@@ -172,6 +171,8 @@ public class Validator {
 	public void validate(InputStream inputStream, OperationResult validatorResult,
 			String objectResultOperationName) {
 
+		DOMConverter domConverter = new DOMConverter();
+
 		XMLStreamReader stream = null;
 		try {
 
@@ -191,8 +192,7 @@ public class Validator {
 
 					EventResult cont = null;
 					try {
-						cont = readFromStreamAndValidate(stream, objectResult,
-								rootNamespaceDeclarations, validatorResult);
+						cont = readFromStreamAndValidate(stream, objectResult, rootNamespaceDeclarations, validatorResult, domConverter);
 					} catch (RuntimeException e) {
 						// Make sure that unexpected error is recorded.
 						objectResult.recordFatalError(e);
@@ -236,7 +236,7 @@ public class Validator {
 					try {
 						// Read and validate individual object from the stream
 						cont = readFromStreamAndValidate(stream, objectResult,
-								rootNamespaceDeclarations, validatorResult);
+								rootNamespaceDeclarations, validatorResult, domConverter);
 					} catch (RuntimeException e) {
 						if (objectResult.isUnknown()) {
 							// Make sure that unexpected error is recorded.
@@ -288,7 +288,8 @@ public class Validator {
 	}
 
 	private EventResult readFromStreamAndValidate(XMLStreamReader stream, OperationResult objectResult,
-			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult) {
+			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult,
+			DOMConverter domConverter) {
 
 		objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
 

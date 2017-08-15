@@ -34,14 +34,13 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
-import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -545,7 +544,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T> boolean isUniquePropertyValue(ObjectType objectType, String propertyPathString, T propertyValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".isUniquePropertyValue");
-        ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
+        ItemPath propertyPath = new ItemPathHolder(propertyPathString).toItemPath();
         return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
     }
 
@@ -563,7 +562,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <O extends ObjectType, T> List<O> getObjectsInConflictOnPropertyValue(O objectType, String propertyPathString, T propertyValue, String matchingRuleName, boolean getAllConflicting) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(propertyPathString, "Empty property path");
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".getObjectsInConflictOnPropertyValue");
-        ItemPath propertyPath = new XPathHolder(propertyPathString).toItemPath();
+        ItemPath propertyPath = new ItemPathHolder(propertyPathString).toItemPath();
         QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
         return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting, getCurrentTask(), result);
     }

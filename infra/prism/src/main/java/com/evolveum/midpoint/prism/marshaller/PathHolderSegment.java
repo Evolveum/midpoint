@@ -25,7 +25,7 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * @author Pavol Mederly
  */
-public class XPathSegment {
+public class PathHolderSegment {
 
     /*
      * These cases are possible:
@@ -48,19 +48,19 @@ public class XPathSegment {
     boolean variable;
     private String value;
 
-    public XPathSegment(QName qName) {
+    public PathHolderSegment(QName qName) {
         this.qName = qName;
         this.variable = false;
         this.value = null;
     }
 
-    public XPathSegment(QName qName, boolean variable) {
+    public PathHolderSegment(QName qName, boolean variable) {
         this.qName = qName;
         this.variable = variable;
         this.value = null;
     }
 
-    public XPathSegment(String value) {
+    public PathHolderSegment(String value) {
         this.qName = qName;
         this.variable = false;
         this.value = value;
@@ -132,7 +132,7 @@ public class XPathSegment {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        XPathSegment that = (XPathSegment) o;
+        PathHolderSegment that = (PathHolderSegment) o;
 
         if (variable != that.variable) return false;
         if (qName != null ? !qName.equals(that.qName) : that.qName != null) return false;

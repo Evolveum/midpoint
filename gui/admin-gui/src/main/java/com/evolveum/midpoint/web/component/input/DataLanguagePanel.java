@@ -76,11 +76,11 @@ public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 			return;
 		}
 
-		OperationResult result = new OperationResult(DataLanguagePanel.class.getName() + ".validateObject");
+		OperationResult result = new OperationResult(DataLanguagePanel.class.getName() + ".parseObject");
 		Holder<T> objectHolder = new Holder<>(null);
 
 		try {
-			pageBase.validateObject(currentObjectString, objectHolder, LANGUAGES.get(currentLanguageIndex), isValidateSchema(), dataType, result);
+			pageBase.parseObject(currentObjectString, objectHolder, LANGUAGES.get(currentLanguageIndex), false, true, dataType, result);
 			if (result.isAcceptable()) {
 				Object updatedObject = objectHolder.getValue();
 				String updatedObjectString;

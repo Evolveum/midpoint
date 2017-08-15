@@ -22,12 +22,10 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ParserSource;
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.SerializationContext;
-import com.evolveum.midpoint.prism.SerializationOptions;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalUtils;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.fasterxml.jackson.core.*;
@@ -64,6 +62,12 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	private static final String PROP_ELEMENT = "@element";
 	private static final String PROP_VALUE = "@value";
 
+	@NotNull protected final SchemaRegistry schemaRegistry;
+
+	AbstractJsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
+		this.schemaRegistry = schemaRegistry;
+	}
+
 	//region Parsing implementation
 
 	@NotNull
@@ -85,8 +89,8 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	@Override
 	public List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
 		RootXNode root = read(source, parsingContext);
-		if (root.getSubnode() instanceof ListXNode) {
-			// TODO we could check if we really get 'objects' node here, just to be sure we can parse it as a list of objects
+		QName objectsMarker = schemaRegistry.getPrismContext().getObjectsElementName();
+		if (root.getSubnode() instanceof ListXNode && (objectsMarker == null || QNameUtil.match(objectsMarker, root.getRootElementName()))) {
 			ListXNode items = (ListXNode) root.getSubnode();
 			List<RootXNode> rv = new ArrayList<>();
 			for (XNode item : items) {
@@ -309,6 +313,16 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		XNode wrappedValue = null;
 		boolean defaultNamespaceDefined = false;
 		QNameUtil.QNameInfo currentFieldNameInfo = null;
+
+		if (ipc != null) {
+			if (ipc.expectingMapWithObjectsKey) {
+				ipc.expectingMapWithObjectsKey = false;
+				ipc.expectingListOfObjects = true;
+			} else {
+				ipc = null;
+			}
+		}
+
 		for (;;) {
 			JsonToken token = ctx.parser.nextToken();
 			if (token == null) {
@@ -323,15 +337,14 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 				}
 				currentFieldNameInfo = QNameUtil.uriToQNameInfo(newFieldName, true);
 			} else {
-				if (ipc != null) {
-					if (ipc.expectingMapWithObjectsKey) {
-						ipc.expectingListOfObjects = true;
-					} else {
-						ipc = null;
-					}
+				assert currentFieldNameInfo != null;
+				PrismContext prismContext = schemaRegistry.getPrismContext();
+				if (ipc != null && ipc.expectingListOfObjects && prismContext.getObjectsElementName() != null
+						&& !isSpecial(currentFieldNameInfo.name)
+						&& !QNameUtil.match(currentFieldNameInfo.name, prismContext.getObjectsElementName())) {
+					ipc = null;
 				}
 				XNode valueXNode = parseValue(ctx, ipc);
-				assert currentFieldNameInfo != null;
 				if (isSpecial(currentFieldNameInfo.name)) {
 					if (isNamespaceDeclaration(currentFieldNameInfo.name)) {
 						if (defaultNamespaceDefined) {
@@ -367,6 +380,10 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 					Map.Entry<QName, XNode> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode);
 					if (currentFieldNameInfo.explicitEmptyNamespace) {
 						ctx.noNamespaceEntries.put(entry, null);
+					}
+					// we found a regular (non-special) node; if it's not a list of objects, give up
+					if (ipc != null && ipc.expectingListOfObjects && !ipc.foundListOfObjects) {
+						ipc = null;
 					}
 				}
 				currentFieldNameInfo = null;

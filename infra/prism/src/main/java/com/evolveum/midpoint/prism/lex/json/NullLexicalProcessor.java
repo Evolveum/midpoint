@@ -53,6 +53,12 @@ public class NullLexicalProcessor implements LexicalProcessor<XNode> {
 	}
 
 	@Override
+	public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
+			RootXNodeHandler handler) throws SchemaException, IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public boolean canRead(@NotNull File file) throws IOException {
 		return false;
 	}

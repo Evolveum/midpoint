@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.prism.lex;
 
 import com.evolveum.midpoint.prism.lex.json.YamlLexicalProcessor;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 public class TestYamlParser extends AbstractLexicalProcessorTest {
  
@@ -17,7 +18,7 @@ public class TestYamlParser extends AbstractLexicalProcessorTest {
 
 	@Override
 	protected YamlLexicalProcessor createParser() {
-		return new YamlLexicalProcessor();
+		return new YamlLexicalProcessor(PrismTestUtil.getSchemaRegistry());
 	}
 
 	@Override

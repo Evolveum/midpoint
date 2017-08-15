@@ -32,9 +32,9 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.marshaller.TrivialXPathParser;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
-import com.evolveum.midpoint.prism.marshaller.XPathSegment;
+import com.evolveum.midpoint.prism.marshaller.TrivialItemPathParser;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.marshaller.PathHolderSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -54,6 +54,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class XPathTest {
 //                }
 //            }
             ItemPath path = pathType.getItemPath();
-            XPathHolder xpath = new XPathHolder(path);
+            ItemPathHolder xpath = new ItemPathHolder(path);
 
             AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpath.getXPathWithoutDeclarations());
 
@@ -143,7 +144,7 @@ public class XPathTest {
 
             System.out.println("XPATH Element: " + xpathElement);
 
-            XPathHolder xpathFromElement = new XPathHolder(xpathElement);
+            ItemPathHolder xpathFromElement = new ItemPathHolder(xpathElement);
             AssertJUnit.assertEquals(xpath, xpathFromElement);
 
 //            attributes = xpathElement.getAttributes();
@@ -152,11 +153,11 @@ public class XPathTest {
 //                System.out.println(" A: " + n.getNodeName() + "(" + n.getPrefix() + " : " + n.getLocalName() + ") = " + n.getNodeValue());
 //            }
 
-            List<XPathSegment> segments = xpath.toSegments();
+            List<PathHolderSegment> segments = xpath.toSegments();
 
             System.out.println("XPATH segments: " + segments);
 
-            XPathHolder xpathFromSegments = new XPathHolder(segments);
+            ItemPathHolder xpathFromSegments = new ItemPathHolder(segments);
 
             System.out.println("XPath from segments: " + xpathFromSegments);
 
@@ -176,7 +177,7 @@ public class XPathTest {
 
         // When
 
-        XPathHolder xpath = new XPathHolder(el1);
+        ItemPathHolder xpath = new ItemPathHolder(el1);
 
         // Then
 
@@ -184,7 +185,7 @@ public class XPathTest {
 
         //AssertJUnit.assertEquals("http://default.com/", namespaceMap.get("c"));
 
-        List<XPathSegment> segments = xpath.toSegments();
+        List<PathHolderSegment> segments = xpath.toSegments();
 
         AssertJUnit.assertNotNull(segments);
         AssertJUnit.assertEquals(3, segments.size());
@@ -230,7 +231,7 @@ public class XPathTest {
 
         // When
 
-        XPathHolder xpath = new XPathHolder(xpathString, el1);
+        ItemPathHolder xpath = new ItemPathHolder(xpathString, el1);
 
         // Then
 
@@ -247,7 +248,7 @@ public class XPathTest {
                 "declare namespace x='http://www.xxx.com';" +
                 "$v:var/x:xyz[10]";
 
-        XPathHolder xpath = new XPathHolder(xpathStr);
+        ItemPathHolder xpath = new ItemPathHolder(xpathStr);
 
         AssertJUnit.assertEquals("$v:var/x:xyz[10]", xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("http://vvv.com", xpath.getNamespaceMap().get("v"));
@@ -257,7 +258,7 @@ public class XPathTest {
     @Test
     public void dotTest() {
 
-        XPathHolder dotPath = new XPathHolder(".");
+        ItemPathHolder dotPath = new ItemPathHolder(".");
 
         AssertJUnit.assertTrue(dotPath.toSegments().isEmpty());
         AssertJUnit.assertEquals(".", dotPath.getXPathWithoutDeclarations());
@@ -269,14 +270,14 @@ public class XPathTest {
         String xpathStr =
                 "declare namespace foo='http://ff.com/';\ndeclare default namespace 'http://default.com/';\n declare  namespace bar = 'http://www.b.com' ;declare namespace x= \"http://xxx.com/\";\nfoo:foofoo[1]/x:bar";
 
-        TrivialXPathParser parser = TrivialXPathParser.parse(xpathStr);
+        TrivialItemPathParser parser = TrivialItemPathParser.parse(xpathStr);
 
         AssertJUnit.assertEquals("http://ff.com/", parser.getNamespaceMap().get("foo"));
         AssertJUnit.assertEquals("http://www.b.com", parser.getNamespaceMap().get("bar"));
         AssertJUnit.assertEquals("http://xxx.com/", parser.getNamespaceMap().get("x"));
         AssertJUnit.assertEquals("http://default.com/", parser.getNamespaceMap().get(""));
 
-        AssertJUnit.assertEquals("foo:foofoo[1]/x:bar", parser.getPureXPathString());
+        AssertJUnit.assertEquals("foo:foofoo[1]/x:bar", parser.getPureItemPathString());
     }
 
     @Test
@@ -284,8 +285,8 @@ public class XPathTest {
         String xpathStr =
                 "foo/bar";
 
-        TrivialXPathParser parser = TrivialXPathParser.parse(xpathStr);
-        AssertJUnit.assertEquals("foo/bar", parser.getPureXPathString());
+        TrivialItemPathParser parser = TrivialItemPathParser.parse(xpathStr);
+        AssertJUnit.assertEquals("foo/bar", parser.getPureItemPathString());
     }
 
     @Test
@@ -294,16 +295,19 @@ public class XPathTest {
         String xpathStr =
                 "declare namespace foo='http://ff.com/';\ndeclare default namespace 'http://default.com/';\n declare  namespace bar = 'http://www.b.com' ;declare namespace x= \"http://xxx.com/\";\nfoo:foofoo/x:bar";
 
-        XPathHolder xpath = new XPathHolder(xpathStr);
+        ItemPathHolder xpath = new ItemPathHolder(xpathStr);
 
         System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
-        AssertJUnit.assertTrue("Unexpected path with declarations: "+xpath.getXPathWithDeclarations(),
-        		   "declare default namespace 'http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar".equals(xpath.getXPathWithDeclarations())   // java7
-        		|| "declare default namespace 'http://default.com/'; declare namespace bar='http://www.b.com'; declare namespace foo='http://ff.com/'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar".equals(xpath.getXPathWithDeclarations())); // java8
-        
+
+        List<String> expected = Arrays.asList(
+		        "declare default namespace 'http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",   // java7
+		        "declare default namespace 'http://default.com/'; declare namespace bar='http://www.b.com'; declare namespace foo='http://ff.com/'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",   // java8
+		        "declare default namespace 'http://default.com/'; declare namespace x='http://xxx.com/'; declare namespace bar='http://www.b.com'; declare namespace foo='http://ff.com/'; foo:foofoo/x:bar" // after JSON/YAML serialization fix (java8)
+        );
+        AssertJUnit.assertTrue("Unexpected path with declarations: "+xpath.getXPathWithDeclarations(), expected.contains(xpath.getXPathWithDeclarations()));
     }
 
     @Test
@@ -315,7 +319,7 @@ public class XPathTest {
     	
         String xpathStr = "foo:foo/bar:bar";
 
-        XPathHolder xpath = new XPathHolder(xpathStr, namespaceMap);
+        ItemPathHolder xpath = new ItemPathHolder(xpathStr, namespaceMap);
 
         System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPathWithoutDeclarations());
@@ -327,7 +331,7 @@ public class XPathTest {
 
 
     @Test
-    public void strangeCharsTest() throws FileNotFoundException, UnsupportedEncodingException, IOException {
+    public void strangeCharsTest() throws IOException {
 
         String xpathStr;
 
@@ -345,7 +349,7 @@ public class XPathTest {
             stream.close();
         }
 
-        XPathHolder xpath = new XPathHolder(xpathStr);
+        ItemPathHolder xpath = new ItemPathHolder(xpathStr);
 
         System.out.println("Stragechars Pure XPath: "+xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("$i:user/i:extension/ri:foobar", xpath.getXPathWithoutDeclarations());
@@ -358,7 +362,7 @@ public class XPathTest {
     public void xpathFromQNameTest() {
     	// GIVEN
     	QName qname = new QName(NS_FOO, "foo");
-    	XPathHolder xpath = new XPathHolder(qname);
+    	ItemPathHolder xpath = new ItemPathHolder(qname);
     	QName elementQName = new QName(NS_BAR, "bar");
     	
     	// WHEN
@@ -381,37 +385,37 @@ public class XPathTest {
         // GIVEN
         QName qname1 = new QName(NS_C, "extension");
         QName qname2 = new QName(NS_FOO, "foo");
-        XPathHolder xPathHolder1 = new XPathHolder(qname1, qname2);
+        ItemPathHolder itemPathHolder1 = new ItemPathHolder(qname1, qname2);
         QName elementQName = new QName(NS_BAR, "bar");
 
         // WHEN
-        Element element = xPathHolder1.toElement(elementQName, DOMUtil.getDocument());
-        XPathHolder xPathHolder2 = new XPathHolder(element);
+        Element element = itemPathHolder1.toElement(elementQName, DOMUtil.getDocument());
+        ItemPathHolder itemPathHolder2 = new ItemPathHolder(element);
 
         // THEN
         System.out.println("XPath from QNames:");
         System.out.println(DOMUtil.serializeDOMToString(element));
 
-        ItemPath xpath1 = xPathHolder1.toItemPath();
-        ItemPath xpath2 = xPathHolder2.toItemPath();
+        ItemPath xpath1 = itemPathHolder1.toItemPath();
+        ItemPath xpath2 = itemPathHolder2.toItemPath();
         assertTrue("Paths are not equivalent", xpath1.equivalent(xpath2));
     }
 
 	@Test
 	public void parseSpecial() {
 		final String D = "declare namespace x='http://xyz.com/'; ";
-		AssertJUnit.assertEquals("..", TrivialXPathParser.parse("..").getPureXPathString());
-		AssertJUnit.assertEquals("..", TrivialXPathParser.parse(D+"..").getPureXPathString());
-		AssertJUnit.assertEquals("a/../b", TrivialXPathParser.parse("a/../b").getPureXPathString());
-		AssertJUnit.assertEquals("a/../b", TrivialXPathParser.parse(D+"a/../b").getPureXPathString());
-		AssertJUnit.assertEquals("@", TrivialXPathParser.parse("@").getPureXPathString());
-		AssertJUnit.assertEquals("@", TrivialXPathParser.parse(D+"@").getPureXPathString());
-		AssertJUnit.assertEquals("a/@/b", TrivialXPathParser.parse("a/@/b").getPureXPathString());
-		AssertJUnit.assertEquals("a/@/b", TrivialXPathParser.parse(D+"a/@/b").getPureXPathString());
-		AssertJUnit.assertEquals("#", TrivialXPathParser.parse("#").getPureXPathString());
-		AssertJUnit.assertEquals("#", TrivialXPathParser.parse(D+"#").getPureXPathString());
-		AssertJUnit.assertEquals("a/#/b", TrivialXPathParser.parse("a/#/b").getPureXPathString());
-		AssertJUnit.assertEquals("a/#/b", TrivialXPathParser.parse(D+"a/#/b").getPureXPathString());
+		AssertJUnit.assertEquals("..", TrivialItemPathParser.parse("..").getPureItemPathString());
+		AssertJUnit.assertEquals("..", TrivialItemPathParser.parse(D+"..").getPureItemPathString());
+		AssertJUnit.assertEquals("a/../b", TrivialItemPathParser.parse("a/../b").getPureItemPathString());
+		AssertJUnit.assertEquals("a/../b", TrivialItemPathParser.parse(D+"a/../b").getPureItemPathString());
+		AssertJUnit.assertEquals("@", TrivialItemPathParser.parse("@").getPureItemPathString());
+		AssertJUnit.assertEquals("@", TrivialItemPathParser.parse(D+"@").getPureItemPathString());
+		AssertJUnit.assertEquals("a/@/b", TrivialItemPathParser.parse("a/@/b").getPureItemPathString());
+		AssertJUnit.assertEquals("a/@/b", TrivialItemPathParser.parse(D+"a/@/b").getPureItemPathString());
+		AssertJUnit.assertEquals("#", TrivialItemPathParser.parse("#").getPureItemPathString());
+		AssertJUnit.assertEquals("#", TrivialItemPathParser.parse(D+"#").getPureItemPathString());
+		AssertJUnit.assertEquals("a/#/b", TrivialItemPathParser.parse("a/#/b").getPureItemPathString());
+		AssertJUnit.assertEquals("a/#/b", TrivialItemPathParser.parse(D+"a/#/b").getPureItemPathString());
 	}
 
     //not actual anymore..we have something like "wildcard" in xpath..there don't need to be prefix specified.we will try to match the local names
@@ -425,7 +429,7 @@ public class XPathTest {
 
         try {
 	        // WHEN
-	        XPathHolder xpath = new XPathHolder(el1);
+	        ItemPathHolder xpath = new ItemPathHolder(el1);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (IllegalArgumentException e) {

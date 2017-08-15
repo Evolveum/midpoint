@@ -17,10 +17,9 @@
 package com.evolveum.midpoint.common;
 
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,7 +42,7 @@ public class Utils {
 	}
 
 	public static Element fillPropertyReference(String resolve) {
-		XPathHolder xpath = new XPathHolder(
+		ItemPathHolder xpath = new ItemPathHolder(
 				Utils.getPropertyName(resolve));
 		return xpath.toElement(SchemaConstants.NS_C, "property");
 	}

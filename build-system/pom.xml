@@ -273,6 +273,11 @@
 				<version>1.0-2</version>
 			</dependency>
             <dependency>
+                <groupId>org.codehaus.staxmate</groupId>
+                <artifactId>staxmate</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
                 <groupId>stax</groupId>
                 <artifactId>stax-api</artifactId>
                 <version>1.0.1</version>

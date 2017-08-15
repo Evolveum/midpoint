@@ -58,10 +58,7 @@ public interface LexicalProcessor<T> {
 		boolean handleData(RootXNode node);
 	}
 
-	default void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext, RootXNodeHandler handler) throws SchemaException, IOException {
-		// TODO implement this for XML and JSON/YAML. Reuse [i.e. steal ;)] Validator code if needed.
-		throw new UnsupportedOperationException();
-	}
+	void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext, RootXNodeHandler handler) throws SchemaException, IOException;
 
 	/**
 	 * Checks if the processor can read from a given file. (Guessed by file extension, for now.)

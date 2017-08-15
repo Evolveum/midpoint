@@ -410,6 +410,6 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
-	    validateObject(objectViewDto.getXml(), objectHolder, dataLanguage, validateSchema.getObject(), Objectable.class, result);
+	    parseObject(objectViewDto.getXml(), objectHolder, dataLanguage, validateSchema.getObject(), false, Objectable.class, result);
     }
 }

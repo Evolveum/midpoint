@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.prism.lex.dom;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -286,7 +286,7 @@ public class DomLexicalWriter {
                 if (asAttribute) {
                     throw new UnsupportedOperationException("Serializing ItemPath as an attribute is not supported yet");
                 }
-                XPathHolder holder = new XPathHolder(itemPathType.getItemPath());
+                ItemPathHolder holder = new ItemPathHolder(itemPathType.getItemPath());
                 element = holder.toElement(elementOrAttributeName, parentElement.getOwnerDocument());
                 parentElement.appendChild(element);
             }

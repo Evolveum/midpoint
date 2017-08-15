@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.prism.xml;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -313,7 +313,7 @@ public class XmlTypeConverter {
         } else if (Duration.class.isAssignableFrom(type)) {
         	return ((Duration) val).toString();
         } else if (type.equals(ItemPath.class)){
-        	XPathHolder xpath = new XPathHolder((ItemPath)val);
+        	ItemPathHolder xpath = new ItemPathHolder((ItemPath)val);
         	return xpath.getXPath();
         } else {
             throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");

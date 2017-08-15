@@ -1,0 +1,26 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+objects:
+- resource:
+    oid: "78fc521e-69f0-11e6-9ec5-130eb0c6fb6d"
+    name: "Dummy Resource (runtime)"
+    connectorRef:
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"
+      filter:
+        '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+        and:
+          equal:
+          - path: "connectorType"
+            value: "com.evolveum.icf.dummy.connector.DummyConnector"
+          - path: "connectorVersion"
+            value: "2.0"
+      resolutionTime: "run"
+    connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ConnectorConfigurationType>
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+      configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3/ConfigurationPropertiesType>
+        '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        instanceId: "runtime"
+        requireExplicitEnable: "true"
+        uselessGuardedString:
+          '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          clearValue: "whatever"

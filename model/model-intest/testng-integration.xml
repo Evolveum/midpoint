@@ -81,9 +81,9 @@
     </test>
     <test name="Importer" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            <class name="com.evolveum.midpoint.model.intest.importer.ImportRefTest"/>
-            <class name="com.evolveum.midpoint.model.intest.importer.ImportTest"/>
-            <class name="com.evolveum.midpoint.model.intest.importer.BadImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.XmlImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.JsonImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.YamlImportTest"/>
         </classes>
     </test>
     <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="true">

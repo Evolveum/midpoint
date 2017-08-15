@@ -92,13 +92,13 @@ public class PageImportObject extends PageAdminConfiguration {
 	private static final Integer INPUT_FILE = 1;
 	private static final Integer INPUT_XML = 2;
 
-	private LoadableModel<ImportOptionsType> model;
+	private LoadableModel<ImportOptionsType> optionsModel;
 	private IModel<String> xmlEditorModel;
 
 	private String dataLanguage;
 
 	public PageImportObject() {
-		model = new LoadableModel<ImportOptionsType>(false) {
+		optionsModel = new LoadableModel<ImportOptionsType>(false) {
 
 			@Override
 			protected ImportOptionsType load() {
@@ -114,7 +114,7 @@ public class PageImportObject extends PageAdminConfiguration {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, model);
+		ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, optionsModel);
 		mainForm.add(importOptions);
 
 		final WebMarkupContainer input = new WebMarkupContainer(ID_INPUT);
@@ -336,7 +336,7 @@ public class PageImportObject extends PageAdminConfiguration {
 			Task task = createSimpleTask(operationName);
 			InputDescription inputDescription = getInputDescription(raw);
 			stream = inputDescription.inputStream;
-			getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, model.getObject(), task, result);
+			getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, optionsModel.getObject(), task, result);
 
 			result.recomputeStatus();
 		} catch (Exception ex) {

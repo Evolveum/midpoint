@@ -1,4 +1,10 @@
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 user:
-  name: "u1"
+  name:
+  - "u1"
+  - "u2"
+  givenName:
+  - "g1"
+  - "g2"
+  familyName: "f1"

@@ -68,6 +68,7 @@ public abstract class AbstractLexicalProcessorTest {
 	private static final String OBJECTS_4_NO_ROOT_NS = "objects-4-no-root-ns";
 	private static final String OBJECTS_5_ERROR = "objects-5-error";
 	private static final String OBJECTS_6_SINGLE = "objects-6-single";
+	private static final String OBJECTS_7_SINGLE = "objects-7-single";
 
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
@@ -88,7 +89,6 @@ public abstract class AbstractLexicalProcessorTest {
 	}
 	
 	protected abstract LexicalProcessor<String> createParser();
-	
 
 	@Test
     public void testParseUserToPrism() throws Exception {
@@ -378,18 +378,10 @@ public abstract class AbstractLexicalProcessorTest {
 
     }
 
-    boolean doTestParseObjectsIteratively() {
-		return true;
-    }
-
     @Test
 	public void testParseObjectsIteratively_1() throws Exception {
 	    final String TEST_NAME = "testParseObjectsIteratively_1";
 
-	    if (!doTestParseObjectsIteratively()) {
-		    displayTestTitle(TEST_NAME + " (skipped)");
-		    return;
-	    }
 	    displayTestTitle(TEST_NAME);
 
 	    // GIVEN
@@ -428,10 +420,6 @@ public abstract class AbstractLexicalProcessorTest {
 	public void testParseObjectsIteratively_1_FirstTwo() throws Exception {
 	    final String TEST_NAME = "testParseObjectsIteratively_1_FirstTwo";
 
-	    if (!doTestParseObjectsIteratively()) {
-		    displayTestTitle(TEST_NAME + " (skipped)");
-		    return;
-	    }
 	    displayTestTitle(TEST_NAME);
 
 	    // GIVEN
@@ -466,10 +454,6 @@ public abstract class AbstractLexicalProcessorTest {
 	public void testParseObjectsIteratively_2_Wrong() throws Exception {
 		final String TEST_NAME = "testParseObjectsIteratively_2_Wrong";
 
-		if (!doTestParseObjectsIteratively()) {
-			displayTestTitle(TEST_NAME + " (skipped)");
-			return;
-		}
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -512,10 +496,6 @@ public abstract class AbstractLexicalProcessorTest {
 	public void testParseObjectsIteratively_3_NS() throws Exception {
 	    final String TEST_NAME = "testParseObjectsIteratively_3_NS";
 
-	    if (!doTestParseObjectsIteratively()) {
-		    displayTestTitle(TEST_NAME + " (skipped)");
-		    return;
-	    }
 	    displayTestTitle(TEST_NAME);
 
 	    // GIVEN
@@ -554,10 +534,6 @@ public abstract class AbstractLexicalProcessorTest {
 	public void testParseObjectsIteratively_4_noRootNs() throws Exception {
 	    final String TEST_NAME = "testParseObjectsIteratively_4_noRootNs";
 
-	    if (!doTestParseObjectsIteratively()) {
-		    displayTestTitle(TEST_NAME + " (skipped)");
-		    return;
-	    }
 	    displayTestTitle(TEST_NAME);
 
 	    // GIVEN
@@ -596,10 +572,6 @@ public abstract class AbstractLexicalProcessorTest {
 	public void testParseObjectsIteratively_5_error() throws Exception {
 		final String TEST_NAME = "testParseObjectsIteratively_5_error";
 
-		if (!doTestParseObjectsIteratively()) {
-			displayTestTitle(TEST_NAME + " (skipped)");
-			return;
-		}
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -625,7 +597,7 @@ public abstract class AbstractLexicalProcessorTest {
 		// WHEN+THEN (parse in standard way)
 		try {
 			lexicalProcessor.readObjects(getFileSource(OBJECTS_5_ERROR), ParsingContext.createDefault());
-		} catch (SchemaException e) {
+		} catch (Exception e) {     // SchemaException for JSON/YAML, IllegalStateException for XML (do something about this)
 			System.out.println("Got expected exception: " + e);
 		}
 	}
@@ -634,10 +606,6 @@ public abstract class AbstractLexicalProcessorTest {
 	public void testParseObjectsIteratively_6_single() throws Exception {
 		final String TEST_NAME = "testParseObjectsIteratively_6_single";
 
-		if (!doTestParseObjectsIteratively()) {
-			displayTestTitle(TEST_NAME + " (skipped)");
-			return;
-		}
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -663,6 +631,41 @@ public abstract class AbstractLexicalProcessorTest {
 
 		// WHEN+THEN (parse in standard way)
 		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_6_SINGLE), ParsingContext.createDefault());
+
+		System.out.println("Parsed objects (standard way):");
+		System.out.println(DebugUtil.debugDump(nodesStandard));
+
+		assertEquals("Nodes are different", nodesStandard, nodes);
+	}
+
+	@Test
+	public void testParseObjectsIteratively_7_single() throws Exception {
+		final String TEST_NAME = "testParseObjectsIteratively_7_single";
+
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		LexicalProcessor<String> lexicalProcessor = createParser();
+
+		// WHEN (parse to xnode)
+		List<RootXNode> nodes = new ArrayList<>();
+		lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_7_SINGLE), ParsingContext.createDefault(),
+				node -> {
+					nodes.add(node);
+					return true;
+				});
+
+		// THEN
+		System.out.println("Parsed objects (iteratively):");
+		System.out.println(DebugUtil.debugDump(nodes));
+
+		assertEquals("Wrong # of nodes read", 1, nodes.size());
+
+		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+		nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
+
+		// WHEN+THEN (parse in standard way)
+		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_7_SINGLE), ParsingContext.createDefault());
 
 		System.out.println("Parsed objects (standard way):");
 		System.out.println(DebugUtil.debugDump(nodesStandard));
