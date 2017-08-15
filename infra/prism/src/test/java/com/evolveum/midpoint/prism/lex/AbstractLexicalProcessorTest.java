@@ -15,32 +15,11 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.EventHandlerChainType;
 import com.evolveum.midpoint.prism.foo.EventHandlerType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
 import com.evolveum.midpoint.prism.foo.ResourceType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -50,8 +29,28 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -63,8 +62,14 @@ public abstract class AbstractLexicalProcessorTest {
 			= new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
 
     public static final String EVENT_HANDLER_FILE_BASENAME = "event-handler";
+	private static final String OBJECTS_1 = "objects-1";
+	private static final String OBJECTS_2_WRONG = "objects-2-wrong";
+	private static final String OBJECTS_3_NS = "objects-3-ns";
+	private static final String OBJECTS_4_NO_ROOT_NS = "objects-4-no-root-ns";
+	private static final String OBJECTS_5_ERROR = "objects-5-error";
+	private static final String OBJECTS_6_SINGLE = "objects-6-single";
 
-    @BeforeSuite
+	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
@@ -372,5 +377,297 @@ public abstract class AbstractLexicalProcessorTest {
         System.out.println(marshalled.debugDump());
 
     }
+
+    boolean doTestParseObjectsIteratively() {
+		return true;
+    }
+
+    @Test
+	public void testParseObjectsIteratively_1() throws Exception {
+	    final String TEST_NAME = "testParseObjectsIteratively_1";
+
+	    if (!doTestParseObjectsIteratively()) {
+		    displayTestTitle(TEST_NAME + " (skipped)");
+		    return;
+	    }
+	    displayTestTitle(TEST_NAME);
+
+	    // GIVEN
+	    LexicalProcessor<String> lexicalProcessor = createParser();
+
+	    // WHEN (parse to xnode)
+	    List<RootXNode> nodes = new ArrayList<>();
+	    lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_1), ParsingContext.createDefault(),
+			    node -> {
+				    nodes.add(node);
+				    return true;
+			    });
+
+	    // THEN
+	    System.out.println("Parsed objects (iteratively):");
+	    System.out.println(DebugUtil.debugDump(nodes));
+
+	    assertEquals("Wrong # of nodes read", 3, nodes.size());
+
+	    final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+	    nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
+	    assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
+	    assertEquals("Wrong namespace for node 2", NS_C, getFirstElementNS(nodes, 1));
+	    assertEquals("Wrong namespace for node 3", NS_C, getFirstElementNS(nodes, 2));
+
+	    // WHEN+THEN (parse in standard way)
+	    List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_1), ParsingContext.createDefault());
+
+	    System.out.println("Parsed objects (standard way):");
+	    System.out.println(DebugUtil.debugDump(nodesStandard));
+
+	    assertEquals("Nodes are different", nodesStandard, nodes);
+    }
+
+    @Test
+	public void testParseObjectsIteratively_1_FirstTwo() throws Exception {
+	    final String TEST_NAME = "testParseObjectsIteratively_1_FirstTwo";
+
+	    if (!doTestParseObjectsIteratively()) {
+		    displayTestTitle(TEST_NAME + " (skipped)");
+		    return;
+	    }
+	    displayTestTitle(TEST_NAME);
+
+	    // GIVEN
+	    LexicalProcessor<String> lexicalProcessor = createParser();
+
+	    // WHEN (parse to xnode)
+	    List<RootXNode> nodes = new ArrayList<>();
+	    lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_1), ParsingContext.createDefault(),
+			    node -> {
+				    nodes.add(node);
+				    return nodes.size() != 2;
+			    });
+
+	    // THEN
+	    System.out.println("Parsed objects (iteratively):");
+	    System.out.println(DebugUtil.debugDump(nodes));
+
+	    assertEquals("Wrong # of nodes read", 2, nodes.size());
+
+	    final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+	    nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
+	    assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
+	    assertEquals("Wrong namespace for node 2", NS_C, getFirstElementNS(nodes, 1));
+    }
+
+	private String getFirstElementNS(List<RootXNode> nodes, int index) {
+		RootXNode root = nodes.get(index);
+		return ((MapXNode) root.getSubnode()).entrySet().iterator().next().getKey().getNamespaceURI();
+	}
+
+	@Test
+	public void testParseObjectsIteratively_2_Wrong() throws Exception {
+		final String TEST_NAME = "testParseObjectsIteratively_2_Wrong";
+
+		if (!doTestParseObjectsIteratively()) {
+			displayTestTitle(TEST_NAME + " (skipped)");
+			return;
+		}
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		LexicalProcessor<String> lexicalProcessor = createParser();
+
+		// WHEN (parse to xnode)
+		List<RootXNode> nodes = new ArrayList<>();
+		try {
+			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG), ParsingContext.createDefault(),
+					node -> {
+						nodes.add(node);
+						return true;
+					});
+			fail("unexpected success");
+		} catch (SchemaException e) {
+			System.out.println("Got expected exception: " + e);
+		}
+
+		// THEN
+		System.out.println("Parsed objects (iteratively):");
+		System.out.println(DebugUtil.debugDump(nodes));
+
+		assertEquals("Wrong # of nodes read", 3, nodes.size());
+
+		nodes.forEach(n -> assertEquals("Wrong namespace", "", n.getRootElementName().getNamespaceURI()));
+		assertEquals("Wrong namespace for node 1", "", getFirstElementNS(nodes, 0));
+		assertEquals("Wrong namespace for node 2", "", getFirstElementNS(nodes, 1));
+		assertEquals("Wrong namespace for node 3", "", getFirstElementNS(nodes, 2));
+
+		// WHEN+THEN (parse in standard way)
+		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_2_WRONG), ParsingContext.createDefault());
+
+		System.out.println("Parsed objects (standard way):");
+		System.out.println(DebugUtil.debugDump(nodesStandard));
+
+		assertFalse("Nodes are not different", nodesStandard.equals(nodes));
+	}
+
+	@Test
+	public void testParseObjectsIteratively_3_NS() throws Exception {
+	    final String TEST_NAME = "testParseObjectsIteratively_3_NS";
+
+	    if (!doTestParseObjectsIteratively()) {
+		    displayTestTitle(TEST_NAME + " (skipped)");
+		    return;
+	    }
+	    displayTestTitle(TEST_NAME);
+
+	    // GIVEN
+	    LexicalProcessor<String> lexicalProcessor = createParser();
+
+	    // WHEN (parse to xnode)
+	    List<RootXNode> nodes = new ArrayList<>();
+	    lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_3_NS), ParsingContext.createDefault(),
+			    node -> {
+				    nodes.add(node);
+				    return true;
+			    });
+
+	    // THEN
+	    System.out.println("Parsed objects (iteratively):");
+	    System.out.println(DebugUtil.debugDump(nodes));
+
+	    assertEquals("Wrong # of nodes read", 3, nodes.size());
+
+	    nodes.forEach(n -> assertEquals("Wrong namespace",
+			    "http://a/", n.getRootElementName().getNamespaceURI()));
+	    assertEquals("Wrong namespace for node 1", "http://b/", getFirstElementNS(nodes, 0));
+	    assertEquals("Wrong namespace for node 2", "http://c/", getFirstElementNS(nodes, 1));
+	    assertEquals("Wrong namespace for node 3", "http://d/", getFirstElementNS(nodes, 2));
+
+	    // WHEN+THEN (parse in standard way)
+	    List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_3_NS), ParsingContext.createDefault());
+
+	    System.out.println("Parsed objects (standard way):");
+	    System.out.println(DebugUtil.debugDump(nodesStandard));
+
+	    assertEquals("Nodes are different", nodesStandard, nodes);
+    }
+
+	@Test
+	public void testParseObjectsIteratively_4_noRootNs() throws Exception {
+	    final String TEST_NAME = "testParseObjectsIteratively_4_noRootNs";
+
+	    if (!doTestParseObjectsIteratively()) {
+		    displayTestTitle(TEST_NAME + " (skipped)");
+		    return;
+	    }
+	    displayTestTitle(TEST_NAME);
+
+	    // GIVEN
+	    LexicalProcessor<String> lexicalProcessor = createParser();
+
+	    // WHEN (parse to xnode)
+	    List<RootXNode> nodes = new ArrayList<>();
+	    lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_4_NO_ROOT_NS), ParsingContext.createDefault(),
+			    node -> {
+				    nodes.add(node);
+				    return true;
+			    });
+
+	    // THEN
+	    System.out.println("Parsed objects (iteratively):");
+	    System.out.println(DebugUtil.debugDump(nodes));
+
+	    assertEquals("Wrong # of nodes read", 3, nodes.size());
+
+	    nodes.forEach(n -> assertEquals("Wrong namespace",
+			    "", n.getRootElementName().getNamespaceURI()));
+	    assertEquals("Wrong namespace for node 1", "http://b/", getFirstElementNS(nodes, 0));
+	    assertEquals("Wrong namespace for node 2", "http://c/", getFirstElementNS(nodes, 1));
+	    assertEquals("Wrong namespace for node 3", "http://d/", getFirstElementNS(nodes, 2));
+
+	    // WHEN+THEN (parse in standard way)
+	    List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_4_NO_ROOT_NS), ParsingContext.createDefault());
+
+	    System.out.println("Parsed objects (standard way):");
+	    System.out.println(DebugUtil.debugDump(nodesStandard));
+
+	    assertEquals("Nodes are different", nodesStandard, nodes);
+    }
+
+	@Test
+	public void testParseObjectsIteratively_5_error() throws Exception {
+		final String TEST_NAME = "testParseObjectsIteratively_5_error";
+
+		if (!doTestParseObjectsIteratively()) {
+			displayTestTitle(TEST_NAME + " (skipped)");
+			return;
+		}
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		LexicalProcessor<String> lexicalProcessor = createParser();
+
+		// WHEN (parse to xnode)
+		List<RootXNode> nodes = new ArrayList<>();
+		try {
+			lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_5_ERROR), ParsingContext.createDefault(),
+					node -> {
+						nodes.add(node);
+						return true;
+					});
+		} catch (SchemaException e) {
+			System.out.println("Got expected exception: " + e);
+		}
+		// THEN
+		System.out.println("Parsed objects (iteratively):");
+		System.out.println(DebugUtil.debugDump(nodes));
+
+		assertEquals("Wrong # of nodes read", 1, nodes.size());
+
+		// WHEN+THEN (parse in standard way)
+		try {
+			lexicalProcessor.readObjects(getFileSource(OBJECTS_5_ERROR), ParsingContext.createDefault());
+		} catch (SchemaException e) {
+			System.out.println("Got expected exception: " + e);
+		}
+	}
+
+	@Test
+	public void testParseObjectsIteratively_6_single() throws Exception {
+		final String TEST_NAME = "testParseObjectsIteratively_6_single";
+
+		if (!doTestParseObjectsIteratively()) {
+			displayTestTitle(TEST_NAME + " (skipped)");
+			return;
+		}
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		LexicalProcessor<String> lexicalProcessor = createParser();
+
+		// WHEN (parse to xnode)
+		List<RootXNode> nodes = new ArrayList<>();
+		lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_6_SINGLE), ParsingContext.createDefault(),
+				node -> {
+					nodes.add(node);
+					return true;
+				});
+
+		// THEN
+		System.out.println("Parsed objects (iteratively):");
+		System.out.println(DebugUtil.debugDump(nodes));
+
+		assertEquals("Wrong # of nodes read", 1, nodes.size());
+
+		final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+		nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
+		assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
+
+		// WHEN+THEN (parse in standard way)
+		List<RootXNode> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_6_SINGLE), ParsingContext.createDefault());
+
+		System.out.println("Parsed objects (standard way):");
+		System.out.println(DebugUtil.debugDump(nodesStandard));
+
+		assertEquals("Nodes are different", nodesStandard, nodes);
+	}
 
 }

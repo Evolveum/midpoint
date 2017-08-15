@@ -236,6 +236,13 @@ public interface PrismParser {
 		boolean handleError(Throwable t);
 	}
 
+	/**
+	 * Currently implemented for JSON/YAML only. For XML, use old Validator code.
+	 * 
+	 * @param handler
+	 * @throws SchemaException
+	 * @throws IOException
+	 */
 	void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException;
 
 	// ============= other methods (convenience ones, deprecated ones etc) =============

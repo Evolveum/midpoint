@@ -1,0 +1,6 @@
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "user" : {
+    "name" : "u1"
+  }
+}

@@ -72,7 +72,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		InputStream is = source.getInputStream();
 		try {
 			JsonParser parser = createJacksonParser(is);
-			return parseFromStart(parser, parsingContext);
+			return parseFromStart(parser, parsingContext, null);
 		} finally {
 			if (source.closeStreamAfterParsing()) {
 				IOUtils.closeQuietly(is);
@@ -102,7 +102,36 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 	}
 
-    protected abstract JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException;
+	private class IterativeParsingContext {
+		final RootXNodeHandler handler;
+		boolean expectingMapWithObjectsKey;         // first we expect { "objects" = [ o1, o2, ..., oN ] }
+		boolean expectingListOfObjects;             // if we got it, then we expect [ o1, o2, ..., oN ]
+		boolean foundListOfObjects;                 // true if we really found this structure
+		String defaultNamespace;                    // default namespace, if present
+		boolean abortProcessing;                    // used when handler returns 'do not continue'
+
+		private IterativeParsingContext(RootXNodeHandler handler) {
+			this.handler = handler;
+			this.expectingMapWithObjectsKey = true;
+		}
+	}
+
+	@Override
+	public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
+			RootXNodeHandler handler) throws SchemaException, IOException {
+		InputStream is = source.getInputStream();
+		try {
+			JsonParser parser = createJacksonParser(is);
+			IterativeParsingContext ipc = new IterativeParsingContext(handler);
+			parseFromStart(parser, parsingContext, ipc);
+		} finally {
+			if (source.closeStreamAfterParsing()) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+	}
+
+	protected abstract JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException;
 
 	class JsonParsingContext {
 		@NotNull final JsonParser parser;
@@ -117,10 +146,18 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			this.parser = parser;
 			this.prismParsingContext = prismParsingContext;
 		}
+
+		JsonParsingContext createChildContext() {
+			return new JsonParsingContext(parser, prismParsingContext);
+		}
 	}
 
+	/**
+	 * IterativeParsingContext (if not null) is used to emit found 'root nodes'.
+	 */
 	@NotNull
-	private RootXNode parseFromStart(JsonParser unconfiguredParser, ParsingContext parsingContext) throws SchemaException {
+	private RootXNode parseFromStart(JsonParser unconfiguredParser, ParsingContext parsingContext,
+			IterativeParsingContext ipc) throws SchemaException {
 		JsonParsingContext ctx = null;
 		try {
 			JsonParser parser = configureParser(unconfiguredParser);
@@ -129,23 +166,35 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 				throw new SchemaException("Nothing to parse: the input is empty.");
 			}
 			ctx = new JsonParsingContext(parser, parsingContext);
-			XNode xnode = parseValue(ctx);
-			if (!(xnode instanceof MapXNode) || ((MapXNode) xnode).size() != 1) {
-				throw new SchemaException("Expected MapXNode with a single key; got " + xnode + " instead. At " + getPositionSuffix(ctx));
-			}
-			processDefaultNamespaces(xnode, null, ctx);
-			processSchemaNodes(xnode);
-			Entry<QName, XNode> entry = ((MapXNode) xnode).entrySet().iterator().next();
-			RootXNode root = new RootXNode(entry.getKey(), entry.getValue());
-			if (entry.getValue() != null) {
-				root.setTypeQName(entry.getValue().getTypeQName());			// TODO - ok ????
+			XNode xnode = parseValue(ctx, ipc);
+			RootXNode root = postProcessValueToRoot(xnode, null, ctx);    // harmless also in 'read iterative' case
+			if (ipc != null && !ipc.foundListOfObjects) {
+				ipc.handler.handleData(root);   // we expected 'objects' but found a single object instead
 			}
 			return root;
 		} catch (IOException e) {
-			throw new SchemaException("Cannot parse JSON/YAML object: " + e.getMessage() +
-					(ctx != null ? " At: " + getPositionSuffix(ctx) : ""),
-					e);
+			throw new SchemaException("Cannot parse JSON/YAML object: " + e.getMessage() + getPositionSuffixIfPresent(ctx), e);
 		}
+	}
+
+	@NotNull
+	private RootXNode postProcessValueToRoot(XNode xnode, String defaultNamespace, JsonParsingContext ctx) throws SchemaException, IOException {
+		if (!xnode.isSingleEntryMap()) {    // valid for both single-root and multi-root scenarios
+			throw new SchemaException("Expected MapXNode with a single key; got " + xnode + " instead. At " + getPositionSuffix(ctx));
+		}
+		processDefaultNamespaces(xnode, defaultNamespace, ctx);
+		processSchemaNodes(xnode);
+		Entry<QName, XNode> entry = ((MapXNode) xnode).entrySet().iterator().next();
+		RootXNode root = new RootXNode(entry.getKey(), entry.getValue());
+		if (entry.getValue() != null) {
+			root.setTypeQName(entry.getValue().getTypeQName());            // TODO - ok ????
+		}
+		return root;
+	}
+
+	@NotNull
+	private String getPositionSuffixIfPresent(JsonParsingContext ctx) {
+		return ctx != null ? " At: " + getPositionSuffix(ctx) : "";
 	}
 
 	// Default namespaces (@ns properties) are processed in the second pass, because they might be present within an object
@@ -153,7 +202,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	private void processDefaultNamespaces(XNode xnode, String parentDefault, JsonParsingContext ctx) {
 		if (xnode instanceof MapXNode) {
 			MapXNode map = (MapXNode) xnode;
-			final String currentDefault = ctx.defaultNamespaces.containsKey(map) ? ctx.defaultNamespaces.get(map) : parentDefault;
+			final String currentDefault = ctx.defaultNamespaces.getOrDefault(map, parentDefault);
 			for (Entry<QName, XNode> entry : map.entrySet()) {
 				QName fieldName = entry.getKey();
 				XNode subnode = entry.getValue();
@@ -220,14 +269,14 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	}
 
 	@NotNull
-	private XNode parseValue(JsonParsingContext ctx) throws IOException, SchemaException {
+	private XNode parseValue(JsonParsingContext ctx, IterativeParsingContext ipc) throws IOException, SchemaException {
 		Validate.notNull(ctx.parser.currentToken());
 
 		switch (ctx.parser.currentToken()) {
 			case START_OBJECT:
-				return parseJsonObject(ctx);
+				return parseJsonObject(ctx, ipc);
 			case START_ARRAY:
-				return parseToList(ctx);
+				return parseToList(ctx, ipc);
 			case VALUE_STRING:
 			case VALUE_TRUE:
 			case VALUE_FALSE:
@@ -245,7 +294,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	 * Normally returns a MapXNode. However, JSON primitives/lists can be simulated by two-member object (@type + @value); in these cases we return respective XNode.
 	 */
 	@NotNull
-	private XNode parseJsonObject(JsonParsingContext ctx) throws SchemaException, IOException {
+	private XNode parseJsonObject(JsonParsingContext ctx, IterativeParsingContext ipc) throws SchemaException, IOException {
 		Validate.notNull(ctx.parser.currentToken());
 
 		QName typeName = null;
@@ -274,15 +323,30 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 				}
 				currentFieldNameInfo = QNameUtil.uriToQNameInfo(newFieldName, true);
 			} else {
-				XNode valueXNode = parseValue(ctx);
+				if (ipc != null) {
+					if (ipc.expectingMapWithObjectsKey) {
+						ipc.expectingListOfObjects = true;
+					} else {
+						ipc = null;
+					}
+				}
+				XNode valueXNode = parseValue(ctx, ipc);
 				assert currentFieldNameInfo != null;
 				if (isSpecial(currentFieldNameInfo.name)) {
 					if (isNamespaceDeclaration(currentFieldNameInfo.name)) {
 						if (defaultNamespaceDefined) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Default namespace defined more than once at " + getPositionSuffix(ctx));
 						}
-						ctx.defaultNamespaces.put(map, getStringValue(valueXNode, currentFieldNameInfo, ctx));
+						String namespaceUri = getStringValue(valueXNode, currentFieldNameInfo, ctx);
+						ctx.defaultNamespaces.put(map, namespaceUri);
 						defaultNamespaceDefined = true;
+						if (ipc != null) {
+							if (ipc.foundListOfObjects) {
+								ctx.prismParsingContext.warnOrThrow(LOGGER, "When parsing list of objects, default namespace was present after the objects " + getPositionSuffix(ctx));
+							} else {
+								ipc.defaultNamespace = namespaceUri;    // there is a place for only one @ns declaration (at the level of "objects" map)
+							}
+						}
 					} else if (isTypeDeclaration(currentFieldNameInfo.name)) {
 						if (typeName != null) {
 							ctx.prismParsingContext.warnOrThrow(LOGGER, "Value type defined more than once at " + getPositionSuffix(ctx));
@@ -306,6 +370,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 					}
 				}
 				currentFieldNameInfo = null;
+				if (ipc != null && ipc.abortProcessing) {
+					break;
+				}
 			}
 		}
 		// Return either map or primitive value (in case of @type/@value)
@@ -388,13 +455,16 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		return String.valueOf(ctx.parser.getCurrentLocation());
 	}
 
-	private ListXNode parseToList(JsonParsingContext ctx) throws SchemaException, IOException {
+	private ListXNode parseToList(JsonParsingContext ctx, IterativeParsingContext ipc) throws SchemaException, IOException {
 		Validate.notNull(ctx.parser.currentToken());
 
 		ListXNode list = new ListXNode();
 		Object tid = ctx.parser.getTypeId();
 		if (tid != null) {
 			list.setTypeQName(tagToTypeName(tid, ctx));
+		}
+		if (ipc != null && ipc.expectingListOfObjects) {
+			ipc.foundListOfObjects = true;
 		}
 		for (;;) {
 			JsonToken token = ctx.parser.nextToken();
@@ -404,13 +474,24 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			} else if (token == JsonToken.END_ARRAY) {
 				return list;
 			} else {
-				list.add(parseValue(ctx));
+				if (ipc != null && ipc.expectingListOfObjects) {
+					JsonParsingContext childCtx = ctx.createChildContext();
+					XNode value = parseValue(childCtx, null);
+					RootXNode childRoot = postProcessValueToRoot(value, ipc.defaultNamespace, childCtx);
+					if (!ipc.handler.handleData(childRoot)) {
+						ipc.abortProcessing = true;
+						assert list.isEmpty();
+						return list;
+					}
+				} else {
+					list.add(parseValue(ctx, null));
+				}
 			}
 		}
 	}
 
 	private <T> PrimitiveXNode<T> parseToPrimitive(JsonParsingContext ctx) throws IOException, SchemaException {
-		PrimitiveXNode<T> primitive = new PrimitiveXNode<T>();
+		PrimitiveXNode<T> primitive = new PrimitiveXNode<>();
 
 		Object tid = ctx.parser.getTypeId();
 		if (tid != null) {
@@ -424,19 +505,19 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 		}
 
 		JsonNode jn = ctx.parser.readValueAs(JsonNode.class);
-		ValueParser<T> vp = new JsonValueParser<T>(ctx.parser, jn);
+		ValueParser<T> vp = new JsonValueParser<>(ctx.parser, jn);
 		primitive.setValueParser(vp);
 
 		return primitive;
 	}
 
 	private <T> PrimitiveXNode<T> parseToEmptyPrimitive() throws IOException, SchemaException {
-		PrimitiveXNode<T> primitive = new PrimitiveXNode<T>();
-		primitive.setValueParser(new JsonNullValueParser<T>());
+		PrimitiveXNode<T> primitive = new PrimitiveXNode<>();
+		primitive.setValueParser(new JsonNullValueParser<>());
 		return primitive;
 	}
 
-	// TODO remove if not needed
+	@SuppressWarnings("unused") // TODO remove if not needed
 	private QName getCurrentTypeName(JsonParsingContext ctx) throws IOException, SchemaException {
 		switch (ctx.parser.currentToken()) {
 			case VALUE_NUMBER_INT:
@@ -717,8 +798,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 	protected QName getExplicitType(XNode xnode) {
 		return xnode.isExplicitTypeDeclaration() ? xnode.getTypeQName() : null;
 	}
-	
-	private String serializeNsIfNeeded(QName subNodeName, String globalNamespace, JsonGenerator generator) throws JsonGenerationException, IOException{
+
+	@SuppressWarnings("unused") // TODO
+	private String serializeNsIfNeeded(QName subNodeName, String globalNamespace, JsonGenerator generator) throws IOException {
 		if (subNodeName == null){
 			return globalNamespace;
 		}

@@ -1,0 +1,19 @@
+{
+  "@ns" : "http://a/",
+  "objects" : [ {
+    "user" : {
+      "name" : "u1",
+      "@ns" : "http://b/"
+    }
+  }, {
+    "user" : {
+      "name" : "u2",
+      "@ns" : "http://c/"
+    }
+  }, {
+    "role" : {
+      "name" : "r1",
+      "@ns" : "http://d/"
+    }
+  } ]
+}

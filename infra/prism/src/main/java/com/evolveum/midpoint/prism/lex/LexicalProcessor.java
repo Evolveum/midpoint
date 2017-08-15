@@ -44,22 +44,23 @@ public interface LexicalProcessor<T> {
 	@NotNull
 	List<RootXNode> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException;
 
+	/**
+	 * Note that this interface does not contain handleError method. It seems that we are currently not able to successfully
+	 * recover from JSON/YAML parsing errors - so, after first exception we would get quite random (garbage) data from the
+	 * input stream. It is much more safe just to abort processing in that case.
+	 */
+	@FunctionalInterface
 	interface RootXNodeHandler {
 		/**
 		 * Called when a RootXNode was successfully retrieved from the input.
 		 * @return true if the processing should continue
 		 */
 		boolean handleData(RootXNode node);
-		/**
-		 * Called when a RootXNode could not be successfully retrieved from the input.
-		 * No data is provided; instead a Throwable is given to the caller.
-		 * @return true if the processing should continue
-		 */
-		boolean handleError(Throwable t);
 	}
 
 	default void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext, RootXNodeHandler handler) throws SchemaException, IOException {
 		// TODO implement this for XML and JSON/YAML. Reuse [i.e. steal ;)] Validator code if needed.
+		throw new UnsupportedOperationException();
 	}
 
 	/**
