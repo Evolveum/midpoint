@@ -135,6 +135,8 @@ public class ObjectImporter {
 				    objectResult.addContext("objectNumber", index.incrementAndGet());
 				    importParsedObject(object, null, objectResult, options, task, raw);
 				    objectResult.computeStatusIfUnknown();
+					objectResult.cleanupResult();
+					parentResult.summarize();
 
 				    if (objectResult.isAcceptable()) {
 				    	successes.incrementAndGet();
@@ -148,7 +150,9 @@ public class ObjectImporter {
 			    public boolean handleError(Throwable t) {
 				    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
 				    objectResult.addContext("objectNumber", index.incrementAndGet());
-				    objectResult.recordPartialError("Couldn't parse object", t);
+				    objectResult.recordFatalError("Couldn't parse object", t);
+				    parentResult.summarize();
+
 			    	errors.incrementAndGet();
 			    	return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
 			    }
