@@ -37,11 +37,11 @@ public class CommandLineScriptExecutor {
     public static final String QOTATION_MARK = "\"";
     public static final String REGEX_CODE_SPLITTER = "([^\"]\\S*|\".+?\")\\s*";// bash -c "echo Im not a number, im a ; echo free man"
     //-> [bash,-c,"echo Im not a number, im a ; echo free man"]
-    public static final String VARIABLE_REPORT = "$report";
+    public static final String VARIABLE_REPORT = "%report";
 
     private OperationResult result;
     private String generatedOutputFilePath;
-    private Boolean partialErrorHasEmerged =false;
+    private Boolean warningHasEmerged =false;
     private static final Trace LOGGER = TraceManager.getTrace(CommandLineScriptExecutor.class);
 
     public CommandLineScriptExecutor(String code, String generatedOutputFilePath, Map<String, String> variables, OperationResult parentResult) throws IOException, InterruptedException {
@@ -116,9 +116,10 @@ public class CommandLineScriptExecutor {
         StringBuilder outputBuilder = new StringBuilder();
         try (BufferedReader bufferedProcessOutputReader = new BufferedReader(new InputStreamReader(processInputStream))) {
             String line = null;
-            if (errorStream != null) {
+            if (errorStream!= null) {
                 try (BufferedReader bufferedProcessErrorOutputReader = new BufferedReader(new InputStreamReader(errorStream))) {
                     outputBuilder.append(" Partial error while executing post report script: ").append(System.getProperty("line.separator"));
+                   if (bufferedProcessErrorOutputReader.ready()){
                     while ((line = bufferedProcessErrorOutputReader.readLine()) != null) {
                         outputBuilder.append(" * " + line + System.getProperty("line.separator"));
                     }
@@ -128,9 +129,10 @@ public class CommandLineScriptExecutor {
                         LOGGER.warn(aWarning);
                     }
 
-                    result.recordPartialError(aWarning);
-                    partialErrorHasEmerged =true;
-                }
+                    result.recordWarning(aWarning);
+                    warningHasEmerged =true;
+                   }
+                   }
             }
             outputBuilder = new StringBuilder();
             while ((line = bufferedProcessOutputReader.readLine()) != null) {
@@ -149,19 +151,22 @@ public class CommandLineScriptExecutor {
     private void evaluateExitValue(Integer exitValue, String message) {
         StringBuilder messageBuilder = new StringBuilder();
         if (exitValue != EXIT_SUCCESS) {
-            messageBuilder.append("Process exited with an error, the exit value ").append(exitValue).append(". Only a part of the script might have been executed, the output containing the error message: ").append(message);
+            messageBuilder.append("Process exited with an error, the exit value: ").append(exitValue)
+                    .append(". Only a part of the script might have been executed, the output: ").append(System.getProperty("line.separator")).append(message);
             String warnMessage = messageBuilder.toString();
             if (!LOGGER.isWarnEnabled()) {
             } else {
                 LOGGER.warn(warnMessage);
             }
-            result.recordPartialError(warnMessage);
+            if (!warningHasEmerged){
+                result.recordWarning(warnMessage);
+            }
         } else {
             if (!LOGGER.isDebugEnabled()) {
             } else {
                 LOGGER.debug("Script execution successful, the following output string was returned: {}", message);
             }
-            if (!partialErrorHasEmerged){
+            if (!warningHasEmerged){
             result.recordSuccess();
             }
         }
