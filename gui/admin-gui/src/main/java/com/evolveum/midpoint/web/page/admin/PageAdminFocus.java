@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -74,8 +75,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private CountableLoadableModel<AssignmentEditorDto> assignmentsModel;
-	private CountableLoadableModel<AssignmentEditorDto> policyRulesModel;
+	private CountableLoadableModel<AssignmentDto> assignmentsModel;
+	private CountableLoadableModel<AssignmentDto> policyRulesModel;
     private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
@@ -99,11 +100,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		};
 
-		assignmentsModel = new CountableLoadableModel<AssignmentEditorDto>(false) {
+		assignmentsModel = new CountableLoadableModel<AssignmentDto>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<AssignmentEditorDto> load() {
+			protected List<AssignmentDto> load() {
 				return loadAssignments();
 			}
 
@@ -112,12 +113,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				return countAssignments();
 			}
 		};
-
-		policyRulesModel = new CountableLoadableModel<AssignmentEditorDto>(false) {
+		
+		policyRulesModel = new CountableLoadableModel<AssignmentDto>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<AssignmentEditorDto> load() {
+			protected List<AssignmentDto> load() {
 				return loadPolicyRules();
 			}
 
@@ -128,6 +129,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		};
 
         delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
+        	
+        	private static final long serialVersionUID = 1L;
             @Override
             protected List<AssignmentEditorDto> load() {
                 return loadDelegatedToMe();
@@ -140,11 +143,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionModel;
 	}
 
-	public CountableLoadableModel<AssignmentEditorDto> getAssignmentsModel() {
+	public CountableLoadableModel<AssignmentDto> getAssignmentsModel() {
 		return assignmentsModel;
 	}
-
-	public CountableLoadableModel<AssignmentEditorDto> getPolicyRulesModel() {
+	
+	public CountableLoadableModel<AssignmentDto> getPolicyRulesModel() {
 		return policyRulesModel;
 	}
 
@@ -160,10 +163,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return assignmentsModel.isLoaded();
 	}
 	
-	public List<AssignmentEditorDto> getFocusAssignments() {
+	public List<AssignmentDto> getFocusAssignments() {
 		return assignmentsModel.getObject();
 	}
-
+	
 	protected void reviveModels() throws SchemaException {
 		super.reviveModels();
 		WebComponentUtil.revive(projectionModel, getPrismContext());
@@ -405,16 +408,15 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return rv;
 	}
 
-    private List<AssignmentEditorDto> loadAssignments() {
-		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+    private List<AssignmentDto> loadAssignments() {
+    	List<AssignmentDto> list = new ArrayList<AssignmentDto>();
 
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
 			if (!isPolicyRuleAssignment(assignment) && isAssignmentRelevant(assignment)) {
-				list.add(new AssignmentEditorDto(StringUtils.isEmpty(focusWrapper.getOid()) ?
-						UserDtoStatus.ADD : UserDtoStatus.MODIFY, assignment, this));
+				list.add(new AssignmentDto(assignment, StringUtils.isEmpty(focusWrapper.getOid()) ? UserDtoStatus.ADD : UserDtoStatus.MODIFY));
 			}
 		}
 
@@ -422,8 +424,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		return list;
 	}
-
-	protected int countPolicyRules() {
+    
+    protected int countPolicyRules() {
 		int policyRuleCounter = 0;
 		PrismObject<F> focus = getObjectModel().getObject().getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
@@ -435,20 +437,20 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return policyRuleCounter;
 	}
 
-    private List<AssignmentEditorDto> loadPolicyRules() {
+    private List<AssignmentDto> loadPolicyRules() {
 		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
-		List<AssignmentEditorDto> list = getPolicyRulesList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
+		List<AssignmentDto> list = getPolicyRulesList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
 				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
 		Collections.sort(list);
 		return list;
 	}
 
-	protected List<AssignmentEditorDto> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+	protected List<AssignmentDto> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
+		List<AssignmentDto> list = new ArrayList<AssignmentDto>();
 		for (AssignmentType assignment : assignments) {
 			if (isPolicyRuleAssignment(assignment)) {
-				list.add(new AssignmentEditorDto(status, assignment, this));
+				list.add(new AssignmentDto(assignment, UserDtoStatus.MODIFY));
 			}
 		}
 		return list;
@@ -482,10 +484,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		}
 
 		handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, assignmentsModel.getObject());
+		
 	}
 	
+	
 	protected void handleAssignmentForAdd(PrismObject<F> focus, QName containerName,
-			List<AssignmentEditorDto> assignments) throws SchemaException {
+			List<AssignmentDto> assignments) throws SchemaException {
 		PrismObjectDefinition<F> userDef = focus.getDefinition();
 		PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(containerName);
 
@@ -497,20 +501,20 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		}
 		
 //		List<AssignmentEditorDto> assignments = getFocusAssignments();
-		for (AssignmentEditorDto assDto : assignments) {
+		for (AssignmentDto assDto : assignments) {
 			if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
 				continue;
 			}
 
-			AssignmentType assignment = new AssignmentType();
-			PrismContainerValue<AssignmentType> value = assDto.getNewValue(getPrismContext());
-			assignment.setupContainerValue(value);
-			value.applyDefinition(assignmentDef, false);
-			assignmentContainer.add(assignment.clone().asPrismContainerValue());
+//			AssignmentType assignment = new AssignmentType();
+//			PrismContainerValue<AssignmentType> value = assDto.getNewValue(getPrismContext());
+//			assignment.setupContainerValue(value);
+//			value.applyDefinition(assignmentDef, false);
+			assignmentContainer.add(assDto.getAssignment().clone().asPrismContainerValue());
 
 			// todo remove this block [lazyman] after model is updated - it has
 			// to remove resource from accountConstruction
-			removeResourceFromAccConstruction(assignment);
+			removeResourceFromAccConstruction(assDto.getAssignment());
 		}
 	}
 
@@ -540,7 +544,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		if (isAssignmentsLoaded()) {
 			// handle assignments
 			PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
-			handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
+//			handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
+			handleAssignmentExperimentalDeltas(focusDelta, getFocusAssignments(), def, false);
 		}
 	}
 	
@@ -597,6 +602,56 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			ass.setupContainerValue(value);
 			removeResourceFromAccConstruction(ass);
 		}
+
+		return assDelta;
+	}
+	
+	protected ContainerDelta<AssignmentType> handleAssignmentExperimentalDeltas(ObjectDelta<F> focusDelta,
+			List<AssignmentDto> assignments, PrismContainerDefinition def,
+													boolean isDelegation) throws SchemaException {
+		ContainerDelta<AssignmentType> assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+
+		for (AssignmentDto assDto : assignments) {
+			PrismContainerValue<AssignmentType> newValue = assDto.getAssignment().asPrismContainerValue();
+
+			switch (assDto.getStatus()) {
+				case ADD:
+					newValue.applyDefinition(def, false);
+					assDelta.addValueToAdd(newValue.clone());
+					break;
+				case DELETE:
+					PrismContainerValue<AssignmentType> oldValue = assDto.getAssignment().asPrismContainerValue();
+					if (isDelegation){
+						oldValue.applyDefinition(def, false);
+					} else {
+						oldValue.applyDefinition(def);
+					}
+					assDelta.addValueToDelete(oldValue.clone());
+					break;
+				case MODIFY:
+					Collection<? extends ItemDelta> deltas = assDto.computeAssignmentDelta();
+					if (deltas != null || !deltas.isEmpty()) {
+						focusDelta.addModifications(deltas);
+					}
+					
+					break;
+				default:
+					warn(getString("pageAdminUser.message.illegalAssignmentState", assDto.getStatus()));
+			}
+		}
+
+		if (!assDelta.isEmpty()) {
+			assDelta = focusDelta.addModification(assDelta);
+		}
+
+		// todo remove this block [lazyman] after model is updated - it has to
+		// remove resource from accountConstruction
+//		Collection<PrismContainerValue<AssignmentType>> values = assDelta.getValues(PrismContainerValue.class);
+//		for (PrismContainerValue<AssignmentType> value : values) {
+//			AssignmentType ass = new AssignmentType();
+//			ass.setupContainerValue(value);
+//			removeResourceFromAccConstruction(ass);
+//		}
 
 		return assDelta;
 	}
@@ -681,7 +736,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					focusWrapper.getObject().getOid(), getPrismContext());
 		}
 
-		handleAssignmentDeltas(forceDeleteDelta, getFocusAssignments(), def);
+		handleAssignmentExperimentalDeltas(forceDeleteDelta, getFocusAssignments(), def, false);
 		return forceDeleteDelta;
 	}
 	

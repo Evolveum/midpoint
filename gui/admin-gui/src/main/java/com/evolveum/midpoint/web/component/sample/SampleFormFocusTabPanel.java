@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -67,14 +68,14 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
 
     public SampleFormFocusTabPanel(String id, Form mainForm,
                                    LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-                                   LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
+                                   LoadableModel<List<AssignmentDto>> assignmentsModel,
                                    LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
                                    PageBase pageBase) {
         super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
         initLayout(focusWrapperModel, assignmentsModel, pageBase);
     }
 
-    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase pageBase) {
+    private void initLayout(final LoadableModel<ObjectWrapper<F>> focusModel, LoadableModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase) {
         add(new Label(ID_HEADER, "Object details"));
         WebMarkupContainer body = new WebMarkupContainer("body");
         add(body);

@@ -1,21 +1,9 @@
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Date;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -27,9 +15,22 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Date;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * Created by honchar.
@@ -46,6 +47,39 @@ public class AssignmentsUtil {
             @Override
             public String getObject() {
                 AssignmentEditorDto dto = model.getObject();
+                ActivationType activation = dto.getActivation();
+                if (activation == null) {
+                    return defaultTitle;
+                }
+
+                ActivationStatusType status = activation.getAdministrativeStatus();
+                String strEnabled = basePanel.createStringResource(status, "lower", "ActivationStatusType.null")
+                        .getString();
+
+                if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+                    return basePanel.getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
+                            MiscUtil.asDate(activation.getValidFrom()),
+                            MiscUtil.asDate(activation.getValidTo()));
+                } else if (activation.getValidFrom() != null) {
+                    return basePanel.getString("AssignmentEditorPanel.enabledFrom", strEnabled,
+                            MiscUtil.asDate(activation.getValidFrom()));
+                } else if (activation.getValidTo() != null) {
+                    return basePanel.getString("AssignmentEditorPanel.enabledTo", strEnabled,
+                            MiscUtil.asDate(activation.getValidTo()));
+                }
+
+                return strEnabled;
+            }
+        };
+    }
+    
+    public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentDto> model, String defaultTitle, BasePanel basePanel) {
+        return new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                AssignmentType dto = model.getObject().getAssignment();
                 ActivationType activation = dto.getActivation();
                 if (activation == null) {
                     return defaultTitle;
@@ -108,14 +142,37 @@ public class AssignmentsUtil {
         });
     }
 
-    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
+//    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
+//        return new AbstractReadOnlyModel<String>() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String getObject() {
+//                AssignmentEditorDto dto = model.getObject();
+//                return dto.getStatus().name().toLowerCase();
+//            }
+//        };
+//    }
+    
+    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentDto> model) {
         return new AbstractReadOnlyModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-                AssignmentEditorDto dto = model.getObject();
+                AssignmentDto dto = model.getObject();
                 return dto.getStatus().name().toLowerCase();
+            }
+        };
+    }
+    
+    public static IModel<String> createAssignmentStatusClassModel(final UserDtoStatus model) {
+        return new AbstractReadOnlyModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return model.name().toLowerCase();
             }
         };
     }
@@ -170,6 +227,77 @@ public class AssignmentsUtil {
             }
         };
     }
+    
+    public static String getName(AssignmentType assignment, PageBase pageBase) {
+		if (assignment == null) {
+			return null;
+		}
+
+		if (assignment.getPolicyRule() != null){
+			PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
+			return policyRuleContainer.getName();
+
+		}
+		StringBuilder sb = new StringBuilder();
+
+		if (assignment.getConstruction() != null) {
+			// account assignment through account construction
+			ConstructionType construction = assignment.getConstruction();
+			if (construction.getResource() != null) {
+				sb.append(WebComponentUtil.getName(construction.getResource()));
+			} else if (construction.getResourceRef() != null) {
+				sb.append(WebComponentUtil.getName(construction.getResourceRef()));
+			}
+			return sb.toString();
+		}
+
+		if (assignment.getTarget() != null) {
+			sb.append(WebComponentUtil.getEffectiveName(assignment.getTarget(), OrgType.F_DISPLAY_NAME));
+		} else if (assignment.getTargetRef() != null) {
+			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
+		} 
+		appendTenantAndOrgName(assignment, sb, pageBase);
+
+		appendRelation(assignment, sb);
+
+		return sb.toString();
+	}
+    
+    private static void appendTenantAndOrgName(AssignmentType assignmentType, StringBuilder sb, PageBase pageBase) {
+    	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
+		if (tenantRef != null) {
+			WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
+		}
+		
+		ObjectReferenceType orgRef = assignmentType.getOrgRef();
+		if (orgRef != null) {
+			WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
+		}
+
+	}
+    
+    private static void appendRelation(AssignmentType assignment, StringBuilder sb) {
+    	if (assignment.getTargetRef() == null) {
+    		return;
+    	}
+    	sb.append(" - "  + RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel());
+
+    }
+    
+    public static AssignmentEditorDtoType getType(AssignmentType assignment) {
+		if (assignment.getTarget() != null) {
+			// object assignment
+			return AssignmentEditorDtoType.getType(assignment.getTarget().getClass());
+		} else if (assignment.getTargetRef() != null) {
+			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
+		}
+		if (assignment.getPolicyRule() != null){
+			return AssignmentEditorDtoType.POLICY_RULE;
+		}
+		// account assignment through account construction
+		return AssignmentEditorDtoType.CONSTRUCTION;
+
+	}
 
 
 }

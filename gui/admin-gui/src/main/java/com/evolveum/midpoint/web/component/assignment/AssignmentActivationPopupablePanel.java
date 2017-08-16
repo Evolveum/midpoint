@@ -39,7 +39,7 @@ import org.apache.wicket.model.StringResourceModel;
  * the panel could be used as a content panel for popup
  * window as well as a standard page activation panel
  */
-public class AssignmentActivationPopupablePanel extends BasePanel<AssignmentEditorDto> implements Popupable{
+public class AssignmentActivationPopupablePanel extends BasePanel<ActivationType> implements Popupable{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ACTIVATION = "activation";
@@ -55,7 +55,7 @@ public class AssignmentActivationPopupablePanel extends BasePanel<AssignmentEdit
     private static final String ID_BUTTONS_PANEL = "buttonsPanel";
 
 
-    public AssignmentActivationPopupablePanel(String id, IModel<AssignmentEditorDto> assignmentModel){
+    public AssignmentActivationPopupablePanel(String id, IModel<ActivationType> assignmentModel){
         super(id, assignmentModel);
         initLayout();
     }
@@ -71,8 +71,7 @@ public class AssignmentActivationPopupablePanel extends BasePanel<AssignmentEdit
 
         DropDownChoicePanel administrativeStatus = WebComponentUtil.createEnumPanel(
                 ActivationStatusType.class, ID_ADMINISTRATIVE_STATUS,
-                new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
-                        + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()),
+                new PropertyModel<ActivationStatusType>(getModel(), ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()),
                 this);
         adminStatusContainer.add(administrativeStatus);
 
@@ -82,7 +81,7 @@ public class AssignmentActivationPopupablePanel extends BasePanel<AssignmentEdit
 
         DateInput validFrom = new DateInput(ID_VALID_FROM,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
+                        ActivationType.F_VALID_FROM.getLocalPart())));
         validFromContainer.add(validFrom);
 
         WebMarkupContainer validToContainer = new WebMarkupContainer(ID_VALID_TO_CONTAINER);
@@ -91,7 +90,7 @@ public class AssignmentActivationPopupablePanel extends BasePanel<AssignmentEdit
 
         DateInput validTo = new DateInput(ID_VALID_TO,
                 AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validTo")));
+                        ActivationType.F_VALID_TO.getLocalPart())));
         validToContainer.add(validTo);
 
         activationBlock.add(new VisibleEnableBehaviour() {

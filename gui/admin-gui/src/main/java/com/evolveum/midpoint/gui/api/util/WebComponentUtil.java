@@ -752,6 +752,18 @@ public final class WebComponentUtil {
 		}
 		return name;
 	}
+	
+	public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName, PageBase pageBase, String operation) {
+		PrismObject<O> object = WebModelServiceUtils.loadObject(ref, pageBase,
+				pageBase.createSimpleTask(operation), new OperationResult(operation));
+		
+		if (object == null) {
+			return "Not Found";
+		}
+		
+		return getEffectiveName(object, propertyName);
+		
+	}
 
 	public static String getName(ObjectReferenceType ref) {
 		if (ref == null) {

@@ -72,4 +72,8 @@ public class DropDownChoicePanel<T> extends InputPanel {
     public DropDownChoice getBaseFormComponent() {
         return (DropDownChoice) get("input");
     }
+    
+    public IModel<T> getModel() {
+    	return getBaseFormComponent().getModel();
+    }
 }

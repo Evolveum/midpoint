@@ -28,7 +28,7 @@ import org.apache.wicket.model.Model;
  * Panel displays specific for policy rule object
  * properties. A part of the PolicyRuleDetailsPage
  * */
-public class PolicyRulePropertiesPanel extends BasePanel<AssignmentEditorDto>{
+public class PolicyRulePropertiesPanel extends BasePanel<AssignmentDto>{
 
     private static final String ID_CONSTRAINTS_VALUE = "constraintsValue";
     private static final String ID_SITUATION_VALUE = "situationValue";
@@ -36,19 +36,19 @@ public class PolicyRulePropertiesPanel extends BasePanel<AssignmentEditorDto>{
 
     private PageBase pageBase;
 
-    public PolicyRulePropertiesPanel(String id, IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase){
+    public PolicyRulePropertiesPanel(String id, IModel<AssignmentDto> policyRuleModel, PageBase pageBase){
         super(id, policyRuleModel);
         this.pageBase = pageBase;
         initLayout();
     }
 
     private void initLayout(){
-        AssignmentEditorDto policyRuleDto = getModelObject();
+        AssignmentDto policyRuleDto = getModelObject();
 
-        PrismContainer<PolicyRuleType> policyRuleContainer = policyRuleDto.getPolicyRuleContainer(null);
+        PolicyRuleType policyRuleContainer = policyRuleDto.getAssignment().getPolicyRule();
         add(new Label(ID_CONSTRAINTS_VALUE, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleContainer, pageBase))));
 
-        add(new Label(ID_SITUATION_VALUE, Model.of(policyRuleContainer == null ? "" : policyRuleContainer.getValue().getValue().getPolicySituation())));
+        add(new Label(ID_SITUATION_VALUE, Model.of(policyRuleContainer == null ? "" : policyRuleContainer.getPolicySituation())));
 
         add(new Label(ID_ACTION_VALUE, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleContainer))));
 

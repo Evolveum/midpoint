@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -27,7 +28,7 @@ import org.apache.wicket.model.Model;
 public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
     private static final long serialVersionUID = 1L;
 
-    public PolicyRuleDetailsPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase){
+    public PolicyRuleDetailsPanel(String id, IModel<AssignmentDto> model, PageBase pageBase){
         super(id, model, pageBase);
     }
 
@@ -40,7 +41,7 @@ public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
     }
 
     protected IModel<String> createHeaderModel(){
-        return Model.of(getModelObject().getName());
+        return Model.of(AssignmentsUtil.getName(getModelObject().getAssignment(), pageBase));
     }
 
     protected IModel<String> createImageModel(){

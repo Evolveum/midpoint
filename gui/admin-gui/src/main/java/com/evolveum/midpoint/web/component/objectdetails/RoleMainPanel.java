@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -48,8 +49,8 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	private static final long serialVersionUID = 1L;
 	
 	public RoleMainPanel(String id, LoadableModel<ObjectWrapper<RoleType>> objectModel, 
-			CountableLoadableModel<AssignmentEditorDto> assignmentsModel,
-			CountableLoadableModel<AssignmentEditorDto> policyRulesModel,
+			CountableLoadableModel<AssignmentDto> assignmentsModel,
+			CountableLoadableModel<AssignmentDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<RoleType> parentPage) {
 		super(id, objectModel, assignmentsModel, policyRulesModel, projectionModel, inducementsModel, parentPage);

@@ -28,7 +28,14 @@
     </div>
     <div class="row">
         <div class="container-fluid prism-container">
-            <div wicket:id="propertiesPanel" />
+            <div wicket:id="propertiesPanel" >
+            	<div wicket:id="relation" />
+            	<div wicket:id="tenant" />
+            	<div wicket:id="project" />
+            	<div wicket:id="policySituations">
+            		<div wicket:id="policySituation"/>
+            	</div >
+            </div>
         </div>
     </div>
     <div class="row">
@@ -36,11 +43,7 @@
             <div wicket:id="activationPanel" />
         </div>
     </div>
-    <div class="row">
-        <div class="container-fluid prism-container">
-            <div class="btn btn-default" wicket:id="doneButton"/>
-        </div>
-    </div>
+    
 </wicket:panel>
 </body>
 </html>

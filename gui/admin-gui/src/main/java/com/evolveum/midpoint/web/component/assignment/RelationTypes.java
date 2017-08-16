@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
  */
 public enum RelationTypes {
 
-    MEMBER(null, ""),
+	MEMBER(SchemaConstants.ORG_DEFAULT, ""),
     MANAGER(SchemaConstants.ORG_MANAGER, "Manager"),
     OWNER(SchemaConstants.ORG_OWNER, "Owner"),
     APPROVER(SchemaConstants.ORG_APPROVER, "Approver");

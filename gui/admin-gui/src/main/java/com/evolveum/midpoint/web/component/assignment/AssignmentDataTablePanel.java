@@ -186,11 +186,11 @@ public class AssignmentDataTablePanel extends AbstractAssignmentListPanel {
                 (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)){
             private static final long serialVersionUID = 1L;
 
-            @Override
-            protected Item<AssignmentEditorDto> customizeNewRowItem(Item<AssignmentEditorDto> item, IModel<AssignmentEditorDto> model) {
-                    item.add(AttributeModifier.append("class", AssignmentsUtil.createAssignmentStatusClassModel(model)));
-                return item;
-            }
+//            @Override
+//            protected Item<AssignmentEditorDto> customizeNewRowItem(Item<AssignmentEditorDto> item, IModel<AssignmentEditorDto> model) {
+//                    item.add(AttributeModifier.append("class", AssignmentsUtil.createAssignmentStatusClassModel(model)));
+//                return item;
+//            }
 
             @Override
             public int getItemsPerPage() {

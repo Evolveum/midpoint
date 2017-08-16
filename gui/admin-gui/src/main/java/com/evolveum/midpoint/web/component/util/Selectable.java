@@ -21,9 +21,11 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class Selectable implements Serializable {
+public abstract class Selectable<S> implements Serializable {
 
-    public static final String F_SELECTED = "selected";
+   private static final long serialVersionUID = 1L;
+
+	public static final String F_SELECTED = "selected";
 
     private boolean selected;
 
@@ -33,5 +35,9 @@ public class Selectable implements Serializable {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+    
+    public S getValue() {
+    	return (S) this;
     }
 }

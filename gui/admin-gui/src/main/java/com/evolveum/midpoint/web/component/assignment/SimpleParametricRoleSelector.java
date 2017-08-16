@@ -70,7 +70,7 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
     final private IModel<List<String>> paramListModel;
     private String selectedParam = null;
 
-    public SimpleParametricRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, List<PrismObject<R>> availableRoles, ItemPath parameterPath) {
+    public SimpleParametricRoleSelector(String id, IModel<List<AssignmentDto>> assignmentModel, List<PrismObject<R>> availableRoles, ItemPath parameterPath) {
         super(id, assignmentModel, availableRoles);
         this.parameterPath = parameterPath;
         paramListModel = initParamListModel(assignmentModel);
@@ -93,7 +93,7 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
         this.labelRole = labelRole;
     }
 
-    private IModel<List<String>> initParamListModel(final IModel<List<AssignmentEditorDto>> assignmentModel) {
+    private IModel<List<String>> initParamListModel(final IModel<List<AssignmentDto>> assignmentModel) {
         return new IModel<List<String>>() {
 
             private List<String> list = null;
@@ -117,9 +117,9 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
         };
     }
 
-    private List<String> initParamList(List<AssignmentEditorDto> assignmentDtos) {
+    private List<String> initParamList(List<AssignmentDto> assignmentDtos) {
         List<String> params = new ArrayList<>();
-        for (AssignmentEditorDto assignmentDto: assignmentDtos) {
+        for (AssignmentDto assignmentDto: assignmentDtos) {
             String paramVal = getParamValue(assignmentDto);
             if (paramVal != null) {
                 if (!params.contains(paramVal)) {
@@ -131,26 +131,22 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
         return params;
     }
 
-    private String getParamValue(AssignmentEditorDto assignmentDto) {
-        PrismContainerValue newValue;
-        try {
-            newValue = assignmentDto.getNewValue(getPageBase().getPrismContext());
-        } catch (SchemaException e) {
-            throw new SystemException(e.getMessage(),e);
-        }
+    private String getParamValue(AssignmentDto assignmentDto) {
+        PrismContainerValue newValue = assignmentDto.getAssignment().asPrismContainerValue();
+        
         if (newValue != null) {
             PrismProperty<String> paramProp =  newValue.findProperty(parameterPath);
             if (paramProp != null) {
                 return paramProp.getRealValue();
             }
         }
-        PrismContainerValue oldValue = assignmentDto.getOldValue();
-        if (oldValue != null) {
-            PrismProperty<String> paramProp =  oldValue.findProperty(parameterPath);
-            if (paramProp != null) {
-                return paramProp.getRealValue();
-            }
-        }
+//        PrismContainerValue oldValue = assignmentDto.getOldValue();
+//        if (oldValue != null) {
+//            PrismProperty<String> paramProp =  oldValue.findProperty(parameterPath);
+//            if (paramProp != null) {
+//                return paramProp.getRealValue();
+//            }
+//        }
         return null;
     }
 
@@ -292,9 +288,9 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
     private void deleteParam(String paramToDelete) {
         paramListModel.getObject().remove(paramToDelete);
         // make sure that all the assignments with the parameter parameter are also removed from assignement model
-        Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
+        Iterator<AssignmentDto> iterator = getAssignmentModel().getObject().iterator();
         while (iterator.hasNext()) {
-            AssignmentEditorDto dto = iterator.next();
+        	AssignmentDto dto = iterator.next();
             if (isManagedRole(dto) && paramToDelete.equals(getParamValue(dto))) {
                 if (dto.getStatus() == UserDtoStatus.ADD) {
                     iterator.remove();
@@ -306,11 +302,11 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
     }
 
     @Override
-    protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
-        AssignmentEditorDto dto = super.createAddAssignmentDto(role, pageBase);
+    protected AssignmentDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
+    	AssignmentDto dto = super.createAddAssignmentDto(role, pageBase);
         PrismContainerValue<AssignmentType> newValue;
         try {
-            newValue = dto.getNewValue(getPageBase().getPrismContext());
+            newValue = dto.getAssignment().asPrismContainerValue();
             PrismProperty<String> prop = newValue.findOrCreateProperty(parameterPath);
             prop.setRealValue(selectedParam);
         } catch (SchemaException e) {
@@ -321,7 +317,7 @@ public class SimpleParametricRoleSelector<F extends FocusType, R extends Abstrac
     }
 
     @Override
-    protected boolean willProcessAssignment(AssignmentEditorDto dto) {
+    protected boolean willProcessAssignment(AssignmentDto dto) {
         if (!super.willProcessAssignment(dto)) {
             return false;
         }

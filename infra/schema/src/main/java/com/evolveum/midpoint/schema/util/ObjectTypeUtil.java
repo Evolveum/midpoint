@@ -217,15 +217,25 @@ public class ObjectTypeUtil {
 
 	@NotNull
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object) {
+		return createAssignmentTo(object, SchemaConstants.ORG_DEFAULT);
+	}
+	
+	@NotNull
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object, QName relation) {
 		AssignmentType assignment = new AssignmentType(object.getPrismContext());
 		if (object.asObjectable() instanceof ResourceType) {
 			ConstructionType construction = new ConstructionType(object.getPrismContext());
-			construction.setResourceRef(createObjectRef(object));
+			construction.setResourceRef(createObjectRef(object, relation));
 			assignment.setConstruction(construction);
 		} else {
-			assignment.setTargetRef(createObjectRef(object));
+			assignment.setTargetRef(createObjectRef(object, relation));
 		}
 		return assignment;
+	}
+	
+	@NotNull
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull T objectType, QName relation) {
+		return createAssignmentTo((PrismObject<T>) objectType.asPrismObject(), relation);
 	}
 
 	public static ObjectReferenceType createObjectRef(PrismReferenceValue prv) {
@@ -242,13 +252,21 @@ public class ObjectTypeUtil {
     }
 
 	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
+		return createObjectRef(objectType, SchemaConstants.ORG_DEFAULT);
+    }
+	
+	public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
 		if (objectType == null) {
 			return null;
 		}
-        return createObjectRef(objectType.asPrismObject());
+        return createObjectRef(objectType.asPrismObject(), relation);
     }
 
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object) {
+        return createObjectRef(object, SchemaConstants.ORG_DEFAULT);
+    }
+    
+    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, QName relation) {
         if (object == null) {
             return null;
         }
@@ -259,6 +277,7 @@ public class ObjectTypeUtil {
             ref.setType(definition.getTypeName());
         }
         ref.setTargetName(object.asObjectable().getName());
+        ref.setRelation(relation);
         return ref;
     }
     

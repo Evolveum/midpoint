@@ -15,155 +15,140 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * Created by honchar.
+ * @author katkav
  */
-public abstract class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDto>> {
+public class PolicyRulesPanel extends AssignmentPanel {
+	
     private static final long serialVersionUID = 1L;
-    private static final String ID_POLICY_RULES = "policyRules";
-    private static final String ID_MAIN_POLICY_RULE_PANEL = "mainPolicyRulesPanel";
-
-    private PageBase pageBase;
-
-    public PolicyRulesPanel(String id, IModel<List<AssignmentEditorDto>> policyRulesModel, PageBase pageBase){
-        super(id, policyRulesModel);
-        this.pageBase = pageBase;
-        initLayout();
+    
+    
+    public PolicyRulesPanel(String id, IModel<List<AssignmentDto>> policyRulesModel, PageBase pageBase){
+        super(id, policyRulesModel, pageBase);
+        
     }
+    
+    @Override
+    protected List<AssignmentDto> getModelList() {
+    	return getModelObject();
+    }
+    
+    protected List<IColumn<AssignmentDto, String>> initColumns() {
+        List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
 
-    private void initLayout(){
-        WebMarkupContainer policyRulesContainer = new WebMarkupContainer(ID_POLICY_RULES);
-        policyRulesContainer.setOutputMarkupId(true);
-        add(policyRulesContainer);
+        columns.add(new CheckBoxHeaderColumn<AssignmentDto>());
 
-        ListDataProvider<AssignmentEditorDto> provider = new ListDataProvider<AssignmentEditorDto>(this, getModel(), false);
-        BoxedTablePanel<AssignmentEditorDto> policyRulesTable = new BoxedTablePanel<AssignmentEditorDto>(ID_MAIN_POLICY_RULE_PANEL,
-                provider, initColumns(), UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE,
-                (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE)){
+        columns.add(new IconColumn<AssignmentDto>(Model.of("")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public int getItemsPerPage() {
-                return pageBase.getSessionStorage().getUserProfile().getTables().get(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
-            }
-
-        };
-        policyRulesTable.setOutputMarkupId(true);
-//        policyRulesTable.setCurrentPage(getPaging());
-        policyRulesContainer.addOrReplace(policyRulesTable);
-
-    }
-
-    private List<IColumn<AssignmentEditorDto, String>> initColumns() {
-        List<IColumn<AssignmentEditorDto, String>> columns = new ArrayList<>();
-
-        columns.add(new CheckBoxHeaderColumn<AssignmentEditorDto>());
-
-        columns.add(new IconColumn<AssignmentEditorDto>(Model.of("")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createIconModel(IModel<AssignmentEditorDto> rowModel) {
-                if (rowModel.getObject().getType() == null){
-                    return Model.of("");
-                }
+            protected IModel<String> createIconModel(IModel<AssignmentDto> rowModel) {
                 return Model.of(GuiStyleConstants.CLASS_POLICY_RULES);
             }
 
             @Override
-            protected IModel<String> createTitleModel(IModel<AssignmentEditorDto> rowModel) {
+            protected IModel<String> createTitleModel(IModel<AssignmentDto> rowModel) {
                 return createStringResource("PolicyRulesPanel.imageTitle");
             }
 
         });
 
-        columns.add(new LinkColumn<AssignmentEditorDto>(createStringResource("PolicyRulesPanel.nameColumn")){
+        columns.add(new LinkColumn<AssignmentDto>(createStringResource("PolicyRulesPanel.nameColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel createLinkModel(IModel<AssignmentEditorDto> rowModel) {
-                String policyRuleName = rowModel.getObject().getName();
-                if (policyRuleName != null && policyRuleName.trim().endsWith("-")){
-                    policyRuleName = policyRuleName.substring(0, policyRuleName.lastIndexOf("-"));
-                }
-                return Model.of(policyRuleName != null ? policyRuleName : "");
+            protected IModel createLinkModel(IModel<AssignmentDto> rowModel) {
+            	String name = AssignmentsUtil.getName(rowModel.getObject().getAssignment(), getParentPage());
+            if (StringUtils.isBlank(name)) {
+            	return createStringResource("AssignmentEditorDto.policyRuleTitle");
+            }
+            return Model.of(name);
+                
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<AssignmentEditorDto> rowModel) {
-                assignmentDetailsPerformed(rowModel, pageBase, target);
+            public void onClick(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
+                assignmentDetailsPerformed(target, rowModel);
             }
         });
-        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
+        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
-                                     final IModel<AssignmentEditorDto> rowModel) {
-                PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleContainer, pageBase))));
+            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
+                                     final IModel<AssignmentDto> rowModel) {
+                PolicyRuleType policyRuleType = rowModel.getObject().getAssignment().getPolicyRule();
+                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleType, getParentPage()))));
             }
 
         });
-        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.situationColumn")){
+        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("PolicyRulesPanel.situationColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
-                                     final IModel<AssignmentEditorDto> rowModel) {
-                PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                String situationValue = policyRuleContainer == null ? "" : policyRuleContainer.getValue().getValue().getPolicySituation();
+            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
+                                     final IModel<AssignmentDto> rowModel) {
+            	PolicyRuleType policyRuleType = rowModel.getObject().getAssignment().getPolicyRule();
+                String situationValue = policyRuleType == null ? "" : policyRuleType.getPolicySituation();
                 cellItem.add(new Label(componentId, Model.of(situationValue)));
             }
 
         });
-        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.actionColumn")){
+        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("PolicyRulesPanel.actionColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
-                                     final IModel<AssignmentEditorDto> rowModel) {
-                PrismContainer<PolicyRuleType> policyRuleContainer = rowModel.getObject().getPolicyRuleContainer(null);
-                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleContainer))));
+            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
+                                     final IModel<AssignmentDto> rowModel) {
+            	PolicyRuleType policyRuleType = rowModel.getObject().getAssignment().getPolicyRule();
+                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleType))));
             }
 
         });
-        columns.add(new AbstractColumn<AssignmentEditorDto, String>(createStringResource("PolicyRulesPanel.orderColumn")){
+        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("PolicyRulesPanel.orderColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<AssignmentEditorDto>> cellItem, String componentId,
-                                     final IModel<AssignmentEditorDto> rowModel) {
-                PrismContainerValue<AssignmentType> assignment = rowModel.getObject().getOldValue();
+            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
+                                     final IModel<AssignmentDto> rowModel) {
+                AssignmentType assignment = rowModel.getObject().getAssignment();
 
                 String orderValue;
-                if (assignment == null || assignment.getValue() == null || assignment.getValue().getOrder() == null){
+                if (assignment == null || assignment.getOrder() == null){
                     orderValue = "";
                 } else {
-                    orderValue = Integer.toString(assignment.getValue().getOrder());
+                    orderValue = Integer.toString(assignment.getOrder());
                 }
                 cellItem.add(new Label(componentId, Model.of(orderValue)));
             }
@@ -171,15 +156,42 @@ public abstract class PolicyRulesPanel extends BasePanel<List<AssignmentEditorDt
         });
         return columns;
     }
+    
+	@Override
+	protected void initPaging() {
+		  getPolicyRulesTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
+		
+	}
 
-    protected abstract void assignmentDetailsPerformed(IModel<AssignmentEditorDto> policyRuleModel, PageBase pageBase, AjaxRequestTarget target);
+	@Override
+	protected TableId getTableId() {
+		return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
+	}
 
-//    private AssignmentsTabStorage getPolicyRulesTabStorage(){
-//        return pageBase.getSessionStorage().getAssignmentsTabStorage();
-//    }
-//
-//    private void initPaging(){
-//        getPolicyRulesTabStorage().setPaging(ObjectPaging.createPaging(0, (int) pageBase.getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
-//    }
+	@Override
+	protected int getItemsPerPage() {
+		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE);
+	}
+
+    private AssignmentsTabStorage getPolicyRulesTabStorage(){
+        return getParentPage().getSessionStorage().getAssignmentsTabStorage();
+    }
+
+	@Override
+	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected ObjectQuery createObjectQuery() {
+		return null;
+	}
+
+	@Override
+	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, IModel<AssignmentDto> model,
+			PageBase parentPage) {
+		return new PolicyRuleDetailsPanel(idAssignmentDetails, model, parentPage);
+	}
 
 }
