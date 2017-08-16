@@ -73,6 +73,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 	
+	private static final int NUMBER_OF_IMPORTED_ROLES = 15;
+	
 	@Autowired(required = true)
 	protected MappingFactory mappingFactory;
 	
@@ -255,6 +257,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_STRONG_SAILOR_FILE, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {
@@ -266,6 +269,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		
 		repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
 
+	}
+	
+	protected int getNumberOfRoles() {
+		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 	
 	protected boolean doAddOrgstruct() {

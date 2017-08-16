@@ -1147,11 +1147,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
 		modelService.executeChanges(deltas, options, task, result);
 	}
+	
+	/**
+	 * Executes unassign delta by removing each assignment individually by id.
+	 */
+	protected <F extends FocusType> void unassignAll(PrismObject<F> focusBefore, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> focusDelta = createUnassignAllDelta(focusBefore);
+		modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
+	}
 
+	/**
+	 * Creates unassign delta by removing each assignment individually by id.
+	 */
+	protected <F extends FocusType> ObjectDelta<F> createUnassignAllDelta(PrismObject<F> focusBefore) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		for (AssignmentType assignmentType: focusBefore.asObjectable().getAssignment()) {
+			modifications.add((createAssignmentModification(assignmentType.getId(), false)));
+		}
+		return ObjectDelta.createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass(), prismContext);
+	}
+	
 	/**
 	 * Executes assignment replace delta with empty values.
 	 */
-	protected void unassignAll(String userOid, Task task, OperationResult result) 
+	protected void unassignAllReplace(String userOid, Task task, OperationResult result) 
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
@@ -2869,9 +2888,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		int expectedModifications = 0;
 		// There may be metadata modification, we tolerate that
-		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
-		if (metadataDelta != null && !metadataDelta.isEmpty()) {
-			expectedModifications+=metadataDelta.size();
+		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
+			if (isSideEffectDelta(modification)) {
+				expectedModifications++;
+			}
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
@@ -2912,7 +2932,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		int expectedModifications = expectedEffectualModifications;
 		// There may be metadata modification, we tolerate that
 		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
-			if (modification.getPath().containsName(ObjectType.F_METADATA)) {
+			if (isSideEffectDelta(modification)) {
 				expectedModifications++;
 			}
 		}
@@ -2945,6 +2965,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
 	}
 	
+	private boolean isSideEffectDelta(ItemDelta<?, ?> modification) {
+		if (modification.getPath().containsName(ObjectType.F_METADATA) || 
+				(modification.getPath().containsName(FocusType.F_ASSIGNMENT) && modification.getPath().containsName(ActivationType.F_EFFECTIVE_STATUS))) {
+			return true;
+		} else if (modification.getPath().containsName(FocusType.F_ASSIGNMENT) && modification.getPath().containsName(AssignmentType.F_ACTIVATION) && modification.isReplace() && (modification instanceof ContainerDelta<?>)) {
+			Collection<PrismContainerValue<ActivationType>> valuesToReplace = ((ContainerDelta<ActivationType>)modification).getValuesToReplace();
+			if (valuesToReplace != null && valuesToReplace.size() == 1) {
+				PrismContainerValue<ActivationType> cval = valuesToReplace.iterator().next();
+				if (cval.getItems().size() == 1) {
+					Item<?, ?> item = cval.getItems().iterator().next();
+					if (ActivationType.F_EFFECTIVE_STATUS.equals(item.getElementName())) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	protected void assertValidFrom(PrismObject<? extends ObjectType> obj, Date expectedDate) {
 		assertEquals("Wrong validFrom in "+obj, XmlTypeConverter.createXMLGregorianCalendar(expectedDate), 
 				getActivation(obj).getValidFrom());

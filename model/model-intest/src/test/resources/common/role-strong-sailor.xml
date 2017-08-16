@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2017 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,26 +13,41 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="caa7daf2-dd68-11e6-a780-ef610c7c3a06"
+<role oid="0bf7532e-7d15-11e7-8594-7bff6e0adc6e"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Weak singer</name>
-    <inducement>
-    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+    <name>Strong Sailor</name>    
+    <inducement id="1111">
+    	<construction>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
     		<kind>account</kind>
-    		<attribute>
-                <ref>ri:title</ref>
+            <attribute>
+                <ref>ri:drink</ref>
                 <outbound>
                 	<strength>strong</strength>
                 	<expression>
-                		<value>Singer</value>
+						<value>grog</value>
 					</expression>
 				</outbound>
             </attribute>
-            <strength>weak</strength>
     	</construction>
     </inducement>
+    
+    <inducement>
+    	<focusMappings>
+    		<mapping>
+    			<expression>
+    				<value>CC-TITANIC</value>
+    			</expression>
+    			<target>
+    				<path>costCenter</path>
+    			</target>
+    		</mapping>
+    	</focusMappings>
+    </inducement>
+    <idempotence>conservative</idempotence>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#sail</action>
+    </authorization>
 </role>

@@ -291,7 +291,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        unassignAll(USER_JACK_OID, task, result);
+        unassignAllReplace(USER_JACK_OID, task, result);
         
         // THEN
         displayThen(TEST_NAME);

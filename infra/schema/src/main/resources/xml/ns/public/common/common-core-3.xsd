@@ -12113,6 +12113,13 @@
                     <xsd:element name="maxHistory" type="xsd:int"/>
                     <xsd:element name="maxFileSize" type="xsd:string"/>
                     <xsd:element name="append" type="xsd:boolean"/>
+                    <xsd:element name="prudent" type="xsd:boolean">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Prudent mode allows remote and shared file destinations (see https://logback.qos.ch/manual/appenders.html#prudentWithRolling )
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

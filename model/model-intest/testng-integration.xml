@@ -59,6 +59,9 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
