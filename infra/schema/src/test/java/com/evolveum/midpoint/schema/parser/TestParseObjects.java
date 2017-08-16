@@ -58,15 +58,25 @@ public class TestParseObjects extends AbstractParserTest {
 		assertEquals("Wrong class of object 2", RoleType.class, objects.get(2).asObjectable().getClass());
 
 		PrismSerializer<String> serializer = prismContext.serializerFor(language);
-		String serialized = serializer.serializeObjects(objects, SchemaConstants.C_OBJECTS);
-		System.out.println("Objects as re-serialized:\n" + serialized);
+		String serializedAsObjects = serializer.serializeObjects(objects, SchemaConstants.C_OBJECTS);
+		System.out.println("Objects as re-serialized (c:objects):\n" + serializedAsObjects);
 
 		System.out.println("Re-serialized to XML:\n" + prismContext.xmlSerializer().serializeObjects(objects, SchemaConstants.C_OBJECTS));
 		System.out.println("Re-serialized to JSON:\n" + prismContext.jsonSerializer().serializeObjects(objects, SchemaConstants.C_OBJECTS));
 		System.out.println("Re-serialized to YAML:\n" + prismContext.yamlSerializer().serializeObjects(objects, SchemaConstants.C_OBJECTS));
 
-		List<PrismObject<?>> objectsReparsed = prismContext.parserFor(serialized).parseObjects();
+		List<PrismObject<?>> objectsReparsed = prismContext.parserFor(serializedAsObjects).parseObjects();
 		assertEquals("Reparsed objects are different from original ones", objects, objectsReparsed);
+
+		String serializedByDefault = serializer.serializeObjects(objects, null);
+		System.out.println("Objects as re-serialized (default method):\n" + serializedByDefault);
+
+		System.out.println("Re-serialized to XML (default):\n" + prismContext.xmlSerializer().serializeObjects(objects, null));
+		System.out.println("Re-serialized to JSON (default):\n" + prismContext.jsonSerializer().serializeObjects(objects, null));
+		System.out.println("Re-serialized to YAML (default):\n" + prismContext.yamlSerializer().serializeObjects(objects, null));
+
+		List<PrismObject<?>> objectsReparsedDefault = prismContext.parserFor(serializedAsObjects).parseObjects();
+		assertEquals("Reparsed objects are different from original ones", objects, objectsReparsedDefault);
 	}
 
 }

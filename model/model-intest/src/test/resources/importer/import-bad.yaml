@@ -1,31 +1,36 @@
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-objects:
-- user:
-    oid: "c0c010c0-d34d-b33f-f00d-111111111111"
-    name: "jack"
-    extension:
-      '@ns': "http://midpoint.evolveum.com/xml/ns/samples/piracy"
-      ship: "Black Pearl"
-    fullName: "Cpt. Jack Sparrow"
-    givenName: "Jack"
-    familyName: "Sparrow"
-    honorificPrefix: "Cpt."
-- user:
-    fullName: "Will Turner"
-    givenName: "William"
-    familyName: "Turner"
-- user:
-    name: "guybrush"
-    fullName: "Guybrush Threepwood"
-    givenName: "Guybrush"
-    familyName: "Threepwood"
-- account:
-    name: "Wrong Ref Account"
-    resourceRef:
-      oid: "d0e5707e-8157-3333-4444-555511111111"
-      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType"
-    objectClass: "AccountObjectClass"
-    attributes: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ShadowAttributesType>
-      '@ns': "http://midpoint.evolveum.com/xml/ns/samples/piracy"
-      bar: "foobar"
+user:
+  oid: "c0c010c0-d34d-b33f-f00d-111111111111"
+  name: "jack"
+  extension:
+    '@ns': "http://midpoint.evolveum.com/xml/ns/samples/piracy"
+    ship: "Black Pearl"
+  fullName: "Cpt. Jack Sparrow"
+  givenName: "Jack"
+  familyName: "Sparrow"
+  honorificPrefix: "Cpt."
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+user:
+  fullName: "Will Turner"
+  givenName: "William"
+  familyName: "Turner"
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+user:
+  name: "guybrush"
+  fullName: "Guybrush Threepwood"
+  givenName: "Guybrush"
+  familyName: "Threepwood"
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+account:
+  name: "Wrong Ref Account"
+  resourceRef:
+    oid: "d0e5707e-8157-3333-4444-555511111111"
+    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ResourceType"
+  objectClass: "AccountObjectClass"
+  attributes: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ShadowAttributesType>
+    '@ns': "http://midpoint.evolveum.com/xml/ns/samples/piracy"
+    bar: "foobar"

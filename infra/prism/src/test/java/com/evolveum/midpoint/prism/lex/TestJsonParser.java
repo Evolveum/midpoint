@@ -3,7 +3,7 @@ package com.evolveum.midpoint.prism.lex;
 import com.evolveum.midpoint.prism.lex.json.JsonLexicalProcessor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
-public class TestJsonParser extends AbstractLexicalProcessorTest {
+public class TestJsonParser extends AbstractJsonLexicalProcessorTest {
 	
 	@Override
 	protected String getSubdirName() {

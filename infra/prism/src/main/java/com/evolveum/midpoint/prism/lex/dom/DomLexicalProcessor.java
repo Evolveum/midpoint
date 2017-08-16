@@ -566,7 +566,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	@NotNull
 	@Override
-	public String write(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName,
+	public String write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName,
 			@Nullable SerializationContext context) throws SchemaException {
 		Element aggregateElement = writeXRootListToElement(roots, aggregateElementName);
 		return DOMUtil.serializeDOMToString(aggregateElement);

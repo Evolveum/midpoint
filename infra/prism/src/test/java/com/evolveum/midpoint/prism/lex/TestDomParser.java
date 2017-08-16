@@ -107,10 +107,4 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
 	protected String getWhenItemSerialized() {
 		return "<when>2012-02-24T10:48:52.000Z</when>";
 	}
-
-	@Test
-	public void testParseObjectsIteratively_2_Wrong() throws Exception {
-		final String TEST_NAME = "testParseObjectsIteratively_2_Wrong";
-		displayTestTitle(TEST_NAME + " (skipped)");
-	}
 }

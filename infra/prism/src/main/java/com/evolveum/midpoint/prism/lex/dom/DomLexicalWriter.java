@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -87,8 +88,14 @@ public class DomLexicalWriter {
         return serializeInternal(rootxnode, null);
     }
 
-	public Element serialize(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName) throws SchemaException {
+	public Element serialize(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName) throws SchemaException {
 		initialize();
+		if (aggregateElementName == null) {
+			aggregateElementName = schemaRegistry.getPrismContext().getObjectsElementName();
+			if (aggregateElementName == null) {
+				throw new IllegalStateException("Couldn't serialize list of objects because the aggregated element name is not set");
+			}
+		}
 		Element aggregateElement = createElement(aggregateElementName, null);
 		for (RootXNode root : roots) {
 			serializeInternal(root, aggregateElement);

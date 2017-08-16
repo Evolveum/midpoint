@@ -98,5 +98,5 @@ public interface LexicalProcessor<T> {
 	 * @throws SchemaException
 	 */
 	@NotNull
-	T write(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
+	T write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
 }

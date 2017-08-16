@@ -1,7 +1,6 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-objects:
-- resource:
+- '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  resource:
     name: "Sample Resource"
     connectorRef:
       type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"
@@ -13,7 +12,8 @@ objects:
     connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ConnectorConfigurationType> {}
     namespace: "http://foo.bar.com/"
     schema: {}
-- user:
+- '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  user:
     name: "jack2"
     extension:
       '@ns': "http://midpoint.evolveum.com/xml/ns/samples/piracy"

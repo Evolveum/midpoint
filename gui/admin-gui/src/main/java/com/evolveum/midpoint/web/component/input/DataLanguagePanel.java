@@ -20,7 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
 import org.apache.commons.lang3.StringUtils;
@@ -84,15 +84,19 @@ public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
 			if (result.isAcceptable()) {
 				Object updatedObject = objectHolder.getValue();
 				String updatedObjectString;
+				PrismSerializer<String> serializer = pageBase.getPrismContext().serializerFor(updatedLanguage);
 				if (List.class.isAssignableFrom(dataType)) {
-					updatedObjectString = pageBase.getPrismContext().serializerFor(updatedLanguage)
-							.serializeObjects((List<PrismObject<?>>) updatedObject, SchemaConstants.C_OBJECTS);
+					@SuppressWarnings({ "unchecked", "raw" })
+					List<PrismObject<?>> list = (List<PrismObject<?>>) updatedObject;
+					if (list.size() != 1) {
+						updatedObjectString = serializer.serializeObjects(list, null);
+					} else {
+						updatedObjectString = serializer.serialize(list.get(0));
+					}
 				} else if (Objectable.class.isAssignableFrom(dataType)) {
-					updatedObjectString = pageBase.getPrismContext().serializerFor(updatedLanguage)
-							.serialize(((Objectable) updatedObject).asPrismObject());
+					updatedObjectString = serializer.serialize(((Objectable) updatedObject).asPrismObject());
 				} else {
-					updatedObjectString = pageBase.getPrismContext().serializerFor(updatedLanguage)
-							.serializeRealValue(updatedObject);
+					updatedObjectString = serializer.serializeRealValue(updatedObject);
 				}
 				processLanguageSwitch(target, updatedIndex, updatedLanguage, updatedObjectString);
 			} else {

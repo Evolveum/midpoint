@@ -1,16 +1,20 @@
-{
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
-  "objects" : [ {
+[
+  {
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
     "user" : {
       "name" : "u1"
     }
-  }, {
+  },
+  {
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
     "user" : {
       "name" : "u2"
     }
-  }, {
+  },
+  {
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
     "role" : {
       "name" : "r1"
     }
-  } ]
-}
+  }
+]
