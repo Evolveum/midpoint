@@ -34,9 +34,11 @@ public enum AssignmentEditorDtoType {
 
     USER(UserType.class, UserType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON),
 
-    CONSTRUCTION(null, null, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON),
+    CONSTRUCTION(null, ConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON),
 
-    POLICY_RULE(null, PolicyRuleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_FILE_TEXT);
+    POLICY_RULE(null, PolicyRuleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_FILE_TEXT),
+	
+	PERSONA_CONSTRUCTION(null, PersonaConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
 
     private Class<? extends ObjectType> type;
     private QName qname;

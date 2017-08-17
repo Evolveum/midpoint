@@ -121,7 +121,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                                             pageBase.hideMainPopup(target);
                                             List<ObjectType> newAssignmentsList = new ArrayList<>();
                                             newAssignmentsList.add(user);
-                                            addSelectedAssignablePerformed(target, newAssignmentsList, getPageBase().getMainPopup().getId());
+                                            addSelectedAssignablePerformed(target, newAssignmentsList, null, getPageBase().getMainPopup().getId());
                                         }
 
                                     };
@@ -160,7 +160,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             }
 
             @Override
-            protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
+            protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments, QName relation,
                                                           String popupId) {
                 ModalWindow window = (ModalWindow) get(popupId);
                 if (window != null) {

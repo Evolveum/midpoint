@@ -18,26 +18,14 @@
 <body>
 <wicket:panel>
     <div class="row">
-    	<div wicket:id="displayName"/>
-    </div>
-    <div class="row">
-        <div class="container-fluid prism-container">
-            <div wicket:id="propertiesPanel" >
-            	<div wicket:id="relation" />
-            	<div wicket:id="tenant" />
-            	<div wicket:id="project" />
-            	<div wicket:id="policySituations">
-            		<div wicket:id="policySituation"/>
-            	</div >
+    	<div class="container-fluid prism-container">
+            <div class="box-header ">
+                <i wicket:id="typeImage"></i>
+                <div class="box-title" wicket:id="assignmentName" />
             </div>
+            <div wicket:id="description" />
         </div>
     </div>
-    <div class="row">
-        <div class="container-fluid prism-container">
-            <div wicket:id="activationPanel" />
-        </div>
-    </div>
-    
 </wicket:panel>
 </body>
 </html>

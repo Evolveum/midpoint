@@ -294,6 +294,10 @@ public class AssignmentsUtil {
 		if (assignment.getPolicyRule() != null){
 			return AssignmentEditorDtoType.POLICY_RULE;
 		}
+		
+		if (assignment.getPersonaConstruction() != null) {
+			return AssignmentEditorDtoType.PERSONA_CONSTRUCTION;
+		}
 		// account assignment through account construction
 		return AssignmentEditorDtoType.CONSTRUCTION;
 

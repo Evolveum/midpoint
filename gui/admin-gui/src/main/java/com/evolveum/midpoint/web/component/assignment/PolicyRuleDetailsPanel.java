@@ -36,16 +36,5 @@ public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
         return new PolicyRulePropertiesPanel(id, getModel(), pageBase);
     }
 
-    protected IModel<String> getAdditionalNameLabelStyleClass() {
-        return Model.of("text-danger text-bold");
-    }
-
-    protected IModel<String> createHeaderModel(){
-        return Model.of(AssignmentsUtil.getName(getModelObject().getAssignment(), pageBase));
-    }
-
-    protected IModel<String> createImageModel(){
-        return Model.of(GuiStyleConstants.CLASS_POLICY_RULES);
-    }
-
+       
 }

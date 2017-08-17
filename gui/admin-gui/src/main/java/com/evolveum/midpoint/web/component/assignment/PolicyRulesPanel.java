@@ -59,49 +59,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
         
     }
     
-    @Override
-    protected List<AssignmentDto> getModelList() {
-    	return getModelObject();
-    }
-    
     protected List<IColumn<AssignmentDto, String>> initColumns() {
         List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
-
-        columns.add(new CheckBoxHeaderColumn<AssignmentDto>());
-
-        columns.add(new IconColumn<AssignmentDto>(Model.of("")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createIconModel(IModel<AssignmentDto> rowModel) {
-                return Model.of(GuiStyleConstants.CLASS_POLICY_RULES);
-            }
-
-            @Override
-            protected IModel<String> createTitleModel(IModel<AssignmentDto> rowModel) {
-                return createStringResource("PolicyRulesPanel.imageTitle");
-            }
-
-        });
-
-        columns.add(new LinkColumn<AssignmentDto>(createStringResource("PolicyRulesPanel.nameColumn")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel createLinkModel(IModel<AssignmentDto> rowModel) {
-            	String name = AssignmentsUtil.getName(rowModel.getObject().getAssignment(), getParentPage());
-            if (StringUtils.isBlank(name)) {
-            	return createStringResource("AssignmentEditorDto.policyRuleTitle");
-            }
-            return Model.of(name);
-                
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
-                assignmentDetailsPerformed(target, rowModel);
-            }
-        });
         columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
             private static final long serialVersionUID = 1L;
 

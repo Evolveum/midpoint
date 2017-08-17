@@ -15,15 +15,30 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
@@ -32,29 +47,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-import java.util.List;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
 /**
  * Created by honchar
  */
 public abstract class AbstractAssignmentDetailsPanel extends BasePanel<AssignmentDto>{
     private static final long serialVersionUID = 1L;
 
-    private final static String ID_DESCRIPTION = "description";
-    private final static String ID_TYPE_IMAGE = "typeImage";
-    private final static String ID_ASSIGNMENT_NAME = "assignmentName";
+    private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_PROPERTIES_PANEL = "propertiesPanel";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
 //    private final static String ID_DONE_BUTTON = "doneButton";
@@ -74,22 +73,53 @@ private static final String ID_RELATION = "relation";
         initLayout();
     }
 
-    protected void initLayout(){
-        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
-        typeImage.setOutputMarkupId(true);
-        typeImage.add(AttributeModifier.append("class", createImageModel()));
-        typeImage.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
-        add(typeImage);
-
-        Label name = new Label(ID_ASSIGNMENT_NAME, createHeaderModel());
-        name.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
-        name.setOutputMarkupId(true);
-        add(name);
-
-        add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_DESCRIPTION.getLocalPart())));
+    protected <C extends Containerable> void initLayout(){
+//        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
+//        typeImage.setOutputMarkupId(true);
+//        typeImage.add(AttributeModifier.append("class", createImageModel()));
+//        typeImage.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
+//        add(typeImage);
+//
+//        Label name = new Label(ID_ASSIGNMENT_NAME, createHeaderModel());
+//        name.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
+//        name.setOutputMarkupId(true);
+//        add(name);
+//
+//        add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_DESCRIPTION.getLocalPart())));
 
         //add(initPropertiesContainer(ID_PROPERTIES_PANEL));
         
+    	DisplayNamePanel<C> displayNamePanel = new DisplayNamePanel<C>(ID_DISPLAY_NAME, new AbstractReadOnlyModel<C>() {
+		
+    		private static final long serialVersionUID = 1L;
+
+			@Override
+    		public C getObject() {
+    			AssignmentDto assignemtn = getModelObject();
+    			if (assignemtn.isAssignableObject()) {
+    				Task task = AbstractAssignmentDetailsPanel.this.pageBase.createSimpleTask("Load target");
+    				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
+    				return (C) WebModelServiceUtils.loadObject(getModelObject().getAssignment().getTargetRef(), AbstractAssignmentDetailsPanel.this.pageBase, task, result).asObjectable();
+    			} 
+    			AssignmentType assignmentType = assignemtn.getAssignment();
+    			if (assignmentType.getConstruction() != null) {
+    				return (C) assignmentType.getConstruction();
+    			} else if (assignmentType.getPersonaConstruction() != null) {
+    				return (C) assignmentType.getPersonaConstruction();
+    			} else if (assignmentType.getPolicyRule() !=null) {
+    				return (C) assignmentType.getPolicyRule();
+    			}
+    			
+    			return null;
+    		
+    			
+    		}
+    	
+    	});
+    	
+    	displayNamePanel.setOutputMarkupId(true);
+    	add(displayNamePanel);
+    	
         WebMarkupContainer properties = new WebMarkupContainer(ID_PROPERTIES_PANEL);
 		add(properties);
 		properties.setOutputMarkupId(true);
@@ -214,9 +244,9 @@ private static final String ID_RELATION = "relation";
 
 //    protected  abstract Component initPropertiesContainer(String id);
 
-    protected abstract IModel<String> createHeaderModel();
-
-    protected abstract IModel<String> createImageModel();
+//    protected abstract IModel<String> createHeaderModel();
+//
+//    protected abstract IModel<String> createImageModel();
 
 //    protected abstract void redirectBack(AjaxRequestTarget target){
 //    }

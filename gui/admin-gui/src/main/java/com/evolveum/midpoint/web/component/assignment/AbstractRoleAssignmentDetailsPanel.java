@@ -15,11 +15,11 @@ public class AbstractRoleAssignmentDetailsPanel extends AbstractAssignmentDetail
 	}
 
         
-		protected IModel<String> createHeaderModel(){
-	        return Model.of(AssignmentsUtil.getName(getModelObject().getAssignment(), pageBase));
-	    }
-
-	    protected IModel<String> createImageModel(){
-	        return Model.of(GuiStyleConstants.CLASS_POLICY_RULES);
-	    }
+//		protected IModel<String> createHeaderModel(){
+//	        return Model.of(AssignmentsUtil.getName(getModelObject().getAssignment(), pageBase));
+//	    }
+//
+//	    protected IModel<String> createImageModel(){
+//	        return Model.of(GuiStyleConstants.CLASS_ICON_ASSIGNMENTS);
+//	    }
 }

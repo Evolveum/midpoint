@@ -27,6 +27,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 public class AssignmentDto extends Selectable<AssignmentDto> implements Comparable<AssignmentDto>, Serializable{
 
@@ -87,6 +90,25 @@ public class AssignmentDto extends Selectable<AssignmentDto> implements Comparab
 		
 		return assignment.getTargetRef().getRelation();
 		
+	}
+	
+	public QName getTargetType() {
+		if (assignment.getTarget() != null) {
+			// object assignment
+			return assignment.getTarget().asPrismObject().getComplexTypeDefinition().getTypeName();
+		} else if (assignment.getTargetRef() != null) {
+			return assignment.getTargetRef().getType();
+		}
+		if (assignment.getPolicyRule() != null){
+			return PolicyRuleType.COMPLEX_TYPE;
+		}
+		
+		if (assignment.getPersonaConstruction() != null) {
+			return PersonaConstructionType.COMPLEX_TYPE;
+		}
+		// account assignment through account construction
+		return ConstructionType.COMPLEX_TYPE;
+
 	}
 	
 	public RelationTypes getRelationType() {

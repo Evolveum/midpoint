@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,11 +31,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 
@@ -43,9 +46,12 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -55,11 +61,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> implements Popupable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	
 	private static final String ID_TYPE = "type";
+	private static final String ID_RELATION = "relation";
 	private static final String ID_ROLE_TABLE = "roleTable";
 	private static final String ID_RESOURCE_TABLE = "resourceTable";
 	private static final String ID_ORG_TABLE = "orgTable";
@@ -82,7 +87,6 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     protected IModel<QName> typeModel;
     private PageBase parentPage;
 
-//	private PageBase parentPage;
 
 	public TypedAssignablePanel(String id, final Class<T> type, boolean multiselect, PageBase parentPage) {
 		super(id);
@@ -125,18 +129,22 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		AjaxButton addButton = new AjaxButton(ID_BUTTON_ASSIGN,
 				createStringResource("userBrowserDialog.button.addButton")) {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				List<T> selected = getSelectedData(ID_ROLE_TABLE);
 				selected.addAll(getSelectedData(ID_RESOURCE_TABLE));
 				selected.addAll(getSelectedData(ID_ORG_TABLE));
 				selected.addAll(getSelectedData(ID_SERVICE_TABLE));
-				TypedAssignablePanel.this.addPerformed(target, selected);
+				TypedAssignablePanel.this.addPerformed(target, selected, getSelectedRelation());
 			}
 		};
 		
 		addButton.add(new VisibleEnableBehaviour() {
 			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return multiselect;
@@ -145,11 +153,12 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 		add(addButton);
 	}
-
+	
 	protected void initAssignmentParametersPanel(){
-		DropDownChoice<QName> typeSelect = new DropDownChoice(ID_TYPE, typeModel,
-				new ListModel(WebComponentUtil.createAssignableTypesList()), new QNameChoiceRenderer());
+		DropDownChoicePanel<QName> typeSelect = new DropDownChoicePanel<>(ID_TYPE, typeModel, Model.ofList(WebComponentUtil.createAssignableTypesList()), new QNameChoiceRenderer());
 		typeSelect.add(new OnChangeAjaxBehavior() {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -160,10 +169,35 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		typeSelect.setOutputMarkupId(true);
 		add(typeSelect);
 
+		
+		DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
+                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER), TypedAssignablePanel.this, false);
+        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());        
+        relationSelector.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return !ResourceType.COMPLEX_TYPE.equals(typeModel.getObject());
+            }
+        });
+        relationSelector.setOutputMarkupId(true);
+        relationSelector.setOutputMarkupPlaceholderTag(true);
+        add(relationSelector);
+		
 	}
 
 	private List<T> getSelectedData(String id){
 		return ((ObjectListPanel) get(createComponentPath(ID_TABLES_CONTAINER, id))).getSelectedObjects();
+	}
+	
+	private QName getSelectedRelation(){
+		DropDownChoicePanel<RelationTypes> relationPanel = (DropDownChoicePanel<RelationTypes>) get(ID_RELATION);
+		RelationTypes relation = relationPanel.getModel().getObject();
+		if (relation == null) {
+			return SchemaConstants.ORG_DEFAULT; 
+		}
+		return relation.getRelation();
 	}
 	
 	private WebMarkupContainer createCountContainer(){
@@ -193,6 +227,10 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 	private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final QName type) {
 		PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, qnameToCompileTimeClass(type), true, getPageBase()) {
+			
+			private static final long serialVersionUID = 1L;
+
+
 			@Override
 			protected void onUpdateCheckbox(AjaxRequestTarget target) {
 				refreshCounts(target);
@@ -231,6 +269,8 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 
 		listPanel.setOutputMarkupId(true);
 		listPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return type.equals(typeModel.getObject());
@@ -239,7 +279,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		return listPanel;
 	}
 
-	protected void addPerformed(AjaxRequestTarget target, List<T> selected) {
+	protected void addPerformed(AjaxRequestTarget target, List<T> selected, QName relation) {
 		getPageBase().hideMainPopup(target);
 	}
 

@@ -17,13 +17,11 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -35,50 +33,27 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.RelationSelectorAssignablePanel;
+import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -91,8 +66,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     private static final String ID_RELATION = "relation";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
-    private Map<RelationTypes, List<AssignmentDto>> relationAssignmentsMap;
-
+    
     public AbstractRoleAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase){
     	super(id, assignmentsModel, pageBase);
 
@@ -133,23 +107,19 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     	return (DropDownChoicePanel<RelationTypes>) getAssignmentContainer().get(ID_RELATION);
     }
     
-    @Override
-    protected List<AssignmentDto> getModelList() {
-    	return getModelObject();
-    }
-       
+      
        protected void showAllAssignments(AjaxRequestTarget target) {
        }
 
        @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
-    	   RelationSelectorAssignablePanel panel = new RelationSelectorAssignablePanel(
+    	   TypedAssignablePanel<RoleType> panel = new TypedAssignablePanel<RoleType>(
                    getPageBase().getMainPopupBodyId(), RoleType.class, true, getPageBase()) {
                
     		   private static final long serialVersionUID = 1L;
 
                @Override
-               protected void addPerformed(AjaxRequestTarget target, List selected, RelationTypes relation) {
+               protected void addPerformed(AjaxRequestTarget target, List selected, QName relation) {
                    addSelectedAssignmentsPerformed(target, selected, relation);
                }
 
@@ -157,14 +127,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
            panel.setOutputMarkupId(true);
            getPageBase().showMainPopup(panel, target);
     }
-       private <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, RelationTypes relation){
+       private <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation){
            if (assignmentsList == null || assignmentsList.isEmpty()){
                    warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
                    target.add(getPageBase().getFeedbackPanel());
                    return;
            }
            for (T object : assignmentsList){
-        	   AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object.asPrismObject(), relation.getRelation());
+        	   AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object.asPrismObject(), relation);
                AssignmentDto dto = new AssignmentDto(assignment, UserDtoStatus.ADD);
                getModelObject().add(0, dto);
            }
@@ -176,53 +146,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected List<IColumn<AssignmentDto, String>> initColumns() {
         List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxHeaderColumn<AssignmentDto>());
-
-        columns.add(new IconColumn<AssignmentDto>(Model.of("")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createIconModel(IModel<AssignmentDto> rowModel) {
-                if (AssignmentsUtil.getType(rowModel.getObject().getAssignment()) == null){
-                    return Model.of("");
-                }
-                return Model.of(AssignmentsUtil.getType(rowModel.getObject().getAssignment()).getIconCssClass());
-            }
-
-            @Override
-            protected IModel<String> createTitleModel(IModel<AssignmentDto> rowModel) {
-                return AssignmentsUtil.createAssignmentIconTitleModel(AbstractRoleAssignmentPanel.this, AssignmentsUtil.getType(rowModel.getObject().getAssignment()));
-            }
-
-        });
-
-        columns.add(new LinkColumn<AssignmentDto>(createStringResource("AssignmentDataTablePanel.targetColumnName")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
-                                     final IModel<AssignmentDto> rowModel) {
-                if (rowModel.getObject().getAssignment().getTargetRef() == null){
-                    cellItem.add(new Label(componentId, createLinkModel(rowModel)));
-                } else {
-                    super.populateItem(cellItem, componentId, rowModel);
-                }
-            }
-
-            @Override
-            protected IModel createLinkModel(IModel<AssignmentDto> rowModel) {
-                String targetObjectName = AssignmentsUtil.getName(rowModel.getObject().getAssignment(), getParentPage());
-                if (targetObjectName != null && targetObjectName.trim().endsWith("-")){
-                    targetObjectName = targetObjectName.substring(0, targetObjectName.lastIndexOf("-"));
-                }
-                return Model.of(targetObjectName != null ? targetObjectName : "");
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
-            	assignmentDetailsPerformed(target, rowModel);
-            }
-        });
+        
         //commented since these columns are not used
 //        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
 //            private static final long serialVersionUID = 1L;

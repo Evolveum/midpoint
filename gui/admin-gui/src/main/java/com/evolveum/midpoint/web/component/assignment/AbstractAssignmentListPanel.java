@@ -37,6 +37,8 @@ import org.apache.wicket.model.IModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 /**
  * Created by honchar.
  */
@@ -136,7 +138,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
         return getModel();
     }
 
-    protected AssignmentEditorDto createAssignmentFromSelectedObjects(ObjectType object, RelationTypes relation){
+    protected AssignmentEditorDto createAssignmentFromSelectedObjects(ObjectType object, QName relation){
         try {
 
             if (object instanceof ResourceType) {
@@ -146,11 +148,11 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             if (object instanceof UserType) {
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
                         SchemaConstants.ORG_DEPUTY, pageBase);
-                dto.getTargetRef().setRelation(relation.getRelation());
+                dto.getTargetRef().setRelation(relation);
                 return dto;
             } else {
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object, pageBase);
-                dto.getTargetRef().setRelation(relation.getRelation());
+                dto.getTargetRef().setRelation(relation);
                 return dto;
             }
         } catch (Exception e) {

@@ -44,12 +44,7 @@ public class GdprAssignmentPanel extends AssignmentPanel{
 		return 0;
 	}
 
-	@Override
-	protected List<AssignmentDto> getModelList() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 	@Override
 	protected List<IColumn<AssignmentDto, String>> initColumns() {
 		// TODO Auto-generated method stub
