@@ -79,8 +79,7 @@ public class ObjectUpdater {
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
     @Autowired
-    @Qualifier("repositoryService")
-    private RepositoryService repositoryService;
+    private SqlRepositoryServiceImpl repositoryService;
 
     @Autowired
     private BaseHelper baseHelper;
@@ -101,7 +100,7 @@ public class ObjectUpdater {
     private PrismContext prismContext;
 
     public <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
-                                                          OperationResult result) throws ObjectAlreadyExistsException, SchemaException {
+            OperationResult result) throws ObjectAlreadyExistsException, SchemaException {
 
         LOGGER_PERFORMANCE.debug("> add object {}, oid={}, overwrite={}",
                 object.getCompileTimeClass().getSimpleName(), object.getOid(), options.isOverwrite());
@@ -350,11 +349,9 @@ public class ObjectUpdater {
         modifications = CloneUtil.cloneCollectionMembers(modifications);
         //modifications = new ArrayList<>(modifications);
 
-        LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Modifying object '{}' with oid '{}'.", type.getSimpleName(), oid);
         LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}", type.getSimpleName(), oid, modifications);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Modifications:\n{}", DebugUtil.debugDump(modifications));
-        }
+	    LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
         Session session = null;
         OrgClosureManager.Context closureContext = null;
@@ -391,6 +388,7 @@ public class ObjectUpdater {
 
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
+                repositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
 				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
                 PrismObject<T> originalObject = null;

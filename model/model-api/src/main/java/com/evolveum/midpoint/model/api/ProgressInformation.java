@@ -44,14 +44,15 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         WORKFLOWS,
         PROJECTOR,
         RESOURCE_OBJECT_OPERATION,
-        FOCUS_OPERATION
+        FOCUS_OPERATION,
+	    CLOCKWORK
     }
 
     /**
      * We usually report on entering and exiting a particular activity.
      */
     public enum StateType {
-        ENTERING, EXITING;
+        ENTERING, EXITING
     }
 
     private ActivityType activityType;
@@ -152,4 +153,11 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return activityType + ":" + stateType
+                + (resourceShadowDiscriminator != null ? ", resource=" + resourceShadowDiscriminator.getResourceOid() : "")
+                + (operationResult != null ? ", result=" + operationResult.getStatus() : "")
+                + (message != null ? ": " + message : "");
+    }
 }

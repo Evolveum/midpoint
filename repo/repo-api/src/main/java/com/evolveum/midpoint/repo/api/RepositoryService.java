@@ -599,4 +599,10 @@ public interface RepositoryService {
 	FullTextSearchConfigurationType getFullTextSearchConfiguration();
 
 	void postInit(OperationResult result) throws SchemaException;
+
+	ConflictWatcher createAndRegisterConflictWatcher(String oid);
+
+	void unregisterConflictWatcher(ConflictWatcher watcher);
+
+	boolean hasConflict(ConflictWatcher watcher, OperationResult result);
 }

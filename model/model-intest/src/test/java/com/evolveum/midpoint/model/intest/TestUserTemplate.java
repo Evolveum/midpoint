@@ -152,7 +152,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNotNull("no system config", systemConfiguration);
         List<ObjectPolicyConfigurationType> defaultObjectPolicyConfiguration = systemConfiguration.asObjectable().getDefaultObjectPolicyConfiguration();
         assertNotNull("No object policy", defaultObjectPolicyConfiguration);
-        assertEquals("Wrong object policy size", 2, defaultObjectPolicyConfiguration.size());
+        assertEquals("Wrong object policy size", 3, defaultObjectPolicyConfiguration.size());       // third is the conflict resolution rule
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, null, USER_TEMPLATE_COMPLEX_OID);
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, EMPLOYEE_TYPE_MAROONED, USER_TEMPLATE_MAROONED_OID);
         

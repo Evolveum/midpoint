@@ -62,6 +62,7 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
+            <class name="com.evolveum.midpoint.model.intest.TestRaceConditions"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">

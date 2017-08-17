@@ -541,7 +541,34 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         syncSettings.setAssignmentPolicyEnforcement(policy);
         applySyncSettings(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), SchemaConstants.C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, syncSettings);
 	}
-	
+
+	// very limited approach -- assumes that we set conflict resolution on a global level only
+	protected void assumeConflictResolutionAction(ConflictResolutionActionType action) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		SystemConfigurationType systemConfiguration = getSystemConfiguration();
+		List<ObjectPolicyConfigurationType> current = new ArrayList<>();
+		for (ObjectPolicyConfigurationType c : systemConfiguration.getDefaultObjectPolicyConfiguration()) {
+			if (c.getType() == null && c.getSubtype() == null && c.getConflictResolution() != null) {
+				current.add(c);
+			}
+		}
+		if (current.size() == 1 && current.get(0).getConflictResolution().getAction() == action) {
+			return;
+		}
+
+		ObjectPolicyConfigurationType newPolicy = new ObjectPolicyConfigurationType(prismContext).beginConflictResolution().action(action).end();
+		List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(SystemConfigurationType.class, prismContext)
+				.item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
+				.add(newPolicy)
+				.deleteRealValues(current)
+				.asItemDeltas();
+		OperationResult result = new OperationResult("assumeConflictResolutionAction");
+		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), itemDeltas, result);
+		invalidateSystemObjectsCache();
+		display("Applying conflict resolution action result", result);
+		result.computeStatus();
+		TestUtil.assertSuccess("Applying conflict resolution action failed (result)", result);
+	}
+
 	protected void assumeResourceAssigmentPolicy(String resourceOid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
 		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);

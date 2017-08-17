@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,6 +61,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
 
 	private ModelState state = ModelState.INITIAL;
+
+	@NotNull private final transient List<ConflictWatcher> conflictWatchers = new ArrayList<>();
+
+	private int conflictResolutionAttemptNumber;
 
 	/**
 	 * Channel that is the source of primary change (GUI, live sync, import,
@@ -1296,5 +1302,29 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		} else {
 			return null;
 		}
+	}
+
+	public int getConflictResolutionAttemptNumber() {
+		return conflictResolutionAttemptNumber;
+	}
+
+	public void setConflictResolutionAttemptNumber(int conflictResolutionAttemptNumber) {
+		this.conflictResolutionAttemptNumber = conflictResolutionAttemptNumber;
+	}
+
+	@NotNull
+	public List<ConflictWatcher> getConflictWatchers() {
+		return conflictWatchers;
+	}
+
+	public ConflictWatcher createAndRegisterConflictWatcher(String oid, RepositoryService repositoryService) {
+		ConflictWatcher watcher = repositoryService.createAndRegisterConflictWatcher(oid);
+		conflictWatchers.add(watcher);
+		return watcher;
+	}
+
+	public void unregisterConflictWatchers(RepositoryService repositoryService) {
+		conflictWatchers.forEach(w -> repositoryService.unregisterConflictWatcher(w));
+		conflictWatchers.clear();
 	}
 }
