@@ -2588,15 +2588,22 @@
                             <xsd:documentation>
                             	<p>
 	                                Indicates user's preferred language, usually for the purpose of localizing
-	                                user interfaces. The format is ISO 639-1 two letter language code and the 
-	                                ISO 3166-1 two letter country code separated by underscore. If not specified
-	                                then system default locale is assumed.
+	                                user interfaces. The format is IETF language tag defined in BCP 47, where
+	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+	                                language code optionally followed by ISO 3166-1 two letter country code 
+	                                separated by underscore. The languages that do not have coutry-specific
+	                                variants are usually specified by using a two-letter coutry code ("sk", 
+	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
+	                                subtags ("pt_BR", "zn_CN").
+	                                If no value is specified in this property then system default locale is assumed.
                                 </p>
 								<p>
                                 Examples:
                                     <ul>
                                         <li>en_US</li>
-                                        <li>sk_SK</li>
+                                        <li>sk</li>
+                                        <li>cs</li>
+                                        <li>pt_BR</li>
                                     </ul>
                                 </p>
                             </xsd:documentation>
@@ -2613,15 +2620,22 @@
                             <xsd:documentation>
                             	<p>
 	                                Defines user's preference in displaying currency, dates and other items
-	                                related to location and culture. The format ISO 639-1 two letter language code and the 
-	                                ISO 3166-1 two letter country code separated by underscore. If not specified
-	                                then system default locale is assumed.
+	                                related to location and culture. The format is IETF language tag defined in BCP 47, where
+	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+	                                language code optionally followed by ISO 3166-1 two letter country code 
+	                                separated by underscore. The languages that do not have coutry-specific
+	                                variants are usually specified by using a two-letter coutry code ("sk", 
+	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
+	                                subtags ("pt_BR", "zn_CN").
+	                                If not specified then system default locale is assumed.
                                 </p>
 								<p>
                                 Examples:
                                     <ul>
                                         <li>en_US</li>
-                                        <li>sk_SK</li>
+                                        <li>sk</li>
+                                        <li>cs</li>
+                                        <li>pt_BR</li>
                                     </ul>
                                 </p>
                             </xsd:documentation>
@@ -12062,6 +12076,13 @@
                     <xsd:element name="maxHistory" type="xsd:int"/>
                     <xsd:element name="maxFileSize" type="xsd:string"/>
                     <xsd:element name="append" type="xsd:boolean"/>
+                    <xsd:element name="prudent" type="xsd:boolean">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Prudent mode allows remote and shared file destinations (see https://logback.qos.ch/manual/appenders.html#prudentWithRolling )
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

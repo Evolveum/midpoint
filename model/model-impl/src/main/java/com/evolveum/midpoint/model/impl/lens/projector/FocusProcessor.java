@@ -45,7 +45,9 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -53,10 +55,13 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -76,6 +81,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
@@ -247,7 +253,7 @@ public class FocusProcessor {
 		        // ACTIVATION
 		        
 				LensUtil.partialExecute("focusActivation",
-						() -> processActivation(context, now, result),
+						() -> processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 				
 				
@@ -262,7 +268,7 @@ public class FocusProcessor {
 		        // process activation again. Object template might have changed it.
 		        context.recomputeFocus();
 		        LensUtil.partialExecute("focusActivation",
-						() -> processActivation(context, now, result),
+						() -> processActivationBeforeAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 		        
 		        // ASSIGNMENTS
@@ -296,9 +302,10 @@ public class FocusProcessor {
 		        context.recompute();
 
 		        // process activation again. Second pass through object template might have changed it.
+		        // We also need to apply assignment activation if needed
 		        context.recomputeFocus();
 		        LensUtil.partialExecute("focusActivation",
-						() -> processActivation(context, now, result),
+						() -> processActivationAfterAssignments(context, now, result),
 						partialProcessingOptions::getFocusActivation);
 		        
 		        // CREDENTIALS (including PASSWORD POLICY)
@@ -589,7 +596,20 @@ public class FocusProcessor {
 		focusContext.recompute();
 	}
 
-	private <F extends FocusType> void processActivation(LensContext<F> context, XMLGregorianCalendar now, 
+	private <F extends FocusType> void processActivationBeforeAssignments(LensContext<F> context, XMLGregorianCalendar now, 
+			OperationResult result) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+		processActivationBasic(context, now, result);
+	}
+	
+	private <F extends FocusType> void processActivationAfterAssignments(LensContext<F> context, XMLGregorianCalendar now, 
+			OperationResult result) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+		processActivationBasic(context, now, result);
+		processAssignmentActivation(context, now, result);
+	}
+	
+	private <F extends FocusType> void processActivationBasic(LensContext<F> context, XMLGregorianCalendar now, 
 			OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -878,5 +898,53 @@ public class FocusProcessor {
 		focusContext.swallowToSecondaryDelta(iterationTokenDelta);
 		
 	}
+	
+	private <F extends FocusType> void processAssignmentActivation(LensContext<F> context, XMLGregorianCalendar now, 
+			OperationResult result) throws SchemaException {
+		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		if (evaluatedAssignmentTriple == null) {
+			// Code path that should not normally happen. But is used in some tests and may
+			// happen during partial processing.
+			return;
+		}
+		// We care only about existing assignments here. New assignments will be taken care of in the executor
+		// (OperationalDataProcessor). And why care about deleted assignments?
+		Collection<EvaluatedAssignmentImpl<?>> zeroSet = evaluatedAssignmentTriple.getZeroSet();
+		if (zeroSet == null) {
+			return;
+		}
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		for (EvaluatedAssignmentImpl<?> evaluatedAssignment: zeroSet) {
+			AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
+			ActivationType currentActivationType = assignmentType.getActivation();
+			ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), currentActivationType);
+			if (currentActivationType == null) {
+				PrismContainerDefinition<ActivationType> activationDef = focusContext.getObjectDefinition().findContainerDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION);
+				ContainerDelta<ActivationType> activationDelta = activationDef.createEmptyDelta(
+						new ItemPath(
+								new NameItemPathSegment(FocusType.F_ASSIGNMENT), new IdItemPathSegment(assignmentType.getId()),
+								new NameItemPathSegment(AssignmentType.F_ACTIVATION)
+							));
+				ActivationType newActivationType = new ActivationType();
+				activationDelta.setValuesToReplace(newActivationType.asPrismContainerValue());
+				newActivationType.setEffectiveStatus(expectedEffectiveStatus);
+				focusContext.swallowToSecondaryDelta(activationDelta);
+			} else {
+				ActivationStatusType currentEffectiveStatus = currentActivationType.getEffectiveStatus();
+				if (!expectedEffectiveStatus.equals(currentEffectiveStatus)) {
+					PrismPropertyDefinition<ActivationStatusType> effectiveStatusPropertyDef = focusContext.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS);
+					PropertyDelta<ActivationStatusType> effectiveStatusDelta = effectiveStatusPropertyDef.createEmptyDelta(
+							new ItemPath(
+								new NameItemPathSegment(FocusType.F_ASSIGNMENT), new IdItemPathSegment(assignmentType.getId()),
+								new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+								new NameItemPathSegment(ActivationType.F_EFFECTIVE_STATUS)
+							));
+					effectiveStatusDelta.setValueToReplace(new PrismPropertyValue<ActivationStatusType>(expectedEffectiveStatus));
+					focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
+				}
+			}
+		}
+	}
+	
 
 }

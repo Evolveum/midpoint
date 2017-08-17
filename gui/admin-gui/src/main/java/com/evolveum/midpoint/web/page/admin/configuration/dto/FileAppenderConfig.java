@@ -31,6 +31,11 @@ public class FileAppenderConfig extends AppenderConfiguration<FileAppenderConfig
     public boolean isAppending() {
         return getConfig().isAppend();
     }
+	
+	@Override
+    public boolean isPrudent() {
+        return getConfig().isPrudent();
+    }
 
     @Override
     public String getFilePath() {
@@ -54,6 +59,10 @@ public class FileAppenderConfig extends AppenderConfiguration<FileAppenderConfig
 
     public void setAppending(boolean appending) {
         getConfig().setAppend(appending);
+    }
+	
+	public void setPrudent(boolean prudent) {
+        getConfig().setPrudent(prudent);
     }
 
     public void setFilePath(String filePath) {
