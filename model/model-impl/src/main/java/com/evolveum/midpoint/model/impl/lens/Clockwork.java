@@ -20,6 +20,8 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -101,6 +103,12 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.CLOCKWORK;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * @author semancik
  *
@@ -110,62 +118,37 @@ public class Clockwork {
 	
 	private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
 
+	private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 3;          // synchronize with common-core-3.xsd
+	private static final int DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT = 500;          // synchronize with common-core-3.xsd
+
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
-	
-	@Autowired(required=true)
-	private Projector projector;
 	
 	// This is ugly
 	// TODO: cleanup
-	@Autowired
-	private ContextLoader contextLoader;
-	
-	@Autowired(required=true)
-	private ChangeExecutor changeExecutor;
+	@Autowired private Projector projector;
+	@Autowired private ContextLoader contextLoader;
+	@Autowired private ChangeExecutor changeExecutor;
+    @Autowired private AuditService auditService;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private Clock clock;
+	@Autowired private ModelObjectResolver objectResolver;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private transient ProvisioningService provisioningService;
+	@Autowired private transient ChangeNotificationDispatcher changeNotificationDispatcher;
+	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
+	@Autowired private PersonaProcessor personaProcessor;
+	@Autowired private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
+	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private ContextFactory contextFactory;
 
-    @Autowired(required = false)
-    private HookRegistry hookRegistry;
-    
-    @Autowired
-	private AuditService auditService;
-    
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
-    
-    @Autowired
-    private Clock clock;
-    
-    @Autowired
+	@Autowired(required = false)
+	private HookRegistry hookRegistry;
+
+	@Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
     
-    @Autowired
-	private ModelObjectResolver objectResolver;
-    
-    @Autowired
-	private SystemObjectCache systemObjectCache;
-
-	@Autowired
-	private transient ProvisioningService provisioningService;
-
-	@Autowired
-	private transient ChangeNotificationDispatcher changeNotificationDispatcher;
-
-    @Autowired
-    private ScriptExpressionFactory scriptExpressionFactory;
-    
-    @Autowired(required=true)
-    private PersonaProcessor personaProcessor;
-    
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private TaskManager taskManager;
-    
-    @Autowired
-    private OperationalDataManager metadataManager;
-
     private LensDebugListener debugListener;
 	
 	public LensDebugListener getDebugListener() {
@@ -185,8 +168,14 @@ public class Clockwork {
 		}
 
 		int clicked = 0;
+		boolean focusConflictPresent = false;
+		HookOperationMode finalMode;
 
 		try {
+			context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
+			if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
+				context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
+			}
 			FocusConstraintsChecker.enterCache();
 			enterAssociationSearchExpressionEvaluatorCache();
 			provisioningService.enterConstraintsCheckerCache();
@@ -210,12 +199,114 @@ public class Clockwork {
 				}
 			}
 			// One last click in FINAL state
-			return click(context, task, result);
+			finalMode = click(context, task, result);
+			if (finalMode == HookOperationMode.FOREGROUND) {
+				focusConflictPresent = checkFocusConflicts(context, task, result);
+			}
 		} finally {
+			context.unregisterConflictWatchers(repositoryService);
 			FocusConstraintsChecker.exitCache();
 			exitAssociationSearchExpressionEvaluatorCache();
 			provisioningService.exitConstraintsCheckerCache();
+			context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
 		}
+
+		// intentionally outside the "try-finally" block to start with clean caches
+		if (focusConflictPresent) {
+			assert finalMode == HookOperationMode.FOREGROUND;
+			finalMode = resolveFocusConflict(context, task, result);
+		} else if (context.getConflictResolutionAttemptNumber() > 0) {
+			LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
+		}
+		return finalMode;
+	}
+
+	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, Task task, OperationResult result) {
+		for (ConflictWatcher watcher : context.getConflictWatchers()) {
+			if (repositoryService.hasConflict(watcher, result)) {
+				LOGGER.debug("Found modify-modify conflict on {}", watcher);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
+			CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+		ConflictResolutionType resolutionPolicy = ModelUtils.getConflictResolution(context);
+		if (resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
+			return HookOperationMode.FOREGROUND;
+		}
+		PrismObject<F> focusObject = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
+		switch (resolutionPolicy.getAction()) {
+			case FAIL: throw new SystemException("Conflict detected while updating " + focusObject);
+			case LOG:
+				LOGGER.warn("Conflict detected while updating {}", focusObject);
+				return HookOperationMode.FOREGROUND;
+			case RECOMPUTE:
+				break;
+			default:
+				throw new IllegalStateException("Unsupported conflict resolution action: " + resolutionPolicy.getAction());
+		}
+
+		// so, recompute is the action
+
+		if (context.getFocusContext() == null) {
+			LOGGER.warn("No focus context, not possible to resolve conflict by focus recomputation");       // should really never occur
+			return HookOperationMode.FOREGROUND;
+		}
+		String oid = context.getFocusContext().getOid();
+		if (oid == null) {
+			LOGGER.warn("No focus OID, not possible to resolve conflict by focus recomputation");       // should really never occur
+			return HookOperationMode.FOREGROUND;
+		}
+		Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
+		if (focusClass == null) {
+			LOGGER.warn("Focus class not known, not possible to resolve conflict by focus recomputation");       // should really never occur
+			return HookOperationMode.FOREGROUND;
+		}
+		if (TaskType.class.isAssignableFrom(focusClass)) {
+			return HookOperationMode.FOREGROUND;        // this is actually quite expected, so don't bother anyone with that
+		}
+		if (!FocusType.class.isAssignableFrom(focusClass)) {
+			LOGGER.warn("Focus is not of FocusType (it is {}); not possible to resolve conflict by focus recomputation", focusClass.getName());
+			return HookOperationMode.FOREGROUND;
+		}
+
+		PrismObject<F> focus = repositoryService.getObject(focusClass, oid, null, result);
+		LensContext<FocusType> contextNew = contextFactory.createRecomputeContext(focus, null, task, result);
+				contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
+		int attemptOld = context.getConflictResolutionAttemptNumber();
+		int attemptNew = attemptOld + 1;
+		boolean shouldExecuteAttempt = shouldExecuteAttempt(resolutionPolicy, attemptNew);
+		if (shouldExecuteAttempt) {
+			contextNew.setConflictResolutionAttemptNumber(attemptNew);
+			// this is a recursion; but limited to max attempts which should not be a large number
+			return run(contextNew, task, result);
+		} else {
+			LOGGER.warn("Couldn't resolve conflict even after {} resolution attempt(s), giving up.", attemptOld);
+			return HookOperationMode.FOREGROUND;
+		}
+	}
+
+	private boolean shouldExecuteAttempt(@NotNull ConflictResolutionType resolutionPolicy, int attemptNew) {
+		int maxAttempts = defaultIfNull(resolutionPolicy.getMaxAttempts(), DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS);
+		if (attemptNew > maxAttempts) {
+			return false;
+		}
+		long delayUnit = defaultIfNull(resolutionPolicy.getDelayUnit(), DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT);
+		for (int i = 0; i < attemptNew; i++) {
+			delayUnit *= 2;
+		}
+		long delay = (long) (Math.random() * delayUnit);
+		LOGGER.debug("Waiting {} milliseconds before starting conflict resolution attempt {} of {}", delay, attemptNew, maxAttempts);
+		try {
+			Thread.sleep(delay);
+		} catch (InterruptedException e) {
+			// ignore
+		}
+		return true;
 	}
 
 	private void enterAssociationSearchExpressionEvaluatorCache() {

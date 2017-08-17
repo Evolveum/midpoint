@@ -2769,7 +2769,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		addObject(TASK_SHADOW_REFRESH_FILE);
+		addTask(TASK_SHADOW_REFRESH_FILE);
 		
 		// THEN
 		displayThen(TEST_NAME);

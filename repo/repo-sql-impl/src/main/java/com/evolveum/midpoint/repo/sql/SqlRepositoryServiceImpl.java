@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.sql.helpers.*;
 import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -77,9 +79,12 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author lazyman
@@ -94,6 +99,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);
 
+    private static final int MAX_CONFLICT_WATCHERS = 10;          // just a safeguard (watchers per thread should be at most 1-2)
     public static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
     private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
     private static final String IMPLEMENTATION_DESCRIPTION = "Implementation that stores data in generic relational" +
@@ -111,6 +117,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private BaseHelper baseHelper;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private MidpointConfiguration midpointConfiguration;
+
+    private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
@@ -148,9 +156,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("oid", oid);
 
-        return executeAttempts(oid, "getObject", "getting",
-                subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
-        );
+	    PrismObject<T> object = executeAttempts(oid, "getObject", "getting",
+			    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
+	    );
+	    invokeConflictWatchers((w) -> w.afterGetObject(object));
+	    return object;
     }
 
     private <RV> RV executeAttempts(String oid, String operationName, String operationVerb, OperationResult subResult,
@@ -393,14 +403,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final String operation = "adding";
         int attempt = 1;
 
-        String oid = object.getOid();
+        String proposedOid = object.getOid();
         while (true) {
             try {
-                return objectUpdater.addObjectAttempt(object, options, subResult);
+                String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
+	            invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
+	            return createdOid;
             } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
+                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
             }
         }
+    }
+
+    public void invokeConflictWatchers(Consumer<ConflictWatcherImpl> consumer) {
+	    emptyIfNull(conflictWatchersThreadLocal.get()).forEach(consumer);
     }
 
     private void validateName(PrismObject object) throws SchemaException {
@@ -426,6 +442,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         executeAttemptsNoSchemaException(oid, "deleteObject", "deleting",
                 subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
         );
+	    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
     }
 
     @Override
@@ -519,6 +536,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             while (true) {
                 try {
                     objectUpdater.modifyObjectAttempt(type, oid, modifications, options, subResult);
+	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                     return;
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
@@ -528,7 +546,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
-
     }
 
     @Override
@@ -719,7 +736,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    return objectRetriever.getVersionAttempt(type, oid, subResult);
+                    String rv = objectRetriever.getVersionAttempt(type, oid, subResult);
+	                invokeConflictWatchers((w) -> w.afterGetVersion(oid, rv));
+                    return rv;
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
@@ -788,6 +807,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
 //            pm.registerOperationFinish(opHandle, attempt);
         }
+        // TODO conflict checking (if needed)
     }
 
     @Override
@@ -1045,4 +1065,45 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		applyFullTextSearchConfiguration(systemConfiguration.getFullTextSearch());
         SystemConfigurationTypeUtil.applyOperationResultHandling(systemConfiguration);
 	}
+
+    @Override
+    public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
+	    List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
+	    if (watchers == null) {
+	    	conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
+	    }
+	    if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
+	    	throw new IllegalStateException("Conflicts watchers leaking: reached limit of " + MAX_CONFLICT_WATCHERS + ": " + watchers);
+	    }
+	    ConflictWatcherImpl watcher = new ConflictWatcherImpl(oid);
+	    watchers.add(watcher);
+	    return watcher;
+    }
+
+    @Override
+    public void unregisterConflictWatcher(ConflictWatcher watcher) {
+    	ConflictWatcherImpl watcherImpl = (ConflictWatcherImpl) watcher;
+	    List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
+	    // change these exceptions to logged errors, eventually
+        if (watchers == null) {
+            throw new IllegalStateException("No conflict watchers registered for current thread; tried to unregister " + watcher);
+        } else if (!watchers.remove(watcherImpl)) {     // expecting there's only one
+            throw new IllegalStateException("Tried to unregister conflict watcher " + watcher + " that was not registered");
+        }
+    }
+
+    @Override
+    public boolean hasConflict(ConflictWatcher watcher, OperationResult result) {
+    	if (watcher.hasConflict()) {
+    		return true;
+	    }
+	    try {
+		    getVersion(ObjectType.class, watcher.getOid(), result);
+	    } catch (ObjectNotFoundException e) {
+		    // just ignore this
+	    } catch (SchemaException e) {
+		    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
+	    }
+	    return watcher.hasConflict();
+    }
 }

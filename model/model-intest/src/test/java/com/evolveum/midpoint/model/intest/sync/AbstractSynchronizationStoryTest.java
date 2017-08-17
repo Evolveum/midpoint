@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.intest.sync;
 
 import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -29,6 +28,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -64,15 +64,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -99,7 +90,12 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 //		DebugUtil.setDetailedDebugDump(true);
 	}
-	
+
+	@Override
+	protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
+		return ConflictResolutionActionType.NONE;       // too many conflicts in these scenarios
+	}
+
 	protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
 
 	protected abstract String getSyncTaskOid(PrismObject<ResourceType> resource);

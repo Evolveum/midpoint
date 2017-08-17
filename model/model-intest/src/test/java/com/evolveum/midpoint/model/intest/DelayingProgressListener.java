@@ -36,7 +36,7 @@ public class DelayingProgressListener implements ProgressListener {
 	public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
 		try {
 			long delay = (long) (delayMin + Math.random() * (delayMax - delayMin));
-			System.out.println("[" + Thread.currentThread().getName() + "] Delaying execution by " + delay + " ms");
+			System.out.println("[" + Thread.currentThread().getName() + "] Delaying execution by " + delay + " ms for " + progressInformation);
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
 			// ignore

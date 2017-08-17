@@ -52,6 +52,11 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
 
+	@Override
+	protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
+		return ConflictResolutionActionType.RECOMPUTE;
+	}
+
 	@Test
     public void test100AssignRoles() throws Exception {
 		final String TEST_NAME="test100AssignRoles";
