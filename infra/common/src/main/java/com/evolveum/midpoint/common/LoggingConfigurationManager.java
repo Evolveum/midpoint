@@ -23,6 +23,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.ILoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import ch.qos.logback.classic.Level;
@@ -46,13 +47,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfi
 public class LoggingConfigurationManager {
 
 	public static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
-	
+
 	final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
     private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
-    
+
 	public static final String SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS = "skipRepositoryLoggingSettings";
 
     private static String currentlyUsedVersion = null;
@@ -60,7 +61,7 @@ public class LoggingConfigurationManager {
     public static void configure(LoggingConfigurationType config, String version, OperationResult result) {
 
 		OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
-		
+
 		if (InternalsConfig.avoidLoggingChange) {
 			LOGGER.info("IGNORING change of logging configuration (current config version: {}, new version {}) because avoidLoggingChange=true", currentlyUsedVersion, version);
 			res.recordNotApplicableIfUnknown();
@@ -76,78 +77,81 @@ public class LoggingConfigurationManager {
 
         // JUL Bridge initialization was here. (SLF4JBridgeHandler)
         // But it was moved to a later phase as suggested by http://jira.qos.ch/browse/LOGBACK-740
-        
+
 		// Initialize JUL bridge
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
-        
+
 		//Get current log configuration
-		LoggerContext lc = (LoggerContext) TraceManager.getILoggerFactory();
+		ILoggerFactory loggerFactory = TraceManager.getILoggerFactory();
+		if(loggerFactory instanceof LoggerContext) {
+            LoggerContext lc = (LoggerContext) loggerFactory;
 
-		//Prepare configurator in current context
-		JoranConfigurator configurator = new JoranConfigurator();
-		configurator.setContext(lc);
+            //Prepare configurator in current context
+            JoranConfigurator configurator = new JoranConfigurator();
+            configurator.setContext(lc);
 
-		//Generate configuration file as string
-		String configXml = prepareConfiguration(config);
+            //Generate configuration file as string
+            String configXml = prepareConfiguration(config);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("New logging configuration:");
-			LOGGER.trace(configXml);
-		}
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("New logging configuration:");
+                LOGGER.trace(configXml);
+            }
 
-		InputStream cis = new ByteArrayInputStream(configXml.getBytes());
-		LOGGER.info("Resetting current logging configuration");
-		lc.getStatusManager().clear();
-		//Set all loggers to error
-		for (Logger l : lc.getLoggerList()) {
-			LOGGER.trace("Disable logger: {}", l);
-			l.setLevel(Level.ERROR);
-		}
-		// Reset configuration
-		lc.reset();
-		//Switch to new logging configuration
-		lc.setName("MidPoint");
-		try {
-			configurator.doConfigure(cis);
-			LOGGER.info("New logging configuration applied");
-		} catch (JoranException e) {
-			System.out.println("Error during applying logging configuration: " + e.getMessage());
-			LOGGER.error("Error during applying logging configuration: " + e.getMessage(), e);
-			result.createSubresult("Applying logging configuration.").recordFatalError(e.getMessage(), e);
-		} catch (NumberFormatException e) {
-			System.out.println("Error during applying logging configuration: " + e.getMessage());
-			LOGGER.error("Error during applying logging configuration: " + e.getMessage(), e);
-			result.createSubresult("Applying logging configuration.").recordFatalError(e.getMessage(), e);
-		}
+            InputStream cis = new ByteArrayInputStream(configXml.getBytes());
+            LOGGER.info("Resetting current logging configuration");
+            lc.getStatusManager().clear();
+            //Set all loggers to error
+            for (Logger l : lc.getLoggerList()) {
+                LOGGER.trace("Disable logger: {}", l);
+                l.setLevel(Level.ERROR);
+            }
+            // Reset configuration
+            lc.reset();
+            //Switch to new logging configuration
+            lc.setName("MidPoint");
+            try {
+                configurator.doConfigure(cis);
+                LOGGER.info("New logging configuration applied");
+            } catch (JoranException e) {
+                System.out.println("Error during applying logging configuration: " + e.getMessage());
+                LOGGER.error("Error during applying logging configuration: " + e.getMessage(), e);
+                result.createSubresult("Applying logging configuration.").recordFatalError(e.getMessage(), e);
+            } catch (NumberFormatException e) {
+                System.out.println("Error during applying logging configuration: " + e.getMessage());
+                LOGGER.error("Error during applying logging configuration: " + e.getMessage(), e);
+                result.createSubresult("Applying logging configuration.").recordFatalError(e.getMessage(), e);
+            }
 
-		//Get messages if error occurred;
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		StatusPrinter.setPrintStream(new PrintStream(baos));
-		StatusPrinter.print(lc);
+            //Get messages if error occurred;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            StatusPrinter.setPrintStream(new PrintStream(baos));
+            StatusPrinter.print(lc);
 
-		String internalLog = null;
-		try {
-			internalLog = baos.toString("UTF8");
-		} catch (UnsupportedEncodingException e) {
-			// should never happen
-			LOGGER.error("Woops?", e);
-		}
+            String internalLog = null;
+            try {
+                internalLog = baos.toString("UTF8");
+            } catch (UnsupportedEncodingException e) {
+                // should never happen
+                LOGGER.error("Woops?", e);
+            }
 
-		if (!StringUtils.isEmpty(internalLog)) {
-			//Parse internal log
-			res.recordSuccess();
-			String internalLogLines[] = internalLog.split("\n");
-			for (int i = 0; i < internalLogLines.length; i++) {
-				if (internalLogLines[i].contains("|-ERROR"))
-					res.recordPartialError(internalLogLines[i]);
-				res.appendDetail(internalLogLines[i]);
-			}
-			LOGGER.trace("LogBack internal log:\n{}",internalLog);
-		} else {
-			res.recordSuccess();
-		}
-		
+            if (!StringUtils.isEmpty(internalLog)) {
+                //Parse internal log
+                res.recordSuccess();
+                String internalLogLines[] = internalLog.split("\n");
+                for (int i = 0; i < internalLogLines.length; i++) {
+                    if (internalLogLines[i].contains("|-ERROR"))
+                        res.recordPartialError(internalLogLines[i]);
+                    res.appendDetail(internalLogLines[i]);
+                }
+                LOGGER.trace("LogBack internal log:\n{}", internalLog);
+            } else {
+                res.recordSuccess();
+            }
+        }
+
 		// Initialize JUL bridge
         SLF4JBridgeHandler.removeHandlersForRootLogger();
         SLF4JBridgeHandler.install();
@@ -183,11 +187,11 @@ public class LoggingConfigurationManager {
 			if ("OFF".equals(ss.getLevel().name())) {
 				continue;
 			}
-			
+
 			//All ready defined above
 			if ("ALL".contentEquals(ss.getComponent().name())) {
 				continue;
-			}			
+			}
 			defineTurbo(sb, ss);
 		}
 
@@ -202,9 +206,9 @@ public class LoggingConfigurationManager {
 				String appenderClass = "ch.qos.logback.core.FileAppender";
 				if (filePattern != null || a.getMaxHistory() > 0 || !StringUtils.isEmpty(a.getMaxFileSize()) ) {
 					isRolling = true;
-					appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
+					appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender";
 				}
-				
+
 				sb.append("\t<appender name=\"");
 				sb.append(a.getName());
 				sb.append("\" class=\""+appenderClass+"\">\n");
@@ -238,7 +242,7 @@ public class LoggingConfigurationManager {
 						sb.append("</maxHistory>\n");
 					}
 					sb.append("\t\t\t<cleanHistoryOnStart>true</cleanHistoryOnStart>");
-	
+
 					// file triggering
 					// if max size is defined
 					if (!StringUtils.isEmpty(a.getMaxFileSize())) {
@@ -290,7 +294,7 @@ public class LoggingConfigurationManager {
 				sb.append("/>\n");
 			}
 		}
-		
+
 		generateAuditingLogConfig(config.getAuditing(), sb);
 
 		if (null != config.getAdvanced()) {
@@ -299,7 +303,7 @@ public class LoggingConfigurationManager {
 				sb.append("\n");
 			}
 		}
-		
+
 		// LevelChangePropagator to propagate log level changes to JUL
 		// this keeps us from performance impact of disable JUL logging statements
 		// WARNING: if deployed in Tomcat then this propagates only to the JUL loggers in current classloader.
@@ -308,7 +312,7 @@ public class LoggingConfigurationManager {
 		sb.append("\t<contextListener class=\"ch.qos.logback.classic.jul.LevelChangePropagator\">\n");
 		sb.append("\t\t<resetJUL>true</resetJUL>\n");
 		sb.append("\t</contextListener>\n");
-		
+
 		sb.append("</configuration>");
 		return sb.toString();
 	}
