@@ -562,11 +562,10 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	@Override
 	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
 		// TODO TODO TODO (note that in original implementation this was also missing...)
-		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceType, originalObjectClassDefinition.deepClone(ctdMap));
+		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceOid, originalObjectClassDefinition.deepClone(ctdMap));
 		copyDefinitionData(clone);
 		shared = false;
 		return clone;
-
 	}
 
 	private Collection<RefinedAssociationDefinition> cloneAssociations(Collection<RefinedAssociationDefinition> origAsoc) {
