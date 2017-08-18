@@ -114,6 +114,21 @@ public class ConflictWatcherImpl implements ConflictWatcher {
 		return hasConflict;
 	}
 
+	// for testing purposes
+	public boolean isInitialized() {
+		return initialized;
+	}
+
+	// for testing purposes
+	public int getExpectedVersion() {
+		return expectedVersion;
+	}
+
+	// for testing purposes
+	public boolean isObjectDeleted() {
+		return objectDeleted;
+	}
+
 	@Override
 	public void setExpectedVersion(String version) {
 		if (initialized) {
