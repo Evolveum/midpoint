@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -50,10 +52,10 @@ public class TestOperationResult {
 		// GIVEN (checks also conversions during result construction)
 
 		OperationResult root = new OperationResult("dummy");
-		checkResultConversion(root);
+		checkResultConversion(root, true);
 
 		OperationResult sub1 = root.createSubresult("sub1");
-		checkResultConversion(root);
+		checkResultConversion(root, true);
 
 		OperationResult sub11 = sub1.createMinorSubresult("sub11");
 		OperationResult sub12 = sub1.createMinorSubresult("sub12");
@@ -61,12 +63,12 @@ public class TestOperationResult {
 
 		OperationResult sub2 = root.createSubresult("sub2");
 		sub2.recordFatalError("Fatal");
-		checkResultConversion(root);
+		checkResultConversion(root, true);
 
 		sub11.recordSuccess();
 		sub12.recordWarning("Warning");
 		sub13.recordSuccess();
-		checkResultConversion(root);
+		checkResultConversion(root, true);
 
 		// WHEN
 		sub1.computeStatus();
@@ -80,7 +82,7 @@ public class TestOperationResult {
 		assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus());			// because of sub12
 		assertEquals("Wrong # of sub1 subresults", 2, sub1.getSubresults().size());
 
-		checkResultConversion(root);
+		checkResultConversion(root, true);
 	}
 
 	@Test
@@ -113,7 +115,7 @@ public class TestOperationResult {
 		assertEquals("Wrong status in summary", OperationResultStatus.SUCCESS, summary.getStatus());
 		assertEquals("Wrong hidden records count in summary", 20, summary.getHiddenRecordsCount());
 
-		checkResultConversion(root);
+		checkResultConversion(root, true);
 	}
 
 	@Test
@@ -148,7 +150,7 @@ public class TestOperationResult {
 		assertEquals("Wrong message in summary", "message", summary.getMessage());
 		assertEquals("Wrong count in summary", 30, summary.getCount());
 
-		checkResultConversion(root);
+		checkResultConversion(root, false); // summarization settings are not serialized
 	}
 
 	@Test
@@ -201,17 +203,22 @@ public class TestOperationResult {
 			}
 		}
 
-		checkResultConversion(root);
+		checkResultConversion(root, true);
 	}
 
-	private void checkResultConversion(OperationResult result) throws SchemaException {
+	private void checkResultConversion(OperationResult result, boolean assertEquals) throws SchemaException {
 		// WHEN
 		OperationResultType resultType = result.createOperationResultType();
-		OperationResult result1 = OperationResult.createOperationResult(resultType);
-		OperationResultType resultType1 = result1.createOperationResultType();
+		String serialized = PrismTestUtil.getPrismContext().serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
+		System.out.println("Converted OperationResultType\n" + serialized);
+		OperationResult resultRoundTrip = OperationResult.createOperationResult(resultType);
+		OperationResultType resultTypeRoundTrip = resultRoundTrip.createOperationResultType();
 
 		// THEN
-		assertEquals("Operation result conversion changes the result", resultType, resultType1);
+		assertEquals("Operation result conversion changes the result (OperationResultType)", resultType, resultTypeRoundTrip);
+		if (assertEquals) {
+			assertEquals("Operation result conversion changes the result (OperationResult)", result, resultRoundTrip);
+		}
 	}
 
 }

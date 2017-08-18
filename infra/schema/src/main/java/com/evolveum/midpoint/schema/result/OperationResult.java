@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import com.evolveum.midpoint.util.DebugUtil;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -98,6 +100,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String PARAM_OBJECT = "object";
 	public static final String PARAM_QUERY = "query";
 	public static final String PARAM_PROJECTION = "projection";
+	public static final String PARAM_LANGUAGE = "language";
 	
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
@@ -727,6 +730,10 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
 	}
+	
+	public boolean isMinor() {
+		return minor;
+	}
 
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
@@ -1207,11 +1214,6 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return details;
 	}
 
-	@Override
-	public String toString() {
-		return "R(" + operation + " " + status + " " + message + ")";
-	}
-
 	public static OperationResult createOperationResult(OperationResultType result) throws SchemaException {
 		if (result == null) {
             return null;
@@ -1237,6 +1239,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizedMessage, localizedArguments, null,
 				subresults);
+		opResult.setMinor(BooleanUtils.isTrue(result.isMinor()));
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
 		}
@@ -1251,18 +1254,21 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	private OperationResultType createOperationResultType(OperationResult opResult) {
-		OperationResultType result = new OperationResultType();
-		result.setToken(opResult.getToken());
-		result.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
+		OperationResultType resultType = new OperationResultType();
+		resultType.setToken(opResult.getToken());
+		resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
+		if (opResult.isMinor()) {
+			resultType.setMinor(true);
+		}
 		if (opResult.getCount() != 1) {
-			result.setCount(opResult.getCount());
+			resultType.setCount(opResult.getCount());
 		}
 		if (opResult.getHiddenRecordsCount() != 0) {
-			result.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
+			resultType.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
 		}
-		result.setOperation(opResult.getOperation());
-		result.setMessage(opResult.getMessage());
-		result.setMessageCode(opResult.getMessageCode());
+		resultType.setOperation(opResult.getOperation());
+		resultType.setMessage(opResult.getMessage());
+		resultType.setMessageCode(opResult.getMessageCode());
 
 		if (opResult.getCause() != null || !opResult.details.isEmpty()) {
 			StringBuilder detailsb = new StringBuilder();
@@ -1289,7 +1295,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				}
 			}
 
-			result.setDetails(detailsb.toString());
+			resultType.setDetails(detailsb.toString());
 		}
 
 		if (StringUtils.isNotEmpty(opResult.getLocalizationMessage())) {
@@ -1298,18 +1304,18 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			if (opResult.getLocalizationArguments() != null) {
 				message.getArgument().addAll(opResult.getLocalizationArguments());
 			}
-			result.setLocalizedMessage(message);
+			resultType.setLocalizedMessage(message);
 		}
 
-		result.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
-		result.setContext(ParamsTypeUtil.toParamsType(opResult.getContext()));
-		result.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
+		resultType.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
+		resultType.setContext(ParamsTypeUtil.toParamsType(opResult.getContext()));
+		resultType.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
 
 		for (OperationResult subResult : opResult.getSubresults()) {
-			result.getPartialResults().add(opResult.createOperationResultType(subResult));
+			resultType.getPartialResults().add(opResult.createOperationResultType(subResult));
 		}
 
-		return result;
+		return resultType;
 	}
 
 	public void summarize() {
@@ -1730,4 +1736,161 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static void setSubresultStripThreshold(Integer value) {
 		subresultStripThreshold = value != null ? value : DEFAULT_SUBRESULT_STRIP_THRESHOLD;
 	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((asynchronousOperationReference == null) ? 0 : asynchronousOperationReference.hashCode());
+		result = prime * result + ((cause == null) ? 0 : cause.hashCode());
+		result = prime * result + ((context == null) ? 0 : context.hashCode());
+		result = prime * result + count;
+		result = prime * result + ((details == null) ? 0 : details.hashCode());
+		result = prime * result + hiddenRecordsCount;
+		result = prime * result + ((localizationArguments == null) ? 0 : localizationArguments.hashCode());
+		result = prime * result + ((localizationMessage == null) ? 0 : localizationMessage.hashCode());
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
+		result = prime * result + ((messageCode == null) ? 0 : messageCode.hashCode());
+		result = prime * result + (minor ? 1231 : 1237);
+		result = prime * result + ((operation == null) ? 0 : operation.hashCode());
+		result = prime * result + ((params == null) ? 0 : params.hashCode());
+		result = prime * result + ((returns == null) ? 0 : returns.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((subresults == null) ? 0 : subresults.hashCode());
+		result = prime * result + (summarizeErrors ? 1231 : 1237);
+		result = prime * result + (summarizePartialErrors ? 1231 : 1237);
+		result = prime * result + (summarizeSuccesses ? 1231 : 1237);
+		result = prime * result + (int) (token ^ (token >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		OperationResult other = (OperationResult) obj;
+		if (asynchronousOperationReference == null) {
+			if (other.asynchronousOperationReference != null) {
+				return false;
+			}
+		} else if (!asynchronousOperationReference.equals(other.asynchronousOperationReference)) {
+			return false;
+		}
+		if (cause == null) {
+			if (other.cause != null) {
+				return false;
+			}
+		} else if (!cause.equals(other.cause)) {
+			return false;
+		}
+		if (context == null) {
+			if (other.context != null) {
+				return false;
+			}
+		} else if (!context.equals(other.context)) {
+			return false;
+		}
+		if (count != other.count) {
+			return false;
+		}
+		if (details == null) {
+			if (other.details != null) {
+				return false;
+			}
+		} else if (!details.equals(other.details)) {
+			return false;
+		}
+		if (hiddenRecordsCount != other.hiddenRecordsCount) {
+			return false;
+		}
+		if (localizationArguments == null) {
+			if (other.localizationArguments != null) {
+				return false;
+			}
+		} else if (!localizationArguments.equals(other.localizationArguments)) {
+			return false;
+		}
+		if (localizationMessage == null) {
+			if (other.localizationMessage != null) {
+				return false;
+			}
+		} else if (!localizationMessage.equals(other.localizationMessage)) {
+			return false;
+		}
+		if (message == null) {
+			if (other.message != null) {
+				return false;
+			}
+		} else if (!message.equals(other.message)) {
+			return false;
+		}
+		if (messageCode == null) {
+			if (other.messageCode != null) {
+				return false;
+			}
+		} else if (!messageCode.equals(other.messageCode)) {
+			return false;
+		}
+		if (minor != other.minor) {
+			return false;
+		}
+		if (operation == null) {
+			if (other.operation != null) {
+				return false;
+			}
+		} else if (!operation.equals(other.operation)) {
+			return false;
+		}
+		if (params == null) {
+			if (other.params != null) {
+				return false;
+			}
+		} else if (!params.equals(other.params)) {
+			return false;
+		}
+		if (returns == null) {
+			if (other.returns != null) {
+				return false;
+			}
+		} else if (!returns.equals(other.returns)) {
+			return false;
+		}
+		if (status != other.status) {
+			return false;
+		}
+		if (subresults == null) {
+			if (other.subresults != null) {
+				return false;
+			}
+		} else if (!subresults.equals(other.subresults)) {
+			return false;
+		}
+		if (summarizeErrors != other.summarizeErrors) {
+			return false;
+		}
+		if (summarizePartialErrors != other.summarizePartialErrors) {
+			return false;
+		}
+		if (summarizeSuccesses != other.summarizeSuccesses) {
+			return false;
+		}
+		if (token != other.token) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "R(" + operation + " " + status + " " + message + ")";
+	}
+
 }

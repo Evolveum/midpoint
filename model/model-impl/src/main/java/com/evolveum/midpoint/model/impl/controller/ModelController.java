@@ -1527,7 +1527,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
-		result.addParam("language", language);
+		result.addParam(OperationResult.PARAM_LANGUAGE, language);
 		try {
 			objectImporter.importObjects(input, language, options, task, result);
 			if (LOGGER.isTraceEnabled()) {
