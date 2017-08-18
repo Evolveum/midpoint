@@ -256,11 +256,21 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
                 if(config != null){
                     ObjectReferenceType ref = config.getTemplateRef();
 
-                    if(ref != null){
-                    	sb.append(WebComponentUtil.getOrigStringFromPoly(ref.getTargetName())).append(": ");
+                    if (ref != null) {
+                    	sb.append(WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()));
                     }
 
-                    if(config.getType() != null){
+                    if (config.getConflictResolution() != null) {
+                    	if (sb.length() > 0) {
+                    		sb.append(" ");
+	                    }
+                        sb.append(getString("ObjectPolicyConfigurationEditor.conflictResolution"));
+                    }
+
+                    if(config.getType() != null) {
+                    	if (sb.length() > 0) {
+		                    sb.append(": ");
+	                    }
                         sb.append(config.getType().getLocalPart());
                     }
                     
