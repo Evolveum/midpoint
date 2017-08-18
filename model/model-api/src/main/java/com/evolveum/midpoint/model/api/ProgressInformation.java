@@ -45,7 +45,8 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         PROJECTOR,
         RESOURCE_OBJECT_OPERATION,
         FOCUS_OPERATION,
-	    CLOCKWORK
+	    CLOCKWORK,
+	    WAITING
     }
 
     /**
@@ -64,6 +65,12 @@ public class ProgressInformation implements Serializable, DebugDumpable {
     public ProgressInformation(ActivityType activityType, StateType stateType) {
         this.activityType = activityType;
         this.stateType = stateType;
+    }
+
+    public ProgressInformation(ActivityType activityType, StateType stateType, String message) {
+        this.activityType = activityType;
+        this.stateType = stateType;
+        this.message = message;
     }
 
     public ProgressInformation(ActivityType activityType, OperationResult operationResult) {

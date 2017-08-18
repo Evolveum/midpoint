@@ -535,7 +535,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    objectUpdater.modifyObjectAttempt(type, oid, modifications, options, subResult);
+                    objectUpdater.modifyObjectAttempt(type, oid, modifications, options, subResult, this);
 	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                     return;
                 } catch (RuntimeException ex) {
