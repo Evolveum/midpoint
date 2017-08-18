@@ -78,8 +78,9 @@ public class ObjectUpdater {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectUpdater.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
-    @Autowired
-    private SqlRepositoryServiceImpl repositoryService;
+	@Autowired
+	@Qualifier("repositoryService")
+	private RepositoryService repositoryService;
 
     @Autowired
     private BaseHelper baseHelper;
@@ -341,7 +342,7 @@ public class ObjectUpdater {
 
     public <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications,
-			RepoModifyOptions modifyOptions, OperationResult result) throws ObjectNotFoundException,
+			RepoModifyOptions modifyOptions, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
@@ -388,7 +389,7 @@ public class ObjectUpdater {
 
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
-                repositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
+	            sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
 				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
                 PrismObject<T> originalObject = null;

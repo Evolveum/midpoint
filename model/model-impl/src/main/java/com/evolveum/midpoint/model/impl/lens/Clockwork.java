@@ -104,6 +104,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.CLOCKWORK;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WAITING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -118,8 +119,8 @@ public class Clockwork {
 	
 	private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
 
-	private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 3;          // synchronize with common-core-3.xsd
-	private static final int DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT = 500;          // synchronize with common-core-3.xsd
+	private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 1;          // synchronize with common-core-3.xsd
+	private static final int DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT = 5000;          // synchronize with common-core-3.xsd
 
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 	
@@ -279,7 +280,7 @@ public class Clockwork {
 				contextNew.setProgressListeners(new ArrayList<>(emptyIfNull(context.getProgressListeners())));
 		int attemptOld = context.getConflictResolutionAttemptNumber();
 		int attemptNew = attemptOld + 1;
-		boolean shouldExecuteAttempt = shouldExecuteAttempt(resolutionPolicy, attemptNew);
+		boolean shouldExecuteAttempt = shouldExecuteAttempt(resolutionPolicy, attemptNew, context);
 		if (shouldExecuteAttempt) {
 			contextNew.setConflictResolutionAttemptNumber(attemptNew);
 			// this is a recursion; but limited to max attempts which should not be a large number
@@ -290,7 +291,8 @@ public class Clockwork {
 		}
 	}
 
-	private boolean shouldExecuteAttempt(@NotNull ConflictResolutionType resolutionPolicy, int attemptNew) {
+	private <F extends ObjectType> boolean shouldExecuteAttempt(@NotNull ConflictResolutionType resolutionPolicy, int attemptNew,
+			LensContext<F> context) {
 		int maxAttempts = defaultIfNull(resolutionPolicy.getMaxAttempts(), DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS);
 		if (attemptNew > maxAttempts) {
 			return false;
@@ -300,12 +302,17 @@ public class Clockwork {
 			delayUnit *= 2;
 		}
 		long delay = (long) (Math.random() * delayUnit);
-		LOGGER.debug("Waiting {} milliseconds before starting conflict resolution attempt {} of {}", delay, attemptNew, maxAttempts);
+		String message = "Waiting "+delay+" milliseconds before starting conflict resolution attempt "+attemptNew+" of "+maxAttempts;
+		// TODO convey information about waiting time after some GUI mechanism for displaying it is available
+		// (showing text messages is currently really ugly)
+		context.reportProgress(new ProgressInformation(WAITING, EXITING));
+		LOGGER.debug(message);
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
 			// ignore
 		}
+		context.reportProgress(new ProgressInformation(WAITING, EXITING));
 		return true;
 	}
 

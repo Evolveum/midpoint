@@ -11561,14 +11561,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="maxAttempts" type="xsd:int" minOccurs="0" default="3">	<!-- synchronize with Clockwork.java -->
+			<xsd:element name="maxAttempts" type="xsd:int" minOccurs="0" default="1">	<!-- synchronize with Clockwork.java -->
 				<xsd:annotation>
 					<xsd:documentation>
 						How many attempts to undertake at most.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="delayUnit" type="xsd:int" minOccurs="0" default="500">	<!-- synchronize with Clockwork.java -->
+			<xsd:element name="delayUnit" type="xsd:int" minOccurs="0" default="5000">	<!-- synchronize with Clockwork.java -->
 				<xsd:annotation>
 					<xsd:documentation>
 						What delay (in milliseconds) to introduce between attempts. Actual delay is taken as
