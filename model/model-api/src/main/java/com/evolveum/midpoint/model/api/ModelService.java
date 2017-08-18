@@ -628,7 +628,21 @@ public interface ModelService {
 	 * @param input
 	 * @param task
 	 */
+	@Deprecated
 	void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task, OperationResult parentResult);
+
+	/**
+	 * Import objects from stream.
+	 *
+	 * Invocation of this method will happen in foreground, as the stream cannot
+	 * be serialized.
+	 *
+	 * The results will be provided in the task.
+	 *
+	 * @param input
+	 * @param task
+	 */
+	void importObjectsFromStream(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult);
 
 	/**
 	 * Discovers local or remote connectors.

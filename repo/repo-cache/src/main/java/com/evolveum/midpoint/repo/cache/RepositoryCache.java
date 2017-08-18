@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -459,5 +460,20 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
 		repository.postInit(result);
+	}
+
+	@Override
+	public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
+		return repository.createAndRegisterConflictWatcher(oid);
+	}
+
+	@Override
+	public void unregisterConflictWatcher(ConflictWatcher watcher) {
+		repository.unregisterConflictWatcher(watcher);
+	}
+
+	@Override
+	public boolean hasConflict(ConflictWatcher watcher, OperationResult result) {
+		return repository.hasConflict(watcher, result);
 	}
 }

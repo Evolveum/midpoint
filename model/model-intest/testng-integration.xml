@@ -59,6 +59,10 @@
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
+            <class name="com.evolveum.midpoint.model.intest.TestRaceConditions"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
@@ -81,9 +85,9 @@
     </test>
     <test name="Importer" preserve-order="true" parallel="false" verbose="10">
         <classes>
-            <class name="com.evolveum.midpoint.model.intest.importer.ImportRefTest"/>
-            <class name="com.evolveum.midpoint.model.intest.importer.ImportTest"/>
-            <class name="com.evolveum.midpoint.model.intest.importer.BadImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.XmlImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.JsonImportTest"/>
+            <class name="com.evolveum.midpoint.model.intest.importer.YamlImportTest"/>
         </classes>
     </test>
     <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="true">
@@ -117,6 +121,7 @@
             <class name="com.evolveum.midpoint.model.intest.manual.TestManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManual"/>
             <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualDisable"/>
+            <class name="com.evolveum.midpoint.model.intest.manual.TestSemiManualSlowProposed"/>
         </classes>
     </test>
     <test name="Security" preserve-order="true" parallel="false" verbose="10">

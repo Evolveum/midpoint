@@ -35,7 +35,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -459,7 +459,7 @@ public class SchemaDebugUtil {
 		sb.append(",");
 		if (change.getPath() != null) {
 			//FIXME : xpath vs itemPath
-			XPathHolder xpath = new XPathHolder(change.getPath().getItemPath());
+			ItemPathHolder xpath = new ItemPathHolder(change.getPath().getItemPath());
 			sb.append(xpath.toString());
 		} else {
 			sb.append("xpath=null");

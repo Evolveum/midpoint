@@ -498,7 +498,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         List<PrismObject<UserType>> userList = getSessionStorage().getRoleCatalog().getTargetUserList();
         if (getSessionStorage().getRoleCatalog().isSelfRequest()){
             userList = new ArrayList<>();
-            userList.add(loadUserSelf(PageAssignmentsList.this));
+            userList.add(loadUserSelf());
         }
         Set<String> oids = new HashSet<>();
         for (PrismObject<UserType> user : userList){
@@ -559,7 +559,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private PrismObject<UserType> getTargetUser() throws SchemaException {
         List<PrismObject<UserType>> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
         PrismObject<UserType> user = getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                loadUserSelf(PageAssignmentsList.this) : usersList.get(0);
+                loadUserSelf() : usersList.get(0);
         getPrismContext().adopt(user);
         return user;
     }

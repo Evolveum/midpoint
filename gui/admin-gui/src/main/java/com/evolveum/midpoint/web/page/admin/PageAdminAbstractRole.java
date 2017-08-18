@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin;
 
+import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,19 +27,35 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
+	private static final long serialVersionUID = 1L;
 
 	private LoadableModel<List<AssignmentEditorDto>> inducementsModel;
-	
+
 	public LoadableModel<List<AssignmentEditorDto>> getInducementsModel() {
 		return inducementsModel;
 	}
-	
+
+	@Override
+	public CountableLoadableModel<AssignmentEditorDto> getPolicyRulesModel() {
+		CountableLoadableModel<AssignmentEditorDto> policyModel = super.getPolicyRulesModel();
+		policyModel.getObject().addAll(loadInducementsPolicyRules());
+		Collections.sort(policyModel.getObject());
+		return policyModel;
+	}
+
+	@Override
+	protected int countPolicyRules() {
+		return super.countPolicyRules() + loadInducementsPolicyRules().size();
+	}
+
+
 	@Override
 	protected void prepareObjectDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
 		super.prepareObjectDeltaForModify(focusDelta);
@@ -71,10 +88,7 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	private List<AssignmentEditorDto> loadInducements() {
 
 		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
-
-		ObjectWrapper focusWrapper = getObjectWrapper();
-		PrismObject<T> focus = focusWrapper.getObject();
-		List<AssignmentType> inducements = focus.asObjectable().getInducement();
+		List<AssignmentType> inducements = getInducementsList();
 		for (AssignmentType inducement : inducements) {
 			list.add(new AssignmentEditorDto(UserDtoStatus.MODIFY, inducement, this));
 		}
@@ -83,5 +97,19 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 
 		return list;
 	}
-	
+
+	private List<AssignmentEditorDto> loadInducementsPolicyRules(){
+		List<AssignmentType> inducements = getInducementsList();
+		List<AssignmentEditorDto> list = getPolicyRulesList(inducements, StringUtils.isEmpty(getObjectWrapper().getOid()) ?
+				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
+		Collections.sort(list);
+		return list;
+	}
+
+	private List<AssignmentType> getInducementsList(){
+		ObjectWrapper focusWrapper = getObjectWrapper();
+		PrismObject<T> focus = focusWrapper.getObject();
+		List<AssignmentType> inducements = focus.asObjectable().getInducement();
+		return inducements;
+	}
 }

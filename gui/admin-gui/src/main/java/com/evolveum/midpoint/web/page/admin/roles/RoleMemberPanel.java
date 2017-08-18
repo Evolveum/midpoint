@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
-import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -51,14 +49,10 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePa
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.apache.wicket.Component;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -81,6 +75,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	private static final String ID_OBJECT_TYPE = "type";
 	private static final String ID_TENANT = "tenant";
 	private static final String ID_PROJECT = "project";
+	private static final String ID_INDIRECT_MEMBERS_CONTAINER = "indirectMembersContainer";
 	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
 
 	public RoleMemberPanel(String id, IModel<T> model, PageBase pageBase) {
@@ -91,8 +86,16 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations, pageBase);
 	}
 
+	private boolean indirectMembersContainerVisibility() {
+		return isRole() && !isGovernance();
+	}
+
 	protected boolean isRole() {
 		return true;
+	}
+
+	protected boolean isGovernance(){
+		return false;
 	}
 
 	protected PrismContext getPrismContext() {
@@ -194,8 +197,8 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	protected ObjectQuery createAllMemberQuery() {
 		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-				.ref(createReferenceValuesList()).build();
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(createReferenceValuesList())
+				.build();
 	}
 
 	private List<PrismReferenceValue> createReferenceValuesList() {
@@ -232,7 +235,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected void initCustomLayout(Form form) {
+	protected void initCustomLayout(Form form, ModelServiceLocator serviceLocator) {
 
 	}
 
@@ -260,8 +263,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		});
 		
 		ChooseTypePanel<OrgType> project = createParameterPanel(ID_PROJECT, false);
-//		DropDownChoice<OrgType> project = createDropDown(ID_PROJECT, new Model(),
-//				createProjectList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(project);
 		
 		project.add(new VisibleEnableBehaviour() {
@@ -273,7 +274,12 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 				return isRole();
 			}
 		});
-		
+
+		WebMarkupContainer indirectMembersContainer = new WebMarkupContainer(ID_INDIRECT_MEMBERS_CONTAINER);
+		indirectMembersContainer.setOutputMarkupId(true);
+		indirectMembersContainer.add(new VisibleBehaviour(this::indirectMembersContainerVisibility));
+		add(indirectMembersContainer);
+
 		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<Boolean>(false)) {
 			private static final long serialVersionUID = 1L;
 
@@ -281,8 +287,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 				refreshTable(target);
 			}
 		};
-		add(includeIndirectMembers);
-		includeIndirectMembers.add(new VisibleBehaviour(this::isRole));		// TODO shouldn't we hide also the label?
+		indirectMembersContainer.add(includeIndirectMembers);
 
 	}
 	
@@ -386,7 +391,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	@Override
 	protected ObjectQuery createContentQuery() {
-		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS))).getValue();
+		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS))).getValue();
 
 		return indirect ? createAllMemberQuery() : createDirectMemberQuery();
 		

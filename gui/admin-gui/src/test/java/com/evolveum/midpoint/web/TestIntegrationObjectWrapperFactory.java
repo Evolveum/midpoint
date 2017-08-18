@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.ROLE_MAPMAKER_OID;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_FULL_NAME;
@@ -118,16 +117,16 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		
-		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
 				ContainerStatus.MODIFYING, task);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 		
@@ -171,16 +170,16 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		PrismObject<UserType> user = getUser(USER_EMPTY_OID);
 		
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		
-		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
 				ContainerStatus.MODIFYING, task);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 		
@@ -225,15 +224,15 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		shadow.findReference(ShadowType.F_RESOURCE_REF).getValue().setObject(resourceDummy);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		
-		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+		ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
 		ObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow, 
 				ContainerStatus.MODIFYING, task);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		
 		display("Wrapper after", objectWrapper);
 		
@@ -274,9 +273,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test220AssignRoleLandluberToWally() throws Exception {
 		final String TEST_NAME = "test220AssignRoleLandluberToWally";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
 
-        Task task = taskManager.createTaskInstance(TestIntegrationObjectWrapperFactory.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         DummyGroup mapmakers = new DummyGroup(GROUP_DUMMY_MAPMAKERS_NAME);
@@ -288,8 +287,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assignRole(userWallyOid, ROLE_MAPMAKER_OID, task, result);
         
         // preconditions
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = getUser(userWallyOid);
 		display("User after change execution", userAfter);
@@ -305,14 +303,14 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         
-        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
 		ObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper("shadow display name", "shadow description", shadow, 
 				ContainerStatus.MODIFYING, task);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		
 		display("Wrapper after", objectWrapper);
 		
@@ -347,7 +345,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		PrismContainer<ShadowIdentifiersType> groupAssociationValueIdentifiers = groupAssociationValuePVal.findContainer(ShadowAssociationType.F_IDENTIFIERS);
 		PrismProperty<String> groupAssociationUidProp = groupAssociationValueIdentifiers.findProperty(new QName(null,"uid"));
 		PrismAsserts.assertPropertyValue(groupAssociationUidProp, GROUP_DUMMY_MAPMAKERS_NAME);
-		
 	}
 	
 	/**
@@ -356,25 +353,25 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test800EditSchemaJackPropReadAllModifySomeUser() throws Exception {
 		final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
 
-        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+        Task task = createTask(TEST_NAME);
+        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         
-		Task task = taskManager.createTaskInstance(TEST_NAME);
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
 				ContainerStatus.MODIFYING, task);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 		assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadonly());
@@ -432,25 +429,25 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test802EditSchemaJackPropReadSomeModifySomeUser() throws Exception {
 		final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTile(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
         login(USER_JACK_USERNAME);
 
-        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator());
+        Task task = createTask(TEST_NAME);
+        ObjectWrapperFactory factory = new ObjectWrapperFactory(getServiceLocator(task));
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("user before", user);
         
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         
-		Task task = taskManager.createTaskInstance(TEST_NAME);
 		ObjectWrapper<UserType> objectWrapper = factory.createObjectWrapper("user display name", "user description", user, 
 				ContainerStatus.MODIFYING, task);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 		assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean)objectWrapper.isReadonly());
@@ -494,7 +491,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		assertEquals("Wrong locality definition.canRead", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canRead());
 		assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canAdd());
 		assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean)localityNameWrapper.getItemDefinition().canModify());
-
 	}
 
 	private <C extends Containerable> void assertItemWrapperFullConrol(ContainerWrapper<C> containerWrapper, QName propName,

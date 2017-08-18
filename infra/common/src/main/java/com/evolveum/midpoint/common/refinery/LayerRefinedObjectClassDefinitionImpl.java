@@ -607,4 +607,19 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 				+ refinedObjectClassDefinition + ")";
 	}
 
+	@Override
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
+		if (refinedObjectClassDefinition != null) {
+			refinedObjectClassDefinition.trimTo(paths);
+		}
+	}
+
+	@Override
+	public boolean isShared() {
+		if (refinedObjectClassDefinition != null) {
+			return refinedObjectClassDefinition.isShared();
+		} else {
+			return true;		// ok?
+		}
+	}
 }

@@ -17,7 +17,7 @@ package com.evolveum.midpoint.model.common.expression.script.xpath;
 
 import java.util.Map;
 
-import com.evolveum.midpoint.prism.marshaller.TrivialXPathParser;
+import com.evolveum.midpoint.prism.marshaller.TrivialItemPathParser;
 
 /**
  * @author Radovan Semancik
@@ -61,8 +61,8 @@ public class XPathExpressionCodeHolder {
         String stringExpression = getFullExpressionAsString();
 
         // try to strip namespace declarations
-        TrivialXPathParser parser = TrivialXPathParser.parse(stringExpression);
-        stringExpression = parser.getPureXPathString();
+        TrivialItemPathParser parser = TrivialItemPathParser.parse(stringExpression);
+        stringExpression = parser.getPureItemPathString();
 
         return stringExpression;
     }
@@ -86,7 +86,7 @@ public class XPathExpressionCodeHolder {
         String stringExpression = getFullExpressionAsString();
 
         // try to strip namespace declarations
-        TrivialXPathParser parser = TrivialXPathParser.parse(stringExpression);
+        TrivialItemPathParser parser = TrivialItemPathParser.parse(stringExpression);
         namespaceMap = parser.getNamespaceMap();
 
         // this isn't available any more [pm]

@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -26,7 +25,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,11 +53,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -72,6 +66,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	private static final int NUM_PROJECT_ORGS = 3;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
+	
+	private static final int NUMBER_OF_IMPORTED_ROLES = 15;
 	
 	@Autowired(required = true)
 	protected MappingFactory mappingFactory;
@@ -125,7 +121,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
-		
+
+		assumeConflictResolutionAction(getDefaultConflictResolutionAction());
+
 		mappingFactory.setProfiling(true);
 		lensDebugListener = new ProfilingLensDebugListener();
 		clockwork.setDebugListener(lensDebugListener);
@@ -255,6 +253,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_RED_SAILOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CYAN_SAILOR_FILE, initResult);
+		repoAddObjectFromFile(ROLE_STRONG_SAILOR_FILE, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {
@@ -265,7 +264,14 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, initResult);
 		
 		repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
+	}
 
+	protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
+		return ConflictResolutionActionType.FAIL;
+	}
+
+	protected int getNumberOfRoles() {
+		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 	
 	protected boolean doAddOrgstruct() {

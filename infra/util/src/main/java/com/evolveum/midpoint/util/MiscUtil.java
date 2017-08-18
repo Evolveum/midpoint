@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -602,5 +603,26 @@ public class MiscUtil {
 			}
 		}
 		return false;
+	}
+
+	public static String formatExceptionMessageWithCause(Throwable t) {
+		return formatExceptionMessageWithCause(t, 0);
+	}
+
+	public static String formatExceptionMessageWithCause(Throwable t, int indent) {
+		if (t == null) {
+			return null;
+		} else {
+			String local = StringUtils.repeat("  ", indent) + formatExceptionMessage(t);
+			return t.getCause() == null
+					? local
+					: local + ":\n" + formatExceptionMessageWithCause(t.getCause(), indent + 1);
+		}
+	}
+
+	private static String formatExceptionMessage(Throwable t) {
+		return t != null
+				? t.getMessage() + " [" + t.getClass().getSimpleName() + "]"
+				: null;
 	}
 }

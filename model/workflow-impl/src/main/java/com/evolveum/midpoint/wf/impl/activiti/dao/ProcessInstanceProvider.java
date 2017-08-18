@@ -49,8 +49,7 @@ public class ProcessInstanceProvider {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(ProcessInstanceProvider.class);
 
-    @Autowired
-    private WorkItemProvider workItemProvider;
+    @Autowired private WorkItemProvider workItemProvider;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
     private static final String OPERATION_AUGMENT_TASK_OBJECT = DOT_INTERFACE + "augmentTaskObject";

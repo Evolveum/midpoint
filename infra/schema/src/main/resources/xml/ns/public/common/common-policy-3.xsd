@@ -960,4 +960,30 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="PolicyRuleEnforcerHookPreviewOutputType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="exceptionMessage" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            TODO
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
 </xsd:schema>

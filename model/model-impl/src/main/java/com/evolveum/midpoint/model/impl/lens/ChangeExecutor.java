@@ -23,6 +23,7 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -193,6 +194,10 @@ public class ChangeExecutor {
 				try {
 					context.reportProgress(new ProgressInformation(FOCUS_OPERATION, ENTERING));
 					executeDelta(focusDelta, focusContext, context, null, null, task, subResult);
+					if (focusDelta.isAdd() && focusDelta.getOid() != null) {
+						ConflictWatcher watcher = context.createAndRegisterConflictWatcher(focusDelta.getOid(), cacheRepositoryService);
+						watcher.setExpectedVersion(focusDelta.getObjectToAdd().getVersion());
+					}
 					subResult.computeStatus();
 
 				} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException e) {
@@ -942,17 +947,8 @@ public class ChangeExecutor {
 			return objectDelta;
 		}
 
-		ObjectDeltaOperation<T> lastRelated = findLastRelatedDelta(executedDeltas, objectDelta); // any
-																									// delta
-																									// related
-																									// to
-																									// our
-																									// OID,
-																									// not
-																									// ending
-																									// with
-																									// fatal
-																									// error
+		// any delta related to our OID, not ending with fatal error
+		ObjectDeltaOperation<T> lastRelated = findLastRelatedDelta(executedDeltas, objectDelta);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("findLastRelatedDelta returned:\n{}",
 					lastRelated != null ? lastRelated.debugDump() : "(null)");

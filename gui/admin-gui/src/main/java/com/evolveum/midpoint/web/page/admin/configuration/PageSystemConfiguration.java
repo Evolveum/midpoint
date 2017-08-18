@@ -341,6 +341,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			}
 
 			newObjectPolicyConfig.getPropertyConstraint().addAll(constraintList);
+			newObjectPolicyConfig.setConflictResolution(o.getConflictResolution());
 
 			confList.add(newObjectPolicyConfig);
 		}

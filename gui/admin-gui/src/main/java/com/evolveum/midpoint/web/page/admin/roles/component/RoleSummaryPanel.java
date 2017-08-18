@@ -20,7 +20,9 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -30,8 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class RoleSummaryPanel extends FocusSummaryPanel<RoleType> {
 	private static final long serialVersionUID = 8087858942603720878L;
 
-	public RoleSummaryPanel(String id, IModel model) {
-		super(id, model);
+	public RoleSummaryPanel(String id, IModel model, ModelServiceLocator serviceLocator) {
+		super(id, RoleType.class, model, serviceLocator);
 	}
 
 	@Override

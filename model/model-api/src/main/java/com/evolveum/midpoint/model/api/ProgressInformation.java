@@ -44,14 +44,16 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         WORKFLOWS,
         PROJECTOR,
         RESOURCE_OBJECT_OPERATION,
-        FOCUS_OPERATION
+        FOCUS_OPERATION,
+	    CLOCKWORK,
+	    WAITING
     }
 
     /**
      * We usually report on entering and exiting a particular activity.
      */
     public enum StateType {
-        ENTERING, EXITING;
+        ENTERING, EXITING
     }
 
     private ActivityType activityType;
@@ -63,6 +65,12 @@ public class ProgressInformation implements Serializable, DebugDumpable {
     public ProgressInformation(ActivityType activityType, StateType stateType) {
         this.activityType = activityType;
         this.stateType = stateType;
+    }
+
+    public ProgressInformation(ActivityType activityType, StateType stateType, String message) {
+        this.activityType = activityType;
+        this.stateType = stateType;
+        this.message = message;
     }
 
     public ProgressInformation(ActivityType activityType, OperationResult operationResult) {
@@ -152,4 +160,11 @@ public class ProgressInformation implements Serializable, DebugDumpable {
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return activityType + ":" + stateType
+                + (resourceShadowDiscriminator != null ? ", resource=" + resourceShadowDiscriminator.getResourceOid() : "")
+                + (operationResult != null ? ", result=" + operationResult.getStatus() : "")
+                + (message != null ? ": " + message : "");
+    }
 }

@@ -671,4 +671,16 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public boolean isListMarker() {
 		return structuralObjectClassDefinition.isListMarker();
 	}
+
+	@Override
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
+		structuralObjectClassDefinition.trimTo(paths);
+		auxiliaryObjectClassDefinitions.forEach(def -> def.trimTo(paths));
+	}
+
+	// TODO
+	@Override
+	public boolean isShared() {
+		return false;
+	}
 }

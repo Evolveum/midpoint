@@ -74,6 +74,8 @@ public class PrismContextImpl implements PrismContext {
 
 	private QName defaultRelation;
 
+	private QName objectsElementName;
+
 	static {
 		PrismPrettyPrinter.initialize();
 	}
@@ -220,6 +222,7 @@ public class PrismContextImpl implements PrismContext {
 		this.monitor = monitor;
 	}
 
+	@Override
 	public QName getDefaultRelation() {
 		return defaultRelation;
 	}
@@ -227,6 +230,16 @@ public class PrismContextImpl implements PrismContext {
 	public void setDefaultRelation(QName defaultRelation) {
 		this.defaultRelation = defaultRelation;
 	}
+
+	@Override
+	public QName getObjectsElementName() {
+		return objectsElementName;
+	}
+
+	public void setObjectsElementName(QName objectsElementName) {
+		this.objectsElementName = objectsElementName;
+	}
+
 	//endregion
 
 	//region Parsing
@@ -260,7 +273,14 @@ public class PrismContextImpl implements PrismContext {
 	public PrismParserNoIO parserFor(@NotNull Element data) {
 		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
-    //endregion
+
+	@NotNull
+	@Override
+	public String detectLanguage(@NotNull File file) throws IOException {
+		return lexicalProcessorRegistry.detectLanguage(file);
+	}
+
+	//endregion
 
     //region adopt(...) methods
     /**
@@ -368,7 +388,6 @@ public class PrismContextImpl implements PrismContext {
 
     //endregion
 
-
     @NotNull
 	@Override
 	public <T extends Objectable> PrismObject<T> createObject(@NotNull Class<T> clazz) throws SchemaException {
@@ -383,6 +402,22 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public <T extends Objectable> T createObjectable(@NotNull Class<T> clazz) throws SchemaException {
 		return createObject(clazz).asObjectable();
+	}
+
+	@NotNull
+	@Override
+	public <O extends Objectable> PrismObject<O> createKnownObject(@NotNull Class<O> clazz) {
+		try {
+			return createObject(clazz);
+		} catch (SchemaException e) {
+			throw new SystemException("Unexpected SchemaException while instantiating " + clazz + ": " + e.getMessage(), e);
+		}
+	}
+
+	@NotNull
+	@Override
+	public <O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz) {
+		return createKnownObject(clazz).asObjectable();
 	}
 
 	@NotNull

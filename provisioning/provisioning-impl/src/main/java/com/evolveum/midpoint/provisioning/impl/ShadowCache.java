@@ -67,6 +67,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjects
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -542,7 +544,7 @@ public abstract class ShadowCache {
 		return resource.getConsistency().isDiscovery();
 	}
 	
-	public abstract String afterAddOnResource(ProvisioningContext ctx, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult,
+	public abstract String afterAddOnResource(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException,
 					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
@@ -583,6 +585,8 @@ public abstract class ShadowCache {
 		}
 		
 		preAddChecks(ctx, shadow, task, parentResult);
+		
+		String shadowOid = shadowManager.addNewProposedShadow(ctx, shadow, task, parentResult);
 
 		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue;
 		PrismObject<ShadowType> addedShadow;
@@ -599,6 +603,11 @@ public abstract class ShadowCache {
 			addedShadow = asyncReturnValue.getReturnValue();
 
 		} catch (Exception ex) {
+			if (shadowOid != null) {
+				// TODO: maybe integrate with consistency mechanism?
+				shadowManager.handlePropesedShadowError(ctx, shadow, shadowOid, ex, task, parentResult);
+			}
+			
 			addedShadow = handleError(ctx, ex, shadow, FailedOperation.ADD, null,
 					isDoDiscovery(resource, options), isCompensate(options), parentResult);
 			return addedShadow.getOid();
@@ -606,7 +615,7 @@ public abstract class ShadowCache {
 
 		// REPO OPERATION: add
 		// This is where the repo shadow is created (if needed)
-		String oid = afterAddOnResource(ctx, asyncReturnValue, parentResult);
+		String oid = afterAddOnResource(ctx, shadowOid, asyncReturnValue, parentResult);
 		addedShadow.setOid(oid);
 
 		ObjectDelta<ShadowType> delta = ObjectDelta.createAddDelta(addedShadow);
@@ -635,11 +644,9 @@ public abstract class ShadowCache {
 		checker.setRepositoryService(repositoryService);
 		checker.setShadowCache(this);
 		checker.setPrismContext(prismContext);
-		checker.setShadowDefinition(ctx.getObjectClassDefinition());
+		checker.setProvisioningContext(ctx);
 		checker.setShadowObject(shadow);
-		checker.setResourceType(ctx.getResource());
 		checker.setShadowOid(shadow.getOid());
-		checker.setResourceShadowDiscriminator(ctx.getShadowCoordinates());
 		checker.setConstraintViolationConfirmer(conflictingShadowCandidate -> !Boolean.TRUE.equals(conflictingShadowCandidate.asObjectable().isDead()) );
 		checker.setUseCache(false);
 		

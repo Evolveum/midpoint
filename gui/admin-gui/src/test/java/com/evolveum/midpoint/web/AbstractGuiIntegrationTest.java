@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,8 +58,8 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
-    @Autowired
-    protected PrismContext prismContext;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected ExpressionFactory expressionFactory;
     
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -89,7 +90,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
     }
     
-	protected ModelServiceLocator getServiceLocator() {
+	protected ModelServiceLocator getServiceLocator(final Task pageTask) {
 		return new ModelServiceLocator() {
 			
 			@Override
@@ -125,6 +126,16 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 				} catch (ObjectNotFoundException | SchemaException e) {
 					throw new SystemException(e.getMessage(), e);
 				}
+			}
+
+			@Override
+			public Task getPageTask() {
+				return pageTask;
+			}
+
+			@Override
+			public ExpressionFactory getExpressionFactory() {
+				return expressionFactory;
 			}
 		};
 	}

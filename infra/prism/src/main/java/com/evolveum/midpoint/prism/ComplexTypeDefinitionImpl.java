@@ -26,7 +26,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.QNameUtil;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 
@@ -50,6 +49,10 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	private String defaultNamespace;
 	@NotNull private List<String> ignoredNamespaces = new ArrayList<>();
+
+	// temporary/experimental - to avoid trimming "standard" definitions
+	// we reset this flag when cloning
+	protected boolean shared = true;
 
 	public ComplexTypeDefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
 		super(typeName, prismContext);
@@ -76,6 +79,11 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	
 	public void add(ItemDefinition<?> definition) {
 		itemDefinitions.add(definition);
+	}
+
+	@Override
+	public boolean isShared() {
+		return shared;
 	}
 
 	@Override
@@ -262,6 +270,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public ComplexTypeDefinitionImpl clone() {
 		ComplexTypeDefinitionImpl clone = new ComplexTypeDefinitionImpl(this.typeName, prismContext);
 		copyDefinitionData(clone);
+		clone.shared = false;
 		return clone;
 	}
 
@@ -419,7 +428,27 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
         return "complex type";
     }
 
-//	@Override
+	@Override
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
+    	if (shared) {
+    		// TODO switch this to warning before releasing this code (3.6.1 or 3.7)
+    		throw new IllegalStateException("Couldn't trim shared definition: " + this);
+		}
+		for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
+			ItemDefinition<?> itemDef = iterator.next();
+			ItemPath itemPath = new ItemPath(itemDef.getName());
+			if (!ItemPath.containsSuperpathOrEquivalent(paths, itemPath)) {
+				iterator.remove();
+			} else if (itemDef instanceof PrismContainerDefinition) {
+				PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
+				if (itemPcd.getComplexTypeDefinition() != null) {
+					itemPcd.getComplexTypeDefinition().trimTo(ItemPath.remainder(paths, itemPath, false));
+				}
+			}
+		}
+	}
+
+	//	@Override
 //	public void accept(Visitor visitor) {
 //		super.accept(visitor);
 //		itemDefinitions.forEach(def -> def.accept(visitor));

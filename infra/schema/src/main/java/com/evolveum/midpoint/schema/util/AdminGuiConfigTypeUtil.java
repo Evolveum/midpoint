@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.map.HashedMap;
@@ -23,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -85,6 +89,15 @@ public class AdminGuiConfigTypeUtil {
 				}
 			}
 		}
+		if (adminGuiConfiguration.getObjectDetails() != null) {
+			if (composite.getObjectDetails() == null) {
+				composite.setObjectDetails(adminGuiConfiguration.getObjectDetails().clone());
+			} else {
+				for (GuiObjectDetailsPageType objectDetails: adminGuiConfiguration.getObjectDetails().getObjectDetailsPage()) {
+					joinObjectDetails(composite.getObjectDetails(), objectDetails);
+				}
+			}
+		}
 		if (adminGuiConfiguration.getUserDashboard() != null) {
 			if (composite.getUserDashboard() == null) {
 				composite.setUserDashboard(adminGuiConfiguration.getUserDashboard().clone());
@@ -120,9 +133,24 @@ public class AdminGuiConfigTypeUtil {
 		}
 		objectForms.getObjectForm().add(newForm.clone());
 	}
+	
+	private static void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
+		Iterator<GuiObjectDetailsPageType> iterator = objectDetailsSet.getObjectDetailsPage().iterator();
+		while (iterator.hasNext()) {
+			GuiObjectDetailsPageType currentDetails = iterator.next();
+			if (isTheSameObjectType(currentDetails, newObjectDetails)) {
+				iterator.remove();
+			}
+		}
+		objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
+	}
+	
+	private static boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {
+		return QNameUtil.match(oldConf.getType(), newConf.getType());
+	}
 
 	private static boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm){
-		if (!oldForm.getType().equals(newForm.getType())){
+		if (!isTheSameObjectType(oldForm,newForm)) {
 			return false;
 		}
 		if (oldForm.isIncludeDefaultForms() != null &&
@@ -319,6 +347,20 @@ public class AdminGuiConfigTypeUtil {
 			temp.clear();
 		}
 		return customColumnsList;
+	}
+
+	public static <T extends AbstractObjectTypeConfigurationType, O extends ObjectType> T findObjectConfiguration(
+			List<T> list, Class<O> type) {
+		if (list == null) {
+			return null;
+		}
+		QName typeQName = ObjectTypes.getObjectType(type).getTypeQName();
+		for (T item: list) {
+			if (QNameUtil.match(item.getType(), typeQName)) {
+				return item;
+			}
+		}
+		return null;
 	}
 
 }

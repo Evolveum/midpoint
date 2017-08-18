@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.schema.parser;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
@@ -25,7 +26,7 @@ import javax.xml.namespace.QName;
 /**
  * @author mederly
  */
-public abstract class AbstractPropertyValueParserTest<T> extends AbstractParserTest<PrismPropertyValue<T>> {
+public abstract class AbstractPropertyValueParserTest<T> extends AbstractPrismValueParserTest<PrismPropertyValue<T>> {
 
 	@SuppressWarnings("Convert2MethodRef")
 	protected void processParsings(Class<T> clazz, QName type, PrismPropertyDefinition definition, SerializingFunction<PrismPropertyValue<T>> serializer, String serId) throws Exception {
@@ -82,9 +83,4 @@ public abstract class AbstractPropertyValueParserTest<T> extends AbstractParserT
 	}
 
 	protected abstract void assertPrismPropertyValueLocal(PrismPropertyValue<T> value) throws SchemaException;
-
-	protected PrismContext getPrismContext() {
-		return PrismTestUtil.getPrismContext();
-	}
-
 }

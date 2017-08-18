@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -28,6 +29,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -224,9 +226,16 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		ObjectClassComplexTypeDefinitionImpl clone = new ObjectClassComplexTypeDefinitionImpl(
 				getTypeName(), prismContext);
 		copyDefinitionData(clone);
+		clone.shared = false;
 		return clone;
 	}
-	
+
+	@NotNull
+	@Override
+	public ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+		return (ObjectClassComplexTypeDefinition) super.deepClone(ctdMap);
+	}
+
 	protected void copyDefinitionData(ObjectClassComplexTypeDefinitionImpl clone) {
 		super.copyDefinitionData(clone);
 		clone.kind = this.kind;

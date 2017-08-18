@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Radovan Semancik
@@ -449,5 +450,12 @@ public class MiscSchemaUtil {
 			}
 		}
 		return a.equals(b);
+	}
+
+	@NotNull
+	public static InformationType createInformationType(List<String> strings) {
+		InformationType rv = new InformationType();
+		strings.forEach(s -> rv.getPart().add(new InformationPartType().text(s)));
+		return rv;
 	}
 }

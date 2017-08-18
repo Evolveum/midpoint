@@ -4,6 +4,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -103,6 +104,26 @@ public class PerformanceTest extends BaseSQLRepoTest {
             writer.close();
         }
     }
+
+    @Test(enabled = false)
+    public void test300Get() throws Exception {
+        OperationResult result = new OperationResult("test300Get");
+
+        PrismObject<UserType> user = prismContext.createObject(UserType.class);
+        user.asObjectable().setName(PolyStringType.fromOrig("user"));
+        String oid = repositoryService.addObject(user, null, result);
+
+        long time = System.currentTimeMillis();
+
+        int COUNT = 100;
+        for (int i = 0; i < COUNT; i++) {
+            LOGGER.info("Get operation {} of {}", i+1, COUNT);
+            repositoryService.getObject(UserType.class, oid, null, result);
+        }
+        long duration = System.currentTimeMillis() - time;
+        LOGGER.info("xxx>> time: {} ms, per get: {} ms", duration, (double) duration/COUNT);
+    }
+
 
     private ResourceType createResource(int resourceId) throws SchemaException, IOException {
         PrismObject<ResourceType> prism = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));

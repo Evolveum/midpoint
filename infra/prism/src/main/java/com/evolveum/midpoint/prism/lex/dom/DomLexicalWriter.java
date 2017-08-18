@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.prism.lex.dom;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -87,7 +88,22 @@ public class DomLexicalWriter {
         return serializeInternal(rootxnode, null);
     }
 
-    // this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
+	public Element serialize(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName) throws SchemaException {
+		initialize();
+		if (aggregateElementName == null) {
+			aggregateElementName = schemaRegistry.getPrismContext().getObjectsElementName();
+			if (aggregateElementName == null) {
+				throw new IllegalStateException("Couldn't serialize list of objects because the aggregated element name is not set");
+			}
+		}
+		Element aggregateElement = createElement(aggregateElementName, null);
+		for (RootXNode root : roots) {
+			serializeInternal(root, aggregateElement);
+		}
+		return aggregateElement;
+	}
+
+	// this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
     @Deprecated
     public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
         initializeWithExistingDocument(document);
@@ -277,7 +293,7 @@ public class DomLexicalWriter {
                 if (asAttribute) {
                     throw new UnsupportedOperationException("Serializing ItemPath as an attribute is not supported yet");
                 }
-                XPathHolder holder = new XPathHolder(itemPathType.getItemPath());
+                ItemPathHolder holder = new ItemPathHolder(itemPathType.getItemPath());
                 element = holder.toElement(elementOrAttributeName, parentElement.getOwnerDocument());
                 parentElement.appendChild(element);
             }

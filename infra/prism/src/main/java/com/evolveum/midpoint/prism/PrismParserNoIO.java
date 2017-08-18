@@ -72,4 +72,5 @@ public interface PrismParserNoIO extends PrismParser {
 	@NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException;
 
+	void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException;
 }

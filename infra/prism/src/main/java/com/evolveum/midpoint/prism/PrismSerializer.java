@@ -17,13 +17,13 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * Takes care of serializing prism objects and other beans, i.e. converts java form to
@@ -104,6 +104,9 @@ public interface PrismSerializer<T> {
 
 	@NotNull
 	T serialize(@NotNull RootXNode xnode) throws SchemaException;
+
+	@NotNull
+	T serializeObjects(@NotNull List<PrismObject<?>> objects, QName aggregateElementName) throws SchemaException;
 
 	T serialize(JAXBElement<?> value) throws SchemaException;
 	T serializeRealValue(Object value) throws SchemaException;

@@ -49,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -73,6 +72,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
     private String displayName;
     private String description;
     private boolean isDefault;
+    private boolean shared = true;			// experimental
     @NotNull private final List<RefinedAttributeDefinition<?>> identifiers = new ArrayList<>();
 	@NotNull private final List<RefinedAttributeDefinition<?>> secondaryIdentifiers = new ArrayList<>();
 	@NotNull private final List<ResourceObjectPattern> protectedObjectPatterns = new ArrayList<>();
@@ -537,6 +537,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public RefinedObjectClassDefinitionImpl clone() {
 		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceOid, originalObjectClassDefinition);
 		copyDefinitionData(clone);
+		shared = false;
 		return clone;
 	}
 
@@ -561,7 +562,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	@Override
 	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
 		// TODO TODO TODO (note that in original implementation this was also missing...)
-		return clone();
+		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceType, originalObjectClassDefinition.deepClone(ctdMap));
+		copyDefinitionData(clone);
+		shared = false;
+		return clone;
+
 	}
 
 	private Collection<RefinedAssociationDefinition> cloneAssociations(Collection<RefinedAssociationDefinition> origAsoc) {
@@ -1259,4 +1264,19 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	//endregion
 
+	@Override
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
+		originalObjectClassDefinition.trimTo(paths);
+		List<QName> names = paths.stream()
+				.filter(p -> p.isSingleName())
+				.map(p -> p.asSingleName())
+				.collect(Collectors.toList());
+		attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
+		associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
+	}
+
+	@Override
+	public boolean isShared() {
+		return shared;
+	}
 }

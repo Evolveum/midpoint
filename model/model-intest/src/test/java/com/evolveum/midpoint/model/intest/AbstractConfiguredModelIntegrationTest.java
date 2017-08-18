@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -264,6 +265,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final File ROLE_CYAN_SAILOR_FILE = new File(COMMON_DIR, "role-cyan-sailor.xml");
 	protected static final String ROLE_CYAN_SAILOR_OID = "d3abd794-9c30-11e6-bb5a-af14bf2cc29b";
+	
+	protected static final File ROLE_STRONG_SAILOR_FILE = new File(COMMON_DIR, "role-strong-sailor.xml");
+	protected static final String ROLE_STRONG_SAILOR_OID = "0bf7532e-7d15-11e7-8594-7bff6e0adc6e";
 	
 	protected static final File ROLE_DRINKER_FILE = new File(COMMON_DIR, "role-drinker.xml");
 	protected static final String ROLE_DRINKER_OID = "0abbde4c-ab3f-11e6-910d-d7dabf5f09f0";
@@ -513,6 +517,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		super.initSystem(initTask, initResult);
 			
 		modelService.postInit(initResult);
+		ManualConnectorInstance.setRandomDelayRange(0);
 		
 		// System Configuration
 		try {
@@ -526,6 +531,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
+	}
+	
+	protected int getNumberOfRoles() {
+		return 1; // Superuser role
 	}
     	
 	protected File getSystemConfigurationFile() {

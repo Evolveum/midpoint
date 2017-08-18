@@ -341,7 +341,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_ALL_ROLES = 76;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 61;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 	
 	protected String userRumRogersOid;
@@ -445,6 +445,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assignOrg(userCobbOid, ORG_SCUMM_BAR_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_ORDINARY_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, initTask, initResult);
+	}
+	
+	protected int getNumberOfRoles() {
+		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 
 	@Test

@@ -112,7 +112,7 @@ public class ImportObjects extends BaseNinjaAction {
             validator.setVerbose(true);
             validator.setValidateSchema(validateSchema);
 
-            OperationResult result = new OperationResult("Import objeccts");
+            OperationResult result = new OperationResult("Import objects");
             validator.validate(input, result, OperationConstants.IMPORT_OBJECT);
 
             result.recomputeStatus();

@@ -27,9 +27,11 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Consumer;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -43,6 +45,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -50,20 +53,24 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -72,14 +79,19 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -110,6 +122,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	
 	protected static final File RESOURCE_SEMI_MANUAL_DISABLE_FILE = new File(TEST_DIR, "resource-semi-manual-disable.xml");
 	protected static final String RESOURCE_SEMI_MANUAL_DISABLE_OID = "5e497cb0-5cdb-11e7-9cfe-4bfe0342d181";
+	
+	protected static final File RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_FILE = new File(TEST_DIR, "resource-semi-manual-slow-proposed.xml");
+	protected static final String RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_OID = "512d749a-75ff-11e7-8176-8be7fb6f4e45";
 
 	protected static final File ROLE_ONE_MANUAL_FILE = new File(TEST_DIR, "role-one-manual.xml");
 	protected static final String ROLE_ONE_MANUAL_OID = "9149b3ca-5da1-11e7-8e84-130a91fb5876";
@@ -119,6 +134,21 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	
 	protected static final File ROLE_ONE_SEMI_MANUAL_DISABLE_FILE = new File(TEST_DIR, "role-one-semi-manual-disable.xml");
 	protected static final String ROLE_ONE_SEMI_MANUAL_DISABLE_OID = "3b8cb17a-5da2-11e7-b260-a760972b54fb";
+	
+	protected static final File ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_FILE = new File(TEST_DIR, "role-one-semi-manual-slow-proposed.xml");
+	protected static final String ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_OID = "ca7fefc6-75ff-11e7-9833-572f6bf86a81";
+	
+	protected static final File ROLE_TWO_MANUAL_FILE = new File(TEST_DIR, "role-two-manual.xml");
+	protected static final String ROLE_TWO_MANUAL_OID = "414e3766-775e-11e7-b8cb-c7ca37c1dc9e";
+	
+	protected static final File ROLE_TWO_SEMI_MANUAL_FILE = new File(TEST_DIR, "role-two-semi-manual.xml");
+	protected static final String ROLE_TWO_SEMI_MANUAL_OID = "b95f7252-7776-11e7-bd96-cf05f4c21966";
+	
+	protected static final File ROLE_TWO_SEMI_MANUAL_DISABLE_FILE = new File(TEST_DIR, "role-two-semi-manual-disable.xml");
+	protected static final String ROLE_TWO_SEMI_MANUAL_DISABLE_OID = "d1eaa4f4-7776-11e7-bb53-eb1218c49dd9";
+	
+	protected static final File ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_FILE = new File(TEST_DIR, "role-two-semi-manual-slow-proposed.xml");
+	protected static final String ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_OID = "eaf3569e-7776-11e7-93f3-3f1b853d6525";
 	
 	public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 	
@@ -189,6 +219,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected XMLGregorianCalendar accountJackCompletionTimestampEnd;
 	
 	protected String jackLastCaseOid;
+
+	private XMLGregorianCalendar roleTwoValidFromTimestamp;
 	
 	
 	@Override
@@ -200,6 +232,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		importObjectFromFile(getResourceFile(), initResult);
 		
 		importObjectFromFile(getRoleOneFile(), initResult);
+		importObjectFromFile(getRoleTwoFile(), initResult);
 		
 		addObject(USER_JACK_FILE);
 		addObject(USER_BARBOSSA_FILE);
@@ -210,6 +243,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		userWillOid = userWill.getOid();
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		
+		// Turns on checks for connection in manual connector
+		InternalsConfig.setSanityChecks(true);
 
 	}
 	
@@ -232,6 +268,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected abstract File getRoleOneFile();
 	
 	protected abstract String getRoleOneOid();
+	
+	protected abstract File getRoleTwoFile();
+	
+	protected abstract String getRoleTwoOid();
 	
 	protected boolean supportsBackingStore() {
 		return false;
@@ -634,7 +674,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT5M");
+		clockForward("PT5M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -673,7 +713,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT20M");
+		clockForward("PT20M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -901,7 +941,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT5M");
+		clockForward("PT5M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1262,7 +1302,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT5M");
+		clockForward("PT5M");
 		
 		PrismObject<ShadowType> shadowBefore = modelService.getObject(ShadowType.class, accountWillOid, null, task, result);
 		display("Shadow before", shadowBefore);
@@ -1493,7 +1533,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT10M");
+		clockForward("PT10M");
 		
 		PrismObject<ShadowType> shadowBefore = modelService.getObject(ShadowType.class, accountWillOid, null, task, result);
 		display("Shadow before", shadowBefore);
@@ -1635,7 +1675,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT5M");
+		clockForward("PT5M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1717,7 +1757,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT5M");
+		clockForward("PT5M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1980,7 +2020,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT5M");
+		clockForward("PT5M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2087,7 +2127,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT20M");
+		clockForward("PT20M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2383,7 +2423,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT35M");
+		clockForward("PT35M");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2413,8 +2453,306 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	public void test519CleanUp() throws Exception {
 		final String TEST_NAME = "test519CleanUp";
 		displayTestTile(TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		
 		cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+		
+		// Make sure that all pending operations are expired
+		clockForward("PT1H");
+		recomputeUser(userWillOid, task, result);
+		assertSuccess(result);
+		
+		assertNoShadow(accountWillOid);
+	}
+	
+	/**
+	 * MID-4095
+	 */
+	@Test
+	public void test520AssignWillRoleOne() throws Exception {
+		assignWillRoleOne("test520AssignWillRoleOne", USER_WILL_FULL_NAME_PIRATE);
+	}
+	
+	
+	/**
+	 * Not much happens here yet. Role two is assigned. But it has validity in the future.
+	 * Therefore there are no changes in the account, no new pending deltas.
+	 * MID-4095
+	 */
+	@Test
+	public void test522AssignWillRoleTwoValidFrom() throws Exception {
+		final String TEST_NAME = "test522AssignWillRoleTwoValidFrom";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		ActivationType activationType = new ActivationType();
+		roleTwoValidFromTimestamp = getTimestamp("PT2H");
+		activationType.setValidFrom(roleTwoValidFromTimestamp);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(userWillOid, getRoleTwoOid(), activationType, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		assertSuccess(result);
+		
+		PrismObject<UserType> userAfter = getUser(userWillOid);
+		display("User after", userAfter);
+		accountWillOid = getSingleLinkOid(userAfter);
+		
+		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+
+		assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME_PIRATE);
+	}
+	
+	
+	/**
+	 * Two hours forward. Role two is valid now.
+	 * MID-4095
+	 */
+	@Test
+	public void test524TwoHoursForRoleTwo() throws Exception {
+		final String TEST_NAME = "test524TwoHoursForRoleTwo";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		
+		clockForward("PT2H5M");
+		
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(userWillOid, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		willSecondLastCaseOid = assertInProgress(result);
+		
+		PrismObject<UserType> userAfter = getUser(userWillOid);
+		display("User after", userAfter);
+		accountWillOid = getSingleLinkOid(userAfter);
+		
+		accountWillSecondReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
+		display("Repo shadow", shadowRepo);
+		assertPendingOperationDeltas(shadowRepo, 2);
+		
+		ObjectDeltaType deltaModify = null;
+		ObjectDeltaType deltaAdd = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			assertEquals("Wrong pending operation result", OperationResultStatusType.IN_PROGRESS, pendingOperation.getResultStatus());
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (ChangeTypeType.ADD.equals(delta.getChangeType())) {
+				deltaAdd = delta;
+			}
+			if (ChangeTypeType.MODIFY.equals(delta.getChangeType())) {
+				deltaModify = delta;
+				assertEquals("Wrong case ID", willSecondLastCaseOid, pendingOperation.getAsynchronousOperationReference());
+			}
+		}
+		assertNotNull("No add pending delta", deltaAdd);
+		assertNotNull("No modify pending delta", deltaModify);
+				
+		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME, USER_WILL_NAME);
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
+		assertShadowExists(shadowRepo, false);
+		assertNoShadowPassword(shadowRepo);
+		
+		// TODO: assert future
+		
+		assertNotNull("No async reference in result", willSecondLastCaseOid);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+	}
+	
+	/**
+	 * MID-4095
+	 */
+	@Test
+	public void test525CloseCasesAndRecomputeWill() throws Exception {
+		final String TEST_NAME = "test515CloseCasesAndRecomputeWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		closeCase(willLastCaseOid);
+		closeCase(willSecondLastCaseOid);
+		
+		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		// We need reconcile and not recompute here. We need to fetch the updated case status.
+		reconcileUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		assertSuccess(result);
+		
+		accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
+		display("Repo shadow", shadowRepo);
+		
+		assertPendingOperationDeltas(shadowRepo, 2);
+				
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	/**
+	 * Unassign both roles at the same time.
+	 * Note: In semi-manual cases the backing store is never updated.
+	 */
+	@Test
+	public void test526UnassignWillBothRoles() throws Exception {
+		final String TEST_NAME = "test526UnassignWillBothRoles";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<UserType> userBefore = getUser(userWillOid);
+				
+		accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		
+		unassignAll(userBefore, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		willLastCaseOid = assertInProgress(result);
+		
+		accountWillSecondReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
+		display("Repo shadow", shadowRepo);
+		
+		assertTest526Deltas(shadowRepo, result);
+		
+		assertNotNull("No async reference in result", willLastCaseOid);
+		
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+	}
+		
+	protected void assertTest526Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
+		assertPendingOperationDeltas(shadowRepo, 3);
+		
+		ObjectDeltaType deltaModify = null;
+		ObjectDeltaType deltaAdd = null;
+		ObjectDeltaType deltaDelete = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (ChangeTypeType.ADD.equals(delta.getChangeType())) {
+				deltaAdd = delta;
+				assertEquals("Wrong status in add delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
+			}
+			if (ChangeTypeType.MODIFY.equals(delta.getChangeType())) {
+				deltaModify = delta;
+				assertEquals("Wrong status in modify delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
+			}
+			if (ChangeTypeType.DELETE.equals(delta.getChangeType())) {
+				deltaDelete = delta;
+				assertEquals("Wrong status in delete delta", OperationResultStatusType.IN_PROGRESS, pendingOperation.getResultStatus());
+			}
+		}
+		assertNotNull("No add pending delta", deltaAdd);
+		assertNotNull("No modify pending delta", deltaModify);
+		assertNotNull("No delete pending delta", deltaDelete);
+	}
+
+	@Test
+	public void test528CloseCaseAndRecomputeWill() throws Exception {
+		final String TEST_NAME = "test528CloseCaseAndRecomputeWill";
+		displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		closeCase(willLastCaseOid);
+		
+		accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		// We need reconcile and not recompute here. We need to fetch the updated case status.
+		reconcileUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("result", result);
+		assertSuccess(result);
+		
+		accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+		
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
+		display("Repo shadow", shadowRepo);
+		
+		assertTest528Deltas(shadowRepo, result);
+						
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	protected void assertTest528Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
+		assertPendingOperationDeltas(shadowRepo, 3);
+		
+		ObjectDeltaType deltaModify = null;
+		ObjectDeltaType deltaAdd = null;
+		ObjectDeltaType deltaDelete = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			assertEquals("Wrong status in pending delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (ChangeTypeType.ADD.equals(delta.getChangeType())) {
+				deltaAdd = delta;
+			}
+			if (ChangeTypeType.MODIFY.equals(delta.getChangeType())) {
+				deltaModify = delta;
+			}
+			if (ChangeTypeType.DELETE.equals(delta.getChangeType())) {
+				deltaDelete = delta;
+			}
+		}
+		assertNotNull("No add pending delta", deltaAdd);
+		assertNotNull("No modify pending delta", deltaModify);
+		assertNotNull("No delete pending delta", deltaDelete);
+
+	}
+
+	/**
+	 * Put everything in a clean state so we can start over.
+	 */
+	@Test
+	public void test529CleanUp() throws Exception {
+		final String TEST_NAME = "test529CleanUp";
+		displayTestTile(TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+		
+		// Make sure that all pending operations are expired
+		clockForward("PT1H");
+		recomputeUser(userWillOid, task, result);
+		assertSuccess(result);
+		
+		assertNoShadow(accountWillOid);
 	}
 	
 	// Tests 7xx are in the subclasses
@@ -2431,7 +2769,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		addObject(TASK_SHADOW_REFRESH_FILE);
+		addTask(TASK_SHADOW_REFRESH_FILE);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -2466,7 +2804,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		clock.overrideDuration("PT5M");
+		clockForward("PT5M");
 		
 		accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
@@ -2574,7 +2912,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		final int THREADS = 4;
+		final int THREADS = getConcurrentTestNumberOfThreads();
 		final long TIMEOUT = 60000L;
 
 		// WHEN
@@ -2583,7 +2921,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		for (int i = 0; i < THREADS; i++) {
 			threads[i] = new Thread(() -> {
 				try {
-					Thread.sleep(RND.nextInt(1000)); // Random start delay
+					Thread.sleep(RND.nextInt(getConcurrentTestRandomStartDelayRange())); // Random start delay
 					LOGGER.info("{} starting", Thread.currentThread().getName());
 					login(userAdministrator);
 					Task localTask = createTask(TEST_NAME + ".local");
@@ -2610,6 +2948,14 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertEquals("Wrong # of links", 1, barbossa.asObjectable().getLinkRef().size());
 	}
 	
+	protected int getConcurrentTestNumberOfThreads() {
+		return 4;
+	}
+	
+	protected int getConcurrentTestRandomStartDelayRange() {
+		return 1000;
+	}
+
 	protected void backingStoreProvisionWill(String interest) throws IOException {
 		// nothing to do here
 	}

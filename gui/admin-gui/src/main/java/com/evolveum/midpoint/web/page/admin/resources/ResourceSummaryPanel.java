@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,21 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType>{
+public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_UP_DOWN_TAG = "upDownTag";
 
-	public ResourceSummaryPanel(String id, IModel<PrismObject<ResourceType>> model) {
-		super(id, model);
-		
+	public ResourceSummaryPanel(String id, IModel<PrismObject<ResourceType>> model, ModelServiceLocator serviceLocator) {
+		super(id, ResourceType.class, model, serviceLocator);
+		initLayoutCommon(serviceLocator);
 		boolean down = ResourceTypeUtil.isDown(model.getObject().asObjectable());
 		Label summaryTag  = new Label(ID_UP_DOWN_TAG, down ? "DOWN" : "UP");
 		addTag(summaryTag);

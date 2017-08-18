@@ -1506,7 +1506,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public String getNodeId() {
-        return clusterManager.getNodeId();
+        return configuration.getNodeId();
     }
 
     @Override

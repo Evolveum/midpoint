@@ -21,13 +21,12 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.ProcessSpecificContent;
@@ -35,10 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -82,7 +79,7 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 	// skippability because of no approvers was already tested; see ApprovalSchemaHelper.shouldBeSkipped
 	@Override
 	public boolean checkEmpty(PcpChildWfTaskCreationInstruction instruction,
-			WfExpressionEvaluationHelper evaluationHelper, ModelInvocationContext ctx, OperationResult result)
+			WfStageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		List<ApprovalStageDefinitionType> stages = WfContextUtil.getStages(approvalSchemaType);
 		// first pass: if there is any stage that is obviously not skippable, let's return false without checking the expressions
@@ -94,7 +91,7 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 		// second pass: check the conditions
 		for (ApprovalStageDefinitionType stage : stages) {
 			if (!SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP.equals(
-					evaluateAutoCompleteExpression(stage, instruction, evaluationHelper, ctx, result))) {
+					evaluateAutoCompleteExpression(stage, instruction, stageComputeHelper, ctx, result))) {
 				return false;
 			}
 		}
@@ -102,21 +99,9 @@ public class ItemApprovalSpecificContent implements ProcessSpecificContent {
 	}
 
 	private String evaluateAutoCompleteExpression(ApprovalStageDefinitionType stageDef, PcpChildWfTaskCreationInstruction instruction,
-			WfExpressionEvaluationHelper evaluationHelper, ModelInvocationContext ctx, OperationResult result)
+			WfStageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		ExpressionType expression = stageDef.getAutomaticallyCompleted();
-		ExpressionVariables variables = evaluationHelper.getDefaultVariables(instruction.getWfContext(), result);
-		List<String> outcomes = evaluationHelper.evaluateExpression(expression, variables,
-				"automatic completion expression", String.class,
-				DOMUtil.XSD_STRING, WfExpressionEvaluationHelper.createOutcomeConvertor(), ctx.taskFromModel, result);
-		LOGGER.trace("Pre-completed = {} for stage {}", outcomes, stageDef);
-		Set<String> distinctOutcomes = new HashSet<>(outcomes);
-		if (distinctOutcomes.isEmpty()) {
-			return null;
-		} else if (distinctOutcomes.size() == 1) {
-			return distinctOutcomes.iterator().next();
-		} else {
-			throw new IllegalStateException("Ambiguous result from 'automatically completed' expression: " + distinctOutcomes);
-		}
+		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(instruction.getWfContext(), ctx.taskFromModel.getChannel(), result);
+		return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.taskFromModel, result);
 	}
 }

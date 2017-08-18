@@ -79,6 +79,11 @@ public class PrismParserImplIO extends PrismParserImpl {
 	}
 
 	@Override
+	public void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException {
+		doParseObjectsIteratively(handler);
+	}
+
+	@Override
 	public Object parseItemOrRealValue() throws IOException, SchemaException {
 		return doParseItemOrRealValue();
 	}

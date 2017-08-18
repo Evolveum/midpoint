@@ -21,55 +21,29 @@ package com.evolveum.midpoint.model.intest.manual;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import javax.xml.namespace.QName;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * @author Radovan Semancik
@@ -105,7 +79,17 @@ public class TestSemiManualDisable extends TestSemiManual {
 	protected File getRoleOneFile() {
 		return ROLE_ONE_SEMI_MANUAL_DISABLE_FILE;
 	}
+
+	@Override
+	protected String getRoleTwoOid() {
+		return ROLE_TWO_SEMI_MANUAL_DISABLE_OID;
+	}
 	
+	@Override
+	protected File getRoleTwoFile() {
+		return ROLE_TWO_SEMI_MANUAL_DISABLE_FILE;
+	}
+
 	@Override
 	protected void deprovisionInCsv(String username) throws IOException {
 		disableInCsv(username);
@@ -172,5 +156,42 @@ public class TestSemiManualDisable extends TestSemiManual {
 		display("User after", userAfter);
 		assertLinks(userAfter, 0);
 		assertNoShadow(accountOid);
+	}
+	
+	@Override
+	protected void assertTest526Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
+		assertPendingOperationDeltas(shadowRepo, 3);
+		
+		ObjectDeltaType deltaModify = null;
+		ObjectDeltaType deltaAdd = null;
+		ObjectDeltaType deltaDisable = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (ChangeTypeType.ADD.equals(delta.getChangeType())) {
+				deltaAdd = delta;
+				assertEquals("Wrong status in add delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
+			}
+			if (ChangeTypeType.MODIFY.equals(delta.getChangeType()) && OperationResultStatusType.SUCCESS.equals(pendingOperation.getResultStatus())) {
+				deltaModify = delta;
+			}
+			if (ChangeTypeType.MODIFY.equals(delta.getChangeType()) && OperationResultStatusType.IN_PROGRESS.equals(pendingOperation.getResultStatus())) {
+				deltaDisable = delta;
+			}
+		}
+		assertNotNull("No add pending delta", deltaAdd);
+		assertNotNull("No modify pending delta", deltaModify);
+		assertNotNull("No disable pending delta", deltaDisable);				
+	}
+	
+	@Override
+	protected void assertTest528Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
+		assertPendingOperationDeltas(shadowRepo, 3);
+		
+		ObjectDeltaType deltaModify = null;
+		ObjectDeltaType deltaAdd = null;
+		ObjectDeltaType deltaDelete = null;
+		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+			assertEquals("Wrong status in pending delta", OperationResultStatusType.SUCCESS, pendingOperation.getResultStatus());
+		}
 	}
 }

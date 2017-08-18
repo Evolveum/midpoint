@@ -178,6 +178,7 @@ public class PolicyRuleTypeUtil {
 	public static List<EvaluatedPolicyRuleTriggerType> unpack(List<EvaluatedPolicyRuleTriggerType> triggers) {
 		List<EvaluatedPolicyRuleTriggerType> rv = CloneUtil.cloneCollectionMembers(triggers);
 		unpack(rv, triggers);
+		visit(rv, t -> t.triggerId(null));
 		return rv;
 	}
 
@@ -195,7 +196,6 @@ public class PolicyRuleTypeUtil {
 		}
 		triggers.clear();
 		triggers.addAll(unpacked);
-		triggers.forEach(t -> t.setTriggerId(null));
 	}
 
 	private static EvaluatedPolicyRuleTriggerType unpack(EvaluatedPolicyRuleTriggerType trigger,

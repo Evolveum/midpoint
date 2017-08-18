@@ -250,7 +250,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		prefixMapper.registerPrefix(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
-		return PrismContextImpl.create(schemaRegistry);
+		PrismContextImpl prismContext = PrismContextImpl.create(schemaRegistry);
+		prismContext.setObjectsElementName(new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "objects"));
+		return prismContext;
 	}
 
 	/* (non-Javadoc)

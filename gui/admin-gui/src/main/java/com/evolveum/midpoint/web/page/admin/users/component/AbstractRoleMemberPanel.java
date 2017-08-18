@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.ArrayList;
@@ -29,6 +44,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -54,6 +70,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
@@ -91,7 +108,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model, PageBase parentPage) {
 		super(id, model);
 		setParent(parentPage);
-		initLayout(tableId);
+		initLayout(tableId, parentPage);
 	}
 
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model,
@@ -99,10 +116,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		super(id, model);
 		this.relations = relations;
 		setParent(parentPage);
-		initLayout(tableId);
+		initLayout(tableId, parentPage);
 	}
 
-	private void initLayout(TableId tableId) {
+	private void initLayout(TableId tableId, ModelServiceLocator serviceLocator) {
 		Form form = new Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
@@ -111,10 +128,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		initMemberTable(tableId, form);
 
-		initCustomLayout(form);
+		initCustomLayout(form, serviceLocator);
 	}
 
-	protected abstract void initCustomLayout(Form form);
+	protected abstract void initCustomLayout(Form form, ModelServiceLocator serviceLocator);
 
 	protected abstract void initSearch(Form form);
 

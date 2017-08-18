@@ -1,0 +1,30 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+objects:
+- user:
+    oid: "c0c010c0-d34d-b33f-f00d-111111111111"
+    name: "jack"
+    extension:
+      '@ns': "http://midpoint.evolveum.com/xml/ns/samples/piracy"
+      ship: "Black Pearl"
+    fullName: "Cpt. Jack Sparrow"
+    givenName: "Jack"
+    familyName: "Sparrow"
+    honorificPrefix: "Cpt."
+    costCenter: "<No 'cost' & no \"center\">"
+    credentials:
+      password:
+        value:
+          '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
+          clearValue: "dead men tell no tales"
+- user:
+    oid: "c0c010c0-d34d-b33f-f00d-111111111112"
+    name: "will"
+    fullName: "Will Turner"
+    givenName: "William"
+    familyName: "Turner"
+- user:
+    name: "guybrush"
+    fullName: "Guybrush Threepwood"
+    givenName: "Guybrush"
+    familyName: "Threepwood"

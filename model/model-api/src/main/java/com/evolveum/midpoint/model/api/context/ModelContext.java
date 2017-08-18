@@ -17,9 +17,12 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -29,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author semancik
@@ -64,4 +68,12 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 	// For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
 	// while less detailed than that part of detailed LensContext debugDump).
 	String dumpPolicyRules(int indent);
+
+	Map<String, Collection<Containerable>> getHookPreviewResultsMap();
+
+	@NotNull
+	<T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
+
+	@Nullable
+	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
 }

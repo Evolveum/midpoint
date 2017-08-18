@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,9 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDeletionListener;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
@@ -74,6 +73,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 	@Autowired private WorkItemManager workItemManager;
 	@Autowired private WfTaskUtil wfTaskUtil;
 	@Autowired private MiscDataUtil miscDataUtil;
+	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private TaskManager taskManager;
 
@@ -268,6 +268,38 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 			processInstanceManager.cleanupActivitiProcesses(result);
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't cleanup Activiti processes: " + t.getMessage(), t);
+			throw t;
+		} finally {
+			result.recordSuccessIfUnknown();
+		}
+	}
+
+	@Override
+	public ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask,
+			OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getApprovalSchemaExecutionInformation");
+		try {
+			return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(taskOid, opTask, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't determine schema execution information: " + t.getMessage(), t);
+			throw t;
+		} finally {
+			result.recordSuccessIfUnknown();
+		}
+	}
+
+	@Override
+	public List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
+			OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getApprovalSchemaPreview");
+		try {
+			return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, opTask, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't compute approval schema preview: " + t.getMessage(), t);
 			throw t;
 		} finally {
 			result.recordSuccessIfUnknown();

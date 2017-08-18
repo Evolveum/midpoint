@@ -80,8 +80,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
-  
+public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
+
 	@Autowired
 	private RepositoryService repositoryService;
 	
@@ -955,4 +955,24 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest{
 				.lensContext(lensContext)
 				.build();
 	}
+
+//	protected AssignmentEvaluator<UserType> createLoginModeAssignmentEvaluator(PrismObject<UserType> focus) throws ObjectNotFoundException, SchemaException {
+//		return new AssignmentEvaluator.Builder<UserType>()
+//				.repository(repositoryService)
+//				.focusOdo(new ObjectDeltaObject<>(focus, null, focus))
+//				.channel(null)
+//				.objectResolver(objectResolver)
+//				.systemObjectCache(systemObjectCache)
+//				.prismContext(prismContext)
+//				.mappingFactory(mappingFactory)
+//				.mappingEvaluator(mappingEvaluator)
+//				.activationComputer(activationComputer)
+//				.now(clock.currentTimeXMLGregorianCalendar())
+//				.loginMode(true)
+//				// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
+//				// will need something to push on the stack. So give them context placeholder.
+//				.lensContext(new LensContextPlaceholder<>(focus, prismContext))
+//				.build();
+//	}
+
 }

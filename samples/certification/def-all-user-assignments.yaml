@@ -1,0 +1,29 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+accessCertificationDefinition:
+  name: "All user assignments"
+  description: "Certifies all users' assignments. Everything is certified by the\
+    \ administrator."
+  handlerUri: "http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment"
+  scopeDefinition: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/AccessCertificationAssignmentReviewScopeType>
+    objectType: "UserType"
+  ownerRef:
+    oid: "00000000-0000-0000-0000-000000000002"
+    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+  remediationDefinition:
+    style: "automated"
+  stageDefinition:
+    number: 1
+    name: "Administrator's review"
+    description: "In this stage, the administrator has to review all the assignments\
+      \ of all users."
+    duration: "P14D"
+    notifyBeforeDeadline:
+    - "PT48H"
+    - "PT12H"
+    notifyOnlyWhenNoDecision: true
+    reviewerSpecification:
+      defaultReviewerRef:
+        oid: "00000000-0000-0000-0000-000000000002"
+        type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+                              

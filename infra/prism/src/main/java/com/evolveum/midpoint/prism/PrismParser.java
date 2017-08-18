@@ -211,19 +211,43 @@ public interface PrismParser {
 	@Deprecated
 	Object parseItemOrRealValue() throws IOException, SchemaException;
 
-
-
-	// ============= other methods (convenience ones, deprecated ones etc) =============
-
 	/**
 	 * Parses the input as a collection of prism objects.
-	 * Currently supported only for XML. (For the time being, it is used only in tests.)
+	 * For XML the input must be formatted as a collection of objects (TODO change this).
+	 * For other languages the input may contain one or more objects.
+	 *
 	 * @return A list of objects.
 	 */
 	@NotNull
 	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException;
 
-//	/**
+	interface ObjectHandler {
+		/**
+		 * Called when an object was successfully retrieved from the input.
+		 * @return true if the processing should continue
+		 */
+		boolean handleData(PrismObject<?> object);
+
+		/**
+		 * Called when an object could not be successfully retrieved from the input.
+		 * No data is provided; instead a Throwable is given to the caller.
+		 * @return true if the processing should continue
+		 */
+		boolean handleError(Throwable t);
+	}
+
+	/**
+	 * Currently implemented for JSON/YAML only. For XML, use old Validator code.
+	 * 
+	 * @param handler
+	 * @throws SchemaException
+	 * @throws IOException
+	 */
+	void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException;
+
+	// ============= other methods (convenience ones, deprecated ones etc) =============
+
+	//	/**
 //	 * Parses the input as a single value of a prism container.
 //	 * @return Single-valued container.
 //	 */

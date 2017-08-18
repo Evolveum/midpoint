@@ -67,6 +67,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
 		context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
+		context.setObjectsElementName(SchemaConstants.C_OBJECTS);
 		if (InternalsConfig.isPrismMonitoring()) {
 			context.setMonitor(new InternalMonitor());
 		}
@@ -78,6 +79,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		PrismContextImpl context = PrismContextImpl.createEmptyContext(schemaRegistry);
 		context.setDefinitionFactory(createDefinitionFactory());
 		context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
+		context.setObjectsElementName(SchemaConstants.C_OBJECTS);
 		return context;
 	}
 	

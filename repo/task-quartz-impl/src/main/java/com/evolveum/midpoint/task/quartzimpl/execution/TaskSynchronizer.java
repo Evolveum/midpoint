@@ -268,7 +268,7 @@ public class TaskSynchronizer {
                     } else {
                         // we have to compare trigger parameters with the task's ones
                         Trigger triggerAsIs = scheduler.getTrigger(standardTriggerKey);
-						if (task.isRecreateQuartzTrigger() || TaskQuartzImplUtil.triggerDataMapsDiffer(triggerAsIs, triggerToBe)) {
+						if (task.isRecreateQuartzTrigger() || TaskQuartzImplUtil.triggersDiffer(triggerAsIs, triggerToBe)) {
                             String m1 = "Existing trigger has incompatible parameters or was explicitly requested to be recreated; recreating it. Task = " + task;
                             LOGGER.trace(" - " + m1);
                             message += "[" + m1 + "] ";

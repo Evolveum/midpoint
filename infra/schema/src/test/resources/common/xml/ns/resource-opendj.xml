@@ -626,8 +626,10 @@ This is now the only account type that midPoint can work with. -->
                 </q:description>
                 <q:equal>
                     <q:path>c:name</q:path>
-                    <expression>        <!-- testing namespace processing in RawTypes (my:yyy) -->
+                    <expression>
                         <path>
+							declare namespace my='http://myself.me/schemas/whatever';
+							declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-3';
                             $account/c:attributes/my:yyy
                         </path>
                     </expression>

@@ -18,8 +18,8 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
-import com.evolveum.midpoint.prism.marshaller.XPathSegment;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.marshaller.PathHolderSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -381,11 +381,11 @@ public class ObjectTypeUtil {
 		definitionProperty.setRealValue(schemaDefinition);
 	}
 
-    public static XPathHolder createXPathHolder(QName property) {
-        XPathSegment xpathSegment = new XPathSegment(property);
-        List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
+    public static ItemPathHolder createXPathHolder(QName property) {
+        PathHolderSegment xpathSegment = new PathHolderSegment(property);
+        List<PathHolderSegment> segmentlist = new ArrayList<PathHolderSegment>(1);
         segmentlist.add(xpathSegment);
-        XPathHolder xpath = new XPathHolder(segmentlist);
+        ItemPathHolder xpath = new ItemPathHolder(segmentlist);
         return xpath;
     }
 
@@ -479,6 +479,14 @@ public class ObjectTypeUtil {
         return rv;
     }
 
+    public static List<String> objectReferenceListToOids(Collection<ObjectReferenceType> refList) {
+        List<String> rv = new ArrayList<>();
+        for (ObjectReferenceType ref : refList) {
+            rv.add(ref.getOid());
+        }
+        return rv;
+    }
+
     public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		for (PrismReferenceValue prv : prismReference.getValues()) {
@@ -541,6 +549,16 @@ public class ObjectTypeUtil {
 
 	public static PolyStringType getDisplayName(ObjectReferenceType ref) {
 		return ref != null ? getDisplayName(ref.asReferenceValue().getObject()) : null;
+	}
+
+	public static PolyStringType getName(ObjectReferenceType ref) {
+    	if (ref == null) {
+    		return null;
+	    } else if (ref.asReferenceValue().getObject() != null && ref.asReferenceValue().getObject().getName() != null) {
+    		return new PolyStringType(ref.asReferenceValue().getObject().getName());
+	    } else {
+    		return ref.getTargetName();
+	    }
 	}
 
 	public static ObjectType toObjectable(PrismObject object) {
@@ -690,4 +708,8 @@ public class ObjectTypeUtil {
     	return prismObject != null ? prismObject.asObjectable() : null;
 	}
 
+	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
+		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
+				&& ref1.getOid().equals(ref2.getOid());
+	}
 }

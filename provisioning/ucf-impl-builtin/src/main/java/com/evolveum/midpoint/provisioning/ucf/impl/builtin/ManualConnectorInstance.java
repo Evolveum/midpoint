@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
 import java.util.Collection;
+import java.util.Random;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -64,6 +65,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	
 	private RepositoryService repositoryService;
 	
+	private boolean connected = false;
+	
+	private static int randomDelayRange = 0;
+	
+	protected static final Random RND = new Random();
+	
 	@ManagedConnectorConfiguration
 	public ManualConnectorConfiguration getConfiguration() {
 		return configuration;
@@ -71,6 +78,10 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	public void setConfiguration(ManualConnectorConfiguration configuration) {
 		this.configuration = configuration;
+	}
+
+	public boolean isConnected() {
+		return connected;
 	}
 
 	@Override
@@ -130,6 +141,17 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	private PrismObject<CaseType> addCase(String description, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
 		PrismObject<CaseType> acase = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).instantiate();
 		CaseType caseType = acase.asObjectable();
+		
+		if (randomDelayRange != 0) {
+			int waitMillis = RND.nextInt(randomDelayRange);
+			LOGGER.info("Manual connector waiting {} ms before creating the case", waitMillis);
+			try {
+				Thread.sleep(waitMillis);
+			} catch (InterruptedException e) {
+				LOGGER.error("Manual connector wait is interrupted");
+			}
+			LOGGER.info("Manual connector wait is over");
+		}
 		
 		String caseOid = OidUtil.generateOid();
 		
@@ -203,7 +225,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	@Override
 	protected void connect(OperationResult result) {
-		// Nothing to do
+		if (connected && InternalsConfig.isSanityChecks()) {
+			throw new IllegalStateException("Double connect in "+this);
+		}
+		connected = true;
+		// Nothing else to do
 	}
 
 	@Override
@@ -218,12 +244,25 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			return;
 		}
 		
+		if (!connected && InternalsConfig.isSanityChecks()) {
+			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+		}
+		
 		connectionResult.recordSuccess();
 	}
 	
 	@Override
 	public void dispose() {
 		// Nothing to dispose
+		connected = false;
+	}
+
+	public static int getRandomDelayRange() {
+		return randomDelayRange;
+	}
+
+	public static void setRandomDelayRange(int randomDelayRange) {
+		ManualConnectorInstance.randomDelayRange = randomDelayRange;
 	}
 
 }

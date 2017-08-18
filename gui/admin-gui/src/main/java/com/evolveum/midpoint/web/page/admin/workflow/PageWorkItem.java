@@ -193,7 +193,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private void initLayout() {
         WorkItemSummaryPanel summaryPanel = new WorkItemSummaryPanel(ID_SUMMARY_PANEL,
-                new PropertyModel<>(workItemDtoModel, WorkItemDto.F_WORK_ITEM), workItemDtoModel);
+                new PropertyModel<>(workItemDtoModel, WorkItemDto.F_WORK_ITEM), workItemDtoModel, this);
         add(summaryPanel);
 
         Form mainForm = new Form(ID_MAIN_FORM);

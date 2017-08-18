@@ -42,6 +42,7 @@ public class TaskEditableState implements Serializable, Cloneable {
 	Date notStartAfter;
 	MisfireActionType misfireActionType;
 	ThreadStopActionType threadStopActionType;
+	String requiredCapability;
 
 	Integer workerThreads;
 
@@ -59,6 +60,7 @@ public class TaskEditableState implements Serializable, Cloneable {
 		clone.notStartAfter = CloneUtil.clone(notStartAfter);
 		clone.misfireActionType = misfireActionType;
 		clone.threadStopActionType = threadStopActionType;
+		clone.requiredCapability = requiredCapability;
 		clone.workerThreads = workerThreads;
 		clone.handlerSpecificState = CloneUtil.clone(handlerSpecificState);
 		return clone;
@@ -112,6 +114,10 @@ public class TaskEditableState implements Serializable, Cloneable {
 
 	public ThreadStopActionType getThreadStopActionType() {
 		return threadStopActionType;
+	}
+
+	public String getRequiredCapability() {
+		return requiredCapability;
 	}
 
 	public Integer getWorkerThreads() {

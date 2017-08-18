@@ -26,14 +26,17 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
@@ -43,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WORKFLOWS;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
@@ -60,14 +64,10 @@ public class WfHook implements ChangeHook {
 
     private static final String WORKFLOW_HOOK_URI = "http://midpoint.evolveum.com/model/workflow-hook-1";        // todo
 
-    @Autowired
-    private WfConfiguration wfConfiguration;
-
-    @Autowired
-    private BaseConfigurationHelper baseConfigurationHelper;
-
-    @Autowired
-    private HookRegistry hookRegistry;
+    @Autowired private WfConfiguration wfConfiguration;
+    @Autowired private BaseConfigurationHelper baseConfigurationHelper;
+    @Autowired private HookRegistry hookRegistry;
+    @Autowired private WorkflowManager workflowManager;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
@@ -136,6 +136,20 @@ public class WfHook implements ChangeHook {
     @Override
     public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // do nothing
+    }
+
+    @Override
+    public void invokePreview(@NotNull ModelContext<? extends ObjectType> context, Task task, OperationResult result) {
+        if (context.getPartialProcessingOptions().getApprovals() != PartialProcessingTypeType.PROCESS) {
+            return;
+        }
+        try {
+            List<ApprovalSchemaExecutionInformationType> preview = workflowManager.getApprovalSchemaPreview(context, task, result);
+            ((LensContext) context).addHookPreviewResults(WORKFLOW_HOOK_URI, preview);
+        } catch (CommonException e) {
+            // already recorded in the operation result, so no more processing is necessary
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't preview approvals", e);
+        }
     }
 
     private void logOperationInformation(ModelContext context) {

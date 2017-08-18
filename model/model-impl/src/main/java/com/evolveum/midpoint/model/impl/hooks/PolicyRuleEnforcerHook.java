@@ -15,10 +15,17 @@
  */
 package com.evolveum.midpoint.model.impl.hooks;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,10 +46,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnforcementPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 
 /**
  * Hook used to enforce the policy rules that have the enforce action.
@@ -57,13 +60,17 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	
 	public static final String HOOK_URI = SchemaConstants.NS_MODEL + "/policy-rule-enforcer-hook-3";
 	
-	@Autowired(required = true)
-    private HookRegistry hookRegistry;
+	@Autowired private HookRegistry hookRegistry;
+	@Autowired private PrismContext prismContext;
 	
 	@PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
 		LOGGER.trace("PolicyRuleEnforcerHook registered.");
+    }
+
+    private class EvaluationContext {
+		private final List<String> messages = new ArrayList<>();
     }
 
 	/* (non-Javadoc)
@@ -73,56 +80,59 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 	public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
 			@NotNull OperationResult result) throws PolicyViolationException {
 		
-		if (context.getState() != ModelState.PRIMARY) {
-            return HookOperationMode.FOREGROUND;
+		if (context.getState() == ModelState.PRIMARY) {
+			EvaluationContext evalCtx = invokeInternal(context, task, result);
+			if (!evalCtx.messages.isEmpty()) {
+				String compositeMessage = evalCtx.messages.stream().collect(Collectors.joining("; "));
+				throw new PolicyViolationException(compositeMessage);
+			}
         }
-	
-		ModelElementContext<O> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return HookOperationMode.FOREGROUND;
-		}
-		
-		if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-			return HookOperationMode.FOREGROUND;
-    	}
-		
-		evaluateFocusRules((ModelContext<FocusType>) context, task, result);
-		evaluateAssignmentRules((ModelContext<FocusType>) context, task, result);
-		
 		return HookOperationMode.FOREGROUND;
+
 	}
-	
-	private <F extends FocusType> void evaluateFocusRules(ModelContext<F> context, Task task,
-			OperationResult result) throws PolicyViolationException {
-		ModelElementContext<F> focusContext = context.getFocusContext();
-		
-		StringBuilder compositeMessageSb = new StringBuilder();
-		enforceTriggeredRules(compositeMessageSb, focusContext.getPolicyRules());
-		if (compositeMessageSb.length() != 0) {
-			throw new PolicyViolationException(compositeMessageSb.toString());
+
+	@Override
+	public void invokePreview(@NotNull ModelContext<? extends ObjectType> context, Task task, OperationResult result) {
+		// TODO check partial processing option (after it will be implemented)
+		PolicyRuleEnforcerHookPreviewOutputType output = new PolicyRuleEnforcerHookPreviewOutputType(prismContext);
+		EvaluationContext evalCtx = invokeInternal(context, task, result);
+		output.getExceptionMessage().addAll(evalCtx.messages);
+		((LensContext) context).addHookPreviewResults(HOOK_URI, Collections.singletonList(output));
+	}
+
+	@NotNull
+	private <O extends ObjectType> EvaluationContext invokeInternal(@NotNull ModelContext<O> context, @NotNull Task task,
+			@NotNull OperationResult result) {
+		EvaluationContext evalCtx = new EvaluationContext();
+		ModelElementContext<O> focusContext = context.getFocusContext();
+		if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			return evalCtx;
 		}
+
+		evaluateFocusRules(evalCtx, (ModelContext<FocusType>) context, task, result);
+		evaluateAssignmentRules(evalCtx, (ModelContext<FocusType>) context, task, result);
+
+		return evalCtx;
+	}
+
+	private <F extends FocusType> void evaluateFocusRules(EvaluationContext evalCtx, ModelContext<F> context, Task task,
+			OperationResult result) {
+		enforceTriggeredRules(evalCtx, context.getFocusContext().getPolicyRules());
 	}
 	
-	private <F extends FocusType> void evaluateAssignmentRules(ModelContext<F> context, Task task,
-			OperationResult result) throws PolicyViolationException {
-	
+	private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, ModelContext<F> context, Task task,
+			OperationResult result) {
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
 			return;
 		}
-		
-		StringBuilder compositeMessageSb = new StringBuilder();
 		evaluatedAssignmentTriple.simpleAccept(assignment -> {
-			enforceTriggeredRules(compositeMessageSb, assignment.getFocusPolicyRules());
-			enforceTriggeredRules(compositeMessageSb, assignment.getAllTargetsPolicyRules());
+			enforceTriggeredRules(evalCtx, assignment.getFocusPolicyRules());
+			enforceTriggeredRules(evalCtx, assignment.getAllTargetsPolicyRules());
 		});
-
-		if (compositeMessageSb.length() != 0) {
-			throw new PolicyViolationException(compositeMessageSb.toString());
-		}
 	}
 
-	private <F extends FocusType> void enforceTriggeredRules(StringBuilder compositeMessageSb, Collection<EvaluatedPolicyRule> policyRules) {
+	private <F extends FocusType> void enforceTriggeredRules(EvaluationContext evalCtx, Collection<EvaluatedPolicyRule> policyRules) {
 		for (EvaluatedPolicyRule policyRule: policyRules) {
 
 			Collection<EvaluatedPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
@@ -136,10 +146,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 			
 			for (EvaluatedPolicyRuleTrigger trigger: triggers) {
 				if (trigger.getMessage() != null) {
-					if (compositeMessageSb.length() != 0) {
-						compositeMessageSb.append("; ");
-					}
-					compositeMessageSb.append(trigger.getMessage());
+					evalCtx.messages.add(trigger.getMessage());
 				}
 			}
 		}

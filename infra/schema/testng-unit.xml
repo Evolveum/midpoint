@@ -32,6 +32,10 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseWorkflowContext"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseMappingConst"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptOutput"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
         </classes>
     </test>
     <test name="Parsing XML without namespaces" preserve-order="false" verbose="1">
@@ -42,6 +46,10 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
         </classes>
     </test>
     <test name="Parsing JSON with namespaces" preserve-order="false" verbose="1">
@@ -52,6 +60,10 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
         </classes>
     </test>
     <test name="Parsing JSON without namespaces" preserve-order="false" verbose="1">
@@ -62,6 +74,10 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
         </classes>
     </test>
     <test name="Parsing YAML with namespaces" preserve-order="false" verbose="1">
@@ -72,6 +88,10 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
         </classes>
     </test>
     <test name="Parsing YAML without namespaces" preserve-order="false" verbose="1">
@@ -82,6 +102,10 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIteratively"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyFirstTwo"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseObjectsIterativelyWrong"/>
         </classes>
     </test>
     <test name="Schema" preserve-order="false" verbose="1">

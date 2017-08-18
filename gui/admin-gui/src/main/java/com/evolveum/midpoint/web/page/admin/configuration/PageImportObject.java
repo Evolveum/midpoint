@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ImportOptionsPanel;
@@ -37,11 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.Radio;
@@ -50,12 +51,12 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.file.File;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -82,6 +83,7 @@ public class PageImportObject extends PageAdminConfiguration {
 	private static final String ID_IMPORT_XML_BUTTON = "importXmlButton";
 	private static final String ID_INPUT = "input";
 	private static final String ID_INPUT_ACE = "inputAce";
+	private static final String ID_LANGUAGE_PANEL = "languagePanel";
 	private static final String ID_ACE_EDITOR = "aceEditor";
 	private static final String ID_INPUT_FILE_LABEL = "inputFileLabel";
 	private static final String ID_INPUT_FILE = "inputFile";
@@ -90,11 +92,13 @@ public class PageImportObject extends PageAdminConfiguration {
 	private static final Integer INPUT_FILE = 1;
 	private static final Integer INPUT_XML = 2;
 
-	private LoadableModel<ImportOptionsType> model;
+	private LoadableModel<ImportOptionsType> optionsModel;
 	private IModel<String> xmlEditorModel;
 
+	private String dataLanguage;
+
 	public PageImportObject() {
-		model = new LoadableModel<ImportOptionsType>(false) {
+		optionsModel = new LoadableModel<ImportOptionsType>(false) {
 
 			@Override
 			protected ImportOptionsType load() {
@@ -110,7 +114,7 @@ public class PageImportObject extends PageAdminConfiguration {
 		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, model);
+		ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, optionsModel);
 		mainForm.add(importOptions);
 
 		final WebMarkupContainer input = new WebMarkupContainer(ID_INPUT);
@@ -143,9 +147,24 @@ public class PageImportObject extends PageAdminConfiguration {
 		addVisibileForInputType(inputAce, INPUT_XML, groupModel);
 		input.add(inputAce);
 
-		AceEditor aceEditor = new AceEditor(ID_ACE_EDITOR, xmlEditorModel);
-		aceEditor.setOutputMarkupId(true);
-		inputAce.add(aceEditor);
+		dataLanguage = determineDataLanguage();
+
+		DataLanguagePanel<List> languagePanel = new DataLanguagePanel<List>(ID_LANGUAGE_PANEL, dataLanguage, List.class, this) {
+			@Override
+			protected void onLanguageSwitched(AjaxRequestTarget target, int index, String updatedLanguage, String objectString) {
+				dataLanguage = updatedLanguage;
+				xmlEditorModel.setObject(objectString);
+				addOrReplaceEditor(inputAce);
+				target.add(mainForm);
+			}
+
+			@Override
+			protected String getObjectStringRepresentation() {
+				return xmlEditorModel.getObject();
+			}
+		};
+		inputAce.add(languagePanel);
+		addOrReplaceEditor(inputAce);
 
 		WebMarkupContainer inputFileLabel = new WebMarkupContainer(ID_INPUT_FILE_LABEL);
 		addVisibileForInputType(inputFileLabel, INPUT_FILE, groupModel);
@@ -159,6 +178,18 @@ public class PageImportObject extends PageAdminConfiguration {
 		inputFile.add(fileInput);
 
 		initButtons(buttonBar, groupModel);
+	}
+
+	private void addOrReplaceEditor(WebMarkupContainer inputAce) {
+		AceEditor editor = new AceEditor(ID_ACE_EDITOR, xmlEditorModel);
+		editor.setOutputMarkupId(true);
+		editor.setModeForDataLanguage(dataLanguage);
+		editor.add(new AjaxFormComponentUpdatingBehavior("blur") {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+			}
+		});
+		inputAce.addOrReplace(editor);
 	}
 
 	private void addVisibileForInputType(Component comp, final Integer type,
@@ -237,9 +268,21 @@ public class PageImportObject extends PageAdminConfiguration {
 
 	}
 
-	private InputStream getInputStream(boolean raw) throws Exception {
-		if (raw) {
-			return IOUtils.toInputStream(xmlEditorModel.getObject(), "utf-8");
+	private static class InputDescription {
+		private InputStream inputStream;
+		private String dataLanguage;
+		InputDescription(InputStream inputStream, String dataLanguage) {
+			this.inputStream = inputStream;
+			this.dataLanguage = dataLanguage;
+		}
+	}
+
+	@NotNull
+	private InputDescription getInputDescription(boolean editor) throws Exception {
+		if (editor) {
+			return new InputDescription(
+					IOUtils.toInputStream(xmlEditorModel.getObject(), "utf-8"),
+					dataLanguage);
 		}
 		File newFile = null;
 		try {
@@ -262,8 +305,8 @@ public class PageImportObject extends PageAdminConfiguration {
 			newFile.createNewFile();
 			uploadedFile.writeTo(newFile);
 
-			InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
-			return new ReaderInputStream(reader, reader.getEncoding());
+			String language = getPrismContext().detectLanguage(newFile);
+			return new InputDescription(new FileInputStream(newFile), language);
 		} finally {
 			if (newFile != null) {
 				FileUtils.deleteQuietly(newFile);
@@ -291,8 +334,9 @@ public class PageImportObject extends PageAdminConfiguration {
 
 		try {
 			Task task = createSimpleTask(operationName);
-			stream = getInputStream(raw);
-			getModelService().importObjectsFromStream(stream, model.getObject(), task, result);
+			InputDescription inputDescription = getInputDescription(raw);
+			stream = inputDescription.inputStream;
+			getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, optionsModel.getObject(), task, result);
 
 			result.recomputeStatus();
 		} catch (Exception ex) {

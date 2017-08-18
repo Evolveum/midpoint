@@ -18,6 +18,8 @@ package com.evolveum.midpoint.gui.api.util;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -39,9 +41,18 @@ public interface ModelServiceLocator {
 	
 	Task createSimpleTask(String operationName);
 	
+	/**
+	 * Returns a task, that is used to retrieve and render the entire content
+	 * of the page. A single task is created to render the whole page, so
+	 * the summary result can be collected in the task result.
+	 */
+	Task getPageTask();
+	
 	PrismContext getPrismContext();
 	
 	SecurityEnforcer getSecurityEnforcer();
+	
+	ExpressionFactory getExpressionFactory();
 	
 	/**
 	 * Returns adminGuiConfiguraiton applicable to currently logged-in user.
@@ -52,4 +63,7 @@ public interface ModelServiceLocator {
 	 */
 	AdminGuiConfigurationType getAdminGuiConfiguration();
 
+	default ObjectResolver getModelObjectResolver() {
+		return null;
+	}
 }
