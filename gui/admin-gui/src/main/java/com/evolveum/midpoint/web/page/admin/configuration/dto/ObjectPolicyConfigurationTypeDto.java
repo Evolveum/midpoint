@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
@@ -24,6 +25,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *  @author shpood
@@ -40,6 +42,7 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
     private QName type;
     private String subtype;
     private List<PropertyConstraintTypeDto> constraints;
+    private ConflictResolutionType conflictResolution;
 
     public ObjectPolicyConfigurationTypeDto(){}
 
@@ -60,6 +63,7 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
         } else {
             constraints.add(new PropertyConstraintTypeDto(null));
         }
+        conflictResolution = policyConfig.getConflictResolution();
     }
 
     public ObjectReferenceType getTemplateRef() {
@@ -93,69 +97,44 @@ public class ObjectPolicyConfigurationTypeDto implements Serializable{
     public void setConstraints(List<PropertyConstraintTypeDto> constraints) {
         this.constraints = constraints;
     }
-    
-    public boolean isEmpty(){
-    	return type == null && subtype == null && constraints == null && templateRef == null; 
+
+	public ConflictResolutionType getConflictResolution() {
+		return conflictResolution;
+	}
+
+	public void setConflictResolution(ConflictResolutionType conflictResolution) {
+		this.conflictResolution = conflictResolution;
+	}
+
+	public boolean isEmpty(){
+    	return type == null && subtype == null && constraints == null && templateRef == null && conflictResolution == null;
     }
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((constraints == null) ? 0 : constraints.hashCode());
-		result = prime * result + ((subtype == null) ? 0 : subtype.hashCode());
-		result = prime * result + ((templateRef == null) ? 0 : templateRef.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof ObjectPolicyConfigurationTypeDto))
+			return false;
+		ObjectPolicyConfigurationTypeDto that = (ObjectPolicyConfigurationTypeDto) o;
+		return Objects.equals(templateRef, that.templateRef) &&
+				Objects.equals(type, that.type) &&
+				Objects.equals(subtype, that.subtype) &&
+				Objects.equals(constraints, that.constraints) &&
+				Objects.equals(conflictResolution, that.conflictResolution);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		ObjectPolicyConfigurationTypeDto other = (ObjectPolicyConfigurationTypeDto) obj;
-		if (constraints == null) {
-			if (other.constraints != null) {
-				return false;
-			}
-		} else if (!constraints.equals(other.constraints)) {
-			return false;
-		}
-		if (subtype == null) {
-			if (other.subtype != null) {
-				return false;
-			}
-		} else if (!subtype.equals(other.subtype)) {
-			return false;
-		}
-		if (templateRef == null) {
-			if (other.templateRef != null) {
-				return false;
-			}
-		} else if (!templateRef.equals(other.templateRef)) {
-			return false;
-		}
-		if (type == null) {
-			if (other.type != null) {
-				return false;
-			}
-		} else if (!type.equals(other.type)) {
-			return false;
-		}
-		return true;
+	public int hashCode() {
+		return Objects.hash(templateRef, type, subtype, constraints, conflictResolution);
 	}
 
 	@Override
 	public String toString() {
 		return "ObjectPolicyConfigurationTypeDto(templateRef=" + templateRef + ", type=" + type
-				+ ", subtype=" + subtype + ", constraints=" + constraints + ")";
+				+ ", subtype=" + subtype + ", constraints=" + constraints
+				+ (conflictResolution != null ? ",conflictResolution" : "")
+				+ ")";
 	}
 
     
