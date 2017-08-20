@@ -67,8 +67,7 @@ public class Validator {
 	private static final Trace LOGGER = TraceManager.getTrace(Validator.class);
 	private static final String INPUT_STREAM_CHARSET = "utf-8";
 	private static final String OPERATION_PREFIX = Validator.class.getName() + ".";
-	private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX
-			+ "resourceNamespaceCheck";
+	private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX + "resourceNamespaceCheck";
 	private static final String OPERATION_RESOURCE_BASICS_CHECK = OPERATION_PREFIX + "objectBasicsCheck";
 	private static final String START_LINE_NUMBER = "startLineNumber";
 	private static final String END_LINE_NUMBER = "endLineNumber";
@@ -76,14 +75,12 @@ public class Validator {
 	private boolean validateSchemas = true;
 	private boolean allowAnyType = false;
 	private EventHandler handler;
-	private DOMConverter domConverter = new DOMConverter();
-	private Unmarshaller unmarshaller = null;
 	private PrismContext prismContext;
 	private Schema midPointJavaxSchema;
 	private javax.xml.validation.Validator xsdValidator;
-	long progress = 0;
-	long errors = 0;
-	long stopAfterErrors = 0;
+	private long progress = 0;
+	private long errors = 0;
+	private long stopAfterErrors = 0;
 
 	public Validator(PrismContext prismContext) {
 		this.prismContext = prismContext;
@@ -161,7 +158,7 @@ public class Validator {
 
 	public void validate(String lexicalRepresentation, OperationResult validationResult, String objectResultOperationName) {
 		try {
-			try (ByteArrayInputStream is = new ByteArrayInputStream(lexicalRepresentation.getBytes("utf-8"))) {
+			try (ByteArrayInputStream is = new ByteArrayInputStream(lexicalRepresentation.getBytes(INPUT_STREAM_CHARSET))) {
 				validate(is, validationResult, objectResultOperationName);
 			}
 		} catch (IOException e) {
@@ -169,10 +166,11 @@ public class Validator {
 		}
 	}
 
-	public void validate(InputStream inputStream, OperationResult validatorResult,
-			String objectResultOperationName) {
+	public void validate(InputStream inputStream, OperationResult validatorResult, String objectResultOperationName) {
 
-		XMLStreamReader stream = null;
+		DOMConverter domConverter = new DOMConverter();
+
+		XMLStreamReader stream;
 		try {
 
 			Map<String, String> rootNamespaceDeclarations = new HashMap<String, String>();
@@ -189,10 +187,9 @@ public class Validator {
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-					EventResult cont = null;
+					EventResult cont;
 					try {
-						cont = readFromStreamAndValidate(stream, objectResult,
-								rootNamespaceDeclarations, validatorResult);
+						cont = readFromStreamAndValidate(stream, objectResult, rootNamespaceDeclarations, validatorResult, domConverter);
 					} catch (RuntimeException e) {
 						// Make sure that unexpected error is recorded.
 						objectResult.recordFatalError(e);
@@ -200,7 +197,7 @@ public class Validator {
 					}
 
 					if (!cont.isCont()) {
-						String message = null;
+						String message;
 						if (cont.getReason() != null) {
 							message = cont.getReason();
 						} else {
@@ -232,11 +229,11 @@ public class Validator {
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-					EventResult cont = null;
+					EventResult cont;
 					try {
 						// Read and validate individual object from the stream
 						cont = readFromStreamAndValidate(stream, objectResult,
-								rootNamespaceDeclarations, validatorResult);
+								rootNamespaceDeclarations, validatorResult, domConverter);
 					} catch (RuntimeException e) {
 						if (objectResult.isUnknown()) {
 							// Make sure that unexpected error is recorded.
@@ -288,7 +285,8 @@ public class Validator {
 	}
 
 	private EventResult readFromStreamAndValidate(XMLStreamReader stream, OperationResult objectResult,
-			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult) {
+			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult,
+			DOMConverter domConverter) {
 
 		objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
 

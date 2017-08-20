@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.lex.json.yaml.MidpointYAMLGenerator;
 import com.evolveum.midpoint.prism.lex.json.yaml.MidpointYAMLParser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -52,8 +53,10 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	private static final String TAG_FLOAT = YAML + "float";
 	private static final String TAG_NULL = YAML + "null";
 
-	//------------------------END OF METHODS FOR SERIALIZATION -------------------------------
-	
+	public YamlLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
+		super(schemaRegistry);
+	}
+
 	@Override
 	public boolean canRead(@NotNull File file) throws IOException {
 		return file.getName().endsWith(".yaml");

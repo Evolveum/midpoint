@@ -18,14 +18,12 @@ package com.evolveum.midpoint.prism.lex.json;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.Module;
@@ -43,7 +41,11 @@ import java.io.InputStream;
 import java.io.StringWriter;
 
 public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
-	
+
+	public JsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
+		super(schemaRegistry);
+	}
+
 	@Override
 	public boolean canRead(@NotNull File file) throws IOException {
 		return file.getName().endsWith(".json");

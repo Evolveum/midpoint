@@ -1,0 +1,21 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+objects:
+- user:
+    oid: "c0c010c0-d34d-b33f-f00d-111111111112"
+    name: "will"
+    fullName: "Will Turner"
+    givenName: "William"
+    familyName: "Turner"
+    employeeType: "legendary"
+- user:
+    name: "guybrush"
+    fullName: "Guybrush Threepwood"
+    givenName: "Guybrush"
+    familyName: "Threepwood"
+    locality: "Deep in the Caribbean"
+- user:
+    name: "ht"
+    fullName: "Herman Toothrot"
+    givenName: "Herman"
+    familyName: "Toothrot"

@@ -53,6 +53,12 @@ public class NullLexicalProcessor implements LexicalProcessor<XNode> {
 	}
 
 	@Override
+	public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
+			RootXNodeHandler handler) throws SchemaException, IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public boolean canRead(@NotNull File file) throws IOException {
 		return false;
 	}
@@ -77,7 +83,7 @@ public class NullLexicalProcessor implements LexicalProcessor<XNode> {
 
 	@NotNull
 	@Override
-	public XNode write(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName,
+	public XNode write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName,
 			@Nullable SerializationContext context) throws SchemaException {
 		throw new UnsupportedOperationException("NullLexicalProcessor.write is not supported for a collection of objects");
 	}

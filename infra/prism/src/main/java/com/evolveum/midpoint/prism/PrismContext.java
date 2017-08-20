@@ -68,6 +68,7 @@ public interface PrismContext {
 	Protector getDefaultProtector();
 
 	//region Parsing
+
 	/**
 	 * Creates a parser ready to process the given file.
 	 * @param file File to be parsed.
@@ -256,4 +257,9 @@ public interface PrismContext {
 	 * If defined, it is considered to be the same as the relation of 'null'. Currently in midPoint, it is the value of org:default.
 	 */
 	QName getDefaultRelation();
+
+	/**
+	 * If defined, marks the 'multiple objects' element.
+	 */
+	QName getObjectsElementName();
 }

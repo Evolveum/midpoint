@@ -57,8 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.FOCUS_OPERATION;
-import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.*;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
@@ -85,7 +84,7 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
     public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("onProgressAchieved: {}\n, modelContext = \n{}", new Object[]{progressInformation.debugDump(), modelContext.debugDump(2)});
+            LOGGER.trace("onProgressAchieved: {}\n, modelContext = \n{}", progressInformation.debugDump(), modelContext.debugDump(2));
         }
 
         if (progressDto == null) {
@@ -97,20 +96,19 @@ public class DefaultGuiProgressListener implements ProgressListener, Serializabl
             progressDto.log(progressInformation.getMessage());
         }
 
-        List<ProgressReportActivityDto> progressReportActivities = progressDto.getProgressReportActivities();
-
-        if (progressInformation != null) {
-
+        ProgressInformation.ActivityType activity = progressInformation.getActivityType();
+        if (activity != CLOCKWORK && activity != WAITING) {
+            List<ProgressReportActivityDto> progressReportActivities = progressDto.getProgressReportActivities();
             ProgressReportActivityDto si = findRelevantStatusItem(progressReportActivities, progressInformation);
-
             if (si == null) {
                 progressDto.add(createStatusItem(progressInformation, modelContext));
             } else {
                 updateStatusItemState(si, progressInformation, modelContext);
             }
+            addExpectedStatusItems(progressReportActivities, modelContext);
+        } else {
+            // these two should not be visible in the list of activities
         }
-
-        addExpectedStatusItems(progressReportActivities, modelContext);
     }
 
     @Override

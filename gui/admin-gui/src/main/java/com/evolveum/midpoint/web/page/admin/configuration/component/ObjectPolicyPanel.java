@@ -93,6 +93,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	private static final String ID_BUTTON_GROUP = "buttonGroup";
 	private static final String ID_BUTTON_REMOVE = "remove";
 	private static final String ID_BUTTON_ADD = "add";
+	private static final String ID_CONFLICT_RESOLUTION_CONTAINER = "conflictResolutionContainer";
 
 	private static final String ID_LABEL_SIZE = "col-md-4";
 	private static final String ID_INPUT_SIZE = "col-md-8";
@@ -114,7 +115,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 			}
 		};
 		
-		initLayout();
+		initLayout(config);
 
 		setOutputMarkupId(true);
 //		setTitle(createStringResource("ObjectPolicyDialog.label"));
@@ -154,7 +155,7 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 //		target.add(getContent());
 //	}
 
-	public void initLayout() {
+	public void initLayout(ObjectPolicyConfigurationTypeDto config) {
 		Form form = new Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
@@ -164,8 +165,8 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				new QNameChoiceRenderer(), createStringResource("ObjectPolicyDialog.type"), ID_LABEL_SIZE,
 				ID_INPUT_SIZE, false);
 		form.add(type);
-		type.getInput().setNullValid(false);
-		type.getInput().setRequired(true);
+		type.getInput().setNullValid(config.getConflictResolution() != null);
+		type.getInput().setRequired(config.getConflictResolution() == null);           // traditional template entries still require object type
 		
 		TextField<String> fieldSubtype = new TextField<>(ID_SUBTYPE, new PropertyModel<String>(model, ObjectPolicyDialogDto.F_SUBTYPE));
 		form.add(fieldSubtype);
@@ -176,8 +177,12 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 				createObjectTemplateList(), new ChoiceableChoiceRenderer<ObjectTemplateConfigTypeReferenceDto>(),
 				createStringResource("ObjectPolicyDialog.template"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
 		form.add(template);
-		template.getInput().setNullValid(false);
-		template.getInput().setRequired(true);
+		template.getInput().setNullValid(config.getConflictResolution() != null);
+		template.getInput().setRequired(config.getConflictResolution() == null);
+
+		WebMarkupContainer conflictResolutionContainer = new WebMarkupContainer(ID_CONFLICT_RESOLUTION_CONTAINER);
+		conflictResolutionContainer.setVisible(config.getConflictResolution() != null);
+		form.add(conflictResolutionContainer);
 
 		ListView repeater = new ListView<PropertyConstraintTypeDto>(ID_REPEATER,
 				new PropertyModel<List<PropertyConstraintTypeDto>>(model, ObjectPolicyDialogDto.F_PROPERTY_LIST)) {

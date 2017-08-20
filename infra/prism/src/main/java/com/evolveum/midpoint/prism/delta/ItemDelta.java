@@ -27,7 +27,7 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
@@ -282,7 +282,7 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
             if (itemDefinition != null) {
 				itemDelta.applyDefinition(itemDefinition);
 			} else if (!tolerateNoDefinition) {
-				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + new XPathHolder(path).getXPathWithDeclarations(false));
+				throw new SchemaException("Object type " + definition.getTypeName() + " doesn't contain definition for path " + new ItemPathHolder(path).getXPathWithDeclarations());
 			}
 		}
 	}

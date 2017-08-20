@@ -16,10 +16,10 @@
 package com.evolveum.midpoint.prism.lex.dom;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
 import com.evolveum.midpoint.prism.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.lex.LexicalUtils;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
@@ -27,12 +27,14 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.codehaus.staxmate.dom.DOMConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -40,14 +42,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,16 +104,70 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		}
 	}
 
+	// code taken from Validator class
+	@Override
+	public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
+			RootXNodeHandler handler) throws SchemaException, IOException {
+		InputStream is = source.getInputStream();
+		XMLStreamReader stream = null;
+		try {
+			stream = XMLInputFactory.newInstance().createXMLStreamReader(is);
+
+			int eventType = stream.nextTag();
+			if (eventType != XMLStreamConstants.START_ELEMENT) {
+				throw new SystemException("StAX Malfunction?");
+			}
+			DOMConverter domConverter = new DOMConverter();
+			Map<String, String> rootNamespaceDeclarations = new HashMap<>();
+
+			QName objectsMarker = schemaRegistry.getPrismContext().getObjectsElementName();
+			if (objectsMarker != null && !QNameUtil.match(stream.getName(), objectsMarker)) {
+				readSingleObjectIteratively(stream, rootNamespaceDeclarations, domConverter, handler);
+			}
+			for (int i = 0; i < stream.getNamespaceCount(); i++) {
+				rootNamespaceDeclarations.put(stream.getNamespacePrefix(i), stream.getNamespaceURI(i));
+			}
+			while (stream.hasNext()) {
+				eventType = stream.next();
+				if (eventType == XMLStreamConstants.START_ELEMENT) {
+					if (!readSingleObjectIteratively(stream, rootNamespaceDeclarations, domConverter, handler)) {
+						return;
+					}
+				}
+			}
+		} catch (XMLStreamException ex) {
+			String lineInfo = stream != null
+					? " on line " + stream.getLocation().getLineNumber()
+					: "";
+			throw new SchemaException("Exception while parsing XML" + lineInfo + ": " + ex.getMessage(), ex);
+		} finally {
+			if (source.closeStreamAfterParsing()) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+	}
+
+	private boolean readSingleObjectIteratively(XMLStreamReader stream, Map<String, String> rootNamespaceDeclarations,
+			DOMConverter domConverter, RootXNodeHandler handler) throws XMLStreamException, SchemaException {
+		Document objectDoc = domConverter.buildDocument(stream);
+		Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
+		DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
+		RootXNode rootNode = read(objectElement);
+		return handler.handleData(rootNode);
+	}
+
 	private List<RootXNode> readObjects(Document document) throws SchemaException{
 		Element root = DOMUtil.getFirstChildElement(document);
-		// TODO: maybe some check if this is a collection of other objects???
-		List<Element> children = DOMUtil.listChildElements(root);
-		List<RootXNode> nodes = new ArrayList<>();
-		for (Element child : children){
-			RootXNode xroot = read(child);
-			nodes.add(xroot);
+		QName objectsMarker = schemaRegistry.getPrismContext().getObjectsElementName();
+		if (objectsMarker != null && !QNameUtil.match(DOMUtil.getQName(root), objectsMarker)) {
+			return Collections.singletonList(read(root));
+		} else {
+			List<RootXNode> rv = new ArrayList<>();
+			for (Element child : DOMUtil.listChildElements(root)) {
+				rv.add(read(child));
+			}
+			return rv;
 		}
-		return nodes;
 	}
 
 	@NotNull
@@ -120,7 +177,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	}
 
 	@NotNull
-	public RootXNode read(Element rootElement) throws SchemaException{
+	public RootXNode read(Element rootElement) throws SchemaException {
 		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
 		extractCommonMetadata(rootElement, xroot);
 		XNode xnode = parseElementContent(rootElement, false);
@@ -365,7 +422,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         public String toString() {
             return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
         }
-    };
+    }
     
     private static class PrimitiveAttributeParser<T> implements ValueParser<T>, Serializable {
    			
@@ -402,8 +459,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     }
 
 	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) throws SchemaException {
-		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
-		xnode.setValueParser(new PrimitiveValueParser<T>(element));
+		PrimitiveXNode<T> xnode = new PrimitiveXNode<>();
+		xnode.setValueParser(new PrimitiveValueParser<>(element));
 		return xnode;
 	}
 		
@@ -434,8 +491,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 	}
 
 	private <T> PrimitiveXNode<T> parseAttributeValue(final Attr attr) {
-		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
-		xnode.setValueParser(new PrimitiveAttributeParser<T>(attr));
+		PrimitiveXNode<T> xnode = new PrimitiveXNode<>();
+		xnode.setValueParser(new PrimitiveAttributeParser<>(attr));
 		xnode.setAttribute(true);
 		return xnode;
 	}
@@ -462,7 +519,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	@NotNull
 	private static ItemPathType parsePath(Element element) {
-		XPathHolder holder = new XPathHolder(element);
+		ItemPathHolder holder = new ItemPathHolder(element);
 		return new ItemPathType(holder.toItemPath());
 	}
 
@@ -509,7 +566,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
 	@NotNull
 	@Override
-	public String write(@NotNull List<RootXNode> roots, @NotNull QName aggregateElementName,
+	public String write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName,
 			@Nullable SerializationContext context) throws SchemaException {
 		Element aggregateElement = writeXRootListToElement(roots, aggregateElementName);
 		return DOMUtil.serializeDOMToString(aggregateElement);

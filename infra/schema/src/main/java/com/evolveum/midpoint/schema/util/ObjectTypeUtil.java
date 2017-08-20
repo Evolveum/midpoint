@@ -18,8 +18,8 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
-import com.evolveum.midpoint.prism.marshaller.XPathSegment;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
+import com.evolveum.midpoint.prism.marshaller.PathHolderSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -381,11 +381,11 @@ public class ObjectTypeUtil {
 		definitionProperty.setRealValue(schemaDefinition);
 	}
 
-    public static XPathHolder createXPathHolder(QName property) {
-        XPathSegment xpathSegment = new XPathSegment(property);
-        List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
+    public static ItemPathHolder createXPathHolder(QName property) {
+        PathHolderSegment xpathSegment = new PathHolderSegment(property);
+        List<PathHolderSegment> segmentlist = new ArrayList<PathHolderSegment>(1);
         segmentlist.add(xpathSegment);
-        XPathHolder xpath = new XPathHolder(segmentlist);
+        ItemPathHolder xpath = new ItemPathHolder(segmentlist);
         return xpath;
     }
 

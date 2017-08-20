@@ -86,7 +86,7 @@
         <jasper.version>6.4.1</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.8.0</wro4j.version>
-        <jackson.version>2.8.6</jackson.version>
+        <jackson.version>2.8.9</jackson.version>
         <snakeyaml.version>1.15</snakeyaml.version>
         <surefire.version>2.20</surefire.version>
     </properties>
@@ -283,6 +283,11 @@
 				<artifactId>stax-api</artifactId>
 				<version>1.0-2</version>
 			</dependency>
+            <dependency>
+                <groupId>org.codehaus.staxmate</groupId>
+                <artifactId>staxmate</artifactId>
+                <version>2.0.1</version>
+            </dependency>
             <dependency>
                 <groupId>stax</groupId>
                 <artifactId>stax-api</artifactId>

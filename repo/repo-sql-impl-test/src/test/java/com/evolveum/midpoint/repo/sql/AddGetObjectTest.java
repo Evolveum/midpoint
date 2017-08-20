@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.api.ConflictWatcher;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -49,6 +51,10 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author lazyman
@@ -283,7 +289,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ObjectDelta<UserType> delta = fileUser.diff(repoUser);
         AssertJUnit.assertNotNull(delta);
         LOGGER.info("delta\n{}", delta.debugDump(3));
-        AssertJUnit.assertTrue(delta.isEmpty());
+        assertTrue(delta.isEmpty());
     }
 
     /**
@@ -310,7 +316,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ObjectDelta<ShadowType> delta = fileAccount.diff(repoAccount);
         AssertJUnit.assertNotNull(delta);
         LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
-        AssertJUnit.assertTrue(delta.isEmpty());
+        assertTrue(delta.isEmpty());
         ShadowType repoShadow = repoAccount.asObjectable();
         AssertJUnit.assertNotNull(repoShadow.getSynchronizationSituation());
         AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, repoShadow.getSynchronizationSituation());
@@ -409,7 +415,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void emtpyIterationToken() throws Exception {
         String token = testIterationToken("");
         AssertJUnit.assertNotNull(token);
-        AssertJUnit.assertTrue(token.equals(""));
+        assertTrue(token.equals(""));
     }
 
     /**
@@ -497,7 +503,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         };
 
         repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, false, result);
-        AssertJUnit.assertTrue(!objects.isEmpty());
+        assertTrue(!objects.isEmpty());
     }
 
     @Test
@@ -585,6 +591,144 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         } catch (Exception e) {
             throw new AssertionError("Two container values with the same ID resulted in unexpected exception", e);
         }
+    }
+
+	private final String OID_200 = "70016628-2c41-4a2d-9558-8340014adaab";
+
+	@Test
+    public void test200WatcherAddWithOid() throws Exception {
+        OperationResult result = new OperationResult("test200WatcherAddWithOid");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200);
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 0, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+	@Test
+    public void test201WatcherOverwriteWithOidNoVersion() throws Exception {
+        OperationResult result = new OperationResult("test201WatcherOverwriteWithOidNoVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200);
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), RepoAddOptions.createOverwrite(), result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 1, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+	@Test
+    public void test202WatcherOverwriteWithOidNoVersion2() throws Exception {
+        OperationResult result = new OperationResult("test202WatcherOverwriteWithOidNoVersion2");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200);
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), RepoAddOptions.createOverwrite(), result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 2, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+	@Test
+    public void test203WatcherOverwriteWithOidAndVersion() throws Exception {
+        OperationResult result = new OperationResult("test203WatcherOverwriteWithOidAndVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200).version("1000");
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), RepoAddOptions.createOverwrite(), result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 3, watcher.getExpectedVersion());      // the version is ignored when overwriting
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test210WatcherAddWithOidAndVersion() throws Exception {
+        OperationResult result = new OperationResult("test210WatcherAddWithOidAndVersion");
+
+        // GIVEN
+        final String OID = "f82cdad5-8748-43c1-b20b-7f679fbc1995";
+        UserType user = new UserType(prismContext).name("t210").oid(OID).version("443");
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID);
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 443, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test220WatcherAddWithNoOidNorVersion() throws Exception {
+        OperationResult result = new OperationResult("test220WatcherAddWithNoOidNorVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t220");
+
+        // WHEN
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+	    ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
+	    watcher.setExpectedVersion(user.getVersion());      // the version should be set by repo here
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 0, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test230WatcherAddWithVersion() throws Exception {
+        OperationResult result = new OperationResult("test230WatcherAddWithVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t230").version("2000");
+
+        // WHEN
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+	    ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
+	    watcher.setExpectedVersion(user.getVersion());      // the version should be preserved here
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 2000, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
     }
 
     @Test

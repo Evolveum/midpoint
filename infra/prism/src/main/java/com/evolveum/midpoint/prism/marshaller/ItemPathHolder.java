@@ -60,45 +60,44 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author semancik
  * @author mederly
  */
-public class XPathHolder {
+public class ItemPathHolder {
 
-	private static final Trace LOGGER = TraceManager.getTrace(XPathHolder.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ItemPathHolder.class);
 	public static final String DEFAULT_PREFIX = "c";
 	private boolean absolute;
-	private List<XPathSegment> segments;
-	Map<String, String> explicitNamespaceDeclarations;
+	private List<PathHolderSegment> segments;
+	private final Map<String, String> explicitNamespaceDeclarations = new HashMap<>();
 
     // Part 1: Import from external representations.
 
 	/**
 	 * Sets "current node" Xpath.
 	 */
-	public XPathHolder() {
+	public ItemPathHolder() {
 		absolute = false;
-		segments = new ArrayList<XPathSegment>();
+		segments = new ArrayList<>();
 	}
 
 	// This should not really be used. There should always be a namespace
-	public XPathHolder(String xpath) {
+	public ItemPathHolder(String xpath) {
 		parse(xpath, null, null);
 	}
 
-	public XPathHolder(String xpath, Map<String, String> namespaceMap) {
+	public ItemPathHolder(String xpath, Map<String, String> namespaceMap) {
 		parse(xpath, null, namespaceMap);
 	}
 
-	public XPathHolder(Element domElement) {
+	public ItemPathHolder(Element domElement) {
 
 		String xpath = ".";
-		if (null != domElement) {
+		if (domElement != null) {
 			xpath = domElement.getTextContent();
 		}
 
 		parse(xpath, domElement, null);
 	}
 
-	public XPathHolder(String xpath, Node domNode) {
-
+	public ItemPathHolder(String xpath, Node domNode) {
 		parse(xpath, domNode, null);
 	}
 
@@ -106,27 +105,27 @@ public class XPathHolder {
      * Parses XPath-like expression (midPoint flavour), with regards to domNode from where the namespace declarations
      * (embedded in XML using xmlns attributes) are taken.
      *
-     * @param xpath text representation of the XPath-like expression
+     * @param itemPath text representation of the item path
      * @param domNode context (DOM node from which the expression was taken)
      * @param namespaceMap externally specified namespaces
      */
-	private void parse(String xpath, Node domNode, Map<String, String> namespaceMap) {
+	private void parse(String itemPath, Node domNode, Map<String, String> namespaceMap) {
 
 		segments = new ArrayList<>();
 		absolute = false;
 
-		if (".".equals(xpath)) {
+		if (".".equals(itemPath)) {
 			return;
 		}
 
 		// Check for explicit namespace declarations.
-		TrivialXPathParser parser = TrivialXPathParser.parse(xpath);
-		explicitNamespaceDeclarations = parser.getNamespaceMap();
+		TrivialItemPathParser parser = TrivialItemPathParser.parse(itemPath);
+		explicitNamespaceDeclarations.putAll(parser.getNamespaceMap());
 
 		// Continue parsing with Xpath without the "preamble"
-		xpath = parser.getPureXPathString();
+		itemPath = parser.getPureItemPathString();
 
-		String[] segArray = xpath.split("/");
+		String[] segArray = itemPath.split("/");
 		for (int i = 0; i < segArray.length; i++) {
 			if (segArray[i] == null || segArray[i].isEmpty()) {
 				if (i == 0) {
@@ -134,23 +133,22 @@ public class XPathHolder {
 					// ignore the first empty segment of absolute path
 					continue;
 				} else {
-					throw new IllegalArgumentException("XPath " + xpath + " has an empty segment (number " + i
-							+ ")");
+					throw new IllegalArgumentException("ItemPath " + itemPath + " has an empty segment (number " + i + ")");
 				}
 			}
 
 			String segmentStr = segArray[i];
-            XPathSegment idValueFilterSegment;
+            PathHolderSegment idValueFilterSegment;
 
             // is ID value filter attached to this segment?
             int idValuePosition = segmentStr.indexOf('[');
             if (idValuePosition >= 0) {
                 if (!segmentStr.endsWith("]")) {
-                    throw new IllegalArgumentException("XPath " + xpath + " has a ID segment not ending with ']': '" + segmentStr + "'");
+                    throw new IllegalArgumentException("ItemPath " + itemPath + " has a ID segment not ending with ']': '" + segmentStr + "'");
                 }
                 String value = segmentStr.substring(idValuePosition+1, segmentStr.length()-1);
                 segmentStr = segmentStr.substring(0, idValuePosition);
-                idValueFilterSegment = new XPathSegment(value);
+                idValueFilterSegment = new PathHolderSegment(value);
             } else {
                 idValueFilterSegment = null;
             }
@@ -186,12 +184,12 @@ public class XPathHolder {
                 String namespacePrefix = qnameArray[0];
                 String namespace = findNamespace(namespacePrefix, domNode, namespaceMap);
                 if (namespace == null) {
-                    QNameUtil.reportUndeclaredNamespacePrefix(namespacePrefix, xpath);
+                    QNameUtil.reportUndeclaredNamespacePrefix(namespacePrefix, itemPath);
                     namespacePrefix = QNameUtil.markPrefixAsUndeclared(namespacePrefix);
                 }
                 qname = new QName(namespace, qnameArray[1], namespacePrefix);
             }
-            segments.add(new XPathSegment(qname, variable));
+            segments.add(new PathHolderSegment(qname, variable));
             if (idValueFilterSegment != null) {
                 segments.add(idValueFilterSegment);
             }
@@ -239,16 +237,16 @@ public class XPathHolder {
 		return ns;
 	}
 
-    public XPathHolder(List<XPathSegment> segments) {
+    public ItemPathHolder(List<PathHolderSegment> segments) {
         this(segments, false);
     }
 
-    public XPathHolder(List<XPathSegment> segments, boolean absolute) {
-        this.segments = new ArrayList<XPathSegment>();
-        for (XPathSegment segment : segments) {
+    public ItemPathHolder(List<PathHolderSegment> segments, boolean absolute) {
+        this.segments = new ArrayList<>();
+        for (PathHolderSegment segment : segments) {
             if (segment.getQName() != null && StringUtils.isEmpty(segment.getQName().getPrefix())) {
                 QName qname = segment.getQName();
-                this.segments.add(new XPathSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart())));
+                this.segments.add(new PathHolderSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart())));
             } else {
                 this.segments.add(segment);
             }
@@ -258,38 +256,47 @@ public class XPathHolder {
         this.absolute = absolute;
     }
 
-    public XPathHolder(QName... segmentQNames) {
-        this.segments = new ArrayList<XPathSegment>();
+    public ItemPathHolder(QName... segmentQNames) {
+        this.segments = new ArrayList<>();
         for (QName segmentQName : segmentQNames) {
-            XPathSegment segment = new XPathSegment(segmentQName);
+            PathHolderSegment segment = new PathHolderSegment(segmentQName);
             this.segments.add(segment);
         }
 
         this.absolute = false;
     }
 
-    public XPathHolder(ItemPath propertyPath) {
+    public ItemPathHolder(ItemPath itemPath) {
+		this(itemPath, false);
+    }
+
+    public ItemPathHolder(ItemPath itemPath, boolean forceExplicitNamespaceDeclarations) {
+		if (itemPath.getNamespaceMap() != null) {
+			this.explicitNamespaceDeclarations.putAll(itemPath.getNamespaceMap());
+		}
         this.segments = new ArrayList<>();
-        for (ItemPathSegment segment: propertyPath.getSegments()) {
-            XPathSegment xsegment;
+        for (ItemPathSegment segment: itemPath.getSegments()) {
+            PathHolderSegment xsegment;
             if (segment instanceof NameItemPathSegment) {
-            	boolean variable = ((NameItemPathSegment) segment).isVariable();
-                xsegment = new XPathSegment(((NameItemPathSegment)segment).getName(), variable);
+            	boolean variable = segment.isVariable();
+	            QName name = ((NameItemPathSegment) segment).getName();
+	            xsegment = new PathHolderSegment(name, variable);
+	            if (forceExplicitNamespaceDeclarations && StringUtils.isNotEmpty(name.getPrefix())) {
+	            	this.explicitNamespaceDeclarations.put(name.getPrefix(), name.getNamespaceURI());
+	            }
             } else if (segment instanceof IdItemPathSegment) {
-                xsegment = new XPathSegment(idToString(((IdItemPathSegment) segment).getId()));
+                xsegment = new PathHolderSegment(idToString(((IdItemPathSegment) segment).getId()));
             } else if (segment instanceof ObjectReferencePathSegment) {
-				xsegment = new XPathSegment(PrismConstants.T_OBJECT_REFERENCE, false);
+				xsegment = new PathHolderSegment(PrismConstants.T_OBJECT_REFERENCE, false);
 			} else if (segment instanceof ParentPathSegment) {
-				xsegment = new XPathSegment(PrismConstants.T_PARENT, false);
+				xsegment = new PathHolderSegment(PrismConstants.T_PARENT, false);
 			} else if (segment instanceof IdentifierPathSegment) {
-				xsegment = new XPathSegment(PrismConstants.T_ID, false);
+				xsegment = new PathHolderSegment(PrismConstants.T_ID, false);
 			} else {
 				throw new IllegalStateException("Unknown segment: " + segment);
 			}
             this.segments.add(xsegment);
         }
-        this.explicitNamespaceDeclarations = propertyPath.getNamespaceMap();
-
         this.absolute = false;
     }
 
@@ -309,23 +316,10 @@ public class XPathHolder {
         return sb.toString();
     }
 
-
-    public String getXPathWithDeclarations() {
-//		StringBuilder sb = new StringBuilder();
-//
-//		addExplicitNsDeclarations(sb);
-//		addPureXpath(sb);
-
-		return getXPathWithDeclarations(false);
-//		return sb.toString();
-	}
-	
-	public String getXPathWithDeclarations(boolean forceExplicitDeclaration) {
+	public String getXPathWithDeclarations() {
 		StringBuilder sb = new StringBuilder();
-
-		addExplicitNsDeclarations(sb, forceExplicitDeclaration);
+		addExplicitNsDeclarations(sb);
 		addPureXpath(sb);
-
 		return sb.toString();
 	}
 
@@ -342,7 +336,7 @@ public class XPathHolder {
 
         boolean first = true;
 
-		for (XPathSegment seg : segments) {
+		for (PathHolderSegment seg : segments) {
 
             if (seg.isIdValueFilter()) {
 
@@ -395,7 +389,7 @@ public class XPathHolder {
         	 objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
         }
         ItemDefinition def = null;
-		for (XPathSegment seg : segments) {
+		for (PathHolderSegment seg : segments) {
 
             if (seg.isIdValueFilter()) {
             	//for now, we don't want to save concrete id, just the path 
@@ -438,10 +432,10 @@ public class XPathHolder {
 
 	public Map<String, String> getNamespaceMap() {
 
-		Map<String, String> namespaceMap = new HashMap<String, String>();
-		Iterator<XPathSegment> iter = segments.iterator();
+		Map<String, String> namespaceMap = new HashMap<>();
+		Iterator<PathHolderSegment> iter = segments.iterator();
 		while (iter.hasNext()) {
-			XPathSegment seg = iter.next();
+			PathHolderSegment seg = iter.next();
 			QName qname = seg.getQName();
             if (qname != null) {
                 if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
@@ -498,16 +492,16 @@ public class XPathHolder {
 		return element;
 	}
 
-	public List<XPathSegment> toSegments() {
+	public List<PathHolderSegment> toSegments() {
 		// FIXME !!!
 		return Collections.unmodifiableList(segments);
 	}
 
 	@NotNull
     public ItemPath toItemPath() {
-        List<XPathSegment> xsegments = toSegments();
-        List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>(xsegments.size());
-        for (XPathSegment segment : xsegments) {
+        List<PathHolderSegment> xsegments = toSegments();
+        List<ItemPathSegment> segments = new ArrayList<>(xsegments.size());
+        for (PathHolderSegment segment : xsegments) {
             if (segment.isIdValueFilter()) {
                 segments.add(new IdItemPathSegment(idToLong(segment.getValue())));
             } else {
@@ -526,13 +520,10 @@ public class XPathHolder {
 	/**
 	 * Returns new XPath with a specified element prepended to the path. Useful
 	 * for "transposing" relative paths to a absolute root.
-	 * 
-	 * @param parentPath
-	 * @return
 	 */
-	public XPathHolder transposedPath(QName parentPath) {
-		XPathSegment segment = new XPathSegment(parentPath);
-		List<XPathSegment> segments = new ArrayList<XPathSegment>();
+	public ItemPathHolder transposedPath(QName parentPath) {
+		PathHolderSegment segment = new PathHolderSegment(parentPath);
+		List<PathHolderSegment> segments = new ArrayList<>();
 		segments.add(segment);
 		return transposedPath(segments);
 	}
@@ -540,29 +531,18 @@ public class XPathHolder {
 	/**
 	 * Returns new XPath with a specified element prepended to the path. Useful
 	 * for "transposing" relative paths to a absolute root.
-	 * 
-	 * @param parentPath
-	 * @return
 	 */
-	public XPathHolder transposedPath(List<XPathSegment> parentPath) {
-		List<XPathSegment> allSegments = new ArrayList<XPathSegment>();
+	public ItemPathHolder transposedPath(List<PathHolderSegment> parentPath) {
+		List<PathHolderSegment> allSegments = new ArrayList<>();
 		allSegments.addAll(parentPath);
 		allSegments.addAll(toSegments());
-		return new XPathHolder(allSegments);
+		return new ItemPathHolder(allSegments);
 	}
 	
 	
 
-	private void addExplicitNsDeclarations(StringBuilder sb, boolean forceExplicitDeclaration) {
-		boolean emptyExplicit = false;
-		if (explicitNamespaceDeclarations == null || explicitNamespaceDeclarations.isEmpty()) {
-//			if (!forceExplicitDeclaration){
-			return;
-//			}
-//			throw new IllegalStateException("Expecting explicit namespace declaration.");
-		}
-
-//		if (!emptyExplicit){
+	private void addExplicitNsDeclarations(StringBuilder sb) {
+		if (explicitNamespaceDeclarations != null) {
 			for (String prefix : explicitNamespaceDeclarations.keySet()) {
 				sb.append("declare ");
 				if (prefix.equals("")) {
@@ -577,13 +557,7 @@ public class XPathHolder {
 					sb.append("'; ");
 				}
 			}
-//		} else{
-//			for (XPathSegment segment : this.toSegments()){
-//				sb.append("declare ");
-//				QName s = segment.getQName();
-//				if (s.getPrefix()
-//			}
-//		}
+		}
 	}
 
 	public boolean isEmpty() {
@@ -617,13 +591,13 @@ public class XPathHolder {
 			if (segments.size() != 1) {
 				return false;
 			}
-			XPathSegment segment = segments.get(0);
+			PathHolderSegment segment = segments.get(0);
 			return segment.getQName().equals((QName)obj);
 		}
 		
 		if (getClass() != obj.getClass())
 			return false;
-		XPathHolder other = (XPathHolder) obj;
+		ItemPathHolder other = (ItemPathHolder) obj;
 		if (absolute != other.absolute)
 			return false;
 		if (segments == null) {
@@ -637,7 +611,7 @@ public class XPathHolder {
 	/**
 	 * Returns true if this path is below a specified path.
 	 */
-	public boolean isBelow(XPathHolder path) {
+	public boolean isBelow(ItemPathHolder path) {
 		if (this.segments.size() < 1){
 			return false;
 		}
@@ -662,7 +636,7 @@ public class XPathHolder {
 	 * of this path that are below the specified path.
 	 * Returns null if the assumption is false.
 	 */
-	public List<XPathSegment> getTail(XPathHolder path) {
+	public List<PathHolderSegment> getTail(ItemPathHolder path) {
 		int i = 0;
 		while(i < path.segments.size()) {
 			if (i > this.segments.size()) {
@@ -683,7 +657,7 @@ public class XPathHolder {
 		if (pathElement == null) {
 			return true;
 		}
-		XPathHolder xpath = new XPathHolder(pathElement);
+		ItemPathHolder xpath = new ItemPathHolder(pathElement);
 		if (xpath.isEmpty()) {
 			return true;
 		}

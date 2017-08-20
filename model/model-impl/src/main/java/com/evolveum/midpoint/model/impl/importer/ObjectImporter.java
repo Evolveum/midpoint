@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Extension of validator used to import objects to the repository.
@@ -120,23 +121,50 @@ public class ObjectImporter {
 		    }
 	    }
 
+	    int stopAfterErrors = options != null && options.getStopAfterErrors() != null ?
+			    options.getStopAfterErrors() : 0;
+
 	    if (!PrismContext.LANG_XML.equals(language)) {
-		    List<PrismObject<? extends Objectable>> prismObjects;
+		    AtomicInteger index = new AtomicInteger(0);
+		    AtomicInteger errors = new AtomicInteger(0);
+		    AtomicInteger successes = new AtomicInteger(0);
+		    PrismParser.ObjectHandler handler = new PrismParser.ObjectHandler() {
+			    @Override
+			    public boolean handleData(PrismObject<?> object) {
+				    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
+				    objectResult.addContext("objectNumber", index.incrementAndGet());
+				    importParsedObject(object, null, objectResult, options, task, raw);
+				    objectResult.computeStatusIfUnknown();
+					objectResult.cleanupResult();
+					parentResult.summarize();
+
+				    if (objectResult.isAcceptable()) {
+				    	successes.incrementAndGet();
+				    } else {
+				    	errors.incrementAndGet();
+				    }
+				    return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
+			    }
+
+			    @Override
+			    public boolean handleError(Throwable t) {
+				    OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
+				    objectResult.addContext("objectNumber", index.incrementAndGet());
+				    objectResult.recordFatalError("Couldn't parse object", t);
+				    parentResult.summarize();
+
+			    	errors.incrementAndGet();
+			    	return stopAfterErrors == 0 || errors.get() < stopAfterErrors;
+			    }
+		    };
 		    try {
-			    prismObjects = prismContext.parserFor(input).language(language).parseObjects();
+			    prismContext.parserFor(input).language(language).parseObjectsIteratively(handler);
 		    } catch (SchemaException|IOException e) {
 			    parentResult.recordFatalError("Couldn't parse objects to be imported: " + e.getMessage(), e);
 			    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse objects to be imported", e);
 			    return;
 		    }
-		    int i = 0;
-		    for (PrismObject<? extends Objectable> prismObject : prismObjects) {
-		    	OperationResult objectResult = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
-		    	objectResult.addContext("objectNumber", ++i);
-			    importParsedObject(prismObject, null, objectResult, options, task, raw);
-			    objectResult.computeStatusIfUnknown();
-		    }
-		    parentResult.computeStatusIfUnknown();      // TODO some statistics here
+		    parentResult.computeStatus(errors.get() + " errors, " + successes.get() + " passed");
 	    } else {
 		    EventHandler handler = new EventHandler() {
 
@@ -161,10 +189,8 @@ public class ObjectImporter {
 		    validator.setVerbose(true);
 		    if (options != null) {
 			    validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
-			    if (options.getStopAfterErrors() != null) {
-				    validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
-			    }
 		    }
+		    validator.setStopAfterErrors(stopAfterErrors);
 		    validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
 	    }
     }
@@ -206,8 +232,8 @@ public class ObjectImporter {
 			return EventResult.skipObject(objectResult.getMessage());
 		}
 
-		if (objectElement != null && options != null && BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
-		    validateWithDynamicSchemas(object, objectElement, repository, objectResult);
+		if (options != null && BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
+		    validateWithDynamicSchemas(object, repository, objectResult);
 		}
 
 		objectResult.computeStatus();
@@ -388,8 +414,8 @@ public class ObjectImporter {
         return object.getOid();
     }
 
-    protected <T extends ObjectType> void validateWithDynamicSchemas(PrismObject<T> object, Element objectElement,
-                                                           RepositoryService repository, OperationResult objectResult) {
+    private <T extends ObjectType> void validateWithDynamicSchemas(PrismObject<T> object, RepositoryService repository,
+		    OperationResult objectResult) {
 
         // TODO: check extension schema (later)
     	OperationResult result = objectResult.createSubresult(OPERATION_VALIDATE_DYN_SCHEMA);

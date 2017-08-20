@@ -190,20 +190,13 @@ abstract class PrismParserImpl implements PrismParser {
 	}
 
 	void doParseObjectsIteratively(ObjectHandler handler) throws IOException, SchemaException {
-		getLexicalProcessor().readObjectsIteratively(source, context, new RootXNodeHandler() {
-			@Override
-			public boolean handleData(RootXNode root) {
-				try {
-					// caller must make sure that itemDefinition, itemName, typeName, typeClass apply to all the objects
-					PrismObject<?> object = prismContext.getPrismUnmarshaller()
-							.parseObject(root, itemDefinition, itemName, typeName, typeClass, context);
-					return handler.handleData(object);
-				} catch (Throwable t) {
-					return handler.handleError(t);
-				}
-			}
-			@Override
-			public boolean handleError(Throwable t) {
+		getLexicalProcessor().readObjectsIteratively(source, context, root -> {
+			try {
+				// caller must make sure that itemDefinition, itemName, typeName, typeClass apply to all the objects
+				PrismObject<?> object = prismContext.getPrismUnmarshaller()
+						.parseObject(root, itemDefinition, itemName, typeName, typeClass, context);
+				return handler.handleData(object);
+			} catch (Throwable t) {
 				return handler.handleError(t);
 			}
 		});

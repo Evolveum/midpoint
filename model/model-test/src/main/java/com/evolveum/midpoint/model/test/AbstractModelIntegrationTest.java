@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -677,7 +676,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, options, task, result);	
+		modelService.executeChanges(deltas, options, task, result);
 	}
 	
 	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -707,7 +706,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationDeleteProperty(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected <O extends ObjectType> void modifyObjectAddProperty(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
@@ -715,7 +714,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationAddProperty(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected <O extends ObjectType, C extends Containerable> void modifyObjectReplaceContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue) 
@@ -751,7 +750,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceReference(type, oid, refPath, prismContext, refVals);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected void modifyUserAdd(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
@@ -765,7 +764,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserAddDelta(userOid, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected void modifyUserDelete(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
@@ -779,7 +778,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserDeleteDelta(userOid, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected void modifyAccountShadowReplace(String accountOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
@@ -1177,7 +1176,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid,
 				UserType.F_ASSIGNMENT, prismContext, new PrismContainerValue[0]);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		modelService.executeChanges(deltas, null, task, result);		
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, 
@@ -3063,6 +3062,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             addObject(file);
         }
     }
+
+    // not going through model to avoid conflicts (because the task starts execution during the clockwork operation)
+	protected void addTask(File file) throws SchemaException, IOException, ObjectAlreadyExistsException {
+		taskManager.addTask(prismContext.parseObject(file), new OperationResult("addTask"));
+	}
 
 	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = PrismTestUtil.parseObject(file);

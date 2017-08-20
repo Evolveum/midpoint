@@ -21,14 +21,9 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
-
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,7 +34,6 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * @author semancik
