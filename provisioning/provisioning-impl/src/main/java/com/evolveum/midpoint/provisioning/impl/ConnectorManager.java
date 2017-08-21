@@ -235,7 +235,8 @@ public class ConnectorManager {
 		
 		ConnectorInstance connector = createConnectorInstance(connectorSpec, result);
 		
-		PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration().getValue();
+		PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration() != null ?
+				connectorSpec.getConnectorConfiguration().getValue() : null;
 		if (connectorConfigurationVal == null) {
 			SchemaException e = new SchemaException("No connector configuration in "+connectorSpec);
 			result.recordFatalError(e);
