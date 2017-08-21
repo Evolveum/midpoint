@@ -27,7 +27,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  * @author mederly
  */
 public class ExpressionWrapper implements Cloneable, Serializable {
-
+	private static final long serialVersionUID = 1L;
+	
 	private QName elementName;
     private Object expression;
 

@@ -19,24 +19,38 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import com.evolveum.midpoint.util.DebugUtil;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
@@ -59,6 +73,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
+	private static final String VARIOUS_VALUES = "[various values]";
 	private static final String INDENT_STRING = "    ";
 
     /**
@@ -85,6 +100,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static final String PARAM_OBJECT = "object";
 	public static final String PARAM_QUERY = "query";
 	public static final String PARAM_PROJECTION = "projection";
+	public static final String PARAM_LANGUAGE = "language";
 	
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
@@ -92,9 +108,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
-	private Map<String, Serializable> params;
-	private Map<String, Serializable> context;
-	private Map<String, Serializable> returns;
+	
+	// Values of the following maps should NOT be null. But in reality it does happen.
+	// If there is a null value, it should be stored as a single-item collection, where the item is null.
+	// But the collection should not be null. TODO; fix this
+	private Map<String, Collection<String>> params;
+	private Map<String, Collection<String>> context;
+	private Map<String, Collection<String>> returns;
+	
 	private long token;
 	private String messageCode;
 	private String message;
@@ -151,31 +172,31 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		this(operation, null, status, token, messageCode, message, null, cause, null);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message) {
 		this(operation, params, status, token, messageCode, message, null, null, null);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, List<OperationResult> subresults) {
 		this(operation, params, status, token, messageCode, message, null, null, subresults);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage, Throwable cause,
 			List<OperationResult> subresults) {
 		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
 	}
 	
-	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
 			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
 		this(operation, params, null, null, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
 	}
 
-	public OperationResult(String operation, Map<String, Serializable> params, Map<String, Serializable> context, Map<String, Serializable> returns, OperationResultStatus status,
+	public OperationResult(String operation, Map<String, Collection<String>> params, Map<String, Collection<String>> context, Map<String, Collection<String>> returns, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
 			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
 		if (StringUtils.isEmpty(operation)) {
@@ -422,7 +443,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 					(status == OperationResultStatus.PARTIAL_ERROR);
 	}
 
-	public boolean isFatalError(){
+	public boolean isFatalError() {
 		return (status == OperationResultStatus.FATAL_ERROR);
 	}
 	
@@ -709,91 +730,291 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
 	}
+	
+	public boolean isMinor() {
+		return minor;
+	}
 
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
 	 * described in module interface for every operation.
-	 * 
-	 * @return never returns null
 	 */
-	public Map<String, Serializable> getParams() {
+	public Map<String, Collection<String>> getParams() {
 		if (params == null) {
 			params = new HashMap<>();
 		}
 		return params;
 	}
-
-	public void addParam(String paramName, Serializable paramValue) {
-		getParams().put(paramName, paramValue);
+	
+	public Collection<String> getParam(String name) {
+		return getParams().get(name);
+	}
+	
+	public String getParamSingle(String name) {
+		Collection<String> values = getParams().get(name);
+		if (values == null) {
+			return null;
+		}
+		if (values.isEmpty()) {
+			return null;
+		}
+		if (values.size() > 1) {
+			throw new IllegalStateException("More than one parameter "+name+" in "+this);
+		}
+		return values.iterator().next();
 	}
 
-    public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
-        addParam(paramName, String.valueOf(paramValue));
-    }
-
-    // Copies a collection to a OperationResult's param field. Primarily used to overcome the fact that Collection is not Serializable
-    public void addCollectionOfSerializablesAsParam(String paramName, Collection<? extends Serializable> paramValue) {
-        addParam(paramName, paramValue != null ? new ArrayList<>(paramValue) : null);
-    }
-
-    public void addCollectionOfSerializablesAsReturn(String name, Collection<? extends Serializable> value) {
-        addReturn(name, value != null ? new ArrayList<>(value) : null);
-    }
-
-    public void addArbitraryCollectionAsParam(String paramName, Collection values) {
-        if (values != null) {
-            ArrayList<String> valuesAsStrings = new ArrayList<>();
-            for (Object value : values) {
-                valuesAsStrings.add(String.valueOf(value));
-            }
-            addParam(paramName, valuesAsStrings);
-        } else {
-            addParam(paramName, null);
-        }
-    }
-
-
-    public void addParams(String[] names, Serializable... objects) {
-		if (names.length != objects.length) {
-			throw new IllegalArgumentException("Bad result parameters size, names '" + names.length
-					+ "', objects '" + objects.length + "'.");
-		}
-
-		for (int i = 0; i < names.length; i++) {
-			addParam(names[i], objects[i]);
-		}
+	public void addParam(String name, String value) {
+		getParams().put(name, collectionize(value));
+	}
+	
+	public void addParam(String name, PrismObject<? extends ObjectType> value) {
+		getParams().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addParam(String name, ObjectType value) {
+		getParams().put(name, collectionize(stringify(value)));
 	}
 
-	public Map<String, Serializable> getContext() {
+	public void addParam(String name, boolean value) {
+		getParams().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addParam(String name, long value) {
+		getParams().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addParam(String name, int value) {
+		getParams().put(name, collectionize(stringify(value)));
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void addParam(String name, Class<?> value) {
+		if (ObjectType.class.isAssignableFrom(value)) {
+			getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+		} else {
+			getParams().put(name, collectionize(stringify(value)));
+		}
+	}
+	
+	public void addParam(String name, QName value) {
+		getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+	}
+	
+	public void addParam(String name, PolyString value) {
+		getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+	}
+	
+	public void addParam(String name, ObjectQuery value) {
+		getParams().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addParam(String name, ObjectDelta<?> value) {
+		getParams().put(name, collectionize(stringify(value)));
+	}
+	
+	
+	public void addParam(String name, String... values) {
+		getParams().put(name, collectionize(values));
+	}
+
+	public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
+		getParams().put(paramName, collectionize(stringify(paramValue)));
+    }
+
+    public void addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
+		getParams().put(name, stringifyCol(value));
+    }
+
+    public Map<String, Collection<String>> getContext() {
 		if (context == null) {
 			context = new HashMap<>();
 		}
 		return context;
 	}
-
+    
+	public void addContext(String name, String value) {
+		getContext().put(name, collectionize(value));
+	}
+	
+	public void addContext(String name, PrismObject<? extends ObjectType> value) {
+		getContext().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addContext(String name, ObjectType value) {
+		getContext().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addContext(String name, boolean value) {
+		getContext().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addContext(String name, long value) {
+		getContext().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addContext(String name, int value) {
+		getContext().put(name, collectionize(stringify(value)));
+	}
+	
 	@SuppressWarnings("unchecked")
-	public <T> T getContext(Class<T> type, String contextName) {
-		return (T) getContext().get(contextName);
+	public void addContext(String name, Class<?> value) {
+		if (ObjectType.class.isAssignableFrom(value)) {
+			getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+		} else {
+			getContext().put(name, collectionize(stringify(value)));
+		}
+	}
+	
+	public void addContext(String name, QName value) {
+		getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+	}
+	
+	public void addContext(String name, PolyString value) {
+		getContext().put(name, collectionize(value == null ? null : value.getOrig()));
+	}
+	
+	public void addContext(String name, ObjectQuery value) {
+		getContext().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addContext(String name, ObjectDelta<?> value) {
+		getContext().put(name, collectionize(stringify(value)));
+	}
+	
+	
+	public void addContext(String name, String... values) {
+		getContext().put(name, collectionize(values));
 	}
 
-	public void addContext(String contextName, Serializable value) {
-		getContext().put(contextName, value);
-	}
+	public void addArbitraryObjectAsContext(String name, Object value) {
+		getContext().put(name, collectionize(stringify(value)));
+    }
 
-	public Map<String, Serializable> getReturns() {
+    public void addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
+    	getContext().put(paramName, stringifyCol(paramValue));
+    }
+    
+	public Map<String, Collection<String>> getReturns() {
 		if (returns == null) {
 			returns = new HashMap<>();
 		}
 		return returns;
 	}
-
-	public void addReturn(String returnName, Serializable value) {
-		getReturns().put(returnName, value);
+	
+	public Collection<String> getReturn(String name) {
+		return getReturns().get(name);
+	}
+	
+	public String getReturnSingle(String name) {
+		Collection<String> values = getReturns().get(name);
+		if (values == null) {
+			return null;
+		}
+		if (values.isEmpty()) {
+			return null;
+		}
+		if (values.size() > 1) {
+			throw new IllegalStateException("More than one return "+name+" in "+this);
+		}
+		return values.iterator().next();
 	}
 
-	public Serializable getReturn(String returnName) {
-		return getReturns().get(returnName);
+	public void addReturn(String name, String value) {
+		getReturns().put(name, collectionize(value));
 	}
+	
+	public void addReturn(String name, PrismObject<? extends ObjectType> value) {
+		getReturns().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addReturn(String name, ObjectType value) {
+		getReturns().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addReturn(String name, boolean value) {
+		getReturns().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addReturn(String name, long value) {
+		getReturns().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addReturn(String name, int value) {
+		getReturns().put(name, collectionize(stringify(value)));
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void addReturn(String name, Class<?> value) {
+		if (ObjectType.class.isAssignableFrom(value)) {
+			getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+		} else {
+			getReturns().put(name, collectionize(stringify(value)));
+		}
+	}
+	
+	public void addReturn(String name, QName value) {
+		getReturns().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+	}
+	
+	public void addReturn(String name, PolyString value) {
+		getReturns().put(name, collectionize(value == null ? null : value.getOrig()));
+	}
+	
+	public void addReturn(String name, ObjectQuery value) {
+		getReturns().put(name, collectionize(stringify(value)));
+	}
+	
+	public void addReturn(String name, ObjectDelta<?> value) {
+		getReturns().put(name, collectionize(stringify(value)));
+	}
+	
+	
+	public void addReturn(String name, String... values) {
+		getReturns().put(name, collectionize(values));
+	}
+
+	public void addArbitraryObjectAsReturn(String name, Object value) {
+		getReturns().put(name, collectionize(stringify(value)));
+    }
+
+    public void addArbitraryObjectCollectionAsReturn(String paramName, Collection<?> paramValue) {
+    	getReturns().put(paramName, stringifyCol(paramValue));
+    }	
+    
+    private String stringify(Object value) {
+		if (value == null) {
+			return null;
+		} else {
+			return value.toString();
+		}
+	}
+    
+    private Collection<String> collectionize(String value) {
+    	Collection<String> out = new ArrayList<>(1);
+    	out.add(value);
+    	return out;
+    }
+    
+    private Collection<String> collectionize(String... values) {
+    	return Arrays.asList(values);
+    }
+    
+    private Collection<String> stringifyCol(Collection<?> values) {
+		if (values == null) {
+			return null;
+		}
+		Collection<String> out = new ArrayList<>(values.size());
+		for (Object value: values) {
+			if (value == null) {
+				out.add(null);
+			} else {
+				out.add(value.toString());
+			}
+		}
+		return out;
+	}
+
 
 	/**
 	 * @return Contains random long number, for better searching in logs.
@@ -993,21 +1214,14 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return details;
 	}
 
-	@Override
-	public String toString() {
-		return "R(" + operation + " " + status + " " + message + ")";
-	}
-
-
-
-	public static OperationResult createOperationResult(OperationResultType result) {
+	public static OperationResult createOperationResult(OperationResultType result) throws SchemaException {
 		if (result == null) {
             return null;
         }
 
-		Map<String, Serializable> params = ParamsTypeUtil.fromParamsType(result.getParams());
-		Map<String, Serializable> context = ParamsTypeUtil.fromParamsType(result.getContext());
-		Map<String, Serializable> returns = ParamsTypeUtil.fromParamsType(result.getReturns());
+		Map<String, Collection<String>> params = ParamsTypeUtil.fromParamsType(result.getParams());
+		Map<String, Collection<String>> context = ParamsTypeUtil.fromParamsType(result.getContext());
+		Map<String, Collection<String>> returns = ParamsTypeUtil.fromParamsType(result.getReturns());
 
 		List<OperationResult> subresults = null;
 		if (!result.getPartialResults().isEmpty()) {
@@ -1025,6 +1239,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizedMessage, localizedArguments, null,
 				subresults);
+		opResult.setMinor(BooleanUtils.isTrue(result.isMinor()));
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
 		}
@@ -1039,18 +1254,21 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	private OperationResultType createOperationResultType(OperationResult opResult) {
-		OperationResultType result = new OperationResultType();
-		result.setToken(opResult.getToken());
-		result.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
+		OperationResultType resultType = new OperationResultType();
+		resultType.setToken(opResult.getToken());
+		resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
+		if (opResult.isMinor()) {
+			resultType.setMinor(true);
+		}
 		if (opResult.getCount() != 1) {
-			result.setCount(opResult.getCount());
+			resultType.setCount(opResult.getCount());
 		}
 		if (opResult.getHiddenRecordsCount() != 0) {
-			result.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
+			resultType.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
 		}
-		result.setOperation(opResult.getOperation());
-		result.setMessage(opResult.getMessage());
-		result.setMessageCode(opResult.getMessageCode());
+		resultType.setOperation(opResult.getOperation());
+		resultType.setMessage(opResult.getMessage());
+		resultType.setMessageCode(opResult.getMessageCode());
 
 		if (opResult.getCause() != null || !opResult.details.isEmpty()) {
 			StringBuilder detailsb = new StringBuilder();
@@ -1077,7 +1295,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 				}
 			}
 
-			result.setDetails(detailsb.toString());
+			resultType.setDetails(detailsb.toString());
 		}
 
 		if (StringUtils.isNotEmpty(opResult.getLocalizationMessage())) {
@@ -1086,18 +1304,18 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			if (opResult.getLocalizationArguments() != null) {
 				message.getArgument().addAll(opResult.getLocalizationArguments());
 			}
-			result.setLocalizedMessage(message);
+			resultType.setLocalizedMessage(message);
 		}
 
-		result.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
-		result.setContext(ParamsTypeUtil.toParamsType(opResult.getContext()));
-		result.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
+		resultType.setParams(ParamsTypeUtil.toParamsType(opResult.getParams()));
+		resultType.setContext(ParamsTypeUtil.toParamsType(opResult.getContext()));
+		resultType.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
 
 		for (OperationResult subResult : opResult.getSubresults()) {
-			result.getPartialResults().add(opResult.createOperationResultType(subResult));
+			resultType.getPartialResults().add(opResult.createOperationResultType(subResult));
 		}
 
-		return result;
+		return resultType;
 	}
 
 	public void summarize() {
@@ -1197,27 +1415,33 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		target.incrementCount();
 	}
 
-	private void mergeMap(Map<String, Serializable> targetMap, Map<String, Serializable> sourceMap) {
-		for (Entry<String, Serializable> targetEntry: targetMap.entrySet()) {
+	private void mergeMap(Map<String, Collection<String>> targetMap, Map<String, Collection<String>> sourceMap) {
+		for (Entry<String, Collection<String>> targetEntry: targetMap.entrySet()) {
 			String targetKey = targetEntry.getKey();
-			Serializable targetValue = targetEntry.getValue();
-			if (targetValue instanceof VariousValues) {
+			Collection<String> targetValues = targetEntry.getValue();
+			if (targetValues != null && targetValues.contains(VARIOUS_VALUES)) {
 				continue;
 			}
-			Serializable sourceValue = sourceMap.get(targetKey);
-			if (MiscUtil.equals(targetValue, sourceValue)) {
+			Collection<String> sourceValues = sourceMap.get(targetKey);
+			if (MiscUtil.equals(targetValues, sourceValues)) {
 				// Entries match, nothing to do
 				continue;
 			}
 			// Entries do not match. The target entry needs to be marked as VariousValues
-			targetEntry.setValue(new VariousValues());
+			targetEntry.setValue(createVariousValues());
 		}
-		for (Entry<String, Serializable> sourceEntry: sourceMap.entrySet()) {
+		for (Entry<String, Collection<String>> sourceEntry: sourceMap.entrySet()) {
 			String sourceKey = sourceEntry.getKey();
 			if (!targetMap.containsKey(sourceKey)) {
-				targetMap.put(sourceKey, new VariousValues());
+				targetMap.put(sourceKey, createVariousValues());
 			}
 		}
+	}
+
+	private Collection<String> createVariousValues() {
+		List<String> out = new ArrayList<>(1);
+		out.add(VARIOUS_VALUES);
+		return out;
 	}
 
 	private OperationResult findSimilarSubresult(OperationResult subresult) {
@@ -1324,7 +1548,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 		sb.append("\n");
 
-		for (Map.Entry<String, Serializable> entry : getParams().entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : getParams().entrySet()) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[p]");
 			sb.append(entry.getKey());
@@ -1333,7 +1557,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("\n");
 		}
 
-		for (Map.Entry<String, Serializable> entry : getContext().entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : getContext().entrySet()) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[c]");
 			sb.append(entry.getKey());
@@ -1342,7 +1566,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("\n");
 		}
 		
-		for (Map.Entry<String, Serializable> entry : getReturns().entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : getReturns().entrySet()) {
 			DebugUtil.indentDebugDump(sb, indent + 2);
 			sb.append("[r]");
 			sb.append(entry.getKey());
@@ -1376,19 +1600,17 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		}
 	}
 
-	private String dumpEntry(int indent, Serializable value) {
-		if (value instanceof Element) {
-			Element element = (Element)value;
-			if (SchemaConstants.C_VALUE.equals(DOMUtil.getQName(element))) {
-				try {
-					String cvalue = SchemaDebugUtil.prettyPrint(XmlTypeConverter.toJavaValue(element));
-					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, cvalue);
-				} catch (Exception e) {
-					return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, "value: " + element.getTextContent());
-				}
-			}
+	private String dumpEntry(int indent, Collection<String> values) {
+		if (values == null) {
+			return null;
 		}
-		return DebugUtil.fixIndentInMultiline(indent, INDENT_STRING, SchemaDebugUtil.prettyPrint(value));
+		if (values.size() == 0) {
+			return "(empty)";
+		}
+		if (values.size() == 1) {
+			return values.iterator().next();
+		}
+		return values.toString();
 	}
 
 	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {
@@ -1419,8 +1641,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public String getBackgroundTaskOid() {
-		Object oid = getReturns().get(RETURN_BACKGROUND_TASK_OID);
-		return oid != null ? String.valueOf(oid) : null;
+		return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
 	}
 
 	public void setMinor(boolean value) {
@@ -1473,9 +1694,9 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         OperationResult clone = new OperationResult(operation);
 
         clone.status = status;
-        clone.params = CloneUtil.clone(params);
-        clone.context = CloneUtil.clone(context);
-        clone.returns = CloneUtil.clone(returns);
+        clone.params = cloneParams(params);
+        clone.context = cloneParams(context);
+        clone.returns = cloneParams(returns);
         clone.token = token;
         clone.messageCode = messageCode;
         clone.message = message;
@@ -1502,6 +1723,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
         return clone;
     }
 
+	private Map<String, Collection<String>> cloneParams(Map<String, Collection<String>> map) {
+		// TODO: implement more efficient clone
+		return CloneUtil.clone(map);
+	}
+
 	public static int getSubresultStripThreshold() {
 		return subresultStripThreshold;
 	}
@@ -1510,4 +1736,161 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public static void setSubresultStripThreshold(Integer value) {
 		subresultStripThreshold = value != null ? value : DEFAULT_SUBRESULT_STRIP_THRESHOLD;
 	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((asynchronousOperationReference == null) ? 0 : asynchronousOperationReference.hashCode());
+		result = prime * result + ((cause == null) ? 0 : cause.hashCode());
+		result = prime * result + ((context == null) ? 0 : context.hashCode());
+		result = prime * result + count;
+		result = prime * result + ((details == null) ? 0 : details.hashCode());
+		result = prime * result + hiddenRecordsCount;
+		result = prime * result + ((localizationArguments == null) ? 0 : localizationArguments.hashCode());
+		result = prime * result + ((localizationMessage == null) ? 0 : localizationMessage.hashCode());
+		result = prime * result + ((message == null) ? 0 : message.hashCode());
+		result = prime * result + ((messageCode == null) ? 0 : messageCode.hashCode());
+		result = prime * result + (minor ? 1231 : 1237);
+		result = prime * result + ((operation == null) ? 0 : operation.hashCode());
+		result = prime * result + ((params == null) ? 0 : params.hashCode());
+		result = prime * result + ((returns == null) ? 0 : returns.hashCode());
+		result = prime * result + ((status == null) ? 0 : status.hashCode());
+		result = prime * result + ((subresults == null) ? 0 : subresults.hashCode());
+		result = prime * result + (summarizeErrors ? 1231 : 1237);
+		result = prime * result + (summarizePartialErrors ? 1231 : 1237);
+		result = prime * result + (summarizeSuccesses ? 1231 : 1237);
+		result = prime * result + (int) (token ^ (token >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		OperationResult other = (OperationResult) obj;
+		if (asynchronousOperationReference == null) {
+			if (other.asynchronousOperationReference != null) {
+				return false;
+			}
+		} else if (!asynchronousOperationReference.equals(other.asynchronousOperationReference)) {
+			return false;
+		}
+		if (cause == null) {
+			if (other.cause != null) {
+				return false;
+			}
+		} else if (!cause.equals(other.cause)) {
+			return false;
+		}
+		if (context == null) {
+			if (other.context != null) {
+				return false;
+			}
+		} else if (!context.equals(other.context)) {
+			return false;
+		}
+		if (count != other.count) {
+			return false;
+		}
+		if (details == null) {
+			if (other.details != null) {
+				return false;
+			}
+		} else if (!details.equals(other.details)) {
+			return false;
+		}
+		if (hiddenRecordsCount != other.hiddenRecordsCount) {
+			return false;
+		}
+		if (localizationArguments == null) {
+			if (other.localizationArguments != null) {
+				return false;
+			}
+		} else if (!localizationArguments.equals(other.localizationArguments)) {
+			return false;
+		}
+		if (localizationMessage == null) {
+			if (other.localizationMessage != null) {
+				return false;
+			}
+		} else if (!localizationMessage.equals(other.localizationMessage)) {
+			return false;
+		}
+		if (message == null) {
+			if (other.message != null) {
+				return false;
+			}
+		} else if (!message.equals(other.message)) {
+			return false;
+		}
+		if (messageCode == null) {
+			if (other.messageCode != null) {
+				return false;
+			}
+		} else if (!messageCode.equals(other.messageCode)) {
+			return false;
+		}
+		if (minor != other.minor) {
+			return false;
+		}
+		if (operation == null) {
+			if (other.operation != null) {
+				return false;
+			}
+		} else if (!operation.equals(other.operation)) {
+			return false;
+		}
+		if (params == null) {
+			if (other.params != null) {
+				return false;
+			}
+		} else if (!params.equals(other.params)) {
+			return false;
+		}
+		if (returns == null) {
+			if (other.returns != null) {
+				return false;
+			}
+		} else if (!returns.equals(other.returns)) {
+			return false;
+		}
+		if (status != other.status) {
+			return false;
+		}
+		if (subresults == null) {
+			if (other.subresults != null) {
+				return false;
+			}
+		} else if (!subresults.equals(other.subresults)) {
+			return false;
+		}
+		if (summarizeErrors != other.summarizeErrors) {
+			return false;
+		}
+		if (summarizePartialErrors != other.summarizePartialErrors) {
+			return false;
+		}
+		if (summarizeSuccesses != other.summarizeSuccesses) {
+			return false;
+		}
+		if (token != other.token) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "R(" + operation + " " + status + " " + message + ")";
+	}
+
 }

@@ -421,7 +421,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 							GetOperationOptions.createRetrieve(subquery));
 					PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, result);
 
-					subresult.addParam("subquery", subquery);
+					subresult.addArbitraryObjectAsParam("subquery", subquery);
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Self-test:lookupTable getObject by row key:\n{}", DebugUtil.debugDump(lookupTableRetrieved));
 					}
@@ -467,7 +467,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + ".checkObjectProperty." + propName);
 		PrismProperty<T> prop = object.findProperty(propQName);
 		Collection<T> actualValues = prop.getRealValues();
-		result.addArbitraryCollectionAsParam("actualValues", actualValues);
+		result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
 		assertMultivalue("User, property '"+propName+"'", expectedValues, actualValues, result);
 		result.recordSuccessIfUnknown();
 	}
@@ -497,7 +497,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
 		PrismProperty<PolyString> prop = object.findProperty(propQName);
 		Collection<PolyString> actualValues = prop.getRealValues();
-		result.addArbitraryCollectionAsParam("actualValues", actualValues);
+		result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
 		assertMultivaluePolyString("User, property '"+propName+"'", expectedValues, actualValues, result);
 		result.recordSuccessIfUnknown();
 	}

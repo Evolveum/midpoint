@@ -142,7 +142,7 @@ public class PageBulkAction extends PageAdminConfiguration {
                                     getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
                     result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
                     result.addReturn("console", executionResult.getConsoleOutput());
-                    result.addCollectionOfSerializablesAsReturn("data", executionResult.getDataOutput());
+                    result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
                 } catch (ScriptExecutionException|SchemaException|SecurityViolationException e) {
                     result.recordFatalError("Couldn't execute bulk action", e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);

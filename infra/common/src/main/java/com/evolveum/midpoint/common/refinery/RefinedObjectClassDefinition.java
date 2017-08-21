@@ -114,9 +114,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	ObjectClassComplexTypeDefinition getObjectClassDefinition();
 
-	ResourceType getResourceType();
-
-	String getResourceNamespace();
+	String getResourceOid();
 
 	boolean isDefault();
 
@@ -171,13 +169,13 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	//region Capabilities ========================================================
 
-	<T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass);
+	<T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType);
 
-	PagedSearchCapabilityType getPagedSearches();
+	PagedSearchCapabilityType getPagedSearches(ResourceType resourceType);
 
-	boolean isPagedSearchEnabled();
+	boolean isPagedSearchEnabled(ResourceType resourceType);
 
-	boolean isObjectCountingEnabled();
+	boolean isObjectCountingEnabled(ResourceType resourceType);
 
 	//endregion
 

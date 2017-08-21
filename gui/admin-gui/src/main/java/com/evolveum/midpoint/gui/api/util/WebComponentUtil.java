@@ -1088,8 +1088,10 @@ public final class WebComponentUtil {
 	}
 	
 	public static boolean isSuccessOrHandledError(OperationResultType resultType) {
-		OperationResult result = OperationResult.createOperationResult(resultType);
-		return isSuccessOrHandledError(result);
+		if (resultType == null) {
+			return false;
+		}
+		return resultType.getStatus() == OperationResultStatusType.SUCCESS || resultType.getStatus() == OperationResultStatusType.HANDLED_ERROR;
 	}
 
 	public static boolean isSuccessOrHandledErrorOrWarning(OperationResult result) {

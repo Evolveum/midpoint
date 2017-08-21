@@ -374,13 +374,12 @@ public class Validator {
 			Objectable objectType = null;
 			if (object != null) {
 				objectType = object.asObjectable();
+				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 			}
 			
 			if (verbose) {
 				LOGGER.trace("Processing OID " + objectType.getOid());
 			}
-
-			objectResult.addContext(OperationResult.CONTEXT_OBJECT, objectType);
 
 			validateObject(objectType, objectResult);
 
@@ -526,12 +525,12 @@ public class Validator {
 	}
 
 	void error(String message, Objectable object, OperationResult subResult) {
-		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+		subResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 		subResult.recordFatalError(message);
 	}
 
 	void error(String message, Objectable object, String propertyName, OperationResult subResult) {
-		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+		subResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 		subResult.addContext(OperationResult.CONTEXT_ITEM, propertyName);
 		subResult.recordFatalError("<" + propertyName + ">: " + message);
 	}

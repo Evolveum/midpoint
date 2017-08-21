@@ -403,8 +403,10 @@ public class WorkItemProvider {
     public WorkItemType taskExtractToWorkItem(TaskExtract task, boolean resolveTask, boolean resolveAssignee,
 			boolean resolveCandidates, boolean fetchAllVariables, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
-		result.addParams(new String [] { "activitiTaskId", "resolveTask", "resolveAssignee", "resolveCandidates" },
-				task.getId(), resolveTask, resolveAssignee, resolveCandidates);
+		result.addParam("activitiTaskId", task.getId());
+		result.addParam("resolveTask", resolveTask);
+		result.addParam("resolveAssignee", resolveAssignee);
+		result.addParam("resolveCandidates", resolveCandidates);
 		try {
 
 			WorkItemType wi = new WorkItemType(prismContext);

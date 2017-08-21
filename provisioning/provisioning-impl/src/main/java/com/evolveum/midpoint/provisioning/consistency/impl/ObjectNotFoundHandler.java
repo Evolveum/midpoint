@@ -113,7 +113,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		OperationResult result = parentResult
 				.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.ObjectNotFoundHandler.handleError." + op.name());
 		result.addParam("shadow", shadow);
-		result.addParam("currentOperation", op);
+		result.addArbitraryObjectAsParam("currentOperation", op);
 		if (ex.getMessage() != null) {
 			result.addParam("exception", ex.getMessage());
 		}
@@ -348,7 +348,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		}
 		List<OperationResult> subresults = handleErrorResult.getSubresults();
 		for (OperationResult subresult : subresults) {
-			String oidValue = (String) subresult.getReturn("createdAccountOid");
+			String oidValue = subresult.getReturnSingle("createdAccountOid");
 			String oid = findCreatedAccountOid(subresult, oidValue);
 			if (oid != null) {
 				return oid;

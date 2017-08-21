@@ -90,7 +90,7 @@ public class CustomTransport implements Transport {
     public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
-        result.addCollectionOfSerializablesAsParam("message recipient(s)", message.getTo());
+        result.addArbitraryObjectCollectionAsParam("message recipient(s)", message.getTo());
         result.addParam("message subject", message.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl

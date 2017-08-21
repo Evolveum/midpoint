@@ -285,7 +285,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".repoAddObjectFromFile");
-		result.addParam("file", file);
+		result.addParam("file", file.getPath());
 		LOGGER.debug("addObjectFromFile: {}", file);
 		PrismObject<T> object = prismContext.parseObject(file);
 		
@@ -304,7 +304,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".repoAddShadowFromFile");
-		result.addParam("file", file);
+		result.addParam("file", file.getPath());
 		LOGGER.debug("addShadowFromFile: {}", file);
 		PrismObject<ShadowType> object = prismContext.parseObject(file);
 		
@@ -378,7 +378,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectsFromFile");
-		result.addParam("file", file);
+		result.addParam("file", file.getPath());
 		LOGGER.trace("addObjectsFromFile: {}", file);
 		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(file);
 		for (PrismObject<T> object: objects) {
@@ -400,7 +400,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected List<PrismObject> repoAddObjectsFromFile(File file, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectsFromFile");
-		result.addParam("file", file);
+		result.addParam("file", file.getPath());
 		LOGGER.trace("addObjectsFromFile: {}", file);
 		List<PrismObject> objects = (List) PrismTestUtil.parseObjects(file);
 		for (PrismObject object: objects) {
