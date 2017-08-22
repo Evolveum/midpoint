@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -43,8 +44,8 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	}
 
 	@Override
-	public CountableLoadableModel<AssignmentEditorDto> getPolicyRulesModel() {
-		CountableLoadableModel<AssignmentEditorDto> policyModel = super.getPolicyRulesModel();
+	public CountableLoadableModel<AssignmentDto> getPolicyRulesModel() {
+		CountableLoadableModel<AssignmentDto> policyModel = super.getPolicyRulesModel();
 		policyModel.getObject().addAll(loadInducementsPolicyRules());
 		Collections.sort(policyModel.getObject());
 		return policyModel;
@@ -70,7 +71,7 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	@Override
 	protected void prepareObjectForAdd(PrismObject<T> focus) throws SchemaException {
 		super.prepareObjectForAdd(focus);
-		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, inducementsModel.getObject());
+//		handleAssignmentForAdd(focus, AbstractRoleType.F_INDUCEMENT, inducementsModel.getObject());
 	}
 	
 	@Override
@@ -98,9 +99,9 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 		return list;
 	}
 
-	private List<AssignmentEditorDto> loadInducementsPolicyRules(){
+	private List<AssignmentDto> loadInducementsPolicyRules(){
 		List<AssignmentType> inducements = getInducementsList();
-		List<AssignmentEditorDto> list = getPolicyRulesList(inducements, StringUtils.isEmpty(getObjectWrapper().getOid()) ?
+		List<AssignmentDto> list = getPolicyRulesList(inducements, StringUtils.isEmpty(getObjectWrapper().getOid()) ?
 				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
 		Collections.sort(list);
 		return list;

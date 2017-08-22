@@ -15,55 +15,97 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
+import java.util.List;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * Created by honchar
  */
-public abstract class AbstractAssignmentDetailsPanel extends BasePanel<AssignmentEditorDto>{
+public abstract class AbstractAssignmentDetailsPanel extends BasePanel<AssignmentDto>{
     private static final long serialVersionUID = 1L;
 
-    private final static String ID_DESCRIPTION = "description";
-    private final static String ID_TYPE_IMAGE = "typeImage";
-    private final static String ID_ASSIGNMENT_NAME = "assignmentName";
-    private final static String ID_PROPERTIES_PANEL = "propertiesPanel";
+    private final static String ID_DISPLAY_NAME = "displayName";
+    protected final static String ID_PROPERTIES_PANEL = "propertiesPanel";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
-    private final static String ID_DONE_BUTTON = "doneButton";
+//    private final static String ID_DONE_BUTTON = "doneButton";
+    
+//    private static final String ID_RELATION_CONTAINER = "relationContainer";
+//    private static final String ID_RELATION = "relation";
+//	
+//	private static final String ID_TENANT_CONTAINER = "tenantContainer";
+//	private static final String ID_TENANT = "tenant";
+//	private static final String ID_PROJECT_CONTAINER = "projectContainer";
+//	private static final String ID_PROJECT = "project";
+//	private static final String ID_POLICY_SITUATIONS = "policySituations";
+//	private static final String ID_POLICY_SITUATION = "policySituation";
+	
+//	private static final String ID_POLICY_RULE = "policyRule";
 
     protected PageBase pageBase;
 
-    public AbstractAssignmentDetailsPanel(String id, IModel<AssignmentEditorDto> assignmentModel, PageBase pageBase){
+    public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel, PageBase pageBase){
         super(id, assignmentModel);
         this.pageBase= pageBase;
-        initLayout();
+        initLayout(form);
     }
 
-    protected void initLayout(){
-        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
-        typeImage.setOutputMarkupId(true);
-        typeImage.add(AttributeModifier.append("class", createImageModel()));
-        typeImage.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
-        add(typeImage);
+    protected <C extends Containerable> void initLayout(Form form){
+    	
+    	DisplayNamePanel<C> displayNamePanel = new DisplayNamePanel<C>(ID_DISPLAY_NAME, new AbstractReadOnlyModel<C>() {
+		
+    		private static final long serialVersionUID = 1L;
 
-        Label name = new Label(ID_ASSIGNMENT_NAME, createHeaderModel());
-        name.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
-        name.setOutputMarkupId(true);
-        add(name);
+			@Override
+    		public C getObject() {
+    			AssignmentDto assignemtn = getModelObject();
+    			if (assignemtn.isAssignableObject()) {
+    				Task task = AbstractAssignmentDetailsPanel.this.pageBase.createSimpleTask("Load target");
+    				com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
+    				return (C) WebModelServiceUtils.loadObject(getModelObject().getAssignment().getTargetRef(), AbstractAssignmentDetailsPanel.this.pageBase, task, result).asObjectable();
+    			} 
+    			AssignmentType assignmentType = assignemtn.getAssignment();
+    			if (assignmentType.getConstruction() != null) {
+    				return (C) assignmentType.getConstruction();
+    			} else if (assignmentType.getPersonaConstruction() != null) {
+    				return (C) assignmentType.getPersonaConstruction();
+    			} else if (assignmentType.getPolicyRule() !=null) {
+    				return (C) assignmentType.getPolicyRule();
+    			}
+    			
+    			return null;
+    		
+    			
+    		}
+    	
+    	});
+    	
+    	displayNamePanel.setOutputMarkupId(true);
+    	add(displayNamePanel);
+    	
+    	
+        WebMarkupContainer properties = new WebMarkupContainer(ID_PROPERTIES_PANEL);
+		add(properties);
+		properties.setOutputMarkupId(true);
+		
+		initPropertiesPanel(properties);
+        
 
-        add(new Label(ID_DESCRIPTION, Model.of(getModelObject().getDescription())));
-
-        add(initPropertiesContainer(ID_PROPERTIES_PANEL));
-
-        AssignmentActivationPopupablePanel activationPanel = new AssignmentActivationPopupablePanel(ID_ACTIVATION_PANEL, getModel()){
+        AssignmentActivationPopupablePanel activationPanel = new AssignmentActivationPopupablePanel(ID_ACTIVATION_PANEL, new PropertyModel<ActivationType>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_ACTIVATION.getLocalPart())){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -74,27 +116,21 @@ public abstract class AbstractAssignmentDetailsPanel extends BasePanel<Assignmen
         activationPanel.setOutputMarkupId(true);
         add(activationPanel);
 
-        AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON, createStringResource("AbstractAssignmentDetailsPanel.doneButton")) {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                redirectBack(ajaxRequestTarget);
-
-            }
-        };
-        add(doneButton);
     }
 
+    
+    
+    
     protected IModel<String> getAdditionalNameLabelStyleClass(){
         return Model.of("");
     }
-
-    protected  abstract Component initPropertiesContainer(String id);
-
-    protected abstract IModel<String> createHeaderModel();
-
-    protected abstract IModel<String> createImageModel();
-
-    protected void redirectBack(AjaxRequestTarget target){
+    
+    protected boolean isVisible(Object path) {
+    	return !getHiddenItems().contains(path);
     }
+
+    protected abstract List getHiddenItems();
+    
+    protected abstract void initPropertiesPanel(WebMarkupContainer propertiesPanel);
+
 }

@@ -193,6 +193,12 @@ public abstract class SchemaConstants {
 	 * is meant for that purpose. 
 	 */
 	public static final QName ORG_OWNER = new QName(NS_ORG, "owner");
+	
+	/**
+	 * Relation "is consent for". Used as a relation value in object references.
+	 * Specifies that the subject gave a consent for using personnel information related to this role.
+	 */
+	public static final QName ORG_CONSENT = new QName(NS_ORG, "consent");
 
 	public static final ItemPath PATH_PASSWORD = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,

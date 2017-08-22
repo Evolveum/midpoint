@@ -339,10 +339,6 @@ public class ColumnUtils {
 
 	private static <T extends ObjectType> IColumn<SelectableBean<T>, String> getTaskIconColumn(){
 		return new IconColumn<SelectableBean<T>>(createIconColumnHeaderModel()) {
-
-			/**
-			 *
-			 */
 			private static final long serialVersionUID = 1L;
 
 			@Override

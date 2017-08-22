@@ -19,7 +19,10 @@ package com.evolveum.midpoint.web.component.util;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -34,33 +37,36 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * @author lazyman
+ * @author katkav
  */
-public class ListDataProvider<T extends Serializable> extends BaseSortableDataProvider<T> {
+public class AssignmentListDataProvider extends BaseSortableDataProvider<AssignmentDto> {
 
-    private IModel<List<T>> model;
+    private IModel<List<AssignmentDto>> model;
 
 	private boolean sortable;			// just to ensure backward compatibility with existing usages
 
-    public ListDataProvider(Component component, IModel<List<T>> model) {
+    public AssignmentListDataProvider(Component component, IModel<List<AssignmentDto>> model) {
 		this(component, model, false);
 	}
 
-    public ListDataProvider(Component component, IModel<List<T>> model, boolean sortable) {
+    public AssignmentListDataProvider(Component component, IModel<List<AssignmentDto>> model, boolean sortable) {
         super(component);
 
         Validate.notNull(model);
         this.model = model;
 		this.sortable = sortable;
     }
+    
 
     @Override
-    public Iterator<? extends T> internalIterator(long first, long count) {
+    public Iterator<? extends AssignmentDto> internalIterator(long first, long count) {
         getAvailableData().clear();
 
-        List<T> list = model.getObject();
+        List<AssignmentDto> list = searchThroughList();
+              
 		if (sortable && getSort() != null) {
 			sort(list);
 		}
@@ -77,11 +83,11 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
         return getAvailableData().iterator();
     }
 
-	@SuppressWarnings("unchecked")
-	protected <V extends Comparable<V>> void sort(List<T> list) {
-		Collections.sort(list, new Comparator<T>() {
+    @SuppressWarnings("unchecked")
+	protected <V extends Comparable<V>> void sort(List<AssignmentDto> list) {
+		Collections.sort(list, new Comparator<AssignmentDto>() {
 			@Override
-			public int compare(T o1, T o2) {
+			public int compare(AssignmentDto o1, AssignmentDto o2) {
 				SortParam<String> sortParam = getSort();
 				String propertyName = sortParam.getProperty();
 				V prop1, prop2;
@@ -99,13 +105,41 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 
     @Override
     protected int internalSize() {
-        List<T> list = model.getObject();
+        List<AssignmentDto> list = searchThroughList();
         if (list == null) {
             return 0;
         }
 
         return list.size();
     }
+    
+    public List<AssignmentDto> getSelectedData() {
+    	return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+    }
+    
+    private List<AssignmentDto> searchThroughList() {
+    	List<AssignmentDto> list = model.getObject();
+    	
+    	if (list == null || list.isEmpty()) {
+    		return null;
+    	}
+    	
+    	if (getQuery() == null || getQuery().getFilter() == null) {
+    		return list;
+    	}
+    	
+    	List<AssignmentDto> filtered = list.stream().filter(a -> {
+			try {
+				return ObjectQuery.match(a.getAssignment(), getQuery().getFilter(), null);
+			} catch (SchemaException e) {
+				throw new TunnelException(e.getMessage());
+			}
+		}).collect(Collectors.toList());
+    	return filtered;
+    	
+    }
+    
+    
     
     
 }

@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -216,6 +218,19 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	public S_MatchingRuleEntry containsPoly(String orig) {
 		return contains(new PolyString(orig));
 	}
+	
+	@Override
+    public S_AtomicFilterExit ref(QName relation) {
+		PrismReferenceValue ref = new PrismReferenceValue();
+		ref.setRelation(relation);
+		List<PrismReferenceValue> values = new ArrayList<>();
+		values.add(ref);
+		RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
+		filter.setOidNullAsAny(true);
+		filter.setTargetTypeNullAsAny(true);
+		return new R_AtomicFilter(this, filter);
+    }
+
 
 	@Override
     public S_AtomicFilterExit ref(PrismReferenceValue... values) {

@@ -30,6 +30,11 @@ import java.util.List;
 
 public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDefinition> {
 	private static final long serialVersionUID = 1L;
+	
+	boolean oidNullAsAny = false;
+	boolean targetTypeNullAsAny = false;
+	boolean relationNullAsAny = false;
+	
 
 	public RefFilter(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,
 			@Nullable List<PrismReferenceValue> values, @Nullable ExpressionWrapper expression) {
@@ -102,9 +107,11 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 	}
 
 	private boolean valuesMatch(PrismReferenceValue value, PrismReferenceValue filterValue) {
-		if (!value.getOid().equals(filterValue.getOid())) {
+	
+		if (!matchOid(value.getOid(), filterValue.getOid())) {
 			return false;
 		}
+		
 		if (!QNameUtil.match(PrismConstants.Q_ANY, filterValue.getRelation())) {
 			// similar to relation-matching code in PrismReferenceValue (but awkward to unify, so keeping separate)
 			PrismContext prismContext = getPrismContext();
@@ -122,13 +129,47 @@ public class RefFilter extends ValueFilter<PrismReferenceValue, PrismReferenceDe
 				return false;
 			}
 		}
-		// TODO treat also targetType (see ReferenceRestriction in repo)
+		
+		if (!matchTargetType(value.getTargetType(), filterValue.getTargetType())) {
+			return false;
+		}
+
 		return true;
 	}
 
+	private boolean matchOid(String oidValue, String filterValue) {
+		if (oidNullAsAny && filterValue == null) {
+			return true;
+		}
+		
+		return oidValue.equals(filterValue);
+		
+		
+	}
+	private boolean matchTargetType(QName targetType, QName filterValue) {
+		if (targetTypeNullAsAny && filterValue == null) {
+			return true;
+		}
+		
+		return QNameUtil.match(targetType, filterValue);
+		
+	}
+	
 	@Override
 	public boolean equals(Object obj, boolean exact) {
 		return obj instanceof RefFilter && super.equals(obj, exact);
+	}
+	
+	public void setOidNullAsAny(boolean oidNullAsAny) {
+		this.oidNullAsAny = oidNullAsAny;
+	}
+	
+	public void setTargetTypeNullAsAny(boolean targetTypeNullAsAny) {
+		this.targetTypeNullAsAny = targetTypeNullAsAny;
+	}
+	
+	public void setRelationNullAsAny(boolean relationNullAsAny) {
+		this.relationNullAsAny = relationNullAsAny;
 	}
 
 }

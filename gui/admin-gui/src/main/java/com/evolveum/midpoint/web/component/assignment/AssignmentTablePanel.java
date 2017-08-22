@@ -216,9 +216,9 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 								private static final long serialVersionUID = 1L;
 
 								@Override
-								protected void addPerformed(AjaxRequestTarget target, List selected) {
-									super.addPerformed(target, selected);
-									addSelectedAssignablePerformed(target, selected,
+								protected void addPerformed(AjaxRequestTarget target, List selected, QName relation) {
+									super.addPerformed(target, selected, relation);
+									addSelectedAssignablePerformed(target, selected, relation, 
 											getPageBase().getMainPopup().getId());
                                     reloadMainFormButtons(target);
 								}
@@ -246,7 +246,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 									protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
 											AjaxRequestTarget target) {
 										// TODO Auto-generated method stub
-										addSelectedAssignablePerformed(target, (List) selectedOrgs,
+										addSelectedAssignablePerformed(target, (List) selectedOrgs, SchemaConstants.ORG_DEFAULT,
 												getPageBase().getMainPopup().getId());
                                         reloadMainFormButtons(target);
                                     }
@@ -303,7 +303,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 	}
 
 	protected void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments,
-			String popupId) {
+			QName relation, String popupId) {
 		ModalWindow window = (ModalWindow) get(popupId);
 		if (window != null) {
 			window.close(target);
@@ -317,7 +317,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
 		List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
 		for (ObjectType object : newAssignments) {
-			assignments.add(createAssignmentFromSelectedObjects(object, RelationTypes.MEMBER));
+			assignments.add(createAssignmentFromSelectedObjects(object, relation));
 		}
 		reloadAssignmentsPanel(target);
 	}

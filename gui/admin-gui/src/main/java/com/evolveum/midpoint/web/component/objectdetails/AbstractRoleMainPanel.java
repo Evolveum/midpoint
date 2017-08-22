@@ -53,6 +53,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -84,8 +85,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_ITEMS_COUNT = "itemsCount";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel, 
-			CountableLoadableModel<AssignmentEditorDto> assignmentsModel,
-			CountableLoadableModel<AssignmentEditorDto> policyRulesModel,
+			CountableLoadableModel<AssignmentDto> assignmentsModel,
+			CountableLoadableModel<AssignmentDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			LoadableModel<List<AssignmentEditorDto>> inducementsModel, PageAdminFocus<R> parentPage) {
 		super(id, objectModel, assignmentsModel, policyRulesModel, projectionModel, parentPage);

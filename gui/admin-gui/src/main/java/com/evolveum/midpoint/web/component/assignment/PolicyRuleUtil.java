@@ -33,23 +33,23 @@ import java.util.List;
 public class PolicyRuleUtil {
     private static final long serialVersionUID = 1L;
 
-    public static String convertPolicyConstraintsContainerToString(PrismContainer<PolicyRuleType> policyRuleContainer, PageBase pageBase){
+    public static String convertPolicyConstraintsContainerToString(PolicyRuleType policyRuleContainer, PageBase pageBase){
         String constraintValue;
         if (policyRuleContainer == null){
             constraintValue = "";
         } else {
-            PolicyConstraintsType constraints = policyRuleContainer.getValue().getValue().getPolicyConstraints();
+            PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
             constraintValue = constraints != null ? getPolicyConstraintsAsString(constraints, pageBase) : "";
         }
         return constraintValue;
     }
 
-    public static String convertPolicyActionsContainerToString(PrismContainer<PolicyRuleType> policyRuleContainer){
+    public static String convertPolicyActionsContainerToString(PolicyRuleType policyRuleContainer){
         String actionValue;
         if (policyRuleContainer == null){
             actionValue = "";
         } else {
-            PolicyActionsType policyActions = policyRuleContainer.getValue().getValue().getPolicyActions();
+            PolicyActionsType policyActions = policyRuleContainer.getPolicyActions();
             actionValue = policyActions != null ? getPolicyActionsAsString(policyActions) : "";
         }
         return actionValue;

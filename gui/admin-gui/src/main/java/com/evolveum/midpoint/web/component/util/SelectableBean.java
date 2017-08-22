@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 /**
  * @author lazyman
  */
-public class SelectableBean<T extends Serializable> extends Selectable implements InlineMenuable, DebugDumpable {
+public class SelectableBean<T extends Serializable> extends Selectable<T> implements InlineMenuable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String F_VALUE = "value";

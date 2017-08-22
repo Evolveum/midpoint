@@ -3,8 +3,6 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,39 +15,23 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.event.Broadcast;
-import org.apache.wicket.event.IEventSink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.ResourceLink;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.request.component.IRequestablePage;
-import org.apache.wicket.request.resource.ResourceStreamResource;
-import org.apache.wicket.util.resource.IResourceStream;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -123,6 +105,7 @@ public class AuditLogViewerPanel extends BasePanel {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_RESET_SEARCH_BUTTON = "resetSearchButton";
     private static final String ID_FEEDBACK = "feedback";
 
     public static final String TARGET_NAME_LABEL_VISIBILITY = "targetNameLabel";
@@ -144,8 +127,7 @@ public class AuditLogViewerPanel extends BasePanel {
             + ".resolveReferenceName()";
 
     private static final int DEFAULT_PAGE_SIZE = 10;
-    private IModel<AuditSearchDto> auditSearchDto;
-    private AuditSearchDto searchDto;
+    private IModel<AuditSearchDto> auditSearchModel;
     private PageBase pageBase;
     private Map<String, Boolean> visibilityMap;
     private AuditLogStorage auditLogStorage;
@@ -161,13 +143,12 @@ public class AuditLogViewerPanel extends BasePanel {
     public AuditLogViewerPanel(String id, PageBase pageBase, AuditSearchDto searchDto, Map<String, Boolean> visibilityMap){
         super(id);
         this.pageBase = pageBase;
-        this.searchDto = searchDto;
         this.visibilityMap = visibilityMap;
-        initAuditSearchModel();
+        initAuditSearchModel(searchDto);
         initLayout();
     }
 
-    private void initAuditSearchModel(){
+    private void initAuditSearchModel(AuditSearchDto searchDto){
         if (pageBase instanceof PageUser){
             auditLogStorage = pageBase.getSessionStorage().getUserHistoryAuditLog();
         } else {
@@ -176,7 +157,7 @@ public class AuditLogViewerPanel extends BasePanel {
         if (searchDto == null){
             searchDto = auditLogStorage.getSearchDto();
         }
-        auditSearchDto = new Model<AuditSearchDto>(searchDto);
+        auditSearchModel = new Model<AuditSearchDto>(searchDto);
 
     }
 
@@ -200,7 +181,7 @@ public class AuditLogViewerPanel extends BasePanel {
         mainForm.add(parametersPanel);
 
         PropertyModel<XMLGregorianCalendar> fromModel = new PropertyModel<XMLGregorianCalendar>(
-                auditSearchDto, AuditSearchDto.F_FROM);
+                auditSearchModel, AuditSearchDto.F_FROM);
 
         DatePanel from = new DatePanel(ID_FROM, fromModel);
         DateValidator dateFromValidator = WebComponentUtil.getRangeValidator(mainForm,
@@ -214,7 +195,7 @@ public class AuditLogViewerPanel extends BasePanel {
         from.setOutputMarkupId(true);
         parametersPanel.add(from);
 
-        PropertyModel<XMLGregorianCalendar> toModel = new PropertyModel<XMLGregorianCalendar>(auditSearchDto,
+        PropertyModel<XMLGregorianCalendar> toModel = new PropertyModel<XMLGregorianCalendar>(auditSearchModel,
                 AuditSearchDto.F_TO);
         DatePanel to = new DatePanel(ID_TO, toModel);
         DateValidator dateToValidator = WebComponentUtil.getRangeValidator(mainForm,
@@ -228,7 +209,7 @@ public class AuditLogViewerPanel extends BasePanel {
         to.setOutputMarkupId(true);
         parametersPanel.add(to);
 
-        PropertyModel<ItemPathDto> changedItemModel = new PropertyModel<ItemPathDto>(auditSearchDto,
+        PropertyModel<ItemPathDto> changedItemModel = new PropertyModel<ItemPathDto>(auditSearchModel,
                 AuditSearchDto.F_CHANGED_ITEM);
         
         ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, changedItemModel, pageBase);
@@ -237,7 +218,7 @@ public class AuditLogViewerPanel extends BasePanel {
         changedItemPanel.setOutputMarkupId(true);
         parametersPanel.add(changedItemPanel);
 
-        PropertyModel<String> hostIdentifierModel = new PropertyModel<>(auditSearchDto,
+        PropertyModel<String> hostIdentifierModel = new PropertyModel<>(auditSearchModel,
                 AuditSearchDto.F_HOST_IDENTIFIER);
         TextPanel<String> hostIdentifier = new TextPanel<>(ID_HOST_IDENTIFIER, hostIdentifierModel);
         hostIdentifier.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -248,7 +229,7 @@ public class AuditLogViewerPanel extends BasePanel {
         ListModel<AuditEventTypeType> eventTypeListModel = new ListModel<AuditEventTypeType>(
                 Arrays.asList(AuditEventTypeType.values()));
         PropertyModel<AuditEventTypeType> eventTypeModel = new PropertyModel<AuditEventTypeType>(
-                auditSearchDto, AuditSearchDto.F_EVENT_TYPE);
+                auditSearchModel, AuditSearchDto.F_EVENT_TYPE);
         DropDownChoicePanel<AuditEventTypeType> eventType = new DropDownChoicePanel<AuditEventTypeType>(
                 ID_EVENT_TYPE, eventTypeModel, eventTypeListModel,
                 new EnumChoiceRenderer<AuditEventTypeType>(), true);
@@ -265,7 +246,7 @@ public class AuditLogViewerPanel extends BasePanel {
         ListModel<AuditEventStageType> eventStageListModel = new ListModel<AuditEventStageType>(
                 Arrays.asList(AuditEventStageType.values()));
         PropertyModel<AuditEventStageType> eventStageModel = new PropertyModel<AuditEventStageType>(
-                auditSearchDto, AuditSearchDto.F_EVENT_STAGE);
+                auditSearchModel, AuditSearchDto.F_EVENT_STAGE);
         DropDownChoicePanel<AuditEventStageType> eventStageField = new DropDownChoicePanel<AuditEventStageType>(
                 ID_EVENT_STAGE_FIELD, eventStageModel, eventStageListModel,
                 new EnumChoiceRenderer<AuditEventStageType>(), true);
@@ -278,7 +259,7 @@ public class AuditLogViewerPanel extends BasePanel {
         ListModel<OperationResultStatusType> outcomeListModel = new ListModel<OperationResultStatusType>(
                 Arrays.asList(OperationResultStatusType.values()));
         PropertyModel<OperationResultStatusType> outcomeModel = new PropertyModel<OperationResultStatusType>(
-                auditSearchDto, AuditSearchDto.F_OUTCOME);
+                auditSearchModel, AuditSearchDto.F_OUTCOME);
         DropDownChoicePanel<OperationResultStatusType> outcome = new DropDownChoicePanel<OperationResultStatusType>(
                 ID_OUTCOME, outcomeModel, outcomeListModel,
                 new EnumChoiceRenderer<OperationResultStatusType>(), true);
@@ -297,7 +278,7 @@ public class AuditLogViewerPanel extends BasePanel {
             }
         }
         ListModel<QName> channelListModel = new ListModel<QName>(channelQnameList);
-        PropertyModel<QName> channelModel = new PropertyModel<QName>(auditSearchDto,
+        PropertyModel<QName> channelModel = new PropertyModel<QName>(auditSearchModel,
                 AuditSearchDto.F_CHANNEL);
         DropDownChoicePanel<QName> channel = new DropDownChoicePanel<QName>(ID_CHANNEL, channelModel,
                 channelListModel, new QNameChoiceRenderer(), true);
@@ -310,7 +291,7 @@ public class AuditLogViewerPanel extends BasePanel {
         allowedClasses.add(UserType.class);
         MultiValueChoosePanel<ObjectType> chooseInitiatorPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
         		ID_INITIATOR_NAME, allowedClasses, objectReferenceTransformer, 
-        		new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_INITIATOR_NAME));
+        		new PropertyModel<ObjectReferenceType>(auditSearchModel, AuditSearchDto.F_INITIATOR_NAME));
         parametersPanel.add(chooseInitiatorPanel);
 
         WebMarkupContainer targetOwnerName = new WebMarkupContainer(ID_TARGET_OWNER_NAME);
@@ -318,7 +299,7 @@ public class AuditLogViewerPanel extends BasePanel {
         parametersPanel.add(targetOwnerName);
 
         MultiValueChoosePanel<ObjectType> chooseTargerOwnerPanel = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-        		ID_TARGET_OWNER_NAME_FIELD, allowedClasses, objectReferenceTransformer, new PropertyModel<ObjectReferenceType>(auditSearchDto, AuditSearchDto.F_TARGET_OWNER_NAME));
+        		ID_TARGET_OWNER_NAME_FIELD, allowedClasses, objectReferenceTransformer, new PropertyModel<ObjectReferenceType>(auditSearchModel, AuditSearchDto.F_TARGET_OWNER_NAME));
         
         chooseTargerOwnerPanel.add(visibilityByKey(visibilityMap, TARGET_OWNER_FIELD_VISIBILITY));
         targetOwnerName.add(chooseTargerOwnerPanel);
@@ -331,47 +312,59 @@ public class AuditLogViewerPanel extends BasePanel {
 
         MultiValueChoosePanel<ObjectType> chooseTargetPanel = new MultiValueChoosePanel<ObjectType>(
         		ID_TARGET_NAME_FIELD, 
-        		new PropertyModel<List<ObjectType>>(auditSearchDto, AuditSearchDto.F_TARGET_NAMES_OBJECTS),
+        		new PropertyModel<List<ObjectType>>(auditSearchModel, AuditSearchDto.F_TARGET_NAMES_OBJECTS),
         		allowedClassesAll);
         chooseTargetPanel.setOutputMarkupId(true);
         chooseTargetPanel.add(visibilityByKey(visibilityMap, TARGET_NAME_FIELD_VISIBILITY));
         targetName.add(chooseTargetPanel);
 
-        AjaxSubmitButton ajaxButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("BasicSearchPanel.search")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                auditLogStorage.setSearchDto(searchDto);
-                auditLogStorage.setPageNumber(0);
-                Form mainForm = (Form) getParent().getParent();
-                addOrReplaceTable(mainForm);
-                pageBase.getFeedbackPanel().getFeedbackMessages().clear();
-                target.add(pageBase.getFeedbackPanel());
-                target.add(mainForm);
+                searchUpdatePerformed(target, form, auditSearchModel.getObject());
             }
 
             @Override
-        protected void onError(AjaxRequestTarget target, Form<?> form){
+            protected void onError(AjaxRequestTarget target, Form<?> form){
                 target.add(pageBase.getFeedbackPanel());
             }
         };
-        
+        searchButton.setOutputMarkupId(true);
+        parametersPanel.add(searchButton);
+
+        AjaxSubmitButton resetSearchButton = new AjaxSubmitButton(ID_RESET_SEARCH_BUTTON,
+                createStringResource("AuditLogViewerPanel.resetSearchButton")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                auditSearchModel.setObject(new AuditSearchDto());
+                searchUpdatePerformed(target, form, new AuditSearchDto());
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form){
+                target.add(pageBase.getFeedbackPanel());
+            }
+        };
+        resetSearchButton.setOutputMarkupId(true);
+        parametersPanel.add(resetSearchButton);
+
         WebMarkupContainer valueRefTargetNameContainer = new WebMarkupContainer(ID_VALUE_REF_TARGET_NAMES);
         valueRefTargetNameContainer.add(visibilityByKey(visibilityMap, TARGET_NAME_LABEL_VISIBILITY));
         parametersPanel.add(valueRefTargetNameContainer);
 
         MultiValueChoosePanel<ObjectType> chooseValueRefTargetNamePanel = new MultiValueChoosePanel<ObjectType>(
         		ID_VALUE_REF_TARGET_NAMES_FIELD,
-        		new PropertyModel<List<ObjectType>>(auditSearchDto, AuditSearchDto.F_VALUE_REF_TARGET_NAME),
+        		new PropertyModel<List<ObjectType>>(auditSearchModel, AuditSearchDto.F_VALUE_REF_TARGET_NAME),
         		allowedClassesAll);
         chooseValueRefTargetNamePanel.setOutputMarkupId(true);
         chooseValueRefTargetNamePanel.add(visibilityByKey(visibilityMap, VALUE_REF_TARGET_NAME_FIELD_VISIBILITY));
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
 
-        ajaxButton.setOutputMarkupId(true);
-        parametersPanel.add(ajaxButton);
     }
     
 	// Serializable as it becomes part of panel which is serialized
@@ -402,7 +395,7 @@ public class AuditLogViewerPanel extends BasePanel {
             public Map<String, Object> getParameters() {
                 Map<String, Object> parameters = new HashMap<String, Object>();
 
-                AuditSearchDto search = auditSearchDto.getObject();
+                AuditSearchDto search = auditSearchModel.getObject();
                 parameters.put("from", search.getFrom());
                 parameters.put("to", search.getTo());
 
@@ -624,6 +617,19 @@ public class AuditLogViewerPanel extends BasePanel {
         item.add(new AttributeModifier("style", new Model<String>("width: 10%;")));
     }
 
+    private void searchUpdatePerformed(AjaxRequestTarget target, Form<?> form, AuditSearchDto searchDto){
+        auditLogStorage.setSearchDto(searchDto);
+        auditLogStorage.setPageNumber(0);
+        Form mainForm = getMainFormComponent();
+        addOrReplaceTable(mainForm);
+        pageBase.getFeedbackPanel().getFeedbackMessages().clear();
+        target.add(pageBase.getFeedbackPanel());
+        target.add(mainForm);
+    }
+
+    private Form getMainFormComponent(){
+        return (Form) get(ID_MAIN_FORM);
+    }
 //    public WebMarkupContainer getFeedbackPanel() {
 //        return (FeedbackPanel) get(pageBase.createComponentPath(ID_MAIN_FORM, ID_FEEDBACK));
 //    }

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -44,7 +45,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 
 	public FocusDetailsTabPanel(String id, Form mainForm, 
 			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, 
+			LoadableModel<List<AssignmentDto>> assignmentsModel, 
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageBase pageBase) {
 		super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);

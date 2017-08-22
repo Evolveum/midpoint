@@ -341,7 +341,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
-		return AssignmentsUtil.createAssignmentStatusClassModel(model);
+		return AssignmentsUtil.createAssignmentStatusClassModel(model.getObject().getStatus());
 	}
 
 	protected void initBodyLayout(WebMarkupContainer body) {

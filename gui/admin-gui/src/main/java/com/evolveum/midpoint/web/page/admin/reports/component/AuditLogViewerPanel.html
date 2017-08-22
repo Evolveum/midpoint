@@ -72,7 +72,14 @@
 	                    <label class="col-sm-3 control-label"><wicket:message key="PageAuditLogViewer.valueRefTargetNamesLabel" /></label>
                     	<div class="col-sm-9" wicket:id="valueRefTargetNamesField" />
                    	</div>
-                    <span class="btn-group" style="float:right; padding-top: 5px;"><a class="btn btn-primary" wicket:id="searchButton"/></span>
+                    <div  class="main-button-bar pull-right">
+                    <!--<span class="btn-group" style="padding-top: 5px;">-->
+                        <a class="btn btn-primary" wicket:id="searchButton"/>
+                    <!--</span>-->
+                    <!--<span class="btn-group">-->
+                        <a class="btn btn-primary" wicket:id="resetSearchButton"/>
+                        <!--.</span>-->
+                    </div>
                 </div>
             </div>
             <div wicket:id="table"/>

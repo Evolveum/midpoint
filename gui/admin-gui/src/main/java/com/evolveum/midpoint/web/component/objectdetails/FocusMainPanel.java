@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -64,14 +65,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private CountableLoadableModel<AssignmentEditorDto> assignmentsModel;
-	private CountableLoadableModel<AssignmentEditorDto> policyRulesModel;
+	private CountableLoadableModel<AssignmentDto> assignmentsModel;
+	private CountableLoadableModel<AssignmentDto> policyRulesModel;
 	private TaskDtoProvider taskDtoProvider;
     private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
 	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
-			CountableLoadableModel<AssignmentEditorDto> assignmentsModel,
-			CountableLoadableModel<AssignmentEditorDto> policyRulesModel,
+			CountableLoadableModel<AssignmentDto> assignmentsModel,
+			CountableLoadableModel<AssignmentDto> policyRulesModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
@@ -341,7 +342,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		if (assignmentsModel.getObject().isEmpty()){
     		return false;
 		}
-		for (AssignmentEditorDto dto : assignmentsModel.getObject()){
+		for (AssignmentDto dto : assignmentsModel.getObject()){
 			if (UserDtoStatus.DELETE.equals(dto.getStatus()) || UserDtoStatus.ADD.equals(dto.getStatus())){
 				return true;
 			}

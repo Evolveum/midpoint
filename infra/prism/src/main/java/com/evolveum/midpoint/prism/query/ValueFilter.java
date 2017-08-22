@@ -476,5 +476,5 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 			}
 		}
 	}
-
+	
 }

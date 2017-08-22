@@ -591,9 +591,9 @@ public final class WebComponentUtil {
 				model, component, allowNull );
 	}
 
-	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
+	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull) {
-		return new DropDownChoicePanel(id, model, choicesList, 
+		return new DropDownChoicePanel<E>(id, model, choicesList, 
 				new IChoiceRenderer<E>() {
 
 					private static final long serialVersionUID = 1L;
@@ -751,6 +751,18 @@ public final class WebComponentUtil {
 			}
 		}
 		return name;
+	}
+	
+	public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName, PageBase pageBase, String operation) {
+		PrismObject<O> object = WebModelServiceUtils.loadObject(ref, pageBase,
+				pageBase.createSimpleTask(operation), new OperationResult(operation));
+		
+		if (object == null) {
+			return "Not Found";
+		}
+		
+		return getEffectiveName(object, propertyName);
+		
 	}
 
 	public static String getName(ObjectReferenceType ref) {
@@ -1110,6 +1122,10 @@ public final class WebComponentUtil {
 		return result.isSuccess() || result.isHandledError() || result.isInProgress();
 	}
 
+	public static <T extends ObjectType> String createDefaultIcon(T object) {
+		return createDefaultIcon(object.asPrismObject());
+	}
+	
 	public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object) {
 		Class<T> type = object.getCompileTimeClass();
 		if (type.equals(UserType.class)) {
@@ -1133,7 +1149,7 @@ public final class WebComponentUtil {
 	public static <T extends ObjectType> String createDefaultColoredIcon(QName objectType) {
 		if (objectType == null) {
 			return "";
-		} else if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType) || QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
 		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
@@ -1143,7 +1159,7 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED;
 		} else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED;
-		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType) || QNameUtil.match(ConstructionType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED;
 		} else if (QNameUtil.match(AccessCertificationCampaignType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED;
@@ -1153,6 +1169,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED;
 		} else if (QNameUtil.match(ShadowType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
+		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_POLICY_RULES_ICON_COLORED;
 		} else {
 			return "";
 		}
@@ -1162,7 +1180,7 @@ public final class WebComponentUtil {
 	public static <T extends ObjectType> String createDefaultBlackIcon(QName objectType) {
 		if (objectType == null) {
 			return "";
-		} else if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(UserType.COMPLEX_TYPE, objectType) || QNameUtil.match(PersonaConstructionType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 		} else if (QNameUtil.match(RoleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
@@ -1172,7 +1190,7 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
 		} else if (QNameUtil.match(TaskType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_TASK_ICON;
-		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(ResourceType.COMPLEX_TYPE, objectType) || QNameUtil.match(ConstructionType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON;
 		} else if (QNameUtil.match(AccessCertificationCampaignType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON;
@@ -1182,6 +1200,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
 		} else if (QNameUtil.match(ShadowType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON;
+		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_POLICY_RULES_ICON;
 		} else {
 			return "";
 		}

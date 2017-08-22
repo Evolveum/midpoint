@@ -32,10 +32,18 @@
 	<div class="form-inline search-form">
         <div class="row">
             <div class="form-group col-md-12">
-                <label>
-                    <wicket:message key="roleMemberPanel.type"/>
-                </label>
-                <select class="form-control input-sm" wicket:id="type"/>
+	            <div class="col-md-3">
+	                <label >
+	                    <wicket:message key="roleMemberPanel.type"/>
+	                </label>
+	                <span wicket:id="type"/>
+	           	</div>
+	            <div class="col-md-3">    
+	                <label>
+	              		<wicket:message key="AssignmentEditorPanel.relation"/>
+	        	    </label>
+	          	  	<span wicket:id="relation" />
+	          	</div>
             </div>
         </div>
 		<div wicket:id="countContainer">

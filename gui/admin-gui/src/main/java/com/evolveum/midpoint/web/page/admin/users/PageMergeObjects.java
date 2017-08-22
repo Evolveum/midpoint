@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
@@ -129,33 +130,39 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
-        return new FocusMainPanel<UserType>(id, getObjectModel(),
-                //empty assignments model
-                new CountableLoadableModel<AssignmentEditorDto>() {
+    	
+    	//empty assignments model
+    	CountableLoadableModel<AssignmentDto> assignemtns = new CountableLoadableModel<AssignmentDto>() {
         	private static final long serialVersionUID = 1L;
         	
             @Override
-            protected List<AssignmentEditorDto> load() {
+            protected List<AssignmentDto> load() {
                 return new ArrayList<>();
             }
-        },
-                //empty policy rules model
-                new CountableLoadableModel<AssignmentEditorDto>() {
-        	private static final long serialVersionUID = 1L;
+    	};
+    	
+    	//empty projections model
+    	 CountableLoadableModel<AssignmentDto> policyRules = new CountableLoadableModel<AssignmentDto>() {
+         	private static final long serialVersionUID = 1L;
 
-            @Override
-            protected List<AssignmentEditorDto> load() {
-                return new ArrayList<>();
-            }
-        },
-                //empty projections model
-                new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
-        	private static final long serialVersionUID = 1L;
-                    @Override
-                    protected List<FocusSubwrapperDto<ShadowType>> load() {
-                        return new ArrayList<>();
-                    }
-                }, this) {
+             @Override
+             protected List<AssignmentDto> load() {
+                 return new ArrayList<>();
+             }
+         };
+         
+         //empty projections model
+         LoadableModel<List<FocusSubwrapperDto<ShadowType>>> shadows = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
+         	private static final long serialVersionUID = 1L;
+                     @Override
+                     protected List<FocusSubwrapperDto<ShadowType>> load() {
+                         return new ArrayList<>();
+                     }
+                 };
+    	
+        return new FocusMainPanel<UserType>(id, getObjectModel(), assignemtns, policyRules, shadows, this) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
             protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {

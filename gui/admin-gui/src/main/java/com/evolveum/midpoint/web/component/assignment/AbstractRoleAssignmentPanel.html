@@ -19,7 +19,15 @@
 <wicket:panel>
 
     <div wicket:id="assignments" class="main-form-panel">
-        
+        <div class="row">
+            <div class="col-xs-2">
+                <div wicket:id="relation" />
+            </div>
+            <div class="col-xs-2 pull-right">
+                <div class="btn btn-default" wicket:id="showAllAssignmentsButton" />
+            </div>
+        </div>
+
         <div class="row" >
             <div class="col-md-12" wicket:id="assignmentsTable"  style="margin: 5px;"/>
         </div>

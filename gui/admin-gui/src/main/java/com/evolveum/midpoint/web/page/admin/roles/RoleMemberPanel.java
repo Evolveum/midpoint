@@ -133,33 +133,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
 	}
 
-	private List<OrgType> createTenantList() {
-		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
-				.item(OrgType.F_TENANT).eq(true)
-				.build();
-		List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
-				new OperationResult("Tenant search"), getPageBase());
-		List<OrgType> orgTypes = new ArrayList<>();
-		for (PrismObject<OrgType> org : orgs) {
-			orgTypes.add(org.asObjectable());
-		}
-
-		return orgTypes;
-	}
-
-	private List<OrgType> createProjectList() {
-		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
-				.item(OrgType.F_TENANT).eq(true)
-				.or().item(OrgType.F_TENANT).isNull()
-				.build();
-		List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
-				new OperationResult("Tenant search"), getPageBase());
-		List<OrgType> orgTypes = new ArrayList<>();
-		for (PrismObject<OrgType> org : orgs) {
-			orgTypes.add(org.asObjectable());
-		}
-		return orgTypes;
-	}
+	
 
 	private MainObjectListPanel<FocusType> getMemberTable() {
 		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
