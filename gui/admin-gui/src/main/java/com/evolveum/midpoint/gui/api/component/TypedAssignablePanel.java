@@ -156,7 +156,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	
 	protected void initAssignmentParametersPanel(){
 		DropDownChoicePanel<QName> typeSelect = new DropDownChoicePanel<>(ID_TYPE, typeModel, Model.ofList(WebComponentUtil.createAssignableTypesList()), new QNameChoiceRenderer());
-		typeSelect.add(new OnChangeAjaxBehavior() {
+		typeSelect.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
 			private static final long serialVersionUID = 1L;
 

@@ -133,6 +133,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
                @Override
                protected void addPerformed(AjaxRequestTarget target, List selected, QName relation) {
+            	   super.addPerformed(target, selected, relation);
                    addSelectedAssignmentsPerformed(target, selected, relation);
                }
 
