@@ -49,7 +49,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 			return WebComponentUtil.createDefaultIcon((ObjectType) getModelObject());
 		} 
 		
-		return WebComponentUtil.createDefaultColoredIcon(getModelObject().asPrismContainerValue().getContainer().getComplexTypeDefinition().getTypeName());
+		return WebComponentUtil.createDefaultColoredIcon(getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName());
 		
 	}
 	
@@ -61,7 +61,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
 			return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
 		} 
-		PrismProperty<String> name = getModelObject().asPrismContainerValue().getContainer().findProperty(ObjectType.F_NAME);
+		PrismProperty<String> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
 		if (name == null || name.isEmpty()) {
 			return Model.of("");
 		}

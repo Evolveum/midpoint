@@ -1549,8 +1549,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		item = new MainMenuItem("fa fa-shield", createStringResource("PageAdmin.menu.credentials"),
 				PageSelfCredentials.class);
 		menu.getItems().add(item);
-		item = new MainMenuItem("fa  fa-pencil-square-o", createStringResource("PageAdmin.menu.request"),
+		item = new MainMenuItem("fa fa-pencil-square-o", createStringResource("PageAdmin.menu.request"),
                 PageAssignmentShoppingKart.class);
+		menu.getItems().add(item);
+		item = new MainMenuItem("fa fa-eur", createStringResource("PageAdmin.menu.consent"),
+                PageSelfConsents.class);
 		menu.getItems().add(item);
 	}
 
