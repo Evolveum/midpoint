@@ -158,6 +158,16 @@ public class TestObjectQuery {
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);
 	}
-	
+
+	@Test   // MID-4120
+	public void testMatchSubstringAgainstEmptyItem() throws Exception {
+		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
+		// jack has no locality
+		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, PrismTestUtil.getPrismContext())
+				.item(UserType.F_LOCALITY).startsWith("C")
+				.buildFilter();
+		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
+		AssertJUnit.assertFalse("filter matches object, but it should not", match);
+	}
 
 }

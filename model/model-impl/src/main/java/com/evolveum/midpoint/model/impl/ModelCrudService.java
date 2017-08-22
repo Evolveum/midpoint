@@ -260,7 +260,7 @@ public class ModelCrudService {
 		prismContext.adopt(objectType);
 
 		OperationResult result = parentResult.createSubresult(ADD_OBJECT);
-		result.addParams(new String[] { "object" }, object);
+		result.addParam(OperationResult.PARAM_OBJECT, object);
 
 		Utils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 
@@ -334,7 +334,7 @@ public class ModelCrudService {
 		Validate.notNull(parentResult, "Result type must not be null.");
 
 		OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
-		result.addParams(new String[] { "oid" }, oid);
+		result.addParam(OperationResult.PARAM_OID, oid);
 
 		RepositoryCache.enter();
 
@@ -435,7 +435,7 @@ public class ModelCrudService {
 		// TODO: check definitions, but tolerate missing definitions in <attributes>
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
-		result.addCollectionOfSerializablesAsParam("modifications", modifications);
+		result.addArbitraryObjectCollectionAsParam("modifications", modifications);
 
 		RepositoryCache.enter();
 

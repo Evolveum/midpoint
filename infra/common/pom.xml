@@ -86,7 +86,6 @@
 		<dependency>
 			<groupId>org.codehaus.staxmate</groupId>
 			<artifactId>staxmate</artifactId>
-			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<!-- Some of the the third-party libs are still using JUL. We want them in our logs. -->

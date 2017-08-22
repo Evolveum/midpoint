@@ -1,0 +1,26 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+objects:
+- resource:
+    oid: "10000000-0000-0000-0000-000000000004"
+    name: "Dummy Resource"
+    connectorRef:
+      type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"
+      filter:
+        '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+        and:
+          equal:
+          - path: "connectorType"
+            value: "com.evolveum.icf.dummy.connector.DummyConnector"
+          - path: "connectorVersion"
+            value: "2.0"
+    connectorConfiguration: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ConnectorConfigurationType>
+      '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+      configurationProperties: !<http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3/ConfigurationPropertiesType>
+        '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+        instanceId: ""
+        requireExplicitEnable: "true"
+        uselessGuardedString:
+          '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          clearValue: "whatever"
+    namespace: "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"

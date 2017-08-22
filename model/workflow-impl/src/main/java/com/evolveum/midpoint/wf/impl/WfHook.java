@@ -95,7 +95,7 @@ public class WfHook implements ChangeHook {
 	    // as minor afterwards.
         OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
         result.addParam("taskFromModel", taskFromModel.toString());
-        result.addContext("model state", context.getState());
+        result.addArbitraryObjectAsContext("model state", context.getState());
         try {
             WfConfigurationType wfConfigurationType = baseConfigurationHelper.getWorkflowConfiguration(context, result);
             // TODO consider this if it's secure enough

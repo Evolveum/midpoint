@@ -1,0 +1,44 @@
+{
+	"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+	"objects" : [ {
+		"resource" : {
+			"oid" : "ef2bc95b-76e0-59e2-86d6-9119011311ab",
+			"name" : "Embedded Test Derby: Import test",
+			"connectorRef" : {
+				"oid" : "7d3ebd6f-6113-4833-8a6a-596b73a5e434",
+				"type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+				"filter" : {
+					"@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+					"equal" : {
+						"path" : "connectorType",
+						"value" : "com.evolveum.icf.dummy.connector.DummyConnector"
+					}
+				}
+			},
+			"connectorConfiguration" : {
+				"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3",
+				"@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorConfigurationType",
+				"configurationProperties" : {
+					"@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector",
+					"@type" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3#ConfigurationPropertiesType",
+					"jdbcDriver" : "org.apache.derby.jdbc.ClientDriver",
+					"jdbcUrlTemplate" : "jdbc:derby://%h:%p/%d",
+					"keyColumn" : "login",
+					"passwordColumn" : "password",
+					"password" : {
+						"@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+						"clearValue" : "secret"
+					},
+					"table" : "users",
+					"user" : "midpoint",
+					"database" : "target/derbyMidPointTest",
+					"host" : "localhost",
+					"port" : "11527"
+				}
+			},
+			"namespace" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9119011311ab",
+			"schema" : { },
+			"schemaHandling" : { }
+		}
+	} ]
+}

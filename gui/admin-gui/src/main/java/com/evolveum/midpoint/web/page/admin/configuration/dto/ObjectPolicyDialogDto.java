@@ -79,15 +79,15 @@ public class ObjectPolicyDialogDto implements Serializable{
         newConfig.setConstraints(propertyConstraintsList);
         newConfig.setType(type);
         newConfig.setSubtype(subtype);
+        newConfig.setConflictResolution(config.getConflictResolution());
 
-        ObjectReferenceType ref = new ObjectReferenceType();
-        if(templateRef != null){
+        if (templateRef != null) {
+	        ObjectReferenceType ref = new ObjectReferenceType();
             ref.setOid(templateRef.getOid());
             ref.setType(ObjectTemplateType.COMPLEX_TYPE);
             ref.setTargetName(new PolyStringType(templateRef.getName()));
+	        newConfig.setTemplateRef(ref);
         }
-
-        newConfig.setTemplateRef(ref);
 
         return newConfig;
     }

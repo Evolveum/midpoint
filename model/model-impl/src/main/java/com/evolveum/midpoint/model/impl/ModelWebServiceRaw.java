@@ -215,7 +215,12 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
 
     private void throwFault(Exception ex, OperationResultType resultType) throws FaultMessage {
 		if (resultType != null) {
-            ws.throwFault(ex, OperationResult.createOperationResult(resultType));
+            try {
+				ws.throwFault(ex, OperationResult.createOperationResult(resultType));
+			} catch (SchemaException e) {
+				LOGGER.error("Error serializing operation result: {}", e.getMessage(), e);
+				ws.throwFault(ex, null);
+			}
 		} else {
             ws.throwFault(ex, null);
         }

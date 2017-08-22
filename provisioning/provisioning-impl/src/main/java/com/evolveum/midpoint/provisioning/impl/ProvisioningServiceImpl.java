@@ -162,7 +162,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".getObject");
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam(OperationResult.PARAM_TYPE, type);
-		result.addCollectionOfSerializablesAsParam("options", options);
+		result.addArbitraryObjectCollectionAsParam("options", options);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 		
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -299,7 +299,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".addObject");
 		result.addParam("object", object);
-		result.addParam("scripts", scripts);
+		result.addArbitraryObjectAsParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		String oid = null;
@@ -647,10 +647,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".modifyObject");
-		result.addCollectionOfSerializablesAsParam("modifications", modifications);
+		result.addArbitraryObjectCollectionAsParam("modifications", modifications);
 		result.addParam(OperationResult.PARAM_OID, oid);
-		result.addParam("scripts", scripts);
-		result.addParam("options", options);
+		result.addArbitraryObjectAsParam("scripts", scripts);
+		result.addArbitraryObjectAsParam("options", options);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		if (LOGGER.isTraceEnabled()) {
@@ -721,7 +721,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".deleteObject");
 		result.addParam("oid", oid);
-		result.addParam("scripts", scripts);
+		result.addArbitraryObjectAsParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		//TODO: is critical when shadow does not exits anymore?? do we need to log it?? if not, change null to allowNotFound options
@@ -795,7 +795,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".executeScript");
 		result.addParam("oid", resourceOid);
-		result.addParam("script", script);
+		result.addArbitraryObjectAsParam("script", script);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 		
 		try {
@@ -855,7 +855,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				+ ".listResourceObjects");
 		result.addParam("resourceOid", resourceOid);
 		result.addParam("objectClass", objectClass);
-		result.addParam("paging", paging);
+		result.addArbitraryObjectAsParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		if (resourceOid == null) {

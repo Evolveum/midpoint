@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.schema.result;
 
-import java.io.Serializable;
+package com.evolveum.midpoint.model.intest.importer;
+
+import com.evolveum.midpoint.prism.PrismContext;
 
 /**
- * A class that marks presence of various values in a specific OperationResult map. E.g. if an instance of this class is present
- * as a "foo" parameter in OperationResult parameter map then such parameter contains many different values.
- * 
- * It only makes sense for OperationResult entries that are summarized (has count > 1) 
- * 
- * @author Radovan Semancik
- *
+ * @author mederly
  */
-public class VariousValues implements Serializable {
+public class XmlImportTest extends AbstractImportTest {
 
 	@Override
-	public String toString() {
-		return "[various values]";
+	String getSuffix() {
+		return "xml";
 	}
 
+	@Override
+	String getLanguage() {
+		return PrismContext.LANG_XML;
+	}
 }

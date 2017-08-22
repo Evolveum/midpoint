@@ -15,12 +15,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -28,17 +24,17 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 
@@ -118,6 +114,9 @@ public class ModelUtils {
 		ObjectPolicyConfigurationType applicablePolicyConfigurationType = null;
 		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getDefaultObjectPolicyConfiguration()) {
 			QName typeQName = aPolicyConfigurationType.getType();
+			if (typeQName == null) {
+				continue;       // TODO implement correctly (using 'applicable policies' perhaps)
+			}
 			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
 			if (objectType == null) {
 				throw new ConfigurationException("Unknown type "+typeQName+" in default object policy definition in system configuration");
@@ -140,6 +139,9 @@ public class ModelUtils {
 		// Deprecated
 		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getObjectTemplate()) {
 			QName typeQName = aPolicyConfigurationType.getType();
+			if (typeQName == null) {
+				continue;
+			}
 			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
 			if (objectType == null) {
 				throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
@@ -160,6 +162,88 @@ public class ModelUtils {
 			return policy;
 		}
 		
+		return null;
+	}
+
+	// from the most to least appropriate
+	@NotNull
+	public static <O extends ObjectType> List<ObjectPolicyConfigurationType> getApplicablePolicies(
+			Class<O> objectClass, List<String> objectSubtypes, SystemConfigurationType systemConfigurationType)
+			throws ConfigurationException {
+		List<ObjectPolicyConfigurationType> rv = new ArrayList<>();
+		List<ObjectPolicyConfigurationType> typeNoSubtype = new ArrayList<>();
+		List<ObjectPolicyConfigurationType> typeWithSubtype = new ArrayList<>();
+		List<ObjectPolicyConfigurationType> noTypeNoSubtype = new ArrayList<>();
+		List<ObjectPolicyConfigurationType> noTypeWithSubtype = new ArrayList<>();
+		List<ObjectPolicyConfigurationType> all = new ArrayList<>();
+
+		all.addAll(systemConfigurationType.getDefaultObjectPolicyConfiguration());
+		all.addAll(systemConfigurationType.getObjectTemplate());        // deprecated
+		if (objectClass == UserType.class) {
+			// Deprecated method to specify user template. For compatibility only
+			ObjectReferenceType templateRef = systemConfigurationType.getDefaultUserTemplateRef();
+			if (templateRef != null) {
+				all.add(new ObjectPolicyConfigurationType().objectTemplateRef(templateRef.clone()));
+			}
+		}
+
+		for (ObjectPolicyConfigurationType aPolicyConfigurationType: all) {
+			QName typeQName = aPolicyConfigurationType.getType();
+			if (typeQName != null) {
+				ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
+				if (objectType == null) {
+					throw new ConfigurationException(
+							"Unknown type " + typeQName + " in default object policy definition or object template definition in system configuration");
+				}
+				if (objectType.getClassDefinition() == objectClass) {
+					String aSubType = aPolicyConfigurationType.getSubtype();
+					if (aSubType == null) {
+						typeNoSubtype.add(aPolicyConfigurationType);
+					} else if (objectSubtypes != null && objectSubtypes.contains(aSubType)) {
+						typeWithSubtype.add(aPolicyConfigurationType);
+					}
+				}
+			} else {
+				String aSubType = aPolicyConfigurationType.getSubtype();
+				if (aSubType == null) {
+					noTypeNoSubtype.add(aPolicyConfigurationType);
+				} else if (objectSubtypes != null && objectSubtypes.contains(aSubType)) {
+					noTypeWithSubtype.add(aPolicyConfigurationType);
+				}
+			}
+		}
+		rv.addAll(typeWithSubtype);
+		rv.addAll(typeNoSubtype);
+		rv.addAll(noTypeWithSubtype);
+		rv.addAll(noTypeNoSubtype);
+		return rv;
+	}
+
+	@NotNull
+	public static <F extends ObjectType> List<ObjectPolicyConfigurationType> getApplicablePolicies(LensContext<F> context) {
+		PrismObject<SystemConfigurationType> config = context.getSystemConfiguration();
+		if (config == null) {
+			return Collections.emptyList();
+		}
+		PrismObject<F> object = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
+		List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
+		List<ObjectPolicyConfigurationType> relevantPolicies;
+		try {
+			relevantPolicies = ModelUtils.getApplicablePolicies(context.getFocusContext().getObjectTypeClass(), subTypes,
+					config.asObjectable());
+		} catch (ConfigurationException e) {
+			throw new SystemException("Couldn't get relevant object policies", e);
+		}
+		LOGGER.trace("Relevant policies: {}", relevantPolicies);
+		return relevantPolicies;
+	}
+
+	public static <F extends ObjectType> ConflictResolutionType getConflictResolution(LensContext<F> context) {
+		for (ObjectPolicyConfigurationType p : ModelUtils.getApplicablePolicies(context)) {
+			if (p.getConflictResolution() != null) {
+				return p.getConflictResolution();
+			}
+		}
 		return null;
 	}
 

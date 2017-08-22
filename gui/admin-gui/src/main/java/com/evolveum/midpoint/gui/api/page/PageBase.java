@@ -1079,25 +1079,29 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 	}
 
 	// TODO untangle this brutal code (list vs objectable vs other cases)
-	public <T> void validateObject(String lexicalRepresentation, final Holder<T> objectHolder,
-			String language, boolean validateSchema, Class<T> clazz, OperationResult result) {
+	public <T> void parseObject(String lexicalRepresentation, final Holder<T> objectHolder,
+			String language, boolean validateSchema, boolean skipChecks, Class<T> clazz, OperationResult result) {
 
     	boolean isListOfObjects = List.class.isAssignableFrom(clazz);
 		boolean isObjectable = Objectable.class.isAssignableFrom(clazz);
-		if (language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)
+		if (skipChecks || language == null || PrismContext.LANG_JSON.equals(language) || PrismContext.LANG_YAML.equals(language)
 				|| (!isObjectable && !isListOfObjects)) {
 			T object;
 			try {
 				if (isListOfObjects) {
 					List<PrismObject<? extends Objectable>> prismObjects = getPrismContext().parserFor(lexicalRepresentation)
 							.language(language).parseObjects();
-					for (PrismObject<? extends Objectable> prismObject : prismObjects) {
-						prismObject.checkConsistence();
+					if (!skipChecks) {
+						for (PrismObject<? extends Objectable> prismObject : prismObjects) {
+							prismObject.checkConsistence();
+						}
 					}
 					object = (T) prismObjects;
 				} else if (isObjectable) {
 					PrismObject<ObjectType> prismObject = getPrismContext().parserFor(lexicalRepresentation).language(language).parse();
-					prismObject.checkConsistence();
+					if (!skipChecks) {
+						prismObject.checkConsistence();
+					}
 					object = (T) prismObject.asObjectable();
 				} else {
 					object = getPrismContext().parserFor(lexicalRepresentation).language(language).type(clazz).parseRealValue();

@@ -215,7 +215,7 @@ public class ConstructionProcessor {
     		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment: evaluatedAssignments) {
 	    	if (LOGGER.isTraceEnabled()) {
-	    		LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDump());
+	    		LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDump(1));
 	    	}
 	    	DeltaSetTriple<T> constructionTriple = constructionTripleExtractor.apply(evaluatedAssignment);
 	    	collectToConstructionMapFromEvaluatedConstructions(context, evaluatedAssignment, constructionTriple.getZeroSet(), constructionMapTriple, keyGenerator, mode, PlusMinusZero.ZERO, task, result);

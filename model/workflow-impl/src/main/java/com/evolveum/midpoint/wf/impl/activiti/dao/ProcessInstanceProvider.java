@@ -60,7 +60,7 @@ public class ProcessInstanceProvider {
 
         final OperationResult result = parentResult.createSubresult(OPERATION_AUGMENT_TASK_OBJECT);
         result.addParam("object", ObjectTypeUtil.toShortString(object));
-		result.addCollectionOfSerializablesAsParam("options", options);
+		result.addArbitraryObjectCollectionAsParam("options", options);
 
         if (!(object.asObjectable() instanceof TaskType)) {
             result.recordNotApplicableIfUnknown();

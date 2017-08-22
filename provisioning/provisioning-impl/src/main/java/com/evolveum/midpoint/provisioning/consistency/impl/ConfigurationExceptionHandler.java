@@ -88,7 +88,7 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
             case GET:
                 OperationResult operationResult = parentResult.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.ConfigurationExceptionHandler.handleError." + op.name());
                 operationResult.addParam("shadow", shadow);
-                operationResult.addParam("currentOperation", op);
+                operationResult.addArbitraryObjectAsParam("currentOperation", op);
                 operationResult.addParam("exception", ex.getMessage());
                 for (OperationResult subRes : parentResult.getSubresults()) {
                     subRes.muteError();

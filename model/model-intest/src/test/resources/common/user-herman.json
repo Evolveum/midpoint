@@ -1,0 +1,23 @@
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "user" : {
+    "oid" : "c0c010c0-d34d-b33f-f00d-111111111122",
+    "name" : "herman",
+    "activation" : {
+      "validFrom" : "1700-05-30T11:00:00Z",
+      "validTo" : "2233-03-23T18:30:00Z"
+    },
+    "fullName" : "Herman Toothrot",
+    "givenName" : "Herman",
+    "familyName" : "Toothrot",
+    "locality" : "Monkey Island",
+    "credentials" : {
+      "password" : {
+        "value" : {
+          "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
+          "clearValue" : "m0nk3y"
+        }
+      }
+    }
+  }
+}

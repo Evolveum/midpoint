@@ -1,0 +1,15 @@
+{
+  "objects" : [ {
+    "user" : {
+      "name" : "u1"
+    }
+  }, {
+    "user" : {
+      "name-error" : "u2"
+    }
+  }, {
+    "role" : {
+      "name" : "r1"
+    }
+  } ]
+}

@@ -78,7 +78,7 @@ public class AssociationTargetSearchExpressionEvaluator
 			throw new ExpressionEvaluationException("No association target object class definition variable in "+
 					params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
 		}		
-		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceType().getOid(), getPrismContext());
+		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rAssocTargetDef.getResourceOid(), getPrismContext());
 		ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rAssocTargetDef.getObjectClassDefinition().getTypeName(),
 				getPrismContext());
 		ObjectFilter extendedFilter = AndFilter.createAnd(resourceFilter, objectClassFilter, query.getFilter());

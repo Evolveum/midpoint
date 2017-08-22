@@ -101,10 +101,25 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		assertResource(resource, true, true, true);
 	}
 
+	@Test
+	public void testParseResourceRoundtripXml() throws Exception {
+		displayTestTitle("testParseResourceRoundtripXml");
+		doTestParseResourceRoundtrip(PrismContext.LANG_XML);
+	}
 
 	@Test
-	public void testParseResourceRoundtrip() throws Exception {
-		displayTestTitle("testParseResourceRoundtrip");
+	public void testParseResourceRoundtripJson() throws Exception {
+		displayTestTitle("testParseResourceRoundtripJson");
+		doTestParseResourceRoundtrip(PrismContext.LANG_JSON);
+	}
+
+	@Test
+	public void testParseResourceRoundtripYaml() throws Exception {
+		displayTestTitle("testParseResourceRoundtripYaml");
+		doTestParseResourceRoundtrip(PrismContext.LANG_YAML);
+	}
+
+	private void doTestParseResourceRoundtrip(String serializeInto) throws Exception {
 
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
@@ -118,7 +133,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
 		// SERIALIZE
 
-		String serializedResource = prismContext.serializerFor(language).serialize(resource);
+		String serializedResource = prismContext.serializerFor(serializeInto).serialize(resource);
 
 		System.out.println("serialized resource:");
 		System.out.println(serializedResource);
@@ -272,8 +287,24 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 	}
 	
 	@Test
-	public void testParseResourceExpressionRoundtrip() throws Exception {
-		displayTestTitle("testParseResourceExpressionRoundtrip");
+	public void testParseResourceExpressionRoundtripXml() throws Exception {
+		displayTestTitle("testParseResourceExpressionRoundtripXml");
+		doTestParseResourceExpressionRoundtrip(PrismContext.LANG_XML);
+	}
+
+	@Test
+	public void testParseResourceExpressionRoundtripJson() throws Exception {
+		displayTestTitle("testParseResourceExpressionRoundtripJson");
+		doTestParseResourceExpressionRoundtrip(PrismContext.LANG_JSON);
+	}
+
+	@Test
+	public void testParseResourceExpressionRoundtripYaml() throws Exception {
+		displayTestTitle("testParseResourceExpressionRoundtripYaml");
+		doTestParseResourceExpressionRoundtrip(PrismContext.LANG_YAML);
+	}
+
+	private void doTestParseResourceExpressionRoundtrip(String serializeInto) throws Exception {
 
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
@@ -287,7 +318,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
 		// SERIALIZE (1)
 
-		String serializedResource = prismContext.serializerFor(language).serialize(resource);
+		String serializedResource = prismContext.serializerFor(serializeInto).serialize(resource);
 
 		System.out.println("\nserialized resource (1):");
 		System.out.println(serializedResource);
@@ -319,7 +350,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		System.out.println("\nResource (2):");
 		System.out.println(resource.debugDump());
 		
-		serializedResource = prismContext.serializerFor(language).serialize(resource);
+		serializedResource = prismContext.serializerFor(serializeInto).serialize(resource);
 
 		System.out.println("\nserialized resource (2):");
 		System.out.println(serializedResource);

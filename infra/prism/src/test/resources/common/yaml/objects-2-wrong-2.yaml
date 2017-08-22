@@ -1,0 +1,9 @@
+---
+objects:
+- user:
+    name: "u1"
+- user:
+    name: "u2"
+- role:
+    name: "r1"
+other: abcdefgh

@@ -39,7 +39,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -240,7 +240,7 @@ public class TestExpressionUtil {
 				stringPath + "</path>";
 		Document doc = DOMUtil.parseDocument(xml);
 		Element element = DOMUtil.getFirstChildElement(doc);
-		return new XPathHolder(element).toItemPath();
+		return new ItemPathHolder(element).toItemPath();
 		
 	}
 

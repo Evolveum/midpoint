@@ -26,5 +26,6 @@ import java.util.Collection;
 public interface S_MaybeDelete extends S_ItemEntry {
     S_ItemEntry delete(Object... realValues);
     S_ItemEntry delete(PrismValue... values);
+    S_ItemEntry deleteRealValues(Collection<?> realValues);
     S_ItemEntry delete(Collection<? extends PrismValue> values);
 }

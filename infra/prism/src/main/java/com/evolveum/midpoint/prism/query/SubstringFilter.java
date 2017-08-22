@@ -90,6 +90,9 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 	@Override
 	public boolean match(PrismContainerValue containerValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		Item item = getObjectItem(containerValue);
+		if (item == null) {
+			return false;           // no use matching empty values
+		}
 		
 		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, item);
 		

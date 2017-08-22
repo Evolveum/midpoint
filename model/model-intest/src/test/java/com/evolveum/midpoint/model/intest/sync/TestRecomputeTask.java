@@ -179,7 +179,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        addObject(TASK_USER_RECOMPUTE_FILE);
+        addTask(TASK_USER_RECOMPUTE_FILE);
         
         dummyAuditService.clear();
         
@@ -280,7 +280,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        addObject(TASK_USER_RECOMPUTE_CAPTAIN_FILE);
+        addTask(TASK_USER_RECOMPUTE_CAPTAIN_FILE);
         
         dummyAuditService.clear();
         
@@ -334,7 +334,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		addObject(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE);
+		addTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE);
 
 		dummyAuditService.clear();
 
@@ -407,7 +407,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		addObject(TASK_USER_RECOMPUTE_LIGHT_FILE);
+		addTask(TASK_USER_RECOMPUTE_LIGHT_FILE);
 
 		dummyAuditService.clear();
 

@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -389,7 +388,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void importObjectFromFile(File file, OperationResult result) throws FileNotFoundException {
 		OperationResult subResult = result.createSubresult(AbstractModelIntegrationTest.class+".importObjectFromFile");
-		subResult.addParam("filename", file);
+		subResult.addParam("filename", file.getPath());
 		LOGGER.trace("importObjectFromFile: {}", file);
 		Task task = taskManager.createTaskInstance();
 		importObjectFromFile(file, task, result);
@@ -677,7 +676,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(userOid, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, options, task, result);	
+		modelService.executeChanges(deltas, options, task, result);
 	}
 	
 	protected <O extends ObjectType> void modifyObjectReplaceProperty(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -707,7 +706,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationDeleteProperty(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected <O extends ObjectType> void modifyObjectAddProperty(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
@@ -715,7 +714,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationAddProperty(type, oid, propertyPath, prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected <O extends ObjectType, C extends Containerable> void modifyObjectReplaceContainer(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue) 
@@ -751,7 +750,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceReference(type, oid, refPath, prismContext, refVals);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected void modifyUserAdd(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
@@ -765,7 +764,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserAddDelta(userOid, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected void modifyUserDelete(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
@@ -779,7 +778,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> objectDelta = createModifyUserDeleteDelta(userOid, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, null, task, result);	
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected void modifyAccountShadowReplace(String accountOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
@@ -1147,18 +1146,37 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(focusDelta);
 		modelService.executeChanges(deltas, options, task, result);
 	}
+	
+	/**
+	 * Executes unassign delta by removing each assignment individually by id.
+	 */
+	protected <F extends FocusType> void unassignAll(PrismObject<F> focusBefore, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> focusDelta = createUnassignAllDelta(focusBefore);
+		modelService.executeChanges(MiscSchemaUtil.createCollection(focusDelta), null, task, result);
+	}
 
+	/**
+	 * Creates unassign delta by removing each assignment individually by id.
+	 */
+	protected <F extends FocusType> ObjectDelta<F> createUnassignAllDelta(PrismObject<F> focusBefore) throws SchemaException {
+		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+		for (AssignmentType assignmentType: focusBefore.asObjectable().getAssignment()) {
+			modifications.add((createAssignmentModification(assignmentType.getId(), false)));
+		}
+		return ObjectDelta.createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass(), prismContext);
+	}
+	
 	/**
 	 * Executes assignment replace delta with empty values.
 	 */
-	protected void unassignAll(String userOid, Task task, OperationResult result) 
+	protected void unassignAllReplace(String userOid, Task task, OperationResult result) 
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, userOid,
 				UserType.F_ASSIGNMENT, prismContext, new PrismContainerValue[0]);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-		modelService.executeChanges(deltas, null, task, result);		
+		modelService.executeChanges(deltas, null, task, result);
 	}
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, 
@@ -2869,9 +2887,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		int expectedModifications = 0;
 		// There may be metadata modification, we tolerate that
-		Collection<? extends ItemDelta<?,?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
-		if (metadataDelta != null && !metadataDelta.isEmpty()) {
-			expectedModifications+=metadataDelta.size();
+		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
+			if (isSideEffectDelta(modification)) {
+				expectedModifications++;
+			}
 		}
 		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
@@ -2912,7 +2931,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		int expectedModifications = expectedEffectualModifications;
 		// There may be metadata modification, we tolerate that
 		for (ItemDelta<?,?> modification: focusDelta.getModifications()) {
-			if (modification.getPath().containsName(ObjectType.F_METADATA)) {
+			if (isSideEffectDelta(modification)) {
 				expectedModifications++;
 			}
 		}
@@ -2945,6 +2964,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
 	}
 	
+	private boolean isSideEffectDelta(ItemDelta<?, ?> modification) {
+		if (modification.getPath().containsName(ObjectType.F_METADATA) || 
+				(modification.getPath().containsName(FocusType.F_ASSIGNMENT) && modification.getPath().containsName(ActivationType.F_EFFECTIVE_STATUS))) {
+			return true;
+		} else if (modification.getPath().containsName(FocusType.F_ASSIGNMENT) && modification.getPath().containsName(AssignmentType.F_ACTIVATION) && modification.isReplace() && (modification instanceof ContainerDelta<?>)) {
+			Collection<PrismContainerValue<ActivationType>> valuesToReplace = ((ContainerDelta<ActivationType>)modification).getValuesToReplace();
+			if (valuesToReplace != null && valuesToReplace.size() == 1) {
+				PrismContainerValue<ActivationType> cval = valuesToReplace.iterator().next();
+				if (cval.getItems().size() == 1) {
+					Item<?, ?> item = cval.getItems().iterator().next();
+					if (ActivationType.F_EFFECTIVE_STATUS.equals(item.getElementName())) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	protected void assertValidFrom(PrismObject<? extends ObjectType> obj, Date expectedDate) {
 		assertEquals("Wrong validFrom in "+obj, XmlTypeConverter.createXMLGregorianCalendar(expectedDate), 
 				getActivation(obj).getValidFrom());
@@ -3024,6 +3062,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             addObject(file);
         }
     }
+
+    // not going through model to avoid conflicts (because the task starts execution during the clockwork operation)
+	protected void addTask(File file) throws SchemaException, IOException, ObjectAlreadyExistsException {
+		taskManager.addTask(prismContext.parseObject(file), new OperationResult("addTask"));
+	}
 
 	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = PrismTestUtil.parseObject(file);

@@ -288,7 +288,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         }
     }
 
-    private void fillInOperationResultAttributes(TaskType taskType) {
+    private void fillInOperationResultAttributes(TaskType taskType) throws SchemaException {
         opResult = new ArrayList<OperationResult>();
         if (taskType.getResult() != null) {
             taskOperationResult = OperationResult.createOperationResult(taskType.getResult());

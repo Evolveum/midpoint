@@ -16,7 +16,7 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import org.jetbrains.annotations.NotNull;
@@ -76,7 +76,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	}
 
     public ItemPathType(String itemPath) {
-        XPathHolder holder = new XPathHolder(itemPath);
+        ItemPathHolder holder = new ItemPathHolder(itemPath);
         this.itemPath = holder.toItemPath();
     }
 

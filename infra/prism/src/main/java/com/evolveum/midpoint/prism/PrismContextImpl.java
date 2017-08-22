@@ -74,6 +74,8 @@ public class PrismContextImpl implements PrismContext {
 
 	private QName defaultRelation;
 
+	private QName objectsElementName;
+
 	static {
 		PrismPrettyPrinter.initialize();
 	}
@@ -220,6 +222,7 @@ public class PrismContextImpl implements PrismContext {
 		this.monitor = monitor;
 	}
 
+	@Override
 	public QName getDefaultRelation() {
 		return defaultRelation;
 	}
@@ -227,6 +230,16 @@ public class PrismContextImpl implements PrismContext {
 	public void setDefaultRelation(QName defaultRelation) {
 		this.defaultRelation = defaultRelation;
 	}
+
+	@Override
+	public QName getObjectsElementName() {
+		return objectsElementName;
+	}
+
+	public void setObjectsElementName(QName objectsElementName) {
+		this.objectsElementName = objectsElementName;
+	}
+
 	//endregion
 
 	//region Parsing

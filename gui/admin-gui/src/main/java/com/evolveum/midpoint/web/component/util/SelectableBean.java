@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
@@ -77,7 +78,7 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 		this.result = result;
 	}
 	
-	public void setResult(OperationResultType resultType) {
+	public void setResult(OperationResultType resultType) throws SchemaException {
 		this.result = OperationResult.createOperationResult(resultType);
 	}
 

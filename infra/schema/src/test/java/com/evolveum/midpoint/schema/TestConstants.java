@@ -62,4 +62,5 @@ public class TestConstants {
 
 	public static final String METAROLE_FILE_BASENAME = "metarole";
 	public static final String OBJECTS_FILE_BASENAME = "objects";
+	public static final String OBJECTS_WRONG_FILE_BASENAME = "objects-wrong";
 }

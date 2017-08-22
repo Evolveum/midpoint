@@ -39,6 +39,7 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -100,11 +101,11 @@ public class OpResult implements Serializable, Visitable {
         }
 
         if (result.getParams() != null) {
-            for (Map.Entry<String, Serializable> entry : result.getParams().entrySet()) {
+            for (Map.Entry<String, Collection<String>> entry : result.getParams().entrySet()) {
                 String paramValue = null;
-                Object value = entry.getValue();
-                if (value != null) {
-                    paramValue = value.toString();
+                Collection<String> values = entry.getValue();
+                if (values != null) {
+                    paramValue = values.toString();
                 }
 
                 opResult.getParams().add(new Param(entry.getKey(), paramValue));
@@ -112,11 +113,11 @@ public class OpResult implements Serializable, Visitable {
         }
         
         if(result.getContext() != null){
-        	for (Map.Entry<String, Serializable> entry : result.getContext().entrySet()) {
+        	for (Map.Entry<String, Collection<String>> entry : result.getContext().entrySet()) {
                 String contextValue = null;
-                Object value = entry.getValue();
-                if (value != null) {
-                	contextValue = value.toString();
+                Collection<String> values = entry.getValue();
+                if (values != null) {
+                	contextValue = values.toString();
                 }
 
                 opResult.getContexts().add(new Context(entry.getKey(), contextValue));

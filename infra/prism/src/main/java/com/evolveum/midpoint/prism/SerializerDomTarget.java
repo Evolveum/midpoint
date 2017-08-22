@@ -3,6 +3,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -25,7 +26,7 @@ public class SerializerDomTarget extends SerializerTarget<Element> {
 
     @NotNull
     @Override
-    public Element write(@NotNull List<RootXNode> roots, QName aggregateElementName, SerializationContext context)
+    public Element write(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context)
             throws SchemaException {
         return prismContext.getLexicalProcessorRegistry().domProcessor().writeXRootListToElement(roots, aggregateElementName);
     }

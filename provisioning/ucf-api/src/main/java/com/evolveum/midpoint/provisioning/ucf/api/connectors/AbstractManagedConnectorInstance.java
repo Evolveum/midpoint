@@ -120,7 +120,6 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 			ConfigurationException {
 		
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
-		result.addParam("configuration", configuration);
 		
 		boolean immutable = configuration.isImmutable();
 		try {
@@ -148,7 +147,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
-		result.addContext("connector", getConnectorObject());
+		result.addContext("connector", getConnectorObject().toString());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
 		
 		setResourceSchema(resourceSchema);

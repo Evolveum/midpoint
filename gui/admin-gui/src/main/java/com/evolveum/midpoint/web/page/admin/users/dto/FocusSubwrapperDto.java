@@ -29,8 +29,9 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-    private ObjectWrapper<O> object;
+	private ObjectWrapper<O> object;
     private UserDtoStatus status;
 
     private boolean loadedOK = true;

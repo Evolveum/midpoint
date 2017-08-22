@@ -104,6 +104,15 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		this.oid = oid;
 	}
 	
+	/**
+	 * Returns object that this reference points to. The object is supposed to be used
+	 * for caching and optimizations. Only oid and type of the object really matters for
+	 * the reference.
+	 * 
+	 * The object is transient. It will NOT be serialized. Therefore the client must
+	 * expect that the object can disappear when serialization boundary is crossed.
+	 * The client must expect that the object is null. 
+	 */
 	public PrismObject getObject() {
 		return object;
 	}

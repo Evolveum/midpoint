@@ -350,7 +350,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public boolean suspendTasksResolved(Collection<Task> tasks, long waitForStop, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendTasks");
-        result.addArbitraryCollectionAsParam("tasks", tasks);
+        result.addArbitraryObjectCollectionAsParam("tasks", tasks);
         result.addParam("waitForStop", waitingInfo(waitForStop));
 
         LOGGER.info("Suspending tasks {}; {}.", tasks, waitingInfo(waitForStop));
@@ -698,7 +698,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public void suspendAndDeleteTasks(Collection<String> taskOids, long suspendTimeout, boolean alsoSubtasks, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "suspendAndDeleteTasks");
-        result.addCollectionOfSerializablesAsParam("taskOids", taskOids);
+        result.addArbitraryObjectCollectionAsParam("taskOids", taskOids);
 
         List<Task> tasksToBeDeleted = new ArrayList<Task>();
         for (String oid : taskOids) {
@@ -911,7 +911,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".getObject");
         result.addParam("objectType", type);
         result.addParam("oid", oid);
-        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
         try {
@@ -1057,7 +1057,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
-        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
         if (TaskType.class.isAssignableFrom(type)) {
@@ -1076,7 +1076,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
-        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addArbitraryObjectCollectionAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
         SearchResultList<PrismObject<T>> objects;
@@ -1629,7 +1629,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "scheduleTasksNow");
-        result.addCollectionOfSerializablesAsParam("taskOids", taskOids);
+        result.addArbitraryObjectCollectionAsParam("taskOids", taskOids);
         for (String oid : taskOids) {
             try {
                 scheduleTaskNow(getTask(oid, result), result);

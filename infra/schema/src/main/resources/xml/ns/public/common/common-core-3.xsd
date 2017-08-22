@@ -2626,15 +2626,22 @@
                             <xsd:documentation>
                             	<p>
 	                                Indicates user's preferred language, usually for the purpose of localizing
-	                                user interfaces. The format is ISO 639-1 two letter language code and the 
-	                                ISO 3166-1 two letter country code separated by underscore. If not specified
-	                                then system default locale is assumed.
+	                                user interfaces. The format is IETF language tag defined in BCP 47, where
+	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+	                                language code optionally followed by ISO 3166-1 two letter country code 
+	                                separated by underscore. The languages that do not have coutry-specific
+	                                variants are usually specified by using a two-letter coutry code ("sk", 
+	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
+	                                subtags ("pt_BR", "zn_CN").
+	                                If no value is specified in this property then system default locale is assumed.
                                 </p>
 								<p>
                                 Examples:
                                     <ul>
                                         <li>en_US</li>
-                                        <li>sk_SK</li>
+                                        <li>sk</li>
+                                        <li>cs</li>
+                                        <li>pt_BR</li>
                                     </ul>
                                 </p>
                             </xsd:documentation>
@@ -2651,15 +2658,22 @@
                             <xsd:documentation>
                             	<p>
 	                                Defines user's preference in displaying currency, dates and other items
-	                                related to location and culture. The format ISO 639-1 two letter language code and the 
-	                                ISO 3166-1 two letter country code separated by underscore. If not specified
-	                                then system default locale is assumed.
+	                                related to location and culture. The format is IETF language tag defined in BCP 47, where
+	                                underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
+	                                language code optionally followed by ISO 3166-1 two letter country code 
+	                                separated by underscore. The languages that do not have coutry-specific
+	                                variants are usually specified by using a two-letter coutry code ("sk", 
+	                                "cs", "tr"). Languages with coutry-specific variants have country-specific
+	                                subtags ("pt_BR", "zn_CN").
+	                                If not specified then system default locale is assumed.
                                 </p>
 								<p>
                                 Examples:
                                     <ul>
                                         <li>en_US</li>
-                                        <li>sk_SK</li>
+                                        <li>sk</li>
+                                        <li>cs</li>
+                                        <li>pt_BR</li>
                                     </ul>
                                 </p>
                             </xsd:documentation>
@@ -10593,6 +10607,7 @@
         <xsd:sequence>
             <xsd:element name="operation" type="xsd:string"/>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
+            <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false"/>
             <xsd:element name="count" type="xsd:int" minOccurs="0" default="1"/>
             <xsd:element name="hiddenRecordsCount" type="xsd:int" minOccurs="0" default="0"/>
             <xsd:element name="params" type="tns:ParamsType" minOccurs="0"/>
@@ -10889,7 +10904,7 @@
 							<xsd:documentation>
 								Definition of default object policy for a individual object type. The definition of this policy
 								contains object template and other similar settings. The policy will be used
-								"universally" during all operations with specified object types - unless it is overriden
+								"universally" during all operations with specified object types - unless it is overridden
 								in other definitions (e.g. in resource or org).
 							</xsd:documentation>
 							<xsd:appinfo>
@@ -11529,7 +11544,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="type" type="xsd:QName">
+			<xsd:element name="type" type="xsd:QName" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Specification of the type (class) of the object to apply this definition to.
@@ -11541,35 +11556,138 @@
 					<xsd:documentation>
 						Specification of the subtype of the object to apply this template to.
 						If no subtype is specified then this definition will be applied to all subtypes.
-						The subtype is compared agains the subType property but it is also compared to the
+						The subtype is compared against the subType property but it is also compared to the
 						deprecated employeeType, roleType, orgType and serviceType properties.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType">
-                 <xsd:annotation>
-                     <xsd:documentation>
-                         Reference to the template.
-                     </xsd:documentation>
-                     <xsd:appinfo>
-             			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-             		</xsd:appinfo>
-                 </xsd:annotation>
-             </xsd:element>
-             <xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
-             <xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
-             	<xsd:annotation>
-             		<xsd:documentation>
-             			A mode in which OID and name of the specified object are the same.
-             		</xsd:documentation>
-             		<xsd:appinfo>
-             			<a:deprecated>true</a:deprecated>
-             		</xsd:appinfo>
-             	</xsd:annotation>
-             </xsd:element>
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the template.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						A mode in which OID and name of the specified object are the same.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="conflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to resolve write-write conflicts on focal objects, i.e. if two threads modify given objects at once.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
-	
+
+	<xsd:complexType name="ConflictResolutionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How to resolve write-write conflicts on focal objects, i.e. if two threads modify given objects at once.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>3.6.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="action" type="tns:ConflictResolutionActionType">
+				<xsd:annotation>
+					<xsd:documentation>
+						What action to take.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="maxAttempts" type="xsd:int" minOccurs="0" default="1">	<!-- synchronize with Clockwork.java -->
+				<xsd:annotation>
+					<xsd:documentation>
+						How many attempts to undertake at most.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="delayUnit" type="xsd:int" minOccurs="0" default="5000">	<!-- synchronize with Clockwork.java -->
+				<xsd:annotation>
+					<xsd:documentation>
+						What delay (in milliseconds) to introduce between attempts. Actual delay is taken as
+						a random number between 0 and delayUnit*(2^(n-1)), where n is the number of conflict resolution attempt,
+						starting at 1. (In other words, the potential delay is multiplied by two after each unsuccessful
+						resolution attempt.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="ConflictResolutionActionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				What to do in the case of modify-modify conflict during model (clockwork) operation.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>3.6.1</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:documentation>
+						Nothing should be done. This is the default behavior.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="log">
+				<xsd:annotation>
+					<xsd:documentation>
+						Warning should be issued into the log file.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="LOG"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="recompute">
+				<xsd:annotation>
+					<xsd:documentation>
+						The focus object should be recomputed.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RECOMPUTE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fail">
+				<xsd:annotation>
+					<xsd:documentation>
+						The whole operation should fail. This is to be used mainly for testing purposes,
+						to check if conflict detection algorithm does not yield false positive results.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FAIL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:complexType name="PropertyConstraintType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -12113,6 +12231,13 @@
                     <xsd:element name="maxHistory" type="xsd:int"/>
                     <xsd:element name="maxFileSize" type="xsd:string"/>
                     <xsd:element name="append" type="xsd:boolean"/>
+                    <xsd:element name="prudent" type="xsd:boolean">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Prudent mode allows remote and shared file destinations (see https://logback.qos.ch/manual/appenders.html#prudentWithRolling )
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

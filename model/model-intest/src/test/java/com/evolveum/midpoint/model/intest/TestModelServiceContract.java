@@ -93,6 +93,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -1678,8 +1679,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
+		assertResultSerialization(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         
@@ -1728,7 +1729,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertSteadyResources();
     }
-	
+
 	/**
 	 * Assignment enforcement is set to RELATIVE for this test. The account should be gone.
 	 */
@@ -3293,6 +3294,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         prepareNotifications();
         purgeProvisioningScriptHistory();
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+	}
+	
+	private void assertResultSerialization(OperationResult result) throws SchemaException {
+		OperationResultType resultType = result.createOperationResultType();
+		String serialized = prismContext.serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
+		display("OperationResultType serialized", serialized);
 	}
 
 }

@@ -175,7 +175,7 @@ public class CertificationManagerImpl implements CertificationManager {
         if (!definitionOids.isEmpty()) {
 			OperationResult result = parentResult.createSubresult(OPERATION_CREATE_AD_HOC_CAMPAIGNS);
 			result.addParam("focus", focus);
-			result.addCollectionOfSerializablesAsParam("definitionOids", definitionOids);
+			result.addArbitraryObjectCollectionAsParam("definitionOids", definitionOids);
 			try {
 				PrismObject<UserType> administrator = repositoryService
 						.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
@@ -430,8 +430,8 @@ public class CertificationManagerImpl implements CertificationManager {
 			ObjectAlreadyExistsException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEMS);
 		result.addParam("campaignOid", campaignOid);
-		result.addCollectionOfSerializablesAsParam("workItems", workItems);	// TODO only IDs?
-		result.addParam("delegateAction", delegateAction);
+		result.addArbitraryObjectCollectionAsParam("workItems", workItems);	// TODO only IDs?
+		result.addArbitraryObjectAsParam("delegateAction", delegateAction);
 		try {
 			// TODO security
 			securityEnforcer.authorize(ModelAuthorizationAction.DELEGATE_ALL_WORK_ITEMS.getUrl(), null,

@@ -109,7 +109,7 @@ public class ObjectRetriever {
         }
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Get object:\n{}", new Object[]{(objectType != null ? objectType.debugDump(3) : null)});
+            LOGGER.trace("Get object:\n{}", objectType != null ? objectType.debugDump(3) : null);
         }
 
         return objectType;
@@ -219,7 +219,7 @@ public class ObjectRetriever {
         Session session = null;
         try {
             session = baseHelper.beginReadOnlyTransaction();
-            LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
+            LOGGER.trace("Selecting account shadow owner for account {}.", shadowOid);
             Query query = session.getNamedQuery("searchShadowOwner.getOwner");
             query.setString("oid", shadowOid);
             query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
@@ -270,8 +270,7 @@ public class ObjectRetriever {
             }
 
             if (users.size() > 1) {
-                LOGGER.warn("Found {} users for account oid {}, returning first user. [interface change needed]",
-                        new Object[]{users.size(), accountOid});
+                LOGGER.warn("Found {} users for account oid {}, returning first user. [interface change needed]", users.size(), accountOid);
             }
 
             GetObjectResult user = users.get(0);
@@ -358,7 +357,7 @@ public class ObjectRetriever {
 	@NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        LOGGER_PERFORMANCE.debug("> search objects {}", new Object[]{type.getSimpleName()});
+        LOGGER_PERFORMANCE.debug("> search objects {}", type.getSimpleName());
         Session session = null;
         try {
             session = baseHelper.beginReadOnlyTransaction();
@@ -591,7 +590,7 @@ public class ObjectRetriever {
             throws ObjectNotFoundException, SchemaException {
 
         LOGGER_PERFORMANCE.debug("> list resource object shadows {}, for resource oid={}",
-                new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
+                resourceObjectShadowType.getSimpleName(), resourceOid);
         List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
@@ -637,7 +636,7 @@ public class ObjectRetriever {
 
     public <T extends ObjectType> String getVersionAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        LOGGER_PERFORMANCE.debug("> get version {}, oid={}", new Object[]{type.getSimpleName(), oid});
+        LOGGER_PERFORMANCE.debug("> get version {}, oid={}", type.getSimpleName(), oid);
 
         String version = null;
         Session session = null;

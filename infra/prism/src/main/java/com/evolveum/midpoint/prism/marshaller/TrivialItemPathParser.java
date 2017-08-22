@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism.marshaller;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -27,19 +29,18 @@ import java.util.regex.Pattern;
  *
  * @author semancik
  */
-public class TrivialXPathParser {
+public class TrivialItemPathParser {
 
-    private Map<String,String> namespaceMap;
-    private String pureXPathString;
+    private final Map<String,String> namespaceMap = new HashMap<>();
+    private String pureItemPathString;
 
-    private TrivialXPathParser() {
-        namespaceMap = new HashMap<String, String>();
-        pureXPathString = "";
+    private TrivialItemPathParser() {
+        pureItemPathString = "";
     }
 
-    public static TrivialXPathParser parse(String xpath) {
+    public static TrivialItemPathParser parse(String itemPath) {
 
-        TrivialXPathParser parser = new TrivialXPathParser();
+        TrivialItemPathParser parser = new TrivialItemPathParser();
 
         // This is using regexp to "parse" the declarations. It is not ideal,
         // it does not check the syntax, does not show reasonable errors, etc.
@@ -47,47 +48,42 @@ public class TrivialXPathParser {
 
         String regexp = "(^|;)[\\s\\p{Z}]*declare[\\s\\p{Z}]+(default[\\s\\p{Z}]+)?namespace[\\s\\p{Z}]+((\\w+)[\\s\\p{Z}]*=[\\s\\p{Z}]*)?(['\"])([^'\"]*)\\5[\\s\\p{Z}]*(?=;)";
         Pattern pattern = Pattern.compile(regexp);
-        Matcher matcher = pattern.matcher(xpath);
+        Matcher matcher = pattern.matcher(itemPath);
 
-//        System.out.println("regexp: "+regexp);
-//        System.out.println("xpath: "+xpath);
-
-        int lastEnd=0;
+        int lastEnd = 0;
         while (matcher.find()) {
             String prefix = matcher.group(4);
             String url = matcher.group(6);
-            if (matcher.group(2)!=null) {
+            if (matcher.group(2) != null) {
                 // default namespace declaration
                 prefix = "";
             }
-//            System.out.println("match: "+prefix+" : "+url);
             parser.namespaceMap.put(prefix, url);
             lastEnd = matcher.end();
         }
 
-        parser.pureXPathString = xpath;
-//        System.out.println("End: "+lastEnd);
-        
+        parser.pureItemPathString = itemPath;
+
         if (lastEnd>0) {
             // Skip colon (as it is look-ahead assertion in the pattern) and trim
-            parser.pureXPathString = xpath.substring(lastEnd+1).trim();
+            parser.pureItemPathString = itemPath.substring(lastEnd+1).trim();
         }
-//        System.out.println("Pure Xpath: "+parser.pureXPathString);
 
         // Trim whitechars
         // trim() won't do here. it is not trimming non-breakable spaces.
 
-        parser.pureXPathString = parser.pureXPathString.replaceFirst("^[\\p{Z}\\s]+", "").replaceFirst("[\\p{Z}\\s]+$", "");
+        parser.pureItemPathString = parser.pureItemPathString.replaceFirst("^[\\p{Z}\\s]+", "").replaceFirst("[\\p{Z}\\s]+$", "");
 
         return parser;
     }
 
+    @NotNull
     public Map<String,String> getNamespaceMap() {
         return namespaceMap;
     }
 
-    public String getPureXPathString() {
-        return pureXPathString;
+    public String getPureItemPathString() {
+        return pureItemPathString;
     }
 
 }

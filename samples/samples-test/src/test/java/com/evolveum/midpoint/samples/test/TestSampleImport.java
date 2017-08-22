@@ -110,7 +110,7 @@ public class TestSampleImport extends AbstractModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(TestSampleImport.class.getName() + ".importSample");
-		result.addParam("file", sampleFile);
+		result.addParam("file", sampleFile.getPath());
 		FileInputStream stream = new FileInputStream(sampleFile);
 
 		// WHEN

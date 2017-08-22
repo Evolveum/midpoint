@@ -247,7 +247,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
-		result.addParam("configuration", configurationOriginal);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Configuring connector {}, provided configuration:\n{}", connectorType, configurationOriginal.debugDump(1));
@@ -442,8 +441,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-				+ ".fetchResourceSchema");
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchResourceSchema");
 		result.addContext("connector", connectorType);
 
 		try {
@@ -479,8 +477,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			GenericFrameworkException, ConfigurationException {
 
 		// Result type for this operation
-		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
-				+ ".fetchCapabilities");
+		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName() + ".fetchCapabilities");
 		result.addContext("connector", connectorType);
 
 		try {
@@ -1030,8 +1027,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
 				+ ".fetchObject");
-		result.addParam("resourceObjectDefinition", objectClassDefinition);
-		result.addParam("identification", resourceObjectIdentification);
+		result.addArbitraryObjectAsParam("resourceObjectDefinition", objectClassDefinition);
+		result.addArbitraryObjectAsParam("identification", resourceObjectIdentification);
 		result.addContext("connector", connectorType);
 
 		if (connIdConnectorFacade == null) {
@@ -1140,7 +1137,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		// create result for it
 		OperationResult icfResult = parentResult.createMinorSubresult(ConnectorFacade.class.getName()
 				+ ".getObject");
-		icfResult.addParam("objectClass", icfObjectClass.toString());
+		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
 		icfResult.addParam("uid", uid.getUidValue());
 		icfResult.addArbitraryObjectAsParam("options", options);
 		icfResult.addContext("connector", connIdConnectorFacade.getClass());
@@ -1378,8 +1375,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		connIdResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-		connIdResult.addArbitraryCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
-		connIdResult.addArbitraryCollectionAsParam("attributes", attributes);
+		connIdResult.addArbitraryObjectCollectionAsParam("auxiliaryObjectClasses", icfAuxiliaryObjectClasses);
+		connIdResult.addArbitraryObjectCollectionAsParam("attributes", attributes);
 		connIdResult.addArbitraryObjectAsParam("options", options);
 		connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
@@ -1476,9 +1473,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".modifyObject");
-		result.addParam("objectClass", objectClassDef);
-		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
-		result.addArbitraryCollectionAsParam("changes", changes);
+		result.addArbitraryObjectAsParam("objectClass", objectClassDef);
+		result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
+		result.addArbitraryObjectCollectionAsParam("changes", changes);
 		
 		if (changes.isEmpty()){
 			LOGGER.info("No modifications for connector object specified. Skipping processing.");
@@ -1691,9 +1688,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			if (!attributesToAdd.isEmpty()) {
 				OperationOptions options = new OperationOptionsBuilder().build();
 				connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".addAttributeValues");
-				connIdResult.addParam("objectClass", objectClassDef);
+				connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
 				connIdResult.addParam("uid", uid.getUidValue());
-				connIdResult.addArbitraryCollectionAsParam("attributes", attributesToAdd);
+				connIdResult.addArbitraryObjectAsParam("attributes", attributesToAdd);
 				connIdResult.addArbitraryObjectAsParam("options", options);
 				connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
@@ -1771,9 +1768,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			if (!attributesToUpdate.isEmpty()) {
 				OperationOptions options = new OperationOptionsBuilder().build();
 				connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
-				connIdResult.addParam("objectClass", objectClassDef);
+				connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
 				connIdResult.addParam("uid", uid==null?"null":uid.getUidValue());
-				connIdResult.addArbitraryCollectionAsParam("attributes", attributesToUpdate);
+				connIdResult.addArbitraryObjectAsParam("attributes", attributesToUpdate);
 				connIdResult.addArbitraryObjectAsParam("options", options);
 				connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 	
@@ -1827,9 +1824,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			if (!attributesToRemove.isEmpty()) {
 				OperationOptions options = new OperationOptionsBuilder().build();
 				connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".removeAttributeValues");
-				connIdResult.addParam("objectClass", objectClassDef);
+				connIdResult.addArbitraryObjectAsParam("objectClass", objectClassDef);
 				connIdResult.addParam("uid", uid.getUidValue());
-				connIdResult.addArbitraryCollectionAsParam("attributes", attributesToRemove);
+				connIdResult.addArbitraryObjectAsParam("attributes", attributesToRemove);
 				connIdResult.addArbitraryObjectAsParam("options", options);
 				connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 
@@ -1932,7 +1929,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".deleteObject");
-		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
+		result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
 
 		ObjectClass objClass = connIdNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		Uid uid;
@@ -2001,7 +1998,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchCurrentToken");
-		result.addParam("objectClass", objectClassDef);
+		result.addArbitraryObjectAsParam("objectClass", objectClassDef);
 
 		ObjectClass icfObjectClass;
 		if (objectClassDef == null) {
@@ -2058,8 +2055,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchChanges");
-		result.addContext("objectClass", objectClass);
-		result.addParam("lastToken", lastToken);
+		result.addArbitraryObjectAsContext("objectClass", objectClass);
+		result.addArbitraryObjectAsParam("lastToken", lastToken);
 
 		// create sync token from the property last token
 		SyncToken syncToken = null;
@@ -2183,7 +2180,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".search");
-		result.addParam("objectClass", objectClassDefinition);
+		result.addArbitraryObjectAsParam("objectClass", objectClassDefinition);
 		result.addContext("connector", connectorType);
 
 		if (objectClassDefinition == null) {
@@ -2407,7 +2404,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         // Result type for this operation
         final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
                 + ".count");
-        result.addParam("objectClass", objectClassDefinition);
+        result.addArbitraryObjectAsParam("objectClass", objectClassDefinition);
         result.addContext("connector", connectorType);
 
         if (objectClassDefinition == null) {

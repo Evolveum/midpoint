@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import java.io.File;
 
 /**
- * @author semancik
+ * @author mederly
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
