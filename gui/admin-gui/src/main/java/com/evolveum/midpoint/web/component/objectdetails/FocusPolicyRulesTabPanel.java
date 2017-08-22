@@ -47,8 +47,7 @@ import java.util.stream.Collectors;
  */
 public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObjectTabPanel{
     private static final long serialVersionUID = 1L;
-//    private LoadableModel<List<AssignmentEditorDto>> policyRulesModel;
-    
+
     private LoadableModel<List<AssignmentDto>> policyRulesModel;
     
     private static final String ID_POLICY_RULES_CONTAINER = "policyRulesContainer";
@@ -68,19 +67,11 @@ public class FocusPolicyRulesTabPanel <F extends FocusType> extends AbstractObje
         WebMarkupContainer policyRules = new WebMarkupContainer(ID_POLICY_RULES_CONTAINER);
         policyRules.setOutputMarkupId(true);
         add(policyRules);
-
-        initPolicyRulesPanel();
+        
+        PolicyRulesPanel policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase);
         policyRules.add(policyRulesPanel);
     }
 
-    private void initPolicyRulesPanel(){
     	
-    	
-        policyRulesPanel = new PolicyRulesPanel(ID_POLICY_RULES_PANEL, policyRulesModel, pageBase);
-    }
-
-   
-
-    
-    
+      
 }

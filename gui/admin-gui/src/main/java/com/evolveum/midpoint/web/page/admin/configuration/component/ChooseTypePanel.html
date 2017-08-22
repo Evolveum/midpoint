@@ -20,16 +20,28 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <p class="form-control-static">
-        <span wicket:id="name">[ChooserName]</span>
+<div>
+        <div class="col-md-4">
+            <div class="input-group input-group-sm">
+                <input type="text" class="form-control" disabled="disabled" wicket:id="name" />
+                <span class="input-group-btn">
+                    <button wicket:id="choose" class="btn btn-primary" type="button">
+                        <wicket:message key="objectPolicyConfigurationEditor.button.edit" />
+                    </button>
+                </span>
+            </div>
+           
+        </div>
 
-        <a class="btn btn-primary btn-xs">
-            <i wicket:id="choose" class="glyphicon glyphicon-pencil" ></i>
-        </a>
+        <div class="col-md-2">
+            <span class="btn-group">
+                <a class="btn btn-danger btn-sm" wicket:id="remove"><i class="glyphicon glyphicon-minus"/></a>
+            </span>
+        </div>
 
-        <a class="btn btn-danger btn-xs">
-            <i wicket:id="remove" class="glyphicon glyphicon-trash"></i>
-        </a>
-    </p>
+    </div>
+
+	
 </wicket:panel>
+
 </html>

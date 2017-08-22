@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -31,9 +32,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -67,25 +70,29 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     
     protected void initLayout() {
 
-        final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
-        	private static final long serialVersionUID = 1L;
-        	
-            @Override
-            public String getObject() {
-                ObjectViewDto<T> dto = getModel().getObject();
-                if (dto != null) {
-                    if (dto.getName() != null)
-                        return getModel().getObject().getName();
-                    else if (ObjectViewDto.BAD_OID.equals(dto.getOid())) {
-                        return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
-                    } else {
-                        return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
-                    }
-                }
-                return "";
-            }
-        });
+        final TextField<String> name = new TextField<String>(ID_OBJECT_NAME, new PropertyModel<String>(getModel(), ObjectViewDto.F_NAME));
+        		
+        		
+//        		new Model<String>(){
+//        	private static final long serialVersionUID = 1L;
+//        	
+//            @Override
+//            public String getObject() {
+//                ObjectViewDto<T> dto = getModel().getObject();
+//                if (dto != null) {
+//                    if (dto.getName() != null)
+//                        return getModel().getObject().getName();
+//                    else if (ObjectViewDto.BAD_OID.equals(dto.getOid())) {
+//                        return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
+//                    } else {
+//                        return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
+//                    }
+//                }
+//                return "";
+//            }
+//        });
         name.setOutputMarkupId(true);
+
 
         AjaxLink<String> choose = new AjaxLink<String>(ID_LINK_CHOOSE) {
         	private static final long serialVersionUID = 1L;

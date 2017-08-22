@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
  * Created by honchar.
@@ -73,37 +74,48 @@ public class AssignmentsUtil {
         };
     }
     
-    public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentDto> model, String defaultTitle, BasePanel basePanel) {
-        return new AbstractReadOnlyModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                AssignmentType dto = model.getObject().getAssignment();
-                ActivationType activation = dto.getActivation();
-                if (activation == null) {
-                    return defaultTitle;
-                }
-
-                ActivationStatusType status = activation.getAdministrativeStatus();
-                String strEnabled = basePanel.createStringResource(status, "lower", "ActivationStatusType.null")
-                        .getString();
+    public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentDto> model, BasePanel basePanel) {
+        
+    	AssignmentDto assignmentDto = model.getObject();
+    	ActivationType activation = assignmentDto.getAssignment().getActivation();
+    	if (activation == null) {
+    		return basePanel.createStringResource("ActivationType.undefined");
+    	}
+    	
+		TimeIntervalStatusType timeIntervalStatus = activation.getValidityStatus();
+		if (timeIntervalStatus != null) {
+			return createTimeIntervalStatusMessage(timeIntervalStatus, activation, basePanel);
+		}
+		
+		ActivationStatusType status = activation.getEffectiveStatus();
 
                 if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-                    return basePanel.getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
-                            MiscUtil.asDate(activation.getValidFrom()),
+                	basePanel.createStringResource("AssignmentEditorPanel.enabledFromTo", status, MiscUtil.asDate(activation.getValidFrom()),
                             MiscUtil.asDate(activation.getValidTo()));
                 } else if (activation.getValidFrom() != null) {
-                    return basePanel.getString("AssignmentEditorPanel.enabledFrom", strEnabled,
+                    return basePanel.createStringResource("AssignmentEditorPanel.enabledFrom", status,
                             MiscUtil.asDate(activation.getValidFrom()));
                 } else if (activation.getValidTo() != null) {
-                    return basePanel.getString("AssignmentEditorPanel.enabledTo", strEnabled,
+                    return basePanel.createStringResource("AssignmentEditorPanel.enabledTo", status,
                             MiscUtil.asDate(activation.getValidTo()));
                 }
 
-                return strEnabled;
-            }
-        };
+                return basePanel.createStringResource(status);
+        
+    }
+    
+    private static IModel<String> createTimeIntervalStatusMessage(TimeIntervalStatusType timeIntervalStatus, ActivationType activation, BasePanel basePanel) {
+    	switch (timeIntervalStatus) {
+			case AFTER:
+				return basePanel.createStringResource("ActivationType.validity.after", activation.getValidTo());
+			case BEFORE:
+				return basePanel.createStringResource("ActivationType.validity.before", activation.getValidFrom());
+			case IN:
+				return basePanel.createStringResource(activation.getEffectiveStatus());
+
+			default:
+				return basePanel.createStringResource(activation.getEffectiveStatus());
+		}
     }
 
     public static IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {

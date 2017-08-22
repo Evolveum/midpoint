@@ -294,7 +294,7 @@ public class ContainerWrapperFactory {
                 // parent containers,
                 // so we continue only if the parent is single-valued
 
-                Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
+            	Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
                 for (ItemDefinition itemDef : propertyDefinitions) {
                     //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
                     if (itemDef != null && itemDef.getName() != null && itemDef.getName().getLocalPart() != null &&
@@ -377,6 +377,105 @@ public class ContainerWrapperFactory {
         return properties;
     }
 
+    public ContainerWrapper<AssignmentType> createAssignmentContainerWrapper(AssignmentType container, ContainerStatus status, ItemPath path, boolean readonly) {
+
+		result = new OperationResult(CREATE_PROPERTIES);
+
+		PrismContainer<AssignmentType> assignmentContainer = container.asPrismContainerValue().getContainer();
+		
+		ContainerWrapper cWrapper = new ContainerWrapper(assignmentContainer, status, path, readonly);
+
+		List<ItemWrapper> properties = createProperties(container, assignmentContainer.getDefinition(), cWrapper);
+		cWrapper.setProperties(properties);
+		
+		cWrapper.computeStripes();
+
+		return cWrapper;
+    }
+    
+private List<ItemWrapper> createProperties(AssignmentType container, PrismContainerDefinition definition, ContainerWrapper<Containerable> cWrapper) {
+	 Collection<ItemDefinition> propertyDefinitions = definition.getDefinitions();
+	 
+	 List<ItemWrapper> properties = new ArrayList<>();
+	 for (ItemDefinition itemDef : propertyDefinitions) {
+         //TODO temporary decision to hide adminGuiConfiguration attribute (MID-3305)
+         if (itemDef != null && itemDef.getName() != null && itemDef.getName().getLocalPart() != null &&
+                 itemDef.getName().getLocalPart().equals("adminGuiConfiguration")){
+             continue;
+         }
+         if (itemDef instanceof PrismPropertyDefinition) {
+
+             PrismPropertyDefinition def = (PrismPropertyDefinition) itemDef;
+             if (def.isIgnored() || skipProperty(def)) {
+                 continue;
+             }
+             if (!cWrapper.isShowInheritedObjectAttributes()
+                     && INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
+                 continue;
+             }
+
+             // capability handling for activation properties
+             if (isShadowActivation(cWrapper) && !hasActivationCapability(cWrapper, def)) {
+                 continue;
+             }
+
+             if (isShadowAssociation(cWrapper)) {
+                 continue;
+             }
+
+             PrismProperty property = container.asPrismContainerValue().findProperty(def.getName());
+             boolean propertyIsReadOnly;
+             // decision is based on parent object status, not this
+             // container's one (because container can be added also
+             // to an existing object)
+             if (cWrapper.getStatus() == ContainerStatus.MODIFYING) {
+
+                 propertyIsReadOnly = cWrapper.isReadonly() || !def.canModify();
+             } else {
+                 propertyIsReadOnly = cWrapper.isReadonly() || !def.canAdd();
+             }
+             if (property == null) {
+                 properties.add(new PropertyWrapper(cWrapper, def.instantiate(), propertyIsReadOnly,
+                         ValueStatus.ADDED));
+             } else {
+                 properties.add(new PropertyWrapper(cWrapper, property, propertyIsReadOnly,
+                         ValueStatus.NOT_CHANGED));
+             }
+         } else if (itemDef instanceof PrismReferenceDefinition) {
+             PrismReferenceDefinition def = (PrismReferenceDefinition) itemDef;
+
+             if (INHERITED_OBJECT_ATTRIBUTES.contains(def.getName())) {
+                 continue;
+             }
+
+             PrismReference reference = container.asPrismContainerValue().findReference(def.getName());
+             boolean propertyIsReadOnly;
+             // decision is based on parent object status, not this
+             // container's one (because container can be added also
+             // to an existing object)
+             if (cWrapper.getStatus() == ContainerStatus.MODIFYING) {
+
+                 propertyIsReadOnly = !def.canModify();
+             } else {
+                 propertyIsReadOnly = !def.canAdd();
+             }
+             if (reference == null) {
+                 properties.add(new ReferenceWrapper(cWrapper, def.instantiate(), propertyIsReadOnly,
+                         ValueStatus.ADDED));
+             } else {
+                 properties.add(new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,
+                         ValueStatus.NOT_CHANGED));
+             }
+
+         }
+     }
+	 
+	 Collections.sort(properties, new ItemWrapperComparator());
+
+        return properties;
+
+}
+    
 	private boolean isShadowAssociation(ContainerWrapper cWrapper) {
         ObjectWrapper oWrapper = cWrapper.getObject();
 		if (oWrapper == null) {
@@ -454,7 +553,7 @@ public class ContainerWrapperFactory {
             sb.append(")");
         }
         if (assignment.getActivation() != null) {
-            switch (assignment.getActivation().getAdministrativeStatus()) {
+            switch (assignment.getActivation().getEffectiveStatus()) {
                 case ARCHIVED:
                     sb.append(", archived");
                     break; // TODO i18n

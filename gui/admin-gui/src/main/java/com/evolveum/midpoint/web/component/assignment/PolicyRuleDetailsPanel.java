@@ -15,26 +15,59 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * Created by honchar.
  */
 public class PolicyRuleDetailsPanel extends AbstractAssignmentDetailsPanel {
     private static final long serialVersionUID = 1L;
+    
+    private static final String ID_POLICY_RULE = "policyRule";
 
-    public PolicyRuleDetailsPanel(String id, IModel<AssignmentDto> model, PageBase pageBase){
-        super(id, model, pageBase);
+    private static List hiddenItems = new ArrayList<>();
+    
+    static  {
+			hiddenItems.add(AssignmentType.F_TENANT_REF);
+			hiddenItems.add(AssignmentType.F_ORG_REF);
+			hiddenItems.add(AssignmentType.F_FOCUS_TYPE);
+			hiddenItems.add(ID_PROPERTIES_PANEL);
+	};
+    
+    public PolicyRuleDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> model, PageBase pageBase){
+        super(id, form, model, pageBase);
     }
 
-    protected Component initPropertiesContainer(String id){
-        return new PolicyRulePropertiesPanel(id, getModel(), pageBase);
-    }
+   @Override
+protected List getHiddenItems() {
+	return hiddenItems;
+}
+   
+   @Override
+protected void initPropertiesPanel(WebMarkupContainer propertiesPanel) {
+	   PolicyRulePropertiesPanel policyDetails = new PolicyRulePropertiesPanel(ID_POLICY_RULE, getModel(), pageBase);
+		policyDetails.setOutputMarkupId(true);
+		policyDetails.add(new VisibleEnableBehaviour() {
+	
+			private static final long serialVersionUID = 1L;
 
+			@Override
+			public boolean isVisible() {
+				return PolicyRuleDetailsPanel.this.isVisible(AssignmentType.F_POLICY_RULE);
+			}
+		});
+		propertiesPanel.add(policyDetails);
+}
        
 }

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -77,7 +78,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private CountableLoadableModel<AssignmentDto> assignmentsModel;
 	private CountableLoadableModel<AssignmentDto> policyRulesModel;
-    private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
+	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
 	private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
@@ -127,6 +128,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				return countPolicyRules();
 			}
 		};
+		
+		
 
         delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
         	
@@ -150,7 +153,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public CountableLoadableModel<AssignmentDto> getPolicyRulesModel() {
 		return policyRulesModel;
 	}
-
+	
 	public LoadableModel<List<AssignmentEditorDto>> getDelegatedToMeModel() {
 		return delegatedToMeModel;
 	}
@@ -171,6 +174,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		super.reviveModels();
 		WebComponentUtil.revive(projectionModel, getPrismContext());
 		WebComponentUtil.revive(assignmentsModel, getPrismContext());
+		WebComponentUtil.revive(policyRulesModel, getPrismContext());
 	}
 
 	protected ObjectWrapper<F> loadFocusWrapper(PrismObject<F> userToEdit) {
@@ -445,17 +449,18 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		Collections.sort(list);
 		return list;
 	}
-
-	protected List<AssignmentDto> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
+    
+    protected List<AssignmentDto> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
 		List<AssignmentDto> list = new ArrayList<AssignmentDto>();
 		for (AssignmentType assignment : assignments) {
 			if (isPolicyRuleAssignment(assignment)) {
-				list.add(new AssignmentDto(assignment, UserDtoStatus.MODIFY));
+				list.add(new AssignmentDto(assignment, status));
 			}
 		}
 		return list;
 	}
-
+    
+    
 	private boolean isAssignmentRelevant(AssignmentType assignment) {
 		return assignment.getTargetRef() == null ||
 				!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
@@ -466,6 +471,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				&& assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null;
 	}
 
+	
+    
 	@Override
 	protected void prepareObjectForAdd(PrismObject<F> focus) throws SchemaException {
 		super.prepareObjectForAdd(focus);
@@ -1122,6 +1129,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return PolyString.getOrig(target.asObjectable().getName());
 	}
 
+	//TODO: unify with WebComponentUtil getName vs. getEffectiveName (duplicate)
 	private String nameFromReference(ObjectReferenceType reference, Task task, OperationResult result) {
 		String oid = reference.getOid();
 		QName type = reference.getType();

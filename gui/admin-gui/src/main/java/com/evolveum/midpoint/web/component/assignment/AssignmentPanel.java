@@ -17,6 +17,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.AssignmentListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -42,6 +45,9 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
@@ -56,6 +62,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 	public static final String ID_DETAILS = "details";
 
 	private final static String ID_DONE_BUTTON = "doneButton";
+	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
 	protected boolean assignmentDetailsVisible;
 
@@ -143,7 +150,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 		List<IColumn<AssignmentDto, String>> columns = initBasicColumns();
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-			columns.add(new InlineMenuButtonColumn<AssignmentDto>(getAssignmentMenuActions(), 1, getParentPage()));
+			columns.add(new InlineMenuButtonColumn<AssignmentDto>(getAssignmentMenuActions(), 2, getParentPage()));
 		}
 
 		BoxedTablePanel<AssignmentDto> assignmentTable = new BoxedTablePanel<AssignmentDto>(ID_ASSIGNMENTS_TABLE,
@@ -206,7 +213,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
             protected IModel<String> createLinkModel(IModel<AssignmentDto> rowModel) {
             	String name = AssignmentsUtil.getName(rowModel.getObject().getAssignment(), getParentPage());
             if (StringUtils.isBlank(name)) {
-            	return createStringResource("AssugnmentPanel.noName");
+            	return createStringResource("AssignmentPanel.noName");
             }
             return Model.of(name);
                 
@@ -215,6 +222,21 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
                 assignmentDetailsPerformed(target, rowModel);
+            }
+        });
+		
+		columns.add(new LinkColumn<AssignmentDto>(createStringResource("AssignmentType.activation")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected IModel<String> createLinkModel(IModel<AssignmentDto> rowModel) {
+            	return AssignmentsUtil.createActivationTitleModelExperimental(rowModel, AssignmentPanel.this);
+                
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
+                updateAssignmnetActivation(target, rowModel);
             }
         });
 		
@@ -260,7 +282,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 	protected abstract List<IColumn<AssignmentDto, String>> initColumns();
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
-
+	
 	protected void initCustomLayout(WebMarkupContainer assignmentsContainer) {
 
 	}
@@ -297,7 +319,8 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 			@Override
 			protected void populateItem(ListItem<AssignmentDto> item) {
-				AbstractAssignmentDetailsPanel details = createDetailsPanel(ID_ASSIGNMENT_DETAILS, item.getModel(),
+				Form form = this.findParent(Form.class);
+				AbstractAssignmentDetailsPanel details = createDetailsPanel(ID_ASSIGNMENT_DETAILS, form, item.getModel(),
 						getParentPage());
 				item.add(details);
 				details.setOutputMarkupId(true);
@@ -310,7 +333,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		details.add(assignmentDetailsView);
 
 		AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON,
-				createStringResource("AbstractAssignmentDetailsPanel.doneButton")) {
+				createStringResource("AssignmentPanel.doneButton")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -321,6 +344,19 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 			}
 		};
 		details.add(doneButton);
+		
+		AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
+				createStringResource("AssignmentPanel.cancelButton")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+				assignmentDetailsVisible = false;
+				getSelectedAssignments().stream().forEach(a -> {a.revertChanges(); a.setSelected(false);});
+				ajaxRequestTarget.add(AssignmentPanel.this);
+			}
+		};
+		details.add(cancelButton);
 	}
 
 	protected AssignmentListDataProvider getAssignmentListProvider() {
@@ -331,7 +367,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		return (BoxedTablePanel<AssignmentDto>) get(createComponentPath(ID_ASSIGNMENTS, ID_ASSIGNMENTS_TABLE));
 	}
 
-	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, IModel<AssignmentDto> model,
+	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model,
 			PageBase parentPage);
 
 	private List<AssignmentDto> getSelectedAssignments() {
@@ -387,6 +423,7 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
 		assignmentDetailsVisible = true;
+		getModelObject().forEach(a -> a.setSelected(false));
 		rowModel.getObject().setSelected(true);
 		target.add(AssignmentPanel.this);
 	}
@@ -397,6 +434,15 @@ public abstract class AssignmentPanel extends BasePanel<List<AssignmentDto>> {
 		target.add(AssignmentPanel.this);
 	}
 
+	protected void updateAssignmnetActivation(AjaxRequestTarget target, IModel<AssignmentDto> rowModel) {
+		AssignmentActivationPopupablePanel activationPanel = new AssignmentActivationPopupablePanel(
+				getParentPage().getMainPopupBodyId(),
+				new PropertyModel<>(rowModel, AssignmentDto.F_VALUE + "." + AssignmentType.F_ACTIVATION.getLocalPart()));
+		activationPanel.setOutputMarkupId(true);
+		
+		getParentPage().showMainPopup(activationPanel, target);
+	}
+	
 	protected abstract TableId getTableId();
 
 	protected abstract int getItemsPerPage();

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -32,12 +33,15 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.UserDelegationsTabPanel;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -57,6 +61,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.objectdetails.FocusConsentTabPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
@@ -85,6 +90,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private static final String ID_TASKS = "tasks";
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentsPreviewDto>> privilegesListModel;
+    private CountableLoadableModel<AssignmentDto> consentsModel;
     private UserDelegationsTabPanel userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
@@ -121,6 +127,21 @@ public class PageUser extends PageAdminFocus<UserType> {
                 return getUserPrivilegesList();
             }
         };
+        
+        consentsModel = new CountableLoadableModel<AssignmentDto>(false) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<AssignmentDto> load() {
+				return loadConsents();
+			}
+			
+			@Override
+			public int count() {
+				return countConsents();
+			}
+
+		};
     }
 
     @Override
@@ -234,11 +255,31 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                         };
                     }
+                    
+                    
 
                     @Override
                     public String getCount() {
                         return Integer.toString(getDelegatedToMeModel().getObject() == null ?
                                 0 : getDelegatedToMeModel().getObject().size());
+                    }
+                });
+                
+                
+                authorization = new FocusTabVisibleBehavior(unwrapModel(),
+                        ComponentConstants.UI_FOCUS_TAB_CONSENTS_URL);
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.consents"), authorization)
+                {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new FocusConsentTabPanel<UserType>(panelId, getMainForm(), getObjectModel(), consentsModel, parentPage);
+                    }
+                    
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(consentsModel.count());
                     }
                 });
             }
@@ -371,5 +412,40 @@ public class PageUser extends PageAdminFocus<UserType> {
                 StringUtils.isNotEmpty(getObjectWrapper().getObject().asObjectable().getOid()) &&
                 getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInUserOid());
     }
+    
+    protected int countConsents() {
+		int consentCounter = 0;
+		PrismObject<UserType> focus = getObjectModel().getObject().getObject();
+		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		for (AssignmentType assignment : assignments) {
+			if (isConsentAssignment(assignment)) {
+				consentCounter++;
+			}
+		}
+		return consentCounter;
+	}
+
+    private List<AssignmentDto> loadConsents() {
+		ObjectWrapper<UserType> focusWrapper = getObjectModel().getObject();
+		PrismObject<UserType> focus = focusWrapper.getObject();
+		List<AssignmentDto> list = getConsentsList(focus.asObjectable().getAssignment(), StringUtils.isEmpty(focusWrapper.getOid()) ?
+				UserDtoStatus.ADD : UserDtoStatus.MODIFY);
+		Collections.sort(list);
+		return list;
+	}
+    
+    private boolean isConsentAssignment(AssignmentType assignment) {
+    	return assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
+    }
+	
+    protected List<AssignmentDto> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
+		List<AssignmentDto> list = new ArrayList<AssignmentDto>();
+		for (AssignmentType assignment : assignments) {
+			if (isConsentAssignment(assignment)) {
+				list.add(new AssignmentDto(assignment, status));
+			}
+		}
+		return list;
+	}
 
 }

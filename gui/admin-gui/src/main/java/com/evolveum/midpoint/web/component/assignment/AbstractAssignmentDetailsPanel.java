@@ -17,11 +17,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.List;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -30,22 +26,12 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * Created by honchar
@@ -54,41 +40,32 @@ public abstract class AbstractAssignmentDetailsPanel extends BasePanel<Assignmen
     private static final long serialVersionUID = 1L;
 
     private final static String ID_DISPLAY_NAME = "displayName";
-    private final static String ID_PROPERTIES_PANEL = "propertiesPanel";
+    protected final static String ID_PROPERTIES_PANEL = "propertiesPanel";
     private final static String ID_ACTIVATION_PANEL = "activationPanel";
 //    private final static String ID_DONE_BUTTON = "doneButton";
     
-private static final String ID_RELATION = "relation";
+//    private static final String ID_RELATION_CONTAINER = "relationContainer";
+//    private static final String ID_RELATION = "relation";
+//	
+//	private static final String ID_TENANT_CONTAINER = "tenantContainer";
+//	private static final String ID_TENANT = "tenant";
+//	private static final String ID_PROJECT_CONTAINER = "projectContainer";
+//	private static final String ID_PROJECT = "project";
+//	private static final String ID_POLICY_SITUATIONS = "policySituations";
+//	private static final String ID_POLICY_SITUATION = "policySituation";
 	
-	private static final String ID_TENANT = "tenant";
-	private static final String ID_PROJECT = "project";
-	private static final String ID_POLICY_SITUATIONS = "policySituations";
-	private static final String ID_POLICY_SITUATION = "policySituation";
+//	private static final String ID_POLICY_RULE = "policyRule";
 
     protected PageBase pageBase;
 
-    public AbstractAssignmentDetailsPanel(String id, IModel<AssignmentDto> assignmentModel, PageBase pageBase){
+    public AbstractAssignmentDetailsPanel(String id, Form<?> form, IModel<AssignmentDto> assignmentModel, PageBase pageBase){
         super(id, assignmentModel);
         this.pageBase= pageBase;
-        initLayout();
+        initLayout(form);
     }
 
-    protected <C extends Containerable> void initLayout(){
-//        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
-//        typeImage.setOutputMarkupId(true);
-//        typeImage.add(AttributeModifier.append("class", createImageModel()));
-//        typeImage.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
-//        add(typeImage);
-//
-//        Label name = new Label(ID_ASSIGNMENT_NAME, createHeaderModel());
-//        name.add(AttributeModifier.append("class", getAdditionalNameLabelStyleClass()));
-//        name.setOutputMarkupId(true);
-//        add(name);
-//
-//        add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_DESCRIPTION.getLocalPart())));
-
-        //add(initPropertiesContainer(ID_PROPERTIES_PANEL));
-        
+    protected <C extends Containerable> void initLayout(Form form){
+    	
     	DisplayNamePanel<C> displayNamePanel = new DisplayNamePanel<C>(ID_DISPLAY_NAME, new AbstractReadOnlyModel<C>() {
 		
     		private static final long serialVersionUID = 1L;
@@ -120,46 +97,12 @@ private static final String ID_RELATION = "relation";
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);
     	
+    	
         WebMarkupContainer properties = new WebMarkupContainer(ID_PROPERTIES_PANEL);
 		add(properties);
 		properties.setOutputMarkupId(true);
 		
-		AssignmentDto assignmentDto = getModelObject();
-		
-		DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), new PropertyModel(getModel(), AssignmentDto.F_RELATION_TYPE), this, true);
-        relation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            	target.add(AbstractAssignmentDetailsPanel.this);
-            }
-        });
-        properties.add(relation);
-        
-        AssignmentType assignmentType = assignmentDto.getAssignment();
-        
-        ChooseTypePanel<OrgType> tenantChooser = createParameterChooserPanel(ID_TENANT, assignmentType.getTenantRef(), true);
-        properties.add(tenantChooser);
-        
-        ChooseTypePanel<OrgType> projectChooser = createParameterChooserPanel(ID_PROJECT, assignmentType.getTenantRef(), true);
-        properties.add(projectChooser);
-        
-        ListView<String> policySituations = new ListView<String>(ID_POLICY_SITUATIONS, new PropertyModel<List<String>>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_POLICY_SITUATION.getLocalPart())) {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(ListItem<String> item) {
-				TextPanel<String> textPanel = new TextPanel<String>(ID_POLICY_SITUATION, item.getModel());
-				textPanel.setOutputMarkupId(true);
-				item.add(textPanel);
-				
-			}
-		};
-        policySituations.setOutputMarkupId(true);
-        properties.add(policySituations);
+		initPropertiesPanel(properties);
         
 
         AssignmentActivationPopupablePanel activationPanel = new AssignmentActivationPopupablePanel(ID_ACTIVATION_PANEL, new PropertyModel<ActivationType>(getModel(), AssignmentDto.F_VALUE + "." + AssignmentType.F_ACTIVATION.getLocalPart())){
@@ -173,81 +116,21 @@ private static final String ID_RELATION = "relation";
         activationPanel.setOutputMarkupId(true);
         add(activationPanel);
 
-//        AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON, createStringResource("AbstractAssignmentDetailsPanel.doneButton")) {
-//            private static final long serialVersionUID = 1L;
-//            @Override
-//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-//                redirectBack(ajaxRequestTarget);
-//
-//            }
-//        };
-//        add(doneButton);
     }
 
     
-    private ChooseTypePanel<OrgType> createParameterChooserPanel(String id, ObjectReferenceType ref, boolean isTenant){
-    	ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, ref) {
-    		
-    		private static final long serialVersionUID = 1L;
-
-    		@Override
-    		protected void executeCustomAction(AjaxRequestTarget target, OrgType object) {
-    			if (isTenant) {
-    				AbstractAssignmentDetailsPanel.this.getModelObject().getAssignment().setTenantRef(ObjectTypeUtil.createObjectRef(object));
-    			} else {
-    				AbstractAssignmentDetailsPanel.this.getModelObject().getAssignment().setOrgRef(ObjectTypeUtil.createObjectRef(object));
-    			}
-    			target.add(AbstractAssignmentDetailsPanel.this);
-    		}
-    		
-    		@Override
-    		protected void executeCustomRemoveAction(AjaxRequestTarget target) {
-    			if (isTenant) {
-    				AbstractAssignmentDetailsPanel.this.getModelObject().getAssignment().setTenantRef(null);
-    			} else {
-    				AbstractAssignmentDetailsPanel.this.getModelObject().getAssignment().setOrgRef(null);
-    			}
-    			target.add(AbstractAssignmentDetailsPanel.this);
-    		}
-    		
-    		@Override
-    		protected ObjectQuery getChooseQuery() {
-    			ObjectFilter tenantFilter = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext()).item(OrgType.F_TENANT).eq(true).buildFilter();
-    			
-    			if (isTenant) {
-    				return ObjectQuery.createObjectQuery(tenantFilter);
-    			} 
-    			return ObjectQuery.createObjectQuery(NotFilter.createNot(tenantFilter));
-    			
-    		}
-    		
-    		@Override
-    		protected boolean isSearchEnabled() {
-    			return true;
-    		}
-    		
-    		@Override
-    		public Class<OrgType> getObjectTypeClass() {
-    			return OrgType.class;
-    		}
-    		
-    	};
-    	orgSelector.setOutputMarkupId(true);
-    	return orgSelector;
-    		
-    	}
     
     
     protected IModel<String> getAdditionalNameLabelStyleClass(){
         return Model.of("");
     }
+    
+    protected boolean isVisible(Object path) {
+    	return !getHiddenItems().contains(path);
+    }
 
-//    protected  abstract Component initPropertiesContainer(String id);
+    protected abstract List getHiddenItems();
+    
+    protected abstract void initPropertiesPanel(WebMarkupContainer propertiesPanel);
 
-//    protected abstract IModel<String> createHeaderModel();
-//
-//    protected abstract IModel<String> createImageModel();
-
-//    protected abstract void redirectBack(AjaxRequestTarget target){
-//    }
 }

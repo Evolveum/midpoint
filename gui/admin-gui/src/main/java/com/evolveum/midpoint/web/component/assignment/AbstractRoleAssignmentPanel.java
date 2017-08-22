@@ -28,11 +28,14 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -47,6 +50,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -69,7 +73,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     
     public AbstractRoleAssignmentPanel(String id, IModel<List<AssignmentDto>> assignmentsModel, PageBase pageBase){
     	super(id, assignmentsModel, pageBase);
-
     }
     
     protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
@@ -86,6 +89,16 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
         relation.setOutputMarkupId(true);
         relation.setOutputMarkupPlaceholderTag(true);
+        relation.add(new VisibleEnableBehaviour() {
+        
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public boolean isVisible() {
+        		return AbstractRoleAssignmentPanel.this.isRelationVisible();
+        	}
+        	
+        });
         assignmentsContainer.addOrReplace(relation);
 
         AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
@@ -146,6 +159,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected List<IColumn<AssignmentDto, String>> initColumns() {
         List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
 
+        columns.add(new PropertyColumn<AssignmentDto, String>(createStringResource("ObjectReferenceType.relation"), AssignmentDto.F_RELATION_TYPE));
         
         //commented since these columns are not used
 //        columns.add(new DirectlyEditablePropertyColumn<AssignmentEditorDto>(createStringResource("AssignmentDataTablePanel.descriptionColumnName"), AssignmentEditorDto.F_DESCRIPTION){
@@ -220,18 +234,18 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 //                        pageBase.showMainPopup(popupPanel, target);
 //            }
 //        });
-        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
-           
-        	private static final long serialVersionUID = 1L;
-
-			@Override
-            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
-                                     final IModel<AssignmentDto> rowModel) {
-                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModelExperimental(rowModel,"", AbstractRoleAssignmentPanel.this);
-                cellItem.add(new Label(componentId, StringUtils.isEmpty(activationLabelModel.getObject()) ?
-                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel));
-            }
-        });
+//        columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("AssignmentDataTablePanel.activationColumnName")) {
+//           
+//        	private static final long serialVersionUID = 1L;
+//
+//			@Override
+//            public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
+//                                     final IModel<AssignmentDto> rowModel) {
+//                IModel<String> activationLabelModel = AssignmentsUtil.createActivationTitleModelExperimental(rowModel,"", AbstractRoleAssignmentPanel.this);
+//                cellItem.add(new Label(componentId, StringUtils.isEmpty(activationLabelModel.getObject()) ?
+//                        createStringResource("AssignmentEditorPanel.undefined") : activationLabelModel));
+//            }
+//        });
 
        
         return columns;
@@ -286,9 +300,13 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	}
 
 	@Override
-	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, IModel<AssignmentDto> model,
+	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<AssignmentDto> model,
 			PageBase parentPage) {
-		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, model, getParentPage());
+		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model, getParentPage());
+	}
+	
+	protected boolean isRelationVisible() {
+		return true;
 	}
 	
 }

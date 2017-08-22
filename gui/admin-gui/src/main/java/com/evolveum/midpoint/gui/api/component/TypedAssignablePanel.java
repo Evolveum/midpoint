@@ -180,6 +180,12 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
             public boolean isEnabled(){
                 return !ResourceType.COMPLEX_TYPE.equals(typeModel.getObject());
             }
+            
+            @Override
+            public boolean isVisible() {
+            	return TypedAssignablePanel.this.isRelationPanelVisible();
+            }
+            
         });
         relationSelector.setOutputMarkupId(true);
         relationSelector.setOutputMarkupPlaceholderTag(true);
@@ -277,6 +283,10 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 			}
 		});
 		return listPanel;
+	}
+	
+	protected boolean isRelationPanelVisible() {
+		return true;
 	}
 
 	protected void addPerformed(AjaxRequestTarget target, List<T> selected, QName relation) {

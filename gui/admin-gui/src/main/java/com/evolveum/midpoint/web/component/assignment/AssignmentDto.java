@@ -76,6 +76,10 @@ public class AssignmentDto extends Selectable<AssignmentDto> implements Comparab
 		return deltas;
 	}
 	
+	public void revertChanges() {
+		assignment = oldAssignment.clone();
+	}
+	
 	public QName getRelation() {
 		
 		//TODO: what kind of rlation should be returned for the PERSONA CONSTRUCTION?
