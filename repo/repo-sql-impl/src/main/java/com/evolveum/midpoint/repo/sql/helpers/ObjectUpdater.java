@@ -435,9 +435,9 @@ public class ObjectUpdater {
                 caseHelper.updateCampaignCases(session, oid, campaignCaseModifications, modifyOptions);
             }
 
-            LOGGER.trace("Before commit...");
+            LOGGER.trace("Before commit on session {}...", session.hashCode());
             session.getTransaction().commit();
-            LOGGER.trace("Committed!");
+            LOGGER.trace("Committed! {}", session.hashCode());
         } catch (ObjectNotFoundException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;

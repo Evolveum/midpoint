@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_EXP_THRESHOLD;
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_MAX_ATTEMPTS;
@@ -84,14 +85,15 @@ public class BaseHelper {
 
 	public Session beginTransaction(boolean readOnly) {
 		Session session = getSessionFactory().openSession();
-		session.beginTransaction();
 
 		if (getConfiguration().getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
-			LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
+			LOGGER.trace("Setting transaction isolation level SNAPSHOT. Session {}", session.hashCode());
 			session.doWork(new Work() {
 				@Override
 				public void execute(Connection connection) throws SQLException {
-					connection.createStatement().execute("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
+					try (Statement statement = connection.createStatement()) {
+						statement.execute("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
+					}
 				}
 			});
 		}
@@ -101,14 +103,19 @@ public class BaseHelper {
 			// but if they occur transaction commit would still fail)
 			session.setFlushMode(FlushMode.MANUAL);
 
-			LOGGER.trace("Marking transaction as read only.");
+			LOGGER.trace("Marking transaction as read only. Session {}", session.hashCode());
 			session.doWork(new Work() {
 				@Override
 				public void execute(Connection connection) throws SQLException {
-					connection.createStatement().execute("SET TRANSACTION READ ONLY");
+					try (Statement statement = connection.createStatement()) {
+						statement.execute("SET TRANSACTION READ ONLY");
+					}
 				}
 			});
 		}
+
+		LOGGER.trace("Begin transaction in session {}", session.hashCode());
+		session.beginTransaction();
 		return session;
 	}
 
@@ -145,6 +152,16 @@ public class BaseHelper {
 
 	public void cleanupSessionAndResult(Session session, OperationResult result) {
 		if (session != null && session.isOpen()) {
+			if (session.getTransaction() != null && session.getTransaction().isActive()) {
+				try {
+					LOGGER.trace("Detected active transaction in session marked for closing. Attempt to rollback transaction. Session {}", session.hashCode());
+					session.getTransaction().rollback();
+					LOGGER.trace("Transaction rollback was successful. Session {}", session.hashCode());
+				} catch (Exception ex) {
+					handleGeneralException(ex, session, result);
+				}
+			}
+			LOGGER.trace("Closing session {}", session.hashCode());
 			session.close();
 		}
 

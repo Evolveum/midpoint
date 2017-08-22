@@ -196,18 +196,18 @@ public class TestDBTable extends AbstractIntegrationTest {
 		
 		Connection conn = derbyController.getConnection();
 		// Check if it empty
-		Statement stmt = conn.createStatement();
-		stmt.execute("select * from users");
-		ResultSet rs = stmt.getResultSet();
-		
-		assertTrue("The \"users\" table is empty",rs.next());
-		assertEquals(ACCOUNT_WILL_USERNAME,rs.getString(DerbyController.COLUMN_LOGIN));
-		assertEquals(ACCOUNT_WILL_PASSWORD,rs.getString(DerbyController.COLUMN_PASSWORD));
-		assertEquals(ACCOUNT_WILL_FULLNAME,rs.getString(DerbyController.COLUMN_FULL_NAME));
-		
-		assertFalse("The \"users\" table has more than one record",rs.next());
-		rs.close();
-		stmt.close();
+		try (Statement stmt = conn.createStatement()) {
+			stmt.execute("select * from users");
+			try (ResultSet rs = stmt.getResultSet()) {
+
+				assertTrue("The \"users\" table is empty", rs.next());
+				assertEquals(ACCOUNT_WILL_USERNAME, rs.getString(DerbyController.COLUMN_LOGIN));
+				assertEquals(ACCOUNT_WILL_PASSWORD, rs.getString(DerbyController.COLUMN_PASSWORD));
+				assertEquals(ACCOUNT_WILL_FULLNAME, rs.getString(DerbyController.COLUMN_FULL_NAME));
+
+				assertFalse("The \"users\" table has more than one record", rs.next());
+			}
+		}
 	}
 	
 	// MID-1234
