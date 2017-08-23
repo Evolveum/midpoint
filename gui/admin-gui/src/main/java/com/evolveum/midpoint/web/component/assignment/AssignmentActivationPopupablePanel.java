@@ -57,7 +57,14 @@ public class AssignmentActivationPopupablePanel extends BasePanel<ActivationType
 
     public AssignmentActivationPopupablePanel(String id, IModel<ActivationType> assignmentModel){
         super(id, assignmentModel);
+        initModelObject();
         initLayout();
+    }
+
+    private void initModelObject(){
+        if (getModelObject() == null){
+            getModel().setObject(new ActivationType());
+        }
     }
 
     private void initLayout(){

@@ -79,7 +79,7 @@ public class AssignmentsUtil {
     	AssignmentDto assignmentDto = model.getObject();
     	ActivationType activation = assignmentDto.getAssignment().getActivation();
     	if (activation == null) {
-    		return basePanel.createStringResource("ActivationType.undefined");
+    		return basePanel.createStringResource("lower.ActivationStatusType.null");
     	}
     	
 		TimeIntervalStatusType timeIntervalStatus = activation.getValidityStatus();
