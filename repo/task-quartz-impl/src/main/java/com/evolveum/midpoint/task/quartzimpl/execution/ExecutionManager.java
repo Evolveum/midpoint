@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
@@ -622,14 +623,18 @@ public class ExecutionManager {
     }
 
     public void setLocalExecutionLimitations(NodeType node) {
-        setLocalExecutionLimitations(quartzScheduler, node);
+        setLocalExecutionLimitations(quartzScheduler, node.getTaskExecutionLimitations());
     }
 
-    void setLocalExecutionLimitations(Scheduler scheduler, NodeType node) {
+    public void setLocalExecutionLimitations(TaskExecutionLimitationsType limitations) {
+        setLocalExecutionLimitations(quartzScheduler, limitations);
+    }
+
+    void setLocalExecutionLimitations(Scheduler scheduler, TaskExecutionLimitationsType limitations) {
         try {
             Map<String, Integer> newLimits = new HashMap<>();
-            if (node.getTaskExecutionLimitations() != null) {
-	            for (TaskGroupExecutionLimitationType limit : node.getTaskExecutionLimitations().getGroupLimitation()) {
+            if (limitations != null) {
+	            for (TaskGroupExecutionLimitationType limit : limitations.getGroupLimitation()) {
 		            newLimits.put(MiscUtil.nullIfEmpty(limit.getGroupName()), limit.getLimit());
 	            }
             } else {
