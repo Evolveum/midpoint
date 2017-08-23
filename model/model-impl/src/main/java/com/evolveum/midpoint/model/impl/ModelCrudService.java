@@ -56,7 +56,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -314,9 +313,6 @@ public class ModelCrudService {
 	 *             specified object does not exist
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
-	 * @throws ConsistencyViolationException
-	 *             sub-operation failed, cannot delete objects as its deletion
-	 *             would lead to inconsistent state
 	 * @throws CommunicationException 
 	 * @throws ConfigurationException 
 	 * @throws PolicyViolationException 
@@ -326,7 +322,7 @@ public class ModelCrudService {
 	 *             state
 	 */
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, ModelExecuteOptions options, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
+			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
 		Validate.notNull(clazz, "Class must not be null.");

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.SourceTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -403,8 +404,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				scriptResults = transformSingleValue(scriptVariables, valueDestination, useNew, evaluationContext,
 						contextDescription, task, result);
 			} catch (ExpressionEvaluationException e) {
-				throw new TunnelException(new ExpressionEvaluationException(e.getMessage()+
-						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
+				throw new TunnelException(
+						new ExpressionEvaluationException(e.getMessage() + "("+dumpSourceValues(sourceVariables)+") in "+contextDescription,
+								e, ExceptionUtil.getUserFriendlyMessage(e)));
 			} catch (ObjectNotFoundException e) {
 				throw new TunnelException(new ObjectNotFoundException(e.getMessage()+
 						"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
