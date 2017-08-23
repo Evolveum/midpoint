@@ -98,6 +98,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -940,7 +941,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
 				.setParameters(objects);
 	}
-
+	
 	public StringResourceModel createStringResource(Enum e) {
 		String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
 		return createStringResource(resourceKey);
@@ -969,11 +970,27 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
+        if (result.getCause() != null && result.getCause() instanceof CommonException){
+        	LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
+        	if (localizableMessage != null) {
+        		String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
+        		StringResourceModel stringResourceModel = new StringResourceModel(key, this).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
+				.setParameters(localizableMessage.getArgs());
+        		getSession().error(stringResourceModel.getString());
+        		
+        		OpResult opResult = new OpResult();
+//        		opResult.setMessage(message);
+        		return opResult;
+        	}
+        }
+        
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
 		opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:
+            	
+            	
                 getSession().error(opResult);
 
                 break;
