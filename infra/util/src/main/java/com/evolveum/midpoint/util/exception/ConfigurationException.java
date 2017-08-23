@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.util.exception;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * Configuration exception indicates that something is mis-configured.
  * 
@@ -25,12 +27,17 @@ package com.evolveum.midpoint.util.exception;
  *
  */
 public class ConfigurationException extends CommonException {
+	private static final long serialVersionUID = 1L;
 
 	public ConfigurationException() {
 	}
 
 	public ConfigurationException(String message) {
 		super(message);
+	}
+
+	public ConfigurationException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
 	}
 
 	public ConfigurationException(Throwable cause) {
@@ -41,8 +48,12 @@ public class ConfigurationException extends CommonException {
 		super(message, cause);
 	}
 
+	public ConfigurationException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
+
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Configuration error";
 	}
 

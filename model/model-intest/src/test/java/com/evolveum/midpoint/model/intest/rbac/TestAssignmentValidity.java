@@ -63,7 +63,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test100JackAssignRolePirateValidTo() throws Exception {
 		final String TEST_NAME = "test100JackAssignRolePirateValidTo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -105,7 +105,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test102Forward15min() throws Exception {
 		final String TEST_NAME = "test102Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -137,7 +137,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test104JackAssignRolePirateAgain() throws Exception {
 		final String TEST_NAME = "test104JackAssignRolePirateAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -173,7 +173,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test106JackUnassignRolePirateValid() throws Exception {
 		final String TEST_NAME = "test106JackUnassignRolePirateValid";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -212,7 +212,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test110JackAssignRolePirateValidToRaw() throws Exception {
 		final String TEST_NAME = "test110JackAssignRolePirateValidToRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -252,7 +252,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test111RecomputeJack() throws Exception {
 		final String TEST_NAME = "test111RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -286,7 +286,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test112Forward15min() throws Exception {
 		final String TEST_NAME = "test102Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -318,7 +318,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test114JackAssignRolePirateAgain() throws Exception {
 		final String TEST_NAME = "test114JackAssignRolePirateAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -362,7 +362,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test120JackAssignRoleSailorValidTo() throws Exception {
 		final String TEST_NAME = "test120JackAssignRoleSailorValidTo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -404,7 +404,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test122Forward15min() throws Exception {
 		final String TEST_NAME = "test122Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -436,7 +436,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test124JackAssignRoleSailorAgain() throws Exception {
 		final String TEST_NAME = "test124JackAssignRoleSailorAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -481,7 +481,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test130JackAssignRoleSailorValidToRaw() throws Exception {
 		final String TEST_NAME = "test130JackAssignRoleSailorValidToRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -521,7 +521,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test131RecomputeJack() throws Exception {
 		final String TEST_NAME = "test131RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -555,7 +555,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test132Forward15min() throws Exception {
 		final String TEST_NAME = "test132Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -587,7 +587,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test134JackAssignRoleSailorAgain() throws Exception {
 		final String TEST_NAME = "test134JackAssignRoleSailorAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -632,7 +632,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test140JackAssignRoleSailorValidToRaw() throws Exception {
 		final String TEST_NAME = "test140JackAssignRoleSailorValidToRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -673,7 +673,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test142Forward15min() throws Exception {
 		final String TEST_NAME = "test142Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         
@@ -702,7 +702,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test144JackAssignRoleSailorAgain() throws Exception {
 		final String TEST_NAME = "test144JackAssignRoleSailorAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -745,7 +745,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test150JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test150JackAssignRolePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -781,7 +781,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test151JackAssignRoleSailorValidTo() throws Exception {
 		final String TEST_NAME = "test151JackAssignRoleSailorValidTo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -823,7 +823,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test153Forward15min() throws Exception {
 		final String TEST_NAME = "test153Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -857,7 +857,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test154JackAssignRoleSailorAgain() throws Exception {
 		final String TEST_NAME = "test154JackAssignRoleSailorAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -896,7 +896,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test160JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test160JackAssignRolePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -931,7 +931,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test161JackAssignRoleSailorValidToRaw() throws Exception {
 		final String TEST_NAME = "test161JackAssignRoleSailorValidToRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -977,7 +977,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test162RecomputeJack() throws Exception {
 		final String TEST_NAME = "test162RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1019,7 +1019,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test163Forward15min() throws Exception {
 		final String TEST_NAME = "test163Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1053,7 +1053,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test164JackAssignRoleSailorAgain() throws Exception {
 		final String TEST_NAME = "test164JackAssignRoleSailorAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1092,7 +1092,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test170JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test170JackAssignRolePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1127,7 +1127,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test171JackAssignRoleWeakSingerValidTo() throws Exception {
 		final String TEST_NAME = "test171JackAssignRoleWeakSingerValidTo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1169,7 +1169,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test173Forward15min() throws Exception {
 		final String TEST_NAME = "test173Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1204,7 +1204,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test174JackAssignRoleSingerAgain() throws Exception {
 		final String TEST_NAME = "test174JackAssignRoleSingerAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1244,7 +1244,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test180JackAssignRoleSailorValidToRaw() throws Exception {
 		final String TEST_NAME = "test180JackAssignRoleSailorValidToRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1282,7 +1282,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test182Forward15minAndAssignRaw() throws Exception {
 		final String TEST_NAME = "test142Forward15min";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1311,7 +1311,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	@Test
     public void test184RecomputeJack() throws Exception {
 		final String TEST_NAME = "test184RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task =  createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1400,7 +1400,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 	}
 	
 	private void unassignAll(final String TEST_NAME) throws Exception {
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

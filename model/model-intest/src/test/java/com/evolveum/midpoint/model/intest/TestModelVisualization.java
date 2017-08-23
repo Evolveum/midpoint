@@ -49,7 +49,7 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
     public void test100VisualizeOneResource() throws Exception {
 		final String TEST_NAME = "test100VisualizeOneResource";
 
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestModelVisualization.class.getName() + "." + TEST_NAME);
@@ -69,7 +69,7 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
 	public void test110VisualizeTwoResources() throws Exception {
 		final String TEST_NAME = "test110VisualizeTwoResources";
 
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestModelVisualization.class.getName() + "." + TEST_NAME);

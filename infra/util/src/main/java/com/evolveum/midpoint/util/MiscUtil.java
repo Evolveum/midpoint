@@ -592,6 +592,10 @@ public class MiscUtil {
 		return s == null ? "" : s;
 	}
 
+	public static String nullIfEmpty(String s) {
+		return "".equals(s) ? null : s;
+	}
+
 	/**
 	 * Returns true if the collection contains at leat one pair of equals elements.
 	 */

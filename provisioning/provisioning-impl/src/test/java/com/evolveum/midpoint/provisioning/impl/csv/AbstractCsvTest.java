@@ -139,7 +139,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	@Test
 	public void test000Integrity() throws Exception {
 		final String TEST_NAME = "test000Integrity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
@@ -169,7 +169,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -219,7 +219,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	@Test
 	public void test004Configuration() throws Exception {
 		final String TEST_NAME = "test004Configuration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -243,7 +243,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	@Test
 	public void test005ParsedSchema() throws Exception {
 		final String TEST_NAME = "test005ParsedSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// THEN
 		// The returned type should have the schema pre-parsed
@@ -282,7 +282,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	@Test
 	public void test006Capabilities() throws Exception {
 		final String TEST_NAME = "test006Capabilities";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
@@ -327,7 +327,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	@Test
 	public void test100AddAccountJack() throws Exception {
 		final String TEST_NAME = "test100AddAccountJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -346,7 +346,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 	@Test
 	public void test110GetAccountJack() throws Exception {
 		final String TEST_NAME = "test110GetAccountJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();

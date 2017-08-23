@@ -170,7 +170,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -183,7 +183,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
 		final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -212,7 +212,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test110AddUserTeleke() throws Exception {
 		final String TEST_NAME = "test110AddUserTeleke";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -243,7 +243,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test200AddOrgCortuvHrad() throws Exception {
 		final String TEST_NAME = "test200AddOrgCortuvHrad";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -273,7 +273,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test210AddUserGorc() throws Exception {
 		final String TEST_NAME = "test210AddUserGorc";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -300,7 +300,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
 		final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -330,7 +330,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test230AddUserViljaDezi() throws Exception {
 		final String TEST_NAME = "test230AddUserViljaDezi";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -356,7 +356,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test300RenameOrgCortuvHrad() throws Exception {
 		final String TEST_NAME = "test300RenameOrgCortuvHrad";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -389,7 +389,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test310RenameUserGorc() throws Exception {
 		final String TEST_NAME = "test310RenameUserGorc";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -413,7 +413,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test320AddOrgRoyulaDiabolica() throws Exception {
 		final String TEST_NAME = "test320AddOrgRoyulaDiabolica";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -443,7 +443,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractStoryTest {
 	@Test
     public void test322MoveOrgZblo() throws Exception {
 		final String TEST_NAME = "test322MoveOrgZblo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 

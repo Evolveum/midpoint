@@ -97,7 +97,7 @@ public class TestEntertainment extends AbstractStoryTest {
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -119,7 +119,7 @@ public class TestEntertainment extends AbstractStoryTest {
 	@Test
 	public void test001AddParentOrg() throws Exception {
 		final String TEST_NAME = "test001AddParentOrg";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -151,7 +151,7 @@ public class TestEntertainment extends AbstractStoryTest {
 	@Test
 	public void test002AddChildOrg() throws Exception {
 		final String TEST_NAME = "test002AddChildOrg";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 

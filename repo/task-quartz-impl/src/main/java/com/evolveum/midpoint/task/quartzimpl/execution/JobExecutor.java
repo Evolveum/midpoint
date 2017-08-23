@@ -40,7 +40,6 @@ import javax.xml.datatype.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -60,7 +59,6 @@ public class JobExecutor implements InterruptableJob {
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
-    private static final int RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE = 60;
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
@@ -137,7 +135,7 @@ public class JobExecutor implements InterruptableJob {
             isRecovering = true;
         }
 
-		if (!checkExecutionConstraints(task, context, executionResult)) {
+		if (!checkExecutionConstraints(task, executionResult)) {
 			return;			// rescheduling is done within the checker method
 		}
 
@@ -200,7 +198,7 @@ public class JobExecutor implements InterruptableJob {
 	}
 
 	// returns false if constraints are not met (i.e. execution should finish immediately)
-	private boolean checkExecutionConstraints(TaskQuartzImpl task, JobExecutionContext context, OperationResult result) throws JobExecutionException {
+	private boolean checkExecutionConstraints(TaskQuartzImpl task, OperationResult result) throws JobExecutionException {
 		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
 		if (executionConstraints == null) {
 			return true;
@@ -208,7 +206,7 @@ public class JobExecutor implements InterruptableJob {
 
 		// group limit
 		String group = executionConstraints.getGroup();
-		if (group != null) {
+		if (group != null && executionConstraints.getGroupTaskLimit() != null) {
 			List<Task> tasksInGroup = new ArrayList<>();
 			ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
 					.getClusterStatusInformation(true, false, result);
@@ -228,7 +226,7 @@ public class JobExecutor implements InterruptableJob {
 					tasksInGroup.add(runningTask);
 				}
 			}
-			int limit = executionConstraints.getGroupTaskLimit() != null ? executionConstraints.getGroupTaskLimit() : 1;
+			int limit = executionConstraints.getGroupTaskLimit();
 			LOGGER.trace("Tasks in group {}: {}", group, tasksInGroup);
 			if (tasksInGroup.size() >= limit) {
 				RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
@@ -243,68 +241,13 @@ public class JobExecutor implements InterruptableJob {
 			}
 		}
 
-		// node restrictions
-		String currentNode = taskManagerImpl.getNodeId();
+		// node restrictions (deprecated)
 		List<String> allowedNodes = executionConstraints.getAllowedNode();
 		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
-		if (!passesAllowed(currentNode, allowedNodes)) {
-			rescheduleToAllowedNode(task, "is not among allowed nodes (" + allowedNodes + ")", allowedNodes,
-					disallowedNodes, context, result);
-			return false;
+		if (!allowedNodes.isEmpty() || !disallowedNodes.isEmpty()) {
+			LOGGER.warn("Items allowedNodes and disallowedNodes in task/executionConstraints are no longer supported and are ignored. Please use node/taskExecutionLimitations instead. Task: {}", task);
 		}
-		if (!passesDisallowed(currentNode, disallowedNodes)) {
-			rescheduleToAllowedNode(task, "is among disallowed nodes (" + disallowedNodes + ")", allowedNodes,
-					disallowedNodes, context, result);
-			return false;
-		}
-
 		return true;
-	}
-
-	private boolean passesAllowed(String currentNode, List<String> allowedNodes) {
-		return allowedNodes.isEmpty() || allowedNodes.contains(currentNode);
-	}
-
-	private boolean passesDisallowed(String currentNode, List<String> disallowedNodes) {
-		return !disallowedNodes.contains(currentNode);
-	}
-
-	private boolean passes(String node, List<String> allowedNodes, List<String> disallowedNodes) {
-		return passesAllowed(node, allowedNodes) && passesDisallowed(node, disallowedNodes);
-	}
-
-	private void rescheduleToAllowedNode(TaskQuartzImpl task, String reason, List<String> allowedNodes,
-			List<String> disallowedNodes, JobExecutionContext context, OperationResult result) throws JobExecutionException {
-		String currentNode = taskManagerImpl.getNodeId();
-		NodeType node = getAvailableNode(allowedNodes, disallowedNodes, result);
-		if (node == null) {
-			RescheduleTime rescheduleTime = getRescheduleTime(null,
-					RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE, task.getNextRunStartTime(result));
-			LOGGER.info("Task {} cannot be executed on current node ({}) because it {}. But there is currently no suitable"
-					+ " node to run it on. Will try again at {}{}.", task, currentNode, reason, rescheduleTime.asDate(),
-					rescheduleTime.regular ? " (i.e. at the next regular run time)" : "");
-			if (!rescheduleTime.regular) {
-				rescheduleLater(task, rescheduleTime.timestamp);
-			}
-			return;
-		}
-		LOGGER.debug("Task {} cannot be executed on current node ({}) because it {}, trying to run it at {}.",
-				task, currentNode, reason, node.getNodeIdentifier());
-		taskManagerImpl.getExecutionManager().redirectTaskToNode(task, node, result);
-	}
-
-	private NodeType getAvailableNode(List<String> allowedNodes, List<String> disallowedNodes, OperationResult result) {
-		ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
-				.getClusterStatusInformation(true, false, result);
-		List<NodeType> matching = clusterStatusInformation.getNodes().stream()
-				.filter(node -> passes(node.getNodeIdentifier(), allowedNodes, disallowedNodes)
-						&& node.getExecutionStatus() == NodeExecutionStatusType.RUNNING)
-				.collect(Collectors.toList());
-		if (matching.isEmpty()) {
-			return null;
-		} else {
-			return matching.get((int) (Math.random() * matching.size()));
-		}
 	}
 
 	private class RescheduleTime {
@@ -346,18 +289,6 @@ public class JobExecutor implements InterruptableJob {
 					" of execution constraints): " + e.getMessage(), e);
 		}
 	}
-
-//	private void rescheduleElsewhere(TaskQuartzImpl task, String node) throws JobExecutionException {
-//		Trigger trigger = TaskQuartzImplUtil.createTriggerNowForTask(task);
-//		try {
-//			taskManagerImpl.getExecutionManager().scheduleTaskNow(task, node, );
-//			//taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
-//		} catch (SchedulerException e) {
-//			// TODO or handle it somehow?
-//			throw new JobExecutionException("Couldn't reschedule task " + task + " (rescheduled because" +
-//					" of execution constraints): " + e.getMessage(), e);
-//		}
-//	}
 
 	private void waitForTransientChildrenAndCloseThem(OperationResult result) {
         taskManagerImpl.waitForTransientChildren(task, result);

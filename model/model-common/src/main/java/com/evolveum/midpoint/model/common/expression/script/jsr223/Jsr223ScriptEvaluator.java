@@ -47,8 +47,11 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -110,7 +113,8 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 			evalRawResult = compiledScript.eval(bindings);
 		} catch (Throwable e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e);
+			throw new ExpressionEvaluationException(e.getMessage() + " in " + contextDescription, e, 
+					ExceptionUtil.getUserFriendlyMessage(e));
 		}
 		
 		if (outputDefinition == null) {
@@ -154,7 +158,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		
 		return pvals;
 	}
-	
+
 	public <T> Object evaluateReportScript(String codeString, ExpressionVariables variables, ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {

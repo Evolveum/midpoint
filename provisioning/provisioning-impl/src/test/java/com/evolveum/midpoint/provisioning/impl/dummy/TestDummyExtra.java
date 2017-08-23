@@ -116,7 +116,7 @@ public class TestDummyExtra extends TestDummy {
 	@Test
 	public void test400AddAccountElizabeth() throws Exception {
 		final String TEST_NAME = "test400AddAccountElizabeth";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -166,7 +166,7 @@ public class TestDummyExtra extends TestDummy {
 	@Test
 	public void test410AssociateCrewWillElizabeth() throws Exception {
 		final String TEST_NAME = "test410AssociateCrewWillElizabeth";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -212,7 +212,7 @@ public class TestDummyExtra extends TestDummy {
 	@Test
 	public void test419DisassociateCrewWillElizabeth() throws Exception {
 		final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -257,7 +257,7 @@ public class TestDummyExtra extends TestDummy {
 	@Test
 	public void test499DeleteAccountElizabeth() throws Exception {
 		final String TEST_NAME = "test499DeleteAccountElizabeth";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();

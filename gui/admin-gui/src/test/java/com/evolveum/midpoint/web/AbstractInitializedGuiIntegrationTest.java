@@ -77,7 +77,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 	@Test
 	public void test000PreparationAndSanity() throws Exception {
 		final String TEST_NAME = "test100GetResourceDummy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractInitializedGuiIntegrationTest.class.getName() + "." + TEST_NAME);

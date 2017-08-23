@@ -72,7 +72,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test100AutzJackPersonaManagement() throws Exception {
 		final String TEST_NAME = "test100AutzJackPersonaManagement";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
@@ -99,7 +99,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     @Test
     public void test102AutzLechuckPersonaManagement() throws Exception {
 		final String TEST_NAME = "test102AutzLechuckPersonaManagement";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_LECHUCK_OID);
         assignRole(USER_LECHUCK_OID, ROLE_PERSONA_MANAGEMENT_OID);
@@ -127,7 +127,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     @Test
     public void test110AutzJackPersonaAdmin() throws Exception {
 		final String TEST_NAME = "test110AutzJackAddPersonaAdmin";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PERSONA_MANAGEMENT_OID);
@@ -182,7 +182,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test120AutzJackDelagator() throws Exception {
 		final String TEST_NAME = "test120AutzJackDelagator";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);
@@ -294,7 +294,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     @Test
     public void test150AutzJackApproverUnassignRoles() throws Exception {
 		final String TEST_NAME = "test150AutzJackApproverUnassignRoles";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
@@ -339,7 +339,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test151AutzJackApproverUnassignRolesAndRead() throws Exception {
 		final String TEST_NAME = "test151AutzJackApproverUnassignRolesAndRead";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID);
@@ -383,7 +383,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test154AutzJackApproverRead() throws Exception {
 		final String TEST_NAME = "test154AutzJackApproverRead";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_BASIC_ITEMS_OID);
@@ -449,7 +449,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test155AutzJackApproverSelf() throws Exception {
 		final String TEST_NAME = "test155AutzJackApproverSelf";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
@@ -507,7 +507,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test157AutzJackReadRoleMembers() throws Exception {
 		final String TEST_NAME = "test157AutzJackReadRoleMembers";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_OID);
@@ -560,7 +560,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test158AutzJackReadRoleMembersWrong() throws Exception {
 		final String TEST_NAME = "test158AutzJackReadRoleMembersWrong";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_WRONG_OID);
@@ -613,7 +613,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test159AutzJackReadRoleMembersNone() throws Exception {
 		final String TEST_NAME = "test159AutzJackReadRoleMembersNone";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_READ_ROLE_MEMBERS_NONE_OID);
@@ -716,7 +716,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test200AutzJackModifyOrgunit() throws Exception {
 		final String TEST_NAME = "test200AutzJackModifyOrgunit";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);
@@ -777,7 +777,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 	@Test
     public void test202AutzJackModifyOrgunitAndAssignRole() throws Exception {
 		final String TEST_NAME = "test202AutzJackModifyOrgunitAndAssignRole";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);        
         assignRole(USER_JACK_OID, ROLE_READ_SELF_MODIFY_ORGUNIT_OID);

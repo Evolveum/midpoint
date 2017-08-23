@@ -103,7 +103,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ImportLiveSyncTaskDummyHr() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyHr";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
@@ -122,7 +122,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110AddDummyHrAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyHrAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
@@ -186,7 +186,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120UpdateDummyHrAccountMancomb() throws Exception {
         final String TEST_NAME = "test120UpdateDummyHrAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
@@ -252,7 +252,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ModifyGuybrushAssignAccount() throws Exception {
         final String TEST_NAME = "test200ModifyGuybrushAssignAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
@@ -305,7 +305,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddLargo() throws Exception {
         final String TEST_NAME = "test300AddLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
@@ -360,7 +360,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400AddHerman() throws Exception {
         final String TEST_NAME = "test400AddHerman";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);
@@ -402,7 +402,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test402ModifyHermanMonster() throws Exception {
         final String TEST_NAME = "test402ModifyHermanMonster";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestVolatility.class.getName() + "." + TEST_NAME);

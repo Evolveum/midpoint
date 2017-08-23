@@ -105,7 +105,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
 			// Add to result only a short version of the error, the details will be in subresults
 			result.recordFatalError(
-					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
+					"Couldn't get object with oid '" + oid + "': "+ex.getErrorTypeMessage(), ex);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		}
 	}
@@ -141,7 +141,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
 			// Add to result only a short version of the error, the details will be in subresults
 			result.recordFatalError(
-					"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
+					"Couldn't get object with oid '" + oid + "': "+ex.getErrorTypeMessage(), ex);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
 		}
 	}

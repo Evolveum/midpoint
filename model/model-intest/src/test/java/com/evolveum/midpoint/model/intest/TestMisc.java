@@ -79,7 +79,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100GetRepositoryDiag() throws Exception {
 		final String TEST_NAME = "test100GetRepositoryDiag";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -102,7 +102,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110RepositorySelfTest() throws Exception {
 		final String TEST_NAME = "test110RepositorySelfTest";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -122,7 +122,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ExportUsers() throws Exception {
 		final String TEST_NAME = "test200ExportUsers";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -165,7 +165,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300RecomputeJack() throws Exception {
 		final String TEST_NAME = "test300RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -190,7 +190,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test302UpdateKeyJack() throws Exception {
 		final String TEST_NAME = "test302UpdateKeyJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -212,7 +212,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test310AddUserClean() throws Exception {
 		final String TEST_NAME = "test310AddUserClean";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -241,7 +241,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	@Test(enabled=false) // MID-3999
     public void test312UpdateBinaryIdClean() throws Exception {
 		final String TEST_NAME = "test312UpdateBinaryIdClean";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

@@ -77,7 +77,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 	@Test
 	public void test010CreateRolePirate() throws Exception {
 		final String TEST_NAME = "test010CreateRolePirate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -107,7 +107,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 	@Test
 	public void test100ModifyRolePirateDescription() throws Exception {
 		final String TEST_NAME = "test100ModifyRolePirateDescription";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		ObjectDelta<RoleType> descriptionDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
@@ -128,7 +128,7 @@ public abstract class AbstractTestLifecycle extends AbstractWfTestPolicy {
 	@Test
 	public void test200DeleteRolePirate() throws Exception {
 		final String TEST_NAME = "test200DeleteRolePirate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		ExpectedTask expectedTask = new ExpectedTask(null, "Deletion of pirate");

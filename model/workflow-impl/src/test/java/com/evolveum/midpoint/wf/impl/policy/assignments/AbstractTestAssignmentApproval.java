@@ -80,7 +80,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
     public void test010AddRole1Assignment() throws Exception {
         final String TEST_NAME = "test010AddRole1Assignment";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
 		executeAssignRole1ToJack(TEST_NAME, false, false, null, null);
@@ -92,7 +92,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test020DeleteRole1Assignment() throws Exception {
 		final String TEST_NAME = "test020DeleteRole1Assignment";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -119,7 +119,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test030AddRole1AssignmentAgain() throws Exception {
 		final String TEST_NAME = "test030AddRole1AssignmentAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -134,7 +134,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test040AddRole1AssignmentImmediate() throws Exception {
 		final String TEST_NAME = "test040AddRole1AssignmentImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -150,7 +150,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test050AddRoles123AssignmentNNN() throws Exception {
 		final String TEST_NAME = "test050AddRoles123AssignmentNNN";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -163,7 +163,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
  	public void test052AddRoles123AssignmentNNNImmediate() throws Exception {
 		final String TEST_NAME = "test052AddRoles123AssignmentNNNImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -179,7 +179,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test060AddRoles123AssignmentYNN() throws Exception {
 		final String TEST_NAME = "test060AddRoles123AssignmentYNN";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -189,7 +189,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test062AddRoles123AssignmentYNNImmediate() throws Exception {
 		final String TEST_NAME = "test062AddRoles123AssignmentYNNImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -205,7 +205,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test070AddRoles123AssignmentYYY() throws Exception {
 		final String TEST_NAME = "test070AddRoles123AssignmentYYY";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -215,7 +215,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test072AddRoles123AssignmentYYYImmediate() throws Exception {
 		final String TEST_NAME = "test072AddRoles123AssignmentYYYImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -228,7 +228,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test130AddRole1aAssignmentWithDeputy() throws Exception {
 		final String TEST_NAME = "test130AddRole1aAssignmentWithDeputy";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -244,7 +244,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test
 	public void test132AddRole1aAssignmentWithDeputyApprovedByDeputy1() throws Exception {
 		final String TEST_NAME = "test132AddRole1aAssignmentWithDeputyApprovedByDeputy1";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -254,7 +254,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	@Test(enabled = false)
 	public void test150AddRole1ApproverAssignment() throws Exception {
 		final String TEST_NAME = "test150AddRole1ApproverAssignment";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);

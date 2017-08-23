@@ -83,7 +83,7 @@ public class TestExpression {
 	@Test
     public void testIterationCondition() throws Exception {
     	final String TEST_NAME = "testIterationCondition";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);

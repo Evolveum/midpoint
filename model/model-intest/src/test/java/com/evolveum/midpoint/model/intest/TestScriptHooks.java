@@ -95,7 +95,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100JackAssignHookAccount() throws Exception {
 		final String TEST_NAME = "test100JackAssignHookAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
@@ -149,7 +149,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110JackAddOrganization() throws Exception {
 		final String TEST_NAME = "test110JackAddOrganization";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);

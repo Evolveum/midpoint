@@ -132,7 +132,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
     	final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -167,7 +167,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test102RecomputeUserJack() throws Exception {
     	final String TEST_NAME = "test102RecomputeUserJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -187,7 +187,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test103ReconcileUserJack() throws Exception {
     	final String TEST_NAME = "test103ReconcileUserJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -207,7 +207,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test104RecomputeJackAdminPersona() throws Exception {
     	final String TEST_NAME = "test104RecomputeJackAdminPersona";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -227,7 +227,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test105ReconcileJackAdminPersona() throws Exception {
     	final String TEST_NAME = "test105ReconcileJackAdminPersona";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -264,7 +264,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test120ModifyJackGivenName() throws Exception {
     	final String TEST_NAME = "test120ModifyJackGivenName";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -306,7 +306,7 @@ public class TestPersona extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test199UnassignRolePersonaAdminFromJack() throws Exception {
     	final String TEST_NAME = "test199UnassignRolePersonaAdminFromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

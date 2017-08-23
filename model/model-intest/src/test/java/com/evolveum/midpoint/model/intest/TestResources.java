@@ -155,7 +155,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test050GetResourceRaw() throws Exception {
 		final String TEST_NAME = "test050GetResourceRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -202,7 +202,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test052GetResourceNoFetch() throws Exception {
 		final String TEST_NAME = "test052GetResourceNoFetch";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -251,7 +251,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test053GetResourceNoFetchReadOnly() throws Exception {
 		final String TEST_NAME = "test053GetResourceNoFetchReadOnly";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -301,7 +301,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test100SearchResourcesNoFetch() throws Exception {
 		final String TEST_NAME = "test100SearchResourcesNoFetch";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -348,7 +348,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test102SearchResourcesNoFetchReadOnly() throws Exception {
 		final String TEST_NAME = "test102SearchResourcesNoFetchReadOnly";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -397,7 +397,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test105SearchResourcesIterativeNoFetch() throws Exception {
 		final String TEST_NAME = "test105SearchResourcesIterativeNoFetch";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -447,7 +447,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test107SearchResourcesIterativeNoFetchReadOnly() throws Exception {
 		final String TEST_NAME = "test107SearchResourcesIterativeNoFetchReadOnly";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -496,7 +496,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test110GetResourceDummy() throws Exception {
 		final String TEST_NAME = "test110GetResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -532,7 +532,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test112GetResourceDummyReadOnly() throws Exception {
 		final String TEST_NAME = "test112GetResourceDummyReadOnly";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -571,7 +571,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test120SearchResources() throws Exception {
 		final String TEST_NAME = "test120SearchResources";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -608,7 +608,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test125SearchResourcesIterative() throws Exception {
 		final String TEST_NAME = "test125SearchResourcesIterative";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -728,7 +728,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test200GetResourceRawAfterSchema() throws Exception {
 		final String TEST_NAME = "test200GetResourceRawAfterSchema";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestResources.class.getName() + "." + TEST_NAME);
@@ -759,7 +759,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test210GetResourceDummyRed() throws Exception {
 		final String TEST_NAME = "test210GetResourceDummyRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -794,7 +794,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test750GetResourceRaw() throws Exception {
 		final String TEST_NAME = "test750GetResourceRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -837,7 +837,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test752GetResourceDummy() throws Exception {
 		final String TEST_NAME = "test752GetResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -871,7 +871,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test760ModifyConfigurationString() throws Exception {
 		final String TEST_NAME = "test760ModifyConfigurationString";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
     	
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -898,7 +898,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     @Test
     public void test761ModifyConfigurationStringRaw() throws Exception {
 		final String TEST_NAME = "test761ModifyConfigurationStringRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
     	
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -966,7 +966,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
     }
     
     public void modifyConfigurationDiffExpressionRaw(final String TEST_NAME, FailableFunction<String, PrismObject<ResourceType>> parser) throws Exception {
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
     	
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1034,7 +1034,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test800GetResourceDummy() throws Exception {
 		final String TEST_NAME = "test800GetResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1068,7 +1068,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test820SingleDescriptionModify() throws Exception {
 		final String TEST_NAME = "test820SingleDescriptionModify";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
     	
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1079,7 +1079,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 	@Test
     public void test840RadomModifySequence() throws Exception {
     	final String TEST_NAME = "test840RadomModifySequence";
-    	displayTestTile(TEST_NAME);
+    	displayTestTitle(TEST_NAME);
     	
     	Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

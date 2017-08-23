@@ -105,7 +105,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         assertTrue(modelAuditService.supportsRetrieval());
         
@@ -122,7 +122,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test010SanityJack() throws Exception {
 		final String TEST_NAME = "test010SanityJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // WHEN
         List<AuditEventRecord> auditRecords = getObjectAuditRecords(USER_JACK_OID);
@@ -136,7 +136,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test100ModifyUserJackKid() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackKid";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -165,7 +165,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test105CreateUserHerman() throws Exception {
 		final String TEST_NAME = "test105CreateUserHerman";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -197,7 +197,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test110ModifyUserJackSailor() throws Exception {
 		final String TEST_NAME = "test110ModifyUserJackSailor";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -230,7 +230,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test115ModifyUserHermanMarooned() throws Exception {
 		final String TEST_NAME = "test115ModifyUserHermanMarooned";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -262,7 +262,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test120ModifyUserJackCaptain() throws Exception {
 		final String TEST_NAME = "test120ModifyUserJackCaptain";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -294,7 +294,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test125ModifyUserHermanHermit() throws Exception {
 		final String TEST_NAME = "test125ModifyUserHermanHermit";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -332,7 +332,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test135ModifyUserHermanCivilisedHermit() throws Exception {
 		final String TEST_NAME = "test135ModifyUserHermanCivilisedHermit";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -365,7 +365,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test200ReconstructJackSailor() throws Exception {
 		final String TEST_NAME = "test200ReconstructJackSailor";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -397,7 +397,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test210ReconstructJackKid() throws Exception {
 		final String TEST_NAME = "test210ReconstructJackKid";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -431,7 +431,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test250ReconstructHermanCreated() throws Exception {
 		final String TEST_NAME = "test250ReconstructHermanCreated";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -472,7 +472,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test252ReconstructHermanMarooned() throws Exception {
 		final String TEST_NAME = "test252ReconstructHermanMarooned";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -506,7 +506,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test254ReconstructHermanHermit() throws Exception {
 		final String TEST_NAME = "test254ReconstructHermanHermit";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestAudit.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

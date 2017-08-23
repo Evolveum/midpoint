@@ -120,7 +120,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test010AddOrgStruct() throws Exception {
 		final String TEST_NAME = "test010AddOrgStruct";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
 		// Dummy, just to be overridden in subclasses
 		addOrgStruct();
@@ -133,7 +133,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test051OrgStructSanity() throws Exception {
 		final String TEST_NAME = "test051OrgStructSanity";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         // WHEN
         assertMonkeyIslandOrgSanity();
@@ -142,7 +142,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test052RootOrgQuery() throws Exception {
 		final String TEST_NAME = "test052RootOrgQuery";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -166,7 +166,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test101JackAssignScummBar() throws Exception {
 		final String TEST_NAME = "test101JackAssignScummBar";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -191,7 +191,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test102JackUnassignScummBar() throws Exception {
 		final String TEST_NAME = "test102JackUnassignScummBar";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -215,7 +215,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test201JackAssignScummBarAndSaveElaine() throws Exception {
 		final String TEST_NAME = "test201JackAssignScummBarAndSaveElaine";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -244,7 +244,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test202JackAssignMinistryOfOffense() throws Exception {
 		final String TEST_NAME = "test202JackAssignMinistryOfOffense";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -264,7 +264,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test207JackUnAssignScummBar() throws Exception {
 		final String TEST_NAME = "test207JackUnAssignScummBar";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -284,7 +284,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test208JackUnassignAll() throws Exception {
 		final String TEST_NAME = "test208JackUnassignAll";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -309,7 +309,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210JackAssignMinistryOfOffenseMember() throws Exception {
 		final String TEST_NAME = "test210JackAssignMinistryOfOffenseMember";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -336,7 +336,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test211JackAssignMinistryOfOffenseMinister() throws Exception {
 		final String TEST_NAME = "test211JackAssignMinistryOfOffenseMinister";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -362,7 +362,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test212JackUnassignMinistryOfOffenseMember() throws Exception {
 		final String TEST_NAME = "test212JackUnassignMinistryOfOffenseMember";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -385,7 +385,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test213JackUnassignMinistryOfOffenseManager() throws Exception {
 		final String TEST_NAME = "test213JackUnassignMinistryOfOffenseManager";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -406,7 +406,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test220JackAssignMinistryOfOffenseMemberAgain() throws Exception {
         final String TEST_NAME = "test220JackAssignMinistryOfOffenseMemberAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -433,7 +433,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test221JackAssignScummBarAndSaveElaine() throws Exception {
         final String TEST_NAME = "test221JackAssignScummBarAndSaveElaine";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -461,7 +461,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test223JackChangeMinistryOfOffenseMemberToManager() throws Exception {
         final String TEST_NAME = "test221JackChangeMinistryOfOffenseMemberToManager";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -521,7 +521,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test230JackRecompute() throws Exception {
         final String TEST_NAME = "test230JackRecompute";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -548,7 +548,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test232JackDestroyRefsAndRecompute() throws Exception {
         final String TEST_NAME = "test232JackDestroyRefsAndRecompute";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -580,7 +580,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test234JackDestroyRefsAndLightRecompute() throws Exception {
         final String TEST_NAME = "test234JackDestroyRefsAndLightRecompute";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -643,7 +643,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300JackUnassignAllOrgs() throws Exception {
         final String TEST_NAME = "test300JackUnassignAllOrgs";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -675,7 +675,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test301JackAssignMinistryOfOffense() throws Exception {
 		final String TEST_NAME = "test301JackAssignMinistryOfOffense";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -701,7 +701,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test305JackConflictZeroAndMinus() throws Exception {
         final String TEST_NAME = "test305JackConflictZeroAndMinus";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -732,7 +732,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test307JackConflictPlusAndMinus() throws Exception {
         final String TEST_NAME = "test307JackConflictPlusAndMinus";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         executeConflictPlusAndMinus(TEST_NAME);
     }
@@ -770,7 +770,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test308JackUnassignRoleDefender() throws Exception {
         final String TEST_NAME = "test308JackUnassignRoleDefender";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -809,7 +809,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test309JackConflictPlusAndMinusAgain() throws Exception {
         final String TEST_NAME = "test309JackConflictPlusAndMinusAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         executeConflictPlusAndMinus(TEST_NAME);
     }
@@ -820,7 +820,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310JackConflictParentOrgRefAndAssignmentsAddOrg() throws Exception {
         final String TEST_NAME = "test310JackConflictParentOrgRefAndAssignmentsAddOrg";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -854,7 +854,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test349DeleteJack() throws Exception {
 		final String TEST_NAME = "test349DeleteJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         executeDeleteJack(TEST_NAME);
 	}
@@ -887,7 +887,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test350AddJackAsMinistryOfOffenseManager() throws Exception {
 		final String TEST_NAME = "test350AddJackAsMinistryOfOffenseManager";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -937,7 +937,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test360ElaineAssignGovernor() throws Exception {
 		final String TEST_NAME = "test360ElaineAssignGovernor";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -974,7 +974,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test362ElaineAssignGovernmentMember() throws Exception {
 		final String TEST_NAME = "test362ElaineAssignGovernmentMember";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1012,7 +1012,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test365GuybrushAssignSwashbucklerMember() throws Exception {
 		final String TEST_NAME = "test365GuybrushAssignSwashbucklerMember";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1056,7 +1056,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test368GuybrushAssignSwashbucklerManager() throws Exception {
 		final String TEST_NAME = "test368GuybrushAssignSwashbucklerManager";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1102,7 +1102,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test370BarbossaAssignOffenseMember() throws Exception {
 		final String TEST_NAME = "test370BarbossaAssignOffenseMember";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1153,7 +1153,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test372HermanAssignSwashbucklerMember() throws Exception {
 		final String TEST_NAME = "test365GuybrushAssignSwashbucklerMember";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1213,7 +1213,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test399DeleteJack() throws Exception {
         final String TEST_NAME = "test399DeleteJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         executeDeleteJack(TEST_NAME);
     }
@@ -1224,7 +1224,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400AddJackWithOrgUnit() throws Exception {
         final String TEST_NAME = "test400AddJackWithOrgUnit";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1253,7 +1253,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test402JackChangeMinistryOfOffenseMemberToManagerByAddingRemovingAssignment() throws Exception {
         final String TEST_NAME = "test402JackChangeMinistryOfOffenseMemberToManagerByAddingRemovingAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1288,7 +1288,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test404JackChangeMinistryOfOffenseManagerToMemberByAddingRemovingAssignment() throws Exception {
         final String TEST_NAME = "test404JackChangeMinistryOfOffenseManagerToMemberByAddingRemovingAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1321,7 +1321,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test409DeleteJack() throws Exception {
         final String TEST_NAME = "test409DeleteJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         executeDeleteJack(TEST_NAME);
     }
@@ -1333,7 +1333,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410AddJackWithOrgUnit() throws Exception {
         final String TEST_NAME = "test400AddJackWithOrgUnit";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1363,7 +1363,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test412JackChangeMinistryOfOffenseMemberToManagerByModifyingAssignment() throws Exception {
         final String TEST_NAME = "test412JackChangeMinistryOfOffenseMemberToManagerByModifyingAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1407,7 +1407,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test420JackAssignTempOrg() throws Exception {
         final String TEST_NAME = "test420JackAssignTempOrg";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1431,7 +1431,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test425JackUnassignDeletedOrg() throws Exception {
         final String TEST_NAME = "test425JackUnassignDeletedOrg";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1460,7 +1460,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test430JackAssignMetaroleOffender() throws Exception {
     	final String TEST_NAME = "test430JackAssignMetaroleOffender";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1495,7 +1495,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test431JackAssignMetaroleOffenderAdmin() throws Exception {
     	final String TEST_NAME = "test431JackAssignMetaroleOffenderAdmin";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1523,7 +1523,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test437JackUnassignOffender() throws Exception {
         final String TEST_NAME = "test437JackUnassignOffender";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1551,7 +1551,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test438JackUnassignOffenderAdmin() throws Exception {
         final String TEST_NAME = "test438JackUnassignOffenderAdmin";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1578,7 +1578,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test439JackCleanup() throws Exception {
         final String TEST_NAME = "test439JackCleanup";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1604,7 +1604,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test440JackModifyEmployeeTypeRolePirate() throws Exception {
         final String TEST_NAME = "test440JackModifyEmployeeTypeRolePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1634,7 +1634,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test441JackModifyEmployeeTypeRoleCaptain() throws Exception {
         final String TEST_NAME = "test441JackModifyEmployeeTypeRoleCaptain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1661,7 +1661,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test443JackModifyEmployeeTypeRoleNotExist() throws Exception {
         final String TEST_NAME = "test443JackModifyEmployeeTypeRoleNotExist";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1689,7 +1689,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test449JackModifyEmployeeTypeNull() throws Exception {
         final String TEST_NAME = "test449JackModifyEmployeeTypeNull";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1718,7 +1718,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test799DeleteJack() throws Exception {
         final String TEST_NAME = "test799DeleteJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         executeDeleteJack(TEST_NAME);
     }

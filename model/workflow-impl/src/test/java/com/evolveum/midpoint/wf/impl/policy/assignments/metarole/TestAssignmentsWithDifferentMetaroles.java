@@ -111,7 +111,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test102AddRoles123AssignmentYYYYDeputy() throws Exception {
 		final String TEST_NAME = "test102AddRoles123AssignmentYYYYDeputy";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -121,7 +121,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test105AddRoles123AssignmentYYYYImmediate() throws Exception {
 		final String TEST_NAME = "test105AddRoles123AssignmentYYYYImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -131,7 +131,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test110AddRoles123AssignmentNNNN() throws Exception {
 		final String TEST_NAME = "test110AddRoles123AssignmentNNNN";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -141,7 +141,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test115AddRoles123AssignmentNNNNImmediate() throws Exception {
 		final String TEST_NAME = "test115AddRoles123AssignmentNNNNImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -151,7 +151,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test120AddRoles123AssignmentYNNN() throws Exception {
 		final String TEST_NAME = "test120AddRoles123AssignmentYNNN";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -161,7 +161,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test125AddRoles123AssignmentYNNNImmediate() throws Exception {
 		final String TEST_NAME = "test125AddRoles123AssignmentYNNNImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -171,7 +171,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test130AddRoles123AssignmentYYYN() throws Exception {
 		final String TEST_NAME = "test130AddRoles123AssignmentYYYN";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -181,7 +181,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test132AddRoles123AssignmentYYYNDeputy() throws Exception {
 		final String TEST_NAME = "test132AddRoles123AssignmentYYYNDeputy";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -191,7 +191,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test135AddRoles123AssignmentYYYNImmediate() throws Exception {
 		final String TEST_NAME = "test135AddRoles123AssignmentYYYNImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -204,7 +204,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test200AddRoles123AssignmentYYYY() throws Exception {
 		final String TEST_NAME = "test200AddRoles012AssignmentYYYY";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
@@ -214,7 +214,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test210DeleteRoles123AssignmentN() throws Exception {
 		final String TEST_NAME = "test210DeleteRoles123AssignmentN";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		executeUnassignRoles123ToJack(TEST_NAME, false, false, false, true);
@@ -223,7 +223,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test212DeleteRoles123AssignmentNById() throws Exception {
 		final String TEST_NAME = "test212DeleteRoles123AssignmentNById";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		executeUnassignRoles123ToJack(TEST_NAME, false, false, true, false);
@@ -232,7 +232,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test218DeleteRoles123AssignmentY() throws Exception {
 		final String TEST_NAME = "test218DeleteRoles123AssignmentY";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		executeUnassignRoles123ToJack(TEST_NAME, false, true, false, false);
@@ -241,7 +241,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test220AddRoles123AssignmentYYYY() throws Exception {
 		final String TEST_NAME = "test220AddRoles012AssignmentYYYY";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -251,7 +251,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test230DeleteRoles123AssignmentYById() throws Exception {
 		final String TEST_NAME = "test230DeleteRoles123AssignmentYById";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		executeUnassignRoles123ToJack(TEST_NAME, false, true, true, true);
@@ -263,7 +263,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test300ApprovalAndEnforce() throws Exception {
 		final String TEST_NAME = "test300ApprovalAndEnforce";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 		Task task = createTask(TEST_NAME);
 		task.setOwner(userAdministrator);
@@ -285,7 +285,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test400AddRoles123AssignmentPreview() throws Exception {
 		final String TEST_NAME = "test400AddRoles123AssignmentPreview";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -295,7 +295,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test410AddRoles1234AssignmentPreview() throws Exception {
 		final String TEST_NAME = "test410AddRoles1234AssignmentPreview";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);
@@ -305,7 +305,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	@Test
 	public void test420AddRoles123AssignmentPreviewImmediate() throws Exception {
 		final String TEST_NAME = "test420AddRoles123AssignmentPreviewImmediate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid, true);

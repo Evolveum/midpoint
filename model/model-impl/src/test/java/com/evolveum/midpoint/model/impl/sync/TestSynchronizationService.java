@@ -81,7 +81,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test010AddedAccountJack() throws Exception {
 		final String TEST_NAME = "test010AddedAccountJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -142,7 +142,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test020ModifyLootAbsolute() throws Exception {
 		final String TEST_NAME = "test020ModifyLootAbsolute";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -203,7 +203,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test021ModifyLootAbsoluteEmpty() throws Exception {
 		final String TEST_NAME = "test021ModifyLootAbsoluteEmpty";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -268,7 +268,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test030Reconcile() throws Exception {
 		final String TEST_NAME = "test030Reconcile";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -318,7 +318,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test039DeletedAccountJack() throws Exception {
 		final String TEST_NAME = "test039DeletedAccountJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -388,7 +388,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test050AddedAccountCalypso() throws Exception {
 		final String TEST_NAME = "test050AddedAccountCalypso";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -440,7 +440,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test051CalypsoRecon() throws Exception {
 		final String TEST_NAME = "test051CalypsoRecon";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -488,7 +488,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test100AddedAccountJack() throws Exception {
 		final String TEST_NAME = "test100AddedAccountJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -561,7 +561,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test199DeletedAccountJackTotal() throws Exception {
 		final String TEST_NAME = "test199DeletedAccountJackTotal";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
@@ -617,7 +617,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	@Test
     public void test210AddedGroupPirates() throws Exception {
 		final String TEST_NAME = "test210AddedGroupPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);

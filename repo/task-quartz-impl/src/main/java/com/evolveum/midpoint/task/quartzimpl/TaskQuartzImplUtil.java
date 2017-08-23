@@ -24,10 +24,12 @@ import java.util.Date;
 import java.util.Objects;
 
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.quartz.*;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -175,9 +177,13 @@ public class TaskQuartzImplUtil {
 	}
 
 	private static TriggerBuilder<Trigger> createBasicTriggerBuilderForTask(Task task) {
+		TaskType taskType = task.getTaskPrismObject().asObjectable();
+		String executionGroup = taskType.getExecutionConstraints() != null
+				? MiscUtil.nullIfEmpty(taskType.getExecutionConstraints().getGroup())
+				: null;
 		return TriggerBuilder.newTrigger()
 				.forJob(createJobKeyForTask(task))
-				.requiredCapability(task.getTaskPrismObject().asObjectable().getRequiredCapability());
+				.executionGroup(executionGroup);
 	}
 
 	public static Trigger createTriggerNowForTask(Task task) {
@@ -211,7 +217,7 @@ public class TaskQuartzImplUtil {
     }
 
     public static boolean triggersDiffer(Trigger triggerAsIs, Trigger triggerToBe) {
-		return !Objects.equals(triggerAsIs.getRequiredCapability(), triggerToBe.getRequiredCapability())
+		return !Objects.equals(triggerAsIs.getExecutionGroup(), triggerToBe.getExecutionGroup())
 				|| triggerDataMapsDiffer(triggerAsIs, triggerToBe);
 	}
 

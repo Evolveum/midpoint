@@ -42,7 +42,6 @@ import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -138,7 +137,6 @@ public class RestServiceUtil {
 		}
 
 		if (ex instanceof PolicyViolationException
-				|| ex instanceof ConsistencyViolationException
 				|| ex instanceof ObjectAlreadyExistsException
 				|| ex instanceof ConcurrencyException) {
 			return createErrorResponseBuilder(Response.Status.CONFLICT, result);

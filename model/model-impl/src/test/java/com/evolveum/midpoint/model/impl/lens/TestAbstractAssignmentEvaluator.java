@@ -114,7 +114,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test100Direct() throws Exception {
 		final String TEST_NAME = "test100Direct";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -156,7 +156,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test110DirectExpression() throws Exception {
 		final String TEST_NAME = "test110DirectExpression";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -197,7 +197,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test120DirectExpressionReplaceDescription() throws Exception {
 		final String TEST_NAME = "test120DirectExpressionReplaceDescription";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -260,7 +260,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test130DirectExpressionReplaceDescriptionFromNull() throws Exception {
 		final String TEST_NAME = "test130DirectExpressionReplaceDescriptionFromNull";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -352,7 +352,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test140RoleVisitor() throws Exception {
         final String TEST_NAME = "test140RoleVisitor";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -401,7 +401,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test142RoleVisitorDisabledAssignment() throws Exception {
         final String TEST_NAME = "test142RoleVisitorDisabledAssignment";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -451,7 +451,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test150RoleEngineer() throws Exception {
         final String TEST_NAME = "test150RoleEngineer";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -501,7 +501,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test160AddRoleEngineer() throws Exception {
         final String TEST_NAME = "test160AddRoleEngineer";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -574,7 +574,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test170RoleManagerChangeCostCenter() throws Exception {
         final String TEST_NAME = "test170RoleManagerChangeCostCenter";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -639,7 +639,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Test
     public void test180RoleManagerRemoveCostCenter() throws Exception {
         final String TEST_NAME = "test180RoleManagerRemoveCostCenter";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -701,7 +701,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test(enabled = false)
 	public void test200DisableEngineerEmployeeInducement() throws Exception {
 		final String TEST_NAME = "test200DisableEngineerEmployeeInducement";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -761,7 +761,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test(enabled = false)
 	public void test299ReenableEngineerEmployeeInducement() throws Exception {
 		final String TEST_NAME = "test299ReenableEngineerEmployeeInducement";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -782,7 +782,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test300DisableRoleEmployee() throws Exception {
 		final String TEST_NAME = "test300DisableRoleEmployee";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
@@ -840,7 +840,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	@Test
 	public void test310DisableRoleEngineer() throws Exception {
 		final String TEST_NAME = "test310DisableRoleEngineer";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);

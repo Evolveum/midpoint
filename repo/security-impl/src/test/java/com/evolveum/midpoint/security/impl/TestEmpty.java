@@ -85,7 +85,7 @@ public class TestEmpty extends AbstractIntegrationTest {
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// TODO
 	}
@@ -93,7 +93,7 @@ public class TestEmpty extends AbstractIntegrationTest {
 	@Test
 	public void test020UserProfileServiceMockUsername() throws Exception {
 		final String TEST_NAME = "test020UserProfileServiceMockUsername";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
 		assertPrincipalJack(principal);

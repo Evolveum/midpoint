@@ -84,7 +84,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test001CreateForeignCampaign() throws Exception {
         final String TEST_NAME = "test001CreateForeignCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -116,7 +116,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test002OpenFirstForeignStage() throws Exception {
         final String TEST_NAME = "test002OpenFirstForeignStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -140,7 +140,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test005CreateCampaignDenied() throws Exception {
         final String TEST_NAME = "test005CreateCampaignDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -160,7 +160,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test006CreateCampaignDeniedBobWrongDeputy() throws Exception {
         final String TEST_NAME = "test006CreateCampaignDeniedBobWrongDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -180,7 +180,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test010CreateCampaignAllowedForDeputy() throws Exception {
         final String TEST_NAME = "test010CreateCampaignAllowedForDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -214,7 +214,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test011CreateCampaignAllowed() throws Exception {
         final String TEST_NAME = "test010CreateCampaignAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -244,7 +244,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test012SearchAllCasesDenied() throws Exception {
         final String TEST_NAME = "test012SearchAllCasesDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -253,7 +253,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test013SearchAllCasesAllowed() throws Exception {
         final String TEST_NAME = "test013SearchAllCasesAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -283,7 +283,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStageDenied() throws Exception {
         final String TEST_NAME = "test020OpenFirstStageDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -305,7 +305,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         final String TEST_NAME = "test021OpenFirstStageAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -342,7 +342,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test030SearchAllCasesDenied() throws Exception {
         final String TEST_NAME = "test030SearchCasesDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -351,7 +351,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test031SearchAllCasesDeniedLimitedDeputy() throws Exception {
         final String TEST_NAME = "test031SearchAllCasesDeniedLimitedDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -360,7 +360,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test032SearchAllCasesAllowed() throws Exception {
         final String TEST_NAME = "test032SearchAllCasesAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -384,7 +384,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test(enabled = false)
     public void test034SearchAllCasesAllowedDeputy() throws Exception {
         final String TEST_NAME = "test034SearchAllCasesAllowedDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_DEPUTY_FULL_OID));
 
         // GIVEN
@@ -408,7 +408,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test040SearchCasesFilteredSortedPaged() throws Exception {
         final String TEST_NAME = "test040SearchCasesFilteredSortedPaged";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -449,7 +449,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test050SearchWorkItemsAdministrator() throws Exception {
         final String TEST_NAME = "test050SearchWorkItemsAdministrator";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -476,7 +476,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test052SearchWorkItemsByTenantRef() throws Exception {
         final String TEST_NAME = "test052SearchWorkItemsByTenantRef";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -509,7 +509,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test054SearchDecisionsByOrgRef() throws Exception {
         final String TEST_NAME = "test054SearchDecisionsByOrgRef";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -541,7 +541,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test056SearchDecisionsByAdminStatus() throws Exception {
         final String TEST_NAME = "test056SearchDecisionsByAdminStatus";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -573,7 +573,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test060SearchOpenWorkItemsDeputyDenied() throws Exception {
         final String TEST_NAME = "test060SearchOpenWorkItemsDeputyDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_DEPUTY_NONE_OID));
 
         // GIVEN
@@ -598,7 +598,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test062SearchOpenWorkItemsDeputyAllowed() throws Exception {
         final String TEST_NAME = "test062SearchOpenWorkItemsDeputyAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID));
 
         // GIVEN
@@ -624,7 +624,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test100RecordDecision() throws Exception {
         final String TEST_NAME = "test100RecordDecision";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -660,7 +660,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test105RecordAcceptJackCeo() throws Exception {
         final String TEST_NAME = "test105RecordAcceptJackCeo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -697,7 +697,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test110RecordRevokeJackCeo() throws Exception {
         final String TEST_NAME = "test110RecordRevokeJackCeo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -755,7 +755,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test150CloseFirstStageDeny() throws Exception {
         final String TEST_NAME = "test150CloseFirstStageDeny";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
@@ -775,7 +775,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test151CloseCampaignDeny() throws Exception {
         final String TEST_NAME = "test151CloseCampaignDeny";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
@@ -795,7 +795,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test152CloseFirstStageAllow() throws Exception {
         final String TEST_NAME = "test152CloseFirstStageAllow";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -830,7 +830,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test200StartRemediationDeny() throws Exception {
         final String TEST_NAME = "test200StartRemediationDeny";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
@@ -850,7 +850,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test205StartRemediationAllow() throws Exception {
         final String TEST_NAME = "test205StartRemediationAllow";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN

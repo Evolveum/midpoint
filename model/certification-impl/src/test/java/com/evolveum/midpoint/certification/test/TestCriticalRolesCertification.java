@@ -75,7 +75,7 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
     @Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -124,7 +124,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test020OpenFirstStage() throws Exception {
         final String TEST_NAME = "test020OpenFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -180,7 +180,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test100RecordDecisions1() throws Exception {
         final String TEST_NAME = "test100RecordDecisions1";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -218,7 +218,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test150CloseFirstStage() throws Exception {
         final String TEST_NAME = "test150CloseFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -256,7 +256,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test200OpenSecondStage() throws Exception {
         final String TEST_NAME = "test200OpenSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -319,7 +319,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test220StatisticsAllStages() throws Exception {
         final String TEST_NAME = "test220StatisticsAllStages";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -348,7 +348,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test250RecordDecisionsSecondStage() throws Exception {
         final String TEST_NAME = "test250RecordDecisionsSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -427,7 +427,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test260Statistics() throws Exception {
         final String TEST_NAME = "test260Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -456,7 +456,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test290CloseSecondStage() throws Exception {
         final String TEST_NAME = "test290CloseSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -492,7 +492,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test300OpenThirdStage() throws Exception {
         final String TEST_NAME = "test300OpenThirdStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -558,7 +558,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test330RecordDecisionsThirdStage() throws Exception {
         final String TEST_NAME = "test330RecordDecisionsThirdStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -654,7 +654,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test390CloseThirdStage() throws Exception {
         final String TEST_NAME = "test390CloseThirdStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -709,7 +709,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test400OpenFourthStage() throws Exception {
         final String TEST_NAME = "test400OpenFourthStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -775,7 +775,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test430RecordDecisionsFourthStage() throws Exception {
         final String TEST_NAME = "test430RecordDecisionsFourthStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -872,7 +872,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test490CloseFourthStage() throws Exception {
         final String TEST_NAME = "test490CloseFourthStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -930,7 +930,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test900StartRemediation() throws Exception {
         final String TEST_NAME = "test900StartRemediation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -983,7 +983,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test910Statistics() throws Exception {
         final String TEST_NAME = "test910Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);

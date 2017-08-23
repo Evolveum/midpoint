@@ -405,7 +405,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = getObjectModel().getObject().getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (!isPolicyRuleAssignment(assignment) && isAssignmentRelevant(assignment)) {
+			if (!isPolicyRuleAssignment(assignment) && !isConsentAssignment(assignment) && isAssignmentRelevant(assignment)) {
 				rv++;
 			}
 		}
@@ -419,7 +419,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		PrismObject<F> focus = focusWrapper.getObject();
 		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
 		for (AssignmentType assignment : assignments) {
-			if (!isPolicyRuleAssignment(assignment) && isAssignmentRelevant(assignment)) {
+			if (!isPolicyRuleAssignment(assignment) && !isConsentAssignment(assignment) && isAssignmentRelevant(assignment)) {
 				list.add(new AssignmentDto(assignment, StringUtils.isEmpty(focusWrapper.getOid()) ? UserDtoStatus.ADD : UserDtoStatus.MODIFY));
 			}
 		}
@@ -471,6 +471,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				&& assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null;
 	}
 
+	private boolean isConsentAssignment(AssignmentType assignment) {
+		if (assignment.getTargetRef() == null) {
+			return false;
+		}
+		
+		return QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
+	}
 	
     
 	@Override
@@ -530,9 +537,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected void prepareObjectDeltaForModify(ObjectDelta<F> focusDelta) throws SchemaException {
 		super.prepareObjectDeltaForModify(focusDelta);
 		// handle accounts
-		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-		PrismObjectDefinition<F> objectDefinition = registry
-				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
+		PrismObjectDefinition<F> objectDefinition = getObjectDefinition();
 		PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(FocusType.F_LINK_REF);
 		ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
 		if (!refDelta.isEmpty()) {
@@ -550,10 +555,16 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		// only slow down the operation - especially if we have many assignments
 		if (isAssignmentsLoaded()) {
 			// handle assignments
-			PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+			PrismContainerDefinition<AssignmentType> def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 //			handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
 			handleAssignmentExperimentalDeltas(focusDelta, getFocusAssignments(), def, false);
 		}
+	}
+	
+	protected PrismObjectDefinition<F> getObjectDefinition() {
+		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+		return registry
+				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
 	}
 	
 	

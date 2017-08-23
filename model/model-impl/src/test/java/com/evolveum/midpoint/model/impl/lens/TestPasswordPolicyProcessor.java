@@ -91,7 +91,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test100CreateUserWithPassword() throws Exception {
 		final String TEST_NAME = "test100CreateUserWithPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// WHEN
 		addObject(USER_JACK_FILE);
 
@@ -105,7 +105,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test101ModifyUserPassword() throws Exception {
 		final String TEST_NAME = "test101ModifyUserPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -134,7 +134,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test102ModifyUserPassword() throws Exception {
 		final String TEST_NAME = "test102ModifyUserPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -163,7 +163,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test103ModifyUserPasswordAgain() throws Exception {
 		final String TEST_NAME = "test103ModifyUserPasswordAgain";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -207,7 +207,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	
 	public void doTestModifyUserPasswordExpectFailure(final String TEST_NAME, String password) throws Exception {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		try {
@@ -232,7 +232,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test201deleteUserJack() throws Exception {
 		final String TEST_NAME = "test201deleteUserJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// WHEN
 		deleteObject(UserType.class, USER_JACK_OID);
@@ -249,7 +249,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test202createUserJackNoPasswordHistory() throws Exception {
 		final String TEST_NAME = "test202createUserJackNoPasswordHistory";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// WHEN
 		addObject(USER_JACK_FILE);
@@ -286,7 +286,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	}
 	
 	private void modifyUserJackPasswordNoHistory(String TEST_NAME) throws Exception{
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 

@@ -112,7 +112,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test010Sanity() throws Exception {
 		final String TEST_NAME = "test010Sanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 
@@ -139,7 +139,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test100SyncAddWill() throws Exception {
 		final String TEST_NAME = "test100SyncAddWill";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 
@@ -188,7 +188,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test500SyncAddProtected() throws Exception {
 		final String TEST_NAME = "test500SyncAddProtected";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 

@@ -106,7 +106,7 @@ public class TestSampleImport extends AbstractModelIntegrationTest {
 //	}
 	
 	public <T extends ObjectType> void importSample(File sampleFile, Class<T> type, String objectName) throws FileNotFoundException, SchemaException {
-		TestUtil.displayTestTile(this, "Import sample "+sampleFile.getPath());
+		TestUtil.displayTestTitle(this, "Import sample "+sampleFile.getPath());
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(TestSampleImport.class.getName() + ".importSample");

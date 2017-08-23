@@ -102,7 +102,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 	@Test
 	public void test001Triggers() throws Exception {
 		final String TEST_NAME = "test001Triggers";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN, WHEN
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
@@ -154,7 +154,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 	@Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -186,7 +186,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test012SearchAllCases() throws Exception {
         final String TEST_NAME = "test012SearchAllCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -208,7 +208,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test014Statistics() throws Exception {
         final String TEST_NAME = "test014Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -237,7 +237,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         final String TEST_NAME = "test020OpenFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -284,7 +284,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test030SearchAllCases() throws Exception {
         final String TEST_NAME = "test030SearchCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -309,7 +309,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test100RecordDecisions() throws Exception {
         final String TEST_NAME = "test100RecordDecisions";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -366,7 +366,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test150CloseFirstStage() throws Exception {
         final String TEST_NAME = "test150CloseFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -412,7 +412,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test200StartRemediation() throws Exception {
         final String TEST_NAME = "test200StartRemediation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);

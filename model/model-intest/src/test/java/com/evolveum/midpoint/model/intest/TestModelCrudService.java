@@ -69,7 +69,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test050AddResource() throws Exception {
 		final String TEST_NAME = "test050AddResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + "." + TEST_NAME);
@@ -96,7 +96,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test100ModifyUserAddAccount() throws Exception {
 		final String TEST_NAME = "test100ModifyUserAddAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + "." + TEST_NAME);
@@ -141,7 +141,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		
 	@Test
     public void test119ModifyUserDeleteAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test119ModifyUserDeleteAccount");
+        TestUtil.displayTestTitle(this, "test119ModifyUserDeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test119ModifyUserDeleteAccount");
@@ -181,7 +181,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test120AddAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test120AddAccount");
+        TestUtil.displayTestTitle(this, "test120AddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test120AddAccount");
@@ -214,7 +214,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test121ModifyUserAddAccountRef() throws Exception {
-        TestUtil.displayTestTile(this, "test121ModifyUserAddAccountRef");
+        TestUtil.displayTestTitle(this, "test121ModifyUserAddAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test121ModifyUserAddAccountRef");
@@ -250,7 +250,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test128ModifyUserDeleteAccountRef() throws Exception {
-        TestUtil.displayTestTile(this, "test128ModifyUserDeleteAccountRef");
+        TestUtil.displayTestTitle(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test128ModifyUserDeleteAccountRef");
@@ -288,7 +288,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test129DeleteAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test129DeleteAccount");
+        TestUtil.displayTestTitle(this, "test129DeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test129DeleteAccount");
@@ -313,7 +313,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test150AddUserBlackbeardWithAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test150AddUserBlackbeardWithAccount");
+        TestUtil.displayTestTitle(this, "test150AddUserBlackbeardWithAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test150AddUserBlackbeardWithAccount");
@@ -349,7 +349,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	
 	@Test
     public void test210AddUserMorganWithAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test210AddUserMorganWithAssignment");
+        TestUtil.displayTestTitle(this, "test210AddUserMorganWithAssignment");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test210AddUserMorganWithAssignment");
@@ -384,7 +384,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
 	@Test
 	public void test220DeleteUserMorgan() throws Exception {
-		TestUtil.displayTestTile(this, "test220DeleteUserMorgan");
+		TestUtil.displayTestTitle(this, "test220DeleteUserMorgan");
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestModelCrudService.class.getName() + ".test220DeleteUserMorgan");

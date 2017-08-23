@@ -59,7 +59,7 @@
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
-        <quartz.version>2.3.0.e1</quartz.version>
+        <quartz.version>2.3.0.e2</quartz.version>
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.12</slf4j.version>
         <spring.version>4.2.5.RELEASE</spring.version>

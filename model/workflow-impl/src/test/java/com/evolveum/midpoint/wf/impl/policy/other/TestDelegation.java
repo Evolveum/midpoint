@@ -82,7 +82,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test100CreateTask() throws Exception {
 		final String TEST_NAME = "test100CreateTask";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		userLead1 = getUser(userLead1Oid);
@@ -107,7 +107,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test110DelegateToUser2Unauthorized() throws Exception {
 		final String TEST_NAME = "test110DelegateToUser2Unauthorized";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead3);
 
 		Task task = createTask(TEST_NAME);
@@ -127,7 +127,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test120DelegateToUser2() throws Exception {
 		final String TEST_NAME = "test120DelegateToUser2";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead1);
 
 		Task task = createTask(TEST_NAME);
@@ -170,7 +170,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test130DelegateToUser3ByReplace() throws Exception {
 		final String TEST_NAME = "test130DelegateToUser3ByReplace";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead1);
 
 		Task task = createTask(TEST_NAME);
@@ -207,7 +207,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test140DelegateToNoneByReplace() throws Exception {
 		final String TEST_NAME = "test140DelegateToNoneByReplace";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead3);
 
 		Task task = createTask(TEST_NAME);
