@@ -24,13 +24,17 @@ import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -41,7 +45,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -64,43 +67,47 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskSchedulingTabPanel.class);
 
-	public static final String ID_LAST_STARTED_CONTAINER = "lastStartedContainer";
-	public static final String ID_LAST_STARTED = "lastStarted";
-	public static final String ID_LAST_STARTED_AGO = "lastStartedAgo";
-	public static final String ID_LAST_FINISHED_CONTAINER = "lastFinishedContainer";
-	public static final String ID_LAST_FINISHED = "lastFinished";
-	public static final String ID_LAST_FINISHED_AGO = "lastFinishedAgo";
-	public static final String ID_NEXT_RUN_CONTAINER = "nextRunContainer";
-	public static final String ID_NEXT_RUN = "nextRun";
-	public static final String ID_NEXT_RUN_IN = "nextRunIn";
-	public static final String ID_NEXT_RETRY_CONTAINER = "nextRetryContainer";
-	public static final String ID_NEXT_RETRY = "nextRetry";
-	public static final String ID_NEXT_RETRY_IN = "nextRetryIn";
+	private static final String ID_LAST_STARTED_CONTAINER = "lastStartedContainer";
+	private static final String ID_LAST_STARTED = "lastStarted";
+	private static final String ID_LAST_STARTED_AGO = "lastStartedAgo";
+	private static final String ID_LAST_FINISHED_CONTAINER = "lastFinishedContainer";
+	private static final String ID_LAST_FINISHED = "lastFinished";
+	private static final String ID_LAST_FINISHED_AGO = "lastFinishedAgo";
+	private static final String ID_NEXT_RUN_CONTAINER = "nextRunContainer";
+	private static final String ID_NEXT_RUN = "nextRun";
+	private static final String ID_NEXT_RUN_IN = "nextRunIn";
+	private static final String ID_NEXT_RETRY_CONTAINER = "nextRetryContainer";
+	private static final String ID_NEXT_RETRY = "nextRetry";
+	private static final String ID_NEXT_RETRY_IN = "nextRetryIn";
 
-	public static final String ID_SCHEDULING_TABLE = "schedulingTable";
-	public static final String ID_RECURRING_CONTAINER = "recurringContainer";
-	public static final String ID_RECURRING_CHECK = "recurringCheck";
-	public static final String ID_SUSPEND_REQ_RECURRING = "suspendReqRecurring";
+	private static final String ID_SCHEDULING_TABLE = "schedulingTable";
+	private static final String ID_RECURRING_CONTAINER = "recurringContainer";
+	private static final String ID_RECURRING_CHECK = "recurringCheck";
+	private static final String ID_SUSPEND_REQ_RECURRING = "suspendReqRecurring";
 	//public static final String ID_RECURRENT_TASKS_CONTAINER = "recurrentTasksContainer";
-	public static final String ID_BOUND_CONTAINER = "boundContainer";
-	public static final String ID_BOUND_HELP = "boundHelp";
-	public static final String ID_BOUND_CHECK = "boundCheck";
-	public static final String ID_SUSPEND_REQ_BOUND = "suspendReqBound";
-	public static final String ID_INTERVAL_CONTAINER = "intervalContainer";
-	public static final String ID_CRON_CONTAINER = "cronContainer";
-	public static final String ID_INTERVAL = "interval";
-	public static final String ID_CRON = "cron";
-	public static final String ID_CRON_HELP = "cronHelp";
-	public static final String ID_NOT_START_BEFORE_CONTAINER = "notStartBeforeContainer";
-	public static final String ID_NOT_START_BEFORE_FIELD = "notStartBeforeField";
-	public static final String ID_NOT_START_AFTER_CONTAINER = "notStartAfterContainer";
-	public static final String ID_NOT_START_AFTER_FIELD = "notStartAfterField";
-	public static final String ID_MISFIRE_ACTION_CONTAINER = "misfireActionContainer";
-	public static final String ID_MISFIRE_ACTION = "misfireAction";
-	public static final String ID_THREAD_STOP_CONTAINER = "threadStopContainer";
-	public static final String ID_THREAD_STOP = "threadStop";
-	public static final String ID_REQUIRED_CAPABILITY_CONTAINER = "requiredCapabilityContainer";
-	public static final String ID_REQUIRED_CAPABILITY = "requiredCapability";
+	private static final String ID_BOUND_CONTAINER = "boundContainer";
+	private static final String ID_BOUND_HELP = "boundHelp";
+	private static final String ID_BOUND_CHECK = "boundCheck";
+	private static final String ID_SUSPEND_REQ_BOUND = "suspendReqBound";
+	private static final String ID_INTERVAL_CONTAINER = "intervalContainer";
+	private static final String ID_CRON_CONTAINER = "cronContainer";
+	private static final String ID_INTERVAL = "interval";
+	private static final String ID_CRON = "cron";
+	private static final String ID_CRON_HELP = "cronHelp";
+	private static final String ID_NOT_START_BEFORE_CONTAINER = "notStartBeforeContainer";
+	private static final String ID_NOT_START_BEFORE_FIELD = "notStartBeforeField";
+	private static final String ID_NOT_START_AFTER_CONTAINER = "notStartAfterContainer";
+	private static final String ID_NOT_START_AFTER_FIELD = "notStartAfterField";
+	private static final String ID_MISFIRE_ACTION_CONTAINER = "misfireActionContainer";
+	private static final String ID_MISFIRE_ACTION = "misfireAction";
+	private static final String ID_THREAD_STOP_CONTAINER = "threadStopContainer";
+	private static final String ID_THREAD_STOP = "threadStop";
+	private static final String ID_EXECUTION_GROUP_CONTAINER = "executionGroupContainer";
+	private static final String ID_EXECUTION_GROUP = "executionGroup";
+	private static final String ID_GROUP_TASK_LIMIT_CONTAINER = "groupTaskLimitContainer";
+	private static final String ID_GROUP_TASK_LIMIT = "groupTaskLimit";
+	private static final String ID_ALLOWED_NODES_CONTAINER = "allowedNodesContainer";
+	private static final String ID_ALLOWED_NODES = "allowedNodes";
 
 	private PageTaskEdit parentPage;
 	private IModel<TaskDto> taskDtoModel;
@@ -275,7 +282,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 
 		// models
 		final IModel<Boolean> recurringCheckModel = new PropertyModel<>(taskDtoModel, TaskDto.F_RECURRING);
-		final IModel<Boolean> boundCheckModel = new PropertyModel<Boolean>(taskDtoModel, TaskDto.F_BOUND);
+		final IModel<Boolean> boundCheckModel = new PropertyModel<>(taskDtoModel, TaskDto.F_BOUND);
 
 		// behaviors
 		final VisibleEnableBehaviour visibleIfEditAndRunnableOrRunning = new VisibleEnableBehaviour() {
@@ -321,12 +328,10 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_THREAD_STOP_ACTION));
 			}
 		};
-		final VisibleEnableBehaviour enabledIfEditAndRequiredCapabilityIsEditable = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isEnabled() {
-				return parentPage.isEdit() && parentPage.isEditable(new ItemPath(TaskType.F_REQUIRED_CAPABILITY));
-			}
-		};
+		VisibleEnableBehaviour enabledIfEditAndGroupIsEditable = new EnableBehaviour(() -> parentPage.isEdit()
+				&& parentPage.isEditable(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP)));
+		VisibleEnableBehaviour enabledIfEditAndTaskGroupLimitIsEditable = new EnableBehaviour(() -> parentPage.isEdit()
+				&& parentPage.isEditable(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT)));
 
 		// components
 		final WebMarkupContainer schedulingTable = new WebMarkupContainer(ID_SCHEDULING_TABLE);
@@ -401,7 +406,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		intervalContainer.setOutputMarkupId(true);
 		schedulingTable.add(intervalContainer);
 
-		TextField<Integer> interval = new TextField<Integer>(ID_INTERVAL, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_INTERVAL)) {
+		TextField<Integer> interval = new TextField<Integer>(ID_INTERVAL, new PropertyModel<>(taskDtoModel, TaskDto.F_INTERVAL)) {
 			@Override
 			public boolean isEnabled() {
 				return parentPage.isEdit() && (!parentPage.getTaskDto().isRunnableOrRunning() || !boundCheckModel.getObject())
@@ -428,7 +433,8 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		cronContainer.add(cronHelp);
 
 		WebMarkupContainer notStartBeforeContainer = new WebMarkupContainer(ID_NOT_START_BEFORE_CONTAINER);
-		DateInput notStartBefore = new DateInput(ID_NOT_START_BEFORE_FIELD, new PropertyModel<Date>(taskDtoModel, TaskDto.F_NOT_START_BEFORE));
+		DateInput notStartBefore = new DateInput(ID_NOT_START_BEFORE_FIELD,
+				new PropertyModel<>(taskDtoModel, TaskDto.F_NOT_START_BEFORE));
 		notStartBefore.setOutputMarkupId(true);
 		notStartBefore.add(enabledIfEditAndNotRunningAndScheduleIsEditable);
 		notStartBeforeContainer.add(notStartBefore);
@@ -436,7 +442,8 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		schedulingTable.add(notStartBeforeContainer);
 
 		WebMarkupContainer notStartAfterContainer = new WebMarkupContainer(ID_NOT_START_AFTER_CONTAINER);
-		DateInput notStartAfter = new DateInput(ID_NOT_START_AFTER_FIELD, new PropertyModel<Date>(taskDtoModel, TaskDto.F_NOT_START_AFTER));
+		DateInput notStartAfter = new DateInput(ID_NOT_START_AFTER_FIELD,
+				new PropertyModel<>(taskDtoModel, TaskDto.F_NOT_START_AFTER));
 		notStartAfter.setOutputMarkupId(true);
 		notStartAfter.add(enabledIfEditAndNotRunningAndScheduleIsEditable);
 		notStartAfterContainer.add(notStartAfter);
@@ -466,18 +473,42 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 				taskDtoModel.getObject().setThreadStopActionType(object);
 			}
 		}, WebComponentUtil.createReadonlyModelFromEnum(ThreadStopActionType.class),
-				new EnumChoiceRenderer<ThreadStopActionType>(parentPage));
+				new EnumChoiceRenderer<>(parentPage));
 		threadStop.add(enabledIfEditAndThreadStopIsEditable);
 		threadStopContainer.add(threadStop);
 		threadStopContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_THREAD_STOP_ACTION));
 		schedulingTable.add(threadStopContainer);
 
-		WebMarkupContainer requiredCapabilityContainer = new WebMarkupContainer(ID_REQUIRED_CAPABILITY_CONTAINER);
-		TextField<String> requiredCapability = new TextField<>(ID_REQUIRED_CAPABILITY, new PropertyModel<String>(taskDtoModel, TaskDto.F_REQUIRED_CAPABILITY));
-		requiredCapability.add(enabledIfEditAndRequiredCapabilityIsEditable);
-		requiredCapabilityContainer.add(requiredCapability);
-		requiredCapabilityContainer.add(parentPage.createVisibleIfAccessible(TaskType.F_REQUIRED_CAPABILITY));
-		schedulingTable.add(requiredCapabilityContainer);
+		WebMarkupContainer taskGroupLimitContainer = new WebMarkupContainer(ID_GROUP_TASK_LIMIT_CONTAINER);
+		TextField<Integer> taskGroupLimit = new TextField<>(ID_GROUP_TASK_LIMIT, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_GROUP_TASK_LIMIT));
+		taskGroupLimit.add(enabledIfEditAndTaskGroupLimitIsEditable);
+		taskGroupLimitContainer.add(taskGroupLimit);
+		taskGroupLimitContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT)));
+		schedulingTable.add(taskGroupLimitContainer);
+
+		WebMarkupContainer allowedNodesContainer = new WebMarkupContainer(ID_ALLOWED_NODES_CONTAINER);
+		allowedNodesContainer.add(new Label(ID_ALLOWED_NODES, new AbstractReadOnlyModel<String>() {
+			@Override
+			public String getObject() {
+				return taskDtoModel.getObject().getAllowedNodes(parentPage.getNodeListModel().getObject());
+			}
+		}));
+		allowedNodesContainer.add(new VisibleBehaviour(() -> !parentPage.getNodeListModel().getObject().isEmpty()));
+		allowedNodesContainer.setOutputMarkupId(true);
+		schedulingTable.add(allowedNodesContainer);
+
+		WebMarkupContainer executionGroupContainer = new WebMarkupContainer(ID_EXECUTION_GROUP_CONTAINER);
+		TextField<String> executionGroup = new TextField<>(ID_EXECUTION_GROUP, new PropertyModel<String>(taskDtoModel, TaskDto.F_EXECUTION_GROUP));
+		executionGroup.add(enabledIfEditAndGroupIsEditable);
+		executionGroupContainer.add(executionGroup);
+		executionGroupContainer.add(parentPage.createVisibleIfAccessible(new ItemPath(TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP)));
+		schedulingTable.add(executionGroupContainer);
+		executionGroup.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				target.add(allowedNodesContainer);
+			}
+		});
 
 		org.apache.wicket.markup.html.form.Form<?> form = parentPage.getForm();
 		// if not removed, the validators will accumulate on the form
@@ -491,7 +522,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 
 	@Override
 	public Collection<Component> getComponentsToUpdate() {
-		return Collections.<Component>singleton(this);
+		return Collections.singleton(this);
 	}
 
 }

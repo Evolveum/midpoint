@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.task.api;
+package com.evolveum.midpoint.web.component.util;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
  */
-public class TaskConstants {
+public class EnableBehaviour extends VisibleEnableBehaviour {
 
-	public static final String JDBC_PING_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3";
+	@NotNull private final SerializableBooleanProducer producer;
 
-	public static final String LIMIT_FOR_OTHER_GROUPS = "*";            // the same as Scheduler.LIMIT_FOR_OTHER_GROUPS
+	public EnableBehaviour(@NotNull SerializableBooleanProducer producer) {
+		this.producer = producer;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return producer.run();
+	}
 }

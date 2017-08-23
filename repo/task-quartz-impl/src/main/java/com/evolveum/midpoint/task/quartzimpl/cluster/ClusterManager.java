@@ -138,7 +138,7 @@ public class ClusterManager {
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
                         NodeType node = checkClusterConfiguration(result);         				// if error, the scheduler will be stopped
-                        taskManager.getExecutionManager().setLocalExecutionCapabilities(node);	// we want to set capabilities ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
+                        taskManager.getExecutionManager().setLocalExecutionLimitations(node);	// we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
                     } catch (Throwable t) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking cluster configuration; continuing execution.", t);

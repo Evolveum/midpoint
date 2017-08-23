@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -81,7 +82,7 @@ public class PageTaskController implements Serializable {
 					LOGGER.debug("Deleting sync token:\n{}", delta.debugDump());
 				}
 				parentPage.getModelService()
-						.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singleton(delta), null, operationTask, result);
+						.executeChanges(Collections.singleton(delta), null, operationTask, result);
 				result.recomputeStatus();
 			}
 		} catch (Exception ex) {
@@ -102,7 +103,7 @@ public class PageTaskController implements Serializable {
 		try {
 			List<ItemDelta<?, ?>> itemDeltas = getDeltasToExecute(dto);
 			ObjectDelta<TaskType> delta = ObjectDelta.createModifyDelta(dto.getOid(), itemDeltas, TaskType.class, parentPage.getPrismContext());
-			final Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta);
+			final Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singletonList(delta);
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Saving task modifications:\n{}", DebugUtil.debugDump(deltas));
@@ -155,8 +156,21 @@ public class PageTaskController implements Serializable {
 			addDelta(rv, TaskType.F_THREAD_STOP_ACTION, curr.getThreadStopActionType());
 		}
 
-		if (!StringUtils.equals(orig.getRequiredCapability(), curr.getRequiredCapability())) {
-			addDelta(rv, TaskType.F_REQUIRED_CAPABILITY, curr.getRequiredCapability());
+		if (dto.getTaskType().getExecutionConstraints() == null) {
+			if (curr.getExecutionGroup() != null || curr.getGroupTaskLimit() != null) {
+				TaskExecutionConstraintsType constraints =
+						new TaskExecutionConstraintsType(getPrismContext())
+								.group(curr.getExecutionGroup())
+								.groupTaskLimit(curr.getGroupTaskLimit());
+				addDelta(rv, TaskType.F_EXECUTION_CONSTRAINTS, constraints);
+			}
+		} else {
+			if (!ObjectUtils.equals(orig.getExecutionGroup(), curr.getExecutionGroup())) {
+				addDelta(rv, TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP, curr.getExecutionGroup());
+			}
+			if (!ObjectUtils.equals(orig.getGroupTaskLimit(), curr.getGroupTaskLimit())) {
+				addDelta(rv, TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT, curr.getExecutionGroup());
+			}
 		}
 
 		if (!ObjectUtils.equals(orig.getWorkerThreads(), curr.getWorkerThreads())) {
@@ -172,9 +186,19 @@ public class PageTaskController implements Serializable {
 		return rv;
 	}
 
+	private PrismContext getPrismContext() {
+		return parentPage.getPrismContext();
+	}
+
 	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName, Object itemRealValue) throws SchemaException {
 		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
 			.item(itemName).replace(itemRealValue)
+			.asItemDelta());
+	}
+
+	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName1, QName itemName2, Object itemRealValue) throws SchemaException {
+		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+			.item(itemName1, itemName2).replace(itemRealValue)
 			.asItemDelta());
 	}
 
@@ -186,13 +210,13 @@ public class PageTaskController implements Serializable {
 
 	void resumePerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.resumePerformed(parentPage.getTaskService(), Arrays.asList(oid));
+		OperationResult result = TaskOperationUtils.resumePerformed(parentPage.getTaskService(), Collections.singletonList(oid));
 		afterStateChangingOperation(target, result);
 	}
 
 	void runNowPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Arrays.asList(oid));
+		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Collections.singletonList(oid));
 		afterStateChangingOperation(target, result);
 	}
 
