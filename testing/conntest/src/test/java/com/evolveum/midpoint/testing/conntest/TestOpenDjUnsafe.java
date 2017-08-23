@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Almost same sa TestOpenDj, but there is unsafeNameHint setting and maybe
- * some other possibly risky connector settings.
+ * some other possibly risky and alternative connector settings.
  * 
  * @author semancik
  */

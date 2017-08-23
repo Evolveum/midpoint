@@ -147,7 +147,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_PHONEBOOK_OID, task);
@@ -162,7 +162,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	@Test
 	public void test100AddUserHerman() throws Exception {
 		final String TEST_NAME = "test100AddUserHerman";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -193,7 +193,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	@Test
 	public void test110HermanAssignRoleBasic() throws Exception {
 		final String TEST_NAME = "test110HermanAssignRoleBasic";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -228,7 +228,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	@Test
 	public void test112HermanRename() throws Exception {
 		final String TEST_NAME = "test112HermanRename";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -263,7 +263,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	@Test
 	public void test120AddUserCapsizeWithBasicRole() throws Exception {
 		final String TEST_NAME = "test120AddUserCapsizeWithBasicRole";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 

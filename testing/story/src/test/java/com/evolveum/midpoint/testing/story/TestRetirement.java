@@ -173,7 +173,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -186,7 +186,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test050AddOrgRetired() throws Exception {
 		final String TEST_NAME = "test050AddOrgRetired";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -225,7 +225,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
 		final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -254,7 +254,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test110AddUserTeleke() throws Exception {
 		final String TEST_NAME = "test110AddUserTeleke";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -285,7 +285,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test200AddOrgCortuvHrad() throws Exception {
 		final String TEST_NAME = "test200AddOrgCortuvHrad";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -315,7 +315,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test210AddUserGorc() throws Exception {
 		final String TEST_NAME = "test210AddUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -342,7 +342,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
 		final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -372,7 +372,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test230AddUserViljaDezi() throws Exception {
 		final String TEST_NAME = "test230AddUserViljaDezi";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -398,7 +398,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test300RetireUserGorc() throws Exception {
 		final String TEST_NAME = "test300RetireUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -427,7 +427,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test302ReconcileUserGorc() throws Exception {
 		final String TEST_NAME = "test302ReconcileUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -450,7 +450,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test303ReconcileUserGorcAgain() throws Exception {
 		final String TEST_NAME = "test303ReconcileUserGorcAgain";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 

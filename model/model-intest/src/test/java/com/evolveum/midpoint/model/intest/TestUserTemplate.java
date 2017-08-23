@@ -134,7 +134,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -174,7 +174,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ModifyUserGivenName() throws Exception {
 		final String TEST_NAME = "test100ModifyUserGivenName";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -222,7 +222,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test101ModifyUserEmployeeTypePirate() throws Exception {
 		final String TEST_NAME = "test101ModifyUserEmployeeTypePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -276,7 +276,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
 		final String TEST_NAME = "test102ModifyUserEmployeeTypeBuccaneer";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -315,7 +315,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test103ModifyUserEmployeeTypeBartender() throws Exception {
 		final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -358,7 +358,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test104ModifyUserCostCenter() throws Exception {
 		final String TEST_NAME = "test104ModifyUserCostCenter";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -397,7 +397,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test105ModifyUserTelephoneNumber() throws Exception {
 		final String TEST_NAME = "test105ModifyUserTelephoneNumber";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -438,7 +438,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test106ModifyUserRemoveTelephoneNumber() throws Exception {
 		final String TEST_NAME = "test106ModifyUserRemoveTelephoneNumber";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -479,7 +479,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test107ModifyUserSetTelephoneNumber() throws Exception {
 		final String TEST_NAME = "test107ModifyUserSetTelephoneNumber";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -519,7 +519,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test120ReconcileUser() throws Exception {
 		final String TEST_NAME = "test121ModifyUserReplaceLocality";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -562,7 +562,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test121ModifyUserReplaceLocality() throws Exception {
 		final String TEST_NAME = "test121ModifyUserReplaceLocality";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -601,7 +601,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test140AssignDummy() throws Exception {
 		final String TEST_NAME = "test140AssignDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -636,7 +636,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test149UnAssignDummy() throws Exception {
 		final String TEST_NAME = "test149UnAssignDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -670,7 +670,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test150ModifyJackOrganizationalUnitRum() throws Exception {
 		final String TEST_NAME = "test150ModifyJackOrganizationalUnitRum";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -706,7 +706,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test151ModifyJackOrganizationalUnitOffense() throws Exception {
 		final String TEST_NAME = "test151ModifyJackOrganizationalUnitOffense";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -742,7 +742,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test152ModifyJackOrganizationalUnitAddRum() throws Exception {
 		final String TEST_NAME = "test152ModifyJackOrganizationalUnitAddRum";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -780,7 +780,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test153ModifyJackOrganizationalUnitDeleteOffense() throws Exception {
 		final String TEST_NAME = "test153ModifyJackOrganizationalUnitDeleteOffense";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -819,7 +819,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test155ModifyJackOrganizationalUnitFD001() throws Exception {
 		final String TEST_NAME = "test155ModifyJackOrganizationalUnitFD001";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -861,7 +861,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test156ReconcileJack() throws Exception {
 		final String TEST_NAME = "test156ReconcileJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -902,7 +902,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test157ModifyJackOrganizationalUnitFD0023() throws Exception {
 		final String TEST_NAME = "test157ModifyJackOrganizationalUnitFD0023";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -945,7 +945,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test159ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
 		final String TEST_NAME = "test159ModifyJackDeleteOrganizationalUnitFD002";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -988,7 +988,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test160ModifyUserGivenNameAgain() throws Exception {
-        TestUtil.displayTestTile(this, "test160ModifyUserGivenNameAgain");
+        TestUtil.displayTestTitle(this, "test160ModifyUserGivenNameAgain");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test160ModifyUserGivenNameAgain");
@@ -1030,7 +1030,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test162ModifyUserGivenNameAgainPhantomChange() throws Exception {
     	final String TEST_NAME = "test162ModifyUserGivenNameAgainPhantomChange";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1075,7 +1075,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test165ModifyUserGivenNameAgainAgain() throws Exception {
     	final String TEST_NAME = "test165ModifyUserGivenNameAgainAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1125,7 +1125,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test170ModifyUserGuybrushEmployeeTypeThief() throws Exception {
 		final String TEST_NAME = "test170ModifyUserGuybrushEmployeeTypeThief";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1156,7 +1156,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test172ModifyUserGuybrushHonorificPrefix() throws Exception {
 		final String TEST_NAME = "test172ModifyUserGuybrushHonorificPrefix";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1188,7 +1188,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test174ModifyUserGuybrushHonorificPrefixNone() throws Exception {
 		final String TEST_NAME = "test174ModifyUserGuybrushHonorificPrefixNone";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1218,7 +1218,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test180ModifyUserGuybrushEmployeeTypeMarooned() throws Exception {
 		final String TEST_NAME = "test180ModifyUserGuybrushEmployeeTypeMarooned";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1247,7 +1247,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test189ModifyUserGuybrushEmployeeTypeNone() throws Exception {
 		final String TEST_NAME = "test189ModifyUserGuybrushEmployeeTypeNone";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1280,7 +1280,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test190ModifyUserGuybrushOrganizationWhateveric() throws Exception {
 		final String TEST_NAME = "test190ModifyUserGuybrushOrganizationWhateveric";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1314,7 +1314,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test191ModifyUserGuybrushOrganizationAutomatic() throws Exception {
 		final String TEST_NAME = "test191ModifyUserGuybrushOrganizationAutomatic";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1352,7 +1352,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test192ModifyUserGuybrushOrganizationAddMixed() throws Exception {
 		final String TEST_NAME = "test192ModifyUserGuybrushOrganizationAddMixed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1403,7 +1403,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test193ModifyUserGuybrushOrganizationAddOutOfDomain() throws Exception {
 		final String TEST_NAME = "test193ModifyUserGuybrushOrganizationAddOutOfDomain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1454,7 +1454,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test194ModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
 		final String TEST_NAME = "test194ModifyUserGuybrushOrganizationDeleteMixed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1501,7 +1501,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test195ModifyUserGuybrushOrganizationDeleteOutOfDomain() throws Exception {
 		final String TEST_NAME = "test195ModifyUserGuybrushOrganizationDeleteOutOfDomain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1545,7 +1545,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test196GuybrushAssignCaptain() throws Exception {
 		final String TEST_NAME = "test196GuybrushAssignCaptain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1587,7 +1587,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test197ModifyGuybrushEmployeeTypePirate() throws Exception {
 		final String TEST_NAME = "test197ModifyGuybrushEmployeeTypePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1626,7 +1626,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test198AModifyUserGuybrushOrganizationAddInDomain() throws Exception {
 		final String TEST_NAME = "test198AModifyUserGuybrushOrganizationAddInDomain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1676,7 +1676,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test198BModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
 		final String TEST_NAME = "test198BModifyUserGuybrushOrganizationDeleteMixed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1722,7 +1722,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test199AGuyBrushModifyEmployeeTypeWannabe() throws Exception {
 		final String TEST_NAME = "test199AGuyBrushModifyEmployeeTypeWannabe";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1764,7 +1764,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test199BGuyBrushUnassignCaptain() throws Exception {
 		final String TEST_NAME = "test199BGuyBrushUnassignCaptain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1805,7 +1805,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test199CModifyUserGuybrushOrganizationCleanup() throws Exception {
 		final String TEST_NAME = "test199CModifyUserGuybrushOrganizationCleanup";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1836,7 +1836,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200AddUserRapp() throws Exception {
 		final String TEST_NAME = "test200AddUserRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1872,7 +1872,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test201AddUserLargo() throws Exception {
-        TestUtil.displayTestTile(this, "test201AddUserLargo");
+        TestUtil.displayTestTitle(this, "test201AddUserLargo");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test201AddUserLargo");
@@ -1919,7 +1919,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test202AddUserMonkey() throws Exception {
-        TestUtil.displayTestTile(this, "test202AddUserMonkey");
+        TestUtil.displayTestTitle(this, "test202AddUserMonkey");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test202AddUserMonkey");
@@ -1960,7 +1960,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test204AddUserHerman() throws Exception {
 		final String TEST_NAME = "test204AddUserHerman";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1996,7 +1996,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220AssignRoleSailorToUserRapp() throws Exception {
 		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2031,7 +2031,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test229UnassignRoleSailorFromUserRapp() throws Exception {
 		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2068,7 +2068,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test230AssignRoleCaptainToUserRapp() throws Exception {
 		final String TEST_NAME = "test230AssignRoleCaptainToUserRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2103,7 +2103,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test232ModifyUserRappCostCenter() throws Exception {
 		final String TEST_NAME = "test232ModifyUserRappCostCenter";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2139,7 +2139,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test239UnassignRoleCaptainFromUserRapp() throws Exception {
 		final String TEST_NAME = "test239UnassignRoleCaptainFromUserRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2171,7 +2171,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test240ModifyUserRappLocalityScabb() throws Exception {
 		final String TEST_NAME = "test240ModifyUserRappLocalityScabb";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2219,7 +2219,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test242AssignRoleRastamanToUserRapp() throws Exception {
 		final String TEST_NAME = "test242AssignRoleRastamanToUserRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2260,7 +2260,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test244ModifyUserRappLocalityCoffin() throws Exception {
 		final String TEST_NAME = "test244ModifyUserRappLocalityCoffin";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2301,7 +2301,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test245ModifyUserRappLocalityUnderReconcile() throws Exception {
 		final String TEST_NAME = "test245ModifyUserRappLocalityUnderReconcile";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2349,7 +2349,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test246ModifyUserRappTimezoneMonkey() throws Exception {
 		final String TEST_NAME = "test246ModifyUserRappTimezoneMonkey";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2392,7 +2392,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test247ModifyUserRappLocaleMI() throws Exception {
 		final String TEST_NAME = "test247ModifyUserRappLocaleMI";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2432,7 +2432,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test249UnassignRoleRastamanFromUserRapp() throws Exception {
 		final String TEST_NAME = "test249UnassignRoleRastamanFromUserRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2472,7 +2472,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300ImportStanFromEmeraldResource() throws Exception {
 		final String TEST_NAME = "test300ImportStanFromEmeraldResource";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2517,7 +2517,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test302ModifyStanAccountAndReimport() throws Exception {
 		final String TEST_NAME = "test302ModifyStanAccountAndReimport";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2556,7 +2556,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test800Kaboom() throws Exception {
 		final String TEST_NAME = "test800Kaboom";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2582,7 +2582,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test900DeleteUser() throws Exception {
 		final String TEST_NAME = "test900DeleteUser";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2615,7 +2615,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test950CreateUserJackWithoutTemplate() throws Exception {
 		final String TEST_NAME = "test950CreateUserJackWithoutTemplate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 	
         // GIVEN
         setDefaultUserTemplate(null);        
@@ -2650,7 +2650,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test952ModifyJackOrganizationalUnitFD004() throws Exception {
 		final String TEST_NAME = "test952ModifyJackOrganizationalUnitFD004";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2682,7 +2682,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test960ReconcileUserJackWithTemplate() throws Exception {
 		final String TEST_NAME = "test960ModifyUserJackWithTemplate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         setDefaultUserTemplate(USER_TEMPLATE_COMPLEX_OID);

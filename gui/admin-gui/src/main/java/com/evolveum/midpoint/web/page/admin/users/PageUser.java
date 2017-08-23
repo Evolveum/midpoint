@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.assignment.AssignmentDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
@@ -365,6 +367,17 @@ public class PageUser extends PageAdminFocus<UserType> {
         }
         return list;
     }
+    
+   @Override
+   protected void prepareObjectDeltaForModify(ObjectDelta<UserType> focusDelta) throws SchemaException {
+	
+	super.prepareObjectDeltaForModify(focusDelta);
+	
+	PrismContainerDefinition<AssignmentType> def = getObjectDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+	if (consentsModel.isLoaded()) {
+		handleAssignmentExperimentalDeltas(focusDelta, consentsModel.getObject(), def, false);
+	}
+}
 
     @Override
     protected boolean processDeputyAssignments(boolean previewOnly) {

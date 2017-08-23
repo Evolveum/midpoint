@@ -177,7 +177,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test800ImportSyncTask() throws Exception {
 		final String TEST_NAME = "test800ImportSyncTask";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -204,7 +204,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test801SyncAddAccountHt() throws Exception {
 		final String TEST_NAME = "test801SyncAddAccountHt";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -237,7 +237,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test802ModifyAccountHt() throws Exception {
 		final String TEST_NAME = "test802ModifyAccountHt";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -272,7 +272,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test810SyncAddGroupMonkeys() throws Exception {
 		final String TEST_NAME = "test810SyncAddGroupMonkeys";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -308,7 +308,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test817RenameAccount() throws Exception {
 		final String TEST_NAME = "test817RenameAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -360,7 +360,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test818DeleteAccountHtm() throws Exception {
 		final String TEST_NAME = "test818DeleteAccountHtm";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -400,7 +400,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test819DeleteSyncTask() throws Exception {
 		final String TEST_NAME = "test819DeleteSyncTask";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -421,7 +421,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test820ImportSyncTaskInetOrgPerson() throws Exception {
 		final String TEST_NAME = "test820ImportSyncTaskInetOrgPerson";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -451,7 +451,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test821SyncAddAccountHt() throws Exception {
 		final String TEST_NAME = "test821SyncAddAccountHt";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -483,7 +483,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test822ModifyAccountHt() throws Exception {
 		final String TEST_NAME = "test822ModifyAccountHt";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -520,7 +520,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test830AddGroupFools() throws Exception {
 		final String TEST_NAME = "test830AddGroupFools";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -549,7 +549,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test837RenameAccount() throws Exception {
 		final String TEST_NAME = "test837RenameAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -595,7 +595,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test838DeleteAccountHtm() throws Exception {
 		final String TEST_NAME = "test838DeleteAccountHtm";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -632,7 +632,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 	@Test
     public void test839DeleteSyncTask() throws Exception {
 		final String TEST_NAME = "test839DeleteSyncTask";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);

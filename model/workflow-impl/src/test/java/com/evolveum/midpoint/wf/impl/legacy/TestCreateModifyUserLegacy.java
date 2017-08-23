@@ -60,7 +60,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
      */
 	@Test(enabled = true)
     public void test010CreateElisabeth() throws Exception {
-        TestUtil.displayTestTile(this, "test010CreateElisabeth");
+        TestUtil.displayTestTitle(this, "test010CreateElisabeth");
        	executeTest("test010CreateElisabeth", USER_ELISABETH_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
             @Override boolean immediate() { return false; }
@@ -101,7 +101,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
      */
     @Test(enabled = true)
     public void test020ModifyElisabethAssignRole3() throws Exception {
-        TestUtil.displayTestTile(this, "test020ModifyElisabethAssignRole3");
+        TestUtil.displayTestTitle(this, "test020ModifyElisabethAssignRole3");
         executeTest("test020ModifyElisabethAssignRole3", USER_ELISABETH_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
             @Override boolean immediate() { return false; }

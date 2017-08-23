@@ -60,7 +60,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void text001testReconcileScriptsWhenProvisioning() throws Exception{
 		final String TEST_NAME = "text001testReconcileScriptsWhenProvisioning";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -103,7 +103,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test002testReconcileScriptsWhenReconciling() throws Exception{
 		final String TEST_NAME = "test002testReconcileScriptsWhenReconciling";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         getDummyResource().getScriptHistory().clear();
 		
@@ -135,7 +135,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test003testReconcileScriptsAddUserAction() throws Exception{
 		final String TEST_NAME = "test003testReconcileScriptsAddUserAction";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -188,7 +188,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test005TestDryRunDelete() throws Exception{
 		final String TEST_NAME = "test005TestDryRunDelete";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
 		
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
@@ -221,7 +221,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test006TestReconDelete() throws Exception{
 		final String TEST_NAME = "test006TestReconDelete";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
 		OperationResult parentResult = new OperationResult(TEST_NAME);

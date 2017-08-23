@@ -103,7 +103,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Test
 	public void test100CreateTask() throws Exception {
 		final String TEST_NAME = "test100CreateTask";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -133,7 +133,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Test
 	public void test110Notify() throws Exception {
 		final String TEST_NAME = "test110Notify";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -158,7 +158,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Test
 	public void test120Escalate() throws Exception {
 		final String TEST_NAME = "test120Escalate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -183,7 +183,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Test
 	public void test130Complete() throws Exception {
 		final String TEST_NAME = "test130Complete";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -207,7 +207,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Test
 	public void test200CreateTaskE2() throws Exception {
 		final String TEST_NAME = "test200CreateTaskE2";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -238,7 +238,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Test
 	public void test210Escalate() throws Exception {
 		final String TEST_NAME = "test210Escalate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -270,7 +270,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	@Test
 	public void test220Reject() throws Exception {
 		final String TEST_NAME = "test220Reject";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);

@@ -218,7 +218,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 
         // TODO
@@ -228,7 +228,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
     public void test100SimpleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test100SimpleAssignmentStart";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -292,7 +292,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test102SimpleAssignmentApproveByLechuck() throws Exception {
 		final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -377,7 +377,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
 		final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -453,7 +453,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test106SimpleAssignmentApproveByCheese() throws Exception {
 		final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -510,7 +510,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test108SimpleAssignmentApproveByChef() throws Exception {
 		final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -586,7 +586,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test200EscalatedApprovalStart() throws Exception {
 		final String TEST_NAME = "test200EscalatedApprovalStart";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -634,7 +634,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test202FourDaysLater() throws Exception {
 		final String TEST_NAME = "test202FourDaysLater";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -667,7 +667,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test204SixDaysLater() throws Exception {
 		final String TEST_NAME = "test204SixDaysLater";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -736,7 +736,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test205EightDaysLater() throws Exception {
 		final String TEST_NAME = "test205EightDaysLater";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -788,7 +788,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test206ApproveByCheese() throws Exception {
 		final String TEST_NAME = "test206ApproveByCheese";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -880,7 +880,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test208SixDaysLater() throws Exception {
 		final String TEST_NAME = "test208SixDaysLater";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -922,7 +922,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test209EightDaysLater() throws Exception {
 		final String TEST_NAME = "test209EightDaysLater";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -979,7 +979,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test220FormRoleAssignmentStart() throws Exception {
 		final String TEST_NAME = "test220FormRoleAssignmentStart";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		PrismObject<UserType> bob = getUserFromRepo(userBobOid);
 		login(bob);
 
@@ -1024,7 +1024,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test221FormApproveByLechuck() throws Exception {
 		final String TEST_NAME = "test221FormApproveByLechuck";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -1068,7 +1068,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test222FormApproveByCheese() throws Exception {
 		final String TEST_NAME = "test222FormApproveByCheese";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -1136,7 +1136,7 @@ public class TestStrings extends AbstractStoryTest {
 	@Test
 	public void test250ApproverAssignment() throws Exception {
 		final String TEST_NAME = "test250ApproverAssignment";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = createTask(TestStrings.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 

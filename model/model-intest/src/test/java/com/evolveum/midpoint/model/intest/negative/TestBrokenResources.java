@@ -164,7 +164,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test010TestResourceBroken() throws Exception {
 		final String TEST_NAME = "test010TestResourceBroken";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -181,7 +181,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test020GetResourceBroken() throws Exception {
 		final String TEST_NAME = "test020GetResourceBroken";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -212,7 +212,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test100GetAccountMurray() throws Exception {
 		final String TEST_NAME = "test100GetAccountMurray";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -239,7 +239,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test101GetAccountMurrayNoFetch() throws Exception {
 		final String TEST_NAME = "test101GetAccountMurrayNoFetch";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -261,7 +261,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	
 	@Test
     public void test102GetAccountMurrayRaw() throws Exception {
-        TestUtil.displayTestTile(this, "test102GetAccountMurrayRaw");
+        TestUtil.displayTestTitle(this, "test102GetAccountMurrayRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test102GetAccountMurrayRaw");
@@ -284,7 +284,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	
 	@Test
     public void test120SearchAccountByUsernameJack() throws Exception {
-        TestUtil.displayTestTile(this, "test120SearchAccountByUsernameJack");
+        TestUtil.displayTestTitle(this, "test120SearchAccountByUsernameJack");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test120SearchAccountByUsernameJack");
@@ -309,7 +309,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	
 	@Test
     public void test210TestResourceNotFound() throws Exception {
-        TestUtil.displayTestTile(this, "test210TestResourceNotFound");
+        TestUtil.displayTestTitle(this, "test210TestResourceNotFound");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test210TestResourceNotFound");
@@ -327,7 +327,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test220GetResourceNotFound() throws Exception {
 		final String TEST_NAME = "test220GetResourceNotFound";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "."+TEST_NAME);
@@ -353,7 +353,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test221GetResourceNotFoundResolveConnector() throws Exception {
 		final String TEST_NAME = "test221GetResourceNotFoundResolveConnector";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + "."+TEST_NAME);
@@ -384,7 +384,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	
 	@Test
     public void test310TestResourceNoJars() throws Exception {
-        TestUtil.displayTestTile(this, "test310TestResourceNoJars");
+        TestUtil.displayTestTitle(this, "test310TestResourceNoJars");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestBrokenResources.class.getName() + ".test310TestResourceNoJars");
@@ -400,7 +400,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test320GetResourceNoJars() throws Exception {
 		final String TEST_NAME = "test320GetResourceNoJars";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -426,7 +426,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test350AddResourceWrongConnectorOid() throws Exception {
 		final String TEST_NAME = "test350AddResourceWrongConnectorOid";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -458,7 +458,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test352AddResourceWrongConnectorOidRaw() throws Exception {
 		final String TEST_NAME = "test352AddResourceWrongConnectorOidRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -491,7 +491,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test355AddResourceWrongConnectorOidRepo() throws Exception {
 		final String TEST_NAME = "test355AddResourceWrongConnectorOidRepo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -510,7 +510,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test358GetResourceWrongConnectorOid() throws Exception {
 		final String TEST_NAME = "test358GetResourceWrongConnectorOid";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -536,7 +536,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test359DeleteResourceWrongConnectorOid() throws Exception {
 		final String TEST_NAME = "test359DeleteResourceWrongConnectorOid";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -559,7 +559,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test360AddResourceNoConfiguration() throws Exception {
 		final String TEST_NAME = "test360AddResourceNoConfiguration";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -583,7 +583,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test362GetResourceNoConfiguration() throws Exception {
 		final String TEST_NAME = "test362GetResourceNoConfiguration";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -615,7 +615,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test369DeleteResourceNoConfiguration() throws Exception {
 		final String TEST_NAME = "test369DeleteResourceNoConfiguration";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -644,7 +644,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test371ImportUnaccessibleResource() throws Exception {
 		final String TEST_NAME = "test371ImportUnaccessibleResource";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -665,7 +665,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test372GetUnaccessibleResourceNoFetch() throws Exception {
 		final String TEST_NAME = "test372GetUnaccessibleResourceNoFetch";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -720,7 +720,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	}
 	
 	public void testListResources(final String TEST_NAME, int expectedNumber, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN (1)
         Task task = createTask(TEST_NAME);
@@ -776,7 +776,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
     public void test377GetResourceNoConfiguration() throws Exception {
 		final String TEST_NAME = "test377GetResourceNoConfiguration";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -826,7 +826,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	 * the account on the good resource is created.
 	 */
 	private void testAssignTwoResoures(final String TEST_NAME, String badResourceOid) throws Exception {
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -864,7 +864,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test500AssignResourceBlack() throws Exception {
 		final String TEST_NAME = "test500AssignResourceBlack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -902,7 +902,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test502ModifyUserEmployeeNumberNone() throws Exception {
 		final String TEST_NAME = "test502ModifyUserEmployeeNumberNone";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -935,7 +935,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test509UnassignResourceBlack() throws Exception {
 		final String TEST_NAME = "test509UnassignResourceBlack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -968,7 +968,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test510AssignResourceBlackError() throws Exception {
 		final String TEST_NAME = "test510AssignResourceBlackError";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1008,7 +1008,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test512ReconcileUser() throws Exception {
 		final String TEST_NAME = "test512ReconcileUser";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1039,7 +1039,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test514ModifyUserEmployeeNumberRuntime() throws Exception {
 		final String TEST_NAME = "test514ModifyUserEmployeeNumberRuntime";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1072,7 +1072,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test518UnassignResourceBlack() throws Exception {
 		final String TEST_NAME = "test518UnassignResourceBlack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1106,7 +1106,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test519ReconcileUser() throws Exception {
 		final String TEST_NAME = "test519ReconcileUser";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1137,7 +1137,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test520AssignResourceEbonyError() throws Exception {
 		final String TEST_NAME = "test520AssignResourceEbonyError";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1178,7 +1178,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test524ModifyUserEmployeeNumberRuntime() throws Exception {
 		final String TEST_NAME = "test524ModifyUserEmployeeNumberRuntime";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1211,7 +1211,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	@Test
 	public void test528UnassignResourceEbony() throws Exception {
 		final String TEST_NAME = "test528UnassignResourceEbony";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

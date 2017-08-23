@@ -191,7 +191,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		assertNotNull("Resource is null", resource);
 		assertNotNull("ResourceType is null", resourceType);
@@ -216,7 +216,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -269,7 +269,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test004Configuration() throws Exception {
 		final String TEST_NAME = "test004Configuration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
@@ -294,7 +294,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test005ParsedSchema() throws Exception {
 		final String TEST_NAME = "test005ParsedSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
@@ -344,7 +344,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test006Capabilities() throws Exception {
 		final String TEST_NAME = "test006Capabilities";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
@@ -381,7 +381,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test100AddAccountWill() throws Exception {
 		final String TEST_NAME = "test100AddAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -445,7 +445,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test102GetAccountWillFuture() throws Exception {
 		final String TEST_NAME = "test102GetAccountWillFuture";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -480,7 +480,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test104RefreshAccountWill() throws Exception {
 		final String TEST_NAME = "test104RefreshAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -535,7 +535,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test106AddToBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test106AddToBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -577,7 +577,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test108GetAccountWillFuture() throws Exception {
 		final String TEST_NAME = "test108GetAccountWillFuture";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -621,7 +621,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test109GetAccountWillFutureNoFetch() throws Exception {
 		final String TEST_NAME = "test109GetAccountWillFutureNoFetch";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -661,7 +661,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test110CloseCaseAndRefreshAccountWill() throws Exception {
 		final String TEST_NAME = "test110CloseCaseAndRefreshAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -724,7 +724,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test120RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test120RefreshAccountWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -771,7 +771,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test130RefreshAccountWillAfter25min() throws Exception {
 		final String TEST_NAME = "test130RefreshAccountWillAfter25min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -808,7 +808,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test200ModifyAccountWillFullname() throws Exception {
 		final String TEST_NAME = "test200ModifyAccountWillFullname";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -881,7 +881,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test202RefreshAccountWill() throws Exception {
 		final String TEST_NAME = "test202RefreshAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -946,7 +946,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test204CloseCaseAndRefreshAccountWill() throws Exception {
 		final String TEST_NAME = "test204CloseCaseAndRefreshAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1028,7 +1028,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test210RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test210RefreshAccountWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1097,7 +1097,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test212UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test212UpdateBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1162,7 +1162,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test220ModifyAccountWillDisable() throws Exception {
 		final String TEST_NAME = "test220ModifyAccountWillDisable";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1246,7 +1246,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
 		final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1336,7 +1336,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test240CloseDisableCaseAndReadAccountWill() throws Exception {
 		final String TEST_NAME = "test240CloseDisableCaseAndReadAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1430,7 +1430,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test250RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test250RefreshAccountWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1518,7 +1518,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test252UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test252UpdateBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1584,7 +1584,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test260ClosePasswordChangeCaseAndRefreshAccountWill() throws Exception {
 		final String TEST_NAME = "test260ClosePasswordChangeCaseAndRefreshAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1683,7 +1683,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test270RefreshAccountWillAfter10min() throws Exception {
 		final String TEST_NAME = "test130RefreshAccountWillAfter10min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1773,7 +1773,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1838,7 +1838,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test280RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test132RefreshAccountWillAfter10min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1927,7 +1927,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test290RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test134RefreshAccountWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1993,7 +1993,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test300DeleteAccountWill() throws Exception {
 		final String TEST_NAME = "test300DeleteAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2063,7 +2063,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test302GetAccountWillFuture() throws Exception {
 		final String TEST_NAME = "test302GetAccountWillFuture";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2089,7 +2089,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test303GetAccountWillFutureNoFetch() throws Exception {
 		final String TEST_NAME = "test303GetAccountWillFutureNoFetch";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2122,7 +2122,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test310CloseCaseAndRefreshAccountWill() throws Exception {
 		final String TEST_NAME = "test310CloseCaseAndRefreshAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2189,7 +2189,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 	@Test
 	public void test320RefreshAccountWillAfter5min() throws Exception {
 		final String TEST_NAME = "test320RefreshAccountWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();

@@ -141,7 +141,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
            panel.setOutputMarkupId(true);
            getPageBase().showMainPopup(panel, target);
     }
-       private <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation){
+       protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation){
            if (assignmentsList == null || assignmentsList.isEmpty()){
                    warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
                    target.add(getPageBase().getFeedbackPanel());

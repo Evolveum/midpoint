@@ -104,7 +104,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test100ImportLiveSyncTaskDummyEmerald() throws Exception {
 		final String TEST_NAME = "test100ImportLiveSyncTaskDummyEmerald";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -123,7 +123,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test110AddDummyEmeraldAccountMancomb() throws Exception {
 		final String TEST_NAME = "test110AddDummyEmeraldAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -181,7 +181,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test120ModifyDummyEmeraldAccountMancombSeepbad() throws Exception {
 		final String TEST_NAME = "test120ModifyDummyEmeraldAccountMancombSeepbad";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -236,7 +236,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test122ModifyDummyEmeraldAccountMancombSeepNULL() throws Exception {
 		final String TEST_NAME = "test122ModifyDummyEmeraldAccountMancombSeepNULL";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -291,7 +291,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test124ModifyDummyEmeraldAccountMancombSeepevil() throws Exception {
 		final String TEST_NAME = "test124ModifyDummyEmeraldAccountMancombSeepevil";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -346,7 +346,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test126ModifyDummyEmeraldAccountMancombTitlePirate() throws Exception {
 		final String TEST_NAME = "test126ModifyDummyEmeraldAccountMancombTitlePirate";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -402,7 +402,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test127ModifyDummyEmeraldAccountMancombTitlePirateNull() throws Exception {
 		final String TEST_NAME = "test127ModifyDummyEmeraldAccountMancombTitlePirateNull";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -458,7 +458,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
     public void test129ModifyDummyEmeraldAccountMancombSeepgood() throws Exception {
 		final String TEST_NAME = "test129ModifyDummyEmeraldAccountMancombSeepgood";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -523,7 +523,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
 	public void test300AddDummyEmeraldAccountPosixUser() throws Exception {
 		final String TEST_NAME = "test300AddDummyEmeraldAccountPosixUser";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -581,7 +581,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	@Test
 	public void test310ModifyDummyEmeraldAccountPosixUserUidNumber() throws Exception {
 		final String TEST_NAME = "test310ModifyDummyEmeraldAccountPosixUserUidNumber";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);

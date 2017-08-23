@@ -162,7 +162,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test050AddRoleRecursionAssignment() throws Exception {
 		final String TEST_NAME = "test050AddRoleRecursionAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -197,7 +197,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test060AddRoleStupidAssignment() throws Exception {
 		final String TEST_NAME = "test060AddRoleStupidAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -218,7 +218,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict() throws Exception {
 		final String TEST_NAME = "test100ModifyUserGuybrushAddAccountDummyRedNoAttributesConflict";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -289,7 +289,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test180DeleteHalfAssignmentFromUser() throws Exception {
 		String TEST_NAME = "test180DeleteHalfAssignmentFromUser";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -341,7 +341,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test190DeleteHalfAssignedUser() throws Exception {
 		String TEST_NAME = "test190DeleteHalfAssignedUser";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -396,7 +396,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ModifyUserJackBrokenAccountRefAndPolyString() throws Exception {
 		final String TEST_NAME = "test200ModifyUserJackBrokenAccountRefAndPolyString";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -442,7 +442,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210ModifyUserAddAccount() throws Exception {
     	final String TEST_NAME = "test210ModifyUserAddAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -474,7 +474,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test212ModifyUserAddAccountRed() throws Exception {
     	final String TEST_NAME = "test212ModifyUserAddAccountRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -509,7 +509,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test212ModifyUserJackBrokenSchemaViolationPolyString() throws Exception {
 		final String TEST_NAME = "test212ModifyUserJackBrokenSchemaViolationPolyString";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -553,7 +553,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test214ModifyUserJackBrokenPassword() throws Exception {
 		final String TEST_NAME = "test214ModifyUserJackBrokenPassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -597,7 +597,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220ModifyUserJackBrokenConflict() throws Exception {
 		final String TEST_NAME = "test220ModifyUserJackBrokenConflict";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -643,7 +643,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300ExtensionSanity() throws Exception {
 		final String TEST_NAME = "test300ExtensionSanity";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismContainerDefinition<Containerable> extensionContainerDef = userDef.findContainerDefinition(UserType.F_EXTENSION);
@@ -664,7 +664,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test301AddUserDeGhoulash() throws Exception {
 		final String TEST_NAME = "test301AddUserDeGhoulash";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -748,7 +748,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 	
     private <T> void searchDeGhoulash(String testName, QName propName, T propValue) throws Exception {
-        TestUtil.displayTestTile(this, testName);
+        TestUtil.displayTestTitle(this, testName);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + testName);
@@ -802,7 +802,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test330AssignDeGhoulashIdiot() throws Exception {
 		final String TEST_NAME = "test330AssignDeGhoulashIdiot";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -830,7 +830,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test332AssignDeGhoulashRecursion() throws Exception {
 		final String TEST_NAME = "test332AssignDeGhoulashRecursion";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -868,7 +868,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test334AssignDeGhoulashStupidAssignment() throws Exception {
 		final String TEST_NAME = "test334AssignDeGhoulashStupidAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -899,7 +899,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test336UnassignDeGhoulashStupidAssignment() throws Exception {
 		final String TEST_NAME = "test336UnassignDeGhoulashStupidAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -922,7 +922,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test340AssignDeGhoulashConstructionNonExistentResource() throws Exception {
 		final String TEST_NAME = "test340AssignDeGhoulashConstructionNonExistentResource";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -949,7 +949,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test349UnAssignDeGhoulashConstructionNonExistentResource() throws Exception {
 		final String TEST_NAME = "test349UnAssignDeGhoulashConstructionNonExistentResource";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -975,7 +975,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test350AssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
 		final String TEST_NAME = "test350AssignDeGhoulashRoleBadConstructionResourceRef";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -1004,7 +1004,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test351UnAssignDeGhoulashRoleBadConstructionResourceRef() throws Exception {
 		final String TEST_NAME = "test351UnAssignDeGhoulashRoleBadConstructionResourceRef";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -1033,7 +1033,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test360AddRoleTargetBadConstructionResourceRef() throws Exception {
 		final String TEST_NAME = "test360AddRoleTargetBadConstructionResourceRef";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -1057,7 +1057,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test400ImportJackMockTask() throws Exception {
 		final String TEST_NAME = "test400ImportJackMockTask";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -1080,7 +1080,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test401ListTasks() throws Exception {
 		final String TEST_NAME = "test401ListTasks";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -1129,7 +1129,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410DeleteJack() throws Exception {
 		final String TEST_NAME = "test410DeleteJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -1180,7 +1180,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test500EnumerationExtension() throws Exception {
 		final String TEST_NAME = "test500EnumerationExtension";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
@@ -1199,7 +1199,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test502EnumerationStoreGood() throws Exception {
 		final String TEST_NAME = "test502EnumerationStoreGood";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         
@@ -1231,7 +1231,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test // MID-2260
     public void test510EnumerationGetBad() throws Exception {
 		final String TEST_NAME = "test510EnumerationGetBad";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PrismPropertyDefinition<String> markDef = userDef.findPropertyDefinition(new ItemPath(UserType.F_EXTENSION, PIRACY_MARK));
@@ -1271,7 +1271,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test520ShipReadBadTolerateRawData() throws Exception {
 		final String TEST_NAME = "test520ShipReadBadTolerateRawData";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         
@@ -1317,7 +1317,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test522ShipReadBadRaw() throws Exception {
 		final String TEST_NAME = "test522ShipReadBadRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -1343,7 +1343,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test524ShipReadBadPlain() throws Exception {
 		final String TEST_NAME = "test524ShipReadBadPlain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -1363,7 +1363,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test529FixSchema() throws Exception {
 		final String TEST_NAME = "test529FixSchema";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		changeDefinition(PIRACY_SHIP_BROKEN, PIRACY_SHIP);
 	}
@@ -1376,7 +1376,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test550AssignCircus() throws Exception {
 		final String TEST_NAME = "test550AssignCircus";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         
@@ -1400,7 +1400,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test600AddUserGuybrushAssignAccount() throws Exception {
 		final String TEST_NAME="test600AddUserGuybrushAssignAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);
@@ -1445,7 +1445,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
     @Test(enabled=false) // MID-2880
     public void test610GetAccountGuybrushRogueAttribute() throws Exception {
     	final String TEST_NAME="test600AddUserGuybrushAssignAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestStrangeCases.class.getName() + "." + TEST_NAME);

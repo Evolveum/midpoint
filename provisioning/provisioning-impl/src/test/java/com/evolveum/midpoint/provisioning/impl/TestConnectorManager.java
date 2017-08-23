@@ -73,7 +73,7 @@ public class TestConnectorManager extends AbstractIntegrationTest {
 	@Test
 	public void test100ListConnectorFactories() throws Exception {
 		final String TEST_NAME = "test100ListConnectorFactories";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 		
@@ -104,7 +104,7 @@ public class TestConnectorManager extends AbstractIntegrationTest {
 	@Test
 	public void test110SelfTest() throws Exception {
 		final String TEST_NAME = "test100ListConnectorFactories";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -122,7 +122,7 @@ public class TestConnectorManager extends AbstractIntegrationTest {
 	@Test
 	public void test120FrameworkVersion() throws Exception {
 		final String TEST_NAME = "test120FrameworkVersion";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// WHEN
 		String frameworkVersion = connectorManager.getFrameworkVersion();

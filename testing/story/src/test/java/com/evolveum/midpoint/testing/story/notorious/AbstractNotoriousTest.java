@@ -184,7 +184,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + getNumberOfExtraRoles());
         assertObjects(OrgType.class, getNumberOfExtraOrgs());
@@ -196,7 +196,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test100AssignRa0ToJack() throws Exception {
 		final String TEST_NAME = "test100AssignRa0ToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -233,7 +233,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test102RecomputeJack() throws Exception {
 		final String TEST_NAME = "test102RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -266,7 +266,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test104PreviewChangesJack() throws Exception {
 		final String TEST_NAME = "test104PreviewChangesJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -306,7 +306,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test109UnassignRa0FromJack() throws Exception {
 		final String TEST_NAME = "test109UnassignRa0FromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -340,7 +340,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test110Assign5ARolesToJack() throws Exception {
 		final String TEST_NAME = "test110AssignAllARolesToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -373,7 +373,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test112RecomputeJack() throws Exception {
 		final String TEST_NAME = "test112RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -406,7 +406,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test119Unassign5ARolesFromJack() throws Exception {
 		final String TEST_NAME = "test119Unassign5ARolesFromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -440,7 +440,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test120AssignAllARolesToJack() throws Exception {
 		final String TEST_NAME = "test120AssignAllARolesToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -473,7 +473,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test122RecomputeJack() throws Exception {
 		final String TEST_NAME = "test122RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -506,7 +506,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test124PreviewChangesJack() throws Exception {
 		final String TEST_NAME = "test124PreviewChangesJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -546,7 +546,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test129UnassignAllARolesFromJack() throws Exception {
 		final String TEST_NAME = "test129UnassignAllARolesFromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -580,7 +580,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test130AssignRb0ToJack() throws Exception {
 		final String TEST_NAME = "test130AssignRb0ToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -623,7 +623,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test132AssignRa0ToJack() throws Exception {
 		final String TEST_NAME = "test132AssignRa0ToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -660,7 +660,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test134RecomputeJack() throws Exception {
 		final String TEST_NAME = "test134RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -695,7 +695,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test136UnassignRb0FromJack() throws Exception {
 		final String TEST_NAME = "test136UnassignRb0FromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -732,7 +732,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test138AssignRb0ToJackAgain() throws Exception {
 		final String TEST_NAME = "test138AssignRb0ToJackAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -769,7 +769,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test140RecomputeJackAgain() throws Exception {
 		final String TEST_NAME = "test140RecomputeJackAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -804,7 +804,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test142RecomputeJackAlt() throws Exception {
 		final String TEST_NAME = "test142RecomputeJackAlt";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -840,7 +840,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test144UnassignRa0FromJack() throws Exception {
 		final String TEST_NAME = "test144UnassignRa0FromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -877,7 +877,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test149UnassignRb0FromJack() throws Exception {
 		final String TEST_NAME = "test149UnassignRb0FromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -919,7 +919,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test150AssignNotoriousDefaultToJack() throws Exception {
 		final String TEST_NAME = "test150AssignNotoriousDefaultToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -962,7 +962,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test152AssignNotoriousAltRelationToJack() throws Exception {
 		final String TEST_NAME = "test152AssignNotoriousAltRelationToJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1006,7 +1006,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test154RecomputeJack() throws Exception {
 		final String TEST_NAME = "test154RecomputeJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1053,7 +1053,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test156RecomputeJackAlt() throws Exception {
 		final String TEST_NAME = "test156RecomputeJackAlt";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1096,7 +1096,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test158UnassignNotoriousDefaultFromJack() throws Exception {
 		final String TEST_NAME = "test156UnassignNotoriousDefaultFromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -1138,7 +1138,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 	@Test
     public void test159UnassignNotoriousAltRelationFromJack() throws Exception {
 		final String TEST_NAME = "test159UnassignNotoriousAltRelationFromJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

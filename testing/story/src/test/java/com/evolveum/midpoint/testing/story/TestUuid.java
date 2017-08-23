@@ -131,7 +131,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -144,7 +144,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test100AddUserRapp() throws Exception {
 		final String TEST_NAME = "test100AddUserRapp";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -166,7 +166,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test101RappAssignRoleClient() throws Exception {
 		final String TEST_NAME = "test101RappAssignRoleClient";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -187,7 +187,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test107RappUnAssignRoleClient() throws Exception {
 		final String TEST_NAME = "test107RappUnAssignRoleClient";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         // WHEN
@@ -202,7 +202,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test110AddMancombWithRoleClient() throws Exception {
 		final String TEST_NAME = "test110AddMancombWithRoleClient";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -228,7 +228,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test112RenameMancomb() throws Exception {
 		final String TEST_NAME = "test112RenameMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -251,7 +251,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test119MancombDelete() throws Exception {
 		final String TEST_NAME = "test119MancombDelete";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -272,7 +272,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test120AddKateWithRoleClient() throws Exception {
 		final String TEST_NAME = "test120AddKateWithRoleClient";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -296,7 +296,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test122AddWallyWithRoleClient() throws Exception {
 		final String TEST_NAME = "test122AddWallyWithRoleClient";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -320,7 +320,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test124AddRogersWithRoleClient() throws Exception {
 		final String TEST_NAME = "test124AddMartyWithRoleClient";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -344,7 +344,7 @@ public class TestUuid extends AbstractStoryTest {
 	@Test
     public void test126AddMartyWithRoleClient() throws Exception {
 		final String TEST_NAME = "test124AddMartyWithRoleClient";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         

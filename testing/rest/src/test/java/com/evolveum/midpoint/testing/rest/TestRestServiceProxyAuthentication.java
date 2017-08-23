@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import static com.evolveum.midpoint.test.util.TestUtil.displayTestTile;
+import static com.evolveum.midpoint.test.util.TestUtil.displayTestTitle;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
@@ -80,7 +80,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 	@Test
 	public void test001getUserSelfBySomebody() {
 		final String TEST_NAME = "test001getUserSelfBySomebody";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_SOMEBODY_OID);
 		client.path("/self/");
@@ -104,7 +104,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 	@Test
 	public void test002getUserSelfByEgoist() {
 		final String TEST_NAME = "test002getUserSelfByEgoist";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_EGOIST_OID);
 		client.path("/self/");
@@ -132,7 +132,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 	@Test
 	public void test003getUserAdministratorByEgoist() {
 		final String TEST_NAME = "test003getUserAdministratorByEgoist";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_EGOIST_OID);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -156,7 +156,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 	@Test
 	public void test004getUserSelfByHead() {
 		final String TEST_NAME = "test004getUserSelfByHead";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(null);
 		client.path("/self");
@@ -184,7 +184,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 	@Test
 	public void test005getUserSelfByProxyHead() {
 		final String TEST_NAME = "test005getUserSelfByProxyHead";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_HEAD_OID);
 		client.path("/self");

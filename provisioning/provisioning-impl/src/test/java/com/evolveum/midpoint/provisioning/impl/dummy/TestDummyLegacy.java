@@ -109,7 +109,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	@Test
 	public void test100NativeIntegrity() throws Exception {
 		final String TEST_NAME = "test100NativeIntegrity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		display("Dummy resource instance", dummyResourceNative.toString());
 
@@ -126,7 +126,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	@Test
 	public void test103NativeTestResource() throws Exception {
 		final String TEST_NAME = "test103NativeTestResource";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -166,7 +166,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	@Test
 	public void test105NativeParsedSchema() throws Exception {
 		final String TEST_NAME = "test105NativeParsedSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyLegacy.class.getName() + "." + TEST_NAME);
@@ -195,7 +195,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	@Test
 	public void test200LegacyIntegrity() throws Exception {
 		final String TEST_NAME = "test200LegacyIntegrity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		display("Dummy resource instance", dummyResourceLegacy.toString());
 
@@ -212,7 +212,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	@Test
 	public void test203LegacyTestResource() throws Exception {
 		final String TEST_NAME = "test203LegacyTestResource";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -252,7 +252,7 @@ public class TestDummyLegacy extends AbstractIntegrationTest {
 	@Test
 	public void test205LegacyParsedSchema() throws Exception {
 		final String TEST_NAME = "test205LegacyParsedSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyLegacy.class.getName() + "." + TEST_NAME);

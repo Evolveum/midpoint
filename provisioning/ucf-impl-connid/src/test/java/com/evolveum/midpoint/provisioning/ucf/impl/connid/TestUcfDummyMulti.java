@@ -70,7 +70,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 	@Test
 	public void test000PrismContextSanity() throws Exception {
 		final String TEST_NAME = "test000PrismContextSanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
 		PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
@@ -86,7 +86,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 	@Test
 	public void test020CreateConfiguredConnector() throws Exception {
 		final String TEST_NAME = "test020CreateConfiguredConnector";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
 				"test connector");
@@ -109,7 +109,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
@@ -139,7 +139,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 	@Test
 	public void test110SearchNonBlocking() throws Exception {
 		final String TEST_NAME = "test100SearchNonBlocking";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -175,7 +175,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 	@Test
 	public void test200BlockingSearch() throws Exception {
 		final String TEST_NAME = "test200BlockingSearch";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		final OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
@@ -244,7 +244,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 	@Test
 	public void test210TwoBlockingSearches() throws Exception {
 		final String TEST_NAME = "test210TwoBlockingSearches";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		

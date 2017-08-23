@@ -98,7 +98,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test010ListConnectors() throws Exception {
 		final String TEST_NAME = "test010ListConnectors";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -136,7 +136,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test020ImportFakeResource() throws Exception {
 		final String TEST_NAME = "test020ImportFakeResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -161,7 +161,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test021TestFakeResource() throws Exception {
 		final String TEST_NAME = "test021TestFakeResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -178,7 +178,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test022ListAccountsFakeResource() throws Exception {
 		final String TEST_NAME = "test022ListAccountsFakeResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -198,7 +198,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test030ImportDummyResource() throws Exception {
 		final String TEST_NAME = "test030ImportDummyResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -223,7 +223,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test031TestDummyResource() throws Exception {
 		final String TEST_NAME = "test031TestDummyResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -240,7 +240,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test032ListAccountsDummyResource() throws Exception {
 		final String TEST_NAME = "test032ListAccountsDummyResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -264,7 +264,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test100UpgradeModelAddDelete() throws Exception {
 		final String TEST_NAME = "test100UpgradeModelAddDelete";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -301,7 +301,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test150DowngradeModelAddDelete() throws Exception {
 		final String TEST_NAME = "test150DowngradeModelAddDelete";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -333,7 +333,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test200UpgradeModelReplace() throws Exception {
 		final String TEST_NAME = "test200UpgradeModelReplace";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -363,7 +363,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test250DowngradeModelReplace() throws Exception {
 		final String TEST_NAME = "test250DowngradeModelReplace";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -392,7 +392,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test300UpgradeRawAddDelete() throws Exception {
 		final String TEST_NAME = "test300UpgradeRawAddDelete";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -427,7 +427,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test350DowngradeRawAddDelete() throws Exception {
 		final String TEST_NAME = "test350DowngradeRawAddDelete";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -461,7 +461,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test400UpgradeRawReplace() throws Exception {
 		final String TEST_NAME = "test400UpgradeRawReplace";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -493,7 +493,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 	@Test
     public void test450DowngradeRawReplace() throws Exception {
 		final String TEST_NAME = "test450DowngradeRawReplace";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

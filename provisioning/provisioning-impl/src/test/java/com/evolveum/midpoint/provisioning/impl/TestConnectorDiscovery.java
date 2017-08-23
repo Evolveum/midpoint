@@ -69,7 +69,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	@Test
 	public void test001Connectors() throws Exception {
 		final String TEST_NAME = "test001Connectors";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 		
@@ -96,7 +96,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 		
 	@Test
 	public void testListConnectors() throws Exception{
-		TestUtil.displayTestTile("testListConnectors");
+		TestUtil.displayTestTitle("testListConnectors");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".listConnectorsTest");
 		
@@ -117,7 +117,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	@Test
 	public void testSearchConnectorSimple() throws SchemaException{
 		final String TEST_NAME = "testSearchConnectorSimple";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ "." + TEST_NAME);
 		
@@ -128,7 +128,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 	
 	@Test
 	public void testSearchConnectorAnd() throws SchemaException{
-		TestUtil.displayTestTile("testSearchConnectorAnd");
+		TestUtil.displayTestTitle("testSearchConnectorAnd");
 		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName()
 				+ ".testSearchConnector");
 

@@ -146,7 +146,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test000Integrity() throws Exception {
 		final String TEST_NAME = "test000Integrity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		display("Dummy resource instance", dummyResourceSchemaless.toString());
 
@@ -179,7 +179,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test003ConnectionSchemaless() throws Exception {
 		final String TEST_NAME = "test003ConnectionSchemaless";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -221,7 +221,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test005ParsedSchemaSchemaless() throws Exception {
 		final String TEST_NAME = "test005ParsedSchemaSchemaless";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
@@ -240,7 +240,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test006GetObjectSchemaless() throws Exception {
 		final String TEST_NAME = "test006GetObjectSchemaless";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
@@ -261,7 +261,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test103ConnectionStaticSchema() throws Exception {
 		final String TEST_NAME = "test103ConnectionStaticSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -302,7 +302,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test105ParsedSchemaStaticSchema() throws Exception {
 		final String TEST_NAME = "test105ParsedSchemaStaticSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
@@ -322,7 +322,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test106GetObjectStaticSchema() throws Exception {
 		final String TEST_NAME = "test106GetObjectStaticSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummySchemaless.class.getName() + "." + TEST_NAME);
 
@@ -343,7 +343,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test107Capabilities() throws Exception {
 		final String TEST_NAME = "test107Capabilities";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
@@ -400,7 +400,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 	@Test
 	public void test200AddAccount() throws Exception {
 		final String TEST_NAME = "test200AddAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 

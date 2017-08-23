@@ -93,7 +93,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
 	@Test
     public void test100AddEntitlementToPirateDirect() throws Exception {
 		final String TEST_NAME = "test100AddEntitlementToPirateDirect";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
@@ -156,7 +156,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
 	@Test
     public void test110AssignEntitlementToPirate() throws Exception {
 		final String TEST_NAME = "test110AssignEntitlementToPirate";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
@@ -186,7 +186,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
 	@Test
     public void test111AssignEntitlementToPirateBroken() throws Exception {
 		final String TEST_NAME = "test110AssignEntitlementToPirate";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);

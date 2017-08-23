@@ -775,7 +775,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaAreplaceB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaAreplaceB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
@@ -805,7 +805,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaNullreplaceB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaNullreplaceB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
@@ -835,7 +835,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaBreplaceB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaBreplaceB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID, 
@@ -865,7 +865,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaAaddB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaAaddB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -880,7 +880,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaABaddB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaABaddB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -895,7 +895,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaBaddB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaBaddB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -910,7 +910,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaNulladdB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaNulladdB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
@@ -924,7 +924,7 @@ public class TestMappingDynamicSysVar {
 
     public PrismValueDeltaSetTriple<PrismPropertyValue<String>> employeeTypeDeltaABAdd(
     		final String TEST_NAME, String addVal, String... oldVals) throws Exception {
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID, 
@@ -958,7 +958,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaBdeleteB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaBdeleteB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	    	
     	// WHEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
@@ -973,7 +973,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaABdeleteB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaABdeleteB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	    	
     	// WHEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
@@ -988,7 +988,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaAdeleteB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaAdeleteB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	    	
     	// WHEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
@@ -1003,7 +1003,7 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testEmployeeTypeDeltaNulldeleteB() throws Exception {
     	final String TEST_NAME = "testEmployeeTypeDeltaNulldeleteB";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	    	    	
     	// WHEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = 
@@ -1016,7 +1016,7 @@ public class TestMappingDynamicSysVar {
     }
 
     public PrismValueDeltaSetTriple<PrismPropertyValue<String>> employeeTypeDeltaDelete(final String TEST_NAME, String delVal, String... oldVals) throws Exception {
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID, 

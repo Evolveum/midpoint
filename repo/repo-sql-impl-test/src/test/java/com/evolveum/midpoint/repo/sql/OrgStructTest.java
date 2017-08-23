@@ -598,7 +598,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @Test
     public void test011OrgFilter() throws Exception {
     	final String TEST_NAME = "test011OrgFilter";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -616,7 +616,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @Test
     public void test100ParentOrgRefFilterNullRelation() throws Exception {
     	final String TEST_NAME = "test100ParentOrgRefFilterNullRelation";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, prismContext)
@@ -633,7 +633,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @Test
     public void test101ParentOrgRefFilterManagerRelation() throws Exception {
     	final String TEST_NAME = "test101ParentOrgRefFilterManagerRelation";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);
@@ -652,7 +652,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @Test
     public void test102ParentOrgRefFilterAnyRelation() throws Exception {
     	final String TEST_NAME = "test102ParentOrgRefFilterAnyRelation";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         PrismReferenceValue refVal = new PrismReferenceValue(ORG_F001_OID);

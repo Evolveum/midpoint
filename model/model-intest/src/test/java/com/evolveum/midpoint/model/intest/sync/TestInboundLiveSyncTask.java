@@ -70,7 +70,7 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
 	@Override
 	public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
 		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);

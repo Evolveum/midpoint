@@ -60,7 +60,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test100AssignRoles() throws Exception {
 		final String TEST_NAME="test100AssignRoles";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -102,7 +102,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test110UnassignRoles() throws Exception {
 		final String TEST_NAME = "test110UnassignRoles";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRaceConditions.class.getName() + "." + TEST_NAME);
