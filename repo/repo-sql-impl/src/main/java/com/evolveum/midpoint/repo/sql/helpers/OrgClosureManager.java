@@ -312,19 +312,19 @@ public class OrgClosureManager {
                             }
                             // perhaps some problem here... let's try another way out
                             try {
-                                Statement stmt = connection.createStatement();
-                                ResultSet rs = stmt.executeQuery("select * from " + CLOSURE_TABLE_NAME);
-                                int cols = rs.getMetaData().getColumnCount();
-                                if (cols > 0) {
-                                    LOGGER.debug("There are {} columns in {} (obtained via resultSet.getMetaData())", cols, CLOSURE_TABLE_NAME);
-                                    if (cols != 3) {
-                                        wrongNumberOfColumns.setValue(true);
+                                try (Statement stmt = connection.createStatement()) {
+                                    try (ResultSet rs = stmt.executeQuery("select * from " + CLOSURE_TABLE_NAME)) {
+                                        int cols = rs.getMetaData().getColumnCount();
+                                        if (cols > 0) {
+                                            LOGGER.debug("There are {} columns in {} (obtained via resultSet.getMetaData())", cols, CLOSURE_TABLE_NAME);
+                                            if (cols != 3) {
+                                                wrongNumberOfColumns.setValue(true);
+                                            }
+                                        } else {
+                                            LOGGER.warn("Couldn't determine the number of columns in {}. In case of problems, please fix your database structure manually using DB scripts in 'config' folder.", CLOSURE_TABLE_NAME);
+                                        }
                                     }
-                                } else {
-                                    LOGGER.warn("Couldn't determine the number of columns in {}. In case of problems, please fix your database structure manually using DB scripts in 'config' folder.", CLOSURE_TABLE_NAME);
                                 }
-                                rs.close();     // don't care about closing them in case of failure
-                                stmt.close();
                             } catch (RuntimeException e) {
                                 LoggingUtils.logException(LOGGER, "Couldn't obtain the number of columns in {}. In case of problems running midPoint, please fix your database structure manually using DB scripts in 'config' folder.", e, CLOSURE_TABLE_NAME);
                             }
@@ -1054,7 +1054,9 @@ public class OrgClosureManager {
             session.doWork(new Work() {
                 @Override
                 public void execute(Connection connection) throws SQLException {
-                    connection.createStatement().execute(createTableSql);
+                    try (Statement statement = connection.createStatement()) {
+                        statement.execute(createTableSql);
+                    }
                 }
             });
             if (LOGGER.isTraceEnabled()) LOGGER.trace("Empty delta table created in {} ms", System.currentTimeMillis() - start);

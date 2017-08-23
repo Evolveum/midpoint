@@ -95,9 +95,9 @@ public class ImportDDL {
                     String queryStr = query.toString();
                     System.out.println("Executing query: " + queryStr);
 
-                    Statement stmt = connection.createStatement();
-                    stmt.execute(queryStr);
-                    stmt.close();
+                    try (Statement stmt = connection.createStatement()) {
+                        stmt.execute(queryStr);
+                    }
                 } catch (SQLException ex) {
                     System.out.println("Exception occurred during SQL statement '" + query.toString()
                             + "' execute, reason: " + ex.getMessage());

@@ -346,8 +346,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             @Override
             public void execute(Connection connection) throws SQLException {
                 //check if table exists
-                try {
-                    Statement s = connection.createStatement();
+                try (Statement s = connection.createStatement()) {
                     s.execute("select id from " + tempTable + " where id = 1");
                     //table already exists
                     return;
@@ -362,8 +361,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 sb.append(" not null)");
                 sb.append(dialect.getCreateTemporaryTablePostfix());
 
-                Statement s = connection.createStatement();
-                s.execute(sb.toString());
+                try (Statement s = connection.createStatement()) {
+                    s.execute(sb.toString());
+                }
             }
         });
     }

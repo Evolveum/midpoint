@@ -67,6 +67,8 @@ import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.FrameworkUtil;
 import org.identityconnectors.framework.impl.api.local.LocalConnectorInfoImpl;
 import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
+import org.jboss.vfs.VFSUtils;
+import org.jboss.vfs.VirtualFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
@@ -504,14 +506,27 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 				// hack to split MANIFEST from name
 				try {
-                                        String upath = u.getPath();
-					URL tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
+					String upath = u.getPath();
+					URL tmp = null;
+					if("vfs".equals(u.getProtocol())) {
+						Object content = u.getContent();
+						if (content != null && content instanceof VirtualFile) {
+							VirtualFile vf = (VirtualFile) content;
+//							tmp = vf.getPhysicalFile().toURI().toURL();
+							URL rootURL = VFSUtils.getRootURL(vf);
+							upath = rootURL.getPath();
+							tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
+						}
+					} else {
+						tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
+					}
+
 					if (isThisBundleCompatible(tmp)) {
 						bundle.add(tmp);
 					} else {
 						LOGGER.warn("Skip loading ICF bundle {} due error occured", tmp);
 					}
-				} catch (MalformedURLException e) {
+				} catch (IOException e) {
 					LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
 					throw new SystemException(e);
 				}

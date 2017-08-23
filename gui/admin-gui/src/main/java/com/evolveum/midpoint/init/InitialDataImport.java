@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jboss.vfs.VirtualFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -277,11 +278,19 @@ public class InitialDataImport {
         	} catch (URISyntaxException ex) {
         		throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
         	} 
-        }
-        
-    	if ("file".equals(resourceType)) {
+        } else if ("file".equals(resourceType)) {
 	        folder = getResource("initial-objects");
-    	}
+    	} else if ("vfs".equals(resourceType)) {
+            try {
+                Object content = path.getContent();
+                if(content != null && content instanceof VirtualFile) {
+                    VirtualFile vf = (VirtualFile) content;
+                    folder = vf.getPhysicalFile();
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
+            }
+        }
     	
         files = folder.listFiles(new FileFilter() {
 

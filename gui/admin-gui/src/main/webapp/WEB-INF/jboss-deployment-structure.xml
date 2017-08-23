@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
+    <deployment>
+        <exclude-subsystems>
+            <!--<subsystem name="jaxrs" />-->
+            <subsystem name="webservices" /> 
+        </exclude-subsystems>
+        <!-- Exclusions allow you to prevent the server from automatically adding some dependencies     -->
+        <exclusions>
+            <!--<module name="org.apache.xerces"></module>-->
+        </exclusions>
+
+        <dependencies>
+            <module name="javax.xml.ws.api" export="true" />
+            <module name="javax.jws.api" export="true" />
+            <module name="org.apache.xerces" export="true" />
+            <system export="true">
+                <paths>
+                    <path name="com/sun/org/apache/xml/internal/utils"/>
+                </paths>
+            </system>
+        </dependencies>
+
+    </deployment>
+</jboss-deployment-structure>
+

@@ -85,6 +85,11 @@
 			<version>2.0.1</version>
 		</dependency>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<!--<version>1.7.12</version>-->
+		</dependency>
+		<dependency>
 			<!-- Some of the the third-party libs are still using JUL. We want them in our logs. -->
 			<groupId>org.slf4j</groupId>
 			<artifactId>jul-to-slf4j</artifactId>

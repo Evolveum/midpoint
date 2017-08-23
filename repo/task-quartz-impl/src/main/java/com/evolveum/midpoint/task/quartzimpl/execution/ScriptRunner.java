@@ -154,47 +154,44 @@ public class ScriptRunner {
                     command.append(line.substring(0, line
                             .lastIndexOf(getDelimiter())));
                     command.append(" ");
-                    Statement statement = conn.createStatement();
+                    try (Statement statement = conn.createStatement()) {
 
-                    LOGGER.debug(command.toString());
+                        LOGGER.debug(command.toString());
 
-                    boolean hasResults = false;
-                    if (stopOnError) {
-                        hasResults = statement.execute(command.toString());
-                    } else {
-                        try {
-                            statement.execute(command.toString());
-                        } catch (SQLException e) {
-                            e.fillInStackTrace();
-                            LOGGER.error("Error executing: " + command, e);
-                        }
-                    }
-
-                    if (autoCommit && !conn.getAutoCommit()) {
-                        conn.commit();
-                    }
-
-                    ResultSet rs = statement.getResultSet();
-                    if (hasResults && rs != null) {
-                        ResultSetMetaData md = rs.getMetaData();
-                        int cols = md.getColumnCount();
-                        for (int i = 0; i < cols; i++) {
-                            String name = md.getColumnLabel(i);
-                            LOGGER.debug(name + "\t");      // if will be used, rewrite
-                        }
-                        while (rs.next()) {
-                            for (int i = 0; i < cols; i++) {
-                                String value = rs.getString(i);
-                                LOGGER.debug(value + "\t");     // if will be used, rewrite
+                        boolean hasResults = false;
+                        if (stopOnError) {
+                            hasResults = statement.execute(command.toString());
+                        } else {
+                            try {
+                                statement.execute(command.toString());
+                            } catch (SQLException e) {
+                                e.fillInStackTrace();
+                                LOGGER.error("Error executing: " + command, e);
                             }
                         }
-                    }
 
-                    command = null;
-                    try {
-                        statement.close();
-                    } catch (Exception e) {
-                        // Ignore to workaround a bug in Jakarta DBCP
+                        if (autoCommit && !conn.getAutoCommit()) {
+                            conn.commit();
+                        }
+
+                        try (ResultSet rs = statement.getResultSet()) {
+                            if (hasResults && rs != null) {
+                                ResultSetMetaData md = rs.getMetaData();
+                                int cols = md.getColumnCount();
+                                for (int i = 0; i < cols; i++) {
+                                    String name = md.getColumnLabel(i);
+                                    LOGGER.debug(name + "\t");      // if will be used, rewrite
+                                }
+                                while (rs.next()) {
+                                    for (int i = 0; i < cols; i++) {
+                                        String value = rs.getString(i);
+                                        LOGGER.debug(value + "\t");     // if will be used, rewrite
+                                    }
+                                }
+                            }
+                        }
+
+                        command = null;
                     }
                     Thread.yield();
                 } else {

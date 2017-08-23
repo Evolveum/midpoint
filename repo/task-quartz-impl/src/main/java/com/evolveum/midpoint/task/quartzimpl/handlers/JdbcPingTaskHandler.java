@@ -128,13 +128,17 @@ public class JdbcPingTaskHandler implements TaskHandler {
 				}
 				try {
 					long queryStart = System.currentTimeMillis();
-					Statement stmt = connection.createStatement();
-					ResultSet rs = stmt.executeQuery(testQuery);
-					int rowCount = 0;
-					while (rs.next()) {
-						rowCount++;
+					ResultSet rs;
+					int rowCount;
+					long queryTime;
+					try (Statement stmt = connection.createStatement()) {
+						rs = stmt.executeQuery(testQuery);
+						rowCount = 0;
+						while (rs.next()) {
+							rowCount++;
+						}
 					}
-					long queryTime = System.currentTimeMillis() - queryStart;
+					queryTime = System.currentTimeMillis() - queryStart;
 					queryStatistics.record((int) queryTime);
 					if (logOnInfoLevel) {
 						LOGGER.info("Test query executed successfully in {} milliseconds, returned {} rows", queryTime, rowCount);
