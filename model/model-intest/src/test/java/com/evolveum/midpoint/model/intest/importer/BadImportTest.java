@@ -74,7 +74,7 @@ public class BadImportTest extends AbstractConfiguredModelIntegrationTest {
 	 */
 	@Test
 	public void test000Integrity() {
-		TestUtil.displayTestTile(this,"test000Integrity");
+		TestUtil.displayTestTitle(this,"test000Integrity");
 		AssertJUnit.assertNotNull(modelService);
 		AssertJUnit.assertNotNull(repositoryService);
 
@@ -82,7 +82,7 @@ public class BadImportTest extends AbstractConfiguredModelIntegrationTest {
 
 	@Test
 	public void test001BadImport() throws FileNotFoundException, SchemaException {
-		TestUtil.displayTestTile(this,"test001BadImport");
+		TestUtil.displayTestTitle(this,"test001BadImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001GoodImport");

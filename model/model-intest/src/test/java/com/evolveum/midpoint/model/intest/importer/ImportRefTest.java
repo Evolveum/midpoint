@@ -77,7 +77,7 @@ public class ImportRefTest extends AbstractConfiguredModelIntegrationTest {
 	 */
 	@Test
 	public void test000Integrity() {
-		TestUtil.displayTestTile(this,"test000Integrity");
+		TestUtil.displayTestTitle(this,"test000Integrity");
 		assertNotNull(modelService);
 		assertNotNull(repositoryService);
 
@@ -86,7 +86,7 @@ public class ImportRefTest extends AbstractConfiguredModelIntegrationTest {
 	@Test
 	public void test010GoodRefImport() throws Exception {
 		final String TEST_NAME = "test010GoodRefImport";
-		TestUtil.displayTestTile(this,TEST_NAME);
+		TestUtil.displayTestTitle(this,TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportRefTest.class.getName() + "." +TEST_NAME);
