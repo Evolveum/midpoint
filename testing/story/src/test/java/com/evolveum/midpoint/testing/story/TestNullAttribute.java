@@ -176,7 +176,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 
 		OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
@@ -193,7 +193,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 	@Test
 	public void test010UserSmackAssignAccountOnlyRole() throws Exception {
 		final String TEST_NAME = "test010UserSmackAssignAccountOnlyRole";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
         // GIVEN
 		Task task = taskManager.createTaskInstance(TestNullAttribute.class.getName() + "." + TEST_NAME);
@@ -239,7 +239,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 	@Test
 	public void test020UserSmackSetAttribute() throws Exception {
 		final String TEST_NAME = "test020UserSmackSetAttribute";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		 // GIVEN
 		Task task = taskManager.createTaskInstance(TestNullAttribute.class.getName() + "." + TEST_NAME);
@@ -294,7 +294,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 	@Test // MID-3325
 	public void test030UserSmackRemoveAttribute() throws Exception {
 		final String TEST_NAME = "test030UserSmackRemoveAttribute";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		 // GIVEN
 		Task task = taskManager.createTaskInstance(TestNullAttribute.class.getName() + "." + TEST_NAME);

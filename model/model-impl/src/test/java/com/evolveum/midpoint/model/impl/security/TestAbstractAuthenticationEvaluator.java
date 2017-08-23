@@ -147,7 +147,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		assertNotNull(getAuthenticationEvaluator());
 		MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
@@ -157,7 +157,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test100PasswordLoginGoodPasswordJack() throws Exception {
 		final String TEST_NAME = "test100PasswordLoginGoodPasswordJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -181,7 +181,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test101PasswordLoginBadPasswordJack() throws Exception {
 		final String TEST_NAME = "test101PasswordLoginBadPasswordJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -216,7 +216,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test102PasswordLoginNullPasswordJack() throws Exception {
 		final String TEST_NAME = "test102PasswordLoginNullPasswordJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -249,7 +249,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test103PasswordLoginEmptyPasswordJack() throws Exception {
 		final String TEST_NAME = "test103PasswordLoginEmptyPasswordJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -281,7 +281,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test105PasswordLoginNullUsernameNullPassword() throws Exception {
 		final String TEST_NAME = "test105PasswordLoginNullUsernameNullPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -309,7 +309,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test106PasswordLoginEmptyUsernameBadPassword() throws Exception {
 		final String TEST_NAME = "test106PasswordLoginEmptyUsernameBadPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -337,7 +337,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test107PasswordLoginBadUsernameBadPassword() throws Exception {
 		final String TEST_NAME = "test107PasswordLoginBadUsernameBadPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -369,7 +369,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test125PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration() throws Exception {
 		final String TEST_NAME = "test125PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		clock.overrideDuration("PT5M");
@@ -407,7 +407,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test130PasswordLoginLockout() throws Exception {
 		final String TEST_NAME = "test130PasswordLoginLockout";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -460,7 +460,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test132PasswordLoginLockedoutGoodPassword() throws Exception {
 		final String TEST_NAME = "test132PasswordLoginLockedoutGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -490,7 +490,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test133PasswordLoginLockedoutBadPassword() throws Exception {
 		final String TEST_NAME = "test133PasswordLoginLockedoutBadPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -523,7 +523,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test135PasswordLoginLockedoutLockExpires() throws Exception {
 		final String TEST_NAME = "test135PasswordLoginLockedoutLockExpires";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		clock.overrideDuration("PT30M");
@@ -550,7 +550,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test136PasswordLoginLockoutAgain() throws Exception {
 		final String TEST_NAME = "test136PasswordLoginLockoutAgain";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -623,7 +623,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test137PasswordLoginLockedoutGoodPasswordAgain() throws Exception {
 		final String TEST_NAME = "test137PasswordLoginLockedoutGoodPasswordAgain";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -653,7 +653,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test138UnlockUserGoodPassword() throws Exception {
 		final String TEST_NAME = "test138UnlockUserGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -698,7 +698,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test139TryToLockByModelService() throws Exception {
 		final String TEST_NAME = "test139TryToLockByModelService";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -729,7 +729,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test150PasswordLoginDisabledGoodPassword() throws Exception {
 		final String TEST_NAME = "test150PasswordLoginDisabledGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -742,7 +742,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test152PasswordLoginEnabledGoodPassword() throws Exception {
 		final String TEST_NAME = "test152PasswordLoginEnabledGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -755,7 +755,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test154PasswordLoginNotValidYetGoodPassword() throws Exception {
 		final String TEST_NAME = "test154PasswordLoginNotValidYetGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -774,7 +774,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test155PasswordLoginValidGoodPassword() throws Exception {
 		final String TEST_NAME = "test155PasswordLoginValidGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		clock.overrideDuration("PT2H");
@@ -788,7 +788,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test156PasswordLoginNotValidAnyLongerGoodPassword() throws Exception {
 		final String TEST_NAME = "test156PasswordLoginNotValidAnyLongerGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		clock.overrideDuration("P2D");
@@ -802,7 +802,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test159PasswordLoginNoLongerValidEnabledGoodPassword() throws Exception {
 		final String TEST_NAME = "test159PasswordLoginNoLongerValidEnabledGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -815,7 +815,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test160PasswordLoginLifecycleActiveGoodPassword() throws Exception {
 		final String TEST_NAME = "test160PasswordLoginLifecycleActiveGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -830,7 +830,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test162PasswordLoginLifecycleDraftGoodPassword() throws Exception {
 		final String TEST_NAME = "test162PasswordLoginLifecycleDraftGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -845,7 +845,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test164PasswordLoginLifecycleDeprecatedGoodPassword() throws Exception {
 		final String TEST_NAME = "test164PasswordLoginLifecycleDeprecatedGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -860,7 +860,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test166PasswordLoginLifecycleProposedGoodPassword() throws Exception {
 		final String TEST_NAME = "test166PasswordLoginLifecycleProposedGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -875,7 +875,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test168PasswordLoginLifecycleArchivedGoodPassword() throws Exception {
 		final String TEST_NAME = "test168PasswordLoginLifecycleArchivedGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -890,7 +890,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test200UserGuybrushSetCredentials() throws Exception {
 		final String TEST_NAME = "test200UserGuybrushSetPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
@@ -918,7 +918,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test201UserGuybrushPasswordLoginGoodPassword() throws Exception {
 		final String TEST_NAME = "test201UserGuybrushPasswordLoginGoodPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -942,7 +942,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test202UserGuybrushPasswordLoginBadPassword() throws Exception {
 		final String TEST_NAME = "test202UserGuybrushPasswordLoginBadPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		ConnectionEnvironment connEnv = createConnectionEnvironment();
@@ -976,7 +976,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test209UserGuybrushPasswordLoginGoodPasswordBeforeExpiration() throws Exception {
 		final String TEST_NAME = "test209UserGuybrushPasswordLoginGoodPasswordBeforeExpiration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		clock.overrideDuration("P29D");
@@ -1002,7 +1002,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 	@Test
 	public void test210UserGuybrushPasswordLoginGoodPasswordExpired() throws Exception {
 		final String TEST_NAME = "test210UserGuybrushPasswordLoginGoodPasswordExpired";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		clock.overrideDuration("P2D");

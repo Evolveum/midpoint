@@ -134,7 +134,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 	@Test
     public void test010AddRole1() throws Exception {
-        TestUtil.displayTestTile(this, "test010UserModifyAddRole");
+        TestUtil.displayTestTitle(this, "test010UserModifyAddRole");
         executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
@@ -189,7 +189,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Test
     public void test020AddAccountRejected() throws Exception {
-        TestUtil.displayTestTile(this, "test020AddAccountRejected");
+        TestUtil.displayTestTitle(this, "test020AddAccountRejected");
 
         enableDisableScenarios(false, true);
 
@@ -289,7 +289,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Test
     public void test030AddAccountApproved() throws Exception {
-        TestUtil.displayTestTile(this, "test030AddAccountApproved");
+        TestUtil.displayTestTitle(this, "test030AddAccountApproved");
 
         enableDisableScenarios(false, true);
 
@@ -348,7 +348,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
     @Test
     public void test000LoadContext() throws Exception {
     	final String TEST_NAME = "test000LoadContext";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();

@@ -78,7 +78,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test100ModifyUserAddAccount() throws Exception {
 		final String TEST_NAME = "test100ModifyUserAddAccount";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
@@ -171,7 +171,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test119ModifyUserDeleteAccount() throws Exception {
 		final String TEST_NAME = "test119ModifyUserDeleteAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
@@ -245,7 +245,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME="test131ModifyUserJackAssignAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);

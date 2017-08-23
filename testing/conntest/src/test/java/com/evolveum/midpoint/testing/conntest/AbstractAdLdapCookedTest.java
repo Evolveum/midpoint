@@ -38,7 +38,7 @@ public abstract class AbstractAdLdapCookedTest extends AbstractAdLdapTest {
 	@Test
     public void test050Capabilities() throws Exception {
 		final String TEST_NAME = "test050Capabilities";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
         display("Native capabilities", nativeCapabilitiesCollection);

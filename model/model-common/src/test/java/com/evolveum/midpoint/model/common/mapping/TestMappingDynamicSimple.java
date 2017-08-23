@@ -652,7 +652,7 @@ public class TestMappingDynamicSimple {
     public void testScriptExtraVariablesJaxb() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptExtraVariablesJaxb";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	Mapping.Builder<PrismPropertyValue<String>,PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
     			TEST_NAME, "employeeType", null);
     	
@@ -695,7 +695,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameReplaceGivenName() throws Exception {
     	final String TEST_NAME = "testScriptFullNameReplaceGivenName";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
 				"mapping-script-fullname.xml",
@@ -714,7 +714,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameDeleteGivenName() throws Exception {
     	final String TEST_NAME = "testScriptFullNameDeleteGivenName";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -742,7 +742,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameDeleteGivenNameFromNull() throws Exception {
     	final String TEST_NAME = "testScriptFullNameDeleteGivenNameFromNull";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID, 
@@ -773,7 +773,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptFullNameDeleteGivenNameFamilyName() throws Exception {
     	final String TEST_NAME = "testScriptFullNameDeleteGivenNameFamilyName";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
@@ -860,7 +860,7 @@ public class TestMappingDynamicSimple {
     public void testScriptRootNodeRef() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptRootNodeRef";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping =
 				evaluator.<PolyString>createMappingBuilder("mapping-script-root-node.xml", TEST_NAME, "locality", null)
 				.rootNode(MiscSchemaUtil.createObjectReference(
@@ -885,7 +885,7 @@ public class TestMappingDynamicSimple {
     public void testScriptRootNodeJaxb() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptRootNodeJaxb";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"));
 
 		Mapping<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping =
@@ -1013,7 +1013,7 @@ public class TestMappingDynamicSimple {
     public void testConditionNonEmptyCaptain() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testConditionNonEmptyCaptain";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -1041,7 +1041,7 @@ public class TestMappingDynamicSimple {
     public void testConditionNonEmptyEmpty() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testConditionNonEmptyEmpty";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -1066,7 +1066,7 @@ public class TestMappingDynamicSimple {
     public void testConditionNonEmptyNoValue() throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testConditionNonEmptyNoValue";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	PrismObject<UserType> user = evaluator.getUserOld();
     	user.asObjectable().getEmployeeType().clear();
@@ -1089,7 +1089,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptTransformMultiAddDelete() throws Exception {
     	final String TEST_NAME = "testScriptTransformMultiAddDelete";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
@@ -1129,7 +1129,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testScriptTransformMultiReplace() throws Exception {
     	final String TEST_NAME = "testScriptTransformMultiReplace";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	ObjectDelta<UserType> delta = ObjectDelta.createEmptyModifyDelta(UserType.class, evaluator.USER_OLD_OID, evaluator.getPrismContext());
@@ -1165,7 +1165,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testInboundMapping() throws Exception{
     	final String TEST_NAME = "testInboundMapping";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(MappingTestEvaluator.TEST_DIR + "/account-inbound-mapping.xml"));
     	Item oldItem = account.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaTestConstants.ICFS_NAME));
@@ -1188,7 +1188,7 @@ public class TestMappingDynamicSimple {
     @Test
     public void testGenerateDefault() throws Exception {
     	final String TEST_NAME = "testGenerateDefault";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	final StringPolicyType stringPolicy = evaluator.getStringPolicy();
     	// GIVEN
@@ -1258,7 +1258,7 @@ public class TestMappingDynamicSimple {
     	
     private void generatePolicy(final String TEST_NAME, String mappingFileName, String policyFileName, String pattern, boolean ignoreMax)
     		throws Exception {
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
@@ -1343,7 +1343,7 @@ public class TestMappingDynamicSimple {
     	
     private <T> void generatePolicyNumeric(final String TEST_NAME, String mappingFileName,
     		String policyFileName, String extensionPropName, Class<T> clazz) throws Exception {
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// This is just for validation. The expression has to resolve reference of its own
     	PrismObject<ValuePolicyType> valuePolicy = PrismTestUtil.parseObject(
@@ -1400,7 +1400,7 @@ public class TestMappingDynamicSimple {
 	@Test
     public void testGenerateProtectedString() throws Exception {
     	final String TEST_NAME = "testGenerateProtectedString";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	// GIVEN
     	Mapping<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> mapping = evaluator.createMapping("mapping-generate.xml", 
     			TEST_NAME, SchemaConstants.PATH_PASSWORD_VALUE, null);

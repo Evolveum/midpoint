@@ -64,7 +64,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test100SearchByMoreAssignees() throws Exception {
 		final String TEST_NAME = "test100SearchByMoreAssignees";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -107,7 +107,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test200TestQueryByTaskVariable() throws Exception {
 		final String TEST_NAME = "test200TestQueryByTaskVariable";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		TaskService taskService = activitiEngine.getTaskService();
@@ -188,7 +188,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test210TestQueryByIdentityLink() throws Exception {
 		final String TEST_NAME = "test210TestQueryByIdentityLink";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		TaskService taskService = activitiEngine.getTaskService();
@@ -282,7 +282,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test300SearchByAssignee() throws Exception {
 		final String TEST_NAME = "test210SearchByAssignee";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);

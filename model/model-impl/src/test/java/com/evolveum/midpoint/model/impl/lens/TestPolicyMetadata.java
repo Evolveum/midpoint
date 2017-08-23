@@ -70,7 +70,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 	@Test
 	public void test100JackAssignRoleJudge() throws Exception {
 		final String TEST_NAME = "test100JackAssignRoleJudge";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
@@ -97,7 +97,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 	@Test
 	public void test110JackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test110JackAssignRolePirate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);
@@ -127,7 +127,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 	@Test
 	public void test120RecomputeJack() throws Exception {
 		final String TEST_NAME = "test120RecomputeJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyMetadata.class.getName() + "." + TEST_NAME);

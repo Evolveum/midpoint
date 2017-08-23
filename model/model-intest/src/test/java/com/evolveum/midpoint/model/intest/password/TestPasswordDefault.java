@@ -74,7 +74,7 @@ public class TestPasswordDefault extends AbstractPasswordTest {
 	@Test
     public void test202ReconcileUserJack() throws Exception {
 		final String TEST_NAME = "test202ReconcileUserJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);

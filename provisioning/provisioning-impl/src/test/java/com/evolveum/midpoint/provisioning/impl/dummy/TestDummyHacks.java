@@ -137,7 +137,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();

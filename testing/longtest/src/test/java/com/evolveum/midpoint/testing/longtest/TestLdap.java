@@ -219,7 +219,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         assertUsers(NUM_INITIAL_USERS);
 	}
@@ -231,7 +231,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Test
     public void test200AssignRolePiratesToBarbossa() throws Exception {
 		final String TEST_NAME = "test200AssignRolePiratesToBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
@@ -259,7 +259,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Test
     public void test202AssignLdapAccountToGuybrush() throws Exception {
 		final String TEST_NAME = "test202AssignLdapAccountToGuybrush";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
@@ -318,7 +318,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Test
     public void test204AssignRolePiratesToGuybrush() throws Exception {
 		final String TEST_NAME = "test204AssignRolePiratesToGuybrush";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
@@ -349,7 +349,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Test
     public void test400RenameLeChuckConflicting() throws Exception {
 		final String TEST_NAME = "test400RenameLeChuckConflicting";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
@@ -387,7 +387,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Test
     public void test800BigLdapSearch() throws Exception {
 		final String TEST_NAME = "test800BigLdapSearch";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         
@@ -432,7 +432,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
 	@Test
     public void test810BigImport() throws Exception {
 		final String TEST_NAME = "test810BigImport";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         
@@ -468,7 +468,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
     @Test
     public void test820BigReconciliation() throws Exception {
         final String TEST_NAME = "test820BigReconciliation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 
@@ -506,7 +506,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
     @Test
     public void test900DeleteShadows() throws Exception {
         final String TEST_NAME = "test900DeleteShadows";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 
@@ -556,7 +556,7 @@ public class TestLdap extends AbstractModelIntegrationTest {
     @Test
     public void test910DeleteAccounts() throws Exception {
         final String TEST_NAME = "test910DeleteAccounts";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);

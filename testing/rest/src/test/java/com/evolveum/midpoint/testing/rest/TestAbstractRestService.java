@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
-import static com.evolveum.midpoint.test.util.TestUtil.displayTestTile;
+import static com.evolveum.midpoint.test.util.TestUtil.displayTestTitle;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -128,7 +128,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test001GetUserAdministrator() {
 		final String TEST_NAME = "test001GetUserAdministrator";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -152,7 +152,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test002GetNonExistingUser() {
 		final String TEST_NAME = "test002GetNonExistingUser";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/12345");
@@ -177,7 +177,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test003GetNoAuthHeaders() {
 		final String TEST_NAME = "test003GetNoAuthHeaders";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(null, null);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -198,7 +198,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test004GetAuthBadUsernameNullPassword() {
 		final String TEST_NAME = "test004GetAuthBadUsernameNullPassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient("NoSUCHuser", null);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -219,7 +219,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test005GetAuthBadUsernameEmptyPassword() {
 		final String TEST_NAME = "test005GetAuthBadUsernameEmptyPassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient("NoSUCHuser", "");
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -240,7 +240,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test006GetAuthBadUsernameBadPassword() {
 		final String TEST_NAME = "test006GetAuthBadUsernameBadPassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient("NoSUCHuser", "NoSuchPassword");
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -261,7 +261,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test007GetAuthNoPassword() {
 		final String TEST_NAME = "test007GetAuthNoPassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, null);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -282,7 +282,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test016GetAuthBadPassword() {
 		final String TEST_NAME = "test016GetAuthBadPassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "forgot");
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -303,7 +303,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test017GetUnauthorizedUser() {
 		final String TEST_NAME = "test017GetUnauthorizedUser";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_NOBODY_USERNAME, USER_NOBODY_PASSWORD);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -324,7 +324,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test018GetUserAdministratorByCyclops() {
 		final String TEST_NAME = "test018GetUserAdministratorByCyclops";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_CYCLOPS_USERNAME, USER_CYCLOPS_PASSWORD);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -345,7 +345,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test019GetUserAdministratorBySomebody() {
 		final String TEST_NAME = "test019GetUserAdministratorBySomebody";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_SOMEBODY_USERNAME, USER_SOMEBODY_PASSWORD);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -371,7 +371,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test102AddUserTemplate() throws Exception {
 		final String TEST_NAME = "test102AddUserTemplate";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/objectTemplates/");
@@ -395,7 +395,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test103AddUserBadTargetCollection() throws Exception {
 		final String TEST_NAME = "test103AddUserBadTargetCollection";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/objectTemplates");
@@ -422,7 +422,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test104AddAccountRawResourceDoesNotExist() throws Exception {
 		final String TEST_NAME = "test104AddAccountRaw";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/shadows");
@@ -463,7 +463,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test120AddRoleAdder() throws Exception {
 		final String TEST_NAME = "test120AddRoleAdder";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/roles");
@@ -486,7 +486,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test121AddUserDarthAdder() throws Exception {
 		final String TEST_NAME = "test121AddUserDarthAdder";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users");
@@ -510,7 +510,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test122AddRoleModifierAsDarthAdder() throws Exception {
 		final String TEST_NAME = "test122AddRoleModifierAsDarthAdder";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
 		client.path("/roles");
@@ -533,7 +533,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test123DarthAdderAssignModifierHimself() throws Exception {
 		final String TEST_NAME = "test123DarthAdderAssignModifierHimself";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
 		client.path("/users/"+USER_DARTHADDER_OID);
@@ -560,7 +560,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test124DarthAdderAssignModifierByAdministrator() throws Exception {
 		final String TEST_NAME = "test124DarthAdderAssignModifierByAdministrator";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/"+USER_DARTHADDER_OID);
@@ -587,7 +587,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test130DarthAdderDisableHimself() throws Exception {
 		final String TEST_NAME = "test130DarthAdderDisableHimself";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
 		client.path("/users/"+USER_DARTHADDER_OID);
@@ -614,7 +614,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test131GetUserAdministratorByDarthAdder() {
 		final String TEST_NAME = "test131GetUserAdministratorByDarthAdder";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -636,7 +636,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test132DarthAdderEnableByAdministrator() throws Exception {
 		final String TEST_NAME = "test132DarthAdderEnableByAdministrator";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/"+USER_DARTHADDER_OID);
@@ -663,7 +663,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test133GetUserAdministratorByDarthAdder() {
 		final String TEST_NAME = "test133GetUserAdministratorByDarthAdder";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -687,7 +687,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test135AddUserNopasswordAsDarthAdder() throws Exception {
 		final String TEST_NAME = "test135AddUserNopasswordAsDarthAdder";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
 		client.path("/users");
@@ -710,7 +710,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test140GetUserAdministratorByNopassword() {
 		final String TEST_NAME = "test140GetUserAdministratorByNopassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, null);
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -732,7 +732,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test141GetUserAdministratorByNopasswordBadPassword() {
 		final String TEST_NAME = "test140GetUserAdministratorByNopassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, "bad");
 		client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
@@ -754,7 +754,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test200searchAllUsers() {
 		final String TEST_NAME = "test200searchAllUsers";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 		
 		WebClient client = prepareClient();
 		client.path("/users/search");
@@ -779,7 +779,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test401AddUserTemplateOverwrite() throws Exception {
 		final String TEST_NAME = "test401AddUserTemplateOverwrite";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/objectTemplates");
@@ -811,7 +811,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test501generateValue() throws Exception {
 		final String TEST_NAME = "test501generateValue";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
@@ -837,7 +837,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test502generateValueBadPath() throws Exception {
 		final String TEST_NAME = "test502generateValueBadPath";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
@@ -861,7 +861,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test503generateValueExecute() throws Exception {
 		final String TEST_NAME = "test503generateValueExecute";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
@@ -889,7 +889,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test504checkGeneratedValue() throws Exception {
 		final String TEST_NAME = "test503generateValueExecute";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID );
@@ -912,7 +912,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test505generatePasswordExecute() throws Exception {
 		final String TEST_NAME = "test505generatePasswordExecute";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
@@ -940,7 +940,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test506generateHonorificPrefixNameExecute() throws Exception {
 		final String TEST_NAME = "test506generateHonorificPrefixNameExecute";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/generate");
@@ -980,7 +980,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test510validateValueExplicit() throws Exception {
 		final String TEST_NAME = "test510validateValueExplicit";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
@@ -1005,7 +1005,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test511validateValueExplicitConflict() throws Exception {
 		final String TEST_NAME = "test511validateValueExplicitConflict";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
@@ -1032,7 +1032,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test512validateValueImplicitSingle() throws Exception {
 		final String TEST_NAME = "test512validateValueImplicitSingle";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
@@ -1058,7 +1058,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test513validateValueImplicitMulti() throws Exception {
 		final String TEST_NAME = "test513validateValueImplicitMulti";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
@@ -1083,7 +1083,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test514validateValueImplicitMultiConflict() throws Exception {
 		final String TEST_NAME = "test514validateValueImplicitMultiConflict";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
@@ -1109,7 +1109,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test515validateValueImplicitPassword() throws Exception {
 		final String TEST_NAME = "test515validateValueImplicitPassword";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID + "/validate");
@@ -1135,7 +1135,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test600modifySecurityQuestionAnswer() throws Exception {
 		final String TEST_NAME = "test600modifySecurityQuestionAnswer";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID);
@@ -1183,7 +1183,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer{
 	@Test
 	public void test601modifyPasswordForceChange() throws Exception {
 		final String TEST_NAME = "test601modifyPasswordForceChange";
-		displayTestTile(this, TEST_NAME);
+		displayTestTitle(this, TEST_NAME);
 
 		WebClient client = prepareClient();
 		client.path("/users/" + USER_DARTHADDER_OID);

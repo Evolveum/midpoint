@@ -108,7 +108,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -191,7 +191,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	@Test
 	public void test123ModifyObjectReplace() throws Exception {
 		final String TEST_NAME = "test123ModifyObjectReplace";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
 				+ "." + TEST_NAME);
@@ -280,7 +280,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	@Test
 	public void test150ModifyObjectAddDelete() throws Exception {
 		final String TEST_NAME = "test150ModifyObjectAddDelete";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
 				+ "." + TEST_NAME);

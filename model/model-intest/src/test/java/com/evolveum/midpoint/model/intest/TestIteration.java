@@ -266,7 +266,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100JackAssignAccountDummyConflicting() throws Exception {
 		final String TEST_NAME = "test100JackAssignAccountDummyConflicting";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -324,7 +324,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200JackAssignAccountDummyPinkConflicting() throws Exception {
 		final String TEST_NAME = "test200JackAssignAccountDummyPinkConflicting";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -412,7 +412,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210GuybrushAssignAccountDummyPink() throws Exception {
 		final String TEST_NAME = "test210GuybrushAssignAccountDummyPink";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -468,7 +468,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220DeWattAssignAccountDummyPinkCaseIgnore() throws Exception {
 		final String TEST_NAME = "test220DeWattAssignAccountDummyPinkCaseIgnore";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -537,7 +537,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test230ScroogeAddAccountDummyConflictingNoShadow() throws Exception {
 		final String TEST_NAME = "test230ScroogeAddAccountDummyConflictingNoShadow";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -591,7 +591,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test235HackerAddAccountDummyEternalConflict() throws Exception {
 		final String TEST_NAME = "test235HackerAddAccountDummyEternalConflict";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -635,7 +635,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test240LargoAssignAccountDummyConflictingNoShadow() throws Exception {
 		final String TEST_NAME = "test240LargoAssignAccountDummyConflictingNoShadow";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -705,7 +705,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test260JupiterConflictNoShadowSyncBack() throws Exception {
 		final String TEST_NAME = "test260JupiterConflictNoShadowSyncBack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -768,7 +768,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	}
 
 	protected void cleanUpJupiter(String TEST_NAME) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaViolationException, ConflictException {
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -811,7 +811,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test264JupiterConflictNoShadowSyncBackSeparate() throws Exception {
 		final String TEST_NAME = "test264JupiterConflictNoShadowSyncBackSeparate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -879,7 +879,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test270JupiterConflictOtherNoShadowSyncBack() throws Exception {
 		final String TEST_NAME = "test270JupiterConflictOtherNoShadowSyncBack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -963,7 +963,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test280RenameBobNoShadow() throws Exception {
 		final String TEST_NAME = "test280RenameBobNoShadow";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1024,7 +1024,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test282RenamePeterNoShadowSync() throws Exception {
 		final String TEST_NAME = "test282RenamePeterNoShadowSync";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1101,7 +1101,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test290AlfredConflictNoShadowSyncBackAdd() throws Exception {
 		final String TEST_NAME = "test290AlfredConflictNoShadowSyncBackAdd";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1150,7 +1150,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300JackAssignAccountDummyVioletConflicting() throws Exception {
 		final String TEST_NAME = "test300JackAssignAccountDummyVioletConflicting";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1217,7 +1217,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test350GuybrushAssignAccountDummyViolet() throws Exception {
 		final String TEST_NAME = "test350GuybrushAssignAccountDummyViolet";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1274,7 +1274,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test360HermanAssignAccountDummyViolet() throws Exception {
 		final String TEST_NAME = "test360HermanAssignAccountDummyViolet";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1334,7 +1334,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400RenameAngelicaConflicting() throws Exception {
 		final String TEST_NAME = "test400RenameAngelicaConflicting";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1368,7 +1368,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test500JackAssignAccountDummyMagenta() throws Exception {
 		final String TEST_NAME = "test500JackAssignAccountDummyMagenta";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1437,7 +1437,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test510DrakeAssignAccountDummyMagenta() throws Exception {
 		final String TEST_NAME = "test510DrakeAssignAccountDummyMagenta";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1517,7 +1517,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test520DrakeModifyLocality() throws Exception {
 		final String TEST_NAME = "test520DrakeModifyLocality";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1582,7 +1582,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test530GuybrushAssignAccountDummyMagenta() throws Exception {
 		final String TEST_NAME = "test530GuybrushAssignAccountDummyMagenta";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1649,7 +1649,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test532GuybrushModifyDescription() throws Exception {
 		final String TEST_NAME = "test532GuybrushModifyDescription";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1713,7 +1713,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test600JackRename() throws Exception {
 		final String TEST_NAME = "test600JackRename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1775,7 +1775,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test700DarkVioletSyncTask() throws Exception {
 		final String TEST_NAME = "test700DarkVioletSyncTask";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE);
@@ -1790,7 +1790,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test710DarkVioletAddLeChuck() throws Exception {
 		final String TEST_NAME = "test710DarkVioletAddLeChuck";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1820,7 +1820,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test712DarkVioletAddCharles() throws Exception {
 		final String TEST_NAME = "test712DarkVioletAddCharles";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1851,7 +1851,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test714DarkVioletAddShinetop() throws Exception {
 		final String TEST_NAME = "test714DarkVioletAddShinetop";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1881,7 +1881,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test716DarkVioletDeleteCharles() throws Exception {
 		final String TEST_NAME = "test716DarkVioletDeleteCharles";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1905,7 +1905,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test720DarkVioletModifyShinetopLocation() throws Exception {
 		final String TEST_NAME = "test720DarkVioletModifyShinetopLocation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1932,7 +1932,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test722DarkVioletModifyShinetopFullName() throws Exception {
 		final String TEST_NAME = "test722DarkVioletModifyShinetopFullName";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1964,7 +1964,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test730DarkVioletAddBarbossa() throws Exception {
 		final String TEST_NAME = "test730DarkVioletAddBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -1997,7 +1997,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test732DarkVioletAddBarbossa() throws Exception {
 		final String TEST_NAME = "test732DarkVioletAddBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2025,7 +2025,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test750DarkVioletAddMatusalem() throws Exception {
 		final String TEST_NAME = "test750DarkVioletAddMatusalem";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2059,7 +2059,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test752DarkVioletAddDiplomatico() throws Exception {
 		final String TEST_NAME = "test752DarkVioletAddDiplomatico";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2094,7 +2094,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test754DarkVioletAddMilionario() throws Exception {
 		final String TEST_NAME = "test754DarkVioletAddMilionario";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2126,7 +2126,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test756DarkVioletDeleteDiplomatico() throws Exception {
 		final String TEST_NAME = "test756DarkVioletDeleteDiplomatico";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2150,7 +2150,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test760DarkVioletModifyMillonarioLocation() throws Exception {
 		final String TEST_NAME = "test760DarkVioletModifyMillonarioLocation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2180,7 +2180,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test762DarkVioletModifyMillonarioFullName() throws Exception {
 		final String TEST_NAME = "test762DarkVioletModifyMillonarioFullName";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2211,7 +2211,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test764DarkVioletModifyMatusalemFullName() throws Exception {
 		final String TEST_NAME = "test764DarkVioletModifyMatusalemFullName";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2245,7 +2245,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test800UniqeEmailAddUserAlfredoFettucini() throws Exception {
 		final String TEST_NAME = "test800UniqeEmailAddUserAlfredoFettucini";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
@@ -2283,7 +2283,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test802UniqeEmailAddUserBillFettucini() throws Exception {
 		final String TEST_NAME = "test802UniqeEmailAddUserBillFettucini";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);

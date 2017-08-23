@@ -158,7 +158,7 @@ public class TestLdapComplex extends AbstractModelIntegrationTest {
 	@Test
     public void test100BigImport() throws Exception {
 		final String TEST_NAME = "test100BigImport";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         
@@ -201,7 +201,7 @@ public class TestLdapComplex extends AbstractModelIntegrationTest {
     @Test(enabled = false)
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 

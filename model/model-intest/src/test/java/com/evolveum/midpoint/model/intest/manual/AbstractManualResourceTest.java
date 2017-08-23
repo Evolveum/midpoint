@@ -280,7 +280,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
@@ -308,7 +308,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -361,7 +361,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test004Configuration() throws Exception {
 		final String TEST_NAME = "test004Configuration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
 				+ "." + TEST_NAME);
@@ -386,7 +386,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test005ParsedSchema() throws Exception {
 		final String TEST_NAME = "test005ParsedSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
@@ -436,7 +436,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test006Capabilities() throws Exception {
 		final String TEST_NAME = "test006Capabilities";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()+"."+TEST_NAME);
@@ -478,7 +478,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test102GetAccountWillFuture() throws Exception {
 		final String TEST_NAME = "test102GetAccountWillFuture";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -510,7 +510,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test104RecomputeWill() throws Exception {
 		final String TEST_NAME = "test104RecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -556,7 +556,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test106AddToBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test106AddToBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -596,7 +596,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test108GetAccountWillFuture() throws Exception {
 		final String TEST_NAME = "test108GetAccountWillFuture";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -640,7 +640,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test110CloseCaseAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test110CloseCaseAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -669,7 +669,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test120RecomputeWillAfter5min() throws Exception {
 		final String TEST_NAME = "test120RecomputeWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -708,7 +708,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test130RecomputeWillAfter25min() throws Exception {
 		final String TEST_NAME = "test130RecomputeWillAfter25min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -737,7 +737,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test200ModifyUserWillFullname() throws Exception {
 		final String TEST_NAME = "test200ModifyUserWillFullname";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -805,7 +805,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test202RecomputeWill() throws Exception {
 		final String TEST_NAME = "test202RecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -863,7 +863,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test204CloseCaseAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test204CloseCaseAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -936,7 +936,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test210RecomputeWillAfter5min() throws Exception {
 		final String TEST_NAME = "test210RecomputeWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -994,7 +994,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test212UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test212UpdateBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1051,7 +1051,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test220ModifyUserWillDisable() throws Exception {
 		final String TEST_NAME = "test220ModifyUserWillDisable";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1125,7 +1125,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
 		final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1210,7 +1210,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test240CloseDisableCaseAndReadAccountWill() throws Exception {
 		final String TEST_NAME = "test240CloseDisableCaseAndReadAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1297,7 +1297,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test250RecomputeWillAfter5min() throws Exception {
 		final String TEST_NAME = "test250RecomputeWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1381,7 +1381,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test252UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test252UpdateBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1438,7 +1438,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test260ClosePasswordChangeCaseAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test260ClosePasswordChangeCaseAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1528,7 +1528,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test270RecomputeWillAfter10min() throws Exception {
 		final String TEST_NAME = "test130RefreshAccountWillAfter10min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1614,7 +1614,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1670,7 +1670,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test280RecomputeWillAfter5min() throws Exception {
 		final String TEST_NAME = "test280RecomputeWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1752,7 +1752,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test290RecomputeWillAfter5min() throws Exception {
 		final String TEST_NAME = "test290RecomputeWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1811,7 +1811,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test300UnassignAccountWill() throws Exception {
 		final String TEST_NAME = "test300UnassignAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1883,7 +1883,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test302RecomputeWill() throws Exception {
 		final String TEST_NAME = "test302RecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -1951,7 +1951,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test310CloseCaseAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test310CloseCaseAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2015,7 +2015,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test320RecomputeWillAfter5min() throws Exception {
 		final String TEST_NAME = "test320RecomputeWillAfter5min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2066,7 +2066,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test330UpdateBackingStoreAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test330UpdateBackingStoreAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2122,7 +2122,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test340RecomputeWillAfter25min() throws Exception {
 		final String TEST_NAME = "test340RecomputeWillAfter25min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2159,7 +2159,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test349CleanUp() throws Exception {
 		final String TEST_NAME = "test349CleanUp";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
 	}
@@ -2185,7 +2185,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test510UnassignWillRoleOne() throws Exception {
 		final String TEST_NAME = "test510UnassignWillRoleOne";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2261,7 +2261,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test512ReconcileWill() throws Exception {
 		final String TEST_NAME = "test512ReconcileWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2351,7 +2351,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test515CloseCasesAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test515CloseCasesAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2418,7 +2418,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test517RecomputeWillAfter35min() throws Exception {
 		final String TEST_NAME = "test517RecomputeWillAfter35min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2452,7 +2452,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test519CleanUp() throws Exception {
 		final String TEST_NAME = "test519CleanUp";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -2483,7 +2483,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test522AssignWillRoleTwoValidFrom() throws Exception {
 		final String TEST_NAME = "test522AssignWillRoleTwoValidFrom";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2518,7 +2518,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test524TwoHoursForRoleTwo() throws Exception {
 		final String TEST_NAME = "test524TwoHoursForRoleTwo";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		
 		clockForward("PT2H5M");
@@ -2583,7 +2583,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test525CloseCasesAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test515CloseCasesAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2621,7 +2621,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test526UnassignWillBothRoles() throws Exception {
 		final String TEST_NAME = "test526UnassignWillBothRoles";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2681,7 +2681,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test528CloseCaseAndRecomputeWill() throws Exception {
 		final String TEST_NAME = "test528CloseCaseAndRecomputeWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2741,7 +2741,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test529CleanUp() throws Exception {
 		final String TEST_NAME = "test529CleanUp";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -2764,7 +2764,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test800ImportShadowRefreshTask() throws Exception {
 		final String TEST_NAME = "test800ImportShadowRefreshTask";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		
 		// WHEN
@@ -2799,7 +2799,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test820AssignAccountJack() throws Exception {
 		final String TEST_NAME = "test820AssignAccountJack";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2835,7 +2835,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test830CloseCaseAndWaitForRefresh() throws Exception {
 		final String TEST_NAME = "test830CloseCaseAndWaitForRefresh";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2863,7 +2863,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test840AddToBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test840AddToBackingStoreAndGetAccountWill";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2907,7 +2907,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	@Test
 	public void test900ConcurrentConstructions() throws Exception {
 		final String TEST_NAME = "test900ConcurrentConstructions";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -2973,7 +2973,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 	
 	private void assignWillRoleOne(final String TEST_NAME, String expectedFullName) throws Exception {
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();

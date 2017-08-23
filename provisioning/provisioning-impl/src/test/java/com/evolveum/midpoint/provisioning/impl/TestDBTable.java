@@ -126,7 +126,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		TestUtil.displayTestTile("test000Integrity");
+		TestUtil.displayTestTitle("test000Integrity");
 		
 		OperationResult result = new OperationResult(TestDBTable.class.getName()+".test000Integrity");
 		
@@ -140,7 +140,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	@Test
 	public void test001Connection() throws Exception {
 		final String TEST_NAME = "test001Connection";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
@@ -165,7 +165,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	@Test
 	public void test002AddAccount() throws Exception {
 		final String TEST_NAME = "test002AddAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDBTable.class.getName()
 				+ "." + TEST_NAME);
@@ -215,7 +215,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 	@Test(enabled=false)
 	public void test005GetAccount() throws Exception {
 		final String TEST_NAME = "test005GetAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDBTable.class.getName()
 				+ "." + TEST_NAME);

@@ -119,7 +119,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ModifyUserAssignAccountDummyBlue() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackAssignAccountDummyBlue";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -176,7 +176,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test101ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test101ModifyUserFullName";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -216,7 +216,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test102ModifyUserFullNameRecon() throws Exception {
 		final String TEST_NAME = "test102ModifyUserFullNameRecon";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -259,7 +259,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test104ModifyUserOrganizationalUnit() throws Exception {
 		final String TEST_NAME = "test104ModifyUserOrganizationalUnit";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -293,7 +293,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test105ModifyAccountShip() throws Exception {
 		final String TEST_NAME = "test105ModifyAccountShip";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -338,7 +338,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test106ModifyAccountShipReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test106ModifyAccountShipReplaceEmpty";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -379,7 +379,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test107ModifyAccountShipAgain() throws Exception {
 		final String TEST_NAME = "test107ModifyAccountShipAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -424,7 +424,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test108ModifyAccountShipDelete() throws Exception {
 		final String TEST_NAME = "test108ModifyAccountShipDelete";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -465,7 +465,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test109ModifyUserUnassignAccountBlue() throws Exception {
 		final String TEST_NAME = "test109ModifyUserUnassignAccountBlue";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -510,7 +510,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test120ModifyUserAssignAccountDummyRed() throws Exception {
 		final String TEST_NAME = "test120ModifyUserAssignAccountDummyRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -563,7 +563,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test121ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test121ModifyUserFullName";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -597,7 +597,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test122ModifyUserOrganizationalUnit() throws Exception {
 		final String TEST_NAME = "test122ModifyUserOrganizationalUnit";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -631,7 +631,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test123ModifyAccountShip() throws Exception {
 		final String TEST_NAME = "test123ModifyAccountShip";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -684,7 +684,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test124ModifyAccountShipReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test124ModifyAccountShipReplaceEmpty";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -725,7 +725,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test126ModifyAccountShipDelete() throws Exception {
 		final String TEST_NAME = "test126ModifyAccountShipDelete";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -778,7 +778,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test128ModifyUserOrganization() throws Exception {
 		final String TEST_NAME = "test128ModifyUserOrganization";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -815,7 +815,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test138ModifyUserUnassignAccountRed() throws Exception {
 		final String TEST_NAME = "test138ModifyUserUnassignAccountRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -874,7 +874,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test139DeleteAccountRed() throws Exception {
 		final String TEST_NAME = "test139DeleteAccountRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -920,7 +920,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test140ModifyUserAssignAccountDummyDefault() throws Exception {
 		final String TEST_NAME = "test140ModifyUserAssignAccountDummyDefault";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -973,7 +973,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test141ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test141ModifyUserFullName";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1010,7 +1010,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test142ModifyUserLocality() throws Exception {
 		final String TEST_NAME = "test142ModifyUserLocality";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1044,7 +1044,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test143ModifyAccountLocation() throws Exception {
 		final String TEST_NAME = "test143ModifyAccountLocation";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1097,7 +1097,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test144ModifyAccountLocationReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test144ModifyAccountLocationReplaceEmpty";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1138,7 +1138,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test145ModifyAccountLocationDelete() throws Exception {
 		final String TEST_NAME = "test145ModifyAccountLocationDelete";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1186,7 +1186,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test148ModifyUserRename() throws Exception {
 		final String TEST_NAME = "test148ModifyUserRename";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1221,7 +1221,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test149ModifyUserUnassignAccountDummy() throws Exception {
 		final String TEST_NAME = "test149ModifyUserUnassignAccountDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1320,7 +1320,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ModifyUserAssignAccountDummyCrimson() throws Exception {
 		final String TEST_NAME = "test200ModifyUserAssignAccountDummyCrimson";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1354,7 +1354,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test202NativeModifyDummyCrimsonThenReconcile() throws Exception {
 		final String TEST_NAME = "test202NativeModifyDummyCrimsonThenReconcile";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1398,7 +1398,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test204DummyCrimsonReconcile() throws Exception {
 		final String TEST_NAME = "test204DummyCrimsonReconcile";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1444,7 +1444,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test206DummyCrimsonReconcileIOError() throws Exception {
 		final String TEST_NAME = "test206DummyCrimsonReconcileIOError";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1496,7 +1496,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test208DummyCrimsonReconcileAgain() throws Exception {
 		final String TEST_NAME = "test208DummyCrimsonReconcileAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1542,7 +1542,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210ModifyUserLocality() throws Exception {
 		final String TEST_NAME = "test210ModifyUserLocality";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1588,7 +1588,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test212ModifyUserLocalityRecon() throws Exception {
 		final String TEST_NAME = "test212ModifyUserLocalityRecon";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1638,7 +1638,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test214ModifyUserLocalityIOError() throws Exception {
 		final String TEST_NAME = "test214ModifyUserLocalityIOError";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1691,7 +1691,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220NativeModifyDummyCrimsonThenChangePassword() throws Exception {
 		final String TEST_NAME = "test220NativeModifyDummyCrimsonThenChangePassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1745,7 +1745,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test229ModifyUserUnassignAccountDummyCrimson() throws Exception {
 		final String TEST_NAME = "test229ModifyUserUnassignAccountDummyCrimson";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1774,7 +1774,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test250ModifyUserAssignAccountDummyLightCrimson() throws Exception {
 		final String TEST_NAME = "test250ModifyUserAssignAccountDummyLightCrimson";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1814,7 +1814,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test252NativeModifyDummyLightCrimsonThenReconcile() throws Exception {
 		final String TEST_NAME = "test252NativeModifyDummyLightCrimsonThenReconcile";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1858,7 +1858,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test254DummyLightCrimsonReconcile() throws Exception {
 		final String TEST_NAME = "test254DummyLightCrimsonReconcile";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1905,7 +1905,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test256DummyLightCrimsonReconcileIOError() throws Exception {
 		final String TEST_NAME = "test256DummyLightCrimsonReconcileIOError";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1957,7 +1957,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test258DummyLightCrimsonReconcileAgain() throws Exception {
 		final String TEST_NAME = "test258DummyLightCrimsonReconcileAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2003,7 +2003,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test260ModifyUserLocality() throws Exception {
 		final String TEST_NAME = "test260ModifyUserLocality";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2049,7 +2049,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test262ModifyUserLocalityRecon() throws Exception {
 		final String TEST_NAME = "test262ModifyUserLocalityRecon";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2099,7 +2099,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test264ModifyUserLocalityIOError() throws Exception {
 		final String TEST_NAME = "test264ModifyUserLocalityIOError";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2152,7 +2152,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test270NativeModifyDummyLightCrimsonThenChangePassword() throws Exception {
 		final String TEST_NAME = "test270NativeModifyDummyLightCrimsonThenChangePassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2206,7 +2206,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test279ModifyUserUnassignAccountDummyLightCrimson() throws Exception {
 		final String TEST_NAME = "test279ModifyUserUnassignAccountDummyLightCrimson";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2239,7 +2239,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300AssignGuybrushDummyYellow() throws Exception {
 		final String TEST_NAME = "test300AssignGuybrushDummyYellow";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2277,7 +2277,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test309UnassignGuybrushDummyYellow() throws Exception {
 		final String TEST_NAME = "test309UnassignGuybrushDummyYellow";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

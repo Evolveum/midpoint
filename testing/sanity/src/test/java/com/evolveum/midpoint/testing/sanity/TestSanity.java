@@ -411,7 +411,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test000Integrity() throws Exception {
     	final String TEST_NAME = "test000Integrity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
@@ -454,7 +454,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test001SelfTests() throws Exception {
     	final String TEST_NAME = "test001SelfTests";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSanity.class.getName()+"."+TEST_NAME);
@@ -484,7 +484,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test001TestConnectionOpenDJ() throws Exception {
     	final String TEST_NAME = "test001TestConnectionOpenDJ";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
         try{
@@ -660,7 +660,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 	@Test
     public void test002AddDerbyResource() throws Exception {
 		final String TEST_NAME = "test002AddDerbyResource";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         
         // GIVEN
         OperationResult result = new OperationResult(TestSanity.class.getName() + "." + TEST_NAME);
@@ -768,7 +768,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test003TestConnectionDerby() throws Exception {
-        TestUtil.displayTestTile("test003TestConnectionDerby");
+        TestUtil.displayTestTitle("test003TestConnectionDerby");
 
         // GIVEN
 
@@ -817,7 +817,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test004Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException,
             FaultMessage {
-        TestUtil.displayTestTile("test004Capabilities");
+        TestUtil.displayTestTitle("test004Capabilities");
 
         // GIVEN
         
@@ -877,7 +877,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test005resolveConnectorRef() throws Exception{
     	
-    	TestUtil.displayTestTile("test005resolveConnectorRef");
+    	TestUtil.displayTestTitle("test005resolveConnectorRef");
     	
     	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
 
@@ -899,7 +899,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test006reimportResourceDummy() throws Exception{
     	
-    	TestUtil.displayTestTile("test006reimportResourceDummy");
+    	TestUtil.displayTestTitle("test006reimportResourceDummy");
     	
     	//get object from repo (with version set and try to add it - it should be re-added, without error)
     	 OperationResult repoResult = new OperationResult("getObject");
@@ -955,7 +955,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test010AddUser() throws Exception {
     	final String TEST_NAME = "test010AddUser";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
         checkRepoOpenDjResource();
@@ -1007,7 +1007,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test013AddOpenDjAccountToUser() throws Exception {
     	final String TEST_NAME = "test013AddOpenDjAccountToUser";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         try{
         // GIVEN
         checkRepoOpenDjResource();
@@ -1145,7 +1145,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test014AddDerbyAccountToUser() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTile("test014AddDerbyAccountToUser");
+        TestUtil.displayTestTitle("test014AddDerbyAccountToUser");
 
         // GIVEN
 
@@ -1255,7 +1255,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test015AccountOwner() throws FaultMessage, ObjectNotFoundException, SchemaException, JAXBException {
-        TestUtil.displayTestTile("test015AccountOwner");
+        TestUtil.displayTestTitle("test015AccountOwner");
 
         // GIVEN
         checkRepoOpenDjResource();
@@ -1281,7 +1281,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test016ProvisioningSearchAccountsIterative() throws Exception {
-        TestUtil.displayTestTile("test016ProvisioningSearchAccountsIterative");
+        TestUtil.displayTestTitle("test016ProvisioningSearchAccountsIterative");
 
         // GIVEN
         OperationResult result = new OperationResult(TestSanity.class.getName() + ".test016ProvisioningSearchAccountsIterative");
@@ -1344,7 +1344,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test020ModifyUser() throws Exception {
     	final String TEST_NAME = "test020ModifyUser";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         assertNoRepoCache();
@@ -1442,7 +1442,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test022ChangeUserPassword() throws Exception {
     	final String TEST_NAME = "test022ChangeUserPassword";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -1464,7 +1464,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test023ChangeUserPasswordJAXB() throws Exception {
     	final String TEST_NAME = "test023ChangeUserPasswordJAXB";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         
         // GIVEN
         final String NEW_PASSWORD = "abandonSHIP";
@@ -1557,7 +1557,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     public void testModifyAccountDjRoomNumber(final String TEST_NAME, File reqFile, String expectedVal) throws Exception {
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         assertNoRepoCache();
 
@@ -1594,7 +1594,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test029ModifyAccountDjBadPath() throws Exception {
     	final String TEST_NAME = "test029ModifyAccountDjBadPath";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         assertNoRepoCache();
 
@@ -1643,7 +1643,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test030DisableUser() throws Exception {
     	final String TEST_NAME = "test030DisableUser";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -1756,7 +1756,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test031EnableUser() throws Exception {
     	final String TEST_NAME = "test031EnableUser";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         ObjectDeltaType objectChange = unmarshallValueFromFile(
@@ -1859,7 +1859,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test040UnlinkDerbyAccountFromUser() throws FileNotFoundException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTile("test040UnlinkDerbyAccountFromUser");
+        TestUtil.displayTestTitle("test040UnlinkDerbyAccountFromUser");
 
         // GIVEN
 
@@ -1910,7 +1910,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test041DeleteDerbyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
-        TestUtil.displayTestTile("test041DeleteDerbyAccount");
+        TestUtil.displayTestTitle("test041DeleteDerbyAccount");
 
         // GIVEN
 
@@ -1960,7 +1960,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test047RenameUser() throws Exception {
     	final String TEST_NAME = "test047RenameUser";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         assertNoRepoCache();
@@ -2025,7 +2025,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test048ModifyUserRemoveGivenName() throws Exception {
     	final String TEST_NAME = "test048ModifyUserRemoveGivenName";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         
         // GIVEN
         assertNoRepoCache();
@@ -2086,7 +2086,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      */
     @Test
     public void test049DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
-        TestUtil.displayTestTile("test049DeleteUser");
+        TestUtil.displayTestTitle("test049DeleteUser");
         // GIVEN
 
         assertNoRepoCache();
@@ -2131,7 +2131,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test100AssignRolePirate() throws Exception {
     	final String TEST_NAME = "test100AssignRolePirate";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2227,7 +2227,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test101AccountOwnerAfterRole() throws Exception {
     	final String TEST_NAME = "test101AccountOwnerAfterRole";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2254,7 +2254,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test102AssignRoleCaptain() throws Exception {
     	final String TEST_NAME = "test102AssignRoleCaptain";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2336,7 +2336,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test103AssignRoleCaptainAgain() throws Exception {
     	final String TEST_NAME = "test103AssignRoleCaptainAgain";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2415,7 +2415,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test105ModifyAccount() throws Exception {
     	final String TEST_NAME = "test105ModifyAccount";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2500,7 +2500,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test104AssignRoleJudge() throws Exception {
     	final String TEST_NAME = "test104AssignRoleJudge";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2545,7 +2545,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test107UnassignRolePirate() throws Exception {
     	final String TEST_NAME = "test107UnassignRolePirate";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2628,7 +2628,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test108UnassignRoleCaptain() throws Exception {
     	final String TEST_NAME = "test108UnassignRoleCaptain";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2716,7 +2716,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test109UnassignRoleCaptainAgain() throws Exception {
     	final String TEST_NAME = "test109UnassignRoleCaptainAgain";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
 
@@ -2783,7 +2783,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test300LiveSyncInit() throws Exception {
     	final String TEST_NAME = "test300LiveSyncInit";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // Now it is the right time to add task definition to the repository
         // We don't want it there any sooner, as it may interfere with the
         // previous tests
@@ -2887,7 +2887,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test301LiveSyncCreate() throws Exception {
     	final String TEST_NAME = "test301LiveSyncCreate";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
@@ -2926,7 +2926,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test302LiveSyncModify() throws Exception {
     	final String TEST_NAME = "test302LiveSyncModify";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + "." + TEST_NAME);
@@ -2959,7 +2959,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test303LiveSyncLink() throws Exception {
     	final String TEST_NAME = "test303LiveSyncLink";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
         assertNoRepoCache();
@@ -3021,7 +3021,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test304LiveSyncCreateNoLocation() throws Exception {
     	final String TEST_NAME = "test304LiveSyncCreateNoLocation";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // Sync task should be running (tested in previous test), so just create
         // new LDAP object.
 
@@ -3095,7 +3095,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test399LiveSyncCleanup() throws Exception {
     	final String TEST_NAME = "test399LiveSyncCleanup";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         final OperationResult result = new OperationResult(TestSanity.class.getName()
                 + "." + TEST_NAME);
 
@@ -3107,7 +3107,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test400ImportFromResource() throws Exception {
     	final String TEST_NAME = "test400ImportFromResource";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         checkAllShadows();
         assertNoRepoCache();
@@ -3324,7 +3324,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test420RecomputeUsers() throws Exception {
     	final String TEST_NAME = "test420RecomputeUsers";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
@@ -3467,7 +3467,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test440ReconcileResourceOpenDj() throws Exception {
     	final String TEST_NAME = "test440ReconcileResourceOpenDj";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
         final OperationResult result = new OperationResult(TestSanity.class.getName()
@@ -3686,7 +3686,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test480ListResources() throws Exception {
     	final String TEST_NAME = "test480ListResources";
-        TestUtil.displayTestTile(TEST_NAME);
+        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
         OperationResultType result = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
@@ -3712,7 +3712,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     
     @Test
     public void test485ListResourcesWithBrokenResource() throws Exception {
-        TestUtil.displayTestTile("test485ListResourcesWithBrokenResource");
+        TestUtil.displayTestTitle("test485ListResourcesWithBrokenResource");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSanity.class.getName() + ".test410ListResourcesWithBrokenResource");
@@ -3747,7 +3747,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test500NotifyChangeCreateAccount() throws Exception{
     	final String TEST_NAME = "test500NotifyChangeCreateAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
     	Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ANGELIKA_FILENAME);
         display("Entry from LDIF", ldifEntry);
@@ -3814,7 +3814,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test501NotifyChangeModifyAccount() throws Exception{
     	final String TEST_NAME = "test501NotifyChangeModifyAccount";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
 		OperationResult parentResult = new OperationResult(TEST_NAME);	 
 		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
@@ -3871,7 +3871,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test502NotifyChangeModifyAccountPassword() throws Exception{
     	final String TEST_NAME = "test502NotifyChangeModifyAccountPassword";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 		
 		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
 		assertNotNull("User with the name angelika must exist.", userAngelika);
@@ -3928,7 +3928,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     @Test
     public void test503NotifyChangeDeleteAccount() throws Exception{
     	final String TEST_NAME = "test503NotifyChangeDeleteAccount";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 	 
 		PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
 		assertNotNull("User with the name angelika must exist.", userAngelika);

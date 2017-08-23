@@ -98,7 +98,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 	@Test
     public void test051ModifyUserJackPassword() throws Exception {
 		final String TEST_NAME = "test051ModifyUserJackPassword";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
@@ -131,7 +131,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackAssignAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
@@ -166,7 +166,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 	@Test
     public void test200ApplyPasswordPolicy() throws Exception {
 		final String TEST_NAME = "test200ApplyPasswordPolicy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -202,7 +202,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 	@Test
     public void test212ReconcileUserJack() throws Exception {
 		final String TEST_NAME = "test212ReconcileUserJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -225,7 +225,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 	@Test
     public void test214RecomputeUserJack() throws Exception {
 		final String TEST_NAME = "test214RecomputeUserJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -304,7 +304,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 	
 	private void doTestModifyUserJackPasswordSuccessWithHistory(final String TEST_NAME, 
 			String newPassword, String... expectedPasswordHistory) throws Exception {
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -327,7 +327,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
 	
 	private void doTestModifyUserJackPasswordFailureWithHistory(final String TEST_NAME, 
 			String newPassword, String oldPassword, String... expectedPasswordHistory) throws Exception {
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

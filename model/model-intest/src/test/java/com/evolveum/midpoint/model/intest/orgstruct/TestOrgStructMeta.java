@@ -148,7 +148,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	@Test
     public void test800JackAssignScummBar() throws Exception {
 		final String TEST_NAME = "test800JackAssignScummBar";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -176,7 +176,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	@Test
     public void test802JackAssignOrganized() throws Exception {
 		final String TEST_NAME = "test802JackAssignOrganized";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -205,7 +205,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	@Test
     public void test804JackUnAssignOrganized() throws Exception {
 		final String TEST_NAME = "test804JackUnAssignOrganized";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -233,7 +233,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	@Test
     public void test809JackUnassignScummBar() throws Exception {
 		final String TEST_NAME = "test809JackUnassignScummBar";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -260,7 +260,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	@Test
     public void test810JackAssignScummBarOrganized() throws Exception {
 		final String TEST_NAME = "test810JackAssignScummBarOrganized";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -295,7 +295,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
     @Test
     public void test890AddFictionalOrg() throws Exception {
         final String TEST_NAME = "test890AddFictionalOrg";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

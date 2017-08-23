@@ -94,7 +94,7 @@ public class TestRefinedSchema {
     @Test
     public void test010ParseFromResourceComplex() throws Exception {
     	final String TEST_NAME = "test010ParseFromResourceComplex";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -134,7 +134,7 @@ public class TestRefinedSchema {
 	@Test
     public void test020ParseFromResourceSimple() throws Exception {
 		final String TEST_NAME = "test020ParseFromResourceSimple";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -290,7 +290,7 @@ public class TestRefinedSchema {
 	@Test
     public void test100ParseAccount() throws Exception {
 		final String TEST_NAME = "test100ParseAccount";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -325,7 +325,7 @@ public class TestRefinedSchema {
     @Test
     public void test110ApplyAttributeDefinition() throws Exception {
     	final String TEST_NAME = "test110ApplyAttributeDefinition";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -402,7 +402,7 @@ public class TestRefinedSchema {
 	@Test
     public void test120CreateShadow() throws Exception {
 		final String TEST_NAME = "test120CreateShadow";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -432,7 +432,7 @@ public class TestRefinedSchema {
     @Test
     public void test130ProtectedAccount() throws Exception {
     	final String TEST_NAME = "test130ProtectedAccount";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
@@ -559,7 +559,7 @@ public class TestRefinedSchema {
 	@Test
     public void test140ParseFromResourcePosix() throws Exception {
     	final String TEST_NAME = "test140ParseFromResourcePosix";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	PrismContext prismContext = createInitializedPrismContext();
