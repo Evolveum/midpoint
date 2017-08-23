@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.util.exception;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * @author semancik
  *
@@ -28,17 +30,25 @@ public class PolicyViolationException extends CommonException {
 	public PolicyViolationException(String message) {
 		super(message);
 	}
+	
+	public PolicyViolationException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
+	}
 
 	public PolicyViolationException(Throwable cause) {
 		super(cause);
 	}
 
+	public PolicyViolationException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
+	
 	public PolicyViolationException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Policy violation";
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.util.exception;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * Exceptional concurrency state or operation invocation.
  * 
@@ -29,12 +31,17 @@ package com.evolveum.midpoint.util.exception;
  *
  */
 public class ConcurrencyException extends CommonException {
+	private static final long serialVersionUID = 1L;
 
 	public ConcurrencyException() {
 	}
 
 	public ConcurrencyException(String message) {
 		super(message);
+	}
+	
+	public ConcurrencyException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
 	}
 
 	public ConcurrencyException(Throwable cause) {
@@ -44,9 +51,13 @@ public class ConcurrencyException extends CommonException {
 	public ConcurrencyException(String message, Throwable cause) {
 		super(message, cause);
 	}
+	
+	public ConcurrencyException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
 
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Concurrency exception";
 	}
 	

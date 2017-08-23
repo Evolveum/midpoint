@@ -23,6 +23,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -108,7 +109,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);		
+		super.initSystem(initTask, initResult);
 	}
 	
 	@Test
