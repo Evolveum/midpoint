@@ -91,8 +91,10 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.FailableProcessor;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -2056,4 +2058,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertMessageContains(String message, String string) {
 		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
 	}
+	
+	protected void assertExceptionUserFriendly(CommonException e, String expectedMessage) {
+		LocalizableMessage userFriendlyMessage = e.getUserFriendlyMessage();
+		assertNotNull("No user friendly exception message", userFriendlyMessage);
+		assertEquals("Unexpected user friendly exception fallback message", expectedMessage, userFriendlyMessage.getFallbackMessage());
+	}
+	
 }

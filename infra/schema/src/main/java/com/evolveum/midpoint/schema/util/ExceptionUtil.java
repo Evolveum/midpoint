@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -78,6 +80,19 @@ public class ExceptionUtil {
 		} else {
 			return value;
 		}
+	}
+	
+	public static LocalizableMessage getUserFriendlyMessage(Throwable cause) {
+		while (cause != null) {
+			if (cause instanceof CommonException) {
+				LocalizableMessage userFriendlyMessage = ((CommonException)cause).getUserFriendlyMessage();
+				if (userFriendlyMessage != null) {
+					return userFriendlyMessage;
+				}
+			}
+			cause = cause.getCause();
+		}
+		return null;
 	}
 	
 }
