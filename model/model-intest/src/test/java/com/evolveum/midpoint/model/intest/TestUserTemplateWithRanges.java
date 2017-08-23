@@ -80,7 +80,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
     public void test100RecomputeElaine() throws Exception {
 		final String TEST_NAME = "test100RecomputeElaine";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -106,7 +106,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test110ChangeManagerAndRecomputeElaine() throws Exception {
 		final String TEST_NAME = "test110ChangeManagerAndRecomputeElaine";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -134,7 +134,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test120RestoreManagerAndRecomputeElaineAgain() throws Exception {
 		final String TEST_NAME = "test120RestoreManagerAndRecomputeElaineAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -166,7 +166,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test140ChangeManagerAndRecomputeElaineAgain() throws Exception {
 		final String TEST_NAME = "test140ChangeManagerAndRecomputeElaineAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -200,7 +200,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test200SimpleOrgUnitAddition() throws Exception {
 		final String TEST_NAME = "test200SimpleOrgUnitAddition";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -244,7 +244,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test210RemoveUnit1() throws Exception {
 		final String TEST_NAME = "test210RemoveUnit1";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -285,7 +285,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test220RemoveUnit2AndNumber() throws Exception {
 		final String TEST_NAME = "test220RemoveUnit2AndNumber";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -326,7 +326,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test230RestoreNumber() throws Exception {
 		final String TEST_NAME = "test230RestoreNumber";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);

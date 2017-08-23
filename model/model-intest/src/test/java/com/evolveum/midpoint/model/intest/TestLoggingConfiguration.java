@@ -76,7 +76,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test001CreateSystemConfiguration() throws Exception {
 		final String TEST_NAME = "test001CreateSystemConfiguration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -104,7 +104,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test002InitialConfiguration() throws Exception {
 		final String TEST_NAME = "test002InitialConfiguration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -159,7 +159,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test004OverwriteInitialConfiguration() throws Exception {
 		final String TEST_NAME = "test004OverwriteInitialConfiguration";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -204,7 +204,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test010AddModelSubsystemLogger() throws Exception {
 		final String TEST_NAME = "test010AddModelSubsystemLogger";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -267,7 +267,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test020JulLoggingDisabled() throws Exception {
 		final String TEST_NAME = "test020JulLoggingDisabled";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -298,7 +298,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test021JulLoggingEnabled() throws Exception {
 		final String TEST_NAME = "test021JulLoggingEnabled";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -355,7 +355,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	@Test
 	public void test030ConnectorLogging() throws Exception {
 		final String TEST_NAME = "test030ConnectorLogging";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
@@ -417,7 +417,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 	
 	@Test
 	public void test101EnableBasicAudit() throws Exception {
-		TestUtil.displayTestTile("test101EnableBasicAudit");
+		TestUtil.displayTestTitle("test101EnableBasicAudit");
 		
 		// GIVEN
 		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME);

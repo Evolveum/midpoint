@@ -304,6 +304,9 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_SELF_CREDENTIALS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfCredentials");
 	public static final String AUTZ_UI_SELF_CREDENTIALS_URL = NS_AUTHORIZATION_UI + "#selfCredentials";
 
+	public static final QName AUTZ_UI_SELF_CONSENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "selfConsents");
+	public static final String AUTZ_UI_SELF_CONSENTS_URL = NS_AUTHORIZATION_UI + "#selfConsents";
+	
 	public static final QName AUTZ_UI_SELF_PROFILE_QNAME = new QName(NS_AUTHORIZATION_UI, "selfProfile");
 	public static final String AUTZ_UI_SELF_PROFILE_URL = NS_AUTHORIZATION_UI + "#selfProfile";
 

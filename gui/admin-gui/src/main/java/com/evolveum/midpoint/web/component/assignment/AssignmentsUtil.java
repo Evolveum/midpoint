@@ -75,11 +75,15 @@ public class AssignmentsUtil {
     }
     
     public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentDto> model, BasePanel basePanel) {
+    	return createActivationTitleModelExperimental(model.getObject(), basePanel);
+    }
+    
+    public static IModel<String> createActivationTitleModelExperimental(AssignmentDto model, BasePanel basePanel) {
         
-    	AssignmentDto assignmentDto = model.getObject();
-    	ActivationType activation = assignmentDto.getAssignment().getActivation();
+//    	AssignmentDto assignmentDto = model.getObject();
+    	ActivationType activation = model.getAssignment().getActivation();
     	if (activation == null) {
-    		return basePanel.createStringResource("ActivationType.undefined");
+    		return basePanel.createStringResource("lower.ActivationStatusType.null");
     	}
     	
 		TimeIntervalStatusType timeIntervalStatus = activation.getValidityStatus();

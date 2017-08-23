@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -431,4 +433,10 @@ public class PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return clone;
 	}
 
+	@NotNull
+	public static <T extends Objectable> List<T> asObjectableList(@NotNull List<PrismObject<T>> objects) {
+		return objects.stream()
+				.map(PrismObject::asObjectable)
+				.collect(Collectors.toList());
+	}
 }

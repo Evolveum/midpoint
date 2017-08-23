@@ -115,7 +115,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -150,7 +150,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	
 	@Test
 	public void test004ResourceAndConnectorCaching() throws Exception {
-		TestUtil.displayTestTile("test004ResourceAndConnectorCaching");
+		TestUtil.displayTestTitle("test004ResourceAndConnectorCaching");
 
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()+".test004ResourceAndConnectorCaching");
 
@@ -198,7 +198,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test110GetObjectNoShadow() throws Exception {
 		final String TEST_NAME = "test110GetObjectNoShadow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -225,7 +225,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test111GetObjectShadow() throws Exception {
 		final String TEST_NAME = "test111GetObjectShadow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -248,7 +248,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test120ListResourceObjects() throws Exception {
 		final String TEST_NAME = "test120ListResourceObjects";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -272,7 +272,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void test121SearchAccounts() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test121SearchAccounts";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -302,7 +302,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void test122SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test122SearchAccountsIterative";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -338,7 +338,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test130AddAccountWill() throws Exception {
 		final String TEST_NAME = "test130AddAccountWill";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -365,7 +365,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test140AddDeleteAccountSparrow() throws Exception {
 		final String TEST_NAME = "test140AddDeleteAccountSparrow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -388,7 +388,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test150ModifyObject() throws Exception {
 		final String TEST_NAME = "test150ModifyObject";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -415,7 +415,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test190Synchronize() throws Exception {
 		final String TEST_NAME = "test190Synhronize";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -448,7 +448,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test500ReplaceResource() throws Exception {
 		final String TEST_NAME = "test500ReplaceResource";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -473,7 +473,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test510GetObjectNoShadow() throws Exception {
 		final String TEST_NAME = "test510GetObjectNoShadow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -501,7 +501,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test511GetObjectShadow() throws Exception {
 		final String TEST_NAME = "test511GetObjectShadow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -529,7 +529,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test520ListResourceObjects() throws Exception {
 		final String TEST_NAME = "test520ListResourceObjects";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -553,7 +553,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void test521SearchAccounts() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test521SearchAccounts";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -582,7 +582,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void test522SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test522SearchAccountsIterative";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -619,7 +619,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test530AddAccountWill() throws Exception {
 		final String TEST_NAME = "test530AddAccountWill";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		
 		Task task = createTask(TEST_NAME);
@@ -661,7 +661,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test540DeleteObject() throws Exception {
 		final String TEST_NAME = "test540DeleteObject";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -696,7 +696,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test550ModifyObject() throws Exception {
 		final String TEST_NAME = "test150ModifyObject";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -736,7 +736,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test590Synchronize() throws Exception {
 		final String TEST_NAME = "test590Synhronize";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);

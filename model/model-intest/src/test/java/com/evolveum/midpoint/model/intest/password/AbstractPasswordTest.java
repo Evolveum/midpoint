@@ -147,7 +147,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         AccountActivationNotifierType accountActivationNotifier = null;
         SystemConfigurationType systemConfig = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value()).asObjectable();
@@ -167,7 +167,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test010AddPasswordPolicy() throws Exception {
 		final String TEST_NAME = "test010AddPasswordPolicy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -192,7 +192,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test050CheckJackPassword() throws Exception {
 		final String TEST_NAME = "test050CheckJackPassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN, WHEN
         // this happens during test initialization when user-jack.xml is added
@@ -213,7 +213,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test051ModifyUserJackPassword() throws Exception {
 		final String TEST_NAME = "test051ModifyUserJackPassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -245,7 +245,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test060CheckJackPasswordModelInteraction() throws Exception {
 		final String TEST_NAME = "test060CheckJackPasswordModelInteraction";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         if (getPasswordStorageType() == CredentialsStorageTypeType.NONE) {
         	// Nothing to check in this case
@@ -279,7 +279,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test070AddUserHerman() throws Exception {
 		final String TEST_NAME = "test070AddUserHerman";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -312,7 +312,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test100ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME = "test100ModifyUserJackAssignAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -364,7 +364,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test110ModifyUserJackPassword() throws Exception {
 		final String TEST_NAME = "test110ModifyUserJackPassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -414,7 +414,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test111ModifyAccountJackPassword() throws Exception {
 		final String TEST_NAME = "test111ModifyAccountJackPassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -449,7 +449,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test112ModifyJackPasswordUserAndAccount() throws Exception {
 		final String TEST_NAME = "test112ModifyJackPasswordUserAndAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -499,7 +499,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test120ModifyUserJackAssignAccountDummyRedAndUgly() throws Exception {
 		final String TEST_NAME = "test120ModifyUserJackAssignAccountDummyRedAndUgly";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -550,7 +550,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test121ModifyJackPasswordUserAndAccountRed() throws Exception {
 		final String TEST_NAME = "test121ModifyJackPasswordUserAndAccountRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -609,7 +609,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test122ModifyAccountUglyJackPasswordBad() throws Exception {
 		final String TEST_NAME = "test122ModifyAccountUglyJackPasswordBad";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         prepareTest();
 
         // GIVEN
@@ -640,7 +640,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test125ModifyJackEmployeeNumberBad() throws Exception {
 		final String TEST_NAME = "test125ModifyJackEmployeeNumberBad";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -685,7 +685,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test128ModifyJackEmployeeNumberGood() throws Exception {
 		final String TEST_NAME = "test128ModifyJackEmployeeNumberGood";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -722,7 +722,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test130ModifyUserJackAssignAccountDummyBlack() throws Exception {
 		final String TEST_NAME = "test130ModifyUserJackAssignAccountDummyBlack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -764,7 +764,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test132ModifyAccountBlackJackPasswordBad() throws Exception {
 		final String TEST_NAME = "test132ModifyAccountBlackJackPasswordBad";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
@@ -789,7 +789,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test139ModifyUserJackUnassignAccountDummyBlack() throws Exception {
 		final String TEST_NAME = "test139ModifyUserJackUnassignAccountDummyBlack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -831,7 +831,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test140ModifyUserJackAssignAccountDummyYellow() throws Exception {
 		final String TEST_NAME = "test140ModifyUserJackAssignAccountDummyYellow";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -878,7 +878,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test142ModifyUserJackPasswordAA() throws Exception {
 		final String TEST_NAME = "test142ModifyUserJackPasswordAA";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -928,7 +928,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test200ApplyPasswordPolicy() throws Exception {
 		final String TEST_NAME = "test200ApplyPasswordPolicy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -956,7 +956,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test204UnassignAccountRed() throws Exception {
 		final String TEST_NAME = "test204UnassignAccountRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1010,7 +1010,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test206ReconcileUserJack() throws Exception {
 		final String TEST_NAME = "test206ReconcileUserJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1064,7 +1064,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test212ReconcileUserJack() throws Exception {
 		final String TEST_NAME = "test212ReconcileUserJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1088,7 +1088,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test214RecomputeUserJack() throws Exception {
 		final String TEST_NAME = "test214RecomputeUserJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1122,7 +1122,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test222ModifyUserJackPasswordBadContainer() throws Exception {
 		final String TEST_NAME = "test222ModifyUserJackPasswordBadContainer";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1248,7 +1248,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	
 	private void doTestModifyUserJackPasswordSuccessWithHistory(final String TEST_NAME, 
 			String newPassword, String... expectedPasswordHistory) throws Exception {
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1276,7 +1276,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	
 	private void doTestModifyUserJackPasswordFailureWithHistory(final String TEST_NAME, 
 			String newPassword, String oldPassword, String... expectedPasswordHistory) throws Exception {
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1332,7 +1332,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test300TwoParentOrgRefs() throws Exception {
 		final String TEST_NAME = "test300TwoParentOrgRefs";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1395,7 +1395,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test310PreparePasswordStrengthTests() throws Exception {
 		final String TEST_NAME = "test310PreparePasswordStrengthTests";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1452,7 +1452,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test312ChangeUserPassword() throws Exception {
 		final String TEST_NAME = "test312ChangeUserPassword";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1513,7 +1513,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test314RemovePassword() throws Exception {
 		final String TEST_NAME = "test314RemovePassword";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1560,7 +1560,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test316UserRecompute() throws Exception {
 		final String TEST_NAME = "test316UserRecompute";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1610,7 +1610,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test318ChangeUserPassword() throws Exception {
 		final String TEST_NAME = "test318ChangeUserPassword";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1655,7 +1655,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test320ChangeEmployeeNumber() throws Exception {
 		final String TEST_NAME = "test320ChangeEmployeeNumber";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1688,7 +1688,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test330RemoveEmployeeNumber() throws Exception {
 		final String TEST_NAME = "test330RemoveEmployeeNumber";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1725,7 +1725,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test400AddUserRappWithAssignment() throws Exception {
 		final String TEST_NAME = "test400AddUserRappWithAssignment";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1776,7 +1776,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test401UserRappRecompute() throws Exception {
 		final String TEST_NAME = "test401UserRappRecompute";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1817,7 +1817,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test402AssignRappDummyRed() throws Exception {
 		final String TEST_NAME = "test402AssignRappDummyRed";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1881,7 +1881,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test403UserRappRecompute() throws Exception {
 		final String TEST_NAME = "test403UserRappRecompute";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1943,7 +1943,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test404InitializeRappDummyRed() throws Exception {
 		final String TEST_NAME = "test404InitializeRappDummyRed";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2013,7 +2013,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test405UserRappRecompute() throws Exception {
 		final String TEST_NAME = "test405UserRappRecompute";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2076,7 +2076,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test410AssignRappDummyLifecycle() throws Exception {
 		final String TEST_NAME = "test410AssignRappDummyLifecycle";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2123,7 +2123,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test412InitializeRappDummyLifecycle() throws Exception {
 		final String TEST_NAME = "test412InitializeRappDummyLifecycle";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2200,7 +2200,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test414UserRappRecompute() throws Exception {
 		final String TEST_NAME = "test414UserRappRecompute";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2270,7 +2270,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
 	public void test416UserRappEmployeeTypeWreck() throws Exception {
 		final String TEST_NAME = "test416UserRappEmployeeTypeWreck";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2410,7 +2410,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test900ModifyUserElainePassword() throws Exception {
 		final String TEST_NAME = "test900ModifyUserElainePassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2443,7 +2443,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test902SetPasswordMinAge() throws Exception {
 		final String TEST_NAME = "test900SetPasswordMinAge";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2475,7 +2475,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test904ModifyUserElainePasswordAgain() throws Exception {
 		final String TEST_NAME = "test904ModifyUserElainePasswordAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2508,7 +2508,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	@Test
     public void test906ModifyUserElainePasswordLater() throws Exception {
 		final String TEST_NAME = "test906ModifyUserElainePasswordLater";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

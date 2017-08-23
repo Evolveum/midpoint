@@ -91,7 +91,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -109,7 +109,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test100JackAssignDummyYellow() throws Exception {
 		final String TEST_NAME = "test100JackAssignDummyYellow";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -141,7 +141,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test102ReadJackDummyYellowAgain() throws Exception {
 		final String TEST_NAME = "test102ReadJackDummyYellowAgain";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
         		
 		// WHEN
         PrismObject<ShadowType> shadowYellow = getShadowModel(accountJackYellowOid);
@@ -164,7 +164,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test110ReadJackDummyYellowBlocking() throws Exception {
 		final String TEST_NAME = "test110ReadJackDummyYellowBlocking";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		dummyResourceYellow.setBlockOperations(true);
 		final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>(); 
@@ -209,7 +209,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
    public void test120ReadJackDummyYellowTwoOperationsOneBlocking() throws Exception {
 		final String TEST_NAME = "test120ReadJackDummyYellowTwoOperationsOneBlocking";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		dummyResourceYellow.setBlockOperations(true);
 		final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>(); 
@@ -276,7 +276,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
    public void test125ReadJackDummyYellowTwoBlocking() throws Exception {
 		final String TEST_NAME = "test125ReadJackDummyYellowTwoBlocking";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		dummyResourceYellow.setBlockOperations(true);
 		final Holder<PrismObject<ShadowType>> shadowHolder1 = new Holder<>(); 
@@ -334,7 +334,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 	@Test
     public void test200GuybrushAssignDummyBlack() throws Exception {
 		final String TEST_NAME = "test200GuybrushAssignDummyBlack";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = createTask(TEST_NAME);

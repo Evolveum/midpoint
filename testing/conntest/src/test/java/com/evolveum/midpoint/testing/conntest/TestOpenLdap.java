@@ -185,7 +185,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	@Test
     public void test700CheckBarbossaLockoutStatus() throws Exception {
 		final String TEST_NAME = "test700CheckBarbossaLockoutStatus";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -208,7 +208,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	@Test
     public void test702LockOutBarbossa() throws Exception {
 		final String TEST_NAME = "test702LockOutBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Entry entry = getLdapAccountByUid(USER_BARBOSSA_USERNAME);
         display("LDAP Entry before", entry);
@@ -244,7 +244,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 	@Test
     public void test705UnlockBarbossaAccount() throws Exception {
 		final String TEST_NAME = "test705UnlockBarbossaAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);

@@ -484,7 +484,7 @@ public abstract class AbstractWebserviceTest {
 	}
 
 	protected void displayTestTitle(String testName) {		
-		TestUtil.displayTestTile(testName);
+		TestUtil.displayTestTitle(testName);
 	}
 	
 	protected void displayWhen(String testName) {		

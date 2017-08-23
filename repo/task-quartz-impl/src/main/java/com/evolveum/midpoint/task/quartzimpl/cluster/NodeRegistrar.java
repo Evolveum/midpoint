@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -37,9 +38,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.BuildInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -101,8 +100,7 @@ public class NodeRegistrar {
         if (nodesInRepo.size() == 1) {
             PrismObject<NodeType> nodeInRepo = nodesInRepo.get(0);
             // copy all information that need to be preserved from the repository
-            nodeToBe.getExecutionCapability().clear();
-            nodeToBe.getExecutionCapability().addAll(nodeInRepo.asObjectable().getExecutionCapability());
+            nodeToBe.setTaskExecutionLimitations(nodeInRepo.asObjectable().getTaskExecutionLimitations());
             ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), false, true);
             LOGGER.debug("Applying delta to existing node object:\n{}", nodeDelta.debugDumpLazily());
             try {
@@ -151,8 +149,9 @@ public class NodeRegistrar {
     @NotNull
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
         NodeType node = getPrismContext().createKnownObjectable(NodeType.class);
-        node.setNodeIdentifier(configuration.getNodeId());
-        node.setName(new PolyStringType(configuration.getNodeId()));
+	    String nodeId = configuration.getNodeId();
+	    node.setNodeIdentifier(nodeId);
+        node.setName(new PolyStringType(nodeId));
         node.setHostname(getMyHostname());
         node.getIpAddress().addAll(getMyIpAddresses());
         node.setJmxPort(configuration.getJmxPort());
@@ -160,7 +159,11 @@ public class NodeRegistrar {
         node.setRunning(true);
         node.setLastCheckInTime(getCurrentTime());
         node.setBuild(getBuildInformation());
-        node.getExecutionCapability().add(configuration.getNodeId());
+        node.setTaskExecutionLimitations(
+        		new TaskExecutionLimitationsType()
+                    .groupLimitation(new TaskGroupExecutionLimitationType().groupName("").limit(null))
+                    .groupLimitation(new TaskGroupExecutionLimitationType().groupName(nodeId).limit(null))
+                    .groupLimitation(new TaskGroupExecutionLimitationType().groupName(TaskConstants.LIMIT_FOR_OTHER_GROUPS).limit(0)));
         generateInternalNodeIdentifier(node);
         return node;
     }

@@ -71,7 +71,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetExtensionPropertyValue() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValue";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -88,7 +88,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetExtensionPropertyValueParts() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValueParts";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -106,7 +106,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetExtensionPropertyValueNotPresent() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValueNotPresent";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -123,7 +123,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetExtensionPropertyValueNullObject() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValueNullObject";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -139,7 +139,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetAttributeValueParts() throws Exception {
     	final String TEST_NAME = "testGetAttributeValueParts";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -157,7 +157,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetAttributeValueDefaultRi() throws Exception {
     	final String TEST_NAME = "testGetAttributeValueDefaultRi";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -174,7 +174,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetAttributeValuesParts() throws Exception {
     	final String TEST_NAME = "testGetAttributeValuesParts";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -192,7 +192,7 @@ public class TestExpressionFunctions {
     @Test
     public void testGetAttributeValuesDefaultRi() throws Exception {
     	final String TEST_NAME = "testGetAttributeValuesDefaultRi";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -209,7 +209,7 @@ public class TestExpressionFunctions {
     @Test
     public void testgetResourceIcfConfigurationPropertyValueStringHost() throws Exception {
     	final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringHost";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -225,7 +225,7 @@ public class TestExpressionFunctions {
     @Test
     public void testgetResourceIcfConfigurationPropertyValueStringPort() throws Exception {
     	final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringPort";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -241,7 +241,7 @@ public class TestExpressionFunctions {
     @Test
     public void testDetermineLdapSingleAttributeValue01() throws Exception {
     	final String TEST_NAME = "testDetermineLdapSingleAttributeValue01";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -361,7 +361,7 @@ public class TestExpressionFunctions {
     @Test
     public void testParseDateTime() throws Exception {
     	final String TEST_NAME = "testParseDateTime";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
@@ -388,7 +388,7 @@ public class TestExpressionFunctions {
 	@Test
 	public void testStringify() throws Exception {
 		final String TEST_NAME = "testStringifyString";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		assertEquals("foo", basic.stringify("foo"));
 		assertEquals("foo", basic.stringify(poly("foo")));
@@ -401,7 +401,7 @@ public class TestExpressionFunctions {
 	@Test
 	public void testConcatName() throws Exception {
 		final String TEST_NAME = "testConcatName";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		assertEquals("foo bar", basic.concatName("foo","bar"));
 		assertEquals("foo bar", basic.concatName(poly("foo"),"bar"));
@@ -424,7 +424,7 @@ public class TestExpressionFunctions {
 	@Test
 	public void testToAscii() throws Exception {
 		final String TEST_NAME = "testToAscii";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		assertEquals("foo", basic.toAscii("foo"));
 		assertEquals("foo", basic.toAscii(poly("foo")));
@@ -439,7 +439,7 @@ public class TestExpressionFunctions {
 	@Test
 	public void testComposeDn() throws Exception {
 		final String TEST_NAME = "testComposeDn";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		
 		assertEquals("cn=foo,o=bar", basic.composeDn("cn","foo","o","bar"));
@@ -461,7 +461,7 @@ public class TestExpressionFunctions {
 	@Test
 	public void testComposeDnWithSuffix() throws Exception {
 		final String TEST_NAME = "testComposeDnWithSuffix";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar"));
@@ -489,7 +489,7 @@ public class TestExpressionFunctions {
 	@Test
 	public void testParseFullName() throws Exception {
 		final String TEST_NAME = "testParseFullName";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		
 		assertEquals(null, basic.parseGivenName(null));

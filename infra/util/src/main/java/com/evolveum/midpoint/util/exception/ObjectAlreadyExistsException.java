@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.evolveum.midpoint.util.exception;
+
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Object already exists.
@@ -30,6 +32,10 @@ public class ObjectAlreadyExistsException extends CommonException {
 	public ObjectAlreadyExistsException(String message) {
 		super(message);
 	}
+	
+	public ObjectAlreadyExistsException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
+	}
 
 	public ObjectAlreadyExistsException(Throwable cause) {
 		super(cause);
@@ -38,9 +44,13 @@ public class ObjectAlreadyExistsException extends CommonException {
 	public ObjectAlreadyExistsException(String message, Throwable cause) {
 		super(message, cause);
 	}
+	
+	public ObjectAlreadyExistsException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
 
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Object already exists";
 	}
 

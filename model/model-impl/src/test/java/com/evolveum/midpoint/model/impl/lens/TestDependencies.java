@@ -122,7 +122,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test100SortToWavesIdependent() throws Exception {
 		final String TEST_NAME = "test100SortToWavesIdependent";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -151,7 +151,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test101SortToWavesAB() throws Exception {
 		final String TEST_NAME = "test101SortToWavesAB";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -182,7 +182,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test102SortToWavesABCD() throws Exception {
 		final String TEST_NAME = "test102SortToWavesABCD";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -217,7 +217,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test120SortToWavesBCUnsatisfied() throws Exception {
 		final String TEST_NAME = "test120SortToWavesBCUnsatisfied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -248,7 +248,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test151SortToWavesPR() throws Exception {
 		final String TEST_NAME = "test151SortToWavesPR";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -282,7 +282,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test152SortToWavesRP() throws Exception {
 		final String TEST_NAME = "test152SortToWavesRP";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -312,7 +312,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test200SortToWavesIdependentDeprovision() throws Exception {
 		final String TEST_NAME = "test200SortToWavesIdependentDeprovision";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -342,7 +342,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test201SortToWavesABDeprovision() throws Exception {
 		final String TEST_NAME = "test201SortToWavesABDeprovision";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -374,7 +374,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test202SortToWavesABCDDeprovision() throws Exception {
 		final String TEST_NAME = "test202SortToWavesABCDDeprovision";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);
@@ -414,7 +414,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test300SortToWavesXYZCircular() throws Exception {
 		final String TEST_NAME = "test300SortToWavesXYZCircular";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestDependencies.class.getName() + "." + TEST_NAME);

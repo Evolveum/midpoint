@@ -60,7 +60,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
      */
     @Test(enabled = true)
     public void test010CreateTest1Rejected() throws Exception {
-        TestUtil.displayTestTile(this, "test010CreateTest1Rejected");
+        TestUtil.displayTestTitle(this, "test010CreateTest1Rejected");
         executeTest("test010CreateTest1Rejected", ORG_TEST1_OID, new TestDetails() {
             @Override
             int subtaskCount() {
@@ -115,7 +115,7 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
      */
 	@Test(enabled = true)
     public void test020CreateTest1Approved() throws Exception {
-        TestUtil.displayTestTile(this, "test020CreateTest1Approved");
+        TestUtil.displayTestTitle(this, "test020CreateTest1Approved");
        	executeTest("test020CreateTest1Approved", ORG_TEST1_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
             @Override boolean immediate() { return false; }

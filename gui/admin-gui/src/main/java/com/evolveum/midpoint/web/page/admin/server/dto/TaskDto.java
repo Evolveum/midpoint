@@ -69,10 +69,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
@@ -116,7 +114,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_NOT_START_BEFORE = "notStartBefore";
 	public static final String F_NOT_START_AFTER = "notStartAfter";
 	public static final String F_MISFIRE_ACTION = "misfireActionType";
-	public static final String F_REQUIRED_CAPABILITY = "requiredCapability";
+	public static final String F_EXECUTION_GROUP = "executionGroup";
+	public static final String F_GROUP_TASK_LIMIT = "groupTaskLimit";
 	public static final String F_OBJECT_REF_NAME = "objectRefName";
 	public static final String F_OBJECT_TYPE = "objectType";
 	public static final String F_OBJECT_QUERY = "objectQuery";
@@ -130,7 +129,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final long ALREADY_PASSED = -2L;
 	public static final long NOW = 0L;
 
-	private TaskType taskType;
+	@NotNull private final TaskType taskType;
 
 	private TaskEditableState currentEditableState = new TaskEditableState();
 	private TaskEditableState originalEditableState;
@@ -160,10 +159,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private HandlerDto handlerDto;
 
     //region Construction
-    public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
+    public TaskDto(@NotNull TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
 			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options,
 			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-        Validate.notNull(taskType, "Task must not be null.");
         Validate.notNull(modelService);
         Validate.notNull(taskService);
         Validate.notNull(modelInteractionService);
@@ -175,7 +173,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		this.currentEditableState.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
 		this.currentEditableState.description = taskType.getDescription();
 
-		this.currentEditableState.requiredCapability = taskType.getRequiredCapability();
+		this.currentEditableState.executionGroup = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroup() : null;
+		this.currentEditableState.groupTaskLimit = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroupTaskLimit() : null;
 		fillInScheduleAttributes(taskType);
 
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
@@ -518,12 +517,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		this.currentEditableState.misfireActionType = misfireActionType;
 	}
 
-	public String getRequiredCapability() {
-    	return currentEditableState.requiredCapability;
+	public String getExecutionGroup() {
+    	return currentEditableState.executionGroup;
 	}
 
-	public void setRequiredCapability(String value) {
-    	this.currentEditableState.requiredCapability = value;
+	public void setExecutionGroup(String value) {
+    	this.currentEditableState.executionGroup = value;
+	}
+
+	public Integer getGroupTaskLimit() {
+    	return currentEditableState.groupTaskLimit;
+	}
+
+	public void setGroupTaskLimit(Integer value) {
+    	this.currentEditableState.groupTaskLimit = value;
 	}
 
 	public ThreadStopActionType getThreadStopActionType() {
@@ -783,6 +790,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return xgc2long(taskType.getStalledSince());
 	}
 
+	@NotNull
 	public TaskType getTaskType() {
 		return taskType;
 	}
@@ -1115,5 +1123,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public boolean isInStageBeforeLastOne() {
 		return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+	}
+
+	public String getAllowedNodes(List<NodeType> nodes) {
+		Map<String, Integer> restrictions = TaskManagerUtil.getNodeRestrictions(getExecutionGroup(), nodes);
+		String n = restrictions.entrySet().stream()
+				.filter(e -> e.getValue() == null || e.getValue() > 0)
+				.map(e -> e.getKey() + (e.getValue() != null ? " (" + e.getValue() + ")" : ""))
+				.collect(Collectors.joining(", "));
+		return n.isEmpty() ? "-" : n;
 	}
 }

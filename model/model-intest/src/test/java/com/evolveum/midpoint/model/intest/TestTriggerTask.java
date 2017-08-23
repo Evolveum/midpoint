@@ -70,7 +70,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ImportScannerTask() throws Exception {
 		final String TEST_NAME = "test100ImportScannerTask";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
@@ -104,7 +104,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test105NoTrigger() throws Exception {
 		final String TEST_NAME = "test105NoTrigger";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
@@ -132,7 +132,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110TriggerCalledAgain() throws Exception {
 		final String TEST_NAME = "test110TriggerCalledAgain";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
@@ -163,7 +163,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test120TwoTriggers() throws Exception {
 		final String TEST_NAME = "test120TwoTriggers";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
@@ -199,7 +199,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test150NoTriggerAgain() throws Exception {
 		final String TEST_NAME = "test115NoTriggerAgain";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
@@ -227,7 +227,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test200TwoDistantTriggers() throws Exception {
 		final String TEST_NAME = "test130TwoDistantTriggers";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);

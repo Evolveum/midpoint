@@ -112,7 +112,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
      */
 	@Test
     public void test010UserModifyAddRole() throws Exception {
-        TestUtil.displayTestTile(this, "test010UserModifyAddRole");
+        TestUtil.displayTestTitle(this, "test010UserModifyAddRole");
         login(userAdministrator);
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, new TestDetails() {
             @Override
@@ -248,7 +248,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test011UserModifyAddRoleChangeGivenName() throws Exception {
-        TestUtil.displayTestTile(this, "test011UserModifyAddRoleChangeGivenName");
+        TestUtil.displayTestTitle(this, "test011UserModifyAddRoleChangeGivenName");
         login(userAdministrator);
 
         executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, new TestDetails() {
@@ -299,7 +299,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test012UserModifyAddRoleChangeGivenNameImmediate() throws Exception {
-        TestUtil.displayTestTile(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
+        TestUtil.displayTestTitle(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
         login(userAdministrator);
         executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 2; }
@@ -348,7 +348,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test020UserModifyAddThreeRoles() throws Exception {
-        TestUtil.displayTestTile(this, "test020UserModifyAddThreeRoles");
+        TestUtil.displayTestTitle(this, "test020UserModifyAddThreeRoles");
         login(userAdministrator);
         executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 2; }
@@ -407,7 +407,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test021UserModifyAddThreeRolesImmediate() throws Exception {
-        TestUtil.displayTestTile(this, "test021UserModifyAddThreeRolesImmediate");
+        TestUtil.displayTestTitle(this, "test021UserModifyAddThreeRolesImmediate");
         login(userAdministrator);
         executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 3; }
@@ -464,7 +464,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test030UserAdd() throws Exception {
-        TestUtil.displayTestTile(this, "test030UserAdd");
+        TestUtil.displayTestTitle(this, "test030UserAdd");
         login(userAdministrator);
         executeTest("test030UserAdd", null, new TestDetails() {
             @Override int subtaskCount() { return 2; }
@@ -519,7 +519,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test031UserAddImmediate() throws Exception {
-        TestUtil.displayTestTile(this, "test031UserAddImmediate");
+        TestUtil.displayTestTitle(this, "test031UserAddImmediate");
         login(userAdministrator);
 
         deleteUserFromModel("bill");
@@ -582,7 +582,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test040UserModifyPasswordChangeBlocked() throws Exception {
-        TestUtil.displayTestTile(this, "test040UserModifyPasswordChangeBlocked");
+        TestUtil.displayTestTitle(this, "test040UserModifyPasswordChangeBlocked");
         login(userAdministrator);
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
@@ -632,7 +632,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test041UserModifyPasswordChange() throws Exception {
-        TestUtil.displayTestTile(this, "test041UserModifyPasswordChange");
+        TestUtil.displayTestTitle(this, "test041UserModifyPasswordChange");
         login(userAdministrator);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
@@ -680,7 +680,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test050UserModifyAddRoleAndPasswordChange() throws Exception {
-        TestUtil.displayTestTile(this, "test050UserModifyAddRoleAndPasswordChange");
+        TestUtil.displayTestTitle(this, "test050UserModifyAddRoleAndPasswordChange");
         login(userAdministrator);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
@@ -737,7 +737,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test060UserModifyAddRoleAutoApproval() throws Exception {
-        TestUtil.displayTestTile(this, "test060UserModifyAddRoleAutoApproval");
+        TestUtil.displayTestTitle(this, "test060UserModifyAddRoleAutoApproval");
         login(userAdministrator);
         executeTest("test060UserModifyAddRoleAutoApproval", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -778,7 +778,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     @Test(enabled = true)
     public void test061UserModifyAddRoleAutoSkip() throws Exception {
         final String TEST_NAME = "test061UserModifyAddRoleAutoSkip";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
         Task task = taskManager.createTaskInstance(TestUserChangeApprovalLegacy.class.getName() + "."+TEST_NAME);
         task.setOwner(userAdministrator);
@@ -797,7 +797,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test
     public void test062UserModifyAddRoleAutoApprovalFirstDecides() throws Exception {
-        TestUtil.displayTestTile(this, "test062UserModifyAddRoleAutoApprovalFirstDecides");
+        TestUtil.displayTestTitle(this, "test062UserModifyAddRoleAutoApprovalFirstDecides");
         login(userAdministrator);
         executeTest("test062UserModifyAddRoleAutoApprovalFirstDecides", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -841,7 +841,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test
     public void test064UserModifyAddRoleNoApproversAllMustAgree() throws Exception {
-        TestUtil.displayTestTile(this, "test064UserModifyAddRoleNoApproversAllMustAgree");
+        TestUtil.displayTestTitle(this, "test064UserModifyAddRoleNoApproversAllMustAgree");
         login(userAdministrator);
         executeTest("test064UserModifyAddRoleNoApproversAllMustAgree", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -885,7 +885,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test
     public void test065UserModifyAddRoleNoApproversFirstDecides() throws Exception {
-        TestUtil.displayTestTile(this, "test065UserModifyAddRoleNoApproversFirstDecides");
+        TestUtil.displayTestTitle(this, "test065UserModifyAddRoleNoApproversFirstDecides");
         login(userAdministrator);
         executeTest("test065UserModifyAddRoleNoApproversFirstDecides", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -930,7 +930,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test070UserModifyAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test070UserModifyAssignment");
+        TestUtil.displayTestTitle(this, "test070UserModifyAssignment");
         login(userAdministrator);
         removeAllAssignments(USER_JACK_OID, new OperationResult("dummy"));
         assignRoleRaw(USER_JACK_OID, ROLE_R1_OID);
@@ -1055,7 +1055,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
      */
     @Test(enabled = true)
     public void test080UserModifyAddResource() throws Exception {
-        TestUtil.displayTestTile(this, "test080UserModifyAddResource");
+        TestUtil.displayTestTitle(this, "test080UserModifyAddResource");
         login(userAdministrator);
         executeTest("test080UserModifyAddResource", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -1098,7 +1098,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
      */
     @Test(enabled = true)
     public void test090UserModifyModifyResourceAssignmentValidity() throws Exception {
-        TestUtil.displayTestTile(this, "test090UserModifyModifyResourceAssignmentValidity");
+        TestUtil.displayTestTitle(this, "test090UserModifyModifyResourceAssignmentValidity");
         login(userAdministrator);
 
         final XMLGregorianCalendar validFrom = XmlTypeConverter.createXMLGregorianCalendar(2015, 2, 25, 10, 0, 0);
@@ -1158,7 +1158,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     @Test(enabled = true)
     public void test095UserModifyModifyResourceAssignmentConstruction() throws Exception {
         final String TEST_NAME = "test095UserModifyModifyResourceAssignmentConstruction";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         executeTest(TEST_NAME, USER_JACK_OID, new TestDetails() {

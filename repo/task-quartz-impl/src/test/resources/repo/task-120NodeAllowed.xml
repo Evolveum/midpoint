@@ -29,6 +29,6 @@
 	<recurrence>single</recurrence>
 
 	<executionConstraints>
-		<allowedNode>DefaultNode</allowedNode>
+		<group>lightweight-tasks</group>
 	</executionConstraints>
 </task>

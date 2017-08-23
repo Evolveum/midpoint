@@ -67,7 +67,7 @@ public class TestMigrator {
 	
 	@Test
 	public void testMigrateUserTemplate() throws Exception {
-		TestUtil.displayTestTile("testMigrateUserTemplate");
+		TestUtil.displayTestTitle("testMigrateUserTemplate");
 
 		for (File beforeFile: TEST_DIR_BEFORE.listFiles()) {
 			String beforeName = beforeFile.getName();

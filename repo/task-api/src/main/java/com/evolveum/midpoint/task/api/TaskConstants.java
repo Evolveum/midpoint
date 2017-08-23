@@ -22,4 +22,6 @@ package com.evolveum.midpoint.task.api;
 public class TaskConstants {
 
 	public static final String JDBC_PING_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3";
+
+	public static final String LIMIT_FOR_OTHER_GROUPS = "*";            // the same as Scheduler.LIMIT_FOR_OTHER_GROUPS
 }

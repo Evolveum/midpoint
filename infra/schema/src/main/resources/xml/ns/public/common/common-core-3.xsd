@@ -1121,10 +1121,10 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="executionCapability" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="taskExecutionLimitations" type="tns:TaskExecutionLimitationsType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								Execution capabilities possessed by this node.
+								Limitations for execution of tasks on this node.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
@@ -1135,8 +1135,58 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
     <xsd:element name="node" type="tns:NodeType" substitutionGroup="c:object"/>
+
+	<xsd:complexType name="TaskExecutionLimitationsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Limitations for execution of tasks on a given node.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="groupLimitation" type="tns:TaskGroupExecutionLimitationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Limitations of execution for individual task groups.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="TaskGroupExecutionLimitationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Limitations for execution of a task group on a given node.
+				EXPERIMENTAL. Will probably change in the future, when task groups will be created as regular midPoint objects.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.7</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="groupName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the group to apply limitation to. Null or empty means "tasks with no specified group". Asterisk (*) means
+						that the limit applies to each groups not listed here (individually).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="limit" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many threads can be allocated to tasks within the given group. 0 means such tasks cannot be run
+						on the current node. Null (i.e. no "limit" property) means this group can run on this node without
+						explicit limitations; bound only by the total number of available threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
     <xsd:simpleType name="NodeExecutionStatusType">
         <xsd:annotation>
@@ -1579,32 +1629,12 @@
 									determined e.g. by task handler.)
 								</p>
                                 <p>
-									DEPRECATED. This attribute is not used. Please use requiredCapability instead.
+									DEPRECATED. This attribute is not used. Please use executionConstraints/group instead.
                                 </p>
                             </xsd:documentation>
 							<xsd:appinfo>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.5</a:deprecatedSince>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="requiredCapability" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-									Whether a task is constrained to be run on node having particular capability,
-									i.e. it will *not* be executed on any other node.
-									If this attribute is not specified, the task will be executed on any available node.
-								</p>
-                                <p>
-									The name of any node is used as a capability by default (unless overridden by the administrator).
-									So by simply specifying a node name here one can bind execution of this task to the given node.
-									However, there can be any other capabilities defined, e.g. "long-running tasks", "reconciliation",
-									"liveSync", or any other. Each of these capabilities can be assigned to one or more nodes.
-                                </p>
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.7</a:since>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1677,6 +1707,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.5</a:since>
+				<a:container>true</a:container>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -1684,14 +1715,15 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						A group this task is a part of. In the future, task execution groups will probably have more
-						complex parameters. But for now, their only parameter is the member tasks limit.
+						complex parameters. But for now, their only parameter is the (clusterwide) member tasks limit.
+						They are also referenced from NodeType when specifying execution limitations for them.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Number of tasks within the group that can be executed at once (clusterwide). Default is 1.
+						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
 						This parameter will be moved into separate task group object in a later version of midPoint.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -1701,8 +1733,7 @@
 					<xsd:documentation>
 						Node(s) that this task is allowed to be executed on. If not specified, the task is allowed
 						to be executed on any cluster node (if not restricted by disallowedNode item).
-						EXPERIMENTAL. MAY OR MAY NOT WORK.
-						DEPRECATED. Use TaskType.requiredCapability instead.
+						DEPRECATED and UNUSED. Use NodeType.taskExecutionLimitations instead.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
@@ -1713,9 +1744,8 @@
 			<xsd:element name="disallowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
-						Node(s) that this task is NOT allowed to be executed on.
-						EXPERIMENTAL. MAY OR MAY NOT WORK.
-						DEPRECATED. Use TaskType.requiredCapability instead.
+						Node(s) that this task is not allowed to be executed on.
+						DEPRECATED and UNUSED. Use NodeType.taskExecutionLimitations instead.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
@@ -1726,8 +1756,7 @@
 			<xsd:element name="retryAfter" type="xsd:duration" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						In what time to retry after execution constraints are not met. The default is 1 minute for group
-						limits and 10 seconds for node constraints.
+						In what time to retry after clusterwide execution constraints are not met. The default is 1 minute.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

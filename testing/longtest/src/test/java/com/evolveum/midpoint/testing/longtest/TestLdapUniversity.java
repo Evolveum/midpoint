@@ -139,7 +139,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 	@Test
     public void test100BigImportWithLinking() throws Exception {
 		final String TEST_NAME = "test100BigImportWithLinking";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 
@@ -212,7 +212,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
     @Test
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 

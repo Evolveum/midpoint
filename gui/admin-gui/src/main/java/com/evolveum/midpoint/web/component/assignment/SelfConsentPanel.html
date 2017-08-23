@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+
+<!-- 
+.small-box .status {
+    -webkit-transition: all .3s linear;
+    -o-transition: all .3s linear;
+    transition: all .3s linear;
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    z-index: 0;
+    font-size: 90px;
+    color: rgba(0, 0, 0, 0.15);
+}
+ -->
+    
+    <div class="col-md-12">
+          <div class="info-box">
+            <span><i wicket:id="consentIcon"></i></span>
+
+            <div class="info-box-content">
+              <span wicket:id="displayName"/>
+              <span class="info-box-text" wicket:id="validity"/>
+            </div>
+            <!-- /.info-box-content -->
+            <a class="btn btn-danger" wicket:id="revoke"></a>
+            <a class="btn btn-success" wicket:id="agree"></a>
+          </div>
+          <!-- /.info-box -->
+        </div>
+</wicket:panel>
+</body>
+</html>

@@ -70,7 +70,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 	@Test
 	public void test100AddAccountDrink() throws Exception {
 		final String TEST_NAME = "test100AddAccountDrink";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummySecurity.class.getName()
 				+ "." + TEST_NAME);
@@ -109,7 +109,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 	@Test
 	public void test199AddAccount() throws Exception {
 		final String TEST_NAME = "test199AddAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task syncTask = taskManager.createTaskInstance(TestDummySecurity.class.getName()
 				+ "." + TEST_NAME);
@@ -139,7 +139,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 	@Test
 	public void test200ModifyAccountDrink() throws Exception {
 		final String TEST_NAME = "test200ModifyAccountDrink";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -173,7 +173,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 	@Test
 	public void test201ModifyAccountGossip() throws Exception {
 		final String TEST_NAME = "test201ModifyAccountGossip";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -207,7 +207,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 	@Test
 	public void test210ModifyAccountQuote() throws Exception {
 		final String TEST_NAME = "test210ModifyAccountQuote";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -238,7 +238,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 	@Test
 	public void test300GetAccount() throws Exception {
 		final String TEST_NAME = "test300GetAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -263,7 +263,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 	@Test
 	public void test310SearchAllShadows() throws Exception {
 		final String TEST_NAME = "test310SearchAllShadows";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);

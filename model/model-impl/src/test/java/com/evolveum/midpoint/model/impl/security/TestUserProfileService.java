@@ -88,7 +88,7 @@ public class TestUserProfileService extends AbstractInternalModelIntegrationTest
 
 	private void executeDeputyLimitationsTest(String TEST_NAME, List<OtherPrivilegesLimitationType> expectedLimitations,
 			Consumer<AssignmentType> assignmentModifier) throws CommonException {
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		AssignmentType assignment = new AssignmentType()

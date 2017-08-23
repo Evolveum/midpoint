@@ -125,7 +125,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		Object[] newRealValue = { sourceFilePath };
@@ -156,7 +156,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 	@Test
     public void test010importActiveUserRUR() throws Exception {
 		final String TEST_NAME = "test010importActiveUserRUR";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
@@ -189,7 +189,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 	@Test
     public void test011importInactiveUserChappie() throws Exception {
 		final String TEST_NAME = "test020ResourceOpenDjGet";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         

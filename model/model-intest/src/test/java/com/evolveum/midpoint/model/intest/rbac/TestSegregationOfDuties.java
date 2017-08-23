@@ -174,7 +174,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test110SimpleExclusion1() throws Exception {
 		final String TEST_NAME = "test110SimpleExclusion1";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -203,7 +203,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test112SimpleExclusion1Deprecated() throws Exception {
 		final String TEST_NAME = "test112SimpleExclusion1Deprecated";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -231,7 +231,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test120SimpleExclusion2() throws Exception {
 		final String TEST_NAME = "test120SimpleExclusion2";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -258,7 +258,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test122SimpleExclusion2Deprecated() throws Exception {
 		final String TEST_NAME = "test122SimpleExclusion2Deprecated";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -282,7 +282,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test130SimpleExclusionBoth1() throws Exception {
 		final String TEST_NAME = "test130SimpleExclusionBoth1";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -307,7 +307,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test132SimpleExclusionBoth1Deprecated() throws Exception {
 		final String TEST_NAME = "test132SimpleExclusionBoth1Deprecated";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -332,7 +332,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test140SimpleExclusionBoth2() throws Exception {
 		final String TEST_NAME = "test140SimpleExclusionBoth2";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -357,7 +357,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test142SimpleExclusionBoth2Deprecated() throws Exception {
 		final String TEST_NAME = "test142SimpleExclusionBoth2Deprecated";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -382,7 +382,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test150SimpleExclusionBothBidirectional1() throws Exception {
 		final String TEST_NAME = "test150SimpleExclusionBothBidirectional1";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -406,7 +406,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test160SimpleExclusionBothBidirectional2() throws Exception {
 		final String TEST_NAME = "test160SimpleExclusionBothBidirectional2";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -430,7 +430,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test171SimpleExclusion1WithPolicyException() throws Exception {
 		final String TEST_NAME = "test171SimpleExclusion1WithPolicyException";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -452,7 +452,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test172SimpleExclusion2WithPolicyException() throws Exception {
 		final String TEST_NAME = "test172SimpleExclusion2WithPolicyException";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -474,7 +474,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test173SimpleExclusion3WithPolicyException() throws Exception {
 		final String TEST_NAME = "test173SimpleExclusion3WithPolicyException";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -496,7 +496,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test174SimpleExclusion4WithPolicyException() throws Exception {
 		final String TEST_NAME = "test174SimpleExclusion4WithPolicyException";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -523,7 +523,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test180JudgeExceptionalPirateAndThief() throws Exception {
 		final String TEST_NAME = "test180JudgeExceptionalPirateAndThief";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -566,7 +566,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test200GuybrushAssignRoleGold() throws Exception {
 		final String TEST_NAME = "test200GuybrushAssignRoleGold";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -600,7 +600,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test202GuybrushAssignRoleSilver() throws Exception {
 		final String TEST_NAME = "test202GuybrushAssignRoleSilver";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -635,7 +635,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test204GuybrushAssignRoleSailor() throws Exception {
 		final String TEST_NAME = "test204GuybrushAssignRoleSailor";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -671,7 +671,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test206GuybrushAssignRoleBronze() throws Exception {
 		final String TEST_NAME = "test206GuybrushAssignRoleBronze";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -706,7 +706,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test208GuybrushUnassignRoleBronze() throws Exception {
 		final String TEST_NAME = "test209GuybrushUnassignRoleSilver";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -739,7 +739,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test209GuybrushUnassignRoleSailor() throws Exception {
 		final String TEST_NAME = "test209GuybrushUnassignRoleSailor";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -767,7 +767,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test210GuybrushAssignRoleRed() throws Exception {
 		final String TEST_NAME = "test210GuybrushAssignRoleRed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -799,7 +799,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test212GuybrushAssignRoleGreen() throws Exception {
 		final String TEST_NAME = "test212GuybrushAssignRoleGreen";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -832,7 +832,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test214GuybrushAssignRoleColorNone() throws Exception {
 		final String TEST_NAME = "test214GuybrushAssignRoleColorNone";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -863,7 +863,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test216GuybrushAssignRoleBlue() throws Exception {
 		final String TEST_NAME = "test216GuybrushAssignRoleBlue";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -893,7 +893,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test219GuybrushUnassignRoleBlue() throws Exception {
 		final String TEST_NAME = "test219GuybrushUnassignRoleBlue";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -924,7 +924,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test220GuybrushAssignRoleExecutiveOne() throws Exception {
 		final String TEST_NAME = "test220GuybrushAssignRoleExecutiveOne";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -949,7 +949,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test222GuybrushAssignRoleControllingOne() throws Exception {
 		final String TEST_NAME = "test222GuybrushAssignRoleControllingOne";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -968,7 +968,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test224GuybrushAssignRoleExecutiveTwo() throws Exception {
 		final String TEST_NAME = "test224GuybrushAssignRoleExecutiveTwo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -994,7 +994,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test225GuybrushAssignRoleControllingTwo() throws Exception {
 		final String TEST_NAME = "test225GuybrushAssignRoleControllingTwo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1015,7 +1015,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test226GuybrushUnassignRoleExecutiveOne() throws Exception {
 		final String TEST_NAME = "test226GuybrushUnassignRoleExecutiveOne";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1040,7 +1040,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test227GuybrushAssignRoleControllingOne() throws Exception {
 		final String TEST_NAME = "test227GuybrushAssignRoleControllingOne";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1061,7 +1061,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test229GuybrushUnassignRoleExecutiveTwo() throws Exception {
 		final String TEST_NAME = "test229GuybrushUnassignRoleExecutiveTwo";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1089,7 +1089,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test230GuybrushAssignRoleControllingOne() throws Exception {
 		final String TEST_NAME = "test230GuybrushAssignRoleControllingOne";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1114,7 +1114,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test232GuybrushAssignRoleExecutiveOne() throws Exception {
 		final String TEST_NAME = "test232GuybrushAssignRoleExecutiveOne";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1133,7 +1133,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test239GuybrushUnassignRoleControllingOne() throws Exception {
 		final String TEST_NAME = "test239GuybrushUnassignRoleControllingOne";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1158,7 +1158,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test800ApplyGlobalPolicyRulesExclusion() throws Exception {
 		final String TEST_NAME = "test800ApplyGlobalPolicyRulesExclusion";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1180,7 +1180,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test810GuybrushAssignRoleCitizenSk() throws Exception {
 		final String TEST_NAME = "test810GuybrushAssignRoleCitizenSk";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1202,7 +1202,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test812GuybrushAssignRoleCitizenUs() throws Exception {
 		final String TEST_NAME = "test812GuybrushAssignRoleCitizenUs";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1221,7 +1221,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test814GuybrushAssignRoleEmpty() throws Exception {
 		final String TEST_NAME = "test814GuybrushAssignRoleEmpty";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1244,7 +1244,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test818GuybrushUnassignRoleCitizenSk() throws Exception {
 		final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1269,7 +1269,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test819GuybrushUnassignRoleEmpty() throws Exception {
 		final String TEST_NAME = "test818GuybrushUnassignRoleCitizenSk";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1295,7 +1295,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test820GuybrushAssignRoleCriminal() throws Exception {
 		final String TEST_NAME = "test820GuybrushAssignRoleCriminal";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1321,7 +1321,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test822GuybrushAssignRoleMinister() throws Exception {
 		final String TEST_NAME = "test822GuybrushAssignRoleMinister";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1346,7 +1346,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test826GuybrushUnassignRoleCriminal() throws Exception {
 		final String TEST_NAME = "test826GuybrushUnassignRoleCriminal";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1369,7 +1369,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test829GuybrushUnassignRoleMinister() throws Exception {
 		final String TEST_NAME = "test829GuybrushUnassignRoleMinister";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1392,7 +1392,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test900ApplyGlobalPolicyRulesSoDApproval() throws Exception {
 		final String TEST_NAME = "test900ApplyGlobalPolicyRulesSoDApproval";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1419,7 +1419,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test920GuybrushAssignRoleCriminal() throws Exception {
 		final String TEST_NAME = "test920GuybrushAssignRoleCriminal";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1449,7 +1449,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test922GuybrushPreviewAssignRoleMinister() throws Exception {
 		final String TEST_NAME = "test922GuybrushPreviewAssignRoleMinister";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1527,7 +1527,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	@Test
     public void test929GuybrushUnassignRoleCriminal() throws Exception {
 		final String TEST_NAME = "test929GuybrushUnassignRoleCriminal";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

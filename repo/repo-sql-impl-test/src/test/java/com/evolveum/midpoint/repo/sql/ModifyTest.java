@@ -99,7 +99,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(expectedExceptions = SystemException.class, enabled = false)
     public void test010ModifyWithExistingName() throws Exception {
     	final String TEST_NAME = "test010ModifyWithExistingName";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -130,7 +130,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(expectedExceptions = ObjectNotFoundException.class, enabled = false)
     public void test020ModifyNotExistingUser() throws Exception {
     	final String TEST_NAME = "test020ModifyNotExistingUser";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "change-add.xml"),
@@ -146,7 +146,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(enabled = false) // MID-3483
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test030ModifyUserOnNonExistingAccountTest";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -182,7 +182,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(enabled=false) // MID-3483
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test031ModifyUserOnExistingAccountTest";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
         OperationResult result = new OperationResult(TEST_NAME);
@@ -221,7 +221,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test032ModifyTaskObjectRef() throws Exception {
     	final String TEST_NAME = "test032ModifyTaskObjectRef";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TEST_NAME);
         File taskFile = new File(TEST_DIR, "task.xml");
@@ -314,7 +314,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test100ModifyUserAddRole() throws Exception {
     	final String TEST_NAME = "test100ModifyUserAddRole";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult parentResult = new OperationResult("Modify user -> add roles");
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
@@ -356,7 +356,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test110ModifyDeleteObjectChangeFromAccount() throws Exception {
     	final String TEST_NAME = "test110ModifyDeleteObjectChangeFromAccount";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
         PrismObject<ShadowType> accShadow = prismContext.parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
@@ -389,7 +389,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(enabled = false) // MID-3484
     public void test120ModifyAccountMetadata() throws Exception {
     	final String TEST_NAME = "test120ModifyAccountMetadata";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
         OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -493,7 +493,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 	@Test
     public void test130ExtensionModify() throws Exception {
     	final String TEST_NAME = "test130ExtensionModify";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
 
@@ -532,7 +532,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test140ModifyAccountSynchronizationSituation() throws Exception {
     	final String TEST_NAME = "test140ModifyAccountSynchronizationSituation";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("testModifyAccountSynchronizationSituation");
 
@@ -594,7 +594,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test150ModifyRoleAddInducements() throws Exception {
     	final String TEST_NAME = "test150ModifyRoleAddInducements";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TEST_NAME);
 

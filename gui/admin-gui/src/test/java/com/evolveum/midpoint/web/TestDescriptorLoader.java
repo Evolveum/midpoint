@@ -62,7 +62,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
     @Test(enabled=false)
     public void testDescriptorLoader() {
     	final String TEST_NAME = "testDescriptorLoader";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		MidPointApplication midPointApplication = new MidPointApplication();
 		ServletContext mockServletContext = new ServletContext() {

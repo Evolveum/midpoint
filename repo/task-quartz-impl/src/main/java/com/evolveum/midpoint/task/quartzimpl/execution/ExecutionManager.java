@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
 
@@ -620,17 +622,28 @@ public class ExecutionManager {
         }
     }
 
-    public void setLocalExecutionCapabilities(NodeType node) {
-        setLocalExecutionCapabilities(quartzScheduler, node);
+    public void setLocalExecutionLimitations(NodeType node) {
+        setLocalExecutionLimitations(quartzScheduler, node.getTaskExecutionLimitations());
     }
 
-    void setLocalExecutionCapabilities(Scheduler scheduler, NodeType node) {
+    public void setLocalExecutionLimitations(TaskExecutionLimitationsType limitations) {
+        setLocalExecutionLimitations(quartzScheduler, limitations);
+    }
+
+    void setLocalExecutionLimitations(Scheduler scheduler, TaskExecutionLimitationsType limitations) {
         try {
-            Collection<String> newCapabilities = node != null ? node.getExecutionCapability() : Collections.emptySet();
-            Collection<String> oldCapabilities = scheduler.getExecutionCapabilities();
-            scheduler.setExecutionCapabilities(newCapabilities);
-            if (!MiscUtil.unorderedCollectionEquals(oldCapabilities, newCapabilities)) {
-                LOGGER.info("Quartz scheduler execution capabilities set to: {} (were: {})", newCapabilities, oldCapabilities);
+            Map<String, Integer> newLimits = new HashMap<>();
+            if (limitations != null) {
+	            for (TaskGroupExecutionLimitationType limit : limitations.getGroupLimitation()) {
+		            newLimits.put(MiscUtil.nullIfEmpty(limit.getGroupName()), limit.getLimit());
+	            }
+            } else {
+            	// no limits -> everything is allowed
+            }
+            Map<String, Integer> oldLimits = scheduler.getExecutionLimits();    // just for the logging purposes
+            scheduler.setExecutionLimits(newLimits);
+            if (oldLimits == null || !new HashMap<>(oldLimits).equals(newLimits)) {
+                LOGGER.info("Quartz scheduler execution limits set to: {} (were: {})", newLimits, oldLimits);
             }
         } catch (SchedulerException e) {
             // should never occur, as local scheduler shouldn't throw such exceptions

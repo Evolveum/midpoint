@@ -160,7 +160,7 @@ public class LocalNodeManager {
             if (node != null) {
                 Scheduler quartzScheduler = taskManager.getExecutionManager().getQuartzScheduler();
                 if (quartzScheduler != null) {
-                    getGlobalExecutionManager().setLocalExecutionCapabilities(quartzScheduler, node);
+                    getGlobalExecutionManager().setLocalExecutionLimitations(quartzScheduler, node.getTaskExecutionLimitations());
                 }
             } else {
                 LOGGER.warn("Couldn't set Quartz scheduler execution capabilities, because local node object couldn't be correctly read.");

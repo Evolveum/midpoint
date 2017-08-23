@@ -43,7 +43,7 @@ public class TestUnitObjectWrapperFactory extends AbstractGuiUnitTest {
 	@Test
     public void testCreateWrapperUser() throws Exception {
 		final String TEST_NAME = "testCreateWrapperUser";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_REPO_FILE);
 		PrismObjectDefinition<UserType> objDef = user.getDefinition();

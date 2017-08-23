@@ -23,6 +23,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -108,13 +109,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);		
+		super.initSystem(initTask, initResult);
 	}
 	
 	@Test
 	public void test010RefinedSchemaWhite() throws Exception {
 		final String TEST_NAME = "test010RefinedSchemaWhite";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// WHEN
@@ -174,7 +175,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test100UserJackAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test100UserJackAssignBlankAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
@@ -217,7 +218,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
@@ -259,7 +260,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test200UserLemonheadAssignAccountBrokenNetwork() throws Exception {
 		final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
@@ -337,7 +338,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
 		final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
@@ -406,7 +407,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test212UserSharptoothAssignAccountRecovery() throws Exception {
 		final String TEST_NAME = "test212UserSharptoothAssignAccountRecovery";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
@@ -456,7 +457,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	}
 
 	public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAssignmentErrors.class.getName() + "." + TEST_NAME);
@@ -494,7 +495,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test220UserAssignAccountDeletedShadowRecomputeSync() throws Exception {
 		final String TEST_NAME = "test220UserAssignAccountDeletedShadowRecomputeSync";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		//GIVEN
 		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_OID, null,
@@ -550,7 +551,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test222UserAssignAccountDeletedShadowRecomputeNoSync() throws Exception {
 		final String TEST_NAME = "test222UserAssignAccountDeletedShadowRecomputeNoSync";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		//GIVEN
 		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, RESOURCE_DUMMY_RED_OID, RESOURCE_DUMMY_RED_NAME,
@@ -604,7 +605,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test224UserAssignAccountDeletedShadowRecomputeReducedSync() throws Exception {
 		final String TEST_NAME = "test224UserAssignAccountDeletedShadowRecomputeReducedSync";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		//GIVEN
 		PrismObject<UserType> user = setupUserAssignAccountDeletedShadowRecompute(TEST_NAME, 

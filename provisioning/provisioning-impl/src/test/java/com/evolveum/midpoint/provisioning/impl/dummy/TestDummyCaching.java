@@ -88,7 +88,7 @@ public class TestDummyCaching extends TestDummy {
 	@Override
 	public void test107AGetModifiedAccountFromCacheMax() throws Exception {
 		final String TEST_NAME = "test107AGetModifiedAccountFromCacheMax";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -156,7 +156,7 @@ public class TestDummyCaching extends TestDummy {
 	@Override
 	public void test107BGetModifiedAccountFromCacheHighStaleness() throws Exception {
 		final String TEST_NAME = "test107BGetModifiedAccountFromCacheHighStaleness";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -224,7 +224,7 @@ public class TestDummyCaching extends TestDummy {
 	@Override
 	public void test119SearchAllAccountsMaxStaleness() throws Exception {
 		final String TEST_NAME = "test119SearchAllAccountsMaxStaleness";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);

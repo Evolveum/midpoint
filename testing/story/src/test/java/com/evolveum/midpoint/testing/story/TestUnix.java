@@ -1,6 +1,5 @@
-package com.evolveum.midpoint.testing.story;
 /*
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,7 @@ package com.evolveum.midpoint.testing.story;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+package com.evolveum.midpoint.testing.story;
 
 import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -169,10 +168,6 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String USER_STAN_FIST_NAME = "Stan";
 	private static final String USER_STAN_LAST_NAME = "Salesman";
 
-
-
-
-
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
@@ -188,24 +183,18 @@ public class TestUnix extends AbstractStoryTest {
 	private static final String ACCOUNT_GUYBRUSH_USERNAME = "guybrush";
 	private static final String ACCOUNT_GUYBRUSH_FIST_NAME = "Guybrush";
 	private static final String ACCOUNT_GUYBRUSH_LAST_NAME = "Threepwood";
-	
 
 	private static final String ACCOUNT_COBB_USERNAME = "cobb";
 	private static final String ACCOUNT_COBB_FIST_NAME = "Cobb";
 	private static final String ACCOUNT_COBB_LAST_NAME = "Loom";
-
-
 	
 	private static final String ACCOUNT_STAN_USERNAME = "stan";
 	private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
 	private static final String ACCOUNT_STAN_LAST_NAME = "Salesman";
-	
-	
 		
 	private static final String ACCOUNT_AUGUSTUS_USERNAME = "augustus";
 	private static final String ACCOUNT_AUGUSTUS_FIST_NAME = "Augustus";
 	private static final String ACCOUNT_AUGUSTUS_LAST_NAME = "DeWaat";
-
 	
 
     @Autowired(required=true)
@@ -289,8 +278,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -302,7 +291,7 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test010Schema() throws Exception {
 		final String TEST_NAME = "test010Schema";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         resourceOpenDj = getObject(ResourceType.class, RESOURCE_OPENDJ_OID);
         resourceOpenDjType = resourceOpenDj.asObjectable();
@@ -336,18 +325,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test100AddUserHermanBasic() throws Exception {
 		final String TEST_NAME = "test100AddHrAccountHerman";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_HERMAN_USERNAME, USER_HERMAN_FIST_NAME, USER_HERMAN_LAST_NAME, ROLE_BASIC_OID);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(user, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
@@ -364,18 +353,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test110AddUserMancombUnix() throws Exception {
 		final String TEST_NAME = "test110AddUserMancombUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_MANCOMB_USERNAME, USER_MANCOMB_FIST_NAME, USER_MANCOMB_LAST_NAME, ROLE_UNIX_OID);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(user, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_USERNAME);
@@ -392,19 +381,19 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test111AccountMancombEditObjectClassDefinition() throws Exception {
 		final String TEST_NAME = "test111AccountMancombEditObjectClassDefinition";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> shadow = getShadowModel(accountMancombOid);
         display("shadow", shadow);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		RefinedObjectClassDefinition editObjectClassDefinition = modelInteractionService.getEditObjectClassDefinition(shadow, resourceOpenDj, AuthorizationPhaseType.REQUEST);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         display("OC def", editObjectClassDefinition);
@@ -422,18 +411,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test119DeleteUserMancombUnix() throws Exception {
 		final String TEST_NAME = "test119DeleteUserMancombUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_MANCOMB_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		deleteObject(UserType.class, userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_MANCOMB_USERNAME);
@@ -448,18 +437,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test120AddUserLargo() throws Exception {
 		final String TEST_NAME = "test120AddUserLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, (String)null);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(user, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -472,18 +461,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test122AssignUserLargoBasic() throws Exception {
 		final String TEST_NAME = "test122AssignUserLargoBasic";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -502,18 +491,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test124AssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test124AssignUserLargoUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -531,18 +520,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test125RecomputeUserLargo() throws Exception {
 		final String TEST_NAME = "test125RecomputeUserLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -560,18 +549,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test126UnAssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test126UnAssignUserLargoUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
@@ -589,20 +578,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test127RecomputeUserLargo() throws Exception {
 		final String TEST_NAME = "test127RecomputeUserLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -618,20 +607,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test128UnAssignUserLargoBasic() throws Exception {
 		final String TEST_NAME = "test128UnAssignUserLargoBasic";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -646,20 +635,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test129RecomputeUserLargo() throws Exception {
 		final String TEST_NAME = "test129RecomputeUserLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -674,20 +663,19 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test130AssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test130AssignUserLargoUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -704,8 +692,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test131ReconcileUserLargo() throws Exception {
 		final String TEST_NAME = "test131ReconcileUserLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -713,13 +701,12 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		reconcileUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -745,8 +732,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test132MeddleWithAccountAndReconcileUserLargo() throws Exception {
 		final String TEST_NAME = "test132MeddleWithAccountAndReconcileUserLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -773,13 +760,12 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		reconcileUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -806,8 +792,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test133ReconcileUserLargoAgain() throws Exception {
 		final String TEST_NAME = "test133ReconcileUserLargoAgain";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -818,13 +804,12 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		reconcileUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -846,8 +831,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test134AssignUserLargoBasic() throws Exception {
 		final String TEST_NAME = "test134AssignUserLargoBasic";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -855,13 +840,12 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -884,8 +868,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test135UnAssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test135UnAssignUserLargoUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -893,13 +877,12 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -927,8 +910,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test // MID-2883
     public void test136MeddleWithAccountAndReconcileUserLargo() throws Exception {
 		final String TEST_NAME = "test136MeddleWithAccountAndReconcileUserLargo";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -955,13 +938,12 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		reconcileUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -984,8 +966,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test137ReconcileUserLargoAgain() throws Exception {
 		final String TEST_NAME = "test137ReconcileUserLargoAgain";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
@@ -996,13 +978,12 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.clear();
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		reconcileUser(userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -1024,20 +1005,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test138UnAssignUserLargoBasic() throws Exception {
 		final String TEST_NAME = "test138UnAssignUserLargoUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -1052,20 +1033,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test200AddLdapGroupMonkeyIsland() throws Exception {
 		final String TEST_NAME = "test200AddLdapGroupMonkeyIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = createLdapGroupRole(ROLE_MONKEY_ISLAND_NAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(role, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
@@ -1081,20 +1062,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test202AssignUserHermanMonkeyIsland() throws Exception {
 		final String TEST_NAME = "test202AssignUserHermanMonkeyIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(user.getOid(), roleMonkeyIslandOid);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
         assertNotNull("No herman user", userAfter);
         display("User after", userAfter);
@@ -1110,20 +1091,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test210AddUnixGroupVillains() throws Exception {
 		final String TEST_NAME = "test210AddUnixGroupVillains";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = createUnixGroupRole(ROLE_VILLAINS_NAME, ROLE_META_UNIXGROUP_OID);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(role, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
         assertNotNull("No role", roleAfter);
         display("Role after", roleAfter);
@@ -1139,20 +1120,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test211AssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test211AssignUserLargoUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -1168,20 +1149,20 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test212AssignUserLargoVillains() throws Exception {
 		final String TEST_NAME = "test212AssignUserLargoVillains";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = findUserByUsername(USER_LARGO_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(user.getOid(), roleVillainsOid);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user", userAfter);
         display("User after", userAfter);
@@ -1196,22 +1177,21 @@ public class TestUnix extends AbstractStoryTest {
         //openDJController.assertAttribute(groupVillains, "memberUid", Integer.toString(USER_LARGO_UID_NUMBER));
 	}
 	
-/* *************************************************************************** */
 	@Test
     public void test250AddUserRangerBasic() throws Exception {
 		final String TEST_NAME = "test250AddUserRangerBasic";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_RANGER_USERNAME, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME, ROLE_BASIC_OID);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(user, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1228,18 +1208,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test251AssignUserRangerBasic() throws Exception {
 		final String TEST_NAME = "test251AssignUserRangerBasic";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1257,18 +1237,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test252AddUnixGroupRangers() throws Exception {
 		final String TEST_NAME = "test252AddUnixGroupRangers";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = createUnixGroupRole(ROLE_RANGERS_NAME, ROLE_META_UNIXGROUP2_OID);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(role, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
@@ -1286,18 +1266,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test253AddUnixGroupSeals() throws Exception {
 		final String TEST_NAME = "test253AddUnixGroupSeals";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<RoleType> role = createUnixGroupRole(ROLE_SEALS_NAME, ROLE_META_UNIXGROUP2_OID);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(role, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, role.getOid());
@@ -1317,18 +1297,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test254AssignUserRangerRangers() throws Exception {
 		final String TEST_NAME = "test254AssignUserRangerRangers";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = findUserByUsername(USER_RANGER_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(user.getOid(), roleRangersOid);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1337,7 +1317,7 @@ public class TestUnix extends AbstractStoryTest {
         assertUser(userAfter, USER_RANGER_USERNAME, USER_RANGER_FIST_NAME, USER_RANGER_LAST_NAME);
         String accountOid = getSingleLinkOid(userAfter);
         
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         String accountRangerDn = assertPosixAccount(shadow, USER_RANGER_UID_NUMBER);
@@ -1358,18 +1338,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test255AssignUserRangerSeals() throws Exception {
 		final String TEST_NAME = "test255AssignUserRangerSeals";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = findUserByUsername(USER_RANGER_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         assignRole(user.getOid(), roleSealsOid);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1392,18 +1372,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test256UnAssignUserRangerSealsKeepRangers() throws Exception {
 		final String TEST_NAME = "test256UnAssignUserRangerSealsKeepRangers";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), roleSealsOid);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME);
@@ -1431,18 +1411,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test257RenameUserAndAccountsCheckGroupmembership() throws Exception {
 		final String TEST_NAME = "test257RenameUserAndAccountsCheckGroupmembership";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         modifyUserReplace(userBefore.getOid(), UserType.F_NAME, task, result, new PolyString("usranger", "usranger"));
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
@@ -1471,18 +1451,18 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test260DeleteUserUsrangerUnix() throws Exception {
 		final String TEST_NAME = "test260DeleteUserUsrangerUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		deleteObject(UserType.class, userBefore.getOid(), task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_RANGER_USERNAME_RENAMED);
@@ -1500,16 +1480,16 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test270RenameUnixGroupSeals() throws Exception {
 		final String TEST_NAME = "test270RenameUnixGroupSeals";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		renameObject(RoleType.class, roleSealsOid, ROLE_WALRUSES_NAME, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, roleSealsOid);
@@ -1530,8 +1510,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test300AddUserCapsizeUnixFail() throws Exception {
 		final String TEST_NAME = "test300AddUserCapsizeUnixFail";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<SequenceType> sequenceBefore = getObject(SequenceType.class, SEQUENCE_UIDNUMBER_OID);
@@ -1544,7 +1524,7 @@ public class TestUnix extends AbstractStoryTest {
         
         try {
 	        // WHEN
-			TestUtil.displayWhen(TEST_NAME);
+			displayWhen(TEST_NAME);
 	        addObject(user, task, result);
 	        
 	        AssertJUnit.fail("Unexpected success");
@@ -1554,7 +1534,7 @@ public class TestUnix extends AbstractStoryTest {
         }
 
     	// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
     	result.computeStatus();
     	TestUtil.assertFailure(result);
 
@@ -1575,8 +1555,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test310AddUserWallyUnix() throws Exception {
 		final String TEST_NAME = "test310AddUserWallyUnix";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         PrismObject<SequenceType> sequenceBefore = getObject(SequenceType.class, SEQUENCE_UIDNUMBER_OID);
@@ -1587,11 +1567,11 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> user = createUser(USER_WALLY_USERNAME, USER_WALLY_FIST_NAME, USER_WALLY_LAST_NAME, ROLE_UNIX_OID);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         addObject(user, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> userAfter = findUserByUsername(USER_WALLY_USERNAME);
@@ -1616,8 +1596,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test312AccountWallyRemovePosixObjectclassNative() throws Exception {
 		final String TEST_NAME = "test312AccountWallyRemovePosixObjectclassNative";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         openDJController.executeLdifChange("dn: "+accountWallyDn+"\n"+
@@ -1638,11 +1618,11 @@ public class TestUnix extends AbstractStoryTest {
         display("Wally LDAP account before", entryWallyBefore);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountWallyOid, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1667,8 +1647,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test314AccountWallyAddPosixObjectclassNative() throws Exception {
 		final String TEST_NAME = "test314AccountWallyAddPosixObjectclassNative";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         openDJController.executeLdifChange("dn: "+accountWallyDn+"\n"+
@@ -1689,11 +1669,11 @@ public class TestUnix extends AbstractStoryTest {
         display("Wally LDAP account before", entryWallyBefore);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountWallyOid, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1714,19 +1694,19 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test400ListAllAccountsObjectClass() throws Exception {
 		final String TEST_NAME = "test400ListAllAccountsObjectClass";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
         		OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, prismContext);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1737,8 +1717,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test401ListAllAccountsKindIntent() throws Exception {
 		final String TEST_NAME = "test401ListAllAccountsKindIntent";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -1746,11 +1726,11 @@ public class TestUnix extends AbstractStoryTest {
         display("query", query);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1761,8 +1741,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test402ListLdapGroupsKindIntent() throws Exception {
 		final String TEST_NAME = "test402ListLdapGroupsKindIntent";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -1770,11 +1750,11 @@ public class TestUnix extends AbstractStoryTest {
         display("query", query);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
@@ -1785,8 +1765,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
     public void test403ListUnixGroupsKindIntent() throws Exception {
 		final String TEST_NAME = "test403ListUnixGroupsKindIntent";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
@@ -1794,13 +1774,12 @@ public class TestUnix extends AbstractStoryTest {
         display("query", query);
         
         // WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> objects = modelService.searchObjects(ShadowType.class, query, null, task, result);
         
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         
         display("found objects", objects);
         assertEquals("Wrong number of objects found", 3, objects.size());
@@ -1809,21 +1788,21 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
 	public void test500AddUserStan() throws Exception {
 		final String TEST_NAME = "test500AddUserStan";
-		TestUtil.displayTestTile(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> user = createUser(USER_STAN_USERNAME, USER_STAN_FIST_NAME, USER_STAN_LAST_NAME, roleRangersOid);
 		addRoleAssignment(user, roleMonkeyIslandOid);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		addObject(user, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
 		PrismObject<UserType> userAfter = findUserByUsername(USER_STAN_USERNAME);
 		assertNotNull("No stan user", userAfter);
 		display("User after", userAfter);
@@ -1843,8 +1822,8 @@ public class TestUnix extends AbstractStoryTest {
 	@Test
 	public void test510StanDisablePosixAssocAndReconcile() throws Exception {
 		final String TEST_NAME = "test510StanDisablePosixAssocAndReconcile";
-		TestUtil.displayTestTile(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestUnix.class.getName() + "." + TEST_NAME);
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> userStan = findUserByUsername(USER_STAN_USERNAME);
@@ -1863,13 +1842,13 @@ public class TestUnix extends AbstractStoryTest {
 		repositoryService.modifyObject(UserType.class, userStan.getOid(), itemDeltas, result);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		reconcileUser(userStan.getOid(), task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
 		PrismObject<UserType> userAfter = findUserByUsername(USER_STAN_USERNAME);
 		assertNotNull("No stan user", userAfter);
 		display("User after", userAfter);

@@ -88,7 +88,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
      */
 	@Test
     public void test010AddJackToTesters() throws Exception {
-        TestUtil.displayTestTile(this, "test010AddJackToTesters");
+        TestUtil.displayTestTitle(this, "test010AddJackToTesters");
         executeTest("test010AddJackToTesters", USER_JACK_OID, new TestDetails() {
             @Override
             int subtaskCount() {
@@ -164,7 +164,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
      */
     @Test
     public void test020AddElisabethToTestersRejected() throws Exception {
-        TestUtil.displayTestTile(this, "test020AddElisabethToTestersRejected");
+        TestUtil.displayTestTitle(this, "test020AddElisabethToTestersRejected");
         executeTest("test020AddElisabethToTestersRejected", USER_ELISABETH_OID, new TestDetails() {
             @Override
             int subtaskCount() {
@@ -241,7 +241,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
     @Test
     public void test100AddJackToGuests() throws Exception {
         final String TEST_NAME = "test100AddJackToGuests";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task modelTask = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = new OperationResult(TEST_NAME);

@@ -100,7 +100,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Test
 	public void test175SearchUidCase() throws Exception {
 		final String TEST_NAME = "test175SearchUidCase";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
 				SchemaConstants.ICFS_UID, "wIlL", null, true,
 				transformNameFromResource("Will"));
@@ -109,7 +109,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Test
 	public void test176SearchUidCaseNoFetch() throws Exception {
 		final String TEST_NAME = "test176SearchUidCaseNoFetch";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
 				SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
 				transformNameFromResource("Will"));
@@ -121,7 +121,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Test
 	public void test280EntitleAccountWillPiratesAlreadyThere() throws Exception {
 		final String TEST_NAME = "test280EntitleAccountWillPiratesAlreadyThere";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -162,7 +162,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Test
 	public void test282DetitleAccountWillPirates() throws Exception {
 		final String TEST_NAME = "test282DetitleAccountWillPirates";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -203,7 +203,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Test
 	public void test285EntitleAccountWillPiratesAlreadyThereCaseIgnore() throws Exception {
 		final String TEST_NAME = "test285EntitleAccountWillPiratesAlreadyThereCaseIgnore";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
@@ -244,7 +244,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Test
 	public void test289DetitleAccountWillPirates() throws Exception {
 		final String TEST_NAME = "test289DetitleAccountWillPirates";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -284,7 +284,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	@Test
 	public void test511AddProtectedAccountCaseIgnore() throws Exception {
 		final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		testAddProtectedAccount(TEST_NAME, "xaxa");
 		testAddProtectedAccount(TEST_NAME, "somebody-ADM");

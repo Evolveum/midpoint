@@ -101,7 +101,7 @@ public class Initializer {
 
         taskManager.getExecutionManager().initializeLocalScheduler();
         if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
-            taskManager.getExecutionManager().setLocalExecutionCapabilities(node);
+            taskManager.getExecutionManager().setLocalExecutionLimitations(node);
         } else {
             taskManager.getExecutionManager().shutdownLocalSchedulerChecked();
         }

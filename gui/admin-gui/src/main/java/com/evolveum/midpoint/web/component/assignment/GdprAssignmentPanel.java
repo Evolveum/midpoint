@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel{
@@ -65,7 +66,6 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel{
 					}
 				};
 			}
-			
 		
 		});
 		
@@ -76,5 +76,13 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel{
 	protected boolean isRelationVisible() {
 		return false;
 	}
+	
+	@Override
+	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
+			QName relation) {
+		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT);
+	}
+	
+	
 	
 }

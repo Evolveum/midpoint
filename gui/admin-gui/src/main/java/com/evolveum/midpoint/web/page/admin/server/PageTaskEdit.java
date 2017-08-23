@@ -28,10 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +46,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.wicket.Component;
@@ -61,6 +59,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author mederly
@@ -82,6 +82,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	public static final String DOT_CLASS = PageTaskEdit.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
+	private static final String OPERATION_LOAD_NODES = DOT_CLASS + "loadNodes";
 	static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 	static final String OPERATION_DELETE_SYNC_TOKEN = DOT_CLASS + "deleteSyncToken";
 
@@ -102,6 +103,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	private TaskMainPanel mainPanel;
 	private IModel<AutoRefreshDto> refreshModel;
 	private IModel<Boolean> showAdvancedFeaturesModel;
+	private IModel<List<NodeType>> nodeListModel;
 
 	public PageTaskEdit(PageParameters parameters) {
 		taskOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
@@ -128,6 +130,20 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			}
 		};
 		showAdvancedFeaturesModel = new Model<>(false);		// todo save setting in session
+		nodeListModel = new LoadableModel<List<NodeType>>(false) {
+			@Override
+			protected List<NodeType> load() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_NODES);
+				Task opTask = getTaskManager().createTaskInstance(OPERATION_LOAD_NODES);
+				try {
+					return PrismObject.asObjectableList(
+							getModelService().searchObjects(NodeType.class, null, null, opTask, result));
+				} catch (Throwable t) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve nodes", t);
+					return Collections.emptyList();
+				}
+			}
+		};
 		edit = false;
 		initLayout();
 	}
@@ -162,7 +178,11 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskType;
 	}
 
-	TaskType loadTaskType(String taskOid, Task operationTask, OperationResult result) {
+	public IModel<List<NodeType>> getNodeListModel() {
+		return nodeListModel;
+	}
+
+	private TaskType loadTaskType(String taskOid, Task operationTask, OperationResult result) {
 		TaskType taskType = null;
 
 		try {
