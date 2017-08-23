@@ -82,7 +82,7 @@ public class TestDummyNoActivation extends TestDummy {
 	@Override
 	public void test150DisableAccount() throws Exception {
 		final String TEST_NAME = "test150DisableAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -129,7 +129,7 @@ public class TestDummyNoActivation extends TestDummy {
 	@Override
 	public void test152ActivationStatusUndefinedAccount() throws Exception {
 		final String TEST_NAME = "test152ActivationStatusUndefinedAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -173,7 +173,7 @@ public class TestDummyNoActivation extends TestDummy {
 	@Override
 	public void test154EnableAccount() throws Exception {
 		final String TEST_NAME = "test154EnableAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -222,7 +222,7 @@ public class TestDummyNoActivation extends TestDummy {
 	@Override
 	public void test156SetValidFrom() throws Exception {
 		final String TEST_NAME = "test156SetValidFrom";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -268,7 +268,7 @@ public class TestDummyNoActivation extends TestDummy {
 	@Override
 	public void test157SetValidTo() throws Exception {
 		final String TEST_NAME = "test157SetValidTo";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -313,7 +313,7 @@ public class TestDummyNoActivation extends TestDummy {
 	@Override
 	public void test158DeleteValidToValidFrom() throws Exception {
 		final String TEST_NAME = "test158DeleteValidToValidFrom";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
@@ -376,7 +376,7 @@ public class TestDummyNoActivation extends TestDummy {
 	@Override
 	public void test162UnlockAccount() throws Exception {
 		final String TEST_NAME = "test162UnlockAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);

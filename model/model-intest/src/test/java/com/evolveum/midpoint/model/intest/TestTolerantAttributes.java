@@ -68,7 +68,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	
 	@Test
     public void test100ModifyUserAddAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
+        TestUtil.displayTestTitle(this, "test100ModifyUserAddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test100ModifyUserAddAccount");
@@ -128,7 +128,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	
 	@Test
 	public void test101modifyAddAttributesIntolerantPattern() throws Exception{
-		 TestUtil.displayTestTile(this, "test101modifyAddAttributesIntolerantPattern");
+		 TestUtil.displayTestTitle(this, "test101modifyAddAttributesIntolerantPattern");
 
 	        // GIVEN
 	        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test101modifyAddAttributesIntolerantPattern");
@@ -176,7 +176,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	
 	@Test
 	public void test102modifyAddAttributeTolerantPattern() throws Exception{
-		 TestUtil.displayTestTile(this, "test102modifyAddAttributeTolerantPattern");
+		 TestUtil.displayTestTitle(this, "test102modifyAddAttributeTolerantPattern");
 
 	        // GIVEN
 	        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test102modifyAddAttributeTolerantPattern");
@@ -224,7 +224,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	
 	@Test
 	public void test103modifyReplaceAttributeIntolerant() throws Exception{
-		 TestUtil.displayTestTile(this, "test103modifyReplaceAttributeIntolerant");
+		 TestUtil.displayTestTitle(this, "test103modifyReplaceAttributeIntolerant");
 
 	        // GIVEN
 	        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test103modifyReplaceAttributeIntolerant");
@@ -271,7 +271,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	
 	@Test
 	public void test104modifyReplaceAttributeTolerantPattern() throws Exception{
-		 TestUtil.displayTestTile(this, "test104modifyReplaceAttributeTolerantPattern");
+		 TestUtil.displayTestTitle(this, "test104modifyReplaceAttributeTolerantPattern");
 
 	        // GIVEN
 	        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test104modifyReplaceAttributeTolerantPattern");
@@ -319,7 +319,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
 	@Test
 	public void test105modifyAddNonTolerantAttribute() throws Exception{
-		 TestUtil.displayTestTile(this, "test105modifyAddNonTolerantAttribute");
+		 TestUtil.displayTestTitle(this, "test105modifyAddNonTolerantAttribute");
 
 	        // GIVEN
 	        Task task = taskManager.createTaskInstance(TestTolerantAttributes.class.getName() + ".test105modifyAddNonTolerantAttribute");

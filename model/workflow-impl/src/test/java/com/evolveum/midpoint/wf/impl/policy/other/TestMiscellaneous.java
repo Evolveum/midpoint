@@ -59,7 +59,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test100RequesterComment() throws Exception {
 		final String TEST_NAME = "test100RequesterComment";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -119,7 +119,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test110RequestPrunedRole() throws Exception {
 		final String TEST_NAME = "test110RequestPrunedRole";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -159,7 +159,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test200GetRoleByTemplate() throws Exception {
 		final String TEST_NAME = "test200GetRoleByTemplate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -183,7 +183,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test210GetRoleByTemplateAfterAssignments() throws Exception {
 		final String TEST_NAME = "test210GetRoleByTemplateAfterAssignments";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -208,7 +208,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test220GetRoleByFocusMappings() throws Exception {
 		final String TEST_NAME = "test220GetRoleByFocusMappings";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -231,7 +231,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test250SkippingApprovals() throws Exception {
 		final String TEST_NAME = "test250SkippingApprovals";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);

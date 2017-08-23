@@ -56,7 +56,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -88,7 +88,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test012SearchAllCases() throws Exception {
         final String TEST_NAME = "test012SearchAllCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -110,7 +110,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test014Statistics() throws Exception {
         final String TEST_NAME = "test014Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -139,7 +139,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         final String TEST_NAME = "test020OpenFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -181,7 +181,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test024Statistics() throws Exception {
         final String TEST_NAME = "test024Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -211,7 +211,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test030SearchAllCases() throws Exception {
         final String TEST_NAME = "test030SearchCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -235,7 +235,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test050SearchDecisionsAdministrator() throws Exception {
         final String TEST_NAME = "test050SearchDecisionsAdministrator";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         login(userAdministrator.asPrismObject());
@@ -269,7 +269,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test051SearchDecisionsElaine() throws Exception {
         final String TEST_NAME = "test051SearchDecisionsElaine";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         login(userElaine.asPrismObject());
@@ -299,7 +299,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test052SearchDecisionsJack() throws Exception {
         final String TEST_NAME = "test052SearchDecisionsJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         login(userJack.asPrismObject());
@@ -336,7 +336,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test100RecordDecisions() throws Exception {
         final String TEST_NAME = "test100RecordDecisions";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         login(userAdministrator.asPrismObject());
@@ -390,7 +390,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test110Statistics() throws Exception {
         final String TEST_NAME = "test110Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -420,7 +420,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test150CloseFirstStage() throws Exception {
         final String TEST_NAME = "test150CloseFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -466,7 +466,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test160Statistics() throws Exception {
         final String TEST_NAME = "test160Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -495,7 +495,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test200OpenSecondStage() throws Exception {
         final String TEST_NAME = "test200OpenSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -550,7 +550,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test210Statistics() throws Exception {
         final String TEST_NAME = "test210Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -579,7 +579,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test220StatisticsAllStages() throws Exception {
         final String TEST_NAME = "test220StatisticsAllStages";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -608,7 +608,7 @@ public class TestRoleInducementCertification extends AbstractCertificationTest {
     @Test
     public void test250RecordDecisionsSecondStage() throws Exception {
         final String TEST_NAME = "test250RecordDecisionsSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -688,7 +688,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
     @Test
     public void test260Statistics() throws Exception {
         final String TEST_NAME = "test260Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -717,7 +717,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
     @Test
     public void test290CloseSecondStage() throws Exception {
         final String TEST_NAME = "test290CloseSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -771,7 +771,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
     @Test
     public void test300StartRemediation() throws Exception {
         final String TEST_NAME = "test300StartRemediation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -838,7 +838,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
     @Test
     public void test310Statistics() throws Exception {
         final String TEST_NAME = "test310Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);

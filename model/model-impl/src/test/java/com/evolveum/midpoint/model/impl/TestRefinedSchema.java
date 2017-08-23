@@ -78,7 +78,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
         refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), prismContext);
@@ -92,7 +92,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test010SanityModel() throws Exception {
 		final String TEST_NAME = "test010SanityModel";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
         refinedSchemaModel = RefinedResourceSchemaImpl.getRefinedSchema(getDummyResourceType(), LayerType.MODEL, prismContext);
@@ -109,7 +109,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test100EntitlementRefinedObjectClasses() throws Exception {
 		final String TEST_NAME = "test100EntitlementRefinedObjectClasses";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
         Collection<? extends RefinedObjectClassDefinition> entitlementROcDefs = refinedSchema.getRefinedDefinitions(ShadowKindType.ENTITLEMENT);
@@ -128,7 +128,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test101EntitlementRefinedObjectClassesModel() throws Exception {
 		final String TEST_NAME = "test101EntitlementRefinedObjectClassesModel";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
         Collection<? extends RefinedObjectClassDefinition> entitlementROcDefs = refinedSchemaModel.getRefinedDefinitions(ShadowKindType.ENTITLEMENT);
@@ -147,7 +147,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test110DetermineObjectClassObjectClass() throws Exception {
 		final String TEST_NAME = "test110DetermineObjectClassObjectClass";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
         
@@ -170,7 +170,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test112DetermineObjectClassKindIntent() throws Exception {
 		final String TEST_NAME = "test112DetermineObjectClassKindIntent";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
         
@@ -193,7 +193,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test114DetermineObjectClassKindIntentObjectClass() throws Exception {
 		final String TEST_NAME = "test114DetermineObjectClassKindIntentObjectClass";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
         
@@ -216,7 +216,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test120DetermineObjectClassObjectClassModel() throws Exception {
 		final String TEST_NAME = "test120DetermineObjectClassObjectClassModel";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
         
@@ -240,7 +240,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test122DetermineObjectClassKindIntentModel() throws Exception {
 		final String TEST_NAME = "test122DetermineObjectClassKindIntentModel";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
         
@@ -265,7 +265,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
 	@Test
     public void test124DetermineObjectClassKindIntentObjectClassModel() throws Exception {
 		final String TEST_NAME = "test124DetermineObjectClassKindIntentObjectClassModel";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         OperationResult result = new OperationResult(TestRefinedSchema.class.getName()  + "." + TEST_NAME);
         

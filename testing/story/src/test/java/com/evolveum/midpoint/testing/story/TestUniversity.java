@@ -183,7 +183,7 @@ public class TestUniversity extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
@@ -200,7 +200,7 @@ public class TestUniversity extends AbstractStoryTest {
 	@Test
     public void test100AddComeniusUniversity() throws Exception {
 		final String TEST_NAME = "test100AddComeniusUniversity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
 		DummyPrivilege comenius = new DummyPrivilege("UK");
@@ -225,7 +225,7 @@ public class TestUniversity extends AbstractStoryTest {
 	@Test
 	public void test110AddComeniusStructure() throws Exception {
 		final String TEST_NAME = "test110AddComeniusStructure";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
 		DummyPrivilege srcFmfi = new DummyPrivilege("FMFI");
@@ -300,7 +300,7 @@ public class TestUniversity extends AbstractStoryTest {
 	@Test
 	public void test120MoveComputingCentre() throws Exception {
 		final String TEST_NAME = "test120MoveComputingCentre";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
 		DummyPrivilege srcVc = dummyResourceHr.getPrivilegeByName("VC");

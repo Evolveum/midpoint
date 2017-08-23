@@ -76,7 +76,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
     @Test
     public void test010HireIndigo() throws Exception {
         final String TEST_NAME = "test010HireIndigo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAdHocCertification.class.getName() + "." + TEST_NAME);
@@ -107,7 +107,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
     @Test
     public void test020ModifyIndigo() throws Exception {
         final String TEST_NAME = "test020ModifyIndigo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestAdHocCertification.class.getName() + "." + TEST_NAME);

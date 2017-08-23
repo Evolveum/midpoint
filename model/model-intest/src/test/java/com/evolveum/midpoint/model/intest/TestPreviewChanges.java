@@ -198,7 +198,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicit(String bundleName, ObjectSource<PrismObject<ShadowType>> accountSource, 
     		ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "Implicit";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -219,7 +219,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountExplicit(String bundleName, ObjectSource<PrismObject<ShadowType>> accountSource, 
     		ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "Explicit";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -237,7 +237,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitSame(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitSame";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -259,7 +259,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitSameReverse(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitSameReverse";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -281,7 +281,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitEqual(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitEqual";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -303,7 +303,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitEqualReverse(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitEqualReverse";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 	
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -325,7 +325,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitNotEqual(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitNotEqual";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
     
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -349,7 +349,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     private void modifyUserAddAccountImplicitExplicitNotEqualReverse(String bundleName, 
     		ObjectSource<PrismObject<ShadowType>> accountSource, ObjectChecker<ModelContext<UserType>> checker) throws Exception {
 		final String TEST_NAME = bundleName + "ImplicitExplicitNotEqualReverse";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -450,7 +450,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test130GetAdminGuiConfig() throws Exception {
 		final String TEST_NAME = "test130GetAdminGuiConfig";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -475,7 +475,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test150GetGuybrushRefinedObjectClassDef() throws Exception {
 		final String TEST_NAME = "test150GetGuybrushRefinedObjectClassDef";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -501,7 +501,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test200ModifyUserGuybrushDeleteAccount() throws Exception {
 		final String TEST_NAME = "test200ModifyUserGuybrushDeleteAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -550,7 +550,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test210GuybrushAddAccount() throws Exception {
 		final String TEST_NAME = "test210GuybrushAddAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -601,7 +601,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test212ModifyUserAddAccountRef() throws Exception {
         final String TEST_NAME = "test212ModifyUserAddAccountRef";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -658,7 +658,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test220PreviewJackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test220PreviewJackAssignRolePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -755,7 +755,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test230GuybrushAssignAccountDummy() throws Exception {
 		final String TEST_NAME = "test230GuybrushAssignAccountDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -789,7 +789,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test232PreviewGuybrushAddRolePirate() throws Exception {
 		final String TEST_NAME = "test232PreviewGuybrushAddRolePirate";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -857,7 +857,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test234PreviewGuybrushAddRolePirateRecon() throws Exception {
 		final String TEST_NAME = "test234PreviewGuybrushAddRolePirateRecon";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -927,7 +927,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test236PreviewGuybrushAddRoleSailor() throws Exception {
 		final String TEST_NAME = "test236PreviewGuybrushAddRoleSailor";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -978,7 +978,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test239GuybrushUnAssignAccountDummy() throws Exception {
 		final String TEST_NAME = "test239GuybrushUnAssignAccountDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1004,7 +1004,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test240GuybrushAssignAccountDummyRelative() throws Exception {
 		final String TEST_NAME = "test240GuybrushAssignAccountDummyRelative";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1033,7 +1033,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test242PreviewGuybrushAddRolePirateRelative() throws Exception {
 		final String TEST_NAME = "test242PreviewGuybrushAddRolePirateRelative";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1101,7 +1101,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test244PreviewGuybrushAddRolePirateRelativeRecon() throws Exception {
 		final String TEST_NAME = "test244PreviewGuybrushAddRolePirateRelativeRecon";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1166,7 +1166,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test249GuybrushUnAssignAccountDummyRelative() throws Exception {
 		final String TEST_NAME = "test249GuybrushUnAssignAccountDummyRelative";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1220,7 +1220,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test300ModifyElaineAccountDummyReplace() throws Exception {
         final String TEST_NAME = "test300ModifyElaineAccountDummyReplace";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1276,7 +1276,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test301ModifyElaineAccountDummyDeleteAdd() throws Exception {
         final String TEST_NAME = "test301ModifyElaineAccountDummyDeleteAdd";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1337,7 +1337,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test400ModifyElaineAccountDummyRedReplace() throws Exception {
         final String TEST_NAME = "test400ModifyElaineAccountDummyRedReplace";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1373,7 +1373,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test401ModifyElaineAccountDummyRedDeleteAdd() throws Exception {
         final String TEST_NAME = "test401ModifyElaineAccountDummyRedDeleteAdd";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1411,7 +1411,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test500ModifyElaineAccountDummyBlueReplace() throws Exception {
         final String TEST_NAME = "test500ModifyElaineAccountDummyBlueReplace";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1467,7 +1467,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test501ModifyElaineAccountDummyBlueDeleteAdd() throws Exception {
         final String TEST_NAME = "test501ModifyElaineAccountDummyBlueDeleteAdd";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1531,7 +1531,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test600ModifyElaineUserDummyReplace() throws Exception {
         final String TEST_NAME = "test600ModifyElaineUserDummyReplace";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1624,7 +1624,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test610ModifyElaineUserAccountDummyReplace() throws Exception {
         final String TEST_NAME = "test610ModifyElaineUserAccountDummyReplace";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1728,7 +1728,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test620AddUserCapsize() throws Exception {
         final String TEST_NAME = "test620AddUserCapsize";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1817,7 +1817,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
 	public void test630AddUserRogers() throws Exception {
 		final String TEST_NAME = "test630AddUserRogers";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1913,7 +1913,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test700DisableElaineAccountTwoResources() throws Exception {
         final String TEST_NAME = "test700DisableElaineAccountTwoResources";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

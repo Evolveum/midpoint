@@ -99,7 +99,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100RecomputeAll() throws Exception {
 		final String TEST_NAME = "test100RecomputeAll";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -259,7 +259,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test110RecomputeSome() throws Exception {
 		final String TEST_NAME = "test110RecomputeSome";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -318,7 +318,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test120RecomputeByExpression() throws Exception {
 		final String TEST_NAME = "test120RecomputeByExpression";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -377,7 +377,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	@Test
 	public void test130RecomputeLight() throws Exception {
 		final String TEST_NAME = "test130RecomputeLight";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);

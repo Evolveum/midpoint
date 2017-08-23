@@ -96,7 +96,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	@Test
 	public void test770AddAccountFettuciniAlfredo() throws Exception {
 		final String TEST_NAME = "test770AddAccountFettuciniAlfredo";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_ALFREDO_FILE, ACCOUNT_FETTUCINI_ALFREDO_OID, ACCOUNT_FETTUCINI_ALFREDO_FULLNAME);
 		searchFettucini(1);
 	}
@@ -104,7 +104,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	@Test
 	public void test772AddAccountFettuciniBill() throws Exception {
 		final String TEST_NAME = "test772AddAccountFettuciniBill";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_BILL_FILE, ACCOUNT_FETTUCINI_BILL_OID, ACCOUNT_FETTUCINI_BILL_FULLNAME);
 		searchFettucini(2);
 	}
@@ -115,7 +115,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	@Test
 	public void test774AddAccountFettuciniCarlo() throws Exception {
 		final String TEST_NAME = "test774AddAccountFettuciniCarlo";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		dummyResourceCtl.addAccount(ACCOUNT_FETTUCINI_NAME, ACCOUNT_FETTUCINI_CARLO_FULLNAME);
 		searchFettucini(3);
 	}

@@ -214,7 +214,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     @Test
     public void test100TreeImport() throws Exception {
         final String TEST_NAME = "test100TreeImport";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
@@ -242,7 +242,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     @Test
     public void test200MoveRootChild() throws Exception {
         final String TEST_NAME = "test200MoveRootChild";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         //todo move one child of one root to root position
     }

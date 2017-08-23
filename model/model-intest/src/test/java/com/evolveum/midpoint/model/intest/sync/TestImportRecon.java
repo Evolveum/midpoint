@@ -315,7 +315,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test001SanityAzure() throws Exception {
 		final String TEST_NAME = "test001SanityAzure";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         display("Dummy resource azure", dummyResourceAzure);
         
@@ -334,7 +334,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test002SanityAzureRefined() throws Exception {
 		final String TEST_NAME = "test002SanityAzureRefined";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // WHEN
         RefinedResourceSchema refinedSchemaAzure = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummyAzureType, prismContext);
@@ -351,7 +351,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100ImportStanFromResourceDummy() throws Exception {
 		final String TEST_NAME = "test100ImportStanFromResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -396,7 +396,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test150ImportFromResourceDummy() throws Exception {
 		final String TEST_NAME = "test150ImportFromResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -462,7 +462,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test155ImportFromResourceDummyAgain() throws Exception {
 		final String TEST_NAME = "test155ImportFromResourceDummyAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -517,7 +517,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test160ImportFromResourceDummyLime() throws Exception {
 		final String TEST_NAME = "test160ImportFromResourceDummyLime";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -586,7 +586,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test162ImportFromResourceDummyLimeRappOrganizationScummBar() throws Exception {
 		final String TEST_NAME = "test162ImportFromResourceDummyLimeRappOrganizationScummBar";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -665,7 +665,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test164ImportFromResourceDummyLimeRappOrganizationNull() throws Exception {
 		final String TEST_NAME = "test164ImportFromResourceDummyLimeRappOrganizationNull";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -741,7 +741,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ReconcileDummy() throws Exception {
 		final String TEST_NAME = "test200ReconcileDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -861,7 +861,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210ReconcileDummyBroken() throws Exception {
 		final String TEST_NAME = "test210ReconcileDummyBroken";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -933,7 +933,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test219ReconcileDummyFixed() throws Exception {
 		final String TEST_NAME = "test219ReconcileDummyFixed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1013,7 +1013,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220ReconcileDummyBrokenGuybrush() throws Exception {
 		final String TEST_NAME = "test220ReconcileDummyBrokenGuybrush";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1088,7 +1088,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test229ReconcileDummyFixed() throws Exception {
 		final String TEST_NAME = "test229ReconcileDummyFixed";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1171,7 +1171,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test230ReconcileDummyRename() throws Exception {
 		final String TEST_NAME = "test230ReconcileDummyRename";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1294,7 +1294,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test300ReconcileDummyAzureAddAccountOtis() throws Exception {
 		final String TEST_NAME = "test300ReconcileDummyAzureAddAccountOtis";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1359,7 +1359,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test310ReconcileDummyAzureAgain() throws Exception {
 		final String TEST_NAME = "test310ReconcileDummyAzureAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1426,7 +1426,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test320ReconcileDummyAzureDeleteOtis() throws Exception {
 		final String TEST_NAME = "test320ReconcileDummyAzureDeleteOtis";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1496,7 +1496,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test330ReconcileDummyAzureAddAccountRapp() throws Exception {
 		final String TEST_NAME = "test330ReconcileDummyAzureAddAccountRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1591,7 +1591,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test332ModifyUserRappAndReconcileDummyAzure() throws Exception {
 		final String TEST_NAME = "test332ModifyUserRappAndReconcileDummyAzure";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1674,7 +1674,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test334AssignRoleCorpseToRappAndReconcileDummyAzure() throws Exception {
 		final String TEST_NAME = "test334AssignRoleCorpseToRappAndReconcileDummyAzure";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1743,7 +1743,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test339ReconcileDummyAzureDeleteRapp() throws Exception {
 		final String TEST_NAME = "test339ReconcileDummyAzureDeleteRapp";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1818,7 +1818,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400ReconcileDummyLimeAddAccount() throws Exception {
 		final String TEST_NAME = "test400ReconcileDummyLimeAddAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1872,7 +1872,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test401ReconcileDummyLimeKateOnlyEmpty() throws Exception {
 		final String TEST_NAME = "test401ReconcileDummyLimeKateOnlyEmpty";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1922,7 +1922,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test402ReconcileDummyLimeKateOnlyGrog() throws Exception {
 		final String TEST_NAME = "test402ReconcileDummyLimeKateOnlyGrog";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1970,7 +1970,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test403ReconcileDummyLimeKateOnlyNoValue() throws Exception {
 		final String TEST_NAME = "test403ReconcileDummyLimeKateOnlyNoValue";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2017,7 +2017,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test404ReconcileDummyLimeKateOnlyRum() throws Exception {
 		final String TEST_NAME = "test404ReconcileDummyLimeKateOnlyRum";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2065,7 +2065,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test405ReconcileDummyLimeKateOnlyEmpty() throws Exception {
 		final String TEST_NAME = "test405ReconcileDummyLimeKateOnlyEmpty";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2113,7 +2113,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test406ReconcileDummyLimeKateOnlyEmptyAgain() throws Exception {
 		final String TEST_NAME = "test406ReconcileDummyLimeKateOnlyEmptyAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2156,7 +2156,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test410ReconcileDummyLimeKatePassword() throws Exception {
 		final String TEST_NAME = "test410ReconcileDummyLimeKatePassword";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2204,7 +2204,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test420ReconcileDummyLimeDeleteLinkedAccount() throws Exception {
 		final String TEST_NAME = "test420ReconcileDummyLimeDeleteLinkedAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2258,7 +2258,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test500ImportTAugustusFromResourceDummy() throws Exception {
 		final String TEST_NAME = "test500ImportTAugustusFromResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2321,7 +2321,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test502ImportAugustusFromResourceDummy() throws Exception {
 		final String TEST_NAME = "test502ImportAugustusFromResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2388,7 +2388,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test510ImportFromResourceDummy() throws Exception {
 		final String TEST_NAME = "test510ImportFromResourceDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2478,7 +2478,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test600SearchAllDummyAccounts() throws Exception {
 		final String TEST_NAME = "test600SearchAllDummyAccounts";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2504,7 +2504,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test610SearchDummyAccountsNameSubstring() throws Exception {
 		final String TEST_NAME = "test610SearchDummyAccountsNameSubstring";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2534,7 +2534,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test900DeleteDummyShadows() throws Exception {
 		final String TEST_NAME = "test900DeleteDummyShadows";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2580,7 +2580,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test910DeleteDummyAccounts() throws Exception {
 		final String TEST_NAME = "test910DeleteDummyAccounts";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

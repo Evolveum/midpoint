@@ -112,7 +112,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void testHello() throws Exception {
 		final String TEST_NAME = "testHello";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
         assertExecuteScriptExpressionString(TEST_NAME, null, "Hello swashbuckler");
 	}
@@ -126,7 +126,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetUserByOid() throws Exception {
         final String TEST_NAME = "testGetUserByOid";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
@@ -141,7 +141,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetManagersOids() throws Exception {
         final String TEST_NAME = "testGetManagersOids";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
@@ -174,7 +174,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testIsUniquePropertyValue() throws Exception {
         final String TEST_NAME = "testIsUniquePropertyValue";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
@@ -201,14 +201,14 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetOrgByName() throws Exception {
         final String TEST_NAME = "testGetOrgByName";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         assertExecuteScriptExpressionString(TEST_NAME, null, F0006_OID);
     }
     
     @Test
     public void testGetLinkedShadowName() throws Exception {
         final String TEST_NAME = "testGetLinkedShadowName";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
@@ -222,7 +222,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetLinkedShadowKindIntentUsername() throws Exception {
         final String TEST_NAME = "testGetLinkedShadowKindIntentUsername";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
@@ -236,7 +236,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetLinkedShadowKindIntentFullname() throws Exception {
         final String TEST_NAME = "testGetLinkedShadowKindIntentFullname";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
@@ -250,7 +250,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetLinkedShadowNameRepo() throws Exception {
         final String TEST_NAME = "testGetLinkedShadowNameRepo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
@@ -264,7 +264,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetLinkedShadowKindIntentUsernameRepo() throws Exception {
         final String TEST_NAME = "testGetLinkedShadowKindIntentUsernameRepo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         
@@ -278,7 +278,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
     @Test
     public void testGetLinkedShadowKindIntentFullnameRepo() throws Exception {
         final String TEST_NAME = "testGetLinkedShadowKindIntentFullnameRepo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
         

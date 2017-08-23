@@ -78,7 +78,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test020ModifyUser() throws Exception {
     	final String TEST_NAME = "test020ModifyUser";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	OperationResult result = new OperationResult(TEST_NAME);
     	
@@ -105,7 +105,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test021ModifyUserNoEmpNum() throws Exception {
     	final String TEST_NAME = "test021ModifyUserNoEmpNum";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	OperationResult result = new OperationResult(TEST_NAME);
     	
@@ -132,7 +132,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     @Test
     public void test022ModifyUserEmptyEmpNum() throws Exception {
     	final String TEST_NAME = "test022ModifyUserEmptyEmpNum";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	OperationResult result = new OperationResult(TEST_NAME);
     	

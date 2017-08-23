@@ -193,7 +193,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         OperationResult testResultAd = modelService.testResource(RESOURCE_DUMMY_AD_OID, task);
@@ -209,7 +209,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test100JackAssignAccountAd() throws Exception {
 		final String TEST_NAME = "test100JackAssignAccountAd";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -275,7 +275,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test105JackUnAssignAccountAd() throws Exception {
 		final String TEST_NAME = "test105JackUnAssignAccountAd";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -341,7 +341,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test109JackAccountAdGone() throws Exception {
 		final String TEST_NAME = "test109JackAccountAdGone";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -380,7 +380,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test120AJackssignAccountMail() throws Exception {
 		final String TEST_NAME = "test120JackAssignAccountMail";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -455,7 +455,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test125JackUnAssignAccountMail() throws Exception {
 		final String TEST_NAME = "test125JackUnAssignAccountMail";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -529,7 +529,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test129JackAccountMailGone() throws Exception {
 		final String TEST_NAME = "test129JackAccountMailGone";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -579,7 +579,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test150JackAssignRoleEmployee() throws Exception {
 		final String TEST_NAME = "test150JackAssignRoleEmployee";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -696,7 +696,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test160AngelicaAdd() throws Exception {
 		final String TEST_NAME = "test160AngelicaAdd";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -813,7 +813,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test200Smith111Add() throws Exception {
 		final String TEST_NAME = "test200Smith111Add";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -934,7 +934,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test210Smith222Add() throws Exception {
 		final String TEST_NAME = "test210Smith222Add";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -1055,7 +1055,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test300Smith111Rename() throws Exception {
 		final String TEST_NAME = "test300Smith111Rename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
@@ -1194,7 +1194,7 @@ public class TestTrafo extends AbstractStoryTest {
 	@Test
     public void test310Smith222Rename() throws Exception {
 		final String TEST_NAME = "test310Smith222Rename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);

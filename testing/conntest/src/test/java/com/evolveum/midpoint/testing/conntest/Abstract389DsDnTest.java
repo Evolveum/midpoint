@@ -62,7 +62,7 @@ public abstract class Abstract389DsDnTest extends Abstract389DsTest {
 	@Test
     public void test025SchemaDn() throws Exception {
 		final String TEST_NAME = "test025SchemaDn";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         ResourceAttributeDefinition<String> dnDef = accountObjectClassDefinition.findAttributeDefinition("dn");
         display("DN defintion", dnDef);

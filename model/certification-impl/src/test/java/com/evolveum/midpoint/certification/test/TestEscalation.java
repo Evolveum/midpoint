@@ -69,7 +69,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -98,7 +98,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test013SearchAllCases() throws Exception {
         final String TEST_NAME = "test013SearchAllCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         searchWithNoCasesExpected(TEST_NAME);
     }
@@ -126,7 +126,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStage() throws Exception {
         final String TEST_NAME = "test021OpenFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -165,7 +165,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test032SearchAllCases() throws Exception {
         final String TEST_NAME = "test032SearchAllCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -188,7 +188,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test050SearchWorkItems() throws Exception {
         final String TEST_NAME = "test050SearchWorkItems";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -214,7 +214,7 @@ public class TestEscalation extends AbstractCertificationTest {
 	@Test
 	public void test100RecordDecision() throws Exception {
 		final String TEST_NAME = "test100RecordDecision";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -250,7 +250,7 @@ public class TestEscalation extends AbstractCertificationTest {
 	@Test
     public void test110Escalate() throws Exception {
         final String TEST_NAME = "test110Escalate";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -314,7 +314,7 @@ public class TestEscalation extends AbstractCertificationTest {
 	@Test
 	public void test120EscalateAgain() throws Exception {
 		final String TEST_NAME = "test120EscalateAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
 		// GIVEN
@@ -380,7 +380,7 @@ public class TestEscalation extends AbstractCertificationTest {
 	@Test
 	public void test130Remediation() throws Exception {
 		final String TEST_NAME = "test130Remediation";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
 		// GIVEN

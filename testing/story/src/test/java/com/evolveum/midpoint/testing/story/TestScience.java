@@ -163,7 +163,7 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
         
         OperationResult testResultStats = modelService.testResource(RESOURCE_DUMMY_STATS_OID, task);
@@ -182,7 +182,7 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
 	public void test100JackAssignRoleStatistics() throws Exception {
 		final String TEST_NAME = "test100JackAssignRoleStatistics";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
 		OperationResult result = task.getResult();
@@ -227,7 +227,7 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
 	public void test101UnassignRoleStats() throws Exception{
 		final String TEST_NAME = "test101UnassignRoleStats";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
 		OperationResult result = task.getResult();
@@ -277,7 +277,7 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
 	public void test102AssignRoleStats() throws Exception{
 		final String TEST_NAME = "test102AssignRoleStats";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
 		OperationResult result = task.getResult();
@@ -325,7 +325,7 @@ public class TestScience  extends AbstractStoryTest {
 	@Test
 	public void test200DelteUserJack() throws Exception {
 		final String TEST_NAME = "test200DelteUserJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestScience.class.getName() + "." + TEST_NAME);
 		
 		OperationResult result = task.getResult();

@@ -130,7 +130,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test050GetUserJack() throws Exception {
 		final String TEST_NAME = "test050GetUserJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -153,7 +153,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test051GetUserBarbossa() throws Exception {
 		final String TEST_NAME = "test051GetUserBarbossa";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -177,7 +177,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test(enabled = true)
     public void test099ModifyUserAddAccountFailing() throws Exception {
-        TestUtil.displayTestTile(this, "test099ModifyUserAddAccountFailing");
+        TestUtil.displayTestTitle(this, "test099ModifyUserAddAccountFailing");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test099ModifyUserAddAccountFailing");
@@ -243,7 +243,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
     	final String TEST_NAME = "test100ModifyUserAddAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -331,7 +331,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     @Test
     public void test101GetAccount() throws Exception {
     	final String TEST_NAME = "test101GetAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -394,7 +394,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	@Test
     public void test102GetAccountNoFetch() throws Exception {
-        TestUtil.displayTestTile(this, "test102GetAccountNoFetch");
+        TestUtil.displayTestTitle(this, "test102GetAccountNoFetch");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test102GetAccountNoFetch");
@@ -422,7 +422,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test103GetAccountRaw() throws Exception {
-        TestUtil.displayTestTile(this, "test103GetAccountRaw");
+        TestUtil.displayTestTitle(this, "test103GetAccountRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test103GetAccountRaw");
@@ -450,7 +450,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	@Test
 	public void test105SearchAccount() throws Exception {
-		TestUtil.displayTestTile(this, "test105SearchAccount");
+		TestUtil.displayTestTitle(this, "test105SearchAccount");
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test105SearchAccount");
@@ -482,7 +482,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	@Test
 	public void test106SearchAccountWithoutResourceSchema() throws Exception {
-		TestUtil.displayTestTile(this, "test106SearchAccountWithoutResourceSchema");
+		TestUtil.displayTestTitle(this, "test106SearchAccountWithoutResourceSchema");
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test106SearchAccountWithoutResourceSchema");
@@ -509,7 +509,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 	@Test
     public void test108ModifyUserAddAccountAgain() throws Exception {
-        TestUtil.displayTestTile(this, "test108ModifyUserAddAccountAgain");
+        TestUtil.displayTestTitle(this, "test108ModifyUserAddAccountAgain");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test108ModifyUserAddAccountAgain");
@@ -557,7 +557,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test109ModifyUserAddAccountAgain() throws Exception {
 		final String TEST_NAME = "test109ModifyUserAddAccountAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -607,7 +607,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test110GetUserResolveAccount() throws Exception {
 		final String TEST_NAME = "test110GetUserResolveAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -647,7 +647,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test111GetUserResolveAccountResource() throws Exception {
 		final String TEST_NAME = "test111GetUserResolveAccountResource";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -692,7 +692,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test112GetUserResolveAccountNoFetch() throws Exception {
 		final String TEST_NAME = "test112GetUserResolveAccountNoFetch";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -736,7 +736,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test119ModifyUserDeleteAccount() throws Exception {
 		final String TEST_NAME = "test119ModifyUserDeleteAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -807,7 +807,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     @Test
     public void test120AddAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test120AddAccount");
+        TestUtil.displayTestTitle(this, "test120AddAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test120AddAccount");
@@ -882,7 +882,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      */
 	@Test
     public void test121ModifyUserAddAccountRef() throws Exception {
-        TestUtil.displayTestTile(this, "test121ModifyUserAddAccountRef");
+        TestUtil.displayTestTitle(this, "test121ModifyUserAddAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test121ModifyUserAddAccountRef");
@@ -947,7 +947,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test128ModifyUserDeleteAccountRef() throws Exception {
-        TestUtil.displayTestTile(this, "test128ModifyUserDeleteAccountRef");
+        TestUtil.displayTestTitle(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test128ModifyUserDeleteAccountRef");
@@ -1013,7 +1013,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test129DeleteAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test129DeleteAccount");
+        TestUtil.displayTestTitle(this, "test129DeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test129DeleteAccount");
@@ -1071,7 +1071,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	
 	@Test
     public void test130PreviewModifyUserJackAssignAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test130PreviewModifyUserJackAssignAccount");
+        TestUtil.displayTestTitle(this, "test130PreviewModifyUserJackAssignAccount");
 
         // GIVEN
         try{
@@ -1117,7 +1117,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
 		final String TEST_NAME="test131ModifyUserJackAssignAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -1196,7 +1196,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test132ModifyAccountJackDummy() throws Exception {
 		final String TEST_NAME = "test132ModifyAccountJackDummy";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1289,7 +1289,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test135ModifyUserJackAssignAccountAgain() throws Exception {
 		final String TEST_NAME="test135ModifyUserJackAssignAccountAgain";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1352,7 +1352,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test139ModifyUserJackUnassignAccount() throws Exception {
 		final String TEST_NAME = "test139ModifyUserJackUnassignAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1415,7 +1415,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test141ModifyUserJackAssignAccountPositiveEnforcement() throws Exception {
 		final String TEST_NAME = "test141ModifyUserJackAssignAccountPositiveEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1499,7 +1499,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test148ModifyUserJackUnassignAccountPositiveEnforcement() throws Exception {
 		final String TEST_NAME = "test148ModifyUserJackUnassignAccountPositiveEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() 
@@ -1589,7 +1589,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test149ModifyUserJackDeleteAccount() throws Exception {
 		final String TEST_NAME = "test149ModifyUserJackDeleteAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1659,7 +1659,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test151ModifyUserJackAssignAccountRelativeEnforcement() throws Exception {
 		final String TEST_NAME = "test151ModifyUserJackAssignAccountRelativeEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1736,7 +1736,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test158ModifyUserJackUnassignAccountRelativeEnforcement() throws Exception {
 		final String TEST_NAME = "test158ModifyUserJackUnassignAccountRelativeEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() 
@@ -1801,7 +1801,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test161ModifyUserJackAssignAccountNoneEnforcement() throws Exception {
 		final String TEST_NAME = "test161ModifyUserJackAssignAccountNoneEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1864,7 +1864,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test163ModifyUserJackAddAccountNoneEnforcement() throws Exception {
 		final String TEST_NAME = "test163ModifyUserJackAddAccountNoneEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -1944,7 +1944,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test164ModifyUserJackUnassignAccountNoneEnforcement() throws Exception {
 		final String TEST_NAME = "test164ModifyUserJackUnassignAccountNoneEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() 
@@ -2011,7 +2011,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test169ModifyUserJackDeleteAccountNoneEnforcement() throws Exception {
 		final String TEST_NAME = "test169ModifyUserJackDeleteAccountNoneEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -2078,7 +2078,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test180ModifyUserAddAccountFullEnforcement() throws Exception {
 		final String TEST_NAME = "test180ModifyUserAddAccountFullEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -2139,7 +2139,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test182ModifyUserAddAndAssignAccountPositiveEnforcement() throws Exception {
 		final String TEST_NAME = "test182ModifyUserAddAndAssignAccountPositiveEnforcement";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -2214,7 +2214,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 */
 	@Test
     public void test189ModifyUserJackUnassignAndDeleteAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test189ModifyUserJackUnassignAndDeleteAccount");
+        TestUtil.displayTestTitle(this, "test189ModifyUserJackUnassignAndDeleteAccount");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test149ModifyUserJackUnassignAccount");
@@ -2271,7 +2271,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	 */
 	@Test
     public void test190ModifyUserJackAssignAccountAndModify() throws Exception {
-        TestUtil.displayTestTile(this, "test190ModifyUserJackAssignAccountAndModify");
+        TestUtil.displayTestTitle(this, "test190ModifyUserJackAssignAccountAndModify");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test190ModifyUserJackAssignAccountAndModify");
@@ -2355,7 +2355,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     @Test
     public void test191ModifyUserJackModifyAssignment() throws Exception {
     	final String TEST_NAME = "test191ModifyUserJackModifyAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -2469,7 +2469,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     @Test
     public void test195ModifyUserJack() throws Exception {
     	final String TEST_NAME = "test195ModifyUserJack";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -2542,7 +2542,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     @Test
     public void test196ModifyUserJackLocationEmpty() throws Exception {
     	final String TEST_NAME = "test196ModifyUserJackLocationEmpty";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -2606,7 +2606,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     @Test
     public void test197ModifyUserJackLocationNull() throws Exception {
     	final String TEST_NAME = "test197ModifyUserJackLocationNull";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -2639,7 +2639,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     
 	@Test
     public void test198ModifyUserJackRaw() throws Exception {
-        TestUtil.displayTestTile(this, "test198ModifyUserJackRaw");
+        TestUtil.displayTestTitle(this, "test198ModifyUserJackRaw");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test196ModifyUserJackRaw");
@@ -2692,7 +2692,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		
 	@Test
     public void test199DeleteUserJack() throws Exception {
-        TestUtil.displayTestTile(this, "test199DeleteUserJack");
+        TestUtil.displayTestTitle(this, "test199DeleteUserJack");
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test199DeleteUserJack");
@@ -2755,7 +2755,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test200AddUserBlackbeardWithAccount() throws Exception {
 		final String TEST_NAME = "test200AddUserBlackbeardWithAccount";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2841,7 +2841,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test210AddUserMorganWithAssignment() throws Exception {
 		final String TEST_NAME = "test210AddUserMorganWithAssignment";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -2924,7 +2924,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test212RenameUserMorgan() throws Exception {
 		final String TEST_NAME = "test212RenameUserMorgan";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -3010,7 +3010,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test240AddUserCharlesRaw() throws Exception {
 		final String TEST_NAME = "test240AddUserCharlesRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -3055,7 +3055,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test241DeleteUserCharlesRaw() throws Exception {
 		final String TEST_NAME = "test241DeleteUserCharlesRaw";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -3095,7 +3095,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test300AddUserJackWithAssignmentBlue() throws Exception {
 		final String TEST_NAME="test300AddUserJackWithAssignmentBlue";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -3161,7 +3161,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 	@Test
     public void test302ModifyAccountJackDummyBlue() throws Exception {
 		final String TEST_NAME = "test302ModifyAccountJackDummyBlue";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);

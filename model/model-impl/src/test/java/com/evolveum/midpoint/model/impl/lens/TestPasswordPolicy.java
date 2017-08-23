@@ -91,7 +91,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void stringPolicyUtilsComplexTest() {
 		final String TEST_NAME = "stringPolicyUtilsComplexTest";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		File file = new File(TEST_DIR, "password-policy-complex.xml");
 		ValuePolicyType pp = null;
@@ -108,7 +108,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void testPasswordGeneratorComplexNegative() throws Exception {
 		final String TEST_NAME = "testPasswordGeneratorComplexNegative";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -168,7 +168,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void testValueGenerateRandomPin() throws Exception {
 		final String TEST_NAME = "testValueGenerateRandomPin";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -192,7 +192,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void testValueGenerate() throws Exception {
 		final String TEST_NAME = "testValueGenerate";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -216,7 +216,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void testValueGenerateEmpty() throws Exception {
 		final String TEST_NAME = "testValueGenerateEmpty";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -239,7 +239,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	}
 
 	public void passwordGeneratorTest(final String TEST_NAME, String policyFilename) throws JAXBException, SchemaException, IOException, ExpressionEvaluationException, ObjectNotFoundException {
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -295,7 +295,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void passwordValidationTestComplex() throws Exception {
 		final String TEST_NAME = "passwordValidationTestComplex";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		ValuePolicyType pp = parsePasswordPolicy("password-policy-complex.xml");
 
@@ -309,7 +309,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void passwordValidationTestTri() throws Exception {
 		final String TEST_NAME = "passwordValidationTestTri";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		ValuePolicyType pp = parsePasswordPolicy("password-policy-tri.xml");
 
@@ -328,7 +328,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void testUsername() throws Exception {
 		final String TEST_NAME = "testUsername";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 				
 		PrismObject<UserType> user = createUserAb();
 		ValuePolicyType pp = parsePasswordPolicy("password-policy-username.xml");
@@ -361,7 +361,7 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void testUserProps() throws Exception {
 		final String TEST_NAME = "testUserProps";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 				
 		PrismObject<UserType> user = createUserAb();
 		display("User", user);
