@@ -24,9 +24,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -367,6 +365,9 @@ public interface RepositoryService {
 	 *
 	 * TODO: optimistic locking
 	 *
+	 * Note: the precondition is checked only if actual modification is going to take place
+	 * (not e.g. if the list of modifications is empty).
+	 *
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 *
@@ -384,6 +385,10 @@ public interface RepositoryService {
 
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>

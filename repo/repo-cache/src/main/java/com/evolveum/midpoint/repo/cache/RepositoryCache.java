@@ -20,10 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -249,7 +246,18 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		try {
-			repository.modifyObject(type, oid, modifications, options, parentResult);
+			modifyObject(type, oid, modifications, null, options, parentResult);
+		} catch (PreconditionViolationException e) {
+			throw new AssertionError(e);
+		}
+	}
+
+	@Override
+	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
+		try {
+			repository.modifyObject(type, oid, modifications, precondition, options, parentResult);
 		} finally {
 			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 			// the object in cache

@@ -38,10 +38,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.sql.helpers.*;
 import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
 import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
@@ -478,11 +475,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-                                                    Collection<? extends ItemDelta> modifications,
-                                                    RepoModifyOptions options,
-                                                    OperationResult result)
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+            RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+	    try {
+		    modifyObject(type, oid, modifications, null, options, result);
+	    } catch (PreconditionViolationException e) {
+		    throw new AssertionError(e);    // with null precondition we couldn't get this exception
+	    }
+    }
+
+    @Override
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+            ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
         Validate.notNull(modifications, "Modifications must not be null.");
         Validate.notNull(type, "Object class in delta must not be null.");
@@ -535,7 +541,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    objectUpdater.modifyObjectAttempt(type, oid, modifications, options, subResult, this);
+                    objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
 	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
                     return;
                 } catch (RuntimeException ex) {
