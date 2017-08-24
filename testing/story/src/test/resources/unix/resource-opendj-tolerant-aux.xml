@@ -30,7 +30,7 @@
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/unix/ext">
 
-    <name>Embedded Test OpenDJ</name>
+    <name>OpenDJ Tolerant Aux</name>
 
     <connectorRef type="ConnectorType">
     	<description>Dummy description, just for the test</description>
@@ -85,6 +85,7 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
+            <tolerantAuxiliaryObjectClasses>true</tolerantAuxiliaryObjectClasses>
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>

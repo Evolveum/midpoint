@@ -147,6 +147,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions();
 
 	boolean hasAuxiliaryObjectClass(QName expectedObjectClassName);
+	
+	boolean isTolerantAuxiliaryObjectClasses();
 
 	Collection<ResourceObjectPattern> getProtectedObjectPatterns();
 
