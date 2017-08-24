@@ -54,6 +54,7 @@
 			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+ 			<icfcldap:operationalAttributes>modifyTimestamp</icfcldap:operationalAttributes>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>

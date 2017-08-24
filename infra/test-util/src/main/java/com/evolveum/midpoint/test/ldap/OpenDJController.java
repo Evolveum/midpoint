@@ -539,6 +539,8 @@ public class OpenDJController extends AbstractResourceController {
 		LinkedHashSet<String> attrs = new LinkedHashSet<String>();
 		attrs.add("*");
 		attrs.add("ds-pwp-account-disabled");
+		attrs.add("createTimestamp");
+		attrs.add("modifyTimestamp");
 		return attrs;
 	}
 

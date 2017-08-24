@@ -98,6 +98,8 @@ public class TestUnix extends AbstractStoryTest {
 	protected static final String OPENDJ_GIDNUMBER_ATTRIBUTE_NAME = "gidNumber";
 	protected static final String OPENDJ_UID_ATTRIBUTE_NAME = "uid";
 	protected static final String OPENDJ_LABELED_URI_ATTRIBUTE_NAME = "labeledURI";
+	protected static final String OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME = "modifyTimestamp";
+	protected static final QName OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME = new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME);
 	
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
@@ -504,14 +506,18 @@ public class TestUnix extends AbstractStoryTest {
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
+        long startTs = System.currentTimeMillis();
+        
         // WHEN
 		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
+        
+        long endTs = System.currentTimeMillis();
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -522,8 +528,10 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        
+        assertModifyTimestamp(shadow, startTs, endTs);
 	}
-	
+
 	@Test
     public void test125RecomputeUserLargo() throws Exception {
 		final String TEST_NAME = "test125RecomputeUserLargo";
@@ -2086,5 +2094,15 @@ public class TestUnix extends AbstractStoryTest {
 		openDJController.assertAttribute(entry, "gidNumber", expectedGidNumber.toString());
 		
 		return entry.getDN().toString();
+	}
+	
+	protected void assertModifyTimestamp(PrismObject<ShadowType> shadow, long startTs, long endTs) throws Exception {
+		Long actual = getTimestampAttribute(shadow);
+		TestUtil.assertBetween("Wrong modify timestamp attribute in "+shadow, startTs-1000, endTs+1000, actual);
+	}
+
+	protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
+		Long attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
+		return attributeValue;
 	}
 }

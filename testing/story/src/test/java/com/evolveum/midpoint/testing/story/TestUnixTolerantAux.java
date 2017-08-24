@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.text.ParseException;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -29,6 +30,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.directory.api.util.GeneralizedTime;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -295,5 +298,18 @@ public class TestUnixTolerantAux extends TestUnix {
 	protected void assertAccountTest510(PrismObject<ShadowType> shadow) throws Exception {
 		assertPosixAccount(shadow, null);
 		assertGroupAssociation(shadow, groupMonkeyIslandOid);
+	}
+	
+	@Override
+	protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
+		String attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
+		if (attributeValue == null) {
+			return null;
+		}
+		if (!attributeValue.endsWith("Z")) {
+			fail("Non-zulu timestamp: "+attributeValue);
+		}
+		GeneralizedTime gt = new GeneralizedTime(attributeValue);
+		return gt.getCalendar().getTimeInMillis();
 	}
 }
