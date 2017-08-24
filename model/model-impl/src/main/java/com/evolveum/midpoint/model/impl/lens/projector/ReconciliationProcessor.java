@@ -238,12 +238,14 @@ public class ReconciliationProcessor {
 						shouldBePvwo.getSource(), "it is given");
 			}
 		}
-					
-		for (PrismPropertyValue<QName> isPValue : arePValues) {
-			if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
-				auxObjectClassChanged = true;
-				recordDelta(valueMatcher, projCtx, ItemPath.EMPTY_PATH, propDef, ModificationType.DELETE,
-						isPValue.getValue(), null, "it is not given");
+		
+		if (!projCtx.getStructuralObjectClassDefinition().isTolerantAuxiliaryObjectClasses()) {
+			for (PrismPropertyValue<QName> isPValue : arePValues) {
+				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
+					auxObjectClassChanged = true;
+					recordDelta(valueMatcher, projCtx, ItemPath.EMPTY_PATH, propDef, ModificationType.DELETE,
+							isPValue.getValue(), null, "it is not given");
+				}
 			}
 		}
 		

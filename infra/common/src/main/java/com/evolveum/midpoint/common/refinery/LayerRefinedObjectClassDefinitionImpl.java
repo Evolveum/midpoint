@@ -596,6 +596,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
+	public boolean isTolerantAuxiliaryObjectClasses() {
+		return refinedObjectClassDefinition.isTolerantAuxiliaryObjectClasses();
+	}
+
+	@Override
     public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
     	return refinedObjectClassDefinition.createShadowSearchQuery(resourceOid);
     }

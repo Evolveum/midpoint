@@ -414,6 +414,19 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return auxiliaryObjectClassDefinitions.stream()
 				.anyMatch(def -> QNameUtil.match(def.getTypeName(), expectedObjectClassName));
 	}
+	
+	@Override
+	public boolean isTolerantAuxiliaryObjectClasses() {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return false;
+		}
+		Boolean tolerantAuxiliaryObjectClasses = schemaHandlingObjectTypeDefinitionType.isTolerantAuxiliaryObjectClasses();
+		if (tolerantAuxiliaryObjectClasses == null) {
+			return false;
+		} else {
+			return tolerantAuxiliaryObjectClasses;
+		}
+	}
 
 	@Override
 	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
