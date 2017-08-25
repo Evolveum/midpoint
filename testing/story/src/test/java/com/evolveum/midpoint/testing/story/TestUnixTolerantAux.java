@@ -71,8 +71,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
+ * Unix test with tolerant auxiliary object classes. 
+ * 
+ * Also this is using different timestamp format in LDAP connector configuration.
+ * 
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)

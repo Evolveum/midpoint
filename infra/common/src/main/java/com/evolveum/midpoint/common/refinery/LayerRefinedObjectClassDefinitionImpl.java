@@ -596,8 +596,8 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
-	public boolean isTolerantAuxiliaryObjectClasses() {
-		return refinedObjectClassDefinition.isTolerantAuxiliaryObjectClasses();
+	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
+		return refinedObjectClassDefinition.getAuxiliaryObjectClassMappings();
 	}
 
 	@Override

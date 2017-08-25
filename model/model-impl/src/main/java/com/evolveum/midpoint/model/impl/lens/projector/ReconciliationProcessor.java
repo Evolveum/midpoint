@@ -78,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingAndDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -239,7 +240,7 @@ public class ReconciliationProcessor {
 			}
 		}
 		
-		if (!projCtx.getStructuralObjectClassDefinition().isTolerantAuxiliaryObjectClasses()) {
+		if (!isTolerantAuxiliaryObjectClasses(projCtx)) {
 			for (PrismPropertyValue<QName> isPValue : arePValues) {
 				if (!isInPvwoValues(valueMatcher, isPValue.getValue(), shouldBePValues)) {
 					auxObjectClassChanged = true;
@@ -255,6 +256,18 @@ public class ReconciliationProcessor {
 		}
 	}
 	
+	private boolean isTolerantAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException {
+		ResourceBidirectionalMappingAndDefinitionType auxiliaryObjectClassMappings = projCtx.getStructuralObjectClassDefinition().getAuxiliaryObjectClassMappings();
+		if (auxiliaryObjectClassMappings == null) {
+			return false;
+		}
+		Boolean tolerant = auxiliaryObjectClassMappings.isTolerant();
+		if (tolerant == null) {
+			return false;
+		}
+		return tolerant;
+	}
+
 	/**
 	 * If auxiliary object classes changed, there may still be some attributes that were defined by the aux objectclasses
 	 * that were deleted. If these attributes are still around then delete them. Otherwise the delete of the aux object class

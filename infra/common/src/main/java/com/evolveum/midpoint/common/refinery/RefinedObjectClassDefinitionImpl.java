@@ -416,16 +416,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 	
 	@Override
-	public boolean isTolerantAuxiliaryObjectClasses() {
+	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
 		if (schemaHandlingObjectTypeDefinitionType == null) {
-			return false;
+			return null;
 		}
-		Boolean tolerantAuxiliaryObjectClasses = schemaHandlingObjectTypeDefinitionType.isTolerantAuxiliaryObjectClasses();
-		if (tolerantAuxiliaryObjectClasses == null) {
-			return false;
-		} else {
-			return tolerantAuxiliaryObjectClasses;
-		}
+		return schemaHandlingObjectTypeDefinitionType.getAuxiliaryObjectClassMappings();
 	}
 
 	@Override
