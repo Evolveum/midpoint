@@ -51,6 +51,23 @@
 				<transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
 			</simpleWorkflowNotifier>
 		</handler>
+		<handler>
+			<simpleTaskNotifier>
+				<expressionFilter>
+					<script>
+						<!-- MID-4121 -->
+						<code>
+							try {
+								return event.isSuccess()
+							} catch (Exception e) {
+								com.evolveum.midpoint.wf.impl.policy.assignments.metarole.TestAssignmentsWithDifferentMetaroles.exception = e
+								throw e
+							}
+						</code>
+					</script>
+				</expressionFilter>
+			</simpleTaskNotifier>
+		</handler>
 	</notificationConfiguration>
 	<workflowConfiguration>
         <allowCompleteOthersItems>true</allowCompleteOthersItems>

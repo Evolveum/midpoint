@@ -53,6 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+
 /**
  * Nested Operation Result.
  * 
@@ -75,6 +77,8 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String VARIOUS_VALUES = "[various values]";
 	private static final String INDENT_STRING = "    ";
+
+	private static final String TASK_OID_PREFIX = "taskOid:";
 
     /**
      * This constant provides count threshold for same subresults (same operation and
@@ -253,6 +257,34 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 
 	public void setAsynchronousOperationReference(String asyncronousOperationReference) {
 		this.asynchronousOperationReference = asyncronousOperationReference;
+	}
+
+	/**
+	 * This method partially duplicates functionality of computeStatus. However, computeStatus
+	 * currently does not propagate taskOid from tasks switched to background, because switchToBackground
+	 * sets its result to SUCCESS (not IN_PROGRESS) because of some historical reasons. So,
+	 * until this is fixed somehow, this is a bit of hack to fetch asynchronous operation reference
+	 * even in such cases.
+	 */
+	public String findAsynchronousOperationReference() {
+		if (asynchronousOperationReference != null) {
+			return asynchronousOperationReference;
+		}
+		for (OperationResult subresult : emptyIfNull(subresults)) {
+			String s = subresult.findAsynchronousOperationReference();
+			if (s != null) {
+				return s;
+			}
+		}
+		return null;
+	}
+
+	public boolean isTaskOid(String ref) {
+		return ref != null && ref.startsWith(TASK_OID_PREFIX);
+	}
+
+	public String referenceToTaskOid(String ref) {
+		return isTaskOid(ref) ? ref.substring(TASK_OID_PREFIX.length()) : null;
 	}
 
 	/**
@@ -1637,9 +1669,11 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	}
 
 	public void setBackgroundTaskOid(String oid) {
-		addReturn(RETURN_BACKGROUND_TASK_OID, oid);
+		setAsynchronousOperationReference(TASK_OID_PREFIX + oid);
+		addReturn(RETURN_BACKGROUND_TASK_OID, oid); // deprecated
 	}
 
+	@Deprecated // use asynchronous operation reference
 	public String getBackgroundTaskOid() {
 		return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
 	}
