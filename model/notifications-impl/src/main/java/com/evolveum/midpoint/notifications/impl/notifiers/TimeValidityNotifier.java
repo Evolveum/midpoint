@@ -20,7 +20,6 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.PolicyRuleEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,23 +58,11 @@ public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
     
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-    	PolicyRuleEvent modelEvent = (PolicyRuleEvent) event;
-    	EvaluatedPolicyRule policyRuleType = modelEvent.getPolicyRule();
-    	if (policyRuleType == null) {
-    		return false;
-    	}
-    	
-    	PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
-    	if (policyConstraints == null) {
-    		return false;
-    	}
-    	
-    	if (policyConstraints.getTimeValidity() == null || policyConstraints.getTimeValidity().isEmpty()) {
-    		return false;
-    	}
-    	
-    	return true;
-    	
+	    PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
+	    PolicyConstraintsType policyConstraints = ruleEvent.getPolicyRule().getPolicyConstraints();
+	    return policyConstraints != null &&
+			    policyConstraints.getTimeValidity() != null &&
+			    !policyConstraints.getTimeValidity().isEmpty();
     }
     
     @Override

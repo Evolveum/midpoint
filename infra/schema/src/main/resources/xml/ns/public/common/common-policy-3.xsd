@@ -105,7 +105,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO: notifications, recertification, default remediation -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
