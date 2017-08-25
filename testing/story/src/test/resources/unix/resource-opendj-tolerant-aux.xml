@@ -87,7 +87,9 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
-            <tolerantAuxiliaryObjectClasses>true</tolerantAuxiliaryObjectClasses>
+            <auxiliaryObjectClassMappings>
+            	<tolerant>true</tolerant>
+            </auxiliaryObjectClassMappings>
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>

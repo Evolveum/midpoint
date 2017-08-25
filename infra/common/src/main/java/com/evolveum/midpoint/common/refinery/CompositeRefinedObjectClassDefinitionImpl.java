@@ -463,8 +463,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 	
 	@Override
-	public boolean isTolerantAuxiliaryObjectClasses() {
-		return structuralObjectClassDefinition.isTolerantAuxiliaryObjectClasses();
+	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
+		return structuralObjectClassDefinition.getAuxiliaryObjectClassMappings();
 	}
 
 	@Override
