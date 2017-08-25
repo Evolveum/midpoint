@@ -17,7 +17,8 @@
 <role oid="00000000-d34d-b33f-f00d-ffffffff0001"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>ERoot user assignment campaign owner</name>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#createCertificationCampaign</action>
@@ -39,7 +40,7 @@
             <filter>
                 <q:ref>
                     <q:path>definitionRef</q:path>
-                    <q:value><oid>33333333-0000-0000-0000-000000000001</oid></q:value>
+                    <q:value xsi:type="c:ObjectReferenceType" oid="33333333-0000-0000-0000-000000000001" type="c:AccessCertificationDefinitionType"/>
                 </q:ref>
             </filter>
         </object>
