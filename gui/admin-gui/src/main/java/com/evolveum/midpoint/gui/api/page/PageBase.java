@@ -969,28 +969,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
-
-        if (result.getCause() != null && result.getCause() instanceof CommonException){
-        	LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
-        	if (localizableMessage != null) {
-        		String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
-        		StringResourceModel stringResourceModel = new StringResourceModel(key, this).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
-				.setParameters(localizableMessage.getArgs());
-        		getSession().error(stringResourceModel.getString());
-        		
-        		OpResult opResult = new OpResult();
-//        		opResult.setMessage(message);
-        		return opResult;
-        	}
-        }
         
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
 		opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:
-            	
-            	
                 getSession().error(opResult);
 
                 break;
