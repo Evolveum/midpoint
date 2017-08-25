@@ -326,20 +326,7 @@ public class TestUnixTolerantAux extends TestUnix {
 		assertPosixAccount(shadow, null);
 		assertGroupAssociation(shadow, groupMonkeyIslandOid);
 	}
-	
-	@Override
-	protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
-		String attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
-		if (attributeValue == null) {
-			return null;
-		}
-		if (!attributeValue.endsWith("Z")) {
-			fail("Non-zulu timestamp: "+attributeValue);
-		}
-		GeneralizedTime gt = new GeneralizedTime(attributeValue);
-		return gt.getCalendar().getTimeInMillis();
-	}
-	
+		
 	private void assertUserAuxes(PrismObject<UserType> userAfter, QName... expectedAuxClasses) {
 		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT,
 				Arrays.stream(expectedAuxClasses).map(x -> createPolyString(x.getLocalPart())).toArray(PolyString[]::new));
