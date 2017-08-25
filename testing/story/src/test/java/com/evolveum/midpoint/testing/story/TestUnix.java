@@ -785,7 +785,7 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
-        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        assertTest132User(userAfter);
         
         String accountOid = getSingleLinkOid(userAfter);
         
@@ -793,6 +793,14 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
         
+        assertTest132Audit();
+	}
+
+	protected void assertTest132User(PrismObject<UserType> userAfter) {
+		assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+	}
+
+	protected void assertTest132Audit() {
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
@@ -910,14 +918,18 @@ public class TestUnix extends AbstractStoryTest {
         display("Shadow (model)", shadow);
         assertBasicAccount(shadow);
         
-        display("Audit", dummyAuditService);
+        assertTest135Audit();
+	}
+	
+	protected void assertTest135Audit() {
+		display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
 	}
-	
+
 	/**
 	 * Modify the account directly on resource: add aux object class, add the
 	 * attributes. Then reconcile the user. The recon should fix it.
@@ -1007,13 +1019,13 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
-        assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        assertTest137User(userAfter);
         
         String accountOid = getSingleLinkOid(userAfter);
         
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        assertAccountTest137(shadow);
+        assertTest137Account(shadow);
         
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -1021,7 +1033,11 @@ public class TestUnix extends AbstractStoryTest {
         dummyAuditService.assertExecutionDeltas(0);
 	}
 	
-	protected void assertAccountTest137(PrismObject<ShadowType> shadow) throws Exception {
+	protected void assertTest137User(PrismObject<UserType> userAfter) {
+		assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+	}
+
+	protected void assertTest137Account(PrismObject<ShadowType> shadow) throws Exception {
 		assertBasicAccount(shadow);
 	}
 	

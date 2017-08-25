@@ -53,7 +53,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ReconciliationProcessor" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector.InboundProcessor" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.impl.lens.projector.InboundProcessor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.expr" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
