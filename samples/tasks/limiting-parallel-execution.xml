@@ -37,6 +37,7 @@
         <binding>loose</binding>
 		<executionConstraints>
 			<group>exclusive</group>
+			<groupTaskLimit>1</groupTaskLimit>
 		</executionConstraints>
 		<schedule>
 			<interval>80</interval>
@@ -58,6 +59,7 @@
 		<binding>loose</binding>
 		<executionConstraints>
 			<group>exclusive</group>
+			<groupTaskLimit>1</groupTaskLimit>
 		</executionConstraints>
 		<schedule>
 			<interval>80</interval>
