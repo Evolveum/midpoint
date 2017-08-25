@@ -16,21 +16,23 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -66,7 +68,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -591,6 +593,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("shadow: " + shadows.get(0).debugDump());
     }
 
+    private String roleOid;
+
     @Test
     public void test150ModifyRoleAddInducements() throws Exception {
     	final String TEST_NAME = "test150ModifyRoleAddInducements";
@@ -602,6 +606,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         //add first user
         PrismObject<RoleType> role = prismContext.parseObject(roleFile);
         String oid = repositoryService.addObject(role, null, result);
+        roleOid = oid;
 
         //modify second user name to "existingName"
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
@@ -640,6 +645,108 @@ public class ModifyTest extends BaseSQLRepoTest {
 			assertEquals("Version has changed", version, role.getVersion());
 		}
 	}
+
+    @Test
+    public void test160ModifyWithPrecondition() throws Exception {
+        final String TEST_NAME = "test160ModifyWithPrecondition";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = o -> { throw new PreconditionViolationException("hello"); };
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        try {
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            // THEN
+            fail("unexpected success");
+        } catch (PreconditionViolationException e) {
+            assertEquals("Wrong exception message", "hello", e.getMessage());
+        }
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", versionBefore, versionAfter);
+    }
+
+    @Test
+    public void test162ModifyWithPrecondition2() throws Exception {
+        final String TEST_NAME = "test162ModifyWithPrecondition2";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = o -> false;
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        try {
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            // THEN
+            fail("unexpected success");
+        } catch (PreconditionViolationException e) {
+            // ok
+            System.out.println("got expected exception: " + e.getMessage());
+        }
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", versionBefore, versionAfter);
+    }
+
+    @Test
+    public void test164ModifyWithVersionPreconditionFalse() throws Exception {
+        final String TEST_NAME = "test164ModifyWithVersionPreconditionFalse";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = new VersionPrecondition<>("9999");
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        try {
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            // THEN
+            fail("unexpected success");
+        } catch (PreconditionViolationException e) {
+            // ok
+            System.out.println("got expected exception: " + e.getMessage());
+        }
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", versionBefore, versionAfter);
+    }
+
+    @Test
+    public void test166ModifyWithVersionPreconditionTrue() throws Exception {
+        final String TEST_NAME = "test166ModifyWithVersionPreconditionTrue";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = new VersionPrecondition<>(versionBefore);
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", Integer.parseInt(versionBefore)+1, Integer.parseInt(versionAfter));
+        String description = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable().getDescription();
+        assertEquals("description was not set", "123456", description);
+    }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
     	assertAttribute(shadow, new QName(MidPointConstants.NS_RI, attrName), expectedValues);

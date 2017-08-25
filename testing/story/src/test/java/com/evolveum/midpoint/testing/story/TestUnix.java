@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.testing.story;
 
 import static org.testng.AssertJUnit.assertFalse;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -27,7 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -90,6 +88,7 @@ public class TestUnix extends AbstractStoryTest {
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	protected static final QName OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson");
 	protected static final QName OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "posixAccount");
+	protected static final QName OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "labeledURIObject");
 	protected static final QName OPENDJ_GROUP_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "groupOfUniqueNames");
 	protected static final QName OPENDJ_GROUP_UNIX_STRUCTURAL_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "groupOfNames");
 	protected static final QName OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "posixGroup");
@@ -98,6 +97,9 @@ public class TestUnix extends AbstractStoryTest {
 	protected static final String OPENDJ_UIDNUMBER_ATTRIBUTE_NAME = "uidNumber";
 	protected static final String OPENDJ_GIDNUMBER_ATTRIBUTE_NAME = "gidNumber";
 	protected static final String OPENDJ_UID_ATTRIBUTE_NAME = "uid";
+	protected static final String OPENDJ_LABELED_URI_ATTRIBUTE_NAME = "labeledURI";
+	protected static final String OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME = "modifyTimestamp";
+	protected static final QName OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME = new QName(RESOURCE_OPENDJ_NAMESPACE, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_NAME);
 	
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
@@ -114,46 +116,46 @@ public class TestUnix extends AbstractStoryTest {
 	public static final File ROLE_META_LDAPGROUP_FILE = new File(TEST_DIR, "role-meta-ldap-group.xml");
 	public static final String ROLE_META_LDAPGROUP_OID = "9c6d1dbe-1a87-11e5-b107-001e8c717e5b";
 	
-	private static final String USER_HERMAN_USERNAME = "ht";
-	private static final String USER_HERMAN_FIST_NAME = "Herman";
-	private static final String USER_HERMAN_LAST_NAME = "Toothrot";
+	protected static final String USER_HERMAN_USERNAME = "ht";
+	protected static final String USER_HERMAN_FIST_NAME = "Herman";
+	protected static final String USER_HERMAN_LAST_NAME = "Toothrot";
 
-	private static final String USER_MANCOMB_USERNAME = "mancomb";
-	private static final String USER_MANCOMB_FIST_NAME = "Mancomb";
-	private static final String USER_MANCOMB_LAST_NAME = "Seepgood";
+	protected static final String USER_MANCOMB_USERNAME = "mancomb";
+	protected static final String USER_MANCOMB_FIST_NAME = "Mancomb";
+	protected static final String USER_MANCOMB_LAST_NAME = "Seepgood";
 	
-	private static final String USER_LARGO_USERNAME = "largo";
-	private static final String USER_LARGO_FIST_NAME = "Largo";
-	private static final String USER_LARGO_LAST_NAME = "LaGrande";
-	private static final int USER_LARGO_UID_NUMBER = 1002;
+	protected static final String USER_LARGO_USERNAME = "largo";
+	protected static final String USER_LARGO_FIST_NAME = "Largo";
+	protected static final String USER_LARGO_LAST_NAME = "LaGrande";
+	protected static final int USER_LARGO_UID_NUMBER = 1002;
 
-	private static final String USER_CAPSIZE_USERNAME = "capsize";
-	private static final String USER_CAPSIZE_FIST_NAME = "Kate";
-	private static final String USER_CAPSIZE_LAST_NAME = "Capsize";
-	private static final int USER_CAPSIZE_UID_NUMBER = 1004;
+	protected static final String USER_CAPSIZE_USERNAME = "capsize";
+	protected static final String USER_CAPSIZE_FIST_NAME = "Kate";
+	protected static final String USER_CAPSIZE_LAST_NAME = "Capsize";
+	protected static final int USER_CAPSIZE_UID_NUMBER = 1004;
 	
-	private static final String USER_WALLY_USERNAME = "wally";
-	private static final String USER_WALLY_FIST_NAME = "Wally";
-	private static final String USER_WALLY_LAST_NAME = "Feed";
-	private static final int USER_WALLY_UID_NUMBER = 1004;
+	protected static final String USER_WALLY_USERNAME = "wally";
+	protected static final String USER_WALLY_FIST_NAME = "Wally";
+	protected static final String USER_WALLY_LAST_NAME = "Feed";
+	protected static final int USER_WALLY_UID_NUMBER = 1004;
 
-	private static final String USER_RANGER_USERNAME = "ranger";
-	private static final String USER_RANGER_USERNAME_RENAMED = "usranger";
-	private static final String USER_RANGER_FIST_NAME = "Super";
-	private static final String USER_RANGER_LAST_NAME = "Ranger";
-	private static final int USER_RANGER_UID_NUMBER = 1003;
+	protected static final String USER_RANGER_USERNAME = "ranger";
+	protected static final String USER_RANGER_USERNAME_RENAMED = "usranger";
+	protected static final String USER_RANGER_FIST_NAME = "Super";
+	protected static final String USER_RANGER_LAST_NAME = "Ranger";
+	protected static final int USER_RANGER_UID_NUMBER = 1003;
 	
-	private static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
+	protected static final File STRUCT_LDIF_FILE = new File(TEST_DIR, "struct.ldif");
 
-	private static final String ROLE_MONKEY_ISLAND_NAME = "Monkey Island";
+	protected static final String ROLE_MONKEY_ISLAND_NAME = "Monkey Island";
 	
-	private static final String ROLE_VILLAINS_NAME = "villains";
-	private static final Integer ROLE_VILLAINS_GID = 999;
-	private static final String ROLE_RANGERS_NAME = "rangers";
-	private static final Integer ROLE_RANGERS_GID = 998;
-	private static final String ROLE_SEALS_NAME = "seals";
-	private static final Integer ROLE_SEALS_GID = 997;
-	private static final String ROLE_WALRUSES_NAME = "walruses";
+	protected static final String ROLE_VILLAINS_NAME = "villains";
+	protected static final Integer ROLE_VILLAINS_GID = 999;
+	protected static final String ROLE_RANGERS_NAME = "rangers";
+	protected static final Integer ROLE_RANGERS_GID = 998;
+	protected static final String ROLE_SEALS_NAME = "seals";
+	protected static final Integer ROLE_SEALS_GID = 997;
+	protected static final String ROLE_WALRUSES_NAME = "walruses";
 	
 	public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
 	public static final String OBJECT_TEMPLATE_USER_OID = "9cd03eda-66bd-11e5-866c-f3bc34108fdf";
@@ -164,9 +166,9 @@ public class TestUnix extends AbstractStoryTest {
 	public static final File SEQUENCE_GIDNUMBER_FILE = new File(TEST_DIR, "sequence-gidnumber.xml");
 	public static final String SEQUENCE_GIDNUMBER_OID = "02cb7caa-6618-11e5-87a5-7b6c6776a63e";
 
-	private static final String USER_STAN_USERNAME = "stan";
-	private static final String USER_STAN_FIST_NAME = "Stan";
-	private static final String USER_STAN_LAST_NAME = "Salesman";
+	protected static final String USER_STAN_USERNAME = "stan";
+	protected static final String USER_STAN_FIST_NAME = "Stan";
+	protected static final String USER_STAN_LAST_NAME = "Salesman";
 
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
@@ -205,32 +207,32 @@ public class TestUnix extends AbstractStoryTest {
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 
-	private String accountMancombOid;
-	private String accountMancombDn;
+	protected String accountMancombOid;
+	protected String accountMancombDn;
 	
-	private String accountLargoOid;
-	private String accountLargoDn;
+	protected String accountLargoOid;
+	protected String accountLargoDn;
 	
-	private String accountRangerOid;
-	private String accountRangerDn;
+	protected String accountRangerOid;
+	protected String accountRangerDn;
 	
-	private String accountWallyOid;
-	private String accountWallyDn;
+	protected String accountWallyOid;
+	protected String accountWallyDn;
 	
-	private String roleMonkeyIslandOid; 
-	private String groupMonkeyIslandDn;
-	private String groupMonkeyIslandOid;
+	protected String roleMonkeyIslandOid; 
+	protected String groupMonkeyIslandDn;
+	protected String groupMonkeyIslandOid;
 
-	private String roleVillainsOid;
-	private String groupVillainsDn;
+	protected String roleVillainsOid;
+	protected String groupVillainsDn;
 	
-	private String roleRangersOid;
-	private String groupRangersDn;
-	private String groupRangersOid;
+	protected String roleRangersOid;
+	protected String groupRangersDn;
+	protected String groupRangersOid;
 
-	private String roleSealsOid;
-	private String groupSealsDn;
-	private String groupSealsOid;
+	protected String roleSealsOid;
+	protected String groupSealsDn;
+	protected String groupSealsOid;
 
 	@Override
     protected void startResources() throws Exception {
@@ -250,7 +252,7 @@ public class TestUnix extends AbstractStoryTest {
 		reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
 		
 		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceFile(), getResourceOid(), initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
 		
@@ -274,14 +276,22 @@ public class TestUnix extends AbstractStoryTest {
 		
 //		DebugUtil.setDetailedDebugDump(true);
 	}
+
+	protected File getResourceFile() {
+		return RESOURCE_OPENDJ_FILE;
+	}
 	
+	protected String getResourceOid() {
+		return RESOURCE_OPENDJ_OID;
+	}
+
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        OperationResult testResultOpenDj = modelService.testResource(getResourceOid(), task);
         TestUtil.assertSuccess(testResultOpenDj);
         
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
@@ -293,7 +303,7 @@ public class TestUnix extends AbstractStoryTest {
 		final String TEST_NAME = "test010Schema";
         displayTestTitle(TEST_NAME);
 
-        resourceOpenDj = getObject(ResourceType.class, RESOURCE_OPENDJ_OID);
+        resourceOpenDj = getObject(ResourceType.class, getResourceOid());
         resourceOpenDjType = resourceOpenDj.asObjectable();
         
         IntegrationTestTools.displayXml("Initialized resource", resourceOpenDj);
@@ -324,7 +334,7 @@ public class TestUnix extends AbstractStoryTest {
 	
 	@Test
     public void test100AddUserHermanBasic() throws Exception {
-		final String TEST_NAME = "test100AddHrAccountHerman";
+		final String TEST_NAME = "test100AddUserHermanBasic";
         displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -337,8 +347,8 @@ public class TestUnix extends AbstractStoryTest {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
         assertNotNull("No herman user", userAfter);
         display("User after", userAfter);
@@ -473,8 +483,7 @@ public class TestUnix extends AbstractStoryTest {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
         
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
@@ -497,14 +506,18 @@ public class TestUnix extends AbstractStoryTest {
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
+        long startTs = System.currentTimeMillis();
+        
         // WHEN
 		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
+        
+        long endTs = System.currentTimeMillis();
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
@@ -515,8 +528,10 @@ public class TestUnix extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
+        
+        assertModifyTimestamp(shadow, startTs, endTs);
 	}
-	
+
 	@Test
     public void test125RecomputeUserLargo() throws Exception {
 		final String TEST_NAME = "test125RecomputeUserLargo";
@@ -954,11 +969,15 @@ public class TestUnix extends AbstractStoryTest {
         
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        assertBasicAccount(shadow);
+        assertAccountTest136(shadow);
         
         // TODO: check audit
 	}
 	
+	protected void assertAccountTest136(PrismObject<ShadowType> shadow) throws Exception {
+		assertBasicAccount(shadow);
+	}
+
 	/**
 	 * Reconcile user again. Without any meddling.
 	 * Just to make sure that the second run will not destroy anything.
@@ -994,12 +1013,16 @@ public class TestUnix extends AbstractStoryTest {
         
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
-        assertBasicAccount(shadow);
+        assertAccountTest137(shadow);
         
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertExecutionDeltas(0);
+	}
+	
+	protected void assertAccountTest137(PrismObject<ShadowType> shadow) throws Exception {
+		assertBasicAccount(shadow);
 	}
 	
 	@Test
@@ -1029,6 +1052,8 @@ public class TestUnix extends AbstractStoryTest {
         
         openDJController.assertNoEntry(accountLargoDn);
 	}
+	
+	// test140-150 are in subclass
 	
 	@Test
     public void test200AddLdapGroupMonkeyIsland() throws Exception {
@@ -1506,7 +1531,6 @@ public class TestUnix extends AbstractStoryTest {
         
 	}
 	
-/* *************************************************************************** */
 	@Test
     public void test300AddUserCapsizeUnixFail() throws Exception {
 		final String TEST_NAME = "test300AddUserCapsizeUnixFail";
@@ -1698,7 +1722,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, 
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), 
         		OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, prismContext);
         
         // WHEN
@@ -1721,7 +1745,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
         		ShadowKindType.ACCOUNT, "default", prismContext);
         display("query", query);
         
@@ -1745,7 +1769,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
         		ShadowKindType.ENTITLEMENT, "ldapGroup", prismContext);
         display("query", query);
         
@@ -1769,7 +1793,7 @@ public class TestUnix extends AbstractStoryTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(getResourceOid(),
         		ShadowKindType.ENTITLEMENT, "unixGroup", prismContext);
         display("query", query);
         
@@ -1857,11 +1881,9 @@ public class TestUnix extends AbstractStoryTest {
 
 		PrismObject<ShadowType> shadow = getShadowModel(accountOid);
 		display("Shadow (model)", shadow);
-		assertBasicAccount(shadow);
-
-		assertNoGroupAssociation(shadow, groupRangersOid);
-		assertGroupAssociation(shadow, groupMonkeyIslandOid);
-
+		
+		assertAccountTest510(shadow);
+		
 		display("Rangers", getShadowModel(groupRangersOid));
 
 		/*
@@ -1878,6 +1900,13 @@ public class TestUnix extends AbstractStoryTest {
         memberUid: [ stan ]
         entryUUID: 8647ca7a-2b7a-4948-9e9b-a1657028fbfe
 		 */
+	}
+
+	protected void assertAccountTest510(PrismObject<ShadowType> shadow) throws Exception {
+		assertBasicAccount(shadow);
+
+		assertNoGroupAssociation(shadow, groupRangersOid);
+		assertGroupAssociation(shadow, groupMonkeyIslandOid);
 	}
 
 	private PrismObject<UserType> createUser(String username, String givenName, String familyName, String roleOid) throws SchemaException {
@@ -1918,7 +1947,7 @@ public class TestUnix extends AbstractStoryTest {
 		PrismAsserts.assertPropertyValue(extension, EXTENSION_UID_NUMBER_NAME, Integer.toString(uidNumber));
 	}
 
-	private String assertBasicAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
+	protected String assertBasicAccount(PrismObject<ShadowType> shadow) throws DirectoryException {
 		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Wrong objectclass in "+shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
 		assertTrue("Unexpected auxiliary objectclasses in "+shadow + ": "+shadowType.getAuxiliaryObjectClass(), 
@@ -1934,7 +1963,22 @@ public class TestUnix extends AbstractStoryTest {
 		return entry.getDN().toString();
 	}
 	
-	private String assertPosixAccount(PrismObject<ShadowType> shadow, Integer expectedUid) throws DirectoryException {
+	protected String assertAccount(PrismObject<ShadowType> shadow, QName... expectedAuxObjectClasses) throws DirectoryException {
+		ShadowType shadowType = shadow.asObjectable();
+		assertEquals("Wrong objectclass in "+shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in "+shadow, 
+				shadowType.getAuxiliaryObjectClass(), expectedAuxObjectClasses);
+		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
+
+		Entry entry = openDJController.fetchEntry(dn);
+		assertNotNull("No ou LDAP entry for "+dn);
+		display("Posix account entry", entry);
+		openDJController.assertObjectClass(entry, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME.getLocalPart());
+		
+		return entry.getDN().toString();
+	}
+	
+	protected String assertPosixAccount(PrismObject<ShadowType> shadow, Integer expectedUid) throws DirectoryException {
 		ShadowType shadowType = shadow.asObjectable();
 		assertEquals("Wrong objectclass in "+shadow, OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME, shadowType.getObjectClass());
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong auxiliary objectclasses in "+shadow, 
@@ -1962,7 +2006,7 @@ public class TestUnix extends AbstractStoryTest {
 		return entry.getDN().toString();
 	}
 	
-	private ShadowAssociationType assertGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+	protected ShadowAssociationType assertGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
 		ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
 		if (association != null) {
 			return association;
@@ -1971,7 +2015,7 @@ public class TestUnix extends AbstractStoryTest {
 		return null; // NOT REACHED
 	}
 
-	private void assertNoGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
+	protected void assertNoGroupAssociation(PrismObject<ShadowType> accountShadow, String groupShadowOid) {
 		ShadowAssociationType association = findAssociation(accountShadow, groupShadowOid);
 		assertNull("Unexpected association for "+groupShadowOid+" in "+accountShadow, association);
 	}
@@ -2050,5 +2094,15 @@ public class TestUnix extends AbstractStoryTest {
 		openDJController.assertAttribute(entry, "gidNumber", expectedGidNumber.toString());
 		
 		return entry.getDN().toString();
+	}
+	
+	protected void assertModifyTimestamp(PrismObject<ShadowType> shadow, long startTs, long endTs) throws Exception {
+		Long actual = getTimestampAttribute(shadow);
+		TestUtil.assertBetween("Wrong modify timestamp attribute in "+shadow, startTs-1000, endTs+1000, actual);
+	}
+
+	protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
+		Long attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
+		return attributeValue;
 	}
 }

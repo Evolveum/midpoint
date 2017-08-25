@@ -4362,6 +4362,17 @@
                    </xsd:documentation>
                </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="tolerantAuxiliaryObjectClasses" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       If set to true then midPoitn will tolerate existing auxiliary object classes on resource
+                       objects. MidPoitn will add/remove auxiliary object classes only if there is an explicit
+                       operation for that (e.g. assign/unassign of role with auxiliary object class definition).
+                       If set to false then midPoint will strictly synchronize auxiliary object classes of resource
+                       objects with the definition given in midPoint configuration.
+                   </xsd:documentation>
+               </xsd:annotation>
+			</xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
