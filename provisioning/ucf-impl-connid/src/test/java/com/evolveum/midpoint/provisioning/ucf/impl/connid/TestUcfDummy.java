@@ -93,7 +93,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test000PrismContextSanity() throws Exception {
 		final String TEST_NAME = "test000PrismContextSanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
 		PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
@@ -109,7 +109,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test001ResourceSanity() throws Exception {
 		final String TEST_NAME = "test001ResourceSanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		display("Resource", resource);
 		
@@ -142,7 +142,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test002ConnectorSchema() throws Exception {
 		final String TEST_NAME = "test002ConnectorSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		PrismSchema connectorSchema = connectorFactory.generateConnectorConfigurationSchema(connectorType);
 		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "generated", true);
@@ -167,7 +167,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test010ListConnectors() throws Exception {
 		final String TEST_NAME = "test010ListConnectors";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+"."+TEST_NAME);
 		Set<ConnectorType> connectors = connectorFactory.listConnectors(null, result);
@@ -193,7 +193,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test020CreateConfiguredConnector() throws Exception {
 		final String TEST_NAME = "test020CreateConfiguredConnector";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
 				"test connector");
@@ -213,7 +213,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test022ConnectorStatsConfigured() throws Exception {
 		final String TEST_NAME = "test022ConnectorStatsConfigured";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// WHEN
 		ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
@@ -236,7 +236,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test030ResourceSchema() throws Exception {
 		final String TEST_NAME = "test030ResourceSchema";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
 		
@@ -273,7 +273,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test031ResourceSchemaAccountObjectClass() throws Exception {
 		final String TEST_NAME = "test031ResourceSchemaAccountObjectClass";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
 		
@@ -302,7 +302,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test033ConnectorStatsInitialized() throws Exception {
 		final String TEST_NAME = "test033ConnectorStatsInitialized";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// WHEN
 		ConnectorOperationalStatus operationalStatus = cc.getOperationalStatus();
@@ -325,7 +325,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test040AddAccount() throws Exception {
 		final String TEST_NAME = "test040AddAccount";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
@@ -355,7 +355,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test050Search() throws Exception {
 		final String TEST_NAME = "test050Search";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -394,7 +394,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test100FetchEmptyChanges() throws Exception {
 		final String TEST_NAME = "test100FetchEmptyChanges";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -421,7 +421,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test101FetchAddChange() throws Exception {
 		final String TEST_NAME = "test101FetchAddChange";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
@@ -455,7 +455,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 	@Test
 	public void test500SelfTest() throws Exception {
 		final String TEST_NAME = "test500SelfTest";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);

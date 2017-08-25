@@ -86,7 +86,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test100AddOrgCaribbean() throws Exception {
         final String TEST_NAME = "test100AddOrgCaribbean";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -122,7 +122,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test102RecomputeJamaica() throws Exception {
         final String TEST_NAME = "test102RecomputeJamaica";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -153,7 +153,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test103ReconcileJamaica() throws Exception {
         final String TEST_NAME = "test103ReconcileJamaica";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -184,7 +184,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test104RecomputeGovernor() throws Exception {
         final String TEST_NAME = "test104RecomputeGovernor";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -215,7 +215,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test105ReconcileGovernor() throws Exception {
         final String TEST_NAME = "test105ReconcileGovernor";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -249,7 +249,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test106RecomputeDoT() throws Exception {
         final String TEST_NAME = "test106RecomputeDoT";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -286,7 +286,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test107ReconcileDoT() throws Exception {
         final String TEST_NAME = "test107ReconcileDoT";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -326,7 +326,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test110RecomputeDoP() throws Exception {
         final String TEST_NAME = "test110RecomputeDoP";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -361,7 +361,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test115AssignJackToDoP() throws Exception {
         final String TEST_NAME = "test115AssignJackToDoP";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -412,7 +412,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test120AssignBarbossaDoTManager() throws Exception {
         final String TEST_NAME = "test120AssignBarbossaDoTManager";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -450,7 +450,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test130AssignGibbsAsJacksDeputy() throws Exception {
         final String TEST_NAME = "test130AssignGibbsAsJacksDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -490,7 +490,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
     @Test
     public void test140AssignPintelAsBarbossasDeputy() throws Exception {
         final String TEST_NAME = "test140AssignPintelAsBarbossasDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(TestOrgStructCaribbean.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();

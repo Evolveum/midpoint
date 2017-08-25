@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.util.exception;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Error regarding schema.
@@ -37,15 +39,22 @@ public class SchemaException extends CommonException {
 	public SchemaException(String message, Throwable cause) {
 		super(message, cause);
 	}
+	
+	public SchemaException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
 
 	public SchemaException(String message, Throwable cause, QName propertyName) {
 		super(message, cause);
 		this.propertyName = propertyName;
 	}
-
 	
 	public SchemaException(String message) {
 		super(message);
+	}
+	
+	public SchemaException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
 	}
 
 	public SchemaException(String message, QName propertyName) {
@@ -54,7 +63,7 @@ public class SchemaException extends CommonException {
 	}
 		
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Schema problem";
 	}
 	

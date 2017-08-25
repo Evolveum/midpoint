@@ -106,7 +106,7 @@ public class TestClockwork extends AbstractLensTest {
     @Test(enabled = true)
     public void test010SerializeAddUserBarbossa() throws Exception {
     	final String TEST_NAME = "test010SerializeAddUserBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
@@ -143,7 +143,7 @@ public class TestClockwork extends AbstractLensTest {
 	@Test
     public void test020AssignAccountToJackSync() throws Exception {
 		final String TEST_NAME = "test020AssignAccountToJackSync";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         try {
         	
@@ -222,7 +222,7 @@ public class TestClockwork extends AbstractLensTest {
 	@Test
     public void test053ModifyUserBarbossaDisable() throws Exception {
 		final String TEST_NAME = "test053ModifyUserBarbossaDisable";
-        displayTestTile(TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -283,7 +283,7 @@ public class TestClockwork extends AbstractLensTest {
     }
 	
 	private void assignAccountToJackAsync(String testName, boolean serialize) throws Exception {
-		displayTestTile(testName);
+		displayTestTitle(testName);
 		
 		// GIVEN
         Task task = createTask(testName);

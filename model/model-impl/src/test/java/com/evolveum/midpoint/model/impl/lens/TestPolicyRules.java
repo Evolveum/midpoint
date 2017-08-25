@@ -81,7 +81,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
 	public void test005JackAttemptAssignRoleJudge() throws Exception {
 		final String TEST_NAME = "test005JackAttemptAssignRoleJudge";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -114,7 +114,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test(enabled = false)
 	public void test007JackAttemptAssignRoleJudgeAsOwner() throws Exception {
 		final String TEST_NAME = "test007JackAttemptAssignRoleJudgeAsOwner";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -153,7 +153,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
     public void test010JackAssignRoleJudge() throws Exception {
 		final String TEST_NAME = "test010JackAssignRoleJudge";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -179,7 +179,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
 	public void test020JackUnassignRoleJudge() throws Exception {
 		final String TEST_NAME = "test020JackUnassignRoleJudge";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -216,7 +216,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
     public void test100AssignRoleMutinierToJack() throws Exception {
 		final String TEST_NAME = "test100AssignRoleMutinierToJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -255,7 +255,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
     public void test110AssignRolePirateToJack() throws Exception {
 		final String TEST_NAME = "test110AssignRolePirateToJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -299,7 +299,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
     public void test112AssignRolePirateWithExceptionToJack() throws Exception {
 		final String TEST_NAME = "test112AssignRolePirateWithExceptionToJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -349,7 +349,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
     public void test120AssignRoleConstableToJack() throws Exception {
 		final String TEST_NAME = "test120AssignRoleConstableToJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -410,7 +410,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
 	public void test150AssignRoleThiefToJack() throws Exception {
 		final String TEST_NAME = "test150AssignRoleThiefToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -459,7 +459,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
 	public void test200JackAssignRoleContractor() throws Exception {
 		final String TEST_NAME = "test200JackAssignRoleContractor";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -485,7 +485,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
 	public void test210AssignRoleEmployeeToJack() throws Exception {
 		final String TEST_NAME = "test210AssignRoleEmployeeToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);
@@ -530,7 +530,7 @@ public class TestPolicyRules extends AbstractLensTest {
 	@Test
 	public void test220AssignRoleEngineerToJack() throws Exception {
 		final String TEST_NAME = "test220AssignRoleEngineerToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestPolicyRules.class.getName() + "." + TEST_NAME);

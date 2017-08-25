@@ -113,7 +113,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test100CreateWrapperUserJack() throws Exception {
 		final String TEST_NAME = "test100CreateWrapperUserJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		
@@ -166,7 +166,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test102CreateWrapperUserEmpty() throws Exception {
 		final String TEST_NAME = "test102CreateWrapperUserEmpty";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		PrismObject<UserType> user = getUser(USER_EMPTY_OID);
 		
@@ -219,7 +219,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test150CreateWrapperShadow() throws Exception {
 		final String TEST_NAME = "test150CreateWrapperShadow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		PrismObject<ShadowType> shadow = getShadowModel(accountJackOid);
 		shadow.findReference(ShadowType.F_RESOURCE_REF).getValue().setObject(resourceDummy);
@@ -274,7 +274,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test220AssignRoleLandluberToWally() throws Exception {
 		final String TEST_NAME = "test220AssignRoleLandluberToWally";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestIntegrationObjectWrapperFactory.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -356,7 +356,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test800EditSchemaJackPropReadAllModifySomeUser() throws Exception {
 		final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_USER_OID);
@@ -432,7 +432,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	@Test
     public void test802EditSchemaJackPropReadSomeModifySomeUser() throws Exception {
 		final String TEST_NAME = "test800EditSchemaJackPropReadAllModifySomeUser";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);

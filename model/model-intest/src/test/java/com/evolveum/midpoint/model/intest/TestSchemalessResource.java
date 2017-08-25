@@ -57,7 +57,7 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
 	@Test
     public void test001GetObject() throws Exception {
 		final String TEST_NAME = "test001GetObject";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
@@ -72,7 +72,7 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
 	@Test
     public void test002TestConnection() throws Exception {
 		final String TEST_NAME = "test002TestConnection";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         

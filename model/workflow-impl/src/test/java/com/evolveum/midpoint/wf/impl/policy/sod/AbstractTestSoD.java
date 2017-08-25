@@ -99,7 +99,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 	@Test
 	public void test010AssignRoleJudge() throws Exception {
 		final String TEST_NAME = "test010AssignRoleJudge";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -119,7 +119,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 	@Test
 	public void test020AssignRolePirate() throws Exception {
 		final String TEST_NAME = "test020AssignRolePirate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -237,7 +237,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 	@Test
 	public void test030AssignRoleRespectable() throws Exception {
 		final String TEST_NAME = "test030AssignRoleRespectable";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);

@@ -73,6 +73,7 @@
 		    <generateObjectClass>ri:domain</generateObjectClass>
 		    <generateObjectClass>ri:posixAccount</generateObjectClass>
 		    <generateObjectClass>ri:posixGroup</generateObjectClass>
+		    <generateObjectClass>ri:labeledURIObject</generateObjectClass>
 		</generationConstraints>
 	</schema>
 

@@ -82,7 +82,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Test
 	public void test001CorrelationOrFilter() throws Exception{
 		String TEST_NAME = "test001CorrelationOrFilter";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -118,7 +118,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Test
 	public void test002CorrelationMoreThanOne() throws Exception{
 		String TEST_NAME = "test002CorrelationMoreThanOne";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -153,7 +153,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Test
 	public void test003CorrelationWithCondition() throws Exception{
 		String TEST_NAME = "test003CorrelationWithCondition";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -188,7 +188,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Test
 	public void test004CorrelationMatchCaseInsensitive() throws Exception{
 		String TEST_NAME = "test004CorrelationMatchCaseInsensitive";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -232,7 +232,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Test
 	public void test005CorrelationMatchCaseInsensitive() throws Exception{
 		String TEST_NAME = "test005CorrelationMatchCaseInsensitive";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -280,7 +280,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Test
 	public void test006CorrelationFindCaseInsensitive() throws Exception{
 		String TEST_NAME = "test006CorrelationFindCaseInsensitive";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();

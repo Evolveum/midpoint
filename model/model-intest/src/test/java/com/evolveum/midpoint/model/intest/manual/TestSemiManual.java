@@ -138,7 +138,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	@Test
 	public void test700AssignAccountJackExisting() throws Exception {
 		final String TEST_NAME = "test700AssignAccountJack";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -198,7 +198,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	@Test
 	public void test710UnassignAccountJack() throws Exception {
 		final String TEST_NAME = "test710UnassignAccountJack";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -260,7 +260,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	@Test
 	public void test712CloseCaseAndRecomputeJack() throws Exception {
 		final String TEST_NAME = "test712CloseCaseAndRecomputeJack";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -322,7 +322,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	@Test
 	public void test717RecomputeJackAfter30min() throws Exception {
 		final String TEST_NAME = "test717RecomputeJackAfter30min";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -352,7 +352,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 	@Test
 	public void test719CleanUp() throws Exception {
 		final String TEST_NAME = "test719CleanUp";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
 	}

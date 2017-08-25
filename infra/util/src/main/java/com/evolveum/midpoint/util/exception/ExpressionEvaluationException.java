@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.evolveum.midpoint.util.exception;
+
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 /**
  * Error during evaluation of expression. The expressions are defined by system administrator.
@@ -31,6 +33,10 @@ public class ExpressionEvaluationException extends CommonException {
 		super(message);
 	}
 
+	public ExpressionEvaluationException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
+	}
+
 	public ExpressionEvaluationException(Throwable cause) {
 		super(cause);
 	}
@@ -38,9 +44,17 @@ public class ExpressionEvaluationException extends CommonException {
 	public ExpressionEvaluationException(String message, Throwable cause) {
 		super(message, cause);
 	}
+	
+	public ExpressionEvaluationException(String message, Throwable cause, LocalizableMessage userFriendlyMessage) {
+		super(message, cause, userFriendlyMessage);
+	}
+
+	public ExpressionEvaluationException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
 
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Expression error";
 	}
 

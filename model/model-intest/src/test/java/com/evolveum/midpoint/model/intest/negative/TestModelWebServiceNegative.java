@@ -73,7 +73,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 	@Test
     public void test100ModifyAccountExplicitType() throws Exception {
 		final String TEST_NAME = "test100ModifyUserAddAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);
@@ -101,7 +101,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 	@Test
     public void test110ModifyAccountImplicitType() throws Exception {
 		final String TEST_NAME = "test110ModifyAccountImplicitType";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);
@@ -126,7 +126,7 @@ public class TestModelWebServiceNegative extends AbstractInitializedModelIntegra
 	@Test
     public void test200ModifyAccountWrongExplicitType() throws Exception {
 		final String TEST_NAME = "test200ModifyAccountWrongExplicitType";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelWebServiceNegative.class.getName() + "." + TEST_NAME);

@@ -957,7 +957,7 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 	public void record(CommonException exception) {
 		// TODO: switch to a localized message later
 		// Exception is a fatal error in this context
-		recordFatalError(exception.getOperationResultMessage(), exception);
+		recordFatalError(exception.getErrorTypeMessage(), exception);
 	}
 
 	public void recordStatus(OperationResultStatus status, String message) {

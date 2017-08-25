@@ -55,7 +55,7 @@ public class TestStaticValues {
     @Test
     public void testValueElementsRoundtripString() throws Exception {
     	final String TEST_NAME = "testValueElementsRoundtripString";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -71,7 +71,7 @@ public class TestStaticValues {
     @Test
     public void testValueElementsRoundtripInt() throws Exception {
     	final String TEST_NAME = "testValueElementsRoundtripInt";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
     	
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();

@@ -208,7 +208,7 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	@Test
     public void test001ConnectorHostDiscovery() throws Exception {
 		final String TEST_NAME = "test001ConnectorHostDiscovery";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -236,7 +236,7 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	@Test
     public void test002ImportResource() throws Exception {
 		final String TEST_NAME = "test002ImportResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -255,7 +255,7 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	@Test
     public void test020Schema() throws Exception {
 		final String TEST_NAME = "test020Schema";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN        
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
@@ -285,7 +285,7 @@ public abstract class AbstractAdTest extends AbstractLdapTest {
 	@Test
     public void test050Capabilities() throws Exception {
 		final String TEST_NAME = "test050Capabilities";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
         display("Native capabilities", nativeCapabilitiesCollection);

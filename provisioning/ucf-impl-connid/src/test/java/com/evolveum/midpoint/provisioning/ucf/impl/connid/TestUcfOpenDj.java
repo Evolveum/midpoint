@@ -141,7 +141,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	@BeforeMethod
 	public void initUcf() throws Exception {
-		TestUtil.displayTestTile("initUcf");
+		TestUtil.displayTestTitle("initUcf");
 
 		// Resource
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_OPENDJ_FILE);
@@ -183,7 +183,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test010ConnectorSchemaSanity() throws Exception {
 		final String TEST_NAME = "test010ConnectorSchemaSanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 	
 		IntegrationTestTools.assertConnectorSchemaSanity(connectorSchema, "LDAP connector", true);
 		
@@ -211,7 +211,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test020ResourceSchemaSanity() throws Exception {
 		final String TEST_NAME = "test020ResourceSchemaSanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		QName objectClassQname = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(objectClassQname);
@@ -300,7 +300,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test100AddDeleteObject() throws Exception {
 		final String TEST_NAME = "test100AddDeleteObject";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
@@ -335,7 +335,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test110ChangeModifyObject() throws Exception {
 		final String TEST_NAME = "test110ChangeModifyObject";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
@@ -380,7 +380,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test200FetchChanges() throws Exception {
 		final String TEST_NAME = "test200FetchChanges";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
@@ -462,7 +462,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test300TestConnection() throws Exception {
 		final String TEST_NAME = "test300TestConnection";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		// GIVEN
 
 		OperationResult result = new OperationResult(TEST_NAME);
@@ -489,7 +489,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test310TestConnectionNegative() throws Exception {
 		final String TEST_NAME = "test310TestConnectionNegative";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		// GIVEN
 
 		OperationResult result = new OperationResult(TEST_NAME);
@@ -523,7 +523,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test400FetchResourceSchema() throws Exception {
 		final String TEST_NAME = "test400FetchResourceSchema";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		// GIVEN
 
 		// WHEN
@@ -573,7 +573,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test410Capabilities() throws Exception {
 		final String TEST_NAME = "test410Capabilities";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		// GIVEN
 
 		OperationResult result = new OperationResult(TEST_NAME);
@@ -597,7 +597,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test500FetchObject() throws Exception {
 		final String TEST_NAME = "test500FetchObject";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
@@ -632,7 +632,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test510Search() throws Exception {
 		final String TEST_NAME = "test510Search";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		// GIVEN
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
@@ -658,7 +658,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test600CreateAccountWithPassword() throws Exception {
 		final String TEST_NAME = "test600CreateAccountWithPassword";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=lechuck,ou=people,dc=example,dc=com", "Ghost Pirate LeChuck", "LeChuck");
@@ -699,7 +699,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test610ChangePassword() throws Exception {
 		final String TEST_NAME = "test610ChangePassword";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		// GIVEN
 		ResourceAttributeContainer resourceObject = createResourceObject(
 				"uid=drake,ou=People,dc=example,dc=com", "Sir Francis Drake", "Drake");

@@ -91,7 +91,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test100EvaluateExpressionEmployeeTypeUndefinedFilter() throws Exception {
 		final String TEST_NAME = "testEvaluateExpressionEmployeeTypeUndefinedFilter";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -106,7 +106,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test110EvaluateExpressionEmployeeTypeNoneFilter() throws Exception {
 		final String TEST_NAME = "testEvaluateExpressionEmployeeTypeNoneFilter";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -121,7 +121,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test120EvaluateExpressionEmployeeTypeAllFilter() throws Exception {
 		final String TEST_NAME = "testEvaluateExpressionEmployeeTypeAllFilter";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -136,7 +136,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test130EvaluateExpressionEmployeeTypeError() throws Exception {
 		final String TEST_NAME = "testEvaluateExpressionEmployeeTypeError";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -156,7 +156,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test140EvaluateExpressionEmployeeTypeEmptyFilter() throws Exception {
 		final String TEST_NAME = "testEvaluateExpressionEmployeeTypeEmptyFilter";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -174,7 +174,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test150EvaluateExpressionEmployeeTypeDefaultsNull() throws Exception {
 		final String TEST_NAME = "test150EvaluateExpressionEmployeeTypeDefaultsNull";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -193,7 +193,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test152EvaluateExpressionEmployeeTypeDefaultsCaptain() throws Exception {
 		final String TEST_NAME = "test152EvaluateExpressionEmployeeTypeDefaultsCaptain";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -212,7 +212,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test200EvaluateExpressionLinkRefDefaultsNull() throws Exception {
 		final String TEST_NAME = "test200EvaluateExpressionLinkRefDefaultsNull";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -230,7 +230,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test202EvaluateExpressionLinkRefObjectReferenceTypeDefaultsNull() throws Exception {
 		final String TEST_NAME = "test202EvaluateExpressionLinkRefObjectReferenceTypeDefaultsNull";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -248,7 +248,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test210EvaluateExpressionLinkRefDefaultsVal() throws Exception {
 		final String TEST_NAME = "test210EvaluateExpressionLinkRefDefaultsVal";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);
@@ -266,7 +266,7 @@ public class TestFilterExpression extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test212EvaluateExpressionLinkRefObjectReferenceTypeDefaultsVal() throws Exception {
 		final String TEST_NAME = "test212EvaluateExpressionLinkRefObjectReferenceTypeDefaultsVal";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult result = new OperationResult(TestFilterExpression.class.getName() + "." + TEST_NAME);

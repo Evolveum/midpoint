@@ -159,7 +159,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private void executeTest(final String TEST_NAME, FocusOperation focusOperation, ShadowOperation shadowOperation,
 			ResourceObjectOperation resourceObjectOperation) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestConsistencySimple.class.getName() + "." + TEST_NAME);

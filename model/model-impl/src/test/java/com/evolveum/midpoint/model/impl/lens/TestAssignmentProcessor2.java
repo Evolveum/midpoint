@@ -159,7 +159,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		assertEquals("Wrong default relation", SchemaConstants.ORG_DEFAULT, prismContext.getDefaultRelation());
 	}
@@ -167,7 +167,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test010AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -212,7 +212,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test020AssignMR1ToR1() throws Exception {
 		final String TEST_NAME = "test020AssignMR1ToR1";
-		displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -261,7 +261,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test030AssignR1ToJackProjectorDisabled() throws Exception {
 		final String TEST_NAME = "test030AssignR1ToJackProjectorDisabled";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -293,7 +293,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test040AssignR1ToJackAsApprover() throws Exception {
 		final String TEST_NAME = "test040AssignR1ToJackAsApprover";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -350,7 +350,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test050JackDeputyOfBarbossa() throws Exception {
 		final String TEST_NAME = "test050JackDeputyOfBarbossa";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -433,7 +433,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test060JackDeputyOfGuybrushDeputyOfBarbossa() throws Exception {
 		final String TEST_NAME = "test060JackDeputyOfGuybrushDeputyOfBarbossa";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -517,7 +517,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test070JackDeputyOfBarbossaApproverOfR1() throws Exception {
 		final String TEST_NAME = "test070JackDeputyOfBarbossaApproverOfR1";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -597,7 +597,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test100DisableSomeRoles() throws Exception {
 		final String TEST_NAME = "test100DisableSomeRoles";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -614,7 +614,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test110AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -675,7 +675,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test150DisableSomeAssignments() throws Exception {
 		final String TEST_NAME = "test150DisableSomeAssignments";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -690,7 +690,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test160AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test160AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -751,7 +751,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test200AddConditions() throws Exception {
 		final String TEST_NAME = "test200AddConditions";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -772,7 +772,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test210AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test210AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -838,7 +838,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = SECOND_PART)
 	public void test300AssignR7ToJack() throws Exception {
 		final String TEST_NAME = "test300AssignR7ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -981,7 +981,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = THIRD_PART)
 	public void test400AssignJackPirate() throws Exception {
 		final String TEST_NAME = "test400AssignJackPirate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1443,7 +1443,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test500AssignJackOrg11() throws Exception {
 		final String TEST_NAME = "test500AssignJackOrg11";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1504,7 +1504,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test505AssignJackOrg11AsManager() throws Exception {
 		final String TEST_NAME = "test505AssignJackOrg11AsManager";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1562,7 +1562,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test507AssignJackOrg11AsApprover() throws Exception {
 		final String TEST_NAME = "test507AssignJackOrg11AsApprover";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1619,7 +1619,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test510AssignJackOrg21() throws Exception {
 		final String TEST_NAME = "test510AssignJackOrg21";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1675,7 +1675,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test515AssignJackOrg21AsManager() throws Exception {
 		final String TEST_NAME = "test515AssignJackOrg21AsManager";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1745,7 +1745,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test520AssignJackOrg41AsApprover() throws Exception {
 		final String TEST_NAME = "test520AssignJackOrg41AsApprover";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1812,7 +1812,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIFTH_PART)
 	public void test600AssignA1ToJack() throws Exception {
 		final String TEST_NAME = "test600AssignA1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);

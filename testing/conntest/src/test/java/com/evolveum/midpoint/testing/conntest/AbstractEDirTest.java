@@ -199,7 +199,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
 		assertLdapPassword(ACCOUNT_JACK_UID, ACCOUNT_JACK_PASSWORD);
 		assertEDirGroupMember(ACCOUNT_JACK_UID, GROUP_PIRATES_NAME);
@@ -213,7 +213,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test050Capabilities() throws Exception {
 		final String TEST_NAME = "test050Capabilities";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
         display("Native capabilities", nativeCapabilitiesCollection);
@@ -227,7 +227,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test100SeachJackByLdapUid() throws Exception {
 		final String TEST_NAME = "test100SeachJackByLdapUid";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -267,7 +267,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test105SeachPiratesByCn() throws Exception {
 		final String TEST_NAME = "test105SeachPiratesByCn";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -305,7 +305,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test110GetJack() throws Exception {
 		final String TEST_NAME = "test110GetJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -338,7 +338,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test120JackLockout() throws Exception {
 		final String TEST_NAME = "test120JackLockout";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -387,7 +387,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test150SeachAllAccounts() throws Exception {
 		final String TEST_NAME = "test150SeachAllAccounts";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -409,7 +409,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test190SeachLockedAccounts() throws Exception {
 		final String TEST_NAME = "test190SeachLockedAccounts";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -438,7 +438,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test200AssignAccountBarbossa() throws Exception {
 		final String TEST_NAME = "test200AssignAccountBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -483,7 +483,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test210ModifyAccountBarbossaTitle() throws Exception {
 		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -516,7 +516,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test220ModifyUserBarbossaPassword() throws Exception {
 		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -548,7 +548,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test230DisableBarbossa() throws Exception {
 		final String TEST_NAME = "test230DisableBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -579,7 +579,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test239EnableBarbossa() throws Exception {
 		final String TEST_NAME = "test239EnableBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -613,7 +613,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test240ModifyAccountBarbossaPasswordAllowChangeFalse() throws Exception {
 		final String TEST_NAME = "test240ModifyAccountBarbossaPasswordAllowChangeFalse";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -654,7 +654,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test250AssignGuybrushPirates() throws Exception {
 		final String TEST_NAME = "test250AssignGuybrushPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -691,7 +691,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test260EnableGyubrush() throws Exception {
 		final String TEST_NAME = "test260EnableGyubrush";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -724,7 +724,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test300AssignBarbossaPirates() throws Exception {
 		final String TEST_NAME = "test300AssignBarbossaPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -757,7 +757,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test390ModifyUserBarbossaRename() throws Exception {
 		final String TEST_NAME = "test390ModifyUserBarbossaRename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -792,7 +792,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test500AddOrgMeleeIsland() throws Exception {
 		final String TEST_NAME = "test500AddOrgMeleeIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -829,7 +829,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test510AssignGuybrushMeleeIsland() throws Exception {
 		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -859,7 +859,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test520RenameOrgMeleeIsland() throws Exception {
 		final String TEST_NAME = "test520RenameOrgMeleeIsland";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -886,7 +886,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test800JackLockoutExpires() throws Exception {
 		final String TEST_NAME = "test800JackLockoutExpires";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -934,7 +934,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test810SeachLockedAccounts() throws Exception {
 		final String TEST_NAME = "test810SeachLockedAccounts";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -952,7 +952,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test820JackLockoutAndUnlock() throws Exception {
 		final String TEST_NAME = "test820JackLockoutAndUnlock";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
@@ -1015,7 +1015,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test890UnAssignBarbossaPirates() throws Exception {
 		final String TEST_NAME = "test890UnAssignBarbossaPirates";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // TODO: do this on another account. There is a bad interference with rename.
         
@@ -1050,7 +1050,7 @@ public abstract class AbstractEDirTest extends AbstractLdapTest {
 	@Test
     public void test899UnAssignAccountBarbossa() throws Exception {
 		final String TEST_NAME = "test899UnAssignAccountBarbossa";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);

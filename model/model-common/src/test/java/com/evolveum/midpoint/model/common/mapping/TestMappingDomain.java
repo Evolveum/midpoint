@@ -62,7 +62,7 @@ public class TestMappingDomain {
     @Test
     public void testControlReplaceSingleValue() throws Exception {
     	final String TEST_NAME = "testControlReplaceSingleValue";
-    	TestUtil.displayTestTile(this, TEST_NAME);
+    	TestUtil.displayTestTitle(this, TEST_NAME);
     	
     	// GIVEN
     	
@@ -98,7 +98,7 @@ public class TestMappingDomain {
     @Test
     public void testControlReplaceMultiValue() throws Exception {
     	final String TEST_NAME = "testControlReplaceMultiValue";
-    	TestUtil.displayTestTile(this, TEST_NAME);
+    	TestUtil.displayTestTitle(this, TEST_NAME);
     	
     	// GIVEN
     	
@@ -138,7 +138,7 @@ public class TestMappingDomain {
     @Test
     public void testReplaceMixedMultiValue() throws Exception {
     	final String TEST_NAME = "testReplaceMixedMultiValue";
-    	TestUtil.displayTestTile(this, TEST_NAME);
+    	TestUtil.displayTestTitle(this, TEST_NAME);
     	
     	// GIVEN
     	
@@ -181,7 +181,7 @@ public class TestMappingDomain {
     @Test
     public void testAddMixedMultiValue() throws Exception {
     	final String TEST_NAME = "testAddMixedMultiValue";
-    	TestUtil.displayTestTile(this, TEST_NAME);
+    	TestUtil.displayTestTitle(this, TEST_NAME);
     	
     	// GIVEN
     	
@@ -224,7 +224,7 @@ public class TestMappingDomain {
     @Test
     public void testDeleteMixedMultiValue() throws Exception {
     	final String TEST_NAME = "testDeleteMixedMultiValue";
-    	TestUtil.displayTestTile(this, TEST_NAME);
+    	TestUtil.displayTestTitle(this, TEST_NAME);
     	
     	// GIVEN
     	

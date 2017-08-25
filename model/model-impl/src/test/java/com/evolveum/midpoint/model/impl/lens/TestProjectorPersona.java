@@ -107,7 +107,7 @@ public class TestProjectorPersona extends AbstractLensTest {
 	@Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
 		final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestProjectorPersona.class.getName() + "." + TEST_NAME);

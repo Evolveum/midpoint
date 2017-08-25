@@ -74,7 +74,7 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 	 */
 	public void test300ApprovalAndEnforce() throws Exception {
 		final String TEST_NAME = "test300ApprovalAndEnforce";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 		Task task = createTask(TEST_NAME);
 		task.setOwner(userAdministrator);

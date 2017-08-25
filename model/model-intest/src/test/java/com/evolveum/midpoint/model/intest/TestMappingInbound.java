@@ -82,7 +82,7 @@ public class TestMappingInbound extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
@@ -101,7 +101,7 @@ public class TestMappingInbound extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test110AddDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyTeaGreenAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
@@ -149,7 +149,7 @@ public class TestMappingInbound extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test150UserReconcile() throws Exception {
         final String TEST_NAME = "test150UserReconcile";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
@@ -197,7 +197,7 @@ public class TestMappingInbound extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test300DeleteDummyTeaGreenAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);

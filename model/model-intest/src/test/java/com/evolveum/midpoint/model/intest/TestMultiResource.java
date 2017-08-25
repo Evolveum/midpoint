@@ -397,7 +397,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210JackAssignDummyBeige() throws Exception {
 		final String TEST_NAME = "test210JackAssignDummyBeige";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -435,7 +435,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test219JackUnAssignDummyBeige() throws Exception {
 		final String TEST_NAME = "test219JackUnAssignDummyBeige";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -470,7 +470,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220JackAssignDummyBeigeAndDefault() throws Exception {
 		final String TEST_NAME = "test220JackAssignDummyBeigeAndDefault";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -510,7 +510,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test221JackRecompute() throws Exception {
 		final String TEST_NAME = "test221JackRecompute";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -545,7 +545,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test223JackKillDefaultDummyAccounAndRecompute() throws Exception {
 		final String TEST_NAME = "test223JackKillDefaultDummyAccounAndRecompute";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -586,7 +586,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test224JackKillBeigeAccounAndRecompute() throws Exception {
 		final String TEST_NAME = "test224JackKillBeigeAccounAndRecompute";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -626,7 +626,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test225JackKillBothAccounsAndRecompute() throws Exception {
 		final String TEST_NAME = "test225JackKillBothAccounsAndRecompute";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -671,7 +671,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test227ModifyUserJackDefaultDummyBrokenSchemaViolation() throws Exception {
 		final String TEST_NAME = "test227ModifyUserJackDefaultDummyBrokenSchemaViolation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiResource.class.getName() + "." + TEST_NAME);
@@ -715,7 +715,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test228ModifyUserJackDefaultDummyNoError() throws Exception {
 		final String TEST_NAME = "test228ModifyUserJackDefaultDummyNoError";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMultiResource.class.getName() + "." + TEST_NAME);
@@ -756,7 +756,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test229JackUnassignDummyBeigeAndDefault() throws Exception {
 		final String TEST_NAME = "test229JackUnassignDummyBeigeAndDefault";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -792,7 +792,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test250JackAssignDummyLavender() throws Exception {
 		final String TEST_NAME = "test250JackAssignDummyLavender";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -829,7 +829,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	 * resource through the user to the other resource. If dependency does not work then no value is propagated.
 	 */
     public void jackAssignRoleDummies(final String TEST_NAME) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -874,7 +874,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 
     public void jackRename(final String TEST_NAME) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -932,7 +932,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 
     public void jackUnAssignRoleDummies(final String TEST_NAME) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -962,7 +962,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	 */
     public void jackAssignRoleDummiesError(final String TEST_NAME, String roleOid, String dummyResourceName, 
     		boolean expectAccount) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -1003,7 +1003,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
 
 	public void jackUnAssignRoleDummiesError(final String TEST_NAME, String roleOid) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -1038,7 +1038,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test300AddAndAssignRelative() throws Exception {
 		final String TEST_NAME = "test300AddAndAssignRelative";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1096,7 +1096,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test310AddedAccountAndUnassignRelative() throws Exception {
 		final String TEST_NAME = "test310AddedAccountAndUnassignRelative";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1137,7 +1137,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test319UnassignDummyRelative() throws Exception {
 		final String TEST_NAME = "test319UnassignDummyRelative";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1173,7 +1173,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test350AddAccountLavender() throws Exception {
 		final String TEST_NAME = "test350AddAccountLavender";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1204,7 +1204,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test352AddAccountIvory() throws Exception {
 		final String TEST_NAME = "test352AddAccountIvory";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1228,7 +1228,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test354AddAccountBeige() throws Exception {
 		final String TEST_NAME = "test354AddAccountBeige";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1252,7 +1252,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test360AddAccountDummy() throws Exception {
 		final String TEST_NAME = "test360AddAccountDummy";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1279,7 +1279,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test362AddAccountLavender() throws Exception {
 		final String TEST_NAME = "test362AddAccountLavender";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1306,7 +1306,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test370DeleteAccountDummy() throws Exception {
 		final String TEST_NAME = "test370DeleteAccountDummy";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1343,7 +1343,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test372UnlinkAccountDummy() throws Exception {
 		final String TEST_NAME = "test372UnlinkAccountDummy";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1377,7 +1377,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test374DeleteAccountLavender() throws Exception {
 		final String TEST_NAME = "test374DeleteAccountLavender";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1407,7 +1407,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test376DeleteAccountDummy() throws Exception {
 		final String TEST_NAME = "test376DeleteAccountDummy";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1434,7 +1434,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test378DeleteAccountBeige() throws Exception {
 		final String TEST_NAME = "test378DeleteAccountBeige";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1462,7 +1462,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test379DeleteAccountIvory() throws Exception {
 		final String TEST_NAME = "test379DeleteAccountIvory";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1491,7 +1491,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test380AddAccountPeru() throws Exception {
 		final String TEST_NAME = "test380AddAccountPeru";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		getDummyResource().resetBreakMode();
 		
@@ -1519,7 +1519,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test382AddAccountYellow() throws Exception {
 		final String TEST_NAME = "test382AddAccountYellow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1556,7 +1556,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test385ModifyUserJackPasswordA() throws Exception {
 		final String TEST_NAME = "test385ModifyUserJackPasswordA";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
@@ -1590,7 +1590,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test389DeleteAccountPeru() throws Exception {
 		final String TEST_NAME = "test389DeleteAccountPeru";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
@@ -1618,7 +1618,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test400DavidAndGoliathAssignRole() throws Exception {
 		final String TEST_NAME = "test400DavidAndGoliathAssignRole";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1705,7 +1705,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test401DavidAndGoliathModifyOu() throws Exception {
 		final String TEST_NAME = "test401DavidAndGoliathModifyOu";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1753,7 +1753,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test403DavidAndGoliathDisableUser() throws Exception {
 		final String TEST_NAME = "test403DavidAndGoliathDisableUser";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1792,7 +1792,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test404DavidAndGoliathEnableUser() throws Exception {
 		final String TEST_NAME = "test404DavidAndGoliathEnableUser";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1830,7 +1830,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test405DavidAndGoliathDisableAccountDavid() throws Exception {
 		final String TEST_NAME = "test405DavidAndGoliathDisableAccountDavid";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1870,7 +1870,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test406DavidAndGoliathRecompute() throws Exception {
 		final String TEST_NAME = "test406DavidAndGoliathRecompute";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1901,7 +1901,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test408DavidAndGoliathEnableAccountDavid() throws Exception {
 		final String TEST_NAME = "test408DavidAndGoliathEnableAccountDavid";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1938,7 +1938,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test410DavidAndGoliathRename() throws Exception {
 		final String TEST_NAME = "test410DavidAndGoliathRename";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1986,7 +1986,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test419DavidAndGoliathUnassignRole() throws Exception {
 		final String TEST_NAME = "test419DavidAndGoliathUnassignRole";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -2032,7 +2032,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test420DavidAndGoliathAssignRoleGoliathDown() throws Exception {
 		final String TEST_NAME = "test420DavidAndGoliathAssignRoleGoliathDown";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -2100,7 +2100,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test(enabled=false)
     public void test422DavidAndGoliathAssignRoleGoliathUpRecompute() throws Exception {
 		final String TEST_NAME = "test422DavidAndGoliathAssignRoleGoliathUpRecompute";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -2143,7 +2143,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test429DavidAndGoliathUnassignRole() throws Exception {
 		final String TEST_NAME = "test429DavidAndGoliathUnassignRole";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -2191,7 +2191,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test430DavidAndGoliathAssignRoleDavidDown() throws Exception {
 		final String TEST_NAME = "test430DavidAndGoliathAssignRoleDavidDown";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -2256,7 +2256,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test440DavidAndGoliathAssignRoleAndCreateUserInOneStep() throws Exception {
 		final String TEST_NAME = "test440DavidAndGoliathAssignRoleAndCreateUserInOneStep";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		
 		dummyResourceGoliath.setBreakMode(BreakMode.NONE);
         dummyResourceDavid.setBreakMode(BreakMode.NONE);

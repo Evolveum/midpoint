@@ -113,7 +113,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test100EmptySequence() throws Exception {
     	final String TEST_NAME = "test100EmptySequence";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -133,7 +133,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test110EmptyPipeline() throws Exception {
     	final String TEST_NAME = "test110EmptyPipeline";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -153,7 +153,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	@Test
 	public void test112Echo() throws Exception {
 		final String TEST_NAME = "test112Echo";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -176,7 +176,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test120Log() throws Exception {
     	final String TEST_NAME = "test120Log";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -210,7 +210,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test200SearchUser() throws Exception {
     	final String TEST_NAME = "test200SearchUser";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -231,7 +231,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test205SearchForResources() throws Exception {
     	final String TEST_NAME = "test205SearchForResources";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -251,7 +251,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test206SearchForRoles() throws Exception {
     	final String TEST_NAME = "test206SearchForRoles";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -271,7 +271,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test210SearchForShadows() throws Exception {
     	final String TEST_NAME = "test210SearchForShadows";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -292,7 +292,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test215SearchForShadowsNoFetch() throws Exception {
     	final String TEST_NAME = "test215SearchForShadowsNoFetch";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -313,7 +313,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test220SearchForUsersAccounts() throws Exception {
     	final String TEST_NAME = "test220SearchForUsersAccounts";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -334,7 +334,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test225SearchForUsersAccountsNoFetch() throws Exception {
     	final String TEST_NAME = "test225SearchForUsersAccountsNoFetch";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -355,7 +355,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test300DisableJack() throws Exception {
     	final String TEST_NAME = "test300DisableJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -377,7 +377,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test310EnableJack() throws Exception {
     	final String TEST_NAME = "test310EnableJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -399,7 +399,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test320DeleteAndAddJack() throws Exception {
     	final String TEST_NAME = "test320DeleteAndAddJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -421,7 +421,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test330ModifyJack() throws Exception {
     	final String TEST_NAME = "test330ModifyJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -443,7 +443,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test340ModifyJackBack() throws Exception {
     	final String TEST_NAME = "test340ModifyJackBack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -465,7 +465,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test350RecomputeJack() throws Exception {
     	final String TEST_NAME = "test350RecomputeJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -486,7 +486,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test360AssignToJack() throws Exception {
     	final String TEST_NAME = "test360AssignToJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -511,7 +511,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test370AssignToJackInBackground() throws Exception {
     	final String TEST_NAME = "test370AssignToJackInBackground";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
@@ -536,7 +536,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test380DisableJackInBackgroundSimple() throws Exception {
     	final String TEST_NAME = "test380DisableJackInBackgroundSimple";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
@@ -562,7 +562,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test400PurgeSchema() throws Exception {
     	final String TEST_NAME = "test400PurgeSchema";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -597,7 +597,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test410TestResource() throws Exception {
     	final String TEST_NAME = "test410TestResource";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -620,7 +620,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test420NotificationAboutJack() throws Exception {
         final String TEST_NAME = "test420NotificationAboutJack";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -648,7 +648,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test430NotificationAboutJackType2() throws Exception {
         final String TEST_NAME = "test430NotificationAboutJackType2";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -681,7 +681,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
 	public void test500ScriptingUsers() throws Exception {
 		final String TEST_NAME = "test500ScriptingUsers";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -713,7 +713,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
 	public void test510GeneratePasswords() throws Exception {
 		final String TEST_NAME = "test510GeneratePasswords";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -755,7 +755,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
 	public void test520GeneratePasswordsFullInput() throws Exception {
 		final String TEST_NAME = "test520GeneratePasswordsFullInput";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -781,7 +781,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
 	public void test530GeneratePasswordsReally() throws Exception {
 		final String TEST_NAME = "test530GeneratePasswordsReally";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
@@ -823,7 +823,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test540SearchUserResolveNamesForRoleMembershipRef() throws Exception {
         final String TEST_NAME = "test540SearchUserResolveNamesForRoleMembershipRef";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);
@@ -849,7 +849,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     @Test
     public void test545SearchUserResolveRoleMembershipRef() throws Exception {
         final String TEST_NAME = "test545SearchUserResolveRoleMembershipRef";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 		Task task = createTask(DOT_CLASS + TEST_NAME);

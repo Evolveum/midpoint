@@ -454,7 +454,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN

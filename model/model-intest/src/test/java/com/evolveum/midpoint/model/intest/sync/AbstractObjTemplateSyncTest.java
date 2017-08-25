@@ -119,7 +119,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 	@Test
     public void test100ImportLiveSyncTaskDummyByzantine() throws Exception {
 		final String TEST_NAME = "test100ImportLiveSyncTaskDummyByzantine";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
@@ -139,7 +139,7 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 	@Test
     public void test110AddDummyByzantineAccountMancomb() throws Exception {
 		final String TEST_NAME = "test110AddDummyByzantineAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
