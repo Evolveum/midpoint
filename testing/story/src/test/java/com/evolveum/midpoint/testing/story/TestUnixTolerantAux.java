@@ -22,6 +22,8 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.text.ParseException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -29,6 +31,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.directory.api.util.GeneralizedTime;
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -102,12 +106,44 @@ public class TestUnixTolerantAux extends TestUnix {
 	}
 	
 	@Override
+	protected void assertTest132User(PrismObject<UserType> userAfter) {
+		super.assertTest132User(userAfter);
+		assertUserAuxes(userAfter, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+	}
+	
+	@Override
+	protected void assertTest132Audit() {
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+	}
+	
+	@Override
+	protected void assertTest135Audit() {
+		display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
+	}
+	
+	@Override
 	protected void assertAccountTest136(PrismObject<ShadowType> shadow) throws Exception {
 		assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 	}
 	
 	@Override
-	protected void assertAccountTest137(PrismObject<ShadowType> shadow) throws Exception {
+	protected void assertTest137User(PrismObject<UserType> userAfter) {
+		super.assertTest137User(userAfter);
+		assertUserAuxes(userAfter, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+	}
+		
+	@Override
+	protected void assertTest137Account(PrismObject<ShadowType> shadow) throws Exception {
 		assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 	}
 	
@@ -154,8 +190,6 @@ public class TestUnixTolerantAux extends TestUnix {
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
         
-        
-        
         openDJController.executeLdifChange(
         		"dn: "+accountLargoDn+"\n"+
         		"changetype: modify\n" +
@@ -183,6 +217,7 @@ public class TestUnixTolerantAux extends TestUnix {
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        assertUserAuxes(userAfter, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
         
         String accountOid = getSingleLinkOid(userAfter);
         
@@ -194,16 +229,6 @@ public class TestUnixTolerantAux extends TestUnix {
         // TODO: check audit
 	}
 	
-	private void assertLabeledUri(PrismObject<ShadowType> shadow, String expecteduri) throws DirectoryException {
-		ShadowType shadowType = shadow.asObjectable();
-		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
-
-		Entry entry = openDJController.fetchEntry(dn);
-		assertNotNull("No ou LDAP entry for "+dn);
-		display("Posix account entry", entry);
-		openDJController.assertAttribute(entry, OPENDJ_LABELED_URI_ATTRIBUTE_NAME, expecteduri);
-	}
-
 	@Test
     public void test144AssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test144AssignUserLargoUnix";
@@ -219,12 +244,13 @@ public class TestUnixTolerantAux extends TestUnix {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        assertUserAuxes(userAfter, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
         
         String accountOid = getSingleLinkOid(userAfter);
         
@@ -249,12 +275,13 @@ public class TestUnixTolerantAux extends TestUnix {
         
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
+        
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
+        assertUserAuxes(userAfter, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
         
         String accountOid = getSingleLinkOid(userAfter);
         
@@ -299,4 +326,33 @@ public class TestUnixTolerantAux extends TestUnix {
 		assertPosixAccount(shadow, null);
 		assertGroupAssociation(shadow, groupMonkeyIslandOid);
 	}
+	
+	@Override
+	protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
+		String attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
+		if (attributeValue == null) {
+			return null;
+		}
+		if (!attributeValue.endsWith("Z")) {
+			fail("Non-zulu timestamp: "+attributeValue);
+		}
+		GeneralizedTime gt = new GeneralizedTime(attributeValue);
+		return gt.getCalendar().getTimeInMillis();
+	}
+	
+	private void assertUserAuxes(PrismObject<UserType> userAfter, QName... expectedAuxClasses) {
+		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT,
+				Arrays.stream(expectedAuxClasses).map(x -> createPolyString(x.getLocalPart())).toArray(PolyString[]::new));
+	}
+	
+	private void assertLabeledUri(PrismObject<ShadowType> shadow, String expecteduri) throws DirectoryException {
+		ShadowType shadowType = shadow.asObjectable();
+		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();
+
+		Entry entry = openDJController.fetchEntry(dn);
+		assertNotNull("No ou LDAP entry for "+dn);
+		display("Posix account entry", entry);
+		openDJController.assertAttribute(entry, OPENDJ_LABELED_URI_ATTRIBUTE_NAME, expecteduri);
+	}
+
 }

@@ -87,6 +87,16 @@
             <objectClass>ri:inetOrgPerson</objectClass>
             <auxiliaryObjectClassMappings>
             	<tolerant>true</tolerant>
+            	<inbound>
+            		<expression>
+            			<script>
+            				<code>input?.getLocalPart()</code>
+            			</script>
+            		</expression>
+            		<target>
+            			<path>organizationalUnit</path>
+            		</target>
+            	</inbound>
             </auxiliaryObjectClassMappings>
             <attribute>
                 <ref>ri:dn</ref>
