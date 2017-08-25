@@ -423,6 +423,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
         assertLinks(userAfter, 2);
         
+        // Second inbound expression should work here
+        PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "Look behind you, a Three-Headed Monkey!");
+        
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("Orange account", dummyAccount);
         
@@ -470,6 +473,9 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
         assertLinks(userAfter, 2);
+        
+        // Second inbound expression should work here
+        PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "I wanna be a pirrrrrrate!");
         
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("Orange account", dummyAccount);
