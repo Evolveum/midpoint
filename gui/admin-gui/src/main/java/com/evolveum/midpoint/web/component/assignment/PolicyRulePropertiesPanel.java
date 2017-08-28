@@ -18,10 +18,17 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueExpandablePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar
@@ -46,7 +53,8 @@ public class PolicyRulePropertiesPanel extends BasePanel<AssignmentDto>{
         AssignmentDto policyRuleDto = getModelObject();
 
         PolicyRuleType policyRuleContainer = policyRuleDto.getAssignment().getPolicyRule();
-        add(new Label(ID_CONSTRAINTS_VALUE, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleContainer, pageBase))));
+        add(new MultiValueExpandablePanel<AbstractPolicyConstraintType>(ID_CONSTRAINTS_VALUE,
+                Model.ofList(getAllPolicyConstraintsList(policyRuleContainer.getPolicyConstraints()))));
 
         add(new Label(ID_SITUATION_VALUE, Model.of(policyRuleContainer == null ? "" : policyRuleContainer.getPolicySituation())));
 
@@ -54,5 +62,32 @@ public class PolicyRulePropertiesPanel extends BasePanel<AssignmentDto>{
 
     }
 
-
+    private List<AbstractPolicyConstraintType> getAllPolicyConstraintsList(PolicyConstraintsType constraintsType){
+        List<AbstractPolicyConstraintType> constraintsList = new ArrayList<>();
+        if (constraintsType == null){
+            return constraintsList;
+        }
+        if (constraintsType.getExclusion() != null){
+            constraintsList.addAll(constraintsType.getExclusion());
+        }
+        if (constraintsType.getMinAssignees() != null){
+            constraintsList.addAll(constraintsType.getMinAssignees());
+        }
+        if (constraintsType.getMaxAssignees() != null){
+            constraintsList.addAll(constraintsType.getMaxAssignees());
+        }
+        if (constraintsType.getModification() != null){
+            constraintsList.addAll(constraintsType.getModification());
+        }
+        if (constraintsType.getAssignment() != null){
+            constraintsList.addAll(constraintsType.getAssignment());
+        }
+        if (constraintsType.getTimeValidity() != null){
+            constraintsList.addAll(constraintsType.getTimeValidity());
+        }
+        if (constraintsType.getSituation() != null){
+            constraintsList.addAll(constraintsType.getSituation());
+        }
+        return constraintsList;
+    }
 }
