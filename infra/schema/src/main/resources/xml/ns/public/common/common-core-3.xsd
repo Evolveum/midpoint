@@ -4484,6 +4484,40 @@
         				in combination with shadowConstraintsCheck to reduce probability of identifier
         				conflicts for resources with slow create/rename operations.
         				
+        				See also avoidDuplicateOperations and recordPendingOperations properties.
+        				
+        				This feature is EXPERIMENTAL. Use with care.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.6.1</a:since>
+        				<a:experimental>true</a:experimental>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="recordPendingOperations" type="tns:RecordPendingOperationsType" minOccurs="0" default="asynchronous">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				TODO
+        				
+        				See also avoidDuplicateOperations and useProposedShadows properties.
+        				
+        				This feature is EXPERIMENTAL. Use with care.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.6.1</a:since>
+        				<a:experimental>true</a:experimental>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="avoidDuplicateOperations" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				When set to true, midPoint will try to avoid executing duplication operations
+        				on the resource. If an operation is already underway the duplicate operation
+        				will be ignored.
+        				
+        				See also recordPendingOperations and useProposedShadows properties.
+        				
         				This feature is EXPERIMENTAL. Use with care.
         			</xsd:documentation>
         			<xsd:appinfo>
@@ -4594,6 +4628,45 @@
                     </xsd:appinfo>
                 </xsd:annotation>
                 <!-- TODO: thorough: always check uniqueness -->
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="RecordPendingOperationsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.6.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="asynchronous">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Record only asynchronous operations. The operation
+                		will be recorded when we know that it is asynchronous.
+                		Which usually means it is only recoded after the operation
+                		is started.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASYNCHRONOUS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Record all operations to pending deltas. The operations
+                		are recoreded even before they are started.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>

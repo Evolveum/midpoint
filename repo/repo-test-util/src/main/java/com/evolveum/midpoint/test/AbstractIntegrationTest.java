@@ -87,10 +87,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.FailableProcessor;
+import com.evolveum.midpoint.util.FailableRunnable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -142,6 +144,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -168,6 +171,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 	
+	protected static final Random RND = new Random();
+	
 	// Values used to check if something is unchanged or changed properly
 	
 	protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
@@ -181,6 +186,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected RepositoryService repositoryService;
 	protected static Set<Class> initializedClasses = new HashSet<Class>();
 	private long lastDummyResourceGroupMembersReadCount;
+	private long lastDummyResourceWriteOperationCount;
 
 	@Autowired(required = true)
 	protected TaskManager taskManager;
@@ -986,8 +992,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertDummyResourceGroupMembersReadCountIncrement(String instanceName, int expectedIncrement) {
 		long currentDummyResourceGroupMembersReadCount = DummyResource.getInstance(instanceName).getGroupMembersReadCount();
 		long actualIncrement = currentDummyResourceGroupMembersReadCount - lastDummyResourceGroupMembersReadCount;
-		assertEquals("Unexpected increment in group members read count count in dummy resource '"+instanceName+"'", (long)expectedIncrement, actualIncrement);
+		assertEquals("Unexpected increment in group members read count in dummy resource '"+instanceName+"'", (long)expectedIncrement, actualIncrement);
 		lastDummyResourceGroupMembersReadCount = currentDummyResourceGroupMembersReadCount;
+	}
+	
+	protected void rememberDummyResourceWriteOperationCount(String instanceName) {
+		lastDummyResourceWriteOperationCount  = DummyResource.getInstance(instanceName).getWriteOperationCount();
+	}
+
+	protected void assertDummyResourceWriteOperationCountIncrement(String instanceName, int expectedIncrement) {
+		long currentCount = DummyResource.getInstance(instanceName).getWriteOperationCount();
+		long actualIncrement = currentCount - lastDummyResourceWriteOperationCount;
+		assertEquals("Unexpected increment in write operation count in dummy resource '"+instanceName+"'", (long)expectedIncrement, actualIncrement);
+		lastDummyResourceWriteOperationCount = currentCount;
 	}
 	
 	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id) throws SchemaException {
@@ -2065,4 +2082,32 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected user friendly exception fallback message", expectedMessage, userFriendlyMessage.getFallbackMessage());
 	}
 	
+	protected ParallelTestThread[] multithread(final String TEST_NAME, FailableRunnable lambda, int numberOfThreads, Integer randomStartDelayRange) {
+		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
+		for (int i = 0; i < numberOfThreads; i++) {
+			threads[i] = new ParallelTestThread(() -> {				
+				if (randomStartDelayRange != null) {
+					Thread.sleep(RND.nextInt(randomStartDelayRange)); // Random start delay
+				}
+				LOGGER.info("{} starting", Thread.currentThread().getName());
+				lambda.run();
+			});
+			threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
+			threads[i].start();
+		}
+		return threads;
+	}
+	
+	protected void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
+		for (int i = 0; i < threads.length; i++) {
+			if (threads[i].isAlive()) {
+				System.out.println("Waiting for " + threads[i]);
+				threads[i].join(timeout);
+				Throwable threadException = threads[i].getException();
+				if (threadException != null) {
+					throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
+				}
+			}
+		}
+	}
 }
