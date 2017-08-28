@@ -1166,7 +1166,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
 		assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, getWillRepoIcfName());
-		if (isIcfNameUidSame()) {
+		if (isIcfNameUidSame() && !isProposedShadow(accountRepo)) {
 			assertAttribute(accountRepo, SchemaConstants.ICFS_UID, getWillRepoIcfName());
 		}
 		
@@ -1175,6 +1175,14 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertRepoCachingMetadata(accountRepo, start, end);
 	}
 	
+	private boolean isProposedShadow(PrismObject<ShadowType> shadow) {
+		String lifecycleState = shadow.asObjectable().getLifecycleState();
+		if (lifecycleState == null) {
+			return false;
+		}
+		return SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState);
+	}
+
 	protected void checkRepoAccountShadowWill(PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		checkRepoAccountShadowWillBasic(accountRepo, start, end, 2);
 		assertRepoShadowCacheActivation(accountRepo, null);

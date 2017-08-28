@@ -97,6 +97,7 @@ public class DummyResource implements DebugDumpable {
 	private boolean caseIgnoreId = false;
 	private boolean caseIgnoreValues = false;
 	private int connectionCount = 0;
+	private int writeOperationCount = 0;
 	private int groupMembersReadCount = 0;
 	private Collection<String> forbiddenNames;
 
@@ -376,6 +377,14 @@ public class DummyResource implements DebugDumpable {
 	public void assertNoConnections() {
 		assert connectionCount == 0 : "Dummy resource: "+connectionCount+" connections still open";
 	}
+	
+	public synchronized void recordWriteOperation(String operation) {
+		writeOperationCount++;
+	}
+
+	public int getWriteOperationCount() {
+		return writeOperationCount;
+	}
 
 	public int getGroupMembersReadCount() {
 		return groupMembersReadCount;
@@ -535,6 +544,7 @@ public class DummyResource implements DebugDumpable {
 	
 	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("add");
 		breakIt(addBreakMode, "add");
 		
 		Class<? extends DummyObject> type = newObject.getClass();
@@ -583,6 +593,7 @@ public class DummyResource implements DebugDumpable {
 
 	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("delete");
 		breakIt(deleteBreakMode, "delete");
 		
 		String normalName = normalize(name);
@@ -625,6 +636,7 @@ public class DummyResource implements DebugDumpable {
 
 	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("delete");
 		breakIt(deleteBreakMode, "delete");
 		
 		DummyObject object = allObjects.get(id);
@@ -661,6 +673,7 @@ public class DummyResource implements DebugDumpable {
 
 	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("modify");
 		breakIt(modifyBreakMode, "modify");
 		
 		T existingObject;
@@ -753,6 +766,7 @@ public class DummyResource implements DebugDumpable {
 	}
 	
 	void recordModify(DummyObject dObject) {
+		recordWriteOperation("modify");
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
 			DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getId(), dObject.getName(), DummyDeltaType.MODIFY);

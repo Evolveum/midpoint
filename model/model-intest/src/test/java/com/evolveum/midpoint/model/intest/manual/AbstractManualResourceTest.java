@@ -36,6 +36,7 @@ import java.util.function.Consumer;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.FailableRunnable;
 import com.evolveum.midpoint.util.exception.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -75,6 +76,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -186,9 +188,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 	protected static final String INTEREST_ONE = "one";
 	
-	protected static final Random RND = new Random();
-
-
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
 	
@@ -2912,42 +2911,29 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		final int THREADS = getConcurrentTestNumberOfThreads();
 		final long TIMEOUT = 60000L;
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		Thread[] threads = new Thread[THREADS];
-		for (int i = 0; i < THREADS; i++) {
-			threads[i] = new Thread(() -> {
-				try {
-					Thread.sleep(RND.nextInt(getConcurrentTestRandomStartDelayRange())); // Random start delay
-					LOGGER.info("{} starting", Thread.currentThread().getName());
+		
+		ParallelTestThread[] threads = multithread(TEST_NAME, 
+				() -> {
 					login(userAdministrator);
 					Task localTask = createTask(TEST_NAME + ".local");
+					
 					assignAccount(USER_BARBOSSA_OID, getResourceOid(), SchemaConstants.INTENT_DEFAULT, localTask, localTask.getResult());
-				} catch (CommonException | InterruptedException e) {
-					throw new SystemException("Couldn't assign resource: " + e.getMessage(), e);
-				}
-			});
-			threads[i].setName("Thread " + (i+1) + " of " + THREADS);
-			threads[i].start();
-		}
-
+					
+				}, getConcurrentTestNumberOfThreads(), getConcurrentTestRandomStartDelayRange());
+		
 		// THEN
 		displayThen(TEST_NAME);
-		for (int i = 0; i < THREADS; i++) {
-			if (threads[i].isAlive()) {
-				System.out.println("Waiting for " + threads[i]);
-				threads[i].join(TIMEOUT);
-			}
-		}
+		waitForThreads(threads, TIMEOUT);
 
 		PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
 		display("barbossa", barbossa);
 		assertEquals("Wrong # of links", 1, barbossa.asObjectable().getLinkRef().size());
 	}
-	
+
 	protected int getConcurrentTestNumberOfThreads() {
 		return 4;
 	}
