@@ -17,7 +17,6 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -25,8 +24,6 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -141,7 +138,7 @@ public class AssignmentActivationPopupablePanel extends BasePanel<ActivationType
         };
         buttonsPanel.add(cancelButton);
 
-        AssignmentsUtil.addAjaxOnUpdateBehavior((WebMarkupContainer)get(ID_ACTIVATION_BLOCK));
+        WebComponentUtil.addAjaxOnUpdateBehavior((WebMarkupContainer)get(ID_ACTIVATION_BLOCK));
 
     }
 

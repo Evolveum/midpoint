@@ -91,6 +91,7 @@ public class MultiValueExpandablePanel <T extends Containerable> extends BasePan
                     IModel itemValueModel = item != null ? Model.of(item.getValue(0)) : null;
                     attributePanelContainer.add(createTypedAttributePanel(ID_ATTRIBUTE_VALUE,
                             getItemType(itemDefinition), itemValueModel, "value"));
+                    WebComponentUtil.addAjaxOnUpdateBehavior(attributePanelContainer);
                 }
                 listItem.add(attributesPanel);
             }
@@ -117,7 +118,7 @@ public class MultiValueExpandablePanel <T extends Containerable> extends BasePan
             return new WebMarkupContainer(componentId);
         }
         if (type.isEnum()) {
-            panel = WebComponentUtil.createEnumPanel(type, componentId, model != null ? new PropertyModel<>(model, expression) : null, this);
+            panel = WebComponentUtil.createEnumPanel(type, componentId, model != null ? new PropertyModel<>(model, expression) : new Model(), this);
         } else if (ObjectReferenceType.class.isAssignableFrom(type)) {
             ObjectReferenceType ort = new ObjectReferenceType();
             ort.setupReferenceValue((PrismReferenceValue) model.getObject());

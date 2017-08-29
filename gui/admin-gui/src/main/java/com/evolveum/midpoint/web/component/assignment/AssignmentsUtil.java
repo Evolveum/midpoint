@@ -145,20 +145,7 @@ public class AssignmentsUtil {
         };
     }
 
-    public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
-        container.visitChildren(new IVisitor<Component, Object>() {
-            @Override
-            public void component(Component component, IVisit<Object> objectIVisit) {
-                if (component instanceof InputPanel) {
-                    addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
-                } else if (component instanceof FormComponent) {
-                    addAjaxOnBlurUpdateBehaviorToComponent(component);
-                }
-            }
-        });
-    }
-
-//    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
+    //    public static IModel<String> createAssignmentStatusClassModel(final IModel<AssignmentEditorDto> model) {
 //        return new AbstractReadOnlyModel<String>() {
 //            private static final long serialVersionUID = 1L;
 //
@@ -191,16 +178,6 @@ public class AssignmentsUtil {
                 return model.name().toLowerCase();
             }
         };
-    }
-
-    private static void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
-        component.setOutputMarkupId(true);
-        component.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
     }
 
     public static VisibleEnableBehaviour getEnableBehavior(IModel<AssignmentEditorDto> dtoModel){
