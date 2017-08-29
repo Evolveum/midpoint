@@ -30,7 +30,7 @@
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/unix/ext">
 
-    <name>Embedded Test OpenDJ</name>
+    <name>OpenDJ Tolerant Aux</name>
 
     <connectorRef type="ConnectorType">
     	<description>Dummy description, just for the test</description>
@@ -55,6 +55,7 @@
  			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>modifyTimestamp</icfcldap:operationalAttributes>
+ 			<icfcldap:timestampPresentation>string</icfcldap:timestampPresentation>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
@@ -86,6 +87,19 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
+            <auxiliaryObjectClassMappings>
+            	<tolerant>true</tolerant>
+            	<inbound>
+            		<expression>
+            			<script>
+            				<code>input?.getLocalPart()</code>
+            			</script>
+            		</expression>
+            		<target>
+            			<path>organizationalUnit</path>
+            		</target>
+            	</inbound>
+            </auxiliaryObjectClassMappings>
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>

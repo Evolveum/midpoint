@@ -91,7 +91,8 @@ public class TaskEvent extends BaseEvent {
 		if (eventStatusType == null) {
 			return false;
 		}
-		if (taskRunResult == null) {
+		if (taskRunResult == null || taskRunResult.getOperationResult() == null) {
+			// TODO consider if we really want to return 'true' for both success and in_progress here
 			return eventStatusType == EventStatusType.SUCCESS || eventStatusType == EventStatusType.ALSO_SUCCESS || eventStatusType == EventStatusType.IN_PROGRESS;
 		}
 		OperationResult result = taskRunResult.getOperationResult();

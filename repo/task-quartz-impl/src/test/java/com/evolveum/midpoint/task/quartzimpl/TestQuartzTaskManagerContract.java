@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.test.Checker;
@@ -144,6 +145,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+        ClusterManager.setUpdateNodeExecutionLimitations(false);
 	}
 
     // We need this complicated init as we want to initialize repo only once.
@@ -1637,6 +1639,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final String TEST_NAME = "110GroupLimit";
         final OperationResult result = createResult(TEST_NAME);
 
+        taskManager.getExecutionManager().setLocalExecutionLimitations((TaskExecutionLimitationsType) null);
+
         TaskType task1 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
         waitForTaskStart(task1.getOid(), result);
 
@@ -1673,11 +1677,16 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         final String TEST_NAME = "120NodeAllowed";
         final OperationResult result = createResult(TEST_NAME);
 
+        taskManager.getExecutionManager().setLocalExecutionLimitations(
+                new TaskExecutionLimitationsType()
+                        .groupLimitation(new TaskGroupExecutionLimitationType().groupName("lightweight-tasks"))
+                        .groupLimitation(new TaskGroupExecutionLimitationType().groupName(null))
+                        .groupLimitation(new TaskGroupExecutionLimitationType().groupName(TaskConstants.LIMIT_FOR_OTHER_GROUPS).limit(0)));
+
         TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
         waitForTaskStart(task.getOid(), result);
-
         task = getTaskType(task.getOid(), result);
-        assertNull("Task should have no retry time", task.getNextRetryTimestamp());
+        assertNotNull("Task was not started even if it should be", task.getLastRunStartTimestamp());
     }
 
 	@Test
@@ -1689,21 +1698,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 		Thread.sleep(10000);
 		task = getTaskType(task.getOid(), result);
 		assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
-        assertNotNull("Next retry time is not set for the task", task.getNextRetryTimestamp());
 		taskManager.suspendTasks(Collections.singleton(task.getOid()), 1000L, result);
-	}
-
-	@Test
-	public void test140NodeDisallowed() throws Exception {
-		final String TEST_NAME = "140NodeDisallowed";
-		final OperationResult result = createResult(TEST_NAME);
-
-        TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
-		Thread.sleep(10000);
-        task = getTaskType(task.getOid(), result);
-        assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
-        assertNotNull("Next retry time is not set for the task", task.getNextRetryTimestamp());
-        taskManager.suspendTasks(Collections.singleton(task.getOid()), 1000L, result);
 	}
 
 	@Test(enabled = true)
@@ -1736,7 +1731,6 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         checkLeftover(leftovers, "110", "a", result);
 		checkLeftover(leftovers, "120", result);
 		checkLeftover(leftovers, "130", result);
-		checkLeftover(leftovers, "140", result);
 
         String message = "Leftover task(s) found:";
         for (String leftover : leftovers) {

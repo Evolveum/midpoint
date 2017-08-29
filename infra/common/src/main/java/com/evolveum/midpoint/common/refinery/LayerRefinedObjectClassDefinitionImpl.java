@@ -592,6 +592,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
+	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
+		return refinedObjectClassDefinition.getAuxiliaryObjectClassMappings();
+	}
+
+	@Override
     public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
     	return refinedObjectClassDefinition.createShadowSearchQuery(resourceOid);
     }

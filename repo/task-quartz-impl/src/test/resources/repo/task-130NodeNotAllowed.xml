@@ -29,6 +29,6 @@
 	<recurrence>single</recurrence>
 
 	<executionConstraints>
-		<allowedNode>SomeOtherNode</allowedNode>
+		<group>heavyweight-tasks</group>
 	</executionConstraints>
 </task>

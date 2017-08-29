@@ -367,7 +367,7 @@ public class ProvisioningUtil {
 
 	public static boolean shouldStoreAtributeInShadow(RefinedObjectClassDefinition objectClassDefinition, QName attributeName,
 			CachingStategyType cachingStrategy) throws ConfigurationException {
-		if (cachingStrategy == CachingStategyType.NONE) {
+		if (cachingStrategy == null || cachingStrategy == CachingStategyType.NONE) {
 			if (objectClassDefinition.isPrimaryIdentifier(attributeName) || objectClassDefinition.isSecondaryIdentifier(attributeName)) {
 				return true;
 			}

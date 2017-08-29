@@ -63,13 +63,19 @@ public class ClusterManager {
     private NodeRegistrar nodeRegistrar;
 
     private ClusterManagerThread clusterManagerThread;
+
+    private static boolean updateNodeExecutionLimitations = true;           // turned off when testing
     
     public ClusterManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
         this.nodeRegistrar = new NodeRegistrar(taskManager, this);
     }
 
-    /**
+	public static void setUpdateNodeExecutionLimitations(boolean value) {
+		updateNodeExecutionLimitations = value;
+	}
+
+	/**
      * Verifies cluster consistency (currently checks whether there is no other node with the same ID,
 	 * and whether clustered/non-clustered nodes are OK).
 	 *
@@ -137,8 +143,10 @@ public class ClusterManager {
 
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
-                        NodeType node = checkClusterConfiguration(result);         				// if error, the scheduler will be stopped
-                        taskManager.getExecutionManager().setLocalExecutionLimitations(node);	// we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
+                        NodeType node = checkClusterConfiguration(result);         				     // if error, the scheduler will be stopped
+                        if (updateNodeExecutionLimitations) {
+                            taskManager.getExecutionManager().setLocalExecutionLimitations(node);    // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
+                        }
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
                     } catch (Throwable t) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking cluster configuration; continuing execution.", t);

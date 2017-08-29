@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -80,13 +83,25 @@ public class OpResult implements Serializable, Visitable {
     public void setAlreadyShown(boolean alreadyShown) {
 		this.alreadyShown = alreadyShown;
 	}
-
-    public static OpResult getOpResult(PageBase page, OperationResult result){
+    
+        public static OpResult getOpResult(PageBase page, OperationResult result){
         OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
-        opResult.message = result.getMessage();
+        if (result.getCause() != null && result.getCause() instanceof CommonException){
+        	LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
+        	if (localizableMessage != null) {
+        		String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
+        		StringResourceModel stringResourceModel = new StringResourceModel(key, page).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
+				.setParameters(localizableMessage.getArgs());
+        		opResult.message = stringResourceModel.getString();
+        	}
+        } 
+        
+        if (opResult.message == null) {
+        	opResult.message = result.getMessage();
+        }
         opResult.operation = result.getOperation();
         opResult.status = result.getStatus();
         opResult.count = result.getCount();

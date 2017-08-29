@@ -846,8 +846,10 @@ public class ShadowManager {
 	@SuppressWarnings("unchecked")
 	private void updateProposedShadowAfterAdd(ProvisioningContext ctx, String existingShadowOid, AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		PrismObject<ShadowType> resourceShadow = addResult.getReturnValue();
+		LOGGER.info("AAAAA resource:\n{}", resourceShadow.debugDumpLazily(1));
 		
 		PrismObject<ShadowType> proposedShadow = repositoryService.getObject(ShadowType.class, existingShadowOid, null, parentResult);
+		LOGGER.info("AAAAA repo:\n{}", proposedShadow.debugDumpLazily(1));
 
 		if (proposedShadow == null) {
 			parentResult
@@ -856,10 +858,6 @@ public class ShadowManager {
 					"Error while creating account shadow object to save in the reposiotory. Draft shadow is gone.");
 		}
 
-		// TODO: do better (full) update. There may be UID that came from the resource and so on.
-		// for now we are just updating lifecycle state and pending operation. This is good for manual connectors.
-		// But not for regular use.
-		
 		Collection<ItemDelta> shadowChanges = new ArrayList<>();
 		for (PendingOperationType pendingOperation: proposedShadow.asObjectable().getPendingOperation()) {
 			// Remove old ADD pending delta. We'll replace it with newer version below ... if needed.
@@ -886,6 +884,8 @@ public class ShadowManager {
 		lifecycleDelta.setValuesToReplace(new PrismPropertyValue<>(SchemaConstants.LIFECYCLE_ACTIVE));
 		shadowChanges.add(lifecycleDelta);
 
+		computeUpdateShadowAttributeChanges(ctx, shadowChanges, resourceShadow, proposedShadow);
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Updading draft repository shadow\n{}", DebugUtil.debugDump(shadowChanges, 1));
 		}
@@ -1154,16 +1154,33 @@ public class ShadowManager {
 	public Collection<ItemDelta> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
 			Collection<? extends ItemDelta> aprioriDeltas, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, resourceShadow.getOid(), null, result);
-		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		
 		Collection<ItemDelta> repoShadowChanges = new ArrayList<ItemDelta>();
-		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+		
+		computeUpdateShadowAttributeChanges(ctx, repoShadowChanges, resourceShadow, repoShadow);
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Updating repo shadow {}:\n{}", resourceShadow.getOid(), DebugUtil.debugDump(repoShadowChanges));
+		}
+		try {
+			repositoryService.modifyObject(ShadowType.class, resourceShadow.getOid(), repoShadowChanges, result);
+		} catch (ObjectAlreadyExistsException e) {
+			// We are not renaming the object here. This should not happen.
+			throw new SystemException(e.getMessage(), e);
+		}
+		return repoShadowChanges;
+	}
+	
+	private void computeUpdateShadowAttributeChanges(ProvisioningContext ctx, Collection<ItemDelta> repoShadowChanges, 
+			PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
 			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
 				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
 				PrismProperty<Object> repoAttr = repoShadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()));
 				PropertyDelta attrDelta;
-				if (repoAttr == null && repoAttr == null) {
+				if (resourceAttr == null && repoAttr == null) {
 					continue;
 				}
 				if (repoAttr == null) {
@@ -1181,17 +1198,6 @@ public class ShadowManager {
 		}
 
 		// TODO: reflect activation updates on cached shadow
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Updating repo shadow {}:\n{}", resourceShadow.getOid(), DebugUtil.debugDump(repoShadowChanges));
-		}
-		try {
-			repositoryService.modifyObject(ShadowType.class, resourceShadow.getOid(), repoShadowChanges, result);
-		} catch (ObjectAlreadyExistsException e) {
-			// We are not renaming the object here. This should not happen.
-			throw new SystemException(e.getMessage(), e);
-		}
-		return repoShadowChanges;
 	}
 	
 	/**

@@ -72,6 +72,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	protected static final File ROLE_ROLE23_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role23-special-and-security.xml");
 	protected static final File ROLE_ROLE24_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role24-approval-and-enforce.xml");
 	protected static final File ROLE_ROLE25_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role25-very-complex-approval.xml");
+	protected static final File ROLE_ROLE26_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "role-role26-no-approvers.xml");
 	protected static final File ORG_LEADS2122_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "org-leads2122.xml");
 
 	protected static final File USER_LEAD21_FILE = new File(TEST_ASSIGNMENTS_RESOURCE_DIR, "user-lead21.xml");
@@ -84,6 +85,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 	protected String roleRole23Oid;
 	protected String roleRole24Oid;
 	protected String roleRole25Oid;
+	protected String roleRole26Oid;
 	protected String orgLeads2122Oid;
 
 	protected String userLead21Oid;
@@ -100,6 +102,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		roleRole23Oid = repoAddObjectFromFile(ROLE_ROLE23_FILE, initResult).getOid();
 		roleRole24Oid = repoAddObjectFromFile(ROLE_ROLE24_FILE, initResult).getOid();
 		roleRole25Oid = repoAddObjectFromFile(ROLE_ROLE25_FILE, initResult).getOid();
+		roleRole26Oid = repoAddObjectFromFile(ROLE_ROLE26_FILE, initResult).getOid();
 		orgLeads2122Oid = repoAddObjectFromFile(ORG_LEADS2122_FILE, initResult).getOid();
 
 		userLead21Oid = addAndRecomputeUser(USER_LEAD21_FILE, initTask, initResult);
@@ -310,6 +313,39 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 		unassignAllRoles(userJackOid, true);
 		previewAssignRolesToJack(TEST_NAME, true, false);
+	}
+
+	/**
+	 * MID-4121
+	 */
+	public static Exception exception;      // see system-configuration.xml
+
+	@Test
+	public void test500NoApprovers() throws Exception {
+		final String TEST_NAME = "test500NoApprovers";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+		Task task = createTask(TEST_NAME);
+		task.setOwner(userAdministrator);
+		OperationResult result = task.getResult();
+
+		assignRole(userJackOid, roleRole26Oid, task, result);
+		String ref = result.findAsynchronousOperationReference();       // TODO use recompute + getAsync... when fixed
+		assertNotNull("No asynchronous operation reference", ref);
+		String taskOid = result.referenceToTaskOid(ref);
+
+		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		display("current work items", currentWorkItems);
+		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
+
+		assertNotNull("Missing task OID", taskOid);
+		waitForTaskFinish(taskOid, false);
+
+		if (exception != null) {
+			System.err.println("Got unexpected exception");
+			exception.printStackTrace();
+			fail("Got unexpected exception: " + exception);
+		}
 	}
 
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate,
