@@ -191,6 +191,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -446,11 +447,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
     
     protected <O extends ObjectType> void assertObjects(Class<O> type, int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfUsers, getObjectCount(type));
+    }
+    
+    protected <O extends ObjectType> int getObjectCount(Class<O> type) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
     	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertObjects");
         OperationResult result = task.getResult();
     	List<PrismObject<O>> users = modelService.searchObjects(type, null, null, task, result);
         if (verbose) display(type.getSimpleName()+"s", users);
-        assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfUsers, users.size());
+        return users.size();
     }
     
     protected <O extends ObjectType> void searchObjectsIterative(Class<O> type, ObjectQuery query, Consumer<PrismObject<O>> handler, Integer expectedNumberOfObjects) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -2359,6 +2364,48 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			newFocusPolicyType.setObjectTemplateRef(templateRef);
 			((Collection)modifications).add(addDelta);
 		}
+		
+		modifySystemObjectInRepo(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
+		
+	}
+	
+	protected void setConflictResolution(QName objectType, String subType, ConflictResolutionType conflictResolution, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
+		PrismObject<SystemConfigurationType> systemConfig = repositoryService.getObject(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, parentResult);
+		
+		PrismContainerValue<ObjectPolicyConfigurationType> oldValue = null;
+		for (ObjectPolicyConfigurationType focusPolicyType: systemConfig.asObjectable().getDefaultObjectPolicyConfiguration()) {
+			if (QNameUtil.match(objectType, focusPolicyType.getType()) && MiscUtil.equals(subType, focusPolicyType.getSubtype())) {
+				oldValue = focusPolicyType.asPrismContainerValue();
+			}
+		}
+		Collection<? extends ItemDelta> modifications = new ArrayList<>();
+		
+		if (oldValue != null) {
+			ContainerDelta<ObjectPolicyConfigurationType> deleteDelta = ContainerDelta.createModificationDelete(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
+					SystemConfigurationType.class, prismContext, oldValue.clone());
+			((Collection)modifications).add(deleteDelta);
+		}
+		
+		ObjectPolicyConfigurationType newFocusPolicyType = new ObjectPolicyConfigurationType();
+		newFocusPolicyType.setType(objectType);
+		newFocusPolicyType.setSubtype(subType);
+		if (oldValue != null) {
+			ObjectReferenceType oldObjectTemplateRef = oldValue.asContainerable().getObjectTemplateRef();
+			if (oldObjectTemplateRef != null) {
+				newFocusPolicyType.setObjectTemplateRef(oldObjectTemplateRef.clone());
+			}
+		}
+
+		newFocusPolicyType.setConflictResolution(conflictResolution);
+
+		ContainerDelta<ObjectPolicyConfigurationType> addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION, 
+				SystemConfigurationType.class, prismContext, newFocusPolicyType);
+
+		((Collection)modifications).add(addDelta);
 		
 		modifySystemObjectInRepo(SystemConfigurationType.class,
 				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);

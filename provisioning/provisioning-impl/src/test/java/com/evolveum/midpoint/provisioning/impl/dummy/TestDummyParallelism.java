@@ -100,7 +100,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		displayWhen(TEST_NAME);
 		
 		ParallelTestThread[] threads = multithread(TEST_NAME, 
-				() -> {
+				(i) -> {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
 					
@@ -143,7 +143,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		displayWhen(TEST_NAME);
 		
 		ParallelTestThread[] threads = multithread(TEST_NAME, 
-				() -> {
+				(i) -> {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
 					

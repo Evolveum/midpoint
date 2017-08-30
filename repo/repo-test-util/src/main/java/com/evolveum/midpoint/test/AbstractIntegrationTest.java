@@ -87,6 +87,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.MultithreadRunner;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -2082,16 +2083,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected user friendly exception fallback message", expectedMessage, userFriendlyMessage.getFallbackMessage());
 	}
 	
-	protected ParallelTestThread[] multithread(final String TEST_NAME, FailableRunnable lambda, int numberOfThreads, Integer randomStartDelayRange) {
+	protected ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
 		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
 		for (int i = 0; i < numberOfThreads; i++) {
-			threads[i] = new ParallelTestThread(() -> {				
-				if (randomStartDelayRange != null) {
-					Thread.sleep(RND.nextInt(randomStartDelayRange)); // Random start delay
-				}
-				LOGGER.info("{} starting", Thread.currentThread().getName());
-				lambda.run();
-			});
+			threads[i] = new ParallelTestThread(i,
+					(ii) -> {				
+						if (randomStartDelayRange != null) {
+							Thread.sleep(RND.nextInt(randomStartDelayRange)); // Random start delay
+						}
+						LOGGER.info("{} starting", Thread.currentThread().getName());
+						lambda.run(ii);
+					});
 			threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
 			threads[i].start();
 		}
