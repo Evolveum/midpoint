@@ -808,6 +808,12 @@ public abstract class ShadowCache {
 
 		applyAttributesDefinition(ctx, shadow);
 
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, shadow, task, parentResult);
+		if (duplicateOperation != null) {
+			parentResult.recordInProgress();
+			return;
+		}
+		
 		LOGGER.trace("Deleting object {} from the resource {}.", shadow, ctx.getResource());
 
 		AsynchronousOperationResult asyncReturnValue = null;
