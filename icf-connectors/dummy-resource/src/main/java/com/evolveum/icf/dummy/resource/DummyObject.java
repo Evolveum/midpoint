@@ -90,6 +90,7 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public void setEnabled(Boolean enabled) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		this.enabled = enabled;
 	}
 
@@ -99,6 +100,7 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public void setValidFrom(Date validFrom) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		this.validFrom = validFrom;
 	}
 
@@ -108,6 +110,7 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public void setValidTo(Date validTo) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		this.validTo = validTo;
 	}
 
@@ -151,6 +154,7 @@ public abstract class DummyObject implements DebugDumpable {
 	
 	public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -165,6 +169,7 @@ public abstract class DummyObject implements DebugDumpable {
 	
 	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -189,6 +194,7 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -202,6 +208,7 @@ public abstract class DummyObject implements DebugDumpable {
 	
 	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -215,6 +222,7 @@ public abstract class DummyObject implements DebugDumpable {
 	
 	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		if (resource != null && !resource.isTolerateDuplicateValues()) {
 			for (Object currentValue: currentValues) {
 				if (currentValue.equals(valueToAdd)) {
@@ -253,6 +261,7 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
 			currentValues = new HashSet<Object>();
@@ -379,6 +388,12 @@ public abstract class DummyObject implements DebugDumpable {
 	private void recordModify() {
 		if (resource != null) {
 			resource.recordModify(this);
+		}
+	}
+	
+	private void delayOperation() {
+		if (resource != null) {
+			resource.delayOperation();
 		}
 	}
 

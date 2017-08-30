@@ -197,7 +197,8 @@
 	<consistency>
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<useProposedShadows>true</useProposedShadows>
-		<!-- TODO -->
+		<recordPendingOperations>all</recordPendingOperations>
+		<avoidDuplicateOperations>true</avoidDuplicateOperations>
 	</consistency>
 		
 </resource>
