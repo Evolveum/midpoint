@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Read-through write-through per-session repository cache.
@@ -54,6 +55,9 @@ public class RepositoryCache implements RepositoryService {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
+	private static final Random RND = new Random();
+	
+	private Integer modifyRandomDelayRange;
 
 	private PrismContext prismContext;
 
@@ -88,6 +92,14 @@ public class RepositoryCache implements RepositoryService {
 
 	public static boolean exists() {
 		return Cache.exists(cacheInstance);
+	}
+
+	public Integer getModifyRandomDelayRange() {
+		return modifyRandomDelayRange;
+	}
+
+	public void setModifyRandomDelayRange(Integer modifyRandomDelayRange) {
+		this.modifyRandomDelayRange = modifyRandomDelayRange;
 	}
 
 	public static String debugDump() {
@@ -252,10 +264,23 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
+	private void delay(Integer delayRange) {
+		if (delayRange == null) {
+			return;
+		}
+		int delay = RND.nextInt(delayRange);
+		try {
+			Thread.sleep(delay);
+		} catch (InterruptedException e) {
+			// Nothing to do
+		}
+	}
+
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
+		delay(modifyRandomDelayRange);
 		try {
 			repository.modifyObject(type, oid, modifications, precondition, options, parentResult);
 		} finally {

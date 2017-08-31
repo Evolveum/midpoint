@@ -695,4 +695,16 @@ public class ResourceTypeUtil {
 			throw new SchemaException("No identifiers in definition of object class "+objectClassDefinition.getTypeName()+" in resource schema of "+resource);
 		}
 	}
+	
+	public static RecordPendingOperationsType getRecordPendingOperations(ResourceType resourceType) {
+		ResourceConsistencyType consistencyType = resourceType.getConsistency();
+		if (consistencyType == null) {
+			return RecordPendingOperationsType.ASYNCHRONOUS;
+		}
+		RecordPendingOperationsType recordPendingOperations = consistencyType.getRecordPendingOperations();
+		if (recordPendingOperations == null) {
+			return RecordPendingOperationsType.ASYNCHRONOUS;
+		}
+		return recordPendingOperations;
+	}
 }
