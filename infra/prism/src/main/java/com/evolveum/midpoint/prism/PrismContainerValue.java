@@ -1316,7 +1316,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			if (complexTypeDefinition == parent.getComplexTypeDefinition()) {
 				replaceComplexTypeDefinition(clonedContainerDef.getComplexTypeDefinition());
 			} else {
-				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>() ));		// OK?
+				replaceComplexTypeDefinition(complexTypeDefinition.deepClone(ultraDeep ? null : new HashMap<>(), new HashMap<>() ));		// OK?
 			}
 		}
 		if (items != null) {

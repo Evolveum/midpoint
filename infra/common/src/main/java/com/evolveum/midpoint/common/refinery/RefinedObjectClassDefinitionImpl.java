@@ -568,9 +568,9 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	@NotNull
 	@Override
-	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
 		// TODO TODO TODO (note that in original implementation this was also missing...)
-		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceOid, originalObjectClassDefinition.deepClone(ctdMap));
+		RefinedObjectClassDefinitionImpl clone = new RefinedObjectClassDefinitionImpl(resourceOid, originalObjectClassDefinition.deepClone(ctdMap, onThisPath));
 		copyDefinitionData(clone);
 		shared = false;
 		return clone;

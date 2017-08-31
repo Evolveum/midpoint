@@ -239,7 +239,8 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	ObjectClassComplexTypeDefinition clone();
 
 	@NotNull
-	ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	@Override
+	ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath);
 
 	boolean matches(ShadowType shadowType);
 }

@@ -576,8 +576,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
-		return new LayerRefinedAttributeDefinitionImpl<T>(refinedAttributeDefinition.deepClone(ctdMap), layer);
+	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
+		return new LayerRefinedAttributeDefinitionImpl<>(refinedAttributeDefinition.deepClone(ctdMap, onThisPath), layer);
 	}
 
 	@Override

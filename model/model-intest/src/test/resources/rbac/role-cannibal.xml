@@ -23,16 +23,18 @@
     	<policyRule>
     		<name>cannibals must live</name>
     		<policyConstraints>
-    			<minAssignees>
-		    		<multiplicity>2</multiplicity>
-		    	</minAssignees>
-				<minAssignees>
-					<multiplicity>1</multiplicity>
-					<relation>owner</relation>
-				</minAssignees>
-		    	<maxAssignees>
-		    		<multiplicity>3</multiplicity>
-		    	</maxAssignees>
+				<or>	<!-- will fire when any of these limits are triggered -->
+					<minAssignees>
+						<multiplicity>2</multiplicity>
+					</minAssignees>
+					<minAssignees>
+						<multiplicity>1</multiplicity>
+						<relation>owner</relation>
+					</minAssignees>
+					<maxAssignees>
+						<multiplicity>3</multiplicity>
+					</maxAssignees>
+				</or>
     		</policyConstraints>
 			<policyActions>
 				<enforcement/>

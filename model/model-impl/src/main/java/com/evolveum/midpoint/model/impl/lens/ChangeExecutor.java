@@ -23,6 +23,7 @@ import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistency
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicySituationUpdater;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -37,7 +38,7 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.FocusConstraintsChecker;
-import com.evolveum.midpoint.model.impl.lens.projector.PolicyRuleProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
@@ -139,8 +140,8 @@ public class ChangeExecutor {
 	private OperationalDataManager metadataManager;
 
 	@Autowired
-	private PolicyRuleProcessor policyRuleProcessor;
-	
+	private PolicySituationUpdater policySituationUpdater;
+
 	@Autowired
 	private CredentialsProcessor credentialsProcessor;
 
@@ -172,7 +173,7 @@ public class ChangeExecutor {
 		if (focusContext != null) {
 			ObjectDelta<O> focusDelta = focusContext.getWaveExecutableDelta(context.getExecutionWave());
 
-			focusDelta = policyRuleProcessor.applyAssignmentSituation(context, focusDelta);
+			focusDelta = policySituationUpdater.applyAssignmentSituation(context, focusDelta);
 
 			if (focusDelta != null) {
 

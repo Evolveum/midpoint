@@ -98,6 +98,26 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="focusState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Particular state of the focus, described by a filter or an expression.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Particular state of an assignment, described by a filter or an expression.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="situation" type="tns:PolicySituationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -105,8 +125,40 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Constraints that must all apply. (But note that if there are more values of this item,
+                        they are interpreted according to the enclosing operator.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="or" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Constraints from which at least one must apply. (But note that if there are more values of this item,
+						they are interpreted according to the enclosing operator.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="not" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The inner constraint must not apply.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractPolicyConstraintType">
@@ -166,7 +218,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
 					        	<p>
-	                                Target of exclusion. The object defining this "exclustion" and
+	                                Target of exclusion. The object defining this "exclusion" and
 	                                the object defined as target cannot be assigned at the same time.
 	                                Filter in the reference may be used to dynamically exclude broader
 	                                range of roles - assuming that runtime resolution is used.
@@ -356,7 +408,7 @@
                             <xsd:documentation>
                                 When will this policy constraint activate (trigger)? If not specified, activation will occur
                                 on the moment of validity change. Specify negative durations if you need to activate the trigger
-                                before that moment; and positive ones is the trigger should be activated after that.
+                                before that moment; and positive ones if the trigger should be activated after that.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -376,6 +428,42 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="timeValidityPolicyConstraint" type="tns:TimeValidityPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:complexType name="StatePolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A constraint that triggers when a focus or assignment is in a given state.
+                If both filter and expressions are specified, both must be true in order for constraint to be triggered.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Filter that is to be used to determine the state.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is to be used to determine the state.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="focusStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="assignmentStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
     <xsd:complexType name="PolicySituationPolicyConstraintType">
         <xsd:annotation>

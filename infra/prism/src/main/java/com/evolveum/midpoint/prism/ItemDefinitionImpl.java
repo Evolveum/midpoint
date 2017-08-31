@@ -356,14 +356,14 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	@Override
 	public ItemDefinition<I> deepClone(boolean ultraDeep) {
 		if (ultraDeep) {
-			return deepClone(null);
+			return deepClone(null, new HashMap<>());
 		} else {
-			return deepClone(new HashMap<>());
+			return deepClone(new HashMap<>(), new HashMap<>());
 		}
 	}
 	
 	@Override
-	public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+	public ItemDefinition<I> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath) {
 		return clone();
 	}
 	

@@ -111,8 +111,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		return rv;
 	}
 
-	void addTrigger(EvaluatedPolicyRuleTrigger trigger) {
-		triggers.add(trigger);
+	void addTriggers(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		this.triggers.addAll(triggers);
 	}
 
 	@NotNull

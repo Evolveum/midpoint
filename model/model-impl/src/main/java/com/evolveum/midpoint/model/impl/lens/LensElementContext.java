@@ -28,7 +28,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -419,8 +418,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.policyRules.add(policyRule);
 	}
 	
-	public void triggerConstraint(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-    	LensUtil.triggerConstraint(rule, trigger, policySituations);
+	public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+    	LensUtil.triggerRule(rule, triggers, policySituations);
 	}
 
 	public Collection<String> getPolicySituations() {

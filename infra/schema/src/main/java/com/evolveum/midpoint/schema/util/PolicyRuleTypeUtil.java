@@ -23,9 +23,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.bind.JAXBElement;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType.*;
 
 /**
  * @author mederly
@@ -253,5 +256,22 @@ public class PolicyRuleTypeUtil {
 					&& MiscUtil.unorderedCollectionEquals(st1.getSourceRule(), st2.getSourceRule());
 		};
 		return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, comparator);
+	}
+
+	public static List<JAXBElement<AbstractPolicyConstraintType>> toPrimitiveConstraintsList(PolicyConstraintsType pc) {
+		List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
+		if (pc == null) {
+			return rv;
+		}
+		pc.getMinAssignees().forEach(c -> rv.add(new JAXBElement<>(F_MIN_ASSIGNEES, AbstractPolicyConstraintType.class, c)));
+		pc.getMaxAssignees().forEach(c -> rv.add(new JAXBElement<>(F_MAX_ASSIGNEES, AbstractPolicyConstraintType.class, c)));
+		pc.getExclusion().forEach(c -> rv.add(new JAXBElement<>(F_EXCLUSION, AbstractPolicyConstraintType.class, c)));
+		pc.getAssignment().forEach(c -> rv.add(new JAXBElement<>(F_ASSIGNMENT, AbstractPolicyConstraintType.class, c)));
+		pc.getModification().forEach(c -> rv.add(new JAXBElement<>(F_MODIFICATION, AbstractPolicyConstraintType.class, c)));
+		pc.getTimeValidity().forEach(c -> rv.add(new JAXBElement<>(F_TIME_VALIDITY, AbstractPolicyConstraintType.class, c)));
+		pc.getAssignmentState().forEach(c -> rv.add(new JAXBElement<>(F_ASSIGNMENT_STATE, AbstractPolicyConstraintType.class, c)));
+		pc.getFocusState().forEach(c -> rv.add(new JAXBElement<>(F_FOCUS_STATE, AbstractPolicyConstraintType.class, c)));
+		pc.getSituation().forEach(c -> rv.add(new JAXBElement<>(F_SITUATION, AbstractPolicyConstraintType.class, c)));
+		return rv;
 	}
 }
