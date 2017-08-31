@@ -208,6 +208,33 @@
     	</focusSelector>
     </globalPolicyRule>
     <globalPolicyRule>
+    	<name>non-createable-role-disabled</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>add</operation>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>description</q:path>
+    				<q:value>Thou shalt not create this role! (disabled)</q:value>
+    			</q:equal>
+    		</filter>
+    	</focusSelector>
+		<condition>
+			<expression>
+				<script>
+					<code>false</code>
+				</script>
+			</expression>
+		</condition>
+    </globalPolicyRule>
+    <globalPolicyRule>
     	<name>immutable-role</name>
     	<policyConstraints>
     		<modification>
