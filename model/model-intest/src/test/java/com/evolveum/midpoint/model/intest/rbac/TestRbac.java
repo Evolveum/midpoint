@@ -4243,6 +4243,27 @@ public class TestRbac extends AbstractRbacTest {
         assertNoObject(RoleType.class, ROLE_NON_CREATEABLE_OID);
 	}
 
+	@Test
+    public void test826bAddCreateableRole() throws Exception {
+		final String TEST_NAME = "test826bAddCreateableRole";
+        displayTestTitle(TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CREATEABLE_FILE);
+        display("Role before", role);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		addObject(role, getDefaultOptions(), task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertNotNull("object does not exist", getObject(RoleType.class, ROLE_CREATEABLE_OID));     // would get exception anyway
+	}
+
 	/**
 	 * This role has a metarole which has immutable policy rule in the
 	 * inducement.

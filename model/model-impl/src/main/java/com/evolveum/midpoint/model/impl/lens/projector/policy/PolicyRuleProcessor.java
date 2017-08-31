@@ -136,7 +136,8 @@ public class PolicyRuleProcessor {
 
 	//region ------------------------------------------------------------------ Focus policy rules
 	public <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
-			XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
+			XMLGregorianCalendar now, Task task, OperationResult result)
+			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return;
@@ -144,7 +145,7 @@ public class PolicyRuleProcessor {
 
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		collectFocusRulesFromAssignments(rules, context);
-		collectGlobalFocusRules(rules, context);
+		collectGlobalFocusRules(rules, context, task, result);
 
 		for (EvaluatedPolicyRule rule : rules) {
 			if (!hasSituationConstraint(rule)) {
@@ -174,7 +175,9 @@ public class PolicyRuleProcessor {
 		}
 	}
 
-	private <F extends FocusType> void collectGlobalFocusRules(List<EvaluatedPolicyRule> rules, LensContext<F> context) throws SchemaException, PolicyViolationException {
+	private <F extends FocusType> void collectGlobalFocusRules(List<EvaluatedPolicyRule> rules, LensContext<F> context,
+			Task task, OperationResult result)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException {
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
 			return;
@@ -190,7 +193,10 @@ public class PolicyRuleProcessor {
 		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (repositoryService.selectorMatches(focusSelector, focus, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
-				// TODO check rule condition as well
+				if (!isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
+					LOGGER.trace("Skipping global policy rule because the condition evaluated to false: {}", globalPolicyRule);
+					continue;
+				}
 				rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null));
 			}
 		}
@@ -406,7 +412,7 @@ public class PolicyRuleProcessor {
 						new PrismPropertyDefinitionImpl<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext))
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget())
+				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null)
 				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment)                // TODO: ok?
 				.rootNode(focusOdo);
 
