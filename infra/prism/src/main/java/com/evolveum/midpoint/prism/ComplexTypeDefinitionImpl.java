@@ -383,6 +383,11 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	@Override
 	public String debugDump(int indent) {
+		return debugDump(indent, new IdentityHashMap<>());
+	}
+
+	@Override
+	public String debugDump(int indent, IdentityHashMap<Definition, Object> seen) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
 			sb.append(DebugDumpable.INDENT_STRING);
@@ -405,10 +410,15 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 			sb.append(",Ma");
 		}
 		extendDumpHeader(sb);
-		for (ItemDefinition def : getDefinitions()) {
-			sb.append("\n");
-			sb.append(def.debugDump(indent+1));
-			extendDumpDefinition(sb, def);
+		if (seen.containsKey(this)) {
+			sb.append(" (already shown)");
+		} else {
+			seen.put(this, null);
+			for (ItemDefinition def : getDefinitions()) {
+				sb.append("\n");
+				sb.append(def.debugDump(indent + 1));
+				extendDumpDefinition(sb, def);
+			}
 		}
 		return sb.toString();
 	}
