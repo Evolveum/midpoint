@@ -20,7 +20,31 @@
     <div class="prism-properties">
     <div class="row prism-property">
         <div class="col-md-2"><wicket:message key="PolicyRule.constraintsLabel"/></div>
-        <div class="col-md-10" wicket:id="constraintsValue" />
+        <div class="col-md-10" wicket:id="constraintsContainer">
+            <div wicket:id="exclusionConstraints" />
+            <div wicket:id="minAssigneesConstraints" />
+            <div wicket:id="maxAssigneesConstraints" />
+            <div wicket:id="modificationConstraints" />
+            <div wicket:id="assignmentConstraints" />
+            <div wicket:id="timeValidityConstraints" />
+            <div wicket:id="situationConstraints" />
+            <div class="pull-right">
+                <div class="btn-group">
+                        <button wicket:id="addExclusionConstraints" type="button" class="btn btn-default"><wicket:message key="PolicyRulePropertiesPanel.exclusionConstraints"/></button>
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a wicket:id="addMinAssigneesConstraints"><wicket:message key="PolicyRulePropertiesPanel.minAssigneesConstraints"/></a></li>
+                            <li><a wicket:id="addMaxAssigneesConstraints"><wicket:message key="PolicyRulePropertiesPanel.maxAssigneesConstraints"/></a></li>
+                            <li><a wicket:id="addModificationConstraints"><wicket:message key="PolicyRulePropertiesPanel.modification"/></a></li>
+                            <li><a wicket:id="addAssignmentConstraints"><wicket:message key="PolicyRulePropertiesPanel.assignmentConstraints"/></a></li>
+                            <li><a wicket:id="addTimeValidityConstraints"><wicket:message key="PolicyRulePropertiesPanel.timeValidityConstraints"/></a></li>
+                            <li><a wicket:id="addSituationConstraints"><wicket:message key="PolicyRulePropertiesPanel.situationConstraints"/></a></li>
+                        </ul>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="row">
         <div class="col-md-2"><wicket:message key="PolicyRule.situationLabel"/></div>
