@@ -106,6 +106,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, 7);
 		assertTargetTriggers(context, PolicyConstraintKindType.FOCUS_STATE, 2);
@@ -143,6 +144,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, 4);
 		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 0);
@@ -206,6 +208,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, 7);
 		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 2);
@@ -250,6 +253,7 @@ public class TestPolicyRules extends AbstractLensTest {
 //        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
         
         dumpPolicyRules(context);
+		dumpPolicySituations(context);
         
         assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context, null, 0);
@@ -289,6 +293,7 @@ public class TestPolicyRules extends AbstractLensTest {
 //        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
         
         dumpPolicyRules(context);
+		dumpPolicySituations(context);
         
         assertEvaluatedTargetPolicyRules(context, 7);
         EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredTargetPolicyRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
@@ -338,6 +343,7 @@ public class TestPolicyRules extends AbstractLensTest {
 //        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
+		dumpPolicySituations(context);
         
         List<EvaluatedPolicyRule> evaluatedRules = assertEvaluatedTargetPolicyRules(context, 7);
         assertTargetTriggers(context, null, 0);
@@ -383,6 +389,7 @@ public class TestPolicyRules extends AbstractLensTest {
 //        display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         dumpPolicyRules(context);
+		dumpPolicySituations(context);
         
         assertEvaluatedTargetPolicyRules(context, 8);
         // conflicting assignment was pruned, so the exclusion is no longer present here
@@ -442,6 +449,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
 		dumpPolicyRules(context);
+		dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, 9);
 		assertTargetTriggers(context, PolicyConstraintKindType.EXCLUSION, 1);
@@ -520,6 +528,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		//display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
 		dumpPolicyRules(context);
+		dumpPolicySituations(context);
 
 		// Judge: criminal-exclusion, unassignment, all-assignment-operations, all-assignment-operations-on-jack, all-assignment-operations-on-elaine, all-assignment-operations-on-jack-via-script, global-assignment-notification-for-judge
 		// Employee: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor
@@ -566,6 +575,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		//display("Output evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
 		dumpPolicyRules(context);
+		dumpPolicySituations(context);
 
 		// Judge: L:criminal-exclusion, L:unassignment, L:all-assignment-operations
 		// Contractor: L:approve-any-corp-role, L:notify-exclusion-violations, L:contractor-excludes-employee

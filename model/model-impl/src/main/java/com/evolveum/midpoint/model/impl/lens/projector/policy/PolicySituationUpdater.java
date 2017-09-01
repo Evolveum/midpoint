@@ -25,9 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -230,13 +228,13 @@ public class PolicySituationUpdater {
 		return false;
 	}
 
-	// TODO call this from somewhere!!!
-	public <F extends FocusType> void storeFocusPolicySituation(LensContext<F> context, Task task, OperationResult result)
+	public <O extends ObjectType, F extends FocusType> void storeFocusPolicySituation(LensContext<O> context)
 			throws SchemaException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
+		if (context.getFocusContext() == null || context.getFocusClass() == null || !FocusType.class.isAssignableFrom(context.getFocusClass())) {
 			return;
 		}
+		@SuppressWarnings({"raw", "unchecked"})
+		LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
 		Set<String> currentSituations = focusContext.getObjectCurrent() != null ?
 				new HashSet<>(focusContext.getObjectCurrent().asObjectable().getPolicySituation()) : Collections.emptySet();
 		Set<String> newSituations = new HashSet<>(focusContext.getPolicySituations());

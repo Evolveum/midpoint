@@ -29,13 +29,11 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -303,6 +301,19 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		display("Policy rules", context.dumpPolicyRules(3));
 	}
 
+	protected void dumpPolicySituations(LensContext<? extends FocusType> context) {
+		LensFocusContext<? extends FocusType> focusContext = context.getFocusContext();
+		if (focusContext != null && focusContext.getObjectNew() != null) {
+			FocusType focus = focusContext.getObjectNew().asObjectable();
+			display("focus policy situation", focus.getPolicySituation());
+			for (AssignmentType assignment : focus.getAssignment()) {
+				display("assignment policy situation", assignment.getPolicySituation());
+			}
+		} else {
+			display("no focus context or object");
+		}
+	}
+
 	protected void assertAssignmentPath(AssignmentPath path, String... targetOids) {
 		assertEquals("Wrong path size", targetOids.length, path.size());
 		for (int i = 0; i < targetOids.length; i++) {
@@ -316,4 +327,12 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		}
 	}
 
+	protected void assertAssignmentPolicySituation(LensContext<? extends FocusType> context, String roleOid, String... uris) {
+		AssignmentType assignment = findAssignmentByTargetRequired(context.getFocusContext().getObjectNew(), roleOid);
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong assignment policy situation", assignment.getPolicySituation(), uris);
+	}
+
+	protected void assertFocusPolicySituation(LensContext<? extends FocusType> context, String... uris) {
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong focus policy situation", context.getFocusContext().getObjectNew().asObjectable().getPolicySituation(), uris);
+	}
 }

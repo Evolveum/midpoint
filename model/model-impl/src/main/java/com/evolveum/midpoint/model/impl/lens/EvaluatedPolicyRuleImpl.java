@@ -168,12 +168,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			return PredefinedPolicySituation.MODIFIED.getUrl();
 		} else if (policyConstraints.getAssignment() != null) {
 			return PredefinedPolicySituation.ASSIGNED.getUrl();
+		} else if (policyConstraints.getTimeValidity() != null) {
+			return PredefinedPolicySituation.TIME_VALIDITY.getUrl();
+		} else if (policyConstraints.getHasAssignment() != null) {
+			return PredefinedPolicySituation.HAS_ASSIGNMENT.getUrl();
+		} else if (policyConstraints.getHasNoAssignment() != null) {
+			return PredefinedPolicySituation.HAS_NO_ASSIGNMENT.getUrl();
 		} else if (policyConstraints.getFocusState() != null) {
 			return PredefinedPolicySituation.FOCUS_STATE.getUrl();
 		} else if (policyConstraints.getAssignmentState() != null) {
 			return PredefinedPolicySituation.ASSIGNMENT_STATE.getUrl();
-		} else if (policyConstraints.getTimeValidity() != null) {
-			return PredefinedPolicySituation.TIME_VALIDITY.getUrl();
 		}
 		for (PolicyConstraintsType subconstraints : policyConstraints.getAnd()) {
 			String s = getSituationFromConstraints(subconstraints);

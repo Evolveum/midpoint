@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -55,6 +56,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 	protected static final File ROLE_STUDENT_FILE = new File(TEST_DIR, "role-student.xml");
 	protected static final File USER_JOE_FILE = new File(TEST_DIR, "user-joe.xml");
 	protected static final File USER_FRANK_FILE = new File(TEST_DIR, "user-frank.xml");
+	protected static final File USER_PETER_FILE = new File(TEST_DIR, "user-peter.xml");
 
 	private static final int STUDENT_TARGET_RULES = 2;          // one is global
 	private static final int STUDENT_FOCUS_RULES = 17;
@@ -136,6 +138,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 1);
@@ -177,6 +180,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 1);
@@ -222,6 +226,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 1);
@@ -271,6 +276,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 1);
@@ -281,6 +287,12 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusTriggers(context, PolicyConstraintKindType.FOCUS_STATE, 2);      // new, current
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 5);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+
+		assertAssignmentPolicySituation(context, roleStudentOid, SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNED);
+		assertFocusPolicySituation(context,
+				SchemaConstants.MODEL_POLICY_SITUATION_FOCUS_STATE,
+				SchemaConstants.MODEL_POLICY_SITUATION_HAS_ASSIGNMENT,
+				SchemaConstants.MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT);
 	}
 
 	@Test
@@ -309,6 +321,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);        // no assignment change => no triggering of ASSIGNMENT constraint (is this correct?)
 		assertTargetTriggers(context, null, 0);
@@ -337,7 +350,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext)
 								.beginActivation()
-										.administrativeStatus(ActivationStatusType.DISABLED)
+								.administrativeStatus(ActivationStatusType.DISABLED)
 								.<AssignmentType>end())
 				.asObjectDelta(userFrankOid));
 		display("Input context", context);
@@ -354,6 +367,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		TestUtil.assertSuccess(result);
 
 		dumpPolicyRules(context);
+		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
 		assertTargetTriggers(context, null, 2);
@@ -365,6 +379,94 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		assertFocusTriggers(context, PolicyConstraintKindType.FOCUS_STATE, 0);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 4);
 		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+	}
+
+	@Test
+	public void test160AttemptToAddPeter() throws Exception {
+		final String TEST_NAME = "test160AttemptToAddPeter";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createUserLensContext();
+		fillContextWithAddUserDelta(context, prismContext.parseObject(USER_PETER_FILE));
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		projector.project(context, ACTIVITY_DESCRIPTION, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		dumpPolicyRules(context);
+		dumpPolicySituations(context);
+
+		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
+		assertTargetTriggers(context, null, 1);
+		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 1);
+
+		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
+		assertFocusTriggers(context, null, 8);
+		assertFocusTriggers(context, PolicyConstraintKindType.FOCUS_STATE, 2);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 2+2+1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+	}
+
+	@Test
+	public void test170AddPeter() throws Exception {
+		final String TEST_NAME = "test170AddPeter";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestPolicyRules2.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		LensContext<UserType> context = createUserLensContext();
+		fillContextWithAddUserDelta(context, prismContext.parseObject(USER_PETER_FILE));
+		display("Input context", context);
+
+		assertFocusModificationSanity(context);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		clockwork.run(context, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		dumpPolicyRules(context);
+		dumpPolicySituations(context);
+
+		assertEvaluatedTargetPolicyRules(context, STUDENT_TARGET_RULES);
+		assertTargetTriggers(context, null, 0);
+		// Assignment situation is already gone (in second iteration)!
+		// This is different from test130, where an assignment is being added (instead of whole user being added).
+		// The difference is that when adding a user, its assignments (in wave 1) are in the zero set.
+		// Whereas when modifying a user, its new assignments (in wave 1) are in the plus set.
+		// This is to be solved somehow.
+		// See MID-4126.
+
+		assertEvaluatedFocusPolicyRules(context, STUDENT_FOCUS_RULES);
+		assertFocusTriggers(context, null, 8);
+		assertFocusTriggers(context, PolicyConstraintKindType.FOCUS_STATE, 2);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_ASSIGNMENT, 2+2+1);
+		assertFocusTriggers(context, PolicyConstraintKindType.HAS_NO_ASSIGNMENT, 1);
+
+		// adapt the test after fixing MID-4126
+		assertAssignmentPolicySituation(context, roleStudentOid);
+		assertFocusPolicySituation(context,
+				SchemaConstants.MODEL_POLICY_SITUATION_FOCUS_STATE,
+				SchemaConstants.MODEL_POLICY_SITUATION_HAS_ASSIGNMENT,
+				SchemaConstants.MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT);
 	}
 
 }

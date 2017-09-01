@@ -366,7 +366,7 @@
                     <xsd:element name="relation" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                This policy only applies to relations of the specified type. The value
+                                This constraint only applies to relations of the specified type. The value
                                 of this element is compared to the relation of the targetRef relation
                                 in the assignment/inducement. If not specified then this policy only
                                 applies to the null (default) relation. If all relations need to be
