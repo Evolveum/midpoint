@@ -599,7 +599,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
 	public String debugDump(int indent) {
-    	return debugDump(indent, null);
+    	return debugDump(indent, (LayerType) null);
     }
     
 	@Override

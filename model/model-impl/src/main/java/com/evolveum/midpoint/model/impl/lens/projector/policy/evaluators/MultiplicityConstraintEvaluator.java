@@ -52,7 +52,7 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
  * @author mederly
  */
 @Component
-public class MultiplicityConstraintsEvaluator implements PolicyConstraintEvaluator<MultiplicityPolicyConstraintType> {
+public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluator<MultiplicityPolicyConstraintType> {
 
 	@Autowired private PrismContext prismContext;
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;

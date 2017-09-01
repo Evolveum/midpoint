@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * @author mederly
  */
 @Component
-public class PolicySituationConstraintsEvaluator implements PolicyConstraintEvaluator<PolicySituationPolicyConstraintType> {
+public class PolicySituationConstraintEvaluator implements PolicyConstraintEvaluator<PolicySituationPolicyConstraintType> {
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<PolicySituationPolicyConstraintType> constraint,

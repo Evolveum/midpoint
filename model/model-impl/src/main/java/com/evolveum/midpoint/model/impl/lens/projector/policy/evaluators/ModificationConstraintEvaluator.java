@@ -42,9 +42,9 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class ModificationConstraintsEvaluator implements PolicyConstraintEvaluator<ModificationPolicyConstraintType> {
+public class ModificationConstraintEvaluator implements PolicyConstraintEvaluator<ModificationPolicyConstraintType> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintsEvaluator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
 
 	@Override
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<ModificationPolicyConstraintType> constraint,
@@ -77,14 +77,14 @@ public class ModificationConstraintsEvaluator implements PolicyConstraintEvaluat
 			return false;
 		}
 		for (ItemPathType path : constraint.getItem()) {
-			if (!pathMatches(ctx.focusContext.getObjectOld(), summaryDelta, path.getItemPath())) {
+			if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getItemPath())) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private <F extends FocusType> boolean pathMatches(PrismObject<F> objectOld, ObjectDelta<?> delta, ItemPath path)
+	private <F extends FocusType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<F> objectOld, ItemPath path)
 			throws SchemaException {
 		if (delta.isAdd()) {
 			return delta.getObjectToAdd().containsItem(path, false);

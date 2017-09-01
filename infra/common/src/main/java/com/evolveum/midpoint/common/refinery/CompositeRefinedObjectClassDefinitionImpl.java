@@ -614,7 +614,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     
     @Override
     public String debugDump(int indent) {
-    	return debugDump(indent, null);
+    	return debugDump(indent, (LayerType) null);
     }
 
     protected String debugDump(int indent, LayerType layer) {

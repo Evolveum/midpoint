@@ -247,7 +247,7 @@ public class AssignmentProcessor {
         
         // PROCESSING POLICIES
 
-        policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, result);
+        policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
         
         boolean needToReevaluateAssignments = policyRuleProcessor.processPruning(context, evaluatedAssignmentTriple, result);
         
@@ -264,7 +264,7 @@ public class AssignmentProcessor {
             	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
             }
         	
-        	policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, result);
+        	policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
         }
 
         //policyRuleProcessor.storeAssignmentPolicySituation(context, evaluatedAssignmentTriple, result);

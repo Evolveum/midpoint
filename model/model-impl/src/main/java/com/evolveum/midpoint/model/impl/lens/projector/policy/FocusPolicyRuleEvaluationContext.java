@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class FocusPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
 
-	public FocusPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context) {
-		super(policyRule, context);
+	public FocusPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context, Task task) {
+		super(policyRule, context, task);
 	}
 
 	@Override

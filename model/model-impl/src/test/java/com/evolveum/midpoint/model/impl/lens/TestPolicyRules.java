@@ -107,8 +107,10 @@ public class TestPolicyRules extends AbstractLensTest {
 
 		dumpPolicyRules(context);
 
-		assertEvaluatedRules(context, 4);
-		assertTriggeredRules(context, 2, PolicyConstraintKindType.ASSIGNMENT);
+		assertEvaluatedRules(context, 7);
+		assertTriggers(context, PolicyConstraintKindType.FOCUS_STATE, 2);
+		assertTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 4);
+		assertTriggers(context, null, 6);
 	}
 
 	@Test(enabled = false)
@@ -143,7 +145,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		dumpPolicyRules(context);
 
 		assertEvaluatedRules(context, 4);
-		assertTriggeredRules(context, 0, PolicyConstraintKindType.ASSIGNMENT);
+		assertTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 0);
 	}
 
 
@@ -205,8 +207,9 @@ public class TestPolicyRules extends AbstractLensTest {
 
 		dumpPolicyRules(context);
 
-		assertEvaluatedRules(context, 4);
-		assertTriggeredRules(context, 2, PolicyConstraintKindType.ASSIGNMENT);
+		assertEvaluatedRules(context, 7);
+		assertTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 2);
+		assertTriggers(context, null, 2);
 	}
 
 
@@ -248,8 +251,8 @@ public class TestPolicyRules extends AbstractLensTest {
         
         dumpPolicyRules(context);
         
-        assertEvaluatedRules(context, 4);
-        assertTriggeredRules(context, 0, null);
+        assertEvaluatedRules(context, 7);
+        assertTriggers(context, null, 0);
 	}
 	
 	@Test
@@ -287,7 +290,7 @@ public class TestPolicyRules extends AbstractLensTest {
         
         dumpPolicyRules(context);
         
-        assertEvaluatedRules(context, 4);
+        assertEvaluatedRules(context, 7);
         EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
         assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
         assertEquals("Wrong conflicting assignment in trigger", ROLE_PIRATE_OID, trigger.getConflictingAssignment().getTarget().getOid());
@@ -336,8 +339,8 @@ public class TestPolicyRules extends AbstractLensTest {
 
         dumpPolicyRules(context);
         
-        List<EvaluatedPolicyRule> evaluatedRules = assertEvaluatedRules(context, 4);
-        assertTriggeredRules(context, 0, null);
+        List<EvaluatedPolicyRule> evaluatedRules = assertEvaluatedRules(context, 7);
+        assertTriggers(context, null, 0);
 
         EvaluatedPolicyRule evaluatedPolicyRule = evaluatedRules.get(0);
         Collection<PolicyExceptionType> exceptions = evaluatedPolicyRule.getPolicyExceptions();
@@ -381,7 +384,7 @@ public class TestPolicyRules extends AbstractLensTest {
 
         dumpPolicyRules(context);
         
-        assertEvaluatedRules(context, 5);
+        assertEvaluatedRules(context, 8);
         // conflicting assignment was pruned, so the exclusion is no longer present here
 //		EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, true);
 //        assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
@@ -440,7 +443,10 @@ public class TestPolicyRules extends AbstractLensTest {
 
 		dumpPolicyRules(context);
 
-		assertEvaluatedRules(context, 6);
+		assertEvaluatedRules(context, 9);
+		assertTriggers(context, PolicyConstraintKindType.EXCLUSION, 1);
+		assertTriggers(context, PolicyConstraintKindType.SITUATION, 1);
+
 		EvaluatedExclusionTrigger triggerExclusion = (EvaluatedExclusionTrigger) assertTriggeredRule(context, null, PolicyConstraintKindType.EXCLUSION, 1, false);
 		assertNotNull("No conflicting assignment in trigger", triggerExclusion.getConflictingAssignment());
 		assertEquals("Wrong conflicting assignment in trigger", ROLE_JUDGE_OID, triggerExclusion.getConflictingAssignment().getTarget().getOid());
@@ -515,10 +521,11 @@ public class TestPolicyRules extends AbstractLensTest {
 
 		dumpPolicyRules(context);
 
-		// Judge: criminal-exclusion, unassignment, all-assignment-operations
+		// Judge: criminal-exclusion, unassignment, all-assignment-operations, all-assignment-operations-on-jack, all-assignment-operations-on-elaine, all-assignment-operations-on-jack-via-script, global-assignment-notification-for-judge
 		// Employee: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor
 		// Contractor: approve-any-corp-role, notify-exclusion-violations, contractor-excludes-employee
-		assertEvaluatedRules(context, 10);
+		assertEvaluatedRules(context, 13);
+
 		EvaluatedExclusionTrigger trigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, ROLE_CORP_EMPLOYEE_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
 		assertNotNull("No conflicting assignment in trigger", trigger.getConflictingAssignment());
 		assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, trigger.getConflictingAssignment().getTarget().getOid());
@@ -563,7 +570,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		// Judge: L:criminal-exclusion, L:unassignment, L:all-assignment-operations
 		// Contractor: L:approve-any-corp-role, L:notify-exclusion-violations, L:contractor-excludes-employee
 		// Engineer: approve-any-corp-role, notify-exclusion-violations, employee-excludes-contractor, L:approve-any-corp-role, L:notify-exclusion-violations
-		assertEvaluatedRules(context, 12);
+		assertEvaluatedRules(context, 15);
 		EvaluatedExclusionTrigger engineerTrigger = (EvaluatedExclusionTrigger) assertTriggeredRule(context, ROLE_CORP_ENGINEER_OID, PolicyConstraintKindType.EXCLUSION, 1, false);
 		assertNotNull("No conflicting assignment in trigger", engineerTrigger.getConflictingAssignment());
 		assertEquals("Wrong conflicting assignment in trigger", ROLE_CORP_CONTRACTOR_OID, engineerTrigger.getConflictingAssignment().getTarget().getOid());
@@ -608,16 +615,16 @@ public class TestPolicyRules extends AbstractLensTest {
 		return rules;
 	}
 	
-	private void assertTriggeredRules(LensContext<UserType> context, int expected, PolicyConstraintKindType expectedConstraintKind) {
+	private void assertTriggers(LensContext<UserType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
 		List<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
 		forTriggeredRule(context, null, trigger -> {
-			display("Triggered rule", trigger);
-			triggers.add(trigger);
-			if (expectedConstraintKind != null) {
-				assertEquals("Wrong trigger constraint type in "+trigger, expectedConstraintKind, trigger.getConstraintKind());
+			if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
+				return;
 			}
+			display("Selected trigger", trigger);
+			triggers.add(trigger);
 		});
-		assertEquals("Unexpected number of triggered policy rules in the context", expected, triggers.size());
+		assertEquals("Unexpected number of triggers ("+selectedConstraintKind+") in the context", expectedCount, triggers.size());
 	}
 
 	// exclusive=true : there can be no other triggers than 'expectedCount' of 'expectedConstraintKind'

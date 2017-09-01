@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,8 +39,8 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 	public AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
 			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
 			boolean inMinus, boolean isDirect, LensContext<F> context,
-			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple) {
-		super(policyRule, context);
+			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task) {
+		super(policyRule, context, task);
 		this.evaluatedAssignment = evaluatedAssignment;
 		this.inPlus = inPlus;
 		this.inZero = inZero;

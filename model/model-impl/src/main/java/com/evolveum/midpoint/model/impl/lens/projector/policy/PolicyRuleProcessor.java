@@ -71,9 +71,10 @@ public class PolicyRuleProcessor {
 
 	@Autowired private AssignmentConstraintEvaluator assignmentConstraintEvaluator;
 	@Autowired private ExclusionConstraintEvaluator exclusionConstraintEvaluator;
-	@Autowired private MultiplicityConstraintsEvaluator multiplicityConstraintsEvaluator;
-	@Autowired private PolicySituationConstraintsEvaluator policySituationConstraintsEvaluator;
-	@Autowired private ModificationConstraintsEvaluator modificationConstraintsEvaluator;
+	@Autowired private MultiplicityConstraintEvaluator multiplicityConstraintEvaluator;
+	@Autowired private PolicySituationConstraintEvaluator policySituationConstraintEvaluator;
+	@Autowired private ModificationConstraintEvaluator modificationConstraintEvaluator;
+	@Autowired private StateConstraintEvaluator stateConstraintEvaluator;
 
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
@@ -87,7 +88,8 @@ public class PolicyRuleProcessor {
 	 */
 	public <F extends FocusType> void evaluateAssignmentPolicyRules(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-			OperationResult result) throws PolicyViolationException, SchemaException {
+			Task task, OperationResult result)
+			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
 			boolean inPlus = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
@@ -105,25 +107,25 @@ public class PolicyRuleProcessor {
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getThisTargetPolicyRules()) {
 				if (!hasSituationConstraint(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple), result);
+							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getOtherTargetsPolicyRules()) {
 				if (!hasSituationConstraint(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple), result);
+							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getThisTargetPolicyRules()) {
 				if (hasSituationConstraint(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple), result);
+							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getOtherTargetsPolicyRules()) {
 				if (hasSituationConstraint(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
-							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple), result);
+							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
 				}
 			}
 		}
@@ -149,20 +151,20 @@ public class PolicyRuleProcessor {
 
 		for (EvaluatedPolicyRule rule : rules) {
 			if (!hasSituationConstraint(rule)) {
-				evaluateFocusRule(rule, context, result);
+				evaluateFocusRule(rule, context, task, result);
 			}
 		}
 		for (EvaluatedPolicyRule rule : rules) {
 			if (hasSituationConstraint(rule)) {
-				evaluateFocusRule(rule, context, result);
+				evaluateFocusRule(rule, context, task, result);
 			}
 		}
 	}
 
-	private <F extends FocusType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<F> context, OperationResult result)
-			throws SchemaException {
+	private <F extends FocusType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<F> context, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		context.getFocusContext().addPolicyRule(rule);
-		evaluateRule(new FocusPolicyRuleEvaluationContext<>(rule, context), result);
+		evaluateRule(new FocusPolicyRuleEvaluationContext<>(rule, context, task), result);
 	}
 
 	private <F extends FocusType> void collectFocusRulesFromAssignments(List<EvaluatedPolicyRule> rules, LensContext<F> context) {
@@ -225,7 +227,8 @@ public class PolicyRuleProcessor {
 	/**
 	 * Evaluates given policy rule in a given context.
 	 */
-	private <F extends FocusType> void evaluateRule(PolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException {
+	private <F extends FocusType> void evaluateRule(PolicyRuleEvaluationContext<F> ctx, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (evaluateConstraints(ctx.policyRule.getPolicyConstraints(), true, ctx, result)) {
 			ctx.triggerRule();
 		}
@@ -235,7 +238,7 @@ public class PolicyRuleProcessor {
 	@SuppressWarnings("unchecked")
 	private <F extends FocusType> boolean evaluateConstraints(PolicyConstraintsType constraints,
 			boolean allMustApply, PolicyRuleEvaluationContext<F> ctx, OperationResult result)
-			throws SchemaException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (constraints == null) {
 			return false;
 		}
@@ -292,11 +295,13 @@ public class PolicyRuleProcessor {
 		} else if (constraint.getValue() instanceof ExclusionPolicyConstraintType) {
 			return exclusionConstraintEvaluator;
 		} else if (constraint.getValue() instanceof MultiplicityPolicyConstraintType) {
-			return multiplicityConstraintsEvaluator;
+			return multiplicityConstraintEvaluator;
 		} else if (constraint.getValue() instanceof PolicySituationPolicyConstraintType) {
-			return policySituationConstraintsEvaluator;
+			return policySituationConstraintEvaluator;
 		} else if (constraint.getValue() instanceof ModificationPolicyConstraintType) {
-			return modificationConstraintsEvaluator;
+			return modificationConstraintEvaluator;
+		} else if (constraint.getValue() instanceof StatePolicyConstraintType) {
+			return stateConstraintEvaluator;
 		} else {
 			throw new IllegalArgumentException("Unknown policy constraint: " + constraint.getName() + "/" + constraint.getValue().getClass());
 		}

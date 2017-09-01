@@ -153,21 +153,42 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		}
 		
 		PolicyConstraintsType policyConstraints = getPolicyConstraints();
+		return getSituationFromConstraints(policyConstraints);
+	}
+
+	@Nullable
+	private String getSituationFromConstraints(PolicyConstraintsType policyConstraints) {
 		if (policyConstraints.getExclusion() != null) {
 			return PredefinedPolicySituation.EXCLUSION_VIOLATION.getUrl();
-		}
-		if (policyConstraints.getMinAssignees() != null) {
+		} else if (policyConstraints.getMinAssignees() != null) {
 			return PredefinedPolicySituation.UNDERASSIGNED.getUrl();
-		}
-		if (policyConstraints.getMaxAssignees() != null) {
+		} else if (policyConstraints.getMaxAssignees() != null) {
 			return PredefinedPolicySituation.OVERASSIGNED.getUrl();
-		}
-		if (policyConstraints.getModification() != null) {
+		} else if (policyConstraints.getModification() != null) {
 			return PredefinedPolicySituation.MODIFIED.getUrl();
-		}
-		if (policyConstraints.getAssignment() != null) {
+		} else if (policyConstraints.getAssignment() != null) {
 			return PredefinedPolicySituation.ASSIGNED.getUrl();
+		} else if (policyConstraints.getFocusState() != null) {
+			return PredefinedPolicySituation.FOCUS_STATE.getUrl();
+		} else if (policyConstraints.getAssignmentState() != null) {
+			return PredefinedPolicySituation.ASSIGNMENT_STATE.getUrl();
+		} else if (policyConstraints.getTimeValidity() != null) {
+			return PredefinedPolicySituation.TIME_VALIDITY.getUrl();
 		}
+		for (PolicyConstraintsType subconstraints : policyConstraints.getAnd()) {
+			String s = getSituationFromConstraints(subconstraints);
+			if (s != null) {
+				return s;
+			}
+		}
+		// desperate attempt (might be altogether wrong)
+		for (PolicyConstraintsType subconstraints : policyConstraints.getOr()) {
+			String s = getSituationFromConstraints(subconstraints);
+			if (s != null) {
+				return s;
+			}
+		}
+		// "not" will not be used
 		return null;
 	}
 

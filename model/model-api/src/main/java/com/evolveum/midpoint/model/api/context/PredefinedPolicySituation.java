@@ -32,7 +32,13 @@ public enum PredefinedPolicySituation {
 	
 	MODIFIED(SchemaConstants.MODEL_POLICY_SITUATION_MODIFIED, PolicyConstraintKindType.MODIFICATION),
 	
-	ASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNED, PolicyConstraintKindType.ASSIGNMENT);
+	ASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNED, PolicyConstraintKindType.ASSIGNMENT),
+
+	FOCUS_STATE(SchemaConstants.MODEL_POLICY_SITUATION_FOCUS_STATE, PolicyConstraintKindType.FOCUS_STATE),
+
+	ASSIGNMENT_STATE(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_STATE, PolicyConstraintKindType.ASSIGNMENT_STATE),
+
+	TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.TIME_VALIDITY);
 
 	private String url;
 	private PolicyConstraintKindType constraintKind;

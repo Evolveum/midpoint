@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,11 +36,14 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> {
 	@NotNull public final LensContext<F> lensContext;
 	@NotNull public final LensFocusContext<F> focusContext;
 	@NotNull public final List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+	@NotNull public final Task task;
 
-	public PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context) {
+	public PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
+			@NotNull Task task) {
 		this.policyRule = policyRule;
 		this.lensContext = context;
 		this.focusContext = context.getFocusContext();
+		this.task = task;
 		if (focusContext == null) {
 			throw new IllegalStateException("No focus context");
 		}
