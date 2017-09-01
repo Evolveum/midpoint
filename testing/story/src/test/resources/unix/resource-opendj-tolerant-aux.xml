@@ -56,6 +56,7 @@
  			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
  			<icfcldap:operationalAttributes>modifyTimestamp</icfcldap:operationalAttributes>
  			<icfcldap:timestampPresentation>string</icfcldap:timestampPresentation>
+ 			<icfcldap:alternativeObjectClassDetection>true</icfcldap:alternativeObjectClassDetection>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
