@@ -959,6 +959,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			@SuppressWarnings({ "unchecked", "raw" })
 			Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
 			dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules);
+			@SuppressWarnings({ "unchecked", "raw" })
+			Collection<EvaluatedPolicyRule> focusPolicyRules = assignment.getFocusPolicyRules();
+			dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules);
 		}, 1);
 		return sb.toString();
 	}

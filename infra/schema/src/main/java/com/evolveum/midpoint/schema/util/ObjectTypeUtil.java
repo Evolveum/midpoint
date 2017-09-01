@@ -687,6 +687,10 @@ public class ObjectTypeUtil {
 		return QNameUtil.match(relationQuery, PrismConstants.Q_ANY) || relationsEquivalent(relationQuery, relation);
 	}
 
+	public static boolean relationMatches(@NotNull List<QName> relationQuery, QName relation) {
+    	return relationQuery.stream().anyMatch(rq -> relationMatches(rq, relation));
+	}
+
 	public static boolean relationsEquivalent(QName relation1, QName relation2) {
 		if (ObjectTypeUtil.isDefaultRelation(relation1)) {
 			return ObjectTypeUtil.isDefaultRelation(relation2);

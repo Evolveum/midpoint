@@ -267,6 +267,8 @@ public class PolicyRuleTypeUtil {
 		pc.getMaxAssignees().forEach(c -> rv.add(new JAXBElement<>(F_MAX_ASSIGNEES, AbstractPolicyConstraintType.class, c)));
 		pc.getExclusion().forEach(c -> rv.add(new JAXBElement<>(F_EXCLUSION, AbstractPolicyConstraintType.class, c)));
 		pc.getAssignment().forEach(c -> rv.add(new JAXBElement<>(F_ASSIGNMENT, AbstractPolicyConstraintType.class, c)));
+		pc.getHasAssignment().forEach(c -> rv.add(new JAXBElement<>(F_HAS_ASSIGNMENT, AbstractPolicyConstraintType.class, c)));
+		pc.getHasNoAssignment().forEach(c -> rv.add(new JAXBElement<>(F_HAS_NO_ASSIGNMENT, AbstractPolicyConstraintType.class, c)));
 		pc.getModification().forEach(c -> rv.add(new JAXBElement<>(F_MODIFICATION, AbstractPolicyConstraintType.class, c)));
 		pc.getTimeValidity().forEach(c -> rv.add(new JAXBElement<>(F_TIME_VALIDITY, AbstractPolicyConstraintType.class, c)));
 		pc.getAssignmentState().forEach(c -> rv.add(new JAXBElement<>(F_ASSIGNMENT_STATE, AbstractPolicyConstraintType.class, c)));

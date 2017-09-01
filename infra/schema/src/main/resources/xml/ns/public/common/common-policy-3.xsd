@@ -118,6 +118,26 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="hasAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The focus has assignment(s) of given object(s).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="hasNoAssignment" type="tns:HasAssignmentPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The focus has no assignment(s) of given object(s).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="situation" type="tns:PolicySituationPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -371,6 +391,73 @@
     </xsd:complexType>
     <xsd:element name="assignmentPolicyConstraint" type="tns:AssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
+    <xsd:complexType name="HasAssignmentPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Constraint that triggers when the focus has given assignment(s).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="targetRef" type="c:ObjectReferenceType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Assignment target to be matched. Might be dynamic (with a resolution time of "run"), just
+                                like the one in exclusion constraint. If a relation here is specified, it takes precedence
+                                over "relation" item in this constraint.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="direct" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If true the assignment to given target must be direct. If false, it must be indirect (induced).
+								If not specified, it might be either direct or indirect. But in all cases it must be of the order
+								one, i.e. metaroles are not considered.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+    				<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If true the assignment to given target must be effectively enabled. If false, it must be present
+								but effectively disabled (beware, the behavior of midPoint for disabled indirect assignments may
+								be fragile). If not specified, the effective status is not considered.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This policy only applies to relations of the specified type. (Provided that the relation
+                                is not set in the targetRef.) The value of this element is compared to the relation of the
+                                targetRef relation in the assignment/inducement. If not specified then this policy only
+                                applies to the null (default) relation. If all relations need to be affected by this policy
+                                then the special value of "any" should be specified in this element or in the targetRef element.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+					<xsd:element name="inState" type="tns:AssignmentStateType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								On what state(s) of the object this constraint is to be checked.
+								Default is both 'plus' and 'zero' state.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="hasAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="hasNoAssignmentPolicyConstraint" type="tns:HasAssignmentPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
     <xsd:complexType name="TimeValidityPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
@@ -458,12 +545,107 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="checkInState" type="tns:FocusStateType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                On what state(s) of the focal object this constraint is to be checked.
+                                Default is the current state.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="focusStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
     <xsd:element name="assignmentStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
+    <xsd:simpleType name="FocusStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                On which state of the object a constraint is to be evaluated.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="old">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object old value i.e. value when the operation was started.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OLD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="new">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object new value i.e. object value expected to be present at the moment of operation completion.
+                        This value is updated within each execution wave. However, note that e.g. approval policy actions
+                        are taken into account only on operation start (i.e. in the primary execution stage).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="current">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object current value at the moment of policy rule evaluation.
+                        This value is updated within each execution wave. However, note that e.g. approval policy actions
+                        are taken into account only on operation start (i.e. in the primary execution stage).
+
+                        For "add" operations, it is the value that is being added. It might be updated during processing as well.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CURRENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="AssignmentStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                On which state of the assignment a constraint is to be evaluated.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.7</a:since>
+                <a:experimental>true</a:experimental>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<!-- TODO or change this to EXISTING/ADDED; beware of the difference between PLUS and Focus.NEW -->
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="zero">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Assignment target is in the "zero" set, meaning it was present in the focus before the current operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ZERO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="plus">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Assignment target is in the "plus" set, meaning it is being added during the current operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PLUS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="PolicySituationPolicyConstraintType">
         <xsd:annotation>

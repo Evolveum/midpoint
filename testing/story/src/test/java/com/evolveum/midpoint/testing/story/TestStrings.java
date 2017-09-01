@@ -1002,7 +1002,7 @@ public class TestStrings extends AbstractStoryTest {
 		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
 		display("wfTask", wfTask);
 		
-//		assertTriggers(wfTask, 2);
+//		assertTargetTriggers(wfTask, 2);
 
 		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
 		ApprovalSchemaType schema = info.getApprovalSchema();
@@ -1100,7 +1100,7 @@ public class TestStrings extends AbstractStoryTest {
 		display("wfTask after 2nd approval", wfTask);
 
 		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
-		// assertTriggers(wfTask, 4);
+		// assertTargetTriggers(wfTask, 4);
 
 		// notifications
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);

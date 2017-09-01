@@ -44,6 +44,8 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,57 +79,92 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			throw new AssertionError("unexpected state constraint " + constraint.getName());
 		}
 
-		// TODO specify which object to use
-		PrismObject<F> object = rctx.focusContext.getObjectCurrent();
-		if (object == null) {
-			object = rctx.focusContext.getObjectNew();
+		List<ObjectInState<F>> objects = new ArrayList<>();
+		List<FocusStateType> states = constraint.getValue().getCheckInState().isEmpty()
+				? Collections.singletonList(FocusStateType.CURRENT)
+				: constraint.getValue().getCheckInState();
+		for (FocusStateType state : states) {
+			PrismObject<F> object;
+			if (state == null) {
+				state = FocusStateType.CURRENT;
+			}
+			switch (state) {
+				case OLD: object = rctx.focusContext.getObjectOld(); break;
+				case NEW: object = rctx.focusContext.getObjectNew(); break;
+				case CURRENT:
+					object = rctx.focusContext.getObjectCurrent();
+					if (object == null) {
+						object = rctx.focusContext.getObjectNew();
+					}
+					break;
+				default: throw new AssertionError("Wrong state: " + state);
+			}
+			if (object != null && !ObjectInState.contains(objects, object)) {
+				objects.add(new ObjectInState<>(object, state));
+			}
 		}
-		if (object == null) {
-			return null;        // shouldn't occur
+		if (objects.isEmpty()) {
+			return null;
 		}
 
 		if (assignmentState) {
 			if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 				return null;            // assignment state can be evaluated only in the context of an assignment
 			} else {
-				return evaluateForAssignment(constraint.getValue(), (AssignmentPolicyRuleEvaluationContext<F>) rctx, object, result);
+				return evaluateForAssignment(constraint.getValue(), (AssignmentPolicyRuleEvaluationContext<F>) rctx, objects, result);
 			}
 		} else {
-			return evaluateForFocus(constraint.getValue(), rctx, object, result);
+			return evaluateForFocus(constraint.getValue(), rctx, objects, result);
+		}
+	}
+
+	private static class ObjectInState<F extends FocusType> {
+		final PrismObject<F> object;
+		final FocusStateType state;
+
+		private ObjectInState(PrismObject<F> object, FocusStateType state) {
+			this.object = object;
+			this.state = state;
+		}
+
+		public static <F extends FocusType> boolean contains(List<ObjectInState<F>> objects, PrismObject<F> object) {
+			return objects.stream().anyMatch(os -> os.object.equals(object));
 		}
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForFocus(StatePolicyConstraintType constraint,
-			PolicyRuleEvaluationContext<F> ctx, PrismObject<F> object, OperationResult result)
+			PolicyRuleEvaluationContext<F> ctx, List<ObjectInState<F>> objects, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		if (constraint.getFilter() == null && constraint.getExpression() == null) {
 			return null;        // shouldn't occur
 		}
 
-		boolean match = true;
-		if (constraint.getFilter() != null) {
-			ObjectFilter filter = QueryConvertor
-					.parseFilter(constraint.getFilter(), object.asObjectable().getClass(), prismContext);
-			if (!filter.match(object.getValue(), matchingRuleRegistry)) {
-				match = false;
+		for (ObjectInState<F> objectInState : objects) {
+			PrismObject<F> object = objectInState.object;
+			boolean match = true;
+			if (constraint.getFilter() != null) {
+				ObjectFilter filter = QueryConvertor
+						.parseFilter(constraint.getFilter(), object.asObjectable().getClass(), prismContext);
+				if (!filter.match(object.getValue(), matchingRuleRegistry)) {
+					match = false;
+				}
+			}
+			if (match && constraint.getExpression() != null) {
+				match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx, object),
+						"expression in focus state constraint " + constraint.getName() + " (" + objectInState.state + ")", ctx.task, result);
+			}
+
+			if (match) {
+				return new EvaluatedPolicyRuleTrigger<>(FOCUS_STATE, constraint, "Focus state ("+ objectInState.state.value() + ") matches " +
+						(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
 			}
 		}
-		if (match && constraint.getExpression() != null) {
-			match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx, object),
-					"expression in focus state constraint " + constraint.getName(), ctx.task, result);
-		}
-
-		if (match) {
-			return new EvaluatedPolicyRuleTrigger<>(FOCUS_STATE, constraint, "Focus state matches " +
-					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
-		} else {
-			return null;
-		}
+		return null;
 	}
 
 	private <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluateForAssignment(StatePolicyConstraintType constraint,
-			AssignmentPolicyRuleEvaluationContext<F> ctx, PrismObject<F> object,
+			AssignmentPolicyRuleEvaluationContext<F> ctx, List<ObjectInState<F>> objects,
 			OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (constraint.getFilter() != null) {
@@ -137,15 +174,15 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			return null;        // shouldn't occur
 		}
 
-		boolean match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx, object),
-					"expression in assignment state constraint " + constraint.getName(), ctx.task, result);
-
-		if (match) {
-			return new EvaluatedPolicyRuleTrigger<>(ASSIGNMENT_STATE, constraint, "Assignment state matches " +
-					(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
-		} else {
-			return null;
+		for (ObjectInState<F> objectInState : objects) {
+			boolean match = isConstraintSatisfied(constraint.getExpression(), createExpressionVariables(ctx, objectInState.object),
+					"expression in assignment state constraint " + constraint.getName() + " (" + objectInState.state + ")", ctx.task, result);
+			if (match) {
+				return new EvaluatedPolicyRuleTrigger<>(ASSIGNMENT_STATE, constraint, "Assignment state ("+ objectInState.state.value() + ") matches " +
+						(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
+			}
 		}
+		return null;
 	}
 
 	private <F extends FocusType> ExpressionVariables createExpressionVariables(PolicyRuleEvaluationContext<F> ctx,

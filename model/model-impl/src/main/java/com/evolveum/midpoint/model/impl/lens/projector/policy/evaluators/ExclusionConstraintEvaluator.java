@@ -89,7 +89,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 				if (!targetB.appliesToFocus() || allowedTargetOids.contains(targetB.getOid())) {
 					continue;
 				}
-				if (excludes(constraint.getValue(), targetB)) {
+				if (matches(constraint.getValue().getTargetRef(), targetB, prismContext, matchingRuleRegistry, "exclusion constraint")) {
 					return createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint.getValue(), ctx.policyRule);
 				}
 			}
@@ -97,33 +97,30 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 		return null;
 	}
 
-	private boolean excludes(ExclusionPolicyConstraintType constraint, EvaluatedAssignmentTargetImpl targetAssignment) throws SchemaException {
-		if (constraint.getTargetRef() == null || targetAssignment.getOid() == null) {
+	static boolean matches(ObjectReferenceType targetRef, EvaluatedAssignmentTargetImpl assignmentTarget,
+			PrismContext prismContext, MatchingRuleRegistry matchingRuleRegistry, String context) throws SchemaException {
+		if (targetRef == null) {
+			throw new SchemaException("No targetRef in " + context);
+		}
+		if (assignmentTarget.getOid() == null) {
 			return false;		// shouldn't occur
-
-		} else if (constraint.getTargetRef() != null) {
-			ObjectReferenceType targetRef = constraint.getTargetRef();
-			if (targetRef.getOid() != null) {
-				return targetAssignment.getOid().equals(constraint.getTargetRef().getOid());
-			} else {
-				if (targetRef.getResolutionTime() == EvaluationTimeType.RUN) {
-					SearchFilterType filterType = targetRef.getFilter();
-					if (filterType == null) {
-						throw new SchemaException("No filter in exclusion reference");
-					}
-					QName typeQName = targetRef.getType();
-					@SuppressWarnings("rawtypes")
-					PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(typeQName);
-					ObjectFilter filter = QueryConvertor.parseFilter(filterType, objDef);
-					PrismObject<? extends FocusType> target = targetAssignment.getTarget();
-					return filter.match(target.getValue(), matchingRuleRegistry);
-				} else {
-					throw new SchemaException("No OID in exclusion reference");
-				}
+		}
+		if (targetRef.getOid() != null) {
+			return assignmentTarget.getOid().equals(targetRef.getOid());
+		}
+		if (targetRef.getResolutionTime() == EvaluationTimeType.RUN) {
+			SearchFilterType filterType = targetRef.getFilter();
+			if (filterType == null) {
+				throw new SchemaException("No filter in " + context);
 			}
-
+			QName typeQName = targetRef.getType();
+			@SuppressWarnings("rawtypes")
+			PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(typeQName);
+			ObjectFilter filter = QueryConvertor.parseFilter(filterType, objDef);
+			PrismObject<? extends FocusType> target = assignmentTarget.getTarget();
+			return filter.match(target.getValue(), matchingRuleRegistry);
 		} else {
-			throw new SchemaException("No target reference in exclusion");
+			throw new SchemaException("No OID in " + context);
 		}
 	}
 

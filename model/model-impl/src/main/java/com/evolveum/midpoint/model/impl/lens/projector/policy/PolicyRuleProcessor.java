@@ -70,6 +70,7 @@ public class PolicyRuleProcessor {
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	@Autowired private AssignmentConstraintEvaluator assignmentConstraintEvaluator;
+	@Autowired private HasAssignmentConstraintEvaluator hasAssignmentConstraintEvaluator;
 	@Autowired private ExclusionConstraintEvaluator exclusionConstraintEvaluator;
 	@Autowired private MultiplicityConstraintEvaluator multiplicityConstraintEvaluator;
 	@Autowired private PolicySituationConstraintEvaluator policySituationConstraintEvaluator;
@@ -292,6 +293,8 @@ public class PolicyRuleProcessor {
 	private PolicyConstraintEvaluator<?> getConstraintEvaluator(JAXBElement<AbstractPolicyConstraintType> constraint) {
 		if (constraint.getValue() instanceof AssignmentPolicyConstraintType) {
 			return assignmentConstraintEvaluator;
+		} else if (constraint.getValue() instanceof HasAssignmentPolicyConstraintType) {
+			return hasAssignmentConstraintEvaluator;
 		} else if (constraint.getValue() instanceof ExclusionPolicyConstraintType) {
 			return exclusionConstraintEvaluator;
 		} else if (constraint.getValue() instanceof MultiplicityPolicyConstraintType) {

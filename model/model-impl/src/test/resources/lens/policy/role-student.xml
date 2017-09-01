@@ -1,0 +1,326 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>Student</name>
+	<assignment>
+		<!-- this is just to test when the assignment constraint is triggered and when not -->
+		<policyRule>
+			<name>assignment-of-student</name>
+			<policyConstraints>
+				<assignment/>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<inducement>
+		<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+	</inducement>
+	<inducement>
+		<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+		<activation>
+			<validTo>2015-01-01T00:00:00.000</validTo>
+		</activation>
+	</inducement>
+    <inducement>
+    	<policyRule>
+			<name>no-students-from-1900-current</name>
+    		<policyConstraints>
+		    	<focusState>
+					<name>cc-1900-current</name>
+					<filter>
+						<q:equal>
+							<!-- people from CC 1900 could not enroll as students -->
+							<q:path>costCenter</q:path>
+							<q:value>1900</q:value>
+						</q:equal>
+					</filter>
+					<!-- no state means current -->
+				</focusState>
+		    </policyConstraints>
+		    <policyActions>
+		    	<!-- none -->
+		    </policyActions>
+    	</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+			<name>no-students-from-1900-new</name>
+    		<policyConstraints>
+		    	<focusState>
+					<name>cc-1900-new</name>
+					<filter>
+						<q:equal>
+							<!-- people from CC 1900 could not enroll as students -->
+							<q:path>costCenter</q:path>
+							<q:value>1900</q:value>
+						</q:equal>
+					</filter>
+					<checkInState>new</checkInState>
+				</focusState>
+		    </policyConstraints>
+		    <policyActions>
+				<!-- none -->
+		    </policyActions>
+    	</policyRule>
+    </inducement>
+	<inducement>
+		<policyRule>
+			<name>no-students-from-1900-old</name>
+			<policyConstraints>
+				<focusState>
+					<name>cc-1900-old</name>
+					<filter>
+						<q:equal>
+							<!-- people from CC 1900 could not enroll as students -->
+							<q:path>costCenter</q:path>
+							<q:value>1900</q:value>
+						</q:equal>
+					</filter>
+					<checkInState>old</checkInState>
+				</focusState>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+    <inducement>
+    	<policyRule>
+			<!-- this is a better check: we look at current and new object value -->
+			<name>no-students-from-1910-current-or-new</name>
+    		<policyConstraints>
+		    	<focusState>
+					<name>cc-1910-current-or-new</name>
+					<filter>
+						<q:equal>
+							<q:path>costCenter</q:path>
+							<q:value>1910</q:value>
+						</q:equal>
+					</filter>
+					<checkInState>current</checkInState>
+					<checkInState>new</checkInState>
+				</focusState>
+		    </policyConstraints>
+		    <policyActions>
+				<!-- none -->
+		    </policyActions>
+    	</policyRule>
+    </inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-zero-or-plus</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>student-assignment-zero-or-plus</name>
+					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+					<!-- no state means current+new -->
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-zero</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>student-assignment-current</name>
+					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+					<inState>zero</inState>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-plus</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>student-assignment-plus</name>
+					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>
+					<inState>plus</inState>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-direct</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-direct</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<direct>true</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-indirect</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-indirect</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<direct>true</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-enabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-enabled</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<enabled>true</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-temporary-assignment-disabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>temporary-assignment-disabled</name>
+					<targetRef oid="9b573f03-e786-476c-bb97-b7ae69cc8228" type="RoleType"/>	<!-- Temporary -->
+					<enabled>false</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-direct</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-direct</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<direct>true</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-indirect</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-indirect</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<direct>false</direct>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-enabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-enabled</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<enabled>true</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-person-assignment-disabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>person-assignment-disabled</name>
+					<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
+					<enabled>false</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-student-assignment-enabled</name>
+			<policyConstraints>
+				<hasAssignment>
+					<name>student-assignment-enabled</name>
+					<targetRef oid="ae660fed-6a16-4cd4-bd34-30f97be6e9d5" type="RoleType"/>	<!-- Student -->
+					<enabled>true</enabled>
+				</hasAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>has-no-assignment-for-aaa</name>
+			<policyConstraints>
+				<hasNoAssignment>
+					<name>temporary-assignment-direct</name>
+					<targetRef oid="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" type="RoleType">
+						<targetName>abc</targetName>
+					</targetRef>
+				</hasNoAssignment>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>
