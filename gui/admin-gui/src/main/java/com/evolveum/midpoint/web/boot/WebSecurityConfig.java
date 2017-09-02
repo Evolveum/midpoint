@@ -42,10 +42,11 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
 @Configuration
 @EnableGlobalMethodSecurity(securedEnabled = true)
 @EnableWebSecurity
-public class WebSecurityConfig {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer) {
@@ -62,89 +63,80 @@ public class WebSecurityConfig {
         return filter;
     }
 
-    @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
-    @Configuration
-    public static class WebConfig extends WebSecurityConfigurerAdapter {
+    @Value("${auth.logout.url}")
+    private String authLogoutUrl;
 
-        @Value("${auth.logout.url}")
-        private String authLogoutUrl;
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers("/model/**");
+        web.ignoring().antMatchers("/ws/**");
 
-        @Override
-        public void configure(WebSecurity web) throws Exception {
-            web.ignoring().antMatchers("/model/**");
-            web.ignoring().antMatchers("/ws/**");
+        web.ignoring().antMatchers("/rest/**");
 
-            web.ignoring().antMatchers("/rest/**");
+        web.ignoring().antMatchers("/js/**");
+        web.ignoring().antMatchers("/css/**");
+        web.ignoring().antMatchers("/img/**");
+        web.ignoring().antMatchers("/fonts/**");
 
-            web.ignoring().antMatchers("/js/**");
-            web.ignoring().antMatchers("/css/**");
-            web.ignoring().antMatchers("/img/**");
-            web.ignoring().antMatchers("/wro/**");
-            web.ignoring().antMatchers("/less/**"); //todo should be there probably
-            web.ignoring().antMatchers("/wicket/resource/**");
-        }
+        web.ignoring().antMatchers("/wro/**");
+        web.ignoring().antMatchers("/less/**"); //todo should be there probably
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            http.authorizeRequests()
-                    .antMatchers("/j_spring_security_check",
-                            "/spring_security_login",
-                            "/login",
-                            "/bootstrap").permitAll()
-                    .anyRequest().fullyAuthenticated();
+        web.ignoring().antMatchers("/wicket/resource/**");
+    }
 
-            http.logout()
-                    .logoutUrl("/j_spring_security_logout")
-                    .invalidateHttpSession(true)
-                    .logoutSuccessHandler(logoutHandler());
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/j_spring_security_check",
+                        "/spring_security_login",
+                        "/login",
+                        "/bootstrap").permitAll()
+                .anyRequest().fullyAuthenticated();
 
-            http.sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                    .maximumSessions(1)
-                    .maxSessionsPreventsLogin(true);
+        http.logout()
+                .logoutUrl("/j_spring_security_logout")
+                .invalidateHttpSession(true)
+                .logoutSuccessHandler(logoutHandler());
 
-            http.formLogin()
-                    .loginPage("/login")
-                    .loginProcessingUrl("/spring_security_login")
-                    .successHandler(authenticationSuccessHandler()).permitAll();
+        http.sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(true);
 
-            http.csrf().disable();
-            http.headers().disable();
-        }
+        http.formLogin()
+                .loginPage("/login")
+                .loginProcessingUrl("/spring_security_login")
+                .successHandler(authenticationSuccessHandler()).permitAll();
 
-        @ConditionalOnMissingBean
-        @Bean
-        public AuthenticationProvider authenticationProvider() {
-            return new MidPointAuthenticationProvider();
-        }
+        http.csrf().disable();
+        http.headers().disable();
+    }
 
-        @Bean
-        @Override
-        public AuthenticationManager authenticationManagerBean() throws Exception {
-            return super.authenticationManagerBean();
-        }
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        return new MidPointAuthenticationProvider();
+    }
 
-        @Override
-        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-            auth.authenticationProvider(authenticationProvider());
-        }
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider());
+    }
 
-        @Bean
-        public MidPointAuthenticationSuccessHandler authenticationSuccessHandler() {
-            MidPointAuthenticationSuccessHandler handler = new MidPointAuthenticationSuccessHandler();
-            handler.setUseReferer(true);
-            handler.setDefaultTargetUrl("/login");
+    @Bean
+    public MidPointAuthenticationSuccessHandler authenticationSuccessHandler() {
+        MidPointAuthenticationSuccessHandler handler = new MidPointAuthenticationSuccessHandler();
+        handler.setUseReferer(true);
+        handler.setDefaultTargetUrl("/login");
 
-            return handler;
-        }
+        return handler;
+    }
 
-        @Bean
-        public AuditedLogoutHandler logoutHandler() {
-            AuditedLogoutHandler handler = new AuditedLogoutHandler();
-            handler.setDefaultTargetUrl(authLogoutUrl);
+    @Bean
+    public AuditedLogoutHandler logoutHandler() {
+        AuditedLogoutHandler handler = new AuditedLogoutHandler();
+        handler.setDefaultTargetUrl(authLogoutUrl);
 
-            return handler;
-        }
+        return handler;
     }
 }
 
