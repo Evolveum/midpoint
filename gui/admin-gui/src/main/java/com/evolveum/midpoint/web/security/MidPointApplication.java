@@ -67,11 +67,16 @@ import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -92,7 +97,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public static final List<LocaleDescriptor> AVAILABLE_LOCALES;
 
-    private static final String LOCALIZATION_DESCRIPTOR = "/localization/locale.properties";
+    private static final String LOCALIZATION_DESCRIPTOR = "localization/locale.properties";
 
     private static final String PROP_NAME = ".name";
     private static final String PROP_FLAG = ".flag";
@@ -105,64 +110,31 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     static {
+        String midpointHome = System.getProperty(WebApplicationConfiguration.MIDPOINT_HOME);
+        File file = new File(midpointHome, LOCALIZATION_DESCRIPTOR);
+
+        Resource[] localeDescriptorResources = new Resource[]{
+                new FileSystemResource(file),
+                new ClassPathResource(LOCALIZATION_DESCRIPTOR)
+        };
+
         List<LocaleDescriptor> locales = new ArrayList<>();
-        try {
-            ClassLoader classLoader = MidPointApplication.class.getClassLoader();
-            Enumeration<URL> urls = classLoader.getResources(LOCALIZATION_DESCRIPTOR);
-            while (urls.hasMoreElements()) {
-                final URL url = urls.nextElement();
-                LOGGER.debug("Found localization descriptor {}.", new Object[]{url.toString()});
-
-                Properties properties = new Properties();
-                Reader reader = null;
-                try {
-                    reader = new InputStreamReader(url.openStream(), "utf-8");
-                    properties.load(reader);
-
-                    Map<String, Map<String, String>> localeMap = new HashMap<>();
-                    Set<String> keys = (Set) properties.keySet();
-                    for (String key : keys) {
-                        String[] array = key.split("\\.");
-                        if (array.length != 2) {
-                            continue;
-                        }
-
-                        String locale = array[0];
-                        Map<String, String> map = localeMap.get(locale);
-                        if (map == null) {
-                            map = new HashMap<>();
-                            localeMap.put(locale, map);
-                        }
-
-                        map.put(key, properties.getProperty(key));
-                    }
-
-                    for (String key : localeMap.keySet()) {
-                        Map<String, String> localeDefinition = localeMap.get(key);
-                        if (!localeDefinition.containsKey(key + PROP_NAME)
-                                || !localeDefinition.containsKey(key + PROP_FLAG)) {
-                            continue;
-                        }
-
-                        LocaleDescriptor descriptor = new LocaleDescriptor(
-                                localeDefinition.get(key + PROP_NAME),
-                                localeDefinition.get(key + PROP_FLAG),
-                                localeDefinition.get(key + PROP_DEFAULT),
-                                WebComponentUtil.getLocaleFromString(key)
-                        );
-                        locales.add(descriptor);
-                    }
-                } catch (Exception ex) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load localization", ex);
-                } finally {
-                    IOUtils.closeQuietly(reader);
-                }
+        for (Resource resource : localeDescriptorResources) {
+            if (!resource.isReadable()) {
+                continue;
             }
 
-            Collections.sort(locales);
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load locales", ex);
+            try {
+                LOGGER.debug("Found localization descriptor {}.", new Object[]{resource.getURL()});
+                locales = loadLocaleDescriptors(resource);
+
+                break;
+            } catch (Exception ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load localization", ex);
+            }
         }
+
+        Collections.sort(locales);
 
         AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }
@@ -246,8 +218,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
-//        getMarkupSettings().setDefaultBeforeDisabledLink("");
-//        getMarkupSettings().setDefaultAfterDisabledLink("");
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
@@ -274,6 +244,55 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);
+    }
+
+    private static List<LocaleDescriptor> loadLocaleDescriptors(Resource resource) throws IOException {
+        List<LocaleDescriptor> locales = new ArrayList<>();
+
+        Properties properties = new Properties();
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(resource.getInputStream(), "utf-8");
+            properties.load(reader);
+
+            Map<String, Map<String, String>> localeMap = new HashMap<>();
+            Set<String> keys = (Set) properties.keySet();
+            for (String key : keys) {
+                String[] array = key.split("\\.");
+                if (array.length != 2) {
+                    continue;
+                }
+
+                String locale = array[0];
+                Map<String, String> map = localeMap.get(locale);
+                if (map == null) {
+                    map = new HashMap<>();
+                    localeMap.put(locale, map);
+                }
+
+                map.put(key, properties.getProperty(key));
+            }
+
+            for (String key : localeMap.keySet()) {
+                Map<String, String> localeDefinition = localeMap.get(key);
+                if (!localeDefinition.containsKey(key + PROP_NAME)
+                        || !localeDefinition.containsKey(key + PROP_FLAG)) {
+                    continue;
+                }
+
+                LocaleDescriptor descriptor = new LocaleDescriptor(
+                        localeDefinition.get(key + PROP_NAME),
+                        localeDefinition.get(key + PROP_FLAG),
+                        localeDefinition.get(key + PROP_DEFAULT),
+                        WebComponentUtil.getLocaleFromString(key)
+                );
+                locales.add(descriptor);
+            }
+        } finally {
+            IOUtils.closeQuietly(reader);
+        }
+
+        return locales;
     }
 
     private URL buildMidpointHomeLocalizationFolderUrl() {
@@ -434,18 +453,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve system configuration", e);
             return null;
-        }
-    }
-
-    private static class ResourceFileFilter implements FilenameFilter {
-
-        @Override
-        public boolean accept(File parent, String name) {
-            if (name.endsWith("png") || name.endsWith("gif")) {
-                return true;
-            }
-
-            return false;
         }
     }
 
