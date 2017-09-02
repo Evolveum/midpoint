@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.prism.polystring;
 
 import java.text.Normalizer;
-
+import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -24,6 +24,10 @@ import org.apache.commons.lang.StringUtils;
  *
  */
 public class PrismDefaultPolyStringNormalizer implements PolyStringNormalizer {
+	private static final String MALFORMED_REGEX = "[^\\w\\s\\d]";
+	private static final Pattern MALFORMED_PATTERN = Pattern.compile(MALFORMED_REGEX);
+	private static final String WHITESPACE_REGEX = "\\s+";
+	private static final Pattern WHITESPACE_PATTERN = Pattern.compile(WHITESPACE_REGEX);
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.prism.polystring.PolyStringNormalizer#normalize(java.lang.String)
@@ -35,8 +39,8 @@ public class PrismDefaultPolyStringNormalizer implements PolyStringNormalizer {
 		}
 		String s = StringUtils.trim(orig);
 		s = Normalizer.normalize(s, Normalizer.Form.NFKD);
-		s = s.replaceAll("[^\\w\\s\\d]", "");
-		s = s.replaceAll("\\s+", " ");
+		s = MALFORMED_PATTERN.matcher(s).replaceAll("");
+		s = WHITESPACE_PATTERN.matcher(s).replaceAll(" ");
 		if (StringUtils.isBlank(s)) {
 			s = "";
 		}
