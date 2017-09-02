@@ -172,6 +172,11 @@
                 		<path>description</path>
                 	</target>
 				</inbound>
+				<inbound>
+                	<target>
+                		<path>extension/tales</path>
+                	</target>
+				</inbound>
 			</attribute>
             <attribute>
                 <ref>ri:gossip</ref>

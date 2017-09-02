@@ -33,9 +33,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.FailableRunnable;
 import com.evolveum.midpoint.util.exception.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -58,6 +60,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
+import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -75,6 +79,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,15 +90,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
@@ -186,9 +197,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 	protected static final String INTEREST_ONE = "one";
 	
-	protected static final Random RND = new Random();
-
-
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
 	
@@ -222,6 +230,8 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 	private XMLGregorianCalendar roleTwoValidFromTimestamp;
 	
+	protected String accountBarbossaOid;
+	
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -243,6 +253,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		userWillOid = userWill.getOid();
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		
+		ConflictResolutionType conflictResolutionType = new ConflictResolutionType();
+		conflictResolutionType.action(ConflictResolutionActionType.RECOMPUTE);
+		setConflictResolution(UserType.COMPLEX_TYPE, null, conflictResolutionType, initResult);
 		
 		// Turns on checks for connection in manual connector
 		InternalsConfig.setSanityChecks(true);
@@ -276,7 +290,23 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	protected boolean supportsBackingStore() {
 		return false;
 	}
-
+	
+	protected boolean hasMultivalueInterests() {
+		return true;
+	}
+	
+	protected int getConcurrentTestNumberOfThreads() {
+		return 4;
+	}
+	
+	protected int getConcurrentTestRandomStartDelayRange() {
+		return 1000;
+	}
+	
+	protected int getConcurrentTestRandomStartDelayRangeDelete() {
+		return 5;
+	}
+	
 	@Test
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
@@ -2903,58 +2933,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertShadowExists(shadowRepo, true);
 	}
 
-	// MID-4047
-	@Test
-	public void test900ConcurrentConstructions() throws Exception {
-		final String TEST_NAME = "test900ConcurrentConstructions";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
 
-		final int THREADS = getConcurrentTestNumberOfThreads();
-		final long TIMEOUT = 60000L;
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		Thread[] threads = new Thread[THREADS];
-		for (int i = 0; i < THREADS; i++) {
-			threads[i] = new Thread(() -> {
-				try {
-					Thread.sleep(RND.nextInt(getConcurrentTestRandomStartDelayRange())); // Random start delay
-					LOGGER.info("{} starting", Thread.currentThread().getName());
-					login(userAdministrator);
-					Task localTask = createTask(TEST_NAME + ".local");
-					assignAccount(USER_BARBOSSA_OID, getResourceOid(), SchemaConstants.INTENT_DEFAULT, localTask, localTask.getResult());
-				} catch (CommonException | InterruptedException e) {
-					throw new SystemException("Couldn't assign resource: " + e.getMessage(), e);
-				}
-			});
-			threads[i].setName("Thread " + (i+1) + " of " + THREADS);
-			threads[i].start();
-		}
-
-		// THEN
-		displayThen(TEST_NAME);
-		for (int i = 0; i < THREADS; i++) {
-			if (threads[i].isAlive()) {
-				System.out.println("Waiting for " + threads[i]);
-				threads[i].join(TIMEOUT);
-			}
-		}
-
-		PrismObject<UserType> barbossa = getUser(USER_BARBOSSA_OID);
-		display("barbossa", barbossa);
-		assertEquals("Wrong # of links", 1, barbossa.asObjectable().getLinkRef().size());
-	}
-	
-	protected int getConcurrentTestNumberOfThreads() {
-		return 4;
-	}
-	
-	protected int getConcurrentTestRandomStartDelayRange() {
-		return 1000;
-	}
 
 	protected void backingStoreProvisionWill(String interest) throws IOException {
 		// nothing to do here

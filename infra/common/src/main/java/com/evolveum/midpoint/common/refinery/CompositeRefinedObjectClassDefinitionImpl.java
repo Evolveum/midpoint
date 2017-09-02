@@ -461,6 +461,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 				.map(a -> a.getName())
 				.collect(Collectors.toCollection(HashSet::new));
 	}
+	
+	@Override
+	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
+		return structuralObjectClassDefinition.getAuxiliaryObjectClassMappings();
+	}
 
 	@Override
 	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {

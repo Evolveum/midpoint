@@ -779,7 +779,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		LOGGER.trace("**PROVISIONING: Finished deleting object.");
 
-		result.computeStatus();
+		if (!result.isInProgress()) {
+			// This is the case when there is already a conflicting pending operation.
+			result.computeStatus();
+		}
 		result.cleanupResult();
 	}
 	

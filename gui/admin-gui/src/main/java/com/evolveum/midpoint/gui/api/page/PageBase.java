@@ -98,6 +98,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -940,7 +941,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
 				.setParameters(objects);
 	}
-
+	
 	public StringResourceModel createStringResource(Enum e) {
 		String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
 		return createStringResource(resourceKey);
@@ -968,7 +969,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
-
+        
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
 		opResult.determineBackgroundTaskVisibility(this);
         switch (opResult.getStatus()) {

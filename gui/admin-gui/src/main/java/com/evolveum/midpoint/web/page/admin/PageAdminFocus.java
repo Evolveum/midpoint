@@ -163,7 +163,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 	
 	public boolean isAssignmentsLoaded() {
-		return assignmentsModel.isLoaded();
+		return assignmentsModel.isLoaded() || policyRulesModel.isLoaded();
 	}
 	
 	public List<AssignmentDto> getFocusAssignments() {
@@ -557,7 +557,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			// handle assignments
 			PrismContainerDefinition<AssignmentType> def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 //			handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
-			handleAssignmentExperimentalDeltas(focusDelta, getFocusAssignments(), def, false);
+			List<AssignmentDto> assignmentsList = new ArrayList<>();
+			assignmentsList.addAll(getFocusAssignments());
+			assignmentsList.addAll(getPolicyRulesModel().getObject());
+			handleAssignmentExperimentalDeltas(focusDelta, assignmentsList, def, false);
 		}
 	}
 	

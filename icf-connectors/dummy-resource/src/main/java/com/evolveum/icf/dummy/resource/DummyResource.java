@@ -71,6 +71,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class DummyResource implements DebugDumpable {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(DummyResource.class);
+	private static final Random RND = new Random();
 	
 	public static final String ATTRIBUTE_CONNECTOR_TO_STRING = "connectorToString";
 	public static final String ATTRIBUTE_CONNECTOR_STATIC_VAL = "connectorStaticVal";
@@ -97,8 +98,10 @@ public class DummyResource implements DebugDumpable {
 	private boolean caseIgnoreId = false;
 	private boolean caseIgnoreValues = false;
 	private int connectionCount = 0;
+	private int writeOperationCount = 0;
 	private int groupMembersReadCount = 0;
 	private Collection<String> forbiddenNames;
+	private int operationDelayRange = 0;
 
 	/**
 	 * There is a monster that loves to eat cookies.
@@ -172,6 +175,8 @@ public class DummyResource implements DebugDumpable {
 		syncStyle = DummySyncStyle.NONE;
 		deltas.clear();
 		latestSyncToken = 0;
+		writeOperationCount = 0;
+		operationDelayRange = 0;
 		resetBreakMode();
 	}
 	
@@ -353,6 +358,14 @@ public class DummyResource implements DebugDumpable {
 		this.forbiddenNames = forbiddenNames;
 	}
 
+	public int getOperationDelayRange() {
+		return operationDelayRange;
+	}
+
+	public void setOperationDelayRange(int operationDelayRange) {
+		this.operationDelayRange = operationDelayRange;
+	}
+
 	public boolean isMonsterization() {
 		return monsterization;
 	}
@@ -376,6 +389,14 @@ public class DummyResource implements DebugDumpable {
 	public void assertNoConnections() {
 		assert connectionCount == 0 : "Dummy resource: "+connectionCount+" connections still open";
 	}
+	
+	public synchronized void recordWriteOperation(String operation) {
+		writeOperationCount++;
+	}
+
+	public int getWriteOperationCount() {
+		return writeOperationCount;
+	}
 
 	public int getGroupMembersReadCount() {
 		return groupMembersReadCount;
@@ -392,6 +413,7 @@ public class DummyResource implements DebugDumpable {
 
 	public DummyObjectClass getAccountObjectClass() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		breakIt(schemaBreakMode, "schema");
+		delayOperation();
 		return accountObjectClass;
 	}
 
@@ -422,6 +444,7 @@ public class DummyResource implements DebugDumpable {
 	public Collection<DummyAccount> listAccounts() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
+		delayOperation();
 		return accounts.values();
 	}
 	
@@ -430,6 +453,7 @@ public class DummyResource implements DebugDumpable {
 			throw new IllegalStateException("Attempt to search object by name while resource is in non-unique name mode");
 		}
 		checkBlockOperations();
+		delayOperation();
 		if (checkBreak) {
 			breakIt(getBreakMode, "get");
 		}
@@ -473,6 +497,7 @@ public class DummyResource implements DebugDumpable {
 		if (checkBreak) {
 			breakIt(getBreakMode, "get");
 		}
+		delayOperation();
 		DummyObject dummyObject = allObjects.get(id);
 		if (dummyObject == null) {
 			return null;
@@ -518,24 +543,29 @@ public class DummyResource implements DebugDumpable {
 	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
+		delayOperation();
 		return groups.values();
 	}
 	
 	public Collection<DummyPrivilege> listPrivileges() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
+		delayOperation();
 		return privileges.values();
 	}
 	
 	public Collection<DummyOrg> listOrgs() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
 		breakIt(getBreakMode, "get");
+		delayOperation();
 		return orgs.values();
 	}
 	
 	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("add");
 		breakIt(addBreakMode, "add");
+		delayOperation();
 		
 		Class<? extends DummyObject> type = newObject.getClass();
 		String normalName = normalize(newObject.getName());
@@ -583,7 +613,9 @@ public class DummyResource implements DebugDumpable {
 
 	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("delete");
 		breakIt(deleteBreakMode, "delete");
+		delayOperation();
 		
 		String normalName = normalize(name);
 		T existingObject;
@@ -625,7 +657,9 @@ public class DummyResource implements DebugDumpable {
 
 	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("delete");
 		breakIt(deleteBreakMode, "delete");
+		delayOperation();
 		
 		DummyObject object = allObjects.get(id);
 		if (object == null) {
@@ -661,7 +695,9 @@ public class DummyResource implements DebugDumpable {
 
 	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkBlockOperations();
+		recordWriteOperation("modify");
 		breakIt(modifyBreakMode, "modify");
+		delayOperation();
 		
 		T existingObject;
 		if (enforceUniqueName) {
@@ -753,6 +789,7 @@ public class DummyResource implements DebugDumpable {
 	}
 	
 	void recordModify(DummyObject dObject) {
+		recordWriteOperation("modify");
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
 			DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getId(), dObject.getName(), DummyDeltaType.MODIFY);
@@ -871,6 +908,20 @@ public class DummyResource implements DebugDumpable {
 		} else {
 			// This is a real error. Use this strange thing to make sure it passes up
 			throw new RuntimeException("Unknown "+operation+" break mode "+getBreakMode);
+		}
+	}
+	
+	void delayOperation() {
+		if (operationDelayRange == 0) {
+			return;
+		}
+		int delay = RND.nextInt(operationDelayRange);
+		LOGGER.debug("Delaying dummy {} operation for {} ms", instanceName, delay);
+		try {
+			Thread.sleep(delay);
+			LOGGER.debug("Operation delay on dummy {} wait done", instanceName);
+		} catch (InterruptedException e) {
+			LOGGER.debug("Operation delay on dummy {} interrupted: {}", instanceName, e.getMessage());
 		}
 	}
 	

@@ -51,7 +51,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.web.component.assignment.AssignmentsUtil.addAjaxOnUpdateBehavior;
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.addAjaxOnUpdateBehavior;
 
 /**
  * Created by honchar.

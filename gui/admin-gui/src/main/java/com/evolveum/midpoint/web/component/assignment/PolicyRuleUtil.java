@@ -69,6 +69,7 @@ public class PolicyRuleUtil {
             }
         }
         if (policyConstraints.getMinAssignees() != null){
+            addNewLineIfNotEmpty(policyConstraintsString);
             for (MultiplicityPolicyConstraintType multiplicity : policyConstraints.getMinAssignees()){
                 policyConstraintsString.append(getMultiplicityPolicyConstraintTypeAsString(multiplicity, PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart()));
                 if (policyConstraints.getMinAssignees().indexOf(multiplicity) < policyConstraints.getMinAssignees().size() - 1){
@@ -77,6 +78,7 @@ public class PolicyRuleUtil {
             }
         }
         if (policyConstraints.getMaxAssignees() != null){
+            addNewLineIfNotEmpty(policyConstraintsString);
             for (MultiplicityPolicyConstraintType multiplicity : policyConstraints.getMaxAssignees()){
                 policyConstraintsString.append(getMultiplicityPolicyConstraintTypeAsString(multiplicity, PolicyConstraintsType.F_MAX_ASSIGNEES.getLocalPart()));
                 if (policyConstraints.getMinAssignees().indexOf(multiplicity) < policyConstraints.getMinAssignees().size() - 1){
@@ -85,6 +87,7 @@ public class PolicyRuleUtil {
             }
         }
         if (policyConstraints.getModification() != null){
+            addNewLineIfNotEmpty(policyConstraintsString);
             for (ModificationPolicyConstraintType modification : policyConstraints.getModification()){
                 policyConstraintsString.append(getModificationAsString(modification));
                 if (policyConstraints.getModification().indexOf(modification) < policyConstraints.getModification().size() - 1){
@@ -93,6 +96,7 @@ public class PolicyRuleUtil {
             }
         }
         if (policyConstraints.getAssignment() != null){
+            addNewLineIfNotEmpty(policyConstraintsString);
             for (AssignmentPolicyConstraintType assignment : policyConstraints.getAssignment()){
                 policyConstraintsString.append(getAssignmentAsString(assignment));
                 if (policyConstraints.getAssignment().indexOf(assignment) < policyConstraints.getAssignment().size() - 1){
@@ -101,6 +105,7 @@ public class PolicyRuleUtil {
             }
         }
         if (policyConstraints.getTimeValidity() != null){
+            addNewLineIfNotEmpty(policyConstraintsString);
             for (TimeValidityPolicyConstraintType timeValidity : policyConstraints.getTimeValidity()){
                 policyConstraintsString.append(getTimeValidityAsString(timeValidity));
                 if (policyConstraints.getTimeValidity().indexOf(timeValidity) < policyConstraints.getTimeValidity().size() - 1){
@@ -109,6 +114,7 @@ public class PolicyRuleUtil {
             }
         }
         if (policyConstraints.getSituation() != null){
+            addNewLineIfNotEmpty(policyConstraintsString);
             for (PolicySituationPolicyConstraintType situation : policyConstraints.getSituation()){
                 policyConstraintsString.append(getSituationAsString(situation));
                 if (policyConstraints.getSituation().indexOf(situation) < policyConstraints.getSituation().size() - 1){
@@ -217,12 +223,14 @@ public class PolicyRuleUtil {
         if (exclusion == null){
             return "";
         }
-        StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_EXCLUSION.getLocalPart());
+        StringBuilder sb = new StringBuilder(PolicyConstraintsType.F_EXCLUSION.getLocalPart() + ":");
         if (exclusion.getTargetRef() != null){
-            sb.append(" ").append(WebModelServiceUtils.resolveReferenceName(exclusion.getTargetRef(), pageBase));
+            sb.append(" ").append(ExclusionPolicyConstraintType.F_TARGET_REF.getLocalPart() + " "
+                    + WebModelServiceUtils.resolveReferenceName(exclusion.getTargetRef(), pageBase) + ";");
         }
         if (exclusion.getPolicy() != null){
-            sb.append(" ").append(exclusion.getPolicy().value());
+            sb.append(" ").append(ExclusionPolicyConstraintType.F_POLICY.getLocalPart() + " "
+                    + exclusion.getPolicy().value() + ";");
         }
         return sb.toString();
     }
@@ -262,5 +270,11 @@ public class PolicyRuleUtil {
             sb.append(sb.length() > 0 ? ", " : "").append(PolicyActionsType.F_NOTIFICATION.getLocalPart());
         }
         return sb.toString();
+    }
+
+    private static void addNewLineIfNotEmpty(StringBuilder sb){
+        if (sb.length() > 0){
+            sb.append("\n");
+        }
     }
 }

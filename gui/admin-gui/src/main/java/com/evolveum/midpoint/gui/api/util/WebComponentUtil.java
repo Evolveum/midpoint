@@ -37,6 +37,7 @@ import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -52,6 +53,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.PageReference;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
@@ -63,10 +65,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -261,6 +260,29 @@ public final class WebComponentUtil {
 				.map(ref -> emptyIfNull(getDisplayNameAndName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
 				.collect(Collectors.joining(", "));
 	}
+
+	public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
+        container.visitChildren(new IVisitor<Component, Object>() {
+            @Override
+            public void component(Component component, IVisit<Object> objectIVisit) {
+                if (component instanceof InputPanel) {
+                    addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
+                } else if (component instanceof FormComponent) {
+                    addAjaxOnBlurUpdateBehaviorToComponent(component);
+                }
+            }
+        });
+    }
+
+	private static void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
+        component.setOutputMarkupId(true);
+        component.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
+    }
 
 	public enum Channel {
 		// TODO: move this to schema component

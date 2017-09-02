@@ -25,9 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
@@ -341,9 +339,10 @@ public class ObjectUpdater {
     }
 
     public <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications,
-			RepoModifyOptions modifyOptions, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService) throws ObjectNotFoundException,
-            SchemaException, ObjectAlreadyExistsException, SerializationRelatedException {
+			Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition,
+			RepoModifyOptions modifyOptions, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
+		    throws ObjectNotFoundException,
+		    SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         // TODO clone elements only if necessary
@@ -389,6 +388,9 @@ public class ObjectUpdater {
 
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, options, true, result);
+                if (precondition != null && !precondition.holds(prismObject)) {
+                	throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
+                }
 	            sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
 				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());

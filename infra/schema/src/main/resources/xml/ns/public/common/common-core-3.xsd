@@ -4362,6 +4362,36 @@
                    </xsd:documentation>
                </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="auxiliaryObjectClassMappings" type="tns:ResourceBidirectionalMappingAndDefinitionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Outbound/inbound mappings for auxiliary object classes. These can be used to manipulate
+							auxiliary object classes beyond the simple capabilities provided by the auxiliaryObjectClass
+							property.
+						</p>
+						<p>
+							NOTE: outboub mapping for auxiliary object classes is not yet supported.
+						</p>
+						<p>
+							If toletant flag is set to true then midPoint will tolerate existing auxiliary object classes on resource
+							objects. MidPoitn will add/remove auxiliary object classes only if there is an explicit
+							operation for that (e.g. assign/unassign of role with auxiliary object class definition).
+							If tolerant flag set to false then midPoint will strictly synchronize auxiliary object classes of resource
+							objects with the definition given in midPoint configuration. This is the default behavior.
+						</p>
+						<p>
+							NOTE: the "tolerant" behavior is disabled by default for auxiliary object classes. This is
+							different for most other midPoint definitions where tolerant behavior is enabled by default.
+							This inconsistency has historic (compatibility) reasons. But having auxiliary object classes
+							non-tolerant also makes a lot of sense in usual situations.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.6.1</a:since>
+					</xsd:appinfo>
+               </xsd:annotation>
+			</xsd:element>
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4521,6 +4551,40 @@
         				in combination with shadowConstraintsCheck to reduce probability of identifier
         				conflicts for resources with slow create/rename operations.
         				
+        				See also avoidDuplicateOperations and recordPendingOperations properties.
+        				
+        				This feature is EXPERIMENTAL. Use with care.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.6.1</a:since>
+        				<a:experimental>true</a:experimental>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="recordPendingOperations" type="tns:RecordPendingOperationsType" minOccurs="0" default="asynchronous">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				TODO
+        				
+        				See also avoidDuplicateOperations and useProposedShadows properties.
+        				
+        				This feature is EXPERIMENTAL. Use with care.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.6.1</a:since>
+        				<a:experimental>true</a:experimental>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="avoidDuplicateOperations" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				When set to true, midPoint will try to avoid executing duplication operations
+        				on the resource. If an operation is already underway the duplicate operation
+        				will be ignored.
+        				
+        				See also recordPendingOperations and useProposedShadows properties.
+        				
         				This feature is EXPERIMENTAL. Use with care.
         			</xsd:documentation>
         			<xsd:appinfo>
@@ -4631,6 +4695,45 @@
                     </xsd:appinfo>
                 </xsd:annotation>
                 <!-- TODO: thorough: always check uniqueness -->
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="RecordPendingOperationsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.6.1</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="asynchronous">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Record only asynchronous operations. The operation
+                		will be recorded when we know that it is asynchronous.
+                		Which usually means it is only recoded after the operation
+                		is started.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASYNCHRONOUS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Record all operations to pending deltas. The operations
+                		are recoreded even before they are started.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
@@ -5540,6 +5643,27 @@
             	</xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ResourceBidirectionalMappingAndDefinitionType">
+	    <xsd:complexContent>
+	    	<xsd:extension base="tns:ResourceBidirectionalMappingType">
+	    		<xsd:sequence>
+		    		<xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
+			    		<xsd:annotation>
+		                    <xsd:documentation>
+		                        When set to true, allows attribute/property values that are set outside midPoint (or
+		                        outside object template mappings).
+		                        The synchronization will only remove values that are assigned by midPoint (or template mappings),
+		                        but will tolerate extra native values.
+		                        When set to false, extra values are not tolerated. When midPoint detects
+		                        such value (e.g. during reconciliation) it will remove it.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+			            </xsd:element>
+            	</xsd:sequence>
+	    	</xsd:extension>
+	    </xsd:complexContent>
     </xsd:complexType>
     
     <xsd:complexType name="IterationSpecificationType">

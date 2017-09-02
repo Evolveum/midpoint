@@ -583,6 +583,10 @@ public abstract class ShadowCache {
 					isDoDiscovery(resource, options), true, parentResult);
 			return null;
 		}
+		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
+			applyAttributesDefinition(ctx, shadow);
+			attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		}
 		
 		preAddChecks(ctx, shadow, task, parentResult);
 		
@@ -614,7 +618,7 @@ public abstract class ShadowCache {
 		}
 
 		// REPO OPERATION: add
-		// This is where the repo shadow is created (if needed)
+		// This is where the repo shadow is created or updated (if needed)
 		String oid = afterAddOnResource(ctx, shadowOid, asyncReturnValue, parentResult);
 		addedShadow.setOid(oid);
 
@@ -804,6 +808,12 @@ public abstract class ShadowCache {
 
 		applyAttributesDefinition(ctx, shadow);
 
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, shadow, task, parentResult);
+		if (duplicateOperation != null) {
+			parentResult.recordInProgress();
+			return;
+		}
+		
 		LOGGER.trace("Deleting object {} from the resource {}.", shadow, ctx.getResource());
 
 		AsynchronousOperationResult asyncReturnValue = null;

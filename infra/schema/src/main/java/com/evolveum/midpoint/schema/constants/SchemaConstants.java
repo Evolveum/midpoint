@@ -242,6 +242,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_LINK_REF = new ItemPath(FocusType.F_LINK_REF);
 	public static final ItemPath PATH_LIFECYCLE_STATE = new ItemPath(ObjectType.F_LIFECYCLE_STATE);
 	public static final ItemPath PATH_ROLE_MEMBERSHIP_REF = new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF);
+	public static final ItemPath PATH_AUXILIARY_OBJECT_CLASS = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
