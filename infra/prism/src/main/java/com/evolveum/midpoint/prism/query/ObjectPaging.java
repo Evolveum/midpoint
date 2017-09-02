@@ -207,12 +207,12 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		if (getOffset() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("Offset: " + getOffset());
+			sb.append("Offset: ").append(getOffset());
 		}
 		if (getMaxSize() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("Max size: " + getMaxSize());
+			sb.append("Max size: ").append(getMaxSize());
 		}
 		if (hasOrdering()) {
 			sb.append("\n");
@@ -222,7 +222,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		if (getCookie() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("Cookie: " + getCookie());
+			sb.append("Cookie: ").append(getCookie());
 		}
 		return sb.toString();
 	}

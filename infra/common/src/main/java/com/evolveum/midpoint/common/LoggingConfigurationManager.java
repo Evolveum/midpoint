@@ -332,7 +332,7 @@ public class LoggingConfigurationManager {
 
 	private static void prepareCommonAppenderHeader(StringBuilder sb,
 			AppenderConfigurationType appender, LoggingConfigurationType config, String appenderClass) {
-		sb.append("\t<appender name=\"").append(appender.getName()).append("\" class=\""+appenderClass+"\">\n");
+		sb.append("\t<appender name=\"").append(appender.getName()).append("\" class=\"").append(appenderClass).append("\">\n");
 
         //Apply profiling appender filter if necessary
         if(IDM_PROFILE_APPENDER.equals(appender.getName())){
