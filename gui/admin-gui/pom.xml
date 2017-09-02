@@ -19,7 +19,7 @@
     <name>midPoint User Interface - admin web gui</name>
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <version>3.7-SNAPSHOT</version>
     <parent>
         <artifactId>gui</artifactId>
@@ -557,7 +557,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
-                    <artifactId>spring</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
