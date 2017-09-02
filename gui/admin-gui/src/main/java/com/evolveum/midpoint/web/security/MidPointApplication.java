@@ -16,36 +16,36 @@
 
 package com.evolveum.midpoint.web.security;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.web.component.GuiComponents;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.*;
+import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.apache.commons.configuration.Configuration;
@@ -54,10 +54,6 @@ import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
-import org.apache.wicket.core.util.objects.checker.IObjectChecker;
-import org.apache.wicket.core.util.objects.checker.NotDetachedModelChecker;
-import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.markup.html.WebPage;
@@ -66,7 +62,6 @@ import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
-import org.apache.wicket.serialize.java.JavaSerializer;
 import org.apache.wicket.settings.ApplicationSettings;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -76,29 +71,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuditService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.model.api.WorkflowService;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
-import com.evolveum.midpoint.web.component.GuiComponents;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.util.Utf8BundleStringResourceLoader;
+import java.io.*;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -198,24 +175,24 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient TaskService taskService;
     @Autowired
     transient PrismContext prismContext;
-	@Autowired
-	transient ExpressionFactory expressionFactory;
+    @Autowired
+    transient ExpressionFactory expressionFactory;
     @Autowired
     transient TaskManager taskManager;
     @Autowired
     transient ModelAuditService auditService;
-	@Autowired
-	transient private RepositoryService repositoryService;			// temporary
+    @Autowired
+    transient private RepositoryService repositoryService;            // temporary
     @Autowired
     transient private WorkflowService workflowService;
-	@Autowired
-	transient private WorkflowManager workflowManager;
+    @Autowired
+    transient private WorkflowManager workflowManager;
     @Autowired
     transient MidpointConfiguration configuration;
     @Autowired
     transient Protector protector;
-	@Autowired
-	transient MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired
+    transient MatchingRuleRegistry matchingRuleRegistry;
     @Autowired
     transient SecurityEnforcer securityEnforcer;
     @Autowired
@@ -258,9 +235,14 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         SecurePackageResourceGuard guard = (SecurePackageResourceGuard) resourceSettings.getPackageResourceGuard();
         guard.addPattern("+*.woff2");
 
+        URL url = buildMidpointHomeLocalizationFolderUrl();
+        ClassLoader classLoader = new URLClassLoader(new URL[]{url});
+
         List<IStringResourceLoader> resourceLoaders = resourceSettings.getStringResourceLoaders();
-        resourceLoaders.add(0, new Utf8BundleStringResourceLoader("localization/Midpoint"));
-        resourceLoaders.add(1, new Utf8BundleStringResourceLoader(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH));
+        resourceLoaders.add(0, new Utf8BundleStringResourceLoader("Midpoint", classLoader));
+        resourceLoaders.add(1, new Utf8BundleStringResourceLoader(SchemaConstants.BUNDLE_NAME, classLoader));
+        resourceLoaders.add(2, new Utf8BundleStringResourceLoader("localization/Midpoint"));
+        resourceLoaders.add(3, new Utf8BundleStringResourceLoader(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH));
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
@@ -294,6 +276,17 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         new DescriptorLoader().loadData(this);
     }
 
+    private URL buildMidpointHomeLocalizationFolderUrl() {
+        String midpointHome = System.getProperty(WebApplicationConfiguration.MIDPOINT_HOME);
+
+        File file = new File(midpointHome, "localization");
+        try {
+            return file.toURI().toURL();
+        } catch (IOException ex) {
+            throw new SystemException("Couldn't transform localization folder file to url", ex);
+        }
+    }
+
     private void initializeDevelopmentSerializers() {
 //    	JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
 //    	    @Override
@@ -307,10 +300,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 //    	    }
 //    	};
 //    	getFrameworkSettings().setSerializer( javaSerializer );
-		
-	}
 
-	private void mountFiles(String path, Class<?> clazz) {
+    }
+
+    private void mountFiles(String path, Class<?> clazz) {
         try {
             List<Resource> list = new ArrayList<>();
             String packagePath = clazz.getPackage().getName().replace('.', '/');
@@ -359,9 +352,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return auditService;
     }
 
-	public RepositoryService getRepositoryService() {
-		return repositoryService;
-	}
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
+    }
 
     public TaskService getTaskService() {
         return taskService;
@@ -372,8 +365,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     public ExpressionFactory getExpressionFactory() {
-    	return expressionFactory;
-	}
+        return expressionFactory;
+    }
 
     public Protector getProtector() {
         return protector;
@@ -393,11 +386,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return workflowService;
     }
 
-	public WorkflowManager getWorkflowManager() {
-		return workflowManager;
-	}
+    public WorkflowManager getWorkflowManager() {
+        return workflowManager;
+    }
 
-	public ModelInteractionService getModelInteractionService() {
+    public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
 
@@ -425,9 +418,9 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return new Locale("en", "US");
     }
 
-	public MatchingRuleRegistry getMatchingRuleRegistry() {
-		return matchingRuleRegistry;
-	}
+    public MatchingRuleRegistry getMatchingRuleRegistry() {
+        return matchingRuleRegistry;
+    }
 
     public SystemConfigurationType getSystemConfiguration() throws SchemaException {
         PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
