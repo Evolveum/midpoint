@@ -35,6 +35,7 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -106,25 +107,25 @@ public class PolicyRuleProcessor {
 			 *    Situation(URL2) -> Action2 [URL1]
 			 */
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getThisTargetPolicyRules()) {
-				if (!hasSituationConstraint(policyRule)) {
+				if (!hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
 							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getOtherTargetsPolicyRules()) {
-				if (!hasSituationConstraint(policyRule)) {
+				if (!hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
 							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getThisTargetPolicyRules()) {
-				if (hasSituationConstraint(policyRule)) {
+				if (hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
 							evaluatedAssignment, inPlus, inZero, inMinus, true, context, evaluatedAssignmentTriple, task), result);
 				}
 			}
 			for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getOtherTargetsPolicyRules()) {
-				if (hasSituationConstraint(policyRule)) {
+				if (hasSituationConstraint(policyRule) && isApplicableToAssignment(policyRule)) {
 					evaluateRule(new AssignmentPolicyRuleEvaluationContext<>(policyRule,
 							evaluatedAssignment, inPlus, inZero, inMinus, false, context, evaluatedAssignmentTriple, task), result);
 				}
@@ -151,12 +152,12 @@ public class PolicyRuleProcessor {
 		collectGlobalFocusRules(rules, context, task, result);
 
 		for (EvaluatedPolicyRule rule : rules) {
-			if (!hasSituationConstraint(rule)) {
+			if (!hasSituationConstraint(rule) && isApplicableToFocus(rule)) {
 				evaluateFocusRule(rule, context, task, result);
 			}
 		}
 		for (EvaluatedPolicyRule rule : rules) {
-			if (hasSituationConstraint(rule)) {
+			if (hasSituationConstraint(rule) && isApplicableToFocus(rule)) {
 				evaluateFocusRule(rule, context, task, result);
 			}
 		}
@@ -225,6 +226,14 @@ public class PolicyRuleProcessor {
 						hasSituationConstraint(constraints.getNot()));
 	}
 
+	private boolean isApplicableToAssignment(EvaluatedPolicyRule rule) {
+		return PolicyRuleTypeUtil.isApplicableToAssignment(rule.getPolicyRule());
+	}
+
+	private boolean isApplicableToFocus(EvaluatedPolicyRule rule) {
+		return PolicyRuleTypeUtil.isApplicableToFocus(rule.getPolicyRule());
+	}
+
 	/**
 	 * Evaluates given policy rule in a given context.
 	 */
@@ -244,7 +253,7 @@ public class PolicyRuleProcessor {
 			return false;
 		}
 		boolean atLeastOne = false;
-		for (JAXBElement<AbstractPolicyConstraintType> primitiveConstraint : toPrimitiveConstraintsList(constraints)) {
+		for (JAXBElement<AbstractPolicyConstraintType> primitiveConstraint : toPrimitiveConstraintsList(constraints, false)) {
 			PolicyConstraintEvaluator<AbstractPolicyConstraintType> evaluator =
 					(PolicyConstraintEvaluator<AbstractPolicyConstraintType>) getConstraintEvaluator(primitiveConstraint);
 			EvaluatedPolicyRuleTrigger<?> trigger = evaluator.evaluate(primitiveConstraint, ctx, result);

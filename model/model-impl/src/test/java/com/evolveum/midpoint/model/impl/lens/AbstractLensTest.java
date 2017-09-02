@@ -180,21 +180,21 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         return assignmentType;
     }
 
-	protected List<EvaluatedPolicyRule> assertEvaluatedTargetPolicyRules(LensContext<UserType> context, int expected) {
+	protected List<EvaluatedPolicyRule> assertEvaluatedTargetPolicyRules(LensContext<? extends FocusType> context, int expected) {
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		forEvaluatedTargetPolicyRule(context, null, rules::add);
 		assertEquals("Unexpected number of evaluated target policy rules in the context", expected, rules.size());
 		return rules;
 	}
 
-	protected List<EvaluatedPolicyRule> assertEvaluatedFocusPolicyRules(LensContext<UserType> context, int expected) {
+	protected List<EvaluatedPolicyRule> assertEvaluatedFocusPolicyRules(LensContext<? extends FocusType> context, int expected) {
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		forEvaluatedFocusPolicyRule(context, rules::add);
 		assertEquals("Unexpected number of evaluated focus policy rules in the context", expected, rules.size());
 		return rules;
 	}
 
-	protected void assertTargetTriggers(LensContext<UserType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
+	protected void assertTargetTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
 		List<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
 		forTriggeredTargetPolicyRule(context, null, trigger -> {
 			if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
@@ -206,7 +206,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		assertEquals("Unexpected number of triggers ("+selectedConstraintKind+") in the context", expectedCount, triggers.size());
 	}
 
-	protected void assertFocusTriggers(LensContext<UserType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
+	protected void assertFocusTriggers(LensContext<? extends FocusType> context, PolicyConstraintKindType selectedConstraintKind, int expectedCount) {
 		List<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
 		forTriggeredFocusPolicyRule(context, trigger -> {
 			if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
@@ -219,7 +219,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	}
 
 	// exclusive=true : there can be no other triggers than 'expectedCount' of 'expectedConstraintKind'
-	protected EvaluatedPolicyRuleTrigger assertTriggeredTargetPolicyRule(LensContext<UserType> context, String targetOid, PolicyConstraintKindType expectedConstraintKind, int expectedCount, boolean exclusive) {
+	protected EvaluatedPolicyRuleTrigger assertTriggeredTargetPolicyRule(LensContext<? extends FocusType> context, String targetOid, PolicyConstraintKindType expectedConstraintKind, int expectedCount, boolean exclusive) {
 		List<EvaluatedPolicyRuleTrigger> triggers = new ArrayList<>();
 		forTriggeredTargetPolicyRule(context, targetOid, trigger -> {
 			if (!exclusive && trigger.getConstraintKind() != expectedConstraintKind) {
@@ -235,7 +235,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		return triggers.get(0);
 	}
 
-	protected EvaluatedPolicyRule getTriggeredTargetPolicyRule(LensContext<UserType> context, String targetOid, PolicyConstraintKindType expectedConstraintKind) {
+	protected EvaluatedPolicyRule getTriggeredTargetPolicyRule(LensContext<? extends FocusType> context, String targetOid, PolicyConstraintKindType expectedConstraintKind) {
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		forEvaluatedTargetPolicyRule(context, targetOid, rule -> {
 			if (rule.getTriggers().stream().anyMatch(t -> t.getConstraintKind() == expectedConstraintKind)) {
@@ -248,7 +248,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		return rules.get(0);
 	}
 
-	protected EvaluatedPolicyRule getTriggeredFocusPolicyRule(LensContext<UserType> context, PolicyConstraintKindType expectedConstraintKind) {
+	protected EvaluatedPolicyRule getTriggeredFocusPolicyRule(LensContext<? extends FocusType> context, PolicyConstraintKindType expectedConstraintKind) {
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		forEvaluatedFocusPolicyRule(context, rule -> {
 			if (rule.getTriggers().stream().anyMatch(t -> t.getConstraintKind() == expectedConstraintKind)) {
@@ -261,7 +261,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		return rules.get(0);
 	}
 
-	protected void forTriggeredTargetPolicyRule(LensContext<UserType> context, String targetOid, Consumer<EvaluatedPolicyRuleTrigger> handler) {
+	protected void forTriggeredTargetPolicyRule(LensContext<? extends FocusType> context, String targetOid, Consumer<EvaluatedPolicyRuleTrigger> handler) {
 		forEvaluatedTargetPolicyRule(context, targetOid, rule -> {
 			Collection<EvaluatedPolicyRuleTrigger<?>> triggers = rule.getTriggers();
 			for (EvaluatedPolicyRuleTrigger<?> trigger: triggers) {
@@ -270,7 +270,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		});
 	}
 
-	protected void forTriggeredFocusPolicyRule(LensContext<UserType> context, Consumer<EvaluatedPolicyRuleTrigger> handler) {
+	protected void forTriggeredFocusPolicyRule(LensContext<? extends FocusType> context, Consumer<EvaluatedPolicyRuleTrigger> handler) {
 		forEvaluatedFocusPolicyRule(context, rule -> {
 			Collection<EvaluatedPolicyRuleTrigger<?>> triggers = rule.getTriggers();
 			for (EvaluatedPolicyRuleTrigger<?> trigger: triggers) {
@@ -279,8 +279,8 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		});
 	}
 
-	protected void forEvaluatedTargetPolicyRule(LensContext<UserType> context, String targetOid, Consumer<EvaluatedPolicyRule> handler) {
-		DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
+	protected void forEvaluatedTargetPolicyRule(LensContext<? extends FocusType> context, String targetOid, Consumer<EvaluatedPolicyRule> handler) {
+		DeltaSetTriple<EvaluatedAssignmentImpl<? extends FocusType>> evaluatedAssignmentTriple =
 				(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
 		evaluatedAssignmentTriple.simpleAccept(assignment -> {
 			if (targetOid == null || assignment.getTarget() != null && targetOid.equals(assignment.getTarget().getOid())) {
@@ -289,15 +289,15 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 		});
 	}
 
-	protected void forEvaluatedFocusPolicyRule(LensContext<UserType> context, Consumer<EvaluatedPolicyRule> handler) {
-		DeltaSetTriple<EvaluatedAssignmentImpl<UserType>> evaluatedAssignmentTriple =
+	protected void forEvaluatedFocusPolicyRule(LensContext<? extends FocusType> context, Consumer<EvaluatedPolicyRule> handler) {
+		DeltaSetTriple<EvaluatedAssignmentImpl<? extends FocusType>> evaluatedAssignmentTriple =
 				(DeltaSetTriple)context.getEvaluatedAssignmentTriple();
 		evaluatedAssignmentTriple.simpleAccept(assignment -> {
 			assignment.getFocusPolicyRules().forEach(handler::accept);
 		});
 	}
 
-	protected void dumpPolicyRules(LensContext<UserType> context) {
+	protected void dumpPolicyRules(LensContext<? extends FocusType> context) {
 		display("Policy rules", context.dumpPolicyRules(3));
 	}
 

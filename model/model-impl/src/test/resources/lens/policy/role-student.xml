@@ -33,6 +33,65 @@
 			</policyActions>
 		</policyRule>
 	</assignment>
+	<assignment>
+		<policyRule>
+			<!-- this rule could trigger on assignment of Student role as well as on modification of Student role itself -->
+			<!-- but because it contains only focus-specific constraints, it will be evaluated on Student role itself -->
+			<name>ambivalent-rule</name>
+			<policyConstraints>
+				<focusState>
+					<expression>
+						<script>
+							<code>true</code>
+						</script>
+					</expression>
+				</focusState>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<!-- this rule could trigger on assignment of Student role as well as on modification of Student role itself -->
+			<!-- but evaluationTarget=assignment ensures it will trigger only on assignment of Student role -->
+			<name>ambivalent-rule-manually-resolved-to-assignment</name>
+			<policyConstraints>
+				<focusState>
+					<expression>
+						<script>
+							<code>true</code>
+						</script>
+					</expression>
+				</focusState>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+			<evaluationTarget>assignment</evaluationTarget>
+		</policyRule>
+	</assignment>
+	<assignment>
+		<policyRule>
+			<!-- this rule could trigger on assignment of Student role as well as on modification of Student role itself -->
+			<!-- but evaluationTarget=focus ensures it will trigger only on Student role itself -->
+			<name>ambivalent-rule-manually-resolved-to-focus</name>
+			<policyConstraints>
+				<focusState>
+					<expression>
+						<script>
+							<code>true</code>
+						</script>
+					</expression>
+				</focusState>
+			</policyConstraints>
+			<policyActions>
+				<!-- none -->
+			</policyActions>
+			<evaluationTarget>focus</evaluationTarget>
+		</policyRule>
+	</assignment>
 	<inducement>
 		<targetRef oid="a91a6e0d-e152-46e6-ad1b-079fedfb5862" type="RoleType"/>	<!-- Person -->
 	</inducement>

@@ -19,11 +19,13 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.HeteroComparator;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -257,23 +259,103 @@ public class PolicyRuleTypeUtil {
 		};
 		return MiscUtil.unorderedCollectionEquals(currentTriggersUnpacked, triggers, comparator);
 	}
-
-	public static List<JAXBElement<AbstractPolicyConstraintType>> toPrimitiveConstraintsList(PolicyConstraintsType pc) {
-		List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
+	
+	@FunctionalInterface
+	interface PrimitiveConstraintMatcher {
+		boolean matches(QName name, AbstractPolicyConstraintType constraint);
+	}
+	
+	public static boolean hasMatchingPrimitiveConstraint(PolicyConstraintsType pc, PrimitiveConstraintMatcher matcher, boolean recursive) {
 		if (pc == null) {
-			return rv;
+			return false;
 		}
-		pc.getMinAssignees().forEach(c -> rv.add(new JAXBElement<>(F_MIN_ASSIGNEES, AbstractPolicyConstraintType.class, c)));
-		pc.getMaxAssignees().forEach(c -> rv.add(new JAXBElement<>(F_MAX_ASSIGNEES, AbstractPolicyConstraintType.class, c)));
-		pc.getExclusion().forEach(c -> rv.add(new JAXBElement<>(F_EXCLUSION, AbstractPolicyConstraintType.class, c)));
-		pc.getAssignment().forEach(c -> rv.add(new JAXBElement<>(F_ASSIGNMENT, AbstractPolicyConstraintType.class, c)));
-		pc.getHasAssignment().forEach(c -> rv.add(new JAXBElement<>(F_HAS_ASSIGNMENT, AbstractPolicyConstraintType.class, c)));
-		pc.getHasNoAssignment().forEach(c -> rv.add(new JAXBElement<>(F_HAS_NO_ASSIGNMENT, AbstractPolicyConstraintType.class, c)));
-		pc.getModification().forEach(c -> rv.add(new JAXBElement<>(F_MODIFICATION, AbstractPolicyConstraintType.class, c)));
-		pc.getTimeValidity().forEach(c -> rv.add(new JAXBElement<>(F_TIME_VALIDITY, AbstractPolicyConstraintType.class, c)));
-		pc.getAssignmentState().forEach(c -> rv.add(new JAXBElement<>(F_ASSIGNMENT_STATE, AbstractPolicyConstraintType.class, c)));
-		pc.getFocusState().forEach(c -> rv.add(new JAXBElement<>(F_FOCUS_STATE, AbstractPolicyConstraintType.class, c)));
-		pc.getSituation().forEach(c -> rv.add(new JAXBElement<>(F_SITUATION, AbstractPolicyConstraintType.class, c)));
+		boolean rv = hasMatchingPrimitiveConstraint(pc.getMinAssignees(), F_MIN_ASSIGNEES, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getMinAssignees(), F_MIN_ASSIGNEES, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getMaxAssignees(), F_MAX_ASSIGNEES, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getExclusion(), F_EXCLUSION, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getAssignment(), F_ASSIGNMENT, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getHasAssignment(), F_HAS_ASSIGNMENT, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getHasNoAssignment(), F_HAS_NO_ASSIGNMENT, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getModification(), F_MODIFICATION, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getTimeValidity(), F_TIME_VALIDITY, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getAssignmentState(), F_ASSIGNMENT_STATE, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getFocusState(), F_FOCUS_STATE, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getSituation(), F_SITUATION, matcher);
+		if (recursive) {
+			rv = rv
+					|| hasMatchingPrimitiveConstraint(pc.getAnd(), matcher)
+					|| hasMatchingPrimitiveConstraint(pc.getOr(), matcher)
+					|| hasMatchingPrimitiveConstraint(pc.getNot(), matcher);
+		}
 		return rv;
+	}
+
+	private static boolean hasMatchingPrimitiveConstraint(List<? extends AbstractPolicyConstraintType> constraints, QName name, PrimitiveConstraintMatcher matcher) {
+		for (AbstractPolicyConstraintType constraint : constraints) {
+			if (matcher.matches(name, constraint)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean hasMatchingPrimitiveConstraint(List<PolicyConstraintsType> constraintsList, PrimitiveConstraintMatcher matcher) {
+		for (PolicyConstraintsType constraints : constraintsList) {
+			if (hasMatchingPrimitiveConstraint(constraints, matcher, true)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// we (mis)use the matcher to collect all the constraints
+	public static List<JAXBElement<AbstractPolicyConstraintType>> toPrimitiveConstraintsList(PolicyConstraintsType pc, boolean recursive) {
+		List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
+		hasMatchingPrimitiveConstraint(pc, (name, c) -> { rv.add(new JAXBElement<>(name, AbstractPolicyConstraintType.class, c)); return false; }, recursive);
+		return rv;
+	}
+
+	// e.g. situation-only constraints are applicable both to focus and assignments
+	public static boolean isApplicableToAssignment(PolicyRuleType rule) {
+		if (rule.getEvaluationTarget() != null) {
+			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.ASSIGNMENT;
+		} else {
+			return hasAssignmentOnlyConstraint(rule) || !hasFocusRelatedConstraint(rule);
+		}
+	}
+
+	public static boolean isApplicableToFocus(PolicyRuleType rule) {
+		if (rule.getEvaluationTarget() != null) {
+			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.FOCUS;
+		} else {
+			return !hasAssignmentOnlyConstraint(rule);
+		}
+	}
+
+	private static boolean hasAssignmentOnlyConstraint(PolicyRuleType rule) {
+		return hasMatchingPrimitiveConstraint(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isAssignmentOnly, true);
+	}
+
+	// do we have a constraint that indicates a use against focus?
+	private static boolean hasFocusRelatedConstraint(PolicyRuleType rule) {
+		return hasMatchingPrimitiveConstraint(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isFocusRelated, true);
+	}
+
+	private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
+			new HashSet<>(Arrays.asList(AssignmentPolicyConstraintType.class, ExclusionPolicyConstraintType.class, MultiplicityPolicyConstraintType.class));
+
+	private static boolean isAssignmentOnly(QName name, AbstractPolicyConstraintType c) {
+		return ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES.contains(c.getClass())
+				|| QNameUtil.match(name, PolicyConstraintsType.F_ASSIGNMENT_STATE)
+				|| c instanceof TimeValidityPolicyConstraintType && Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
+	}
+
+	private static final Set<Class<? extends AbstractPolicyConstraintType>> FOCUS_RELATED_CONSTRAINTS_CLASSES =
+			new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class, ModificationPolicyConstraintType.class));
+
+	private static boolean isFocusRelated(QName name, AbstractPolicyConstraintType c) {
+		return FOCUS_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
+				|| QNameUtil.match(name, PolicyConstraintsType.F_FOCUS_STATE)
+				|| c instanceof TimeValidityPolicyConstraintType && !Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
 	}
 }
