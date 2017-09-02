@@ -513,8 +513,9 @@ public abstract class SchemaConstants {
 	public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
 
 	// Misc
-	
-	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/schema";
+
+	public static String BUNDLE_NAME = "schema";
+	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;
 	public static final QName APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE = new QName(SchemaConstants.NS_C, ApprovalLevelOutcomeType.class.getSimpleName());
 
 	// registration

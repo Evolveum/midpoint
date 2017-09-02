@@ -30,7 +30,8 @@ public class WebApplicationConfiguration implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(WebApplicationConfiguration.class);
 
-    private static final String MIDPOINT_HOME = "midpoint.home"; //todo move somewhere
+    public static final String MIDPOINT_HOME = "midpoint.home"; //todo move somewhere
+
     private String importFolder;
     private String exportFolder;
     private int progressRefreshInterval;            // how often to refresh 'progress table' (in milliseconds; 0 means this feature is disabled)
