@@ -702,7 +702,7 @@ public class DOMUtil {
 	}
 	
 	/**
-	 * Returns map of all namespace declarations from specified element (prefix -> namespace).
+	 * Returns map of all namespace declarations from specified element (prefix -&gt; namespace).
 	 */
 	public static Map<String,String> getNamespaceDeclarations(Element element) {
 		Map<String,String> nsDeclMap = new HashMap<>();

@@ -39,11 +39,10 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  * Although this is usually used as singleton (static), it can also be instantiated to locally
  * override some namespace mappings. This is useful for prefixes like "tns" (schema) or "ri" (resource schema).
  * 
- * @see MID-349
+ * @see <a href="https://jira.evolveum.com/browse/MID-349">MID-349</a>
  * 
  * @author Igor Farinic
  * @author Radovan Semancik
- * 
  */
 public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper implements DynamicNamespacePrefixMapper, DebugDumpable {
 

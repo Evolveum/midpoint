@@ -128,7 +128,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     
     /**
      * Return the number of maximal value occurrences.
-     * <p/>
+     * <p>
      * Any negative number means "unbounded".
      *
      * @return the maxOccurs

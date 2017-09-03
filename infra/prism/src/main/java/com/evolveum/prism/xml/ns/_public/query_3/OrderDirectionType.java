@@ -12,14 +12,13 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="OrderDirectionType">
- *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="ascending"/>
- *     &lt;enumeration value="descending"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="OrderDirectionType"&gt;
+ *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string"&gt;
+ *     &lt;enumeration value="ascending"/&gt;
+ *     &lt;enumeration value="descending"/&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
- * 
  */
 @XmlType(name = "OrderDirectionType")
 @XmlEnum

@@ -40,15 +40,15 @@ import java.util.stream.Collectors;
 
 /**
  * Relative difference (delta) of the object.
- * <p/>
+ * <p>
  * This class describes how the object changes. It can describe either object addition, modification of deletion.
- * <p/>
+ * <p>
  * Addition described complete new (absolute) state of the object.
- * <p/>
+ * <p>
  * Modification contains a set property deltas that describe relative changes to individual properties
- * <p/>
+ * <p>
  * Deletion does not contain anything. It only marks object for deletion.
- * <p/>
+ * <p>
  * The OID is mandatory for modification and deletion.
  *
  * @author Radovan Semancik

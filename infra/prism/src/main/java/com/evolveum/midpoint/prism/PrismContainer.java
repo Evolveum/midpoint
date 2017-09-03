@@ -327,7 +327,7 @@ public class PrismContainer<C extends Containerable> extends Item<PrismContainer
     
     /**
      * Returns applicable property container definition.
-     * <p/>
+     * <p>
      * May return null if no definition is applicable or the definition is not
      * know.
      *

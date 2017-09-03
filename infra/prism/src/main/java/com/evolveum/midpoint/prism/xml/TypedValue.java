@@ -19,32 +19,30 @@ import javax.xml.namespace.QName;
 
 /**
  * @author Radovan Semancik
- *
  */
 public class TypedValue {
 	private Object value;
 	private QName xsdType;
 	private QName elementName;
 	
-	/**
-	 * 
-	 */
 	public TypedValue() {
 		super();
 	}
+
 	/**
-	 * @param value
-	 * @param xsdType
+	 * @param value the value
+	 * @param xsdType the xsdType
 	 */
 	public TypedValue(Object value, QName xsdType) {
 		super();
 		this.value = value;
 		this.xsdType = xsdType;
 	}
+
 	/**
-	 * @param javaValue
-	 * @param xsiType
-	 * @param qName
+	 * @param value the value
+	 * @param xsdType the xsdType
+	 * @param elementName the elementName
 	 */
 	public TypedValue(Object value, QName xsdType, QName elementName) {
 		super();
@@ -52,41 +50,46 @@ public class TypedValue {
 		this.xsdType = xsdType;
 		this.elementName = elementName;
 	}
+
 	/**
 	 * @return the value
 	 */
 	public Object getValue() {
 		return value;
 	}
+
 	/**
 	 * @param value the value to set
 	 */
 	public void setValue(Object value) {
 		this.value = value;
 	}
+
 	/**
 	 * @return the xsdType
 	 */
 	public QName getXsdType() {
 		return xsdType;
 	}
+
 	/**
 	 * @param xsdType the xsdType to set
 	 */
 	public void setXsdType(QName xsdType) {
 		this.xsdType = xsdType;
 	}
+
 	/**
 	 * @return the elementName
 	 */
 	public QName getElementName() {
 		return elementName;
 	}
+
 	/**
 	 * @param elementName the elementName to set
 	 */
 	public void setElementName(QName elementName) {
 		this.elementName = elementName;
 	}
-	
 }

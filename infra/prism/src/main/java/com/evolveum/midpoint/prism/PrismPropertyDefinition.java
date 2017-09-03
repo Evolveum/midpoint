@@ -35,7 +35,7 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 
 	/**
 	 * Returns QName of the property value type.
-	 * <p/>
+	 * <p>
 	 * The returned type is either XSD simple type or complex type. It may not
 	 * be defined in the same schema (especially if it is standard XSD simple
 	 * type).

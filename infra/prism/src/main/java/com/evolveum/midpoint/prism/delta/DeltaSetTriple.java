@@ -36,10 +36,10 @@ import java.util.stream.Stream;
 
 /**
  * The triple of values (added, unchanged, deleted) that represents difference between two collections of values.
- * <p/>
+ * <p>
  * The DeltaSetTriple is used as a result of a "diff" operation or it is constructed to determine a ObjectDelta or
  * PropertyDelta. It is a very useful structure in numerous situations when dealing with relative changes.
- * <p/>
+ * <p>
  * DeltaSetTriple (similarly to other parts of this system) deal only with unordered values.
  *
  * @author Radovan Semancik

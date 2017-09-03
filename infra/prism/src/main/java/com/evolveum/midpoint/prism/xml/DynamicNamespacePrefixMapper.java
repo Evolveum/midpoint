@@ -25,11 +25,10 @@ import java.util.Map;
  * Maps namespaces to preferred prefixes. Should be used through the code to
  * avoid generation of prefixes.
  * 
- * @see MID-349
+ * @see <a href="https://jira.evolveum.com/browse/MID-349">MID-349</a>
  * 
  * @author Igor Farinic
  * @author Radovan Semancik
- * 
  */
 public interface DynamicNamespacePrefixMapper extends DebugDumpable {
 

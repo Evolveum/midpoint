@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Relative difference (delta) of a property values.
- * <p/>
+ * <p>
  * This class describes what values are to be added, removed or replaced in the property.
  * The delta can be either add+delete or replace, but not both. It either describes what
  * values to add and delete from the property (add+delete) or what is the new set of values
@@ -50,7 +50,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * @see ObjectDelta
  */
-public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValue<T>,PrismPropertyDefinition<T>> {
+public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> {
 
     public PropertyDelta(PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {
         super(propertyDefinition, prismContext);
