@@ -158,11 +158,9 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 	protected static final String ORG_BRETHREN_OID = "9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b";
 	protected static final String ORG_BRETHREN_INDUCED_ORGANIZATION = "Pirate Brethren";
 	
-	@Autowired
-	protected Projector projector;
-
-	@Autowiredprotected Clockwork clockwork;
-	@Autowiredprotected TaskManager taskManager;
+	@Autowired protected Projector projector;
+	@Autowired protected Clockwork clockwork;
+	@Autowired protected TaskManager taskManager;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {

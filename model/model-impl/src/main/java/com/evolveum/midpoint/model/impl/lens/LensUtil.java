@@ -1217,7 +1217,7 @@ public class LensUtil {
 
 
 
-	public static void processRuleWithException(@NotNullEvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,
+	public static void processRuleWithException(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,
 			 PolicyExceptionType policyException) {
 
 		LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not triggering", rule.getName());
