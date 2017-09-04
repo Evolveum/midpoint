@@ -186,7 +186,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	private List<EvaluatedPolicyRule> getApprovalActionRules(Collection<EvaluatedPolicyRule> rules) {
 		return rules.stream()
-					.filter(r -> r.isTriggered() && r.getActions() != null && r.getActions().getApproval() != null)
+					.filter(r -> r.isTriggered() && r.getActions() != null && !r.getActions().getApproval().isEmpty())
 					.collect(Collectors.toList());
 	}
 
@@ -229,8 +229,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 		// (3) actions from triggered rules
 		for (EvaluatedPolicyRule approvalRule : triggeredApprovalRules) {
-			ApprovalPolicyActionType approvalAction = approvalRule.getActions().getApproval();
-			builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), targetObject, approvalRule);
+			for (ApprovalPolicyActionType approvalAction : approvalRule.getActions().getApproval()) {
+				builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), targetObject, approvalRule);
+			}
 		}
 		return builder.buildSchema(ctx, result);
 	}
@@ -260,7 +261,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 					plusMinusZero == PlusMinusZero.PLUS ? "added" : "deleted",
 					newAssignment, newAssignment.getThisTargetPolicyRules().size(), triggeredApprovalActionRules.size());
 			for (EvaluatedPolicyRule t : triggeredApprovalActionRules) {
-				LOGGER.debug(" - Approval action: {}", t.getActions().getApproval());
+				LOGGER.debug(" - Approval actions: {}", t.getActions().getApproval());
 				for (EvaluatedPolicyRuleTrigger trigger : t.getTriggers()) {
 					LOGGER.debug("   - {}", trigger);
 				}
@@ -296,8 +297,9 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			}
 			ApprovalSchemaBuilder builder = schemaBuilders.computeIfAbsent(key, k -> new ApprovalSchemaBuilder(this,
 					approvalSchemaHelper));
-			ApprovalPolicyActionType approvalAction = rule.getActions().getApproval();
-			builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, rule);
+			for (ApprovalPolicyActionType approvalAction : rule.getActions().getApproval()) {
+				builder.add(getSchemaFromAction(approvalAction), approvalAction.getCompositionStrategy(), object, rule);
+			}
 		}
 		// default rule
 		if (approvalActionRules.isEmpty()

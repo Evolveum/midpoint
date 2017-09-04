@@ -780,27 +780,29 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="enforcement" type="tns:EnforcementPolicyActionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="enforcement" type="tns:EnforcementPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Enforcement action. This action stops the operation and results with the error.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="approval" type="tns:ApprovalPolicyActionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="approval" type="tns:ApprovalPolicyActionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Approval action. The operation will be suspended and the approval workflow will be started.
+                        Approval action(s). The operation will be suspended and the approval workflow will be started.
                         If the workflow ends with success the operation will proceed. If the workflow ends with
                         an error the operation will also end with an error.
+
+						More approval actions can be specified. They will be eventually merged into one approval process.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="remediation" type="tns:RemediationPolicyActionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="remediation" type="tns:RemediationPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Remediation action. The operation will proceed. A workflow will be started to remediate the
-                        result of the operation afte the operation is done.
+                        result of the operation after the operation is done.
                         This action is ideal for operations that cannot be stopped, e.g. when manager
                         of an organizational unit is deleted because he quits the job.
                         This action starts a workflow. Therefore it is ideal for actions that are not frequent but
@@ -808,7 +810,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="prune" type="tns:PrunePolicyActionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="prune" type="tns:PrunePolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Prune action. The operation will proceed. Any other assignments that are in conflict with
@@ -820,7 +822,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="certification" type="tns:CertificationPolicyActionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="certification" type="tns:CertificationPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Certification action. The operation will proceed. The object will be scheduled for
@@ -831,11 +833,11 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="notification" type="tns:NotificationPolicyActionType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="notification" type="tns:NotificationPolicyActionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Notification action. The operation will proceed. Notifications are sent at the end of the
-                        operation.
+                        operation. More notification actions can be specified.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

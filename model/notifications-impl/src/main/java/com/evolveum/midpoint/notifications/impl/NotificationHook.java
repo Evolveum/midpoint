@@ -116,8 +116,10 @@ public class NotificationHook implements ChangeHook {
 	}
 
 	private void emitPolicyEventIfPresent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
-		if (rule.isTriggered() && rule.getActions() != null && rule.getActions().getNotification() != null) {
-			emitPolicyEvent(rule.getActions().getNotification(), rule, context, task, result);
+		if (rule.isTriggered() && rule.getActions() != null) {
+			for (NotificationPolicyActionType notificationAction : rule.getActions().getNotification()) {
+				emitPolicyEvent(notificationAction, rule, context, task, result);
+			}
 		}
 	}
 

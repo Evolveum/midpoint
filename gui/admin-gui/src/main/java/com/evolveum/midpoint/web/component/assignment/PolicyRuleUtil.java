@@ -254,7 +254,7 @@ public class PolicyRuleUtil {
         if (policyActions.getEnforcement() != null){
             sb.append(PolicyActionsType.F_ENFORCEMENT.getLocalPart());
         }
-        if (policyActions.getApproval() != null){
+        if (!policyActions.getApproval().isEmpty()) {
             sb.append(sb.length() > 0 ? ", " : "").append(PolicyActionsType.F_APPROVAL.getLocalPart());
         }
         if (policyActions.getRemediation() != null){
@@ -266,7 +266,7 @@ public class PolicyRuleUtil {
         if (policyActions.getCertification() != null){
             sb.append(sb.length() > 0 ? ", " : "").append(PolicyActionsType.F_CERTIFICATION.getLocalPart());
         }
-        if (policyActions.getNotification() != null){
+        if (!policyActions.getNotification().isEmpty()) {
             sb.append(sb.length() > 0 ? ", " : "").append(PolicyActionsType.F_NOTIFICATION.getLocalPart());
         }
         return sb.toString();

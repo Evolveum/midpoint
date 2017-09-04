@@ -75,7 +75,7 @@ public class PolicyRuleTypeUtil {
 		if (actions.getEnforcement() != null) {
 			sb.append("enforce ");
 		}
-		if (actions.getApproval() != null) {
+		if (!actions.getApproval().isEmpty()) {
 			sb.append("approve ");
 		}
 		if (actions.getRemediation() != null) {
@@ -84,7 +84,7 @@ public class PolicyRuleTypeUtil {
 		if (actions.getCertification() != null) {
 			sb.append("certify ");
 		}
-		if (actions.getNotification() != null) {
+		if (!actions.getNotification().isEmpty()) {
 			sb.append("notify ");
 		}
 		return sb.toString().trim();
