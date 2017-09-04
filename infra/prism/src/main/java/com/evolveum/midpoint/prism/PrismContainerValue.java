@@ -110,10 +110,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	/**
      * Returns a set of items that the property container contains. The items may be properties or inner property containers.
-     * <p/>
+     * <p>
      * The set may be null. In case there are no properties an empty set is
      * returned.
-     * <p/>
+     * <p>
      * Returned set is mutable. Live object is returned.
      *
      * @return set of items that the property container contains.
@@ -168,10 +168,10 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     
     /**
      * Returns a set of properties that the property container contains.
-     * <p/>
+     * <p>
      * The set must not be null. In case there are no properties an empty set is
      * returned.
-     * <p/>
+     * <p>
      * Returned set is immutable! Any change to it will be ignored.
      *
      * @return set of properties that the property container contains.
@@ -542,7 +542,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
     /**
      * Finds a specific property in the container by definition.
-     * <p/>
+     * <p>
      * Returns null if nothing is found.
      *
      * @param propertyDefinition property definition to find.

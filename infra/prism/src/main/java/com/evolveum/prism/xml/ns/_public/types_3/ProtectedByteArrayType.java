@@ -25,18 +25,16 @@ import org.apache.commons.lang.ArrayUtils;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ProtectedByteArrayType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/types-3}ProtectedDataType">
- *       &lt;sequence>
- *         &lt;element name="clearValue" type="{http://www.w3.org/2001/XMLSchema}base64Binary" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ProtectedByteArrayType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/types-3}ProtectedDataType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="clearValue" type="{http://www.w3.org/2001/XMLSchema}base64Binary" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ProtectedByteArrayType")

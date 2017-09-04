@@ -30,20 +30,18 @@ import javax.xml.bind.annotation.XmlType;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="EncryptedDataType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="encryptionMethod" type="{http://prism.evolveum.com/xml/ns/public/types-3}EncryptionMethodType" minOccurs="0"/>
- *         &lt;element name="keyInfo" type="{http://prism.evolveum.com/xml/ns/public/types-3}KeyInfoType" minOccurs="0"/>
- *         &lt;element name="cipherData" type="{http://prism.evolveum.com/xml/ns/public/types-3}CipherDataType" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="EncryptedDataType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="encryptionMethod" type="{http://prism.evolveum.com/xml/ns/public/types-3}EncryptionMethodType" minOccurs="0"/&gt;
+ *         &lt;element name="keyInfo" type="{http://prism.evolveum.com/xml/ns/public/types-3}KeyInfoType" minOccurs="0"/&gt;
+ *         &lt;element name="cipherData" type="{http://prism.evolveum.com/xml/ns/public/types-3}CipherDataType" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "EncryptedDataType", propOrder = {

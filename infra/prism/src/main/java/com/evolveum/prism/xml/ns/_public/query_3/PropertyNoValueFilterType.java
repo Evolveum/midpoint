@@ -29,18 +29,16 @@ import org.w3c.dom.Element;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="PropertyNoValueFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType">
- *       &lt;sequence>
- *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="PropertyNoValueFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PropertyNoValueFilterType", propOrder = {

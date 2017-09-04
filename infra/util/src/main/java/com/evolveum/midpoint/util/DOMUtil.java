@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.Map.Entry;
-
+import java.util.regex.Pattern;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -702,7 +702,7 @@ public class DOMUtil {
 	}
 	
 	/**
-	 * Returns map of all namespace declarations from specified element (prefix -> namespace).
+	 * Returns map of all namespace declarations from specified element (prefix -&gt; namespace).
 	 */
 	public static Map<String,String> getNamespaceDeclarations(Element element) {
 		Map<String,String> nsDeclMap = new HashMap<>();
@@ -1206,6 +1206,9 @@ public class DOMUtil {
 		return false;
 	}
 
+	private static final String SPACE_REGEX = "\\s*";
+	private static final Pattern SPACE_PATTERN = Pattern.compile(SPACE_REGEX);
+
 	private static List<Node> canonizeNodeList(NodeList nodelist) {
 		List<Node> list = new ArrayList<Node>(nodelist.getLength());
 		for (int i = 0; i < nodelist.getLength(); i++) {
@@ -1213,14 +1216,14 @@ public class DOMUtil {
 			if (aItem.getNodeType() == Node.ELEMENT_NODE || aItem.getNodeType() == Node.ATTRIBUTE_NODE) {
 				list.add(aItem);
 			} else if (aItem.getNodeType() == Node.TEXT_NODE || aItem.getNodeType() == Node.CDATA_SECTION_NODE) {
-				if (!aItem.getTextContent().matches("\\s*")) {
+				if (!SPACE_PATTERN.matcher(aItem.getTextContent()).matches()) {
 					list.add(aItem);
 				}
 			}
 		}
 		return list;
 	}
-	
+
 	public static void normalize(Node node, boolean keepWhitespaces) {
 		NodeList childNodes = node.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
@@ -1229,7 +1232,7 @@ public class DOMUtil {
 				node.removeChild(aItem);
 				i--;
 			} else if (aItem.getNodeType() == Node.TEXT_NODE) {
-				if (aItem.getTextContent().matches("\\s*")) {
+				if (SPACE_PATTERN.matcher(aItem.getTextContent()).matches()) {
 					node.removeChild(aItem);
 					i--;
 				} else {
@@ -1243,6 +1246,9 @@ public class DOMUtil {
 		}
 	}
 
+	private static final String WS_ONLY_REGEX = "^\\s*$";
+	private static final Pattern WS_ONLY_PATTERN = Pattern.compile(WS_ONLY_REGEX);
+
 	public static boolean isJunk(Node node) {
 		if (node.getNodeType() == Node.COMMENT_NODE) {
 			return true;
@@ -1252,7 +1258,7 @@ public class DOMUtil {
 		}
 		if (node.getNodeType() == Node.TEXT_NODE) {
 			Text text = (Text)node;
-			if (text.getTextContent().matches("^\\s*$")) {
+			if (WS_ONLY_PATTERN.matcher(text.getTextContent()).matches()) {
 				return true;
 			}
 			return false;

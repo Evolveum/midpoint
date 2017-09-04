@@ -61,7 +61,7 @@ import org.w3c.dom.Element;
  * 				normalized to trim it, normalize character case, normalize spaces,
  * 				remove national characters or even transliterate the string.
  * 
- * WARNING: THIS IS NOT A GENERATED CODE
+ * WARNING: THIS IS NOT GENERATED CODE
  * Although it was originally generated, it has local modifications.			
  * 
  * <p>Java class for PolyStringType complex type.
@@ -69,20 +69,18 @@ import org.w3c.dom.Element;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="PolyStringType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="orig" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *         &lt;element name="norm" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;any namespace='##other' maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="PolyStringType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="orig" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *         &lt;element name="norm" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *         &lt;any namespace='##other' maxOccurs="unbounded" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PolyStringType", propOrder = {

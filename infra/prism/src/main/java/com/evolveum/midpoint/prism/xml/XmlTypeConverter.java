@@ -47,9 +47,9 @@ import java.util.*;
 /**
  * Simple implementation that converts XSD primitive types to Java (and vice
  * versa).
- * <p/>
+ * <p>
  * It convert type names (xsd types to java classes) and also the values.
- * <p/>
+ * <p>
  * The implementation is very simple now. In fact just a bunch of ifs. We don't
  * need much more now. If more complex thing will be needed, we will extend the
  * implementation later.
@@ -171,7 +171,6 @@ public class XmlTypeConverter {
      *
      * @param xmlElement
      * @return
-     * @throws JAXBException
      */
     public static Object toJavaValue(Element xmlElement) throws SchemaException {
         return toTypedJavaValueWithDefaultType(xmlElement, null).getValue();
@@ -181,10 +180,9 @@ public class XmlTypeConverter {
      * Try to locate element type from xsi:type, fall back to specified default
      * type.
      *
-     * @param element
+     * @param xmlElement
      * @param defaultType
      * @return converted java value
-     * @throws JAXBException
      * @throws SchemaException if no xsi:type or default type specified
      */
     public static TypedValue toTypedJavaValueWithDefaultType(Element xmlElement, QName defaultType) throws SchemaException {

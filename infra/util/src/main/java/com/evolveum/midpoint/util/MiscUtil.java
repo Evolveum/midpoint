@@ -196,7 +196,7 @@ public class MiscUtil {
 	}
 	
 	public static String readFile(File file) throws IOException {
-		StringBuffer fileData = new StringBuffer(BUFFER_SIZE);
+		StringBuilder fileData = new StringBuilder(BUFFER_SIZE);
         BufferedReader reader = new BufferedReader(new FileReader(file));
         char[] buf = new char[BUFFER_SIZE];
         int numRead=0;
