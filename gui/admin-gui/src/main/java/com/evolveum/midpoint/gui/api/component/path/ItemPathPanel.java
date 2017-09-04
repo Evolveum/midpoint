@@ -42,7 +42,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		super(id, model);
 
 		setParent(parent);
-		
+
 
 		initLayout();
 
@@ -56,7 +56,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 	private void initLayout() {
 		ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
 				new AbstractReadOnlyModel<ItemPathDto>() {
-			
+
 					private static final long serialVersionUID = 1L;
 					public ItemPathDto getObject() {
 						return ItemPathPanel.this.getModelObject();
@@ -156,7 +156,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		if (isAdd && !pathSegmentPanel.validate()) {
 			return;
 		}
-		
+
 		if (!isAdd) {
 			ItemPathDto newItem = itemPathDto;
 			ItemPathDto currentItem = itemPathDto.getParentPath();
@@ -179,9 +179,9 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		// target.add(pathSegmentPanel);
 
 	}
-	
+
 	private void refreshItemPath(ItemPathDto itemPathDto, AjaxRequestTarget target) {
-		
+
 		this.getModel().setObject(itemPathDto);
 		target.add(this);
 	}

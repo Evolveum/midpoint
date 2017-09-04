@@ -155,15 +155,15 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 			createObjectsInFirstPart(false, initTask, initResult, null);
 		}
 	}
-	
+
 	@Test(enabled = FIRST_PART)
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		displayTestTitle(TEST_NAME);
-		
+
 		assertEquals("Wrong default relation", SchemaConstants.ORG_DEFAULT, prismContext.getDefaultRelation());
 	}
-	
+
 	@Test(enabled = FIRST_PART)
 	public void test010AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";

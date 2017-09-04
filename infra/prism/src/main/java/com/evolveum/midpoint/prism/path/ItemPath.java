@@ -48,7 +48,7 @@ public class ItemPath implements Serializable, Cloneable {
 	public void setNamespaceMap(Map<String, String> namespaceMap) {
 		this.namespaceMap = namespaceMap;
 	}
-	
+
 	public Map<String, String> getNamespaceMap() {
 		return namespaceMap;
 	}
@@ -57,7 +57,7 @@ public class ItemPath implements Serializable, Cloneable {
 	private ItemPath() {
 		segments = new ArrayList<>();		// to provide room for growth
 	}
-		
+
 	public ItemPath(QName... qnames) {
 		this.segments = new ArrayList<>(qnames.length);
 		for (QName qname : qnames) {
@@ -114,24 +114,24 @@ public class ItemPath implements Serializable, Cloneable {
 		segments.addAll(childPath.segments);
 	}
 
-	
+
 	public ItemPath(List<ItemPathSegment> segments) {
 		this.segments = new ArrayList<>(segments.size());
 		this.segments.addAll(segments);
 	}
-			
+
 	public ItemPath(List<ItemPathSegment> segments, ItemPathSegment subSegment) {
 		this.segments = new ArrayList<>(segments.size()+1);
 		this.segments.addAll(segments);
 		this.segments.add(subSegment);
 	}
-	
+
 	public ItemPath(List<ItemPathSegment> segments, QName subName) {
 		this.segments = new ArrayList<>(segments.size()+1);
 		this.segments.addAll(segments);
 		add(subName);
 	}
-	
+
 	public ItemPath(List<ItemPathSegment> segments, List<ItemPathSegment> additionalSegments) {
 		this.segments = new ArrayList<>(segments.size()+additionalSegments.size());
 		this.segments.addAll(segments);
@@ -153,7 +153,7 @@ public class ItemPath implements Serializable, Cloneable {
 		this.segments.addAll(parentPath.segments);
 		this.segments.add(subSegment);
 	}
-	
+
 	public ItemPath subPath(QName subName) {
 		return new ItemPath(segments, subName);
 	}
@@ -165,7 +165,7 @@ public class ItemPath implements Serializable, Cloneable {
 	public ItemPath subPath(Long id) {
 		return subPath(new IdItemPathSegment(id));
 	}
-	
+
 	public ItemPath subPath(ItemPathSegment subSegment) {
 		return new ItemPath(segments, subSegment);
 	}
@@ -175,9 +175,9 @@ public class ItemPath implements Serializable, Cloneable {
 		newPath.segments.addAll(subPath.getSegments());
 		return newPath;
 	}
-	
+
 	/**
-	 * Null-proof static version. 
+	 * Null-proof static version.
 	 */
 	public static ItemPath subPath(ItemPath prefix, ItemPathSegment subSegment) {
 		if (prefix == null && subSegment == null) {
@@ -212,7 +212,7 @@ public class ItemPath implements Serializable, Cloneable {
 	public List<ItemPathSegment> getSegments() {
 		return segments;
 	}
-	
+
 	public ItemPathSegment first() {
 		if (segments.size() == 0) {
 			return null;
@@ -248,7 +248,7 @@ public class ItemPath implements Serializable, Cloneable {
 	public ItemPath head() {
 		return new ItemPath(first());
 	}
-	
+
 	/**
 	 * Returns path containing all segments except the first N.
 	 */
@@ -328,9 +328,9 @@ public class ItemPath implements Serializable, Cloneable {
 	public boolean isEmpty() {
 		return segments.isEmpty();
 	}
-	
+
 	/**
-	 * Makes the path "normal" by inserting null Id segments where they were omitted. 
+	 * Makes the path "normal" by inserting null Id segments where they were omitted.
 	 */
 	public ItemPath normalize() {
 		ItemPath normalizedPath = new ItemPath();
@@ -338,7 +338,7 @@ public class ItemPath implements Serializable, Cloneable {
 		Iterator<ItemPathSegment> iterator = segments.iterator();
 		while (iterator.hasNext()) {
 			ItemPathSegment origSegment = iterator.next();
-			if (lastSegment != null && !(lastSegment instanceof IdItemPathSegment) && 
+			if (lastSegment != null && !(lastSegment instanceof IdItemPathSegment) &&
 					!(origSegment instanceof IdItemPathSegment)) {
 				normalizedPath.segments.add(new IdItemPathSegment());
 			}
@@ -476,10 +476,10 @@ public class ItemPath implements Serializable, Cloneable {
 	 * Returns true if the collection contains a superpath of or equivalent path to the given path.
 	 * I.e. having collection = { A/B, A/C }
 	 * then the method for this collection and 'path' returns:
-	 *  - path = A/B -> true
-	 *  - path = A -> true
-	 *  - path = A/B/C -> false
-	 *  - path = X -> false
+	 *  - path = A/B -&gt; true
+	 *  - path = A -&gt; true
+	 *  - path = A/B/C -&gt; false
+	 *  - path = X -&gt; false
 	 */
     public static boolean containsSuperpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
     	return paths.stream().anyMatch(p -> p.isSuperPathOrEquivalent(pathToBeFound));
@@ -489,10 +489,10 @@ public class ItemPath implements Serializable, Cloneable {
 	 * Returns true if the collection contains a superpath of the given path.
 	 * I.e. having collection = { A/B, A/C }
 	 * then the method for this collection and 'path' returns:
-	 *  - path = A/B -> false
-	 *  - path = A -> true
-	 *  - path = A/B/C -> false
-	 *  - path = X -> false
+	 *  - path = A/B -&gt; false
+	 *  - path = A -&gt; true
+	 *  - path = A/B/C -&gt; false
+	 *  - path = X -&gt; false
 	 */
 	public static boolean containsSuperpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
 		return paths.stream().anyMatch(p -> p.isSuperPath(pathToBeFound));
@@ -502,10 +502,10 @@ public class ItemPath implements Serializable, Cloneable {
 	 * Returns true if the collection contains a subpath of or equivalent path to the given path.
 	 * I.e. having collection = { A/B, A/C }
 	 * then the method for this collection and 'path' returns:
-	 *  - path = A/B -> true
-	 *  - path = A -> false
-	 *  - path = A/B/C -> true
-	 *  - path = X -> false
+	 *  - path = A/B -&gt; true
+	 *  - path = A -&gt; false
+	 *  - path = A/B/C -&gt; true
+	 *  - path = X -&gt; false
 	 */
     public static boolean containsSubpathOrEquivalent(Collection<ItemPath> paths, ItemPath pathToBeFound) {
     	return paths.stream().anyMatch(p -> p.isSubPathOrEquivalent(pathToBeFound));
@@ -515,10 +515,10 @@ public class ItemPath implements Serializable, Cloneable {
 	 * Returns true if the collection contains a superpath of the given path.
 	 * I.e. having collection = { A/B, A/C }
 	 * then the method for this collection and 'path' returns:
-	 *  - path = A/B -> false
-	 *  - path = A -> false
-	 *  - path = A/B/C -> true
-	 *  - path = X -> false
+	 *  - path = A/B -&gt; false
+	 *  - path = A -&gt; false
+	 *  - path = A/B/C -&gt; true
+	 *  - path = X -&gt; false
 	 */
 	public static boolean containsSubpath(Collection<ItemPath> paths, ItemPath pathToBeFound) {
 		return paths.stream().anyMatch(p -> p.isSubPath(pathToBeFound));
@@ -554,7 +554,7 @@ public class ItemPath implements Serializable, Cloneable {
 	public boolean startsWith(ItemPath other) {
 		return other == null || other.isSubPathOrEquivalent(this);
 	}
-	
+
 	public boolean startsWithName(QName name) {
 		return !isEmpty()
 				&& startsWith(NameItemPathSegment.class)
@@ -616,11 +616,11 @@ public class ItemPath implements Serializable, Cloneable {
 	public enum CompareResult {
 		EQUIVALENT, SUPERPATH, SUBPATH, NO_RELATION
 	}
-	
+
 	public boolean isSubPath(ItemPath otherPath) {
 		return compareComplex(otherPath) == CompareResult.SUBPATH;
 	}
-	
+
 	public boolean isSuperPath(ItemPath otherPath) {
 		return compareComplex(otherPath) == CompareResult.SUPERPATH;
 	}
@@ -685,7 +685,7 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return rv;
 	}
-	
+
 	/**
 	 * Convenience static method with checks
 	 * @throws IllegalArgumentException If the argument is an item path segment other than a named one
@@ -699,7 +699,7 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return ((NameItemPathSegment)segment).getName();
 	}
-	
+
 	public static IdItemPathSegment getFirstIdSegment(ItemPath itemPath) {
 		ItemPathSegment first = itemPath.first();
 		if (first instanceof IdItemPathSegment) {
@@ -707,14 +707,14 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return null;
 	}
-	
+
 	public static NameItemPathSegment getFirstNameSegment(ItemPath itemPath) {
 		if (itemPath == null) {
 			return null;
 		}
 		return itemPath.getFirstNameSegment();
 	}
-	
+
 	public NameItemPathSegment getFirstNameSegment() {
 		ItemPathSegment first = first();
 		if (first instanceof NameItemPathSegment) {
@@ -725,14 +725,14 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return null;
 	}
-	
+
 	public static QName getFirstName(ItemPath itemPath) {
 		if (itemPath == null) {
 			return null;
 		}
 		return itemPath.getFirstName();
 	}
-	
+
 	public QName getFirstName() {
 		NameItemPathSegment nameSegment = getFirstNameSegment();
 		if (nameSegment == null) {
@@ -740,7 +740,7 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return nameSegment.getName();
 	}
-	
+
 	public static ItemPath pathRestStartingWithName(ItemPath path) {
     	ItemPathSegment pathSegment = path.first();
     	if (pathSegment instanceof NameItemPathSegment) {
@@ -760,7 +760,7 @@ public class ItemPath implements Serializable, Cloneable {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

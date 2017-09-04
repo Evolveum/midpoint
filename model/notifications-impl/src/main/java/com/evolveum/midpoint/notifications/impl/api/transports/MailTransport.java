@@ -88,14 +88,14 @@ public class MailTransport implements Transport {
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
-        
+
 //        if (systemConfiguration == null) {
 //        	String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
 //        	 LOGGER.warn(msg) ;
 //             result.recordWarning(msg);
 //             return;
 //        }
-//        
+//
 //        MailConfigurationType mailConfigurationType = null;
 //        SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfiguration.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
 //        if (securityPolicyType != null && securityPolicyType.getAuthentication() != null && securityPolicyType.getAuthentication().getMailAuthentication() != null) {
@@ -105,7 +105,7 @@ public class MailTransport implements Transport {
 //        		}
 //        	}
 //        }
-        
+
         if (systemConfiguration == null  || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
@@ -191,7 +191,7 @@ public class MailTransport implements Transport {
                 MimeMessage mimeMessage = new MimeMessage(session);
                 String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
-                
+
                	for (String recipient : mailMessage.getTo()) {
                		mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                	}

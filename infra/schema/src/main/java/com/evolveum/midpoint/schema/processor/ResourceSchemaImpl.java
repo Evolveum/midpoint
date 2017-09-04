@@ -44,7 +44,7 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 	public ResourceSchemaImpl(String namespace, PrismContext prismContext) {
 		super(namespace, prismContext);
 	}
-	
+
 	public static ResourceSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
 		// TODO: make sure correct parser plugins are used
 		return (ResourceSchemaImpl) PrismSchemaImpl.parse(element, new ResourceSchemaImpl(prismContext), true, shortDesc, prismContext);
@@ -90,9 +90,9 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 
 	/**
 	 * Creates a new resource object definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param localTypeName
 	 *            type name "relative" to schema namespace
 	 * @return new resource object definition
@@ -104,9 +104,9 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 
 	/**
 	 * Creates a new resource object definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param typeName
 	 *            type QName
 	 * @return new resource object definition
@@ -116,6 +116,6 @@ public class ResourceSchemaImpl extends PrismSchemaImpl implements ResourceSchem
 		add(cTypeDef);
 		return cTypeDef;
 	}
-	
+
 
 }

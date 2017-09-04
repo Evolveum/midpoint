@@ -69,7 +69,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000030";
     private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-    
+
     public static final File OBJECT_TEMPLATE_ORG_FILE = new File(COMMON_DIR, "object-template-org.xml");
 	public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
 
@@ -120,7 +120,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
-        
+
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
 		setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 

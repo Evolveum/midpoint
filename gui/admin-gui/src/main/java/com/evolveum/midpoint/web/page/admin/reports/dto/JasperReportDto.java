@@ -21,44 +21,44 @@ import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class JasperReportDto implements Serializable{
-	
+
 	private static final long serialVersionUID = 1L;
 	private String query;
 	private List<JasperReportParameterDto> parameters;
 	private List<JasperReportFieldDto> fields;
 	private String detail;
 	private JasperDesign design;
-	
+
 	private byte[] jasperReportXml;
-	
+
 	public JasperReportDto(byte[] jasperReportxml, boolean onlyForPromptingParams) {
 		this.jasperReportXml = jasperReportxml;
-		
+
 		initFileds(onlyForPromptingParams);
 	}
-	
+
 	public JasperReportDto(byte[] jasperReportxml) {
 		this(jasperReportxml, false);
 	}
-	
+
 	private void initFileds(boolean onlyForPromptingParams){
 		if (jasperReportXml == null){
 			return;
 		}
-		
+
 		try {
 			design = ReportTypeUtil.loadJasperDesign(jasperReportXml);
 			query = design.getQuery().getText();
-			
+
 			fields = new ArrayList<JasperReportFieldDto>();
 			for (JRField field : design.getFieldsList()){
 				fields.add(new JasperReportFieldDto(field.getName(), field.getValueClass(), field.getValueClassName()));
 			}
-			
+
 			for (JasperReportFieldDto field : fields){
 				design.removeField(field.getName());
 			}
-			
+
 			parameters = new ArrayList<JasperReportParameterDto>();
 			for (JRParameter parameter : design.getParametersList()){
 				if (parameter.isSystemDefined()){
@@ -66,46 +66,46 @@ public class JasperReportDto implements Serializable{
 				}
 				if (onlyForPromptingParams && !parameter.isForPrompting()){
 					continue;
-					
+
 				}
 				JasperReportParameterDto p = new JasperReportParameterDto(parameter);
 				parameters.add(p);
 			}
-			
+
 			for (JasperReportParameterDto param : parameters){
 				design.removeParameter(param.getName());
 			}
-			
+
 			detail = new String(Base64.decodeBase64(jasperReportXml));
-			
-			
+
+
 		} catch (SchemaException e) {
 			// TODO Auto-generated catch block
 			throw new IllegalArgumentException(e);
 		}
-		
-		
+
+
 	}
-	
+
 	public List<JasperReportParameterDto> getParameters() {
 		if (parameters == null){
 			parameters = new ArrayList<>();
 		}
 		return parameters;
 	}
-	
+
 	public List<JasperReportFieldDto> getFields() {
 		if (fields == null){
 			fields = new ArrayList<>();
 		}
 		return fields;
 	}
-	
-	
+
+
 	public String getQuery() {
 		return query;
 	}
-	
+
 	public byte[] getTemplate(){
 		try{
 //			design.remadgetFields().
@@ -159,8 +159,8 @@ public class JasperReportDto implements Serializable{
 		} catch (JRException | ClassNotFoundException | SchemaException | UnsupportedEncodingException ex) {
 			throw new IllegalStateException(ex.getMessage(), ex.getCause());
 		}
-		
+
 	}
-	
-	
+
+
 }

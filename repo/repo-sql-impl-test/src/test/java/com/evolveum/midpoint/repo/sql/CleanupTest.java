@@ -67,7 +67,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
         return calendar;
     }
-    
+
     private Duration createDuration(Calendar when, long now) throws Exception {
         long seconds = (now - when.getTimeInMillis()) / 1000;
         return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
@@ -81,7 +81,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
         return policy;
     }
-    
+
     private CleanupPolicyType createPolicy(int maxRecords) throws Exception {
         CleanupPolicyType policy = new CleanupPolicyType();
 
@@ -89,7 +89,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
         return policy;
     }
-    
+
     @AfterMethod
     public void cleanup() {
         Session session = getFactory().openSession();
@@ -138,7 +138,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
     }
-    
+
     @Test
     public void testAuditCleanupMaxRecords() throws Exception {
         //GIVEN
@@ -157,7 +157,7 @@ public class CleanupTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         //THEN
-       RAuditEventRecord record = assertAndReturnAuditEventRecord(result); 
+       RAuditEventRecord record = assertAndReturnAuditEventRecord(result);
 
     }
 
@@ -177,7 +177,7 @@ public class CleanupTest extends BaseSQLRepoTest {
          } finally {
              session.close();
          }
-         
+
 	}
 
 	private void prepareAuditEventRecords() throws Exception {
@@ -207,7 +207,7 @@ public class CleanupTest extends BaseSQLRepoTest {
          } finally {
              session.close();
          }
-		
+
 	}
 
 	private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {

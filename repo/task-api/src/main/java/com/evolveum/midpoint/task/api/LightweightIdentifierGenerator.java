@@ -21,7 +21,7 @@ package com.evolveum.midpoint.task.api;
  */
 @FunctionalInterface
 public interface LightweightIdentifierGenerator {
-	
+
 	public LightweightIdentifier generate();
 
 }

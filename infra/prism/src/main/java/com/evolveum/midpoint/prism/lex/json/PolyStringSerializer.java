@@ -19,15 +19,15 @@ public class PolyStringSerializer extends JsonSerializer<PolyString>{
 		jgen.writeObject(value.getOrig());
 //		jgen.writeStringField("norm", value.getNorm());
 //		jgen.writeEndObject();
-		
+
 	}
-	
+
 	@Override
 	public void serializeWithType(PolyString value, JsonGenerator jgen, SerializerProvider provider,
 			TypeSerializer typeSer) throws IOException, JsonProcessingException {
 		// TODO Auto-generated method stub
 		//System.out.println("polystring serialization with type");
-		
+
 //		typeSer.writeCustomTypePrefixForScalar(value, jgen, "poluStr");
 		serialize(value, jgen, provider);
 //		typeSer.writeCustomTypeSuffixForScalar(value, jgen, "tra");

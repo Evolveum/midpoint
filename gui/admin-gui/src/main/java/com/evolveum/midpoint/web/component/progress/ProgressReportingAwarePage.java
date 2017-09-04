@@ -40,7 +40,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 public interface ProgressReportingAwarePage {
 
 	void startProcessing(AjaxRequestTarget target, OperationResult result);
-	
+
     void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync);
 
     // things from PageBase (todo factor this out eventually)
@@ -54,7 +54,7 @@ public interface ProgressReportingAwarePage {
     Task createSimpleTask(String name);
 
     WebApplicationConfiguration getWebApplicationConfiguration();
-    
+
     WebMarkupContainer getFeedbackPanel();
 
 	void continueEditing(AjaxRequestTarget target);

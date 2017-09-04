@@ -23,5 +23,5 @@ package com.evolveum.midpoint.util;
 public interface Processor<T> {
 
 	void process(T object);
-	
+
 }

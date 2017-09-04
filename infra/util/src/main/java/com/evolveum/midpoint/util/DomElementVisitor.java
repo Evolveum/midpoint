@@ -25,5 +25,5 @@ import org.w3c.dom.Element;
 public interface DomElementVisitor {
 
 	public void visit(Element element);
-	
+
 }

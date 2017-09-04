@@ -22,9 +22,9 @@ import java.io.File;
  *
  */
 public class UcfTestUtil {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources");
-	
+
 	public static final String CONNECTOR_LDAP_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
-	
+
 }

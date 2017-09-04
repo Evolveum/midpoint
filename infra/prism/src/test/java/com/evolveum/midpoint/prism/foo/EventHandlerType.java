@@ -35,14 +35,14 @@ import java.io.Serializable;
 
 
 /**
- * 
+ *
  *                 An event handler - typically either a filter, a notifier, a fork (fan-out), or a chain of handlers.
- *             
- * 
+ *
+ *
  * <p>Java class for EventHandlerType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="EventHandlerType">
  *   &lt;complexContent>
@@ -55,8 +55,8 @@ import java.io.Serializable;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "EventHandlerType", propOrder = {
@@ -77,7 +77,7 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code EventHandlerType} instance.
-     * 
+     *
      */
     public EventHandlerType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -86,8 +86,8 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code EventHandlerType} instance by deeply copying a given {@code EventHandlerType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -105,29 +105,29 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Gets the value of the description property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
 
     /**
      * Sets the value of the description property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
 
     /**
      * Gets the value of the name property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getName() {
         return name;
@@ -135,11 +135,11 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Sets the value of the name property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setName(String value) {
         this.name = value;
@@ -148,7 +148,7 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
@@ -193,8 +193,8 @@ public class EventHandlerType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

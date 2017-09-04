@@ -116,7 +116,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 		    return null;
         }
 	}
-	
+
 	public <V,ID extends ItemDefinition> V getParsedRealValue(ID itemDefinition, ItemPath itemPath) throws SchemaException {
         if (parsed == null && xnode != null) {
 			if (itemDefinition == null) {
@@ -125,7 +125,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         		QName itemName = ItemPath.getName(itemPath.lastNamed());
 	        	getParsedValue(itemDefinition, itemName);
         	}
-        } 
+        }
         if (parsed != null) {
 			return parsed.getRealValue();
         }
@@ -149,7 +149,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 			return null;
 		}
 	}
-	
+
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition) throws SchemaException {
         Validate.notNull(itemDefinition);
         return getParsedItem(itemDefinition, itemDefinition.getName());
@@ -208,7 +208,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         }
     	return clone;
     }
-    
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

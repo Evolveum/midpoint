@@ -31,10 +31,10 @@ public enum PredefinedDashboardWidgetId {
 	MY_REQUESTS("myRequests"),
 	MY_ASSIGNMENTS("myAssignments"),
 	MY_ACCOUNTS("myAccounts");
-	
+
 	private final QName qname;
 	private final String uri;
-	
+
 	private PredefinedDashboardWidgetId(String localPart) {
 		this.qname = new QName(ComponentConstants.NS_DASHBOARD_WIDGET, localPart);
 		this.uri = QNameUtil.qNameToUri(qname);
@@ -47,5 +47,5 @@ public enum PredefinedDashboardWidgetId {
 	public String getUri() {
 		return uri;
 	}
-	
+
 }

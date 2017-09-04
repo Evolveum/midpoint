@@ -332,7 +332,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	public void setTarget(ObjectType target) {
 		this.target = target;
 	}
-	
+
 	@Override
 	public ObjectType getSource() {
 		return source;
@@ -393,7 +393,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	public void setOrderOneObject(ObjectType varThisObject) {
 		this.varThisObject = varThisObject;
 	}
-	
+
 	public boolean isProcessMembership() {
 		return processMembership;
 	}
@@ -468,7 +468,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			return XsdTypeMapper.isMatchingMultiplicity(evaluationOrderInt, orderMin, orderMax);
 		}
 	}
-	
+
 	@Override
 	public boolean isDelegation() {
 		return ObjectTypeUtil.isDelegationRelation(relation);
@@ -518,7 +518,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	@Override
 	public void shortDump(StringBuilder sb) {
 		evaluationOrder.shortDump(sb);

@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 
 /**
  * Used to represent combined definition of structural and auxiliary object classes.
- * 
+ *
  * @author semancik
  *
  */
@@ -205,7 +205,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public Collection<? extends RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return structuralObjectClassDefinition.getSecondaryIdentifiers();
 	}
-	
+
 	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
 		return structuralObjectClassDefinition.getAllIdentifiers();
@@ -275,7 +275,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public ResourceObjectReferenceType getBaseContext() {
 		return structuralObjectClassDefinition.getBaseContext();
 	}
-	
+
 	@Override
 	public ResourceObjectVolatilityType getVolatility() {
 		return structuralObjectClassDefinition.getVolatility();
@@ -384,7 +384,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		}
 		return defs;
 	}
-	
+
 	@Override
 	public PrismContext getPrismContext() {
 		return structuralObjectClassDefinition.getPrismContext();
@@ -461,7 +461,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 				.map(a -> a.getName())
 				.collect(Collectors.toCollection(HashSet::new));
 	}
-	
+
 	@Override
 	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
 		return structuralObjectClassDefinition.getAuxiliaryObjectClassMappings();
@@ -611,7 +611,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     public String debugDump() {
         return debugDump(0);
     }
-    
+
     @Override
     public String debugDump(int indent) {
     	return debugDump(indent, (LayerType) null);
@@ -630,7 +630,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         DebugUtil.debugDumpWithLabel(sb, "auxiliary", auxiliaryObjectClassDefinitions, indent + 1);
         return sb.toString();
     }
-    
+
     /**
      * Return a human readable name of this class suitable for logs.
      */
@@ -646,7 +646,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 			return getKind()+":"+getIntent();
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		if (auxiliaryObjectClassDefinitions.isEmpty()) {

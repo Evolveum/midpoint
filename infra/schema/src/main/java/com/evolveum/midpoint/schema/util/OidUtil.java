@@ -22,7 +22,7 @@ import java.util.UUID;
  *
  */
 public class OidUtil {
-	
+
 	public static String generateOid() {
 		return UUID.randomUUID().toString();
 	}

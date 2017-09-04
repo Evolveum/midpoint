@@ -37,16 +37,16 @@ import javax.xml.namespace.QName;
 
 /**
  * Autocomplete field for QNames.
- * 
+ *
  * For now it assumes that local part of the QNames will be unique (e.g. for object classes)
- * 
+ *
  * TODO: prefixes, URL formatting, etc.
- * 
+ *
  *  @author semancik
  * */
 public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_INPUT = "input";
 	private Map<String, QName> choiceMap = null;
 
@@ -57,7 +57,7 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
 
     private void initLayout(final IModel<QName> model) {
     	setOutputMarkupId(true);
-    	
+
         AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
         final IModel<String> stringModel = new Model<String>() {
 
@@ -66,9 +66,9 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
 				super.setObject(object);
 				model.setObject(convertToQname(object));
 			}
-        	
+
         };
-        
+
 		// The inner autocomplete field is always String. Non-string auto-complete fields are problematic
         final AutoCompleteTextField<String> input = new AutoCompleteTextField<String>(ID_INPUT, stringModel, String.class, autoCompleteSettings) {
         	private static final long serialVersionUID = 1L;
@@ -77,8 +77,8 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
             protected Iterator<String> getChoices(String input) {
                 return getIterator(input);
             }
-            
-            
+
+
         };
         input.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
@@ -108,8 +108,8 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
 		});
         add(input);
     }
-    
-    
+
+
 
     private Iterator<String> getIterator(String input) {
     	Map<String, QName> choiceMap = getChoiceMap();
@@ -122,7 +122,7 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
     	}
     	return selected.iterator();
     }
-    
+
     private Map<String, QName> getChoiceMap() {
     	if (choiceMap == null) {
     		Collection<QName> choices = loadChoices();
@@ -134,15 +134,15 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
     	}
     	return choiceMap;
     }
-    
+
 	private QName convertToQname(String input) {
 		Map<String, QName> choiceMap = getChoiceMap();
 		return choiceMap.get(input);
 	}
 
-    
+
     public abstract Collection<QName> loadChoices();
-    
+
     protected void onChange(AjaxRequestTarget target) {
     	// Nothing to do by default. For use in subclasses
     }

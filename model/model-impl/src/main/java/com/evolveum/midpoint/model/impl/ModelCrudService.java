@@ -76,37 +76,37 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 /**
  * Simple version of model service exposing CRUD-like operations. This is common facade for webservice and REST services.
  * It takes care of all the "details" of externalized obejcts such as applying correct definitions and so on.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @Component
 public class ModelCrudService {
-	
+
 	String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
 	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 	String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
 	String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ModelCrudService.class);
-	
+
 	@Autowired(required = true)
 	ModelService modelService;
 
 	@Autowired
 	TaskService taskService;
-	
+
 	@Autowired(required = true)
 	PrismContext prismContext;
-	
+
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	RepositoryService repository;
-	
+
 	@Autowired(required = true)
 	private Protector protector;
-	
+
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher dispatcher;
 
@@ -114,7 +114,7 @@ public class ModelCrudService {
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return modelService.getObject(clazz, oid, options, task, parentResult);
-	}	
+	}
 
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -122,12 +122,12 @@ public class ModelCrudService {
 			SecurityViolationException, ExpressionEvaluationException {
 		return modelService.searchObjects(type, query, options, task, parentResult);
 	}
-	
+
 	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException{
-		
+
 		String oldShadowOid = changeDescription.getOldShadowOid();
 		ResourceEventDescription eventDescription = new ResourceEventDescription();
-		
+
 		PrismObject<ShadowType> oldShadow = null;
 		LOGGER.trace("resolving old object");
 		if (!StringUtils.isEmpty(oldShadowOid)){
@@ -137,7 +137,7 @@ public class ModelCrudService {
 		} else{
 			LOGGER.trace("Old shadow null");
 		}
-			
+
 		PrismObject<ShadowType> currentShadow = null;
 		ShadowType currentShadowType = changeDescription.getCurrentShadow();
 		LOGGER.trace("resolving current shadow");
@@ -146,17 +146,17 @@ public class ModelCrudService {
 			currentShadow = currentShadowType.asPrismObject();
 			LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
 		}
-		
+
 		eventDescription.setCurrentShadow(currentShadow);
-		
+
 		ObjectDeltaType deltaType = changeDescription.getObjectDelta();
 		ObjectDelta delta = null;
-		
+
 		PrismObject<ShadowType> shadowToAdd = null;
 		if (deltaType != null){
-		
+
 			delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
-			
+
 			if (delta.getChangeType() == ChangeType.ADD) {
 //						LOGGER.trace("determined ADD change ");
 				if (deltaType.getObjectToAdd() == null){
@@ -171,27 +171,27 @@ public class ModelCrudService {
 //							return handleTaskResult(task);
 				}
 				prismContext.adopt((ShadowType)objToAdd);
-				
+
 				shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
 				LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
 				delta.setObjectToAdd(shadowToAdd);
 			} else {
 				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
 				delta.getModifications().addAll(modifications);
-			} 
+			}
 		}
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 		deltas.add(delta);
 		Utils.encrypt(deltas, protector, null, parentResult);
 		eventDescription.setDelta(delta);
-			
+
 		eventDescription.setSourceChannel(changeDescription.getChannel());
-	
+
 		dispatcher.notifyEvent(eventDescription, task, parentResult);
 		parentResult.computeStatus();
 		task.setResult(parentResult);
 	}
-	
+
 
 	/**
 	 * <p>
@@ -220,7 +220,7 @@ public class ModelCrudService {
 	 * the underlying schema of the storage system or the schema enforced by the
 	 * implementation.
 	 * </p>
-	 * 
+	 *
 	 * @param object
 	 *            object to create
 	 * @param parentResult
@@ -234,10 +234,10 @@ public class ModelCrudService {
 	 * @throws SchemaException
 	 *             error dealing with resource schema, e.g. created object does
 	 *             not conform to schema
-	 * @throws ExpressionEvaluationException 
+	 * @throws ExpressionEvaluationException
 	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException 
-	 * @throws ConfigurationException 
+	 * @throws CommunicationException
+	 * @throws ConfigurationException
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
 	 * @throws IllegalArgumentException
@@ -246,7 +246,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,  
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
@@ -254,7 +254,7 @@ public class ModelCrudService {
 		Validate.notNull(parentResult, "Result type must not be null.");
 
 		object.checkConsistence();
-		
+
 		T objectType = object.asObjectable();
 		prismContext.adopt(objectType);
 
@@ -271,17 +271,17 @@ public class ModelCrudService {
 				LOGGER.trace("Entering addObject with {}", object);
 				LOGGER.trace(object.debugDump());
 			}
-			
+
 			if (options == null) {
 				if (StringUtils.isNotEmpty(objectType.getVersion())) {
 					options = ModelExecuteOptions.createOverwrite();
 				}
 			}
-			
+
 			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
-			
+
 			oid = objectDelta.getOid();
 
 			result.computeStatus();
@@ -296,7 +296,7 @@ public class ModelCrudService {
 
 		return oid;
 	}
-	
+
 	/**
 	 * <p>
 	 * Deletes object with specified OID.
@@ -304,7 +304,7 @@ public class ModelCrudService {
 	 * <p>
 	 * Must fail if object with specified OID does not exists. Should be atomic.
 	 * </p>
-	 * 
+	 *
 	 * @param oid
 	 *            OID of object to delete
 	 * @param parentResult
@@ -313,9 +313,9 @@ public class ModelCrudService {
 	 *             specified object does not exist
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
-	 * @throws CommunicationException 
-	 * @throws ConfigurationException 
-	 * @throws PolicyViolationException 
+	 * @throws CommunicationException
+	 * @throws ConfigurationException
+	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
@@ -339,7 +339,7 @@ public class ModelCrudService {
 			objectDelta.setOid(oid);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
-			
+
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 
@@ -367,7 +367,7 @@ public class ModelCrudService {
 			RepositoryCache.exit();
 		}
 	}
-	
+
 	/**
 	 * <p>
 	 * Modifies object using relative change description.
@@ -387,7 +387,7 @@ public class ModelCrudService {
 	 * underlying schema of the storage system or the schema enforced by the
 	 * implementation.
 	 * </p>
-	 * 
+	 *
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @throws ObjectNotFoundException
@@ -396,10 +396,10 @@ public class ModelCrudService {
 	 *             resulting object would violate the schema
 	 * @throws ExpressionEvaluationException
 	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException 
+	 * @throws CommunicationException
 	 * @throws ObjectAlreadyExistsException
 	 * 				If the account or another "secondary" object already exists and cannot be created
-	 * @throws PolicyViolationException 
+	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
@@ -442,7 +442,7 @@ public class ModelCrudService {
 			modelService.executeChanges(deltas, options, task, result);
 
             result.computeStatus();
-			
+
         } catch (ExpressionEvaluationException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
@@ -487,8 +487,8 @@ public class ModelCrudService {
 	public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
 		return modelService.testResource(resourceOid, task);
 	}
-	
-	
+
+
 	//TASK AREA
     public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
         return taskService.suspendTasks(taskOids, waitForStop, parentResult);

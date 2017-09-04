@@ -59,7 +59,7 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  * @author Radovan Semancik
  */
 public class ObjectTypeUtil {
-	
+
 	/**
 	 * Never returns null. Returns empty collection instead.
 	 */
@@ -71,7 +71,7 @@ public class ObjectTypeUtil {
 			return values;
 		}
 	}
-	
+
 	public static <T> Collection<T> getExtensionPropertyValues(ObjectType objectType, QName propertyQname) {
 		PrismObject<? extends ObjectType> object = objectType.asPrismObject();
 		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
@@ -84,7 +84,7 @@ public class ObjectTypeUtil {
 		}
 		return property.getRealValues();
 	}
-	
+
 	public static Collection<Referencable> getExtensionReferenceValues(ObjectType objectType, QName propertyQname) {
 		PrismObject<? extends ObjectType> object = objectType.asPrismObject();
 		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
@@ -101,7 +101,7 @@ public class ObjectTypeUtil {
 		}
 		return refs;
 	}
-    
+
 
     public static ObjectReferenceType findRef(String oid, List<ObjectReferenceType> refs) {
         for (ObjectReferenceType ref : refs) {
@@ -180,7 +180,7 @@ public class ObjectTypeUtil {
 	public static String getShortTypeName(ObjectType object) {
 		return getShortTypeName(object.getClass());
 	}
-	
+
 	public static String getShortTypeName(Class<? extends ObjectType> type) {
 		ObjectTypes objectTypeType = ObjectTypes.getObjectType(type);
         if (objectTypeType != null) {
@@ -219,7 +219,7 @@ public class ObjectTypeUtil {
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object) {
 		return createAssignmentTo(object, SchemaConstants.ORG_DEFAULT);
 	}
-	
+
 	@NotNull
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object, QName relation) {
 		AssignmentType assignment = new AssignmentType(object.getPrismContext());
@@ -232,7 +232,7 @@ public class ObjectTypeUtil {
 		}
 		return assignment;
 	}
-	
+
 	@NotNull
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull T objectType, QName relation) {
 		return createAssignmentTo((PrismObject<T>) objectType.asPrismObject(), relation);
@@ -254,7 +254,7 @@ public class ObjectTypeUtil {
 	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
 		return createObjectRef(objectType, SchemaConstants.ORG_DEFAULT);
     }
-	
+
 	public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
 		if (objectType == null) {
 			return null;
@@ -265,7 +265,7 @@ public class ObjectTypeUtil {
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object) {
         return createObjectRef(object, SchemaConstants.ORG_DEFAULT);
     }
-    
+
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, QName relation) {
         if (object == null) {
             return null;
@@ -280,7 +280,7 @@ public class ObjectTypeUtil {
         ref.setRelation(relation);
         return ref;
     }
-    
+
     public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object) {
         if (object == null) {
             return null;
@@ -306,7 +306,7 @@ public class ObjectTypeUtil {
         }
         return ref;
     }
-    
+
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismReferenceValue refVal, boolean nameAsDescription) {
         if (refVal == null) {
             return null;
@@ -332,11 +332,11 @@ public class ObjectTypeUtil {
         }
         return ref;
     }
-    
+
     public static ObjectReferenceType createObjectRef(String oid, ObjectTypes type) {
        return createObjectRef(oid, null, type);
     }
-    
+
     public static ObjectReferenceType createObjectRef(String oid, PolyStringType name, ObjectTypes type) {
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(type, "Object type must not be null.");
@@ -360,11 +360,11 @@ public class ObjectTypeUtil {
         PrismContainerValue<XmlSchemaType> xmlSchemaContainerValue = xmlSchemaType.asPrismContainerValue();
         return findXsdElement(xmlSchemaContainerValue);
     }
-    
+
     public static Element findXsdElement(PrismContainer<XmlSchemaType> xmlSchemaContainer) {
     	return findXsdElement(xmlSchemaContainer.getValue());
     }
-    
+
     public static Element findXsdElement(PrismContainerValue<XmlSchemaType> xmlSchemaContainerValue) {
         PrismProperty<SchemaDefinitionType> definitionProperty = xmlSchemaContainerValue.findProperty(XmlSchemaType.F_DEFINITION);
         if (definitionProperty == null) {
@@ -374,9 +374,9 @@ public class ObjectTypeUtil {
         if (schemaDefinition == null) {
 			return null;
 		}
-        
+
         return schemaDefinition.getSchema();
-        
+
 //        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
 //        for (Element e : schemaElements) {
 //            if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
@@ -386,9 +386,9 @@ public class ObjectTypeUtil {
 //        }
 //        return null;
     }
-    
+
 	public static void setXsdSchemaDefinition(PrismProperty<SchemaDefinitionType> definitionProperty, Element xsdElement) {
-		
+
 //		Document document = xsdElement.getOwnerDocument();
 //		Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
 //				XmlSchemaType.F_DEFINITION.getLocalPart());
@@ -418,7 +418,7 @@ public class ObjectTypeUtil {
 //        if (path == null && XPathHolder.isDefault(modification.getPath())) {
 //            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
 //        }
-    	
+
     	ItemPathType modificationPath = modification.getPath();
     	if (ItemPathUtil.isDefault(modificationPath)){
     		throw new IllegalArgumentException("Path in the delta must not be null");
@@ -426,7 +426,7 @@ public class ObjectTypeUtil {
 //    	  if (path == null && ItemPathUtil.isDefault(modificationPath)) {
 //            return (elementName.equals(getElementName(modification)));
 //        }
-    	
+
         if (path == null) {
             return false;
         }
@@ -454,7 +454,7 @@ public class ObjectTypeUtil {
 //        return (objectModification.getItemDelta() == null) ||
 //                objectModification.getItemDelta().isEmpty();
 //    }
-    
+
     public static void assertConcreteType(Class<? extends Objectable> type) {
     	// The abstract object types are enumerated here. It should be switched to some flag later on
     	if (type.equals(ObjectType.class)) {
@@ -672,12 +672,12 @@ public class ObjectTypeUtil {
 	public static boolean isDefaultRelation(QName relation) {
 		return relation == null || QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT);
 	}
-	
+
 	// We want to make this configurable in the future MID-3581
 	public static boolean processRelationOnLogin(QName relation) {
 		return isMembershipRelation(relation) || isDelegationRelation(relation);
 	}
-	
+
 	// We want to make this configurable in the future MID-3581
 	public static boolean processRelationOnRecompute(QName relation) {
 		return !QNameUtil.match(relation, SchemaConstants.ORG_APPROVER) && !QNameUtil.match(relation, SchemaConstants.ORG_OWNER);
@@ -698,7 +698,7 @@ public class ObjectTypeUtil {
 			return QNameUtil.match(relation1, relation2);
 		}
 	}
-	
+
 	public static boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName targetType, QName relation) {
 		if (ref == null) {
 			return false;

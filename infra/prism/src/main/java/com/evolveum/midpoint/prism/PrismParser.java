@@ -238,7 +238,7 @@ public interface PrismParser {
 
 	/**
 	 * Currently implemented for JSON/YAML only. For XML, use old Validator code.
-	 * 
+	 *
 	 * @param handler
 	 * @throws SchemaException
 	 * @throws IOException

@@ -41,24 +41,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 public class PageService extends PageAdminAbstractRole<ServiceType> implements ProgressReportingAwarePage{
 
 	private static final long serialVersionUID = 1L;
-	
+
 	public PageService() {
 		initialize(null);
 	}
 
 	public PageService(final PrismObject<ServiceType> unitToEdit) {
 		initialize(unitToEdit);
-	} 
+	}
 
 	public PageService(PageParameters parameters) {
 		getPageParameters().overwriteWith(parameters);
 		initialize(null);
 	}
-	
+
 	@Override
 	protected ServiceType createNewObject() {
 		return new ServiceType();
-	}	
+	}
 
 	@Override
     public Class<ServiceType> getCompileTimeClass() {

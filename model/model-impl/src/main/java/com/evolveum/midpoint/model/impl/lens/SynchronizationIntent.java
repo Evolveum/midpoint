@@ -23,27 +23,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInten
  *
  */
 public enum SynchronizationIntent {
-	
+
 	/**
 	 * New account that should be added (and linked)
 	 */
 	ADD,
-	
+
 	/**
 	 * Existing account that should be deleted (and unlinked)
 	 */
 	DELETE,
-	
+
 	/**
 	 * Existing account that is kept as it is (remains linked).
 	 */
 	KEEP,
-	
+
 	/**
 	 * Existing account that should be unlinked (but NOT deleted)
 	 */
 	UNLINK,
-	
+
 	/**
 	 * Existing account that belongs to the user and needs to be synchronized.
 	 * This may include deleting, archiving or disabling the account.

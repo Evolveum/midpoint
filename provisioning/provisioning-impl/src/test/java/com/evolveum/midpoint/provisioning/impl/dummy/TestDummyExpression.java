@@ -32,14 +32,14 @@ import com.evolveum.midpoint.task.api.Task;
 
 /**
  * Testing expressions in dummy resource configuration.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyExpression extends AbstractBasicDummyTest {
-	
+
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-expression");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
@@ -52,7 +52,7 @@ public class TestDummyExpression extends AbstractBasicDummyTest {
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
-	
+
 	@Override
 	protected <T> void assertConfigurationProperty(PrismProperty<T> confProp) {
 		T val = confProp.getRealValue();
@@ -60,7 +60,7 @@ public class TestDummyExpression extends AbstractBasicDummyTest {
 			case "instanceId":
 				assertEquals("Wrong value for "+confProp, "", val);
 				break;
-				
+
 			case "uselessString":
 				assertEquals("Wrong value for "+confProp, "Shiver me timbers!", val);
 				assertExpression(confProp, "value");
@@ -70,5 +70,5 @@ public class TestDummyExpression extends AbstractBasicDummyTest {
 				break;
 		}
 	}
-	
+
 }

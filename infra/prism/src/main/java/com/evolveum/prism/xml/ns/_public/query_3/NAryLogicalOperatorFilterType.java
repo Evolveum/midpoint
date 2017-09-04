@@ -28,22 +28,20 @@ import org.w3c.dom.Element;
 
 /**
  * <p>Java class for NAryLogicalOperatorFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="NAryLogicalOperatorFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}LogicalOperatorFilterType">
- *       &lt;sequence>
- *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}filter" maxOccurs="unbounded"/>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="NAryLogicalOperatorFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}LogicalOperatorFilterType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}filter" maxOccurs="unbounded"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "NAryLogicalOperatorFilterType", propOrder = {
@@ -61,7 +59,7 @@ public class NAryLogicalOperatorFilterType
 
     /**
      * Creates a new {@code NAryLogicalOperatorFilterType} instance.
-     * 
+     *
      */
     public NAryLogicalOperatorFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -70,8 +68,8 @@ public class NAryLogicalOperatorFilterType
 
     /**
      * Creates a new {@code NAryLogicalOperatorFilterType} instance by deeply copying a given {@code NAryLogicalOperatorFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -91,25 +89,25 @@ public class NAryLogicalOperatorFilterType
 
     /**
      * Gets the value of the filter property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the filter property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getFilter().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link Element }
-     * 
-     * 
+     *
+     *
      */
     public List<Element> getFilter() {
         if (filter == null) {
@@ -121,7 +119,7 @@ public class NAryLogicalOperatorFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -173,7 +171,7 @@ public class NAryLogicalOperatorFilterType
 
     /**
      * Copies all values of property {@code Filter} deeply.
-     * 
+     *
      * @param source
      *     The source to copy from.
      * @param target
@@ -200,8 +198,8 @@ public class NAryLogicalOperatorFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

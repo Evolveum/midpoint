@@ -28,25 +28,25 @@ import java.io.Serializable;
 
 /**
  * Abstract definition in the schema.
- * 
+ *
  * This is supposed to be a superclass for all definitions. It defines common
  * properties for all definitions.
- * 
+ *
  * The definitions represent data structures of the schema. Therefore instances
  * of Java objects from this class represent specific <em>definitions</em> from
  * the schema, not specific properties or objects. E.g the definitions does not
  * have any value.
- * 
+ *
  * To transform definition to a real property or object use the explicit
  * instantiate() methods provided in the definition classes. E.g. the
  * instantiate() method will create instance of Property using appropriate
  * PropertyDefinition.
- * 
+ *
  * The convenience methods in Schema are using this abstract class to find
  * appropriate definitions easily.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public abstract class DefinitionImpl implements Definition {
 
@@ -59,26 +59,26 @@ public abstract class DefinitionImpl implements Definition {
 	protected String help;
     protected String documentation;
     protected boolean deprecated = false;
-    
+
     /**
      * whether an item is inherited from a supertype (experimental feature)
      */
     protected boolean inherited = false;
-	
+
 	/**
      * This means that the item container is not defined by fixed (compile-time) schema.
      * This in fact means that we need to use getAny in a JAXB types. It does not influence the
      * processing of DOM that much, as that does not really depend on compile-time/run-time distinction.
      */
     protected boolean isRuntimeSchema;
-    
+
     /**
      * Set true for definitions that are more important than others and that should be emphasized
      * during presentation. E.g. the emphasized definitions will always be displayed in the user
      * interfaces (even if they are empty), they will always be included in the dumps, etc.
      */
     protected boolean emphasized = false;
-    
+
 	protected transient PrismContext prismContext;
 
 	DefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
@@ -92,7 +92,7 @@ public abstract class DefinitionImpl implements Definition {
 	public QName getTypeName() {
 		return typeName;
 	}
-	
+
 	public void setTypeName(@NotNull QName typeName) {
 		this.typeName = typeName;
 	}
@@ -141,11 +141,11 @@ public abstract class DefinitionImpl implements Definition {
 	public String getDisplayName() {
 		return displayName;
 	}
-	
-	public void setDisplayName(String displayName) {		
+
+	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
 	}
-	
+
 	@Override
 	public Integer getDisplayOrder() {
 		return displayOrder;
@@ -159,7 +159,7 @@ public abstract class DefinitionImpl implements Definition {
 	public String getHelp() {
 		return help;
 	}
-	
+
 	public void setHelp(String help) {
 		this.help = help;
 	}
@@ -194,12 +194,12 @@ public abstract class DefinitionImpl implements Definition {
     public void setRuntimeSchema(boolean isRuntimeSchema) {
         this.isRuntimeSchema = isRuntimeSchema;
     }
-	
+
 	@Override
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
-	
+
     @Override
 	public Class getTypeClassIfKnown() {
         return XsdTypeMapper.toJavaTypeIfKnown(getTypeName());
@@ -209,7 +209,7 @@ public abstract class DefinitionImpl implements Definition {
 	public Class getTypeClass() {
 		return XsdTypeMapper.toJavaType(getTypeName());
 	}
-	
+
 	public abstract void revive(PrismContext prismContext);
 
 	protected void copyDefinitionData(DefinitionImpl clone) {
@@ -260,7 +260,7 @@ public abstract class DefinitionImpl implements Definition {
 	public String toString() {
 		return getDebugDumpClassName() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -275,7 +275,7 @@ public abstract class DefinitionImpl implements Definition {
 		sb.append(toString());
 		return sb.toString();
 	}
-	
+
 	/**
      * Return a human readable name of this class suitable for logs. (e.g. "PPD")
      */

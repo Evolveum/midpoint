@@ -88,7 +88,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java
 	 * .util.Collection, java.util.Map, boolean, java.lang.String,
@@ -100,7 +100,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 		StringPolicyType stringPolicyType = null;
 
-		
+
 		ObjectReferenceType generateEvaluatorValuePolicyRef = generateEvaluatorType.getValuePolicyRef();
 		if (generateEvaluatorValuePolicyRef != null) {
 			if (generateEvaluatorType.getValuePolicyRef() != null) {
@@ -108,7 +108,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	        			null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), context.getResult());
 	        	stringPolicyType = valuePolicyType.getStringPolicy();
 	        }
-			
+
 		}
 
 		// if (elementStringPolicy == null) {
@@ -122,7 +122,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 				stringPolicyType = stringPolicyResolver.resolve();
 			}
 		}
-		
+
 		elementStringPolicy = stringPolicyType;
 		// } else {
 		// stringPolicyType = elementStringPolicy;
@@ -168,7 +168,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 		Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
 
-		
+
 		if (output instanceof PrismProperty) {
 			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
 			((PrismProperty<Object>) output).add(pValue);
@@ -197,7 +197,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#
 	 * shortDebugDump()
 	 */

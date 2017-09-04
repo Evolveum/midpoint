@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.csv;
 
@@ -39,9 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -49,16 +49,16 @@ public class TestCsvUsername extends AbstractCsvTest {
 
 	private static final File RESOURCE_CSV_USERNAME_FILE = new File(TEST_DIR, "resource-csv-username.xml");
 	private static final String RESOURCE_CSV_USERNAME_OID = "ef2bc95b-76e0-59e2-86d6-9999cccccccc";
-	
+
 	private static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack-username.xml");;
 	private static final String ACCOUNT_JACK_OID = "2db718b6-243a-11e7-a9e5-bbb2545f80ed";
 	private static final String ACCOUNT_JACK_USERNAME = "jack";
-	
+
 	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "midpoint-username.csv");
 
 	protected static final String ATTR_USERNAME = "username";
 	protected static final QName ATTR_USERNAME_QNAME = new QName(RESOURCE_NS, ATTR_USERNAME);
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestCsvUsername.class);
 
 	@Override
@@ -75,7 +75,7 @@ public class TestCsvUsername extends AbstractCsvTest {
 	protected File getSourceCsvFile() {
 		return CSV_SOURCE_FILE;
 	}
-	
+
 	@Override
 	protected File getAccountJackFile() {
 		return ACCOUNT_JACK_FILE;
@@ -84,13 +84,13 @@ public class TestCsvUsername extends AbstractCsvTest {
 	@Override
 	protected String getAccountJackOid() {
 		return ACCOUNT_JACK_OID;
-	}	
+	}
 
 	@Override
 	protected void assertAccountDefinition(ObjectClassComplexTypeDefinition accountDef) {
 
 		assertEquals("Unexpected number of definitions", 4, accountDef.getDefinitions().size());
-		
+
 		ResourceAttributeDefinition<String> usernameDef = accountDef.findAttributeDefinition(ATTR_USERNAME);
 		assertNotNull("No definition for username", usernameDef);
 		assertEquals(1, usernameDef.getMaxOccurs());
@@ -98,7 +98,7 @@ public class TestCsvUsername extends AbstractCsvTest {
 		assertTrue("No username create", usernameDef.canAdd());
 		assertTrue("No username update", usernameDef.canModify());
 		assertTrue("No username read", usernameDef.canRead());
-		
+
 	}
 
 	@Override

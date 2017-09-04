@@ -37,12 +37,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Abstract superclass that provides methods common to all web service implementations that
  * use ModelService.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public abstract class AbstractModelWebService {
-	
+
 	@Autowired protected ModelService modelService;
 	@Autowired protected TaskManager taskManager;
 	@Autowired protected AuditService auditService;
@@ -68,7 +68,7 @@ public abstract class AbstractModelWebService {
 		task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 		return task;
 	}
-	
+
 	protected void auditLogin(Task task) {
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiatorAndLoginParameter(task.getOwner());
@@ -77,7 +77,7 @@ public abstract class AbstractModelWebService {
         record.setOutcome(OperationResultStatus.SUCCESS);
         auditService.audit(record, task);
 	}
-	
+
 	protected void auditLogout(Task task) {
 		AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
 		record.setInitiatorAndLoginParameter(task.getOwner());

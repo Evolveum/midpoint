@@ -40,9 +40,9 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	AssignmentType getAssignmentType();
 
 	Collection<Authorization> getAuthorizations();
-	
+
 	Collection<AdminGuiConfigurationType> getAdminGuiConfigurations();
-	
+
 	DeltaSetTriple<? extends EvaluatedAssignmentTarget> getRoles();
 
 	DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
@@ -58,7 +58,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	boolean isPresentInCurrentObject();
 
 	boolean isPresentInOldObject();
-	
+
 	/**
 	 * Returns all policy rules that apply to the focal object and are derived from this assignment
 	 * - even those that were not triggered. The policy rules are compiled from all the applicable
@@ -66,7 +66,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	 */
 	@NotNull
 	Collection<EvaluatedPolicyRule> getFocusPolicyRules();
-	
+
 	/**
 	 * Returns all policy rules that directly apply to the target object of this assignment
 	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
@@ -99,7 +99,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 
 
 	Collection<String> getPolicySituations();
-	
+
 	void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
 	void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;

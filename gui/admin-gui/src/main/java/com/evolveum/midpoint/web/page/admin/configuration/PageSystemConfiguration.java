@@ -345,7 +345,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
 			confList.add(newObjectPolicyConfig);
 		}
-		
+
 		if (confList.isEmpty()){
 			if (!systemConfig.getDefaultObjectPolicyConfiguration().isEmpty()){
 				systemConfig.getDefaultObjectPolicyConfiguration().clear();

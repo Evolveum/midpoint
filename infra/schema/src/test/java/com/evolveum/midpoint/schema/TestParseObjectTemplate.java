@@ -47,25 +47,25 @@ import static org.testng.AssertJUnit.fail;
  *
  */
 public class TestParseObjectTemplate {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/object-template");
 	private static final File OBJECT_TEMPLATE_FILE = new File(TEST_DIR, "object-template.xml");
 	private static final File USER_TEMPLATE_FILE = new File(TEST_DIR, "user-template.xml");
 	private static final File WRONG_TEMPLATE_FILE = new File(TEST_DIR, "wrong-template.xml");
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testParseObjectTemplateFile() throws Exception {
 		roundTrip("testParseObjectTemplateFile", OBJECT_TEMPLATE_FILE,
 				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
 	}
-	
+
 	@Test
 	public void testParseUserTemplateFile() throws Exception {
 		roundTrip("testParseUserTemplateFile", USER_TEMPLATE_FILE,
@@ -100,32 +100,32 @@ public class TestParseObjectTemplate {
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		PrismObject<ObjectTemplateType> object = prismContext.parseObject(file);
-		
+
 		// THEN
 		System.out.println("Parsed object:");
 		System.out.println(object.debugDump());
-		
+
 		assertObjectTemplate(object, elementName);
-		
+
 		// WHEN
 		String xml = prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
-		
+
 		// THEN
 		System.out.println("Serialized object:");
 		System.out.println(xml);
-		
+
 		assertSerializedObject(xml, elementName);
-		
+
 		// WHEN
 		PrismObject<ObjectTemplateType> reparsedObject = prismContext.parseObject(xml);
-		
+
 		// THEN
 		System.out.println("Re-parsed object:");
 		System.out.println(reparsedObject.debugDump());
-		
+
 		assertObjectTemplate(reparsedObject, elementName);
         assertObjectTemplateInternals(reparsedObject, elementName);
 	}
@@ -136,7 +136,7 @@ public class TestParseObjectTemplate {
 	}
 
 	private void assertObjectTemplatePrism(PrismObject<ObjectTemplateType> object, QName elementName) {
-		
+
 		assertEquals("Wrong oid", "10000000-0000-0000-0000-000000000002", object.getOid());
 		PrismObjectDefinition<ObjectTemplateType> objectDefinition = object.getDefinition();
 		assertNotNull("No object definition", objectDefinition);
@@ -146,10 +146,10 @@ public class TestParseObjectTemplate {
 		assertEquals("Wrong object item name", elementName, object.getElementName());
 		ObjectTemplateType objectType = object.asObjectable();
 		assertNotNull("asObjectable resulted in null", objectType);
-		
+
 		assertPropertyValue(object, "name", PrismTestUtil.createPolyString("Default User Template"));
 		assertPropertyDefinition(object, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-		
+
 		assertPropertyDefinition(object, "mapping", ObjectTemplateMappingType.COMPLEX_TYPE, 0, -1);
 
 	}
@@ -193,7 +193,7 @@ public class TestParseObjectTemplate {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
-	
+
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);

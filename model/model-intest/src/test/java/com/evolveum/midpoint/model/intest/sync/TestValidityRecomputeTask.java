@@ -64,7 +64,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * @author Radovan Semancik
- * 
+ *
  * @see TestActivation
  *
  */
@@ -76,10 +76,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
 	protected static final File ROLE_RED_JUDGE_FILE = new File(TEST_DIR, "role-red-judge.xml");
 	protected static final String ROLE_RED_JUDGE_OID = "12345111-1111-2222-1111-121212111222";
-		
+
 	protected static final File ROLE_BIG_JUDGE_FILE = new File(TEST_DIR, "role-big-judge.xml");
 	protected static final String ROLE_BIG_JUDGE_OID = "12345111-1111-2222-1111-121212111224";
-	
+
 	private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
 
 	private XMLGregorianCalendar drakeValidFrom;
@@ -103,7 +103,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // Pretend that the user was added a long time ago
         clock.override(LONG_LONG_TIME_AGO);
         addObject(USER_HERMAN_FILE);
@@ -112,21 +112,21 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertEffectiveActivation(userHermanBefore, ActivationStatusType.DISABLED);
         assertValidityStatus(userHermanBefore, TimeIntervalStatusType.BEFORE);
         clock.resetOverride();
-        
+
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-        
+
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         importObjectFromFile(TASK_VALIDITY_SCANNER_FILENAME);
 
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, false);
         waitForTaskFinish(TASK_VALIDITY_SCANNER_OID, true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
 		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
-        
+
         PrismObject<UserType> userHermanAfter = getUser(USER_HERMAN_OID);
         assertEffectiveActivation(userHermanAfter, ActivationStatusType.ENABLED);
         assertValidityStatus(userHermanAfter, TimeIntervalStatusType.IN);
@@ -140,10 +140,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
-        
+
         testJackAssignRoleJudgeInvalid(TEST_NAME, activationType, task, result);
 	}
 
@@ -155,15 +155,15 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         XMLGregorianCalendar validFrom = clock.currentTimeXMLGregorianCalendar();
         validFrom.add(XmlTypeConverter.createDuration(60*60*1000)); // one hour ahead
         activationType.setValidFrom(validFrom);
-        
+
         testJackAssignRoleJudgeInvalid(TEST_NAME, activationType, task, result);
 	}
-	
+
 	@Test
     public void test112JackAssignJudgeAfterValidity() throws Exception {
 		final String TEST_NAME = "test112JackAssignJudgeAfterValidity";
@@ -172,15 +172,15 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
         validTo.add(XmlTypeConverter.createDuration(-60*60*1000)); // one hour ago
         activationType.setValidTo(validTo);
-        
+
         testJackAssignRoleJudgeInvalid(TEST_NAME, activationType, task, result);
 	}
-		
+
 	@Test
     public void test115JackAssignJudgeEnabled() throws Exception {
 		final String TEST_NAME = "test115JackAssignJudgeEnabled";
@@ -189,13 +189,13 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+
         testJackAssignRoleJudgeValid(TEST_NAME, activationType, task, result);
 	}
-	
+
 	@Test
     public void test115JackAssignJudgeValid() throws Exception {
 		final String TEST_NAME = "test115JackAssignJudgeValid";
@@ -204,7 +204,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         XMLGregorianCalendar validFrom = clock.currentTimeXMLGregorianCalendar();
         validFrom.add(XmlTypeConverter.createDuration(-60*60*1000)); // one hour ago
@@ -212,25 +212,25 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
         validTo.add(XmlTypeConverter.createDuration(60*60*1000)); // one hour ahead
         activationType.setValidTo(validTo);
-        
+
         testJackAssignRoleJudgeValid(TEST_NAME, activationType, task, result);
 	}
-		
+
 	private void testJackAssignRoleJudgeValid(final String TEST_NAME, ActivationType activationType, Task task, OperationResult result) throws Exception {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_BIG_JUDGE_OID, activationType, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_JACK_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_JACK_USERNAME);
@@ -239,29 +239,29 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertLinks(user, 2);
         assert11xUserOk(user);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
-        
+
         // CLEANUP
         unassignAllRoles(USER_JACK_OID);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
 	}
-	
+
 	private void testJackAssignRoleJudgeInvalid(final String TEST_NAME, ActivationType activationType, Task task, OperationResult result) throws Exception {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_BIG_JUDGE_OID, activationType, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -271,21 +271,21 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertNoLinkedAccount(user);
         assert11xUserOk(user);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
-        
+
         // CLEANUP
         unassignAllRoles(USER_JACK_OID);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
 	}
-	
+
 	private void assert11xUserOk(PrismObject<UserType> user) {
 		assertAdministrativeStatusEnabled(user);
         assertEffectiveActivation(user, ActivationStatusType.ENABLED);
 	}
 
-	
+
 	@Test
     public void test120JackDisableAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test120JackDisableAssignmentJudge";
@@ -294,30 +294,30 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
         assignRole(USER_JACK_OID, ROLE_BIG_JUDGE_OID, activationType, task, result);
         assertDummyAccount(null, USER_JACK_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(),
         		ActivationStatusType.DISABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_JACK_FULL_NAME, false);
-        
+
         assert11xUserOk(user);
 	}
-	
+
 	@Test
     public void test122JackReplaceNullAdministrativeStatusAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test122JackReplaceNullAdministrativeStatusAssignmentJudge";
@@ -326,15 +326,15 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertNoDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(),
         		null, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -342,7 +342,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertDummyAccount(null, USER_JACK_USERNAME);
         assert11xUserOk(user);
 	}
-	
+
 	@Test
     public void test123JackDisableAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test123JackDisableAssignmentJudge";
@@ -351,15 +351,15 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(),
         		ActivationStatusType.DISABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -367,7 +367,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoDummyAccount(null, USER_JACK_USERNAME);
         assert11xUserOk(user);
 	}
-	
+
 	@Test
     public void test124JackEnableAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test124JackEnableAssignmentJudge";
@@ -376,15 +376,15 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertNoDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_JACK_OID, judgeAssignment.getId(),
         		ActivationStatusType.ENABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -401,20 +401,20 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyObjectDeleteProperty(UserType.class, USER_JACK_OID, 
+        modifyObjectDeleteProperty(UserType.class, USER_JACK_OID,
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
         				new IdItemPathSegment(judgeAssignment.getId()),
         				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
         		task, result, ActivationStatusType.ENABLED);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -422,7 +422,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertDummyAccount(null, USER_JACK_USERNAME);
         assert11xUserOk(user);
 	}
-	
+
 	@Test
     public void test126JackAddAdministrativeStatusAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test126JackAddAdministrativeStatusAssignmentJudge";
@@ -431,20 +431,20 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyObjectAddProperty(UserType.class, USER_JACK_OID, 
+        modifyObjectAddProperty(UserType.class, USER_JACK_OID,
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
         				new IdItemPathSegment(judgeAssignment.getId()),
         				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
         		task, result, ActivationStatusType.ENABLED);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -452,7 +452,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertDummyAccount(null, USER_JACK_USERNAME);
         assert11xUserOk(user);
 	}
-	
+
 	@Test
     public void test127JackDeleteActivationAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test127JackDeleteActivationAssignmentJudge";
@@ -461,21 +461,21 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyObjectDeleteContainer(UserType.class, USER_JACK_OID, 
+        modifyObjectDeleteContainer(UserType.class, USER_JACK_OID,
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
         				new IdItemPathSegment(judgeAssignment.getId()),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)), 
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
         		task, result, activationType);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -492,23 +492,23 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
         ActivationType activationType = new ActivationType();
         XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
         validTo.add(XmlTypeConverter.createDuration(-60*60*1000)); // one hour ago
         activationType.setValidTo(validTo);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyObjectReplaceContainer(UserType.class, USER_JACK_OID, 
+        modifyObjectReplaceContainer(UserType.class, USER_JACK_OID,
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
         				new IdItemPathSegment(judgeAssignment.getId()),
-        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)), 
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
         		task, result, activationType);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -525,30 +525,30 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertNoDummyAccount(null, USER_JACK_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_JACK_OID);
         XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
         validTo.add(XmlTypeConverter.createDuration(60*60*1000)); // one hour ahead
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, 
+        modifyObjectReplaceProperty(UserType.class, USER_JACK_OID,
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
         				new IdItemPathSegment(judgeAssignment.getId()),
         				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_VALID_TO)), 
+        				new NameItemPathSegment(ActivationType.F_VALID_TO)),
         		task, result, validTo);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
         assertDummyAccount(null, USER_JACK_USERNAME);
-        
+
         assert11xUserOk(user);
-        
+
         // CLEANUP
         unassignAllRoles(USER_JACK_OID);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -560,7 +560,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		assertEquals("Wrong num ass", 1, assignments.size());
 		return assignments.iterator().next();
 	}
-	
+
 	/**
 	 * The test13x works with two roles for the same resource, enabling/disabling them.
 	 */
@@ -572,44 +572,44 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // preconditions
         assertNoAssignments(USER_BARBOSSA_OID);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
-        
+
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_BARBOSSA_OID, ROLE_JUDGE_OID, activationType, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		RESOURCE_DUMMY_DRINK, ROLE_JUDGE_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test131BarbossaAssignSailorEnabled() throws Exception {
 		final String TEST_NAME = "test131BarbossaAssignSailorEnabled";
@@ -618,40 +618,40 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_BARBOSSA_OID, ROLE_SAILOR_OID, activationType, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		RESOURCE_DUMMY_DRINK, ROLE_JUDGE_DRINK, ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test132BarbossaDisableAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test132BarbossaDisableAssignmentJudge";
@@ -660,39 +660,39 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.DISABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertNoDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		RESOURCE_DUMMY_DRINK, ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test133BarbossaDisableAssignmentSailor() throws Exception {
 		final String TEST_NAME = "test133BarbossaDisableAssignmentSailor";
@@ -701,22 +701,22 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.DISABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
@@ -724,11 +724,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 0);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test134BarbossaEnableAssignmentJudge() throws Exception {
 		final String TEST_NAME = "test134BarbossaEnableAssignmentJudge";
@@ -737,36 +737,36 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.ENABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		RESOURCE_DUMMY_DRINK, ROLE_JUDGE_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test135BarbossaEnableAssignmentSailor() throws Exception {
 		final String TEST_NAME = "test135BarbossaEnableAssignmentSailor";
@@ -775,36 +775,36 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.ENABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		RESOURCE_DUMMY_DRINK, ROLE_JUDGE_DRINK, ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test136BarbossaDisableBothAssignments() throws Exception {
 		final String TEST_NAME = "test136BarbossaDisableBothAssignments";
@@ -813,18 +813,18 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
-        
-        ObjectDelta<UserType> objectDelta = 
-        		ObjectDelta.createModificationReplaceProperty(UserType.class, 
+
+        ObjectDelta<UserType> objectDelta =
+        		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
                 				new IdItemPathSegment(judgeAssignment.getId()),
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 		prismContext, ActivationStatusType.DISABLED);
         objectDelta.addModificationReplaceProperty(new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
@@ -832,19 +832,19 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                 				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 				ActivationStatusType.DISABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-                
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
@@ -852,11 +852,11 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 0);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test137BarbossaEnableBothAssignments() throws Exception {
 		final String TEST_NAME = "test137BarbossaEnableBothAssignments";
@@ -865,18 +865,18 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
-        
-        ObjectDelta<UserType> objectDelta = 
-        		ObjectDelta.createModificationReplaceProperty(UserType.class, 
+
+        ObjectDelta<UserType> objectDelta =
+        		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
                 				new IdItemPathSegment(judgeAssignment.getId()),
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 		prismContext, ActivationStatusType.ENABLED);
         objectDelta.addModificationReplaceProperty(new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
@@ -884,37 +884,37 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                 				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 				ActivationStatusType.ENABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-                
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(null, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(null, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		RESOURCE_DUMMY_DRINK, ROLE_JUDGE_DRINK, ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	/**
 	 * Unassign disabled assignments.
 	 */
@@ -926,22 +926,22 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_JUDGE_OID);
         AssignmentType judgeAssignmentLight = new AssignmentType();
         judgeAssignmentLight.setId(judgeAssignment.getId());
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_SAILOR_OID);
         AssignmentType sailorAssignmentLight = new AssignmentType();
         sailorAssignmentLight.setId(sailorAssignment.getId());
-        
-        ObjectDelta<UserType> objectDelta = 
-        		ObjectDelta.createModificationReplaceProperty(UserType.class, 
+
+        ObjectDelta<UserType> objectDelta =
+        		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
                 				new IdItemPathSegment(judgeAssignment.getId()),
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 		prismContext, ActivationStatusType.DISABLED);
         objectDelta.addModificationReplaceProperty(new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
@@ -949,9 +949,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                 				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 				ActivationStatusType.DISABLED);
-        
+
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-                
+
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
@@ -960,30 +960,30 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertLinks(user, 0);
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
-        
-        objectDelta = 
-        		ObjectDelta.createModificationDeleteContainer(UserType.class, 
+
+        objectDelta =
+        		ObjectDelta.createModificationDeleteContainer(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)), 
+        				new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
                 		prismContext, judgeAssignmentLight);
         objectDelta.addModificationDeleteContainer(
         		new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
         		sailorAssignmentLight);
-        
+
         display("Unassign delta", objectDelta);
-        		
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
@@ -991,13 +991,13 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 0);
-        
+
         assertNoAssignments(user);
-        
+
         principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	/**
 	 * The 14x tests are similar than test13x tests, they work with two roles for the same resource, enabling/disabling them.
 	 * The 14x work with the red dummy resource that does disable instead of account delete.
@@ -1010,7 +1010,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // preconditions
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User before", user);
@@ -1018,40 +1018,40 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoAssignments(user);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME); // just to be on the safe side
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME);
-        
+
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID, activationType, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		ROLE_JUDGE_DRINK);
 
         user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test141BarbossaAssignRedSailorEnabled() throws Exception {
 		final String TEST_NAME = "test141BarbossaAssignRedSailorEnabled";
@@ -1060,40 +1060,40 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID, activationType, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		ROLE_JUDGE_DRINK, ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test142BarbossaDisableAssignmentRedJudge() throws Exception {
 		final String TEST_NAME = "test142BarbossaDisableAssignmentRedJudge";
@@ -1102,39 +1102,39 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.DISABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test143BarbossaDisableAssignmentRedSailor() throws Exception {
 		final String TEST_NAME = "test143BarbossaDisableAssignmentRedSailor";
@@ -1143,38 +1143,38 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.DISABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test144BarbossaEnableAssignmentRedJudge() throws Exception {
 		final String TEST_NAME = "test144BarbossaEnableAssignmentRedJudge";
@@ -1183,36 +1183,36 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.ENABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		ROLE_JUDGE_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test145BarbossaEnableAssignmentRedSailor() throws Exception {
 		final String TEST_NAME = "test145BarbossaEnableAssignmentRedSailor";
@@ -1221,36 +1221,36 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType assignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(), 
+        modifyAssignmentAdministrativeStatus(USER_BARBOSSA_OID, assignment.getId(),
         		ActivationStatusType.ENABLED, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		ROLE_JUDGE_DRINK, ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test146BarbossaDisableBothRedAssignments() throws Exception {
 		final String TEST_NAME = "test146BarbossaDisableBothRedAssignments";
@@ -1259,18 +1259,18 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
-        
-        ObjectDelta<UserType> objectDelta = 
-        		ObjectDelta.createModificationReplaceProperty(UserType.class, 
+
+        ObjectDelta<UserType> objectDelta =
+        		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
                 				new IdItemPathSegment(judgeAssignment.getId()),
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 		prismContext, ActivationStatusType.DISABLED);
         objectDelta.addModificationReplaceProperty(new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
@@ -1278,35 +1278,35 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                 				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 				ActivationStatusType.DISABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-                
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	@Test
     public void test147BarbossaEnableBothRedAssignments() throws Exception {
 		final String TEST_NAME = "test147BarbossaEnableBothRedAssignments";
@@ -1315,18 +1315,18 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
-        
-        ObjectDelta<UserType> objectDelta = 
-        		ObjectDelta.createModificationReplaceProperty(UserType.class, 
+
+        ObjectDelta<UserType> objectDelta =
+        		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
                 				new IdItemPathSegment(judgeAssignment.getId()),
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 		prismContext, ActivationStatusType.ENABLED);
         objectDelta.addModificationReplaceProperty(new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
@@ -1334,37 +1334,37 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                 				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 				ActivationStatusType.ENABLED);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-                
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, true);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		ROLE_JUDGE_TITLE);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		ROLE_JUDGE_DRINK, ROLE_SAILOR_DRINK);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertAuthorized(principal, AUTZ_PUNISH_URL);
 	}
-	
+
 	/**
 	 * Unassign disabled assignments.
 	 */
@@ -1376,22 +1376,22 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         AssignmentType judgeAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_JUDGE_OID);
         AssignmentType judgeAssignmentLight = new AssignmentType();
         judgeAssignmentLight.setId(judgeAssignment.getId());
         AssignmentType sailorAssignment = getUserAssignment(USER_BARBOSSA_OID, ROLE_RED_SAILOR_OID);
         AssignmentType sailorAssignmentLight = new AssignmentType();
         sailorAssignmentLight.setId(sailorAssignment.getId());
-        
-        ObjectDelta<UserType> objectDelta = 
-        		ObjectDelta.createModificationReplaceProperty(UserType.class, 
+
+        ObjectDelta<UserType> objectDelta =
+        		ObjectDelta.createModificationReplaceProperty(UserType.class,
         				USER_BARBOSSA_OID,
         				new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
                 				new IdItemPathSegment(judgeAssignment.getId()),
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+                				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 		prismContext, ActivationStatusType.DISABLED);
         objectDelta.addModificationReplaceProperty(new ItemPath(
                 				new NameItemPathSegment(UserType.F_ASSIGNMENT),
@@ -1399,9 +1399,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
                 				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
                 				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
                 				ActivationStatusType.DISABLED);
-        
+
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-                
+
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME);
@@ -1410,46 +1410,46 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertLinks(user, 1);
         MidPointPrincipal principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
-        
-        objectDelta = 
-        		ObjectDelta.createModificationDeleteContainer(UserType.class, 
+
+        objectDelta =
+        		ObjectDelta.createModificationDeleteContainer(UserType.class,
         				USER_BARBOSSA_OID,
-        				new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)), 
+        				new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
                 		prismContext, judgeAssignmentLight);
         objectDelta.addModificationDeleteContainer(
         		new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT)),
         		sailorAssignmentLight);
-        
+
         display("Unassign delta", objectDelta);
-        		
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(objectDelta), null, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME); // to be on the safe side
-        
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, false);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME, 
+        assertNoDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, USER_BARBOSSA_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
         assertNoDummyAccount(null, USER_BARBOSSA_USERNAME); // to be on the safe side
 
         user = getUser(USER_BARBOSSA_OID);
         display("User after", user);
         assertLinks(user, 1);
-        
+
         assertNoAssignments(user);
-        
+
         principal = userProfileService.getPrincipal(user);
         assertNotAuthorized(principal, AUTZ_PUNISH_URL);
 	}
@@ -1463,25 +1463,25 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-        
+
         PrismObject<UserType> userHermanBefore = getUser(USER_HERMAN_OID);
         XMLGregorianCalendar validTo = userHermanBefore.asObjectable().getActivation().getValidTo();
         assertEffectiveActivation(userHermanBefore, ActivationStatusType.ENABLED);
         assertValidityStatus(userHermanBefore, TimeIntervalStatusType.IN);
-        
-        // Let's move the clock tiny bit after herman's validTo 
+
+        // Let's move the clock tiny bit after herman's validTo
         validTo.add(XmlTypeConverter.createDuration(100));
         clock.override(validTo);
-        
+
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
         // THEN
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -1491,7 +1491,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         assertLastRecomputeTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
 	}
-	
+
 	@Test
     public void test200ImportTriggerScannerTask() throws Exception {
 		final String TEST_NAME = "test200ImportTriggerScannerTask";
@@ -1500,23 +1500,23 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
-        
+
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
-		
+
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
         waitForTaskFinish(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastRecomputeTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
-        
+
 	}
-	
+
 	/**
 	 * Explicitly disable Elaine's red account. Do this at the beginning of the test. We will
 	 * move time ahead in later tests. This account should remain here exactly like this
@@ -1530,19 +1530,19 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
-        modifyAccountShadowReplace(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, 
+        modifyAccountShadowReplace(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH,
         		task, result, ActivationStatusType.DISABLED);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        
+
         PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
-	
+
 	/**
 	 * Note: red resource disables account on unsassign, does NOT delete it.
 	 * Just the recompute trigger is set
@@ -1555,41 +1555,41 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // assign
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, 
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
         		RESOURCE_DUMMY_RED_OID, null, true);
         deltas.add(userDelta);
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-        
+
 		// unassign
         deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
         deltas.add(userDelta);
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         // Let's wait for the task to give it a change to screw up
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("Jack", userJack);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
-		
+
 		String accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
-		
+
 		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
@@ -1600,10 +1600,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 	}
-	
+
 	/**
 	 * Move time a month ahead. The account that was disabled in a previous test should be
-	 * deleted now. 
+	 * deleted now.
 	 */
 	@Test
     public void test215JackDummyAccountDeleteAfterMonth() throws Exception {
@@ -1613,23 +1613,23 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = taskManager.createTaskInstance(TestMapping.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         XMLGregorianCalendar time = clock.currentTimeXMLGregorianCalendar();
         // A month and a day, to make sure we move past the trigger
         time.add(XmlTypeConverter.createDuration(true, 0, 1, 1, 0, 0, 0));
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         clock.override(time);
-        
+
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
-	
+
 	@Test
     public void test220AddDrake() throws Exception {
 		final String TEST_NAME = "test220AddDrake";
@@ -1637,10 +1637,10 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
         display("Start", start);
-        
+
         PrismObject<UserType> userDrake = PrismTestUtil.parseObject(USER_DRAKE_FILE);
         UserType userDrakeType = userDrake.asObjectable();
-        
+
         // Activation
         ActivationType activationType = new ActivationType();
 		userDrakeType.setActivation(activationType);
@@ -1650,7 +1650,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		drakeValidTo = clock.currentTimeXMLGregorianCalendar();
 		drakeValidTo.add(XmlTypeConverter.createDuration(true, 0, 0, 80, 0, 0, 0));
 		activationType.setValidTo(drakeValidTo);
-        
+
 		// Assignment: dummy red
 		AssignmentType assignmentType = new AssignmentType();
 		userDrakeType.getAssignment().add(assignmentType);
@@ -1675,27 +1675,27 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		dummyAssignmentType2.setDescription("just to differentiate");
 
 		display("Drake before", userDrake);
-		
+
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        
+
         addObject(userDrake);
-        
+
         // THEN
         // Give the tasks a chance to screw up
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // Make sure that it is effectivelly disabled
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
-        
+
         assertLinks(userDrakeAfter, 0);
-        
+
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");
 	}
-	
+
 	@Test
     public void test222Drake4DaysBeforeValidFrom() throws Exception {
 		final String TEST_NAME = "test222Drake4DaysBeforeValidFrom";
@@ -1705,25 +1705,25 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 4, 0, 0, 0));
         clock.override(start);
         display("Start", start);
-        		
+
 		// WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         // Make sure that it is effectivelly disabled
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
-        
+
         String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
 	}
-	
+
 	@Test
     public void test224Drake1DaysAfterValidFrom() throws Exception {
 		final String TEST_NAME = "test224Drake1DaysAfterValidFrom";
@@ -1733,24 +1733,24 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
         clock.override(start);
         display("Start", start);
-        		
+
 		// WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
-        
+
         String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", true);
 	}
-	
+
 	@Test
     public void test226Drake1DayBeforeValidTo() throws Exception {
 		final String TEST_NAME = "test226Drake1DayBeforeValidTo";
@@ -1760,24 +1760,24 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         start.add(XmlTypeConverter.createDuration(false, 0, 0, 1, 0, 0, 0));
         clock.override(start);
         display("Start", start);
-        		
+
 		// WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
-        
+
         String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", true);
 	}
-	
+
 	@Test
     public void test228Drake1DayAfterValidTo() throws Exception {
 		final String TEST_NAME = "test228Drake1DayAfterValidTo";
@@ -1787,25 +1787,25 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 1, 0, 0, 0));
         clock.override(start);
         display("Start", start);
-        		
+
 		// WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
-        
+
         String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
 	}
-	
+
 	@Test
     public void test230Drake20DaysAfterValidTo() throws Exception {
 		final String TEST_NAME = "test230Drake20DaysAfterValidTo";
@@ -1815,22 +1815,22 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 20, 0, 0, 0));
         clock.override(start);
         display("Start", start);
-        		
+
 		// WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
-        
+
         String accountRedOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
 	}
 
@@ -1843,22 +1843,22 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 40, 0, 0, 0));
         clock.override(start);
         display("Start", start);
-        		
+
 		// WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
-        
+
         assertLinks(userDrakeAfter, 0);
-        
+
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");
 	}
-	
+
 	/**
 	 * Elaine's red account was explicitly disabled. We have moved the time ahead in previous tests.
 	 * But this account should remain as it is.
@@ -1869,19 +1869,19 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        
+
 		// WHEN
         // nothing to do
-		
+
 		// THEN
-        
+
         PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
-	
+
 	private XMLGregorianCalendar judgeAssignmentValidFrom;
 	private XMLGregorianCalendar judgeAssignmentValidTo;
-	
+
 	@Test
     public void test300HermanAssignJudgeNotYetValid() throws Exception {
 		final String TEST_NAME = "test300HermanAssignJudgeNotYetValid";
@@ -1890,7 +1890,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         ActivationType activationType = new ActivationType();
         judgeAssignmentValidFrom = clock.currentTimeXMLGregorianCalendar();
         judgeAssignmentValidFrom.add(XmlTypeConverter.createDuration(10*60*1000)); // 10 minutes ahead
@@ -1900,16 +1900,16 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         activationType.setValidTo(judgeAssignmentValidTo);
         display("Assignment validFrom", judgeAssignmentValidFrom);
         display("Assignment validTo", judgeAssignmentValidTo);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, activationType, task, result);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         assertNoDummyAccount(null, USER_HERMAN_USERNAME);
 	}
-	
+
 	@Test
     public void test310HermanAssignJudgeBecomesValid() throws Exception {
 		final String TEST_NAME = "test310HermanAssignJudgeBecomesValid";
@@ -1918,21 +1918,21 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("User before", user);
         XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(1*60*1000));
         clock.override(start);
         display("Start", start);
-        
+
         // WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-        
+
         assertRoleJudgeValid(TEST_NAME, task, result);
 	}
-	
+
 	@Test
     public void test315HermanAssignJudgeBecomesInValid() throws Exception {
 		final String TEST_NAME = "test315HermanAssignJudgeBecomesInValid";
@@ -1941,27 +1941,27 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         // GIVEN
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidTo.clone();
         start.add(XmlTypeConverter.createDuration(1*60*1000));
         clock.override(start);
         display("Start", start);
-        
+
         // WHEN
         // just wait
         waitForTaskNextRunAssertSuccess(TASK_VALIDITY_SCANNER_OID, true);
-        
+
         assertRoleJudgeInValid(TEST_NAME, task, result);
 	}
-		
-	private void assertRoleJudgeValid(final String TEST_NAME, Task task, OperationResult result) throws Exception {	            
+
+	private void assertRoleJudgeValid(final String TEST_NAME, Task task, OperationResult result) throws Exception {
         assertDummyAccount(null, USER_HERMAN_USERNAME);
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("User after", user);
         assertLinks(user, 1);
 	}
-	
-	private void assertRoleJudgeInValid(final String TEST_NAME, Task task, OperationResult result) throws Exception {	            
+
+	private void assertRoleJudgeInValid(final String TEST_NAME, Task task, OperationResult result) throws Exception {
         assertNoDummyAccount(null, USER_HERMAN_USERNAME);
         PrismObject<UserType> user = getUser(USER_HERMAN_OID);
         display("User after", user);
@@ -1970,20 +1970,20 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
 	private void modifyAssignmentAdministrativeStatus(String userOid, long assignmentId, ActivationStatusType status, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		if (status == null) {
-			modifyObjectReplaceProperty(UserType.class, userOid, 
+			modifyObjectReplaceProperty(UserType.class, userOid,
 	        		new ItemPath(
 	        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
 	        				new IdItemPathSegment(assignmentId),
 	        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-	        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
-	        		task, result);			
+	        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
+	        		task, result);
 		} else {
-			modifyObjectReplaceProperty(UserType.class, userOid, 
+			modifyObjectReplaceProperty(UserType.class, userOid,
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
         				new IdItemPathSegment(assignmentId),
         				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
-        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)),
         		task, result, status);
 		}
 	}

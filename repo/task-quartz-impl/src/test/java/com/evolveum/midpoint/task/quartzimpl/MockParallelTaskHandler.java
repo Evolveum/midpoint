@@ -98,7 +98,7 @@ public class MockParallelTaskHandler implements TaskHandler {
 			return hasExited;
 		}
 	}
-	
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.info("MockParallelTaskHandler.run starting (id = " + id + ")");
@@ -131,7 +131,7 @@ public class MockParallelTaskHandler implements TaskHandler {
         }
 
 		opResult.recordSuccess();
-		
+
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(task.getProgress()+1);
         runResult.setOperationResult(opResult);
@@ -142,7 +142,7 @@ public class MockParallelTaskHandler implements TaskHandler {
 		LOGGER.info("MockParallelTaskHandler.run stopping");
 		return runResult;
 	}
-	
+
 	@Override
 	public Long heartbeat(Task task) {
 		return 0L;
@@ -150,11 +150,11 @@ public class MockParallelTaskHandler implements TaskHandler {
 	@Override
 	public void refreshStatus(Task task) {
 	}
-	
+
 	public boolean hasRun() {
 		return hasRun;
 	}
-	
+
 	public void resetHasRun() {
 		hasRun = false;
 	}

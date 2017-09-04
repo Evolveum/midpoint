@@ -53,7 +53,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     public static final String F_SELECTED = "selected";
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
-    
+
 	public static final String PROPERTY_CONTAINERS = "containers";
 
     private PrismObject<O> object;
@@ -75,7 +75,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     private boolean showAssignments = false;
     // whether to show name and description properties and metadata container
     private boolean showInheritedObjectAttributes = true;
-    
+
     // readonly flag is an override. false means "do not override"
     private boolean readonly = false;
 
@@ -280,7 +280,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 
         return null;
     }
-    
+
     public ContainerWrapper<O> findMainContainerWrapper() {
         for (ContainerWrapper wrapper : getContainers()) {
         	if (wrapper.isMain()) {
@@ -289,7 +289,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
         return null;
     }
-    
+
     public <IW extends ItemWrapper> IW findPropertyWrapper(ItemPath path) {
     	ContainerWrapper containerWrapper;
     	ItemPath propertyPath;
@@ -314,7 +314,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
             delta.applyTo(object);
         }
     }
-    
+
     public void sort(PageBase pageBase) {
     	ContainerWrapper main = findMainContainerWrapper();
     	if (main != null) {
@@ -333,7 +333,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
     	if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
     	}
-    	
+
         if (ContainerStatus.ADDING.equals(getStatus())) {
             return createAddingObjectDelta();
         }
@@ -356,11 +356,11 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
 	        // Make sure we have all the definitions
 	        object.getPrismContext().adopt(delta);
         }
-        
+
         if (LOGGER.isTraceEnabled()) {
         	LOGGER.trace("Creating delta from wrapper {}: existing object, creating delta:\n{}", this, delta.debugDump());
         }
-        
+
         return delta;
     }
 
@@ -474,7 +474,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         if (LOGGER.isTraceEnabled()) {
         	LOGGER.trace("Creating delta from wrapper {}: adding object, creating complete ADD delta:\n{}", this, delta.debugDump());
         }
-        
+
         if (InternalsConfig.consistencyChecks) {
             delta.checkConsistence(true, true, true, ConsistencyCheckScope.THOROUGH);
         }
@@ -599,7 +599,7 @@ public class ObjectWrapper<O extends ObjectType> implements Serializable, Reviva
         }
         return null;
     }
-    
+
 	public void copyRuntimeStateTo(ObjectWrapper<O> newWrapper) {
 		newWrapper.setMinimalized(this.isMinimalized());
 		newWrapper.setShowEmpty(this.isShowEmpty());

@@ -66,7 +66,7 @@ import java.io.InputStreamReader;
 public class PageNewReport extends PageAdminReports {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageNewReport.class);
-    
+
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_IMPORT_RADIO_GROUP = "importRadioGroup";
@@ -80,21 +80,21 @@ public class PageNewReport extends PageAdminReports {
     private static final String ID_INPUT_FILE_LABEL = "inputFileLabel";
     private static final String ID_INPUT_FILE = "inputFile";
     private static final String ID_FILE_INPUT = "fileInput";
-    
+
     private static final String OPERATION_IMPORT_REPORT_XML = "Import Report from XML";
     private static final String OPERATION_IMPORT_REPORT = "Import Report from file";
 
     private static final Integer INPUT_FILE = 1;
     private static final Integer INPUT_XML = 2;
-    
+
     private Model<String> xmlEditorModel;
 
     public PageNewReport() {
     	xmlEditorModel = new Model<String>(null);
-    	
+
     	initLayout();
 	}
-    
+
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
@@ -129,7 +129,7 @@ public class PageNewReport extends PageAdminReports {
         addVisibileForInputType(inputAce, INPUT_XML, groupModel);
         input.add(inputAce);
 
-     	
+
         AceEditor aceEditor = new AceEditor(ID_ACE_EDITOR, xmlEditorModel);
         aceEditor.setOutputMarkupId(true);
         inputAce.add(aceEditor);
@@ -230,7 +230,7 @@ public class PageNewReport extends PageAdminReports {
 //            reader.
             stream = new ReaderInputStream(reader, reader.getEncoding());
             byte[] reportIn = IOUtils.toByteArray(stream);
-            
+
             setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(reportIn))));
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import file.", ex);
@@ -260,7 +260,7 @@ public class PageNewReport extends PageAdminReports {
         OperationResult result = new OperationResult(OPERATION_IMPORT_REPORT_XML);
         InputStream stream = null;
         try {
-               
+
             setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(xml.getBytes()))));
         } catch (Exception ex) {
             result.recordFatalError("Couldn't import object.", ex);

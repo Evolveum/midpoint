@@ -39,26 +39,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author mederly
  * @author semancik
  */
-public class FocusTasksTabPanel<F extends FocusType> 
+public class FocusTasksTabPanel<F extends FocusType>
 		extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
-	
+
 	protected static final String ID_TASK_TABLE = "taskTable";
 	protected static final String ID_LABEL = "label";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(FocusTasksTabPanel.class);
-	
+
 	private TaskDtoProvider taskDtoProvider;
-	
-	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, 
+
+	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
 			TaskDtoProvider taskDtoProvider, PageBase page) {
 		super(id, mainForm, focusModel, page);
 		this.taskDtoProvider = taskDtoProvider;
 		initLayout(page);
 	}
-	
+
 	private void initLayout(final PageBase page) {
-		
+
 		Label label = new Label(ID_LABEL, new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
@@ -72,7 +72,7 @@ public class FocusTasksTabPanel<F extends FocusType>
 			}
 		});
 		add(label);
-		
+
 		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
 		TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns);
 		add(taskTable);
@@ -84,7 +84,7 @@ public class FocusTasksTabPanel<F extends FocusType>
 			}
 		});
 	}
-	
+
 	private List<IColumn<TaskDto, String>> initTaskColumns() {
 		List<IColumn<TaskDto, String>> columns = new ArrayList<IColumn<TaskDto, String>>();
 

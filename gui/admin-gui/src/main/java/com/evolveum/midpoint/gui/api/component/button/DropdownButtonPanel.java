@@ -34,30 +34,30 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 	private static final String ID_INFO = "info";
 	private static final String ID_ICON = "icon";
 	private static final String ID_LABEL = "label";
-	
+
 	private static String ID_MENU_ITEM = "menuItem";
     private static String ID_MENU_ITEM_BODY = "menuItemBody";
 
-	
+
 	public DropdownButtonPanel(String id, DropdownButtonDto model) {
 		super(id);
 		initLayout(model);
 	}
-	
+
 	private void initLayout(DropdownButtonDto model){
-		
-	
+
+
 		Label info = new Label(ID_INFO, model.getInfo());
 		add(info);
-		
+
 		Label label = new Label(ID_LABEL, model.getLabel());
 		add(label);
-		
+
 		WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
 		icon.add(AttributeModifier.append("class", model.getIcon()));
 		add(icon);
-		
-		
+
+
 		 ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, new Model((Serializable) model.getMenuItems())) {
 
 	            @Override
@@ -65,11 +65,11 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 	                initMenuItem(item);
 	            }
 	        };
-	        
+
 	        add(li);
-		
+
 	}
-	
+
 	 private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 	        final InlineMenuItem item = menuItem.getModelObject();
 
@@ -77,6 +77,6 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto>{
 	        menuItemBody.setRenderBodyOnly(true);
 	        menuItem.add(menuItemBody);
 	    }
-	
+
 
 }

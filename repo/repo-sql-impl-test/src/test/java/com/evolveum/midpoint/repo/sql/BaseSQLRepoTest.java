@@ -76,7 +76,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
-    
+
     public SessionFactory getFactory() {
         return factory;
     }

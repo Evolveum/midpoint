@@ -40,21 +40,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Iterative search result handler for account synchronization. Works both for
  * reconciliation and import from resource.
- * 
+ *
  * This class is called back from the searchObjectsIterative() operation of the
  * provisioning service. It does most of the work of the "import" and resource
  * reconciliation operations.
- * 
+ *
  * @see ImportAccountsFromResourceTaskHandler
  * @see ReconciliationTaskHandler
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
-	
+
 	private ResourceObjectChangeListener objectChangeListener;
 	private String resourceOid;
 	private ThreadLocal<ResourceType> resourceWorkingCopy = new ThreadLocal<>();       // because PrismContainer is not thread safe even for reading, each thread must have its own copy
@@ -83,7 +83,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	public void setForceAdd(boolean forceAdd) {
 		this.forceAdd = forceAdd;
 	}
-	
+
 	public QName getSourceChannel() {
 		return sourceChannel;
 	}
@@ -91,7 +91,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	public void setSourceChannel(QName sourceChannel) {
 		this.sourceChannel = sourceChannel;
 	}
-	
+
 	public String getResourceOid() {
 		return resourceOid;
 	}
@@ -113,7 +113,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
 	 * was created and invoke notification interface.
-	 * 
+	 *
 	 * @see
 	 * com.evolveum.midpoint.provisioning.api.ResultHandler#handle(com.evolveum
 	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
@@ -142,10 +142,10 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));
 		}
-		
+
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
-			LOGGER.trace("{} skipping {} because it is protected", 
+			LOGGER.trace("{} skipping {} because it is protected",
 					getProcessShortNameCapitalized(), accountShadow);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
 			return true;

@@ -253,7 +253,7 @@ public class PageImportObject extends PageAdminConfiguration {
 		addVisibileForInputType(saveXmlButton, INPUT_XML, inputType);
 		buttonBar.add(saveXmlButton);
 	}
-	
+
 	private FileUpload getUploadedFile() {
 		FileUploadField file = (FileUploadField) get(
 				createComponentPath(ID_MAIN_FORM, ID_INPUT, ID_INPUT_FILE, ID_FILE_INPUT));
@@ -318,10 +318,10 @@ public class PageImportObject extends PageAdminConfiguration {
 		getSession().getFeedbackMessages().clear();
 		getFeedbackMessages().clear();
 	}
-	
+
 	private void savePerformed(boolean raw, String operationName, AjaxRequestTarget target) {
 		clearOldFeedback();
-		
+
 		OperationResult result = new OperationResult(operationName);
 
 		if (!validateInput(raw)) {
@@ -353,5 +353,5 @@ public class PageImportObject extends PageAdminConfiguration {
 		target.add(PageImportObject.this);
 	}
 
-	
+
 }

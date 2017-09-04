@@ -38,7 +38,7 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		super(itemOld, delta, itemNew);
 		this.name = name;
 	}
-	
+
 	public Source(ItemDeltaItem<V,D> idi, QName name) {
 		super(idi);
 		this.name = name;
@@ -51,7 +51,7 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 	public void setName(QName name) {
 		this.name = name;
 	}
-	
+
 	public Item<V,D> getEmptyItem() throws SchemaException {
 		ItemDefinition definition = getDefinition();
 		if (definition == null) {
@@ -64,7 +64,7 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 	public String toString() {
 		return "Source(" + shortDebugDump() + ")";
 	}
-	
+
 	public String shortDebugDump() {
 		return PrettyPrinter.prettyPrint(name) + ": old=" + itemOld + ", delta=" + delta + ", new=" + itemNew;
 	}
@@ -87,5 +87,5 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		DebugUtil.debugDumpWithLabel(sb, "new", itemNew, indent +1);
 		return sb.toString();
 	}
-	
+
 }

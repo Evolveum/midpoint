@@ -40,19 +40,19 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 	private static final long serialVersionUID = 1L;
 
 	public static final String F_VALUE = "value";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SelectableBean.class);
 
     /**
      * Value of object that this bean represents. It may be null in case that non-success result is set.
      */
     private T value;
-    
+
     /**
      * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
      */
     private OperationResult result;
-    
+
     private List<InlineMenuItem> menuItems;
 
     public SelectableBean() {
@@ -69,7 +69,7 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
     public void setValue(T value) {
         this.value = value;
     }
-    
+
     public OperationResult getResult() {
 		return result;
 	}
@@ -77,7 +77,7 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 	public void setResult(OperationResult result) {
 		this.result = result;
 	}
-	
+
 	public void setResult(OperationResultType resultType) throws SchemaException {
 		this.result = OperationResult.createOperationResult(resultType);
 	}

@@ -22,15 +22,15 @@ import java.io.Serializable;
  *
  */
 public interface Containerable extends Serializable {
-	
-	
+
+
 	PrismContainerValue asPrismContainerValue();
-	
+
 	/**
 	 * Setup value to the containerable representation. This is used to after (empty) containerable is created to
 	 * initialize it with a correct prism container value.
 	 * Note: This method DOES NOT change the container value parent.
 	 */
 	void setupContainerValue(PrismContainerValue container);
-	
+
 }

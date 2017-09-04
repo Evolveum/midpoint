@@ -21,23 +21,23 @@ package com.evolveum.midpoint.schema.internals;
  */
 public enum InternalOperationClasses {
 	RESOURCE_SCHEMA_OPERATIONS("resourceSchemaOperations", "resource schema operations"),
-	
+
 	CONNECTOR_OPERATIONS("connectorOperations", "connector operations"),
-	
+
 	SHADOW_FETCH_OPERATIONS("shadowFetchOperations", "shadow fetch operations"),
-	
+
 	REPOSITORY_OPERATIONS("repositoryOperations", "repository operations"),
-	
+
 	PRISM_OBJECT_CLONES("prismObjectClone", "prism object clones"),
-	
+
 	ROLE_EVALUATIONS("roleEvaluations", "role evaluations");
-		
+
 	// Used as localization key
 	private String key;
-	
+
 	// Used in logfiles, etc.
 	private String label;
-	
+
 	private InternalOperationClasses(String key, String label) {
 		this.key = key;
 		this.label = label;

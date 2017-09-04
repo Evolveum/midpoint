@@ -24,6 +24,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -51,15 +52,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
  * @author katkav
  */
 public class PolicyRulesPanel extends AssignmentPanel {
-	
+
     private static final long serialVersionUID = 1L;
-    
-    
+
+
     public PolicyRulesPanel(String id, IModel<List<AssignmentDto>> policyRulesModel, PageBase pageBase){
         super(id, policyRulesModel, pageBase);
-        
+
     }
-    
+
     protected List<IColumn<AssignmentDto, String>> initColumns() {
         List<IColumn<AssignmentDto, String>> columns = new ArrayList<>();
         columns.add(new AbstractColumn<AssignmentDto, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
@@ -69,7 +70,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
             public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
                                      final IModel<AssignmentDto> rowModel) {
                 PolicyRuleType policyRuleType = rowModel.getObject().getAssignment().getPolicyRule();
-                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleType, getParentPage()))));
+                cellItem.add(new MultiLineLabel(componentId, Model.of(PolicyRuleUtil.convertPolicyConstraintsContainerToString(policyRuleType, getParentPage()))));
             }
 
         });
@@ -92,7 +93,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
             public void populateItem(Item<ICellPopulator<AssignmentDto>> cellItem, String componentId,
                                      final IModel<AssignmentDto> rowModel) {
             	PolicyRuleType policyRuleType = rowModel.getObject().getAssignment().getPolicyRule();
-                cellItem.add(new Label(componentId, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleType))));
+                cellItem.add(new MultiLineLabel(componentId, Model.of(PolicyRuleUtil.convertPolicyActionsContainerToString(policyRuleType))));
             }
 
         });
@@ -116,11 +117,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
         });
         return columns;
     }
-    
+
 	@Override
 	protected void initPaging() {
 		  getPolicyRulesTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
-		
+
 	}
 
 	@Override
@@ -140,7 +141,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

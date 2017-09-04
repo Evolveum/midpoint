@@ -43,21 +43,21 @@ import org.xml.sax.SAXException;
 public abstract class AbstractGuiUnitTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiUnitTest.class);
-    
+
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
-    
+
     protected ModelServiceLocator getServiceLocator() {
 		return new ModelServiceLocator() {
-			
+
 			@Override
 			public ModelService getModelService() {
 				return null;
 			}
-			
+
 			@Override
 			public ModelInteractionService getModelInteractionService() {
 				return null;
@@ -94,5 +94,5 @@ public abstract class AbstractGuiUnitTest {
 			}
 		};
 	}
-    
+
 }

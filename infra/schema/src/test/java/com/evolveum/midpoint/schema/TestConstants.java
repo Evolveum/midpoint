@@ -26,10 +26,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  *
  */
 public class TestConstants {
-	
+
 	public static final String COMMON_DIR_PATH = "src/test/resources/common";
 	public static final File COMMON_DIR = new File(COMMON_DIR_PATH);
-	
+
 	public static final String NS_EXTENSION = SchemaConstants.NS_MIDPOINT_TEST + "/extension";
 	public static final String NS_FOO = "http://www.example.com/foo";
 
@@ -38,16 +38,16 @@ public class TestConstants {
 	public static final QName EXTENSION_INT_TYPE_ELEMENT = new QName(NS_EXTENSION, "intType");
 	public static final QName EXTENSION_IGNORED_TYPE_ELEMENT = new QName(NS_EXTENSION, "ignoredType");
     public static final QName EXTENSION_USER_REF_ELEMENT = new QName(NS_EXTENSION, "userRef");
-	
+
     public static final String USER_FILE_BASENAME = "user-jack";
 	public static final File USER_FILE = new File(COMMON_DIR, "user-jack.xml");
-	
+
 	public static final Long USER_ASSIGNMENT_1_ID = 111L;
-	
+
 	public static final String USER_ACCOUNT_REF_1_OID = "2f9b9299-6f45-498f-aaaa-000000001111";
 	public static final String USER_ACCOUNT_REF_2_OID = "2f9b9299-6f45-498f-aaaa-000000002222";
 	public static final String USER_ACCOUNT_REF_3_OID = "2f9b9299-6f45-498f-aaaa-000000003333";
-	
+
 	public static final String RESOURCE_FILE_BASENAME = "resource-opendj";
 	public static final String RESOURCE_FILE_SIMPLE_BASENAME = "resource-opendj-simple";
 	public static final File RESOURCE_FILE = new File(TestConstants.COMMON_DIR, "xml/ns/resource-opendj.xml");

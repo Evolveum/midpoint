@@ -48,22 +48,22 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 public class ResourceCarefulAntUtil {
 
 	private static Random rnd = new Random();
-	
+
 	public static void initAnts(List<CarefulAnt<ResourceType>> ants, final File resourceFile, final PrismContext prismContext) {
 		final PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
 		ants.add(new CarefulAnt<ResourceType>() {
 			@Override
 			public ItemDelta<?,?> createDelta(int iteration) {
-				return  PropertyDelta.createModificationReplaceProperty(ResourceType.F_DESCRIPTION, 
+				return  PropertyDelta.createModificationReplaceProperty(ResourceType.F_DESCRIPTION,
 		    			resourceDef, "Blah "+iteration);
 			}
-			
+
 			@Override
 			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
 				assertEquals("Wrong descripion in iteration "+iteration, "Blah "+iteration, resource.asObjectable().getDescription());
 			}
 		});
-    	
+
     	ants.add(new CarefulAnt<ResourceType>() {
     		SchemaHandlingType schemaHandling;
 			@Override
@@ -72,13 +72,13 @@ public class ResourceCarefulAntUtil {
 				return ContainerDelta.createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
 						prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(SchemaHandlingType.class),
 						schemaHandling.asPrismContainerValue().clone());
-			}	
+			}
 			@Override
 			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
 				assertEquals("Wrong schemaHandling in iteration "+iteration, schemaHandling, resource.asObjectable().getSchemaHandling());
 			}
 		});
-    	
+
     	ants.add(new CarefulAnt<ResourceType>() {
     		SchemaDefinitionType xmlSchemaDef;
 			@Override
@@ -87,7 +87,7 @@ public class ResourceCarefulAntUtil {
 				return PropertyDelta.createModificationReplaceProperty(
 						new ItemPath(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
 						resourceDef, xmlSchemaDef);
-			}	
+			}
 			@Override
 			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
 				List<Element> orgigElements = xmlSchemaDef.getAny();
@@ -97,7 +97,7 @@ public class ResourceCarefulAntUtil {
 			}
 		});
 	}
-	
+
     private static SchemaHandlingType createNewSchemaHandling(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
     	PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
     	SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
@@ -121,7 +121,7 @@ public class ResourceCarefulAntUtil {
     	}
     	return def;
 	}
-    
+
     private static PrismObject<ResourceType> parseResource(File resourceFile, PrismContext prismContext) throws SchemaException{
     	try{
     		return prismContext.parseObject(resourceFile);

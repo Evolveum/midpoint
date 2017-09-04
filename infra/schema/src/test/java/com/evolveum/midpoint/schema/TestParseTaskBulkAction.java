@@ -53,9 +53,9 @@ import static org.testng.AssertJUnit.assertTrue;
  *
  */
 public class TestParseTaskBulkAction {
-	
+
 	public static final File TASK_FILE = new File("src/test/resources/common/task-bulk-action-1.xml");
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -68,10 +68,10 @@ public class TestParseTaskBulkAction {
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		RootXNode node = prismContext.parserFor(TASK_FILE).xml().parseToXNode();
-		
+
 		// THEN
 		System.out.println("Parsed task (XNode):");
 		System.out.println(node.debugDump());
@@ -144,9 +144,9 @@ public class TestParseTaskBulkAction {
 
 
     private void assertTask(PrismObject<TaskType> task) {
-		
+
 		task.checkConsistence();
-		
+
 		assertEquals("Wrong oid", "44444444-4444-4444-4444-000000001111", task.getOid());
 		PrismObjectDefinition<TaskType> usedDefinition = task.getDefinition();
 		assertNotNull("No task definition", usedDefinition);
@@ -158,29 +158,29 @@ public class TestParseTaskBulkAction {
 
 		assertPropertyValue(task, "name", PrismTestUtil.createPolyString("Task2"));
 		assertPropertyDefinition(task, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-		
+
 		assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
 		assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);
-		
+
 		assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStatusType.class), 1, 1);
 		PrismProperty<TaskExecutionStatusType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
 		PrismPropertyValue<TaskExecutionStatusType> executionStatusValue = executionStatusProperty.getValue();
 		TaskExecutionStatusType executionStatus = executionStatusValue.getValue();
 		assertEquals("Wrong execution status", TaskExecutionStatusType.RUNNABLE, executionStatus);
-		
+
 		PrismContainer extension = task.getExtension();
 		PrismContainerValue extensionValue = extension.getValue();
 		assertTrue("Extension parent", extensionValue.getParent() == extension);
 		assertNull("Extension ID", extensionValue.getId());
-		
+
 	}
-	
+
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
-	
+
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);

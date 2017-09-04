@@ -23,5 +23,5 @@ package com.evolveum.midpoint.util;
 public interface FailableFunction<T,R> {
 
 	R apply(T object) throws Exception;
-	
+
 }

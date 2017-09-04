@@ -46,29 +46,27 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 
 /**
- * 
+ *
  *                 TODO
- *             
- * 
+ *
+ *
  * <p>Java class for QueryType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="QueryType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}filter"/>
- *         &lt;element name="paging" type="{http://prism.evolveum.com/xml/ns/public/query-2}PagingType" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="QueryType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}filter"/&gt;
+ *         &lt;element name="paging" type="{http://prism.evolveum.com/xml/ns/public/query-2}PagingType" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "QueryType", propOrder = {
@@ -88,16 +86,16 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
     @XmlElement(required = true)
     protected SearchFilterType filter;
     protected PagingType paging;
-    
-    
+
+
 
     /**
      * Gets the value of the description property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getDescription() {
         return description;
@@ -105,11 +103,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Sets the value of the description property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setDescription(String value) {
         this.description = value;
@@ -122,11 +120,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Gets the value of the filter property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link SearchFilterType }
-     *     
+     *
      */
     public SearchFilterType getFilter() {
         return filter;
@@ -134,11 +132,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Sets the value of the filter property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link SearchFilterType }
-     *     
+     *
      */
     public void setFilter(SearchFilterType value) {
         this.filter = value;
@@ -151,11 +149,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Gets the value of the paging property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link PagingType }
-     *     
+     *
      */
     public PagingType getPaging() {
         return paging;
@@ -163,11 +161,11 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Sets the value of the paging property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link PagingType }
-     *     
+     *
      */
     public void setPaging(PagingType value) {
         this.paging = value;
@@ -214,10 +212,10 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 			return false;
 		return true;
 	}
-	
+
     /**
      * Creates and returns a deep copy of a given object.
-     * 
+     *
      * @param o
      *     The instance to copy or {@code null}.
      * @return
@@ -355,7 +353,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -400,7 +398,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -418,7 +416,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -436,7 +434,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -454,7 +452,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -472,7 +470,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -490,7 +488,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -508,7 +506,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -526,7 +524,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -544,7 +542,7 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of a given {@code Serializable}.
-     * 
+     *
      * @param serializable
      *     The instance to copy or {@code null}.
      * @return
@@ -584,8 +582,8 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

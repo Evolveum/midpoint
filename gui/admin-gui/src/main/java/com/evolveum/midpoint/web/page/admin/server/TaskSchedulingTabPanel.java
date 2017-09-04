@@ -277,7 +277,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 		});
 		add(nextRetryContainer);
 	}
-	
+
 	private void initLayoutForSchedulingTable() {
 
 		// models
@@ -344,7 +344,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(schedulingTable);
 			}
-			
+
 			@Override
 			   public boolean isEnabled() {
 				   return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_RECURRENCE);
@@ -373,7 +373,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 			protected void onUpdate(AjaxRequestTarget target) {
 				target.add(schedulingTable);
 			}
-			
+
 			@Override
 			public boolean isEnabled() {
 				return parentPage.isEdit() && !parentPage.getTaskDto().isRunnableOrRunning() && parentPage.isEditable(TaskType.F_BINDING);
@@ -413,7 +413,7 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 						&& parentPage.isEditable(new ItemPath(TaskType.F_SCHEDULE));
 			}
 		};
-		
+
 		interval.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		interval.add(enabledIfEditAndNotRunningRunnableOrLooselyBoundAndScheduleIsEditable);
 		intervalContainer.add(interval);

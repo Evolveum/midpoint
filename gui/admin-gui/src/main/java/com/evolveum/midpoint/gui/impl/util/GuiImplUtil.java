@@ -21,12 +21,12 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Class for misc GUI util methods (impl).
- * 
+ *
  * @author semancik
  *
  */
 public class GuiImplUtil {
-	
+
 	public static ItemPathType getPathType(AbstractFormItemType aItem) {
 		if (aItem == null) {
 			return null;

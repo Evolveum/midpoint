@@ -37,14 +37,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  *
  */
 public class ExpressionFactory {
-	
+
 	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<QName, ExpressionEvaluatorFactory>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
 	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<ExpressionIdentifier, Expression<?,?>>();
 	final private PrismContext prismContext;
 	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
 	final private SecurityEnforcer securityEnforcer;
-	
+
 	public ExpressionFactory(SecurityEnforcer securityEnforcer, PrismContext prismContext) {
 		this.prismContext = prismContext;
 		this.securityEnforcer = securityEnforcer;
@@ -57,7 +57,7 @@ public class ExpressionFactory {
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
-	
+
 	public void setEvaluatorFactories(Collection<ExpressionEvaluatorFactory> evaluatorFactories) {
 		for (ExpressionEvaluatorFactory evaluatorFactory: evaluatorFactories) {
 			addEvaluatorFactory(evaluatorFactory);
@@ -83,19 +83,19 @@ public class ExpressionFactory {
 		expression.parse(this, shortDesc, task, result);
 		return expression;
 	}
-	
+
 	public <V extends PrismValue> ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
 		return evaluatorFactoriesMap.get(elementName);
 	}
-	
+
 	public void addEvaluatorFactory(ExpressionEvaluatorFactory factory) {
 		evaluatorFactoriesMap.put(factory.getElementName(), factory);
 	}
-	
+
 	public ExpressionEvaluatorFactory getDefaultEvaluatorFactory() {
 		return defaultEvaluatorFactory;
 	}
-	
+
 	public void setDefaultEvaluatorFactory(ExpressionEvaluatorFactory defaultEvaluatorFactory) {
 		this.defaultEvaluatorFactory = defaultEvaluatorFactory;
 	}
@@ -103,7 +103,7 @@ public class ExpressionFactory {
 	class ExpressionIdentifier {
 		private ExpressionType expressionType;
 		private ItemDefinition outputDefinition;
-		
+
 		ExpressionIdentifier(ExpressionType expressionType, ItemDefinition outputDefinition) {
 			super();
 			this.expressionType = expressionType;

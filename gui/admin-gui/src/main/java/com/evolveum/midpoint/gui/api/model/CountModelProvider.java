@@ -21,12 +21,12 @@ import org.apache.wicket.model.IModel;
  * Interface for objects that provide Wicket model which represents
  * object count or similar tag. The count in usually displayed as a
  * small "bubble" in the tab, next to the menu item, etc.
- * 
+ *
  * @author semancik
  */
 @FunctionalInterface
 public interface CountModelProvider {
-	
+
 	/**
 	 * Return count model. May return null. If null is
 	 * returned then no count should be displayed.

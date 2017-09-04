@@ -43,17 +43,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public abstract class Abstract389DsDnTest extends Abstract389DsTest {
-	
+
 	@Override
 	public String getPrimaryIdentifierAttributeName() {
 		return "dn";
 	}
-	
+
 	@Override
 	protected boolean syncCanDetectDelete() {
 		return true;
 	}
-	
+
 	@Override
 	protected boolean isUsingGroupShortcutAttribute() {
 		return false;
@@ -63,17 +63,17 @@ public abstract class Abstract389DsDnTest extends Abstract389DsTest {
     public void test025SchemaDn() throws Exception {
 		final String TEST_NAME = "test025SchemaDn";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        
+
         ResourceAttributeDefinition<String> dnDef = accountObjectClassDefinition.findAttributeDefinition("dn");
         display("DN defintion", dnDef);
         PrismAsserts.assertDefinition(dnDef, new QName(MidPointConstants.NS_RI, "dn"), DOMUtil.XSD_STRING, 1, 1);
         assertTrue("dn read", dnDef.canRead());
         assertTrue("dn modify", dnDef.canModify());
         assertTrue("dn add", dnDef.canAdd());
-        
+
         assertTrue("Dn is not an identifier", accountObjectClassDefinition.getPrimaryIdentifiers().contains(dnDef));
-        assertTrue("Secodary identifiers are not empty: "+accountObjectClassDefinition.getSecondaryIdentifiers(), 
+        assertTrue("Secodary identifiers are not empty: "+accountObjectClassDefinition.getSecondaryIdentifiers(),
         		accountObjectClassDefinition.getSecondaryIdentifiers().isEmpty());
 	}
-	
+
 }

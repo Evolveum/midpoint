@@ -85,9 +85,9 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
         if (lookup == null) {
             return new TextField(ID_TEXT_INPUT, new PropertyModel(getModel(), SearchValue.F_VALUE));
         }
-        
+
         LookupPropertyModel<String> lookupPropertyModel = new LookupPropertyModel<String>(getModel(), SearchValue.F_VALUE, lookup.asObjectable()) {
-        	
+
         	private static final long serialVersionUID = 1L;
 
 			@Override
@@ -107,8 +107,8 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
                 return prepareAutoCompleteList(input).iterator();
             }
 
-            
-            
+
+
         };
     }
 

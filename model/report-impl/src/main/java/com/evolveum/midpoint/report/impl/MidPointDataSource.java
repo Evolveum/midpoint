@@ -32,7 +32,7 @@ public class MidPointDataSource implements JRDataSource{
 	Collection<PrismContainerValue<? extends Containerable>> resultList = null;
 	Iterator<PrismContainerValue<? extends Containerable>> iterator = null;
 	PrismContainerValue<? extends Containerable> currentObject = null;
-	
+
 	public MidPointDataSource(Collection<PrismContainerValue<? extends Containerable>> results) {
 		this.resultList = results;
 		if (results != null){
@@ -40,7 +40,7 @@ public class MidPointDataSource implements JRDataSource{
 		}
 	}
 
-	
+
 	@Override
 	public boolean next() throws JRException {
 		boolean hasNext = false;
@@ -80,7 +80,7 @@ public class MidPointDataSource implements JRDataSource{
 		if (i == null) {
 			return null;
 		}
-	
+
 		if (i instanceof PrismProperty){
 			if (i.isSingleValue()){
 				return normalize(((PrismProperty) i).getRealValue(), jrField.getValueClass());
@@ -94,7 +94,7 @@ public class MidPointDataSource implements JRDataSource{
 			if (i.isSingleValue()){
 				return ObjectTypeUtil.createObjectRef(((PrismReference) i).getValue());
 			}
-			
+
 			List<Referencable> refs = new ArrayList<Referencable>();
 			for (PrismReferenceValue refVal : ((PrismReference) i).getValues()){
 				refs.add(ObjectTypeUtil.createObjectRef(refVal));
@@ -111,18 +111,18 @@ public class MidPointDataSource implements JRDataSource{
 				}
 			}
 			return containers;
-			
+
 		} else
 			throw new JRException("Could not get value of the fileld: " + fieldName);
-//		return 
+//		return
 //		throw new UnsupportedOperationException("dataSource.getFiledValue() not supported");
 	}
-	
+
 	private Object normalize(Object realValue, Class fieldClass){
 		if (realValue instanceof PolyString && fieldClass.equals(String.class)){
 			return ((PolyString)realValue).getOrig();
 		}
-		
+
 		return realValue;
 	}
 

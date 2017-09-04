@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  *
  */
 public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private Protector protector;
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
@@ -73,12 +73,12 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
 					throws SchemaException, ObjectNotFoundException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for 'generate' expression evaluator");
-		
+
 		if (evaluatorElements.size() > 1) {
 			throw new SchemaException("More than one evaluator specified in "+contextDescription);
 		}
 		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
-		
+
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
@@ -86,9 +86,9 @@ public class GenerateExpressionEvaluatorFactory implements ExpressionEvaluatorFa
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof GenerateExpressionEvaluatorType)) {
             throw new SchemaException("Generate expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        
+
         GenerateExpressionEvaluatorType generateEvaluatorType = (GenerateExpressionEvaluatorType)evaluatorTypeObject;
-        
+
 		return new GenerateExpressionEvaluator<V,D>(generateEvaluatorType, outputDefinition, protector, objectResolver, valuePolicyGenerator, prismContext);
 	}
 

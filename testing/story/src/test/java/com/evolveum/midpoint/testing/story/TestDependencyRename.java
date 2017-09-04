@@ -106,10 +106,10 @@ public class TestDependencyRename extends AbstractStoryTest {
 	private static final String USER_CAPSIZE_USERNAME_FINAL = "kcapsize";
 	private static final String USER_CAPSIZE_GIVEN_NAME = "Kate";
 	private static final String USER_CAPSIZE_FAMILY_NAME = "Capsize";
-	
+
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
-	
+
 	private String userHermanOid;
 	private String accountHermanPhonebookOid;
 	private String accountHermanOpenDjOid;
@@ -157,8 +157,8 @@ public class TestDependencyRename extends AbstractStoryTest {
 		TestUtil.assertSuccess(testResultOpenDj);
 	}
 
-	
-	
+
+
 	@Test
 	public void test100AddUserHerman() throws Exception {
 		final String TEST_NAME = "test100AddUserHerman";
@@ -171,16 +171,16 @@ public class TestDependencyRename extends AbstractStoryTest {
 		userType.setName(createPolyStringType(USER_HERMAN_USERNAME));
 		userType.setGivenName(createPolyStringType(USER_HERMAN_GIVEN_NAME));
 		userType.setFamilyName(createPolyStringType(USER_HERMAN_FAMILY_NAME));
-		
+
 		display("User before", userBefore);
-		
+
 		// WHEN
 		addObject(userBefore, task, result);
 
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		PrismObject<UserType> userAfter = findUserByUsername(USER_HERMAN_USERNAME);
 		assertNotNull("No herman user", userAfter);
 		userHermanOid = userAfter.getOid();
@@ -188,22 +188,22 @@ public class TestDependencyRename extends AbstractStoryTest {
 		assertUserHerman(userAfter, USER_HERMAN_USERNAME);
 		assertNoAssignments(userAfter);
 	}
-	
-	
+
+
 	@Test
 	public void test110HermanAssignRoleBasic() throws Exception {
 		final String TEST_NAME = "test110HermanAssignRoleBasic";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		// WHEN
 		assignRole(userHermanOid, ROLE_BASIC_OID, task, result);
 
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		PrismObject<UserType> userAfter = getUser(userHermanOid);
 		assertNotNull("No herman user", userAfter);
 		userHermanOid = userAfter.getOid();
@@ -211,34 +211,34 @@ public class TestDependencyRename extends AbstractStoryTest {
 		assertUserHerman(userAfter, USER_HERMAN_USERNAME_FINAL);
 		assertAssignedRole(userAfter, ROLE_BASIC_OID);
 		assertAssignments(userAfter, 1);
-		
+
 		assertLinks(userAfter, 2);
 		accountHermanPhonebookOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
 		PrismObject<ShadowType> shadowPhonebook = getShadowModel(accountHermanPhonebookOid);
 		display("Shadow phonebook after", shadowPhonebook);
 		assertShadowSecondaryIdentifier(shadowPhonebook, USER_HERMAN_USERNAME_FINAL, getDummyResourceType(RESOURCE_DUMMY_PHONEBOOK_ID), null);
-		
+
 		accountHermanOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> shadowOpenDj = getShadowModel(accountHermanOpenDjOid);
 		display("Shadow opendj after", shadowOpenDj);
 		assertShadowSecondaryIdentifier(shadowOpenDj, openDJController.getAccountDn(USER_HERMAN_USERNAME_FINAL), resourceOpenDjType, caseIgnoreMatchingRule);
-		
+
 	}
-	
+
 	@Test
 	public void test112HermanRename() throws Exception {
 		final String TEST_NAME = "test112HermanRename";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		// WHEN
 		modifyUserReplace(userHermanOid, UserType.F_FAMILY_NAME, task, result, createPolyString(USER_HERMAN_FAMILY_NAME_MARLEY));
 
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		PrismObject<UserType> userAfter = getUser(userHermanOid);
 		assertNotNull("No herman user", userAfter);
 		userHermanOid = userAfter.getOid();
@@ -246,20 +246,20 @@ public class TestDependencyRename extends AbstractStoryTest {
 		assertUser(userAfter, USER_HERMAN_USERNAME_MARLEY, USER_HERMAN_GIVEN_NAME, USER_HERMAN_FAMILY_NAME_MARLEY);
 		assertAssignedRole(userAfter, ROLE_BASIC_OID);
 		assertAssignments(userAfter, 1);
-		
+
 		assertLinks(userAfter, 2);
 		accountHermanPhonebookOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
 		PrismObject<ShadowType> shadowPhonebook = getShadowModel(accountHermanPhonebookOid);
 		display("Shadow phonebook after", shadowPhonebook);
 		assertShadowSecondaryIdentifier(shadowPhonebook, USER_HERMAN_USERNAME_MARLEY, getDummyResourceType(RESOURCE_DUMMY_PHONEBOOK_ID), null);
-		
+
 		accountHermanOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> shadowOpenDj = getShadowModel(accountHermanOpenDjOid);
 		display("Shadow opendj after", shadowOpenDj);
 		assertShadowSecondaryIdentifier(shadowOpenDj, openDJController.getAccountDn(USER_HERMAN_USERNAME_MARLEY), resourceOpenDjType, caseIgnoreMatchingRule);
-		
+
 	}
-	
+
 	@Test
 	public void test120AddUserCapsizeWithBasicRole() throws Exception {
 		final String TEST_NAME = "test120AddUserCapsizeWithBasicRole";
@@ -273,35 +273,35 @@ public class TestDependencyRename extends AbstractStoryTest {
 		userType.setGivenName(createPolyStringType(USER_CAPSIZE_GIVEN_NAME));
 		userType.setFamilyName(createPolyStringType(USER_CAPSIZE_FAMILY_NAME));
 		userType.beginAssignment().targetRef(ROLE_BASIC_OID, RoleType.COMPLEX_TYPE).end();
-		
+
 		display("User before", userBefore);
-		
+
 		// WHEN
 		addObject(userBefore, task, result);
 
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		String userCapsizeOid = userBefore.getOid();
 		PrismObject<UserType> userAfter = getUser(userCapsizeOid);
 		assertNotNull("No user", userAfter);
 		display("User after", userAfter);
 		assertUser(userAfter, USER_CAPSIZE_USERNAME_FINAL, USER_CAPSIZE_GIVEN_NAME, USER_CAPSIZE_FAMILY_NAME);
-		
+
 		assertLinks(userAfter, 2);
 		String accountPhonebookOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_PHONEBOOK_OID);
 		PrismObject<ShadowType> shadowPhonebook = getShadowModel(accountPhonebookOid);
 		display("Shadow phonebook after", shadowPhonebook);
 		assertShadowSecondaryIdentifier(shadowPhonebook, USER_CAPSIZE_USERNAME_FINAL, getDummyResourceType(RESOURCE_DUMMY_PHONEBOOK_ID), null);
-		
+
 		String accountOpenDjOid = getLinkRefOid(userAfter, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> shadowOpenDj = getShadowModel(accountOpenDjOid);
 		display("Shadow opendj after", shadowOpenDj);
 		assertShadowSecondaryIdentifier(shadowOpenDj, openDJController.getAccountDn(USER_CAPSIZE_USERNAME_FINAL), resourceOpenDjType, caseIgnoreMatchingRule);
 	}
-	
-	
+
+
 	protected void assertUserHerman(PrismObject<UserType> user, String username) {
 		assertUser(user, username, USER_HERMAN_GIVEN_NAME, USER_HERMAN_FAMILY_NAME);
 	}

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Password test with DEFAULT configuration of password storage.
- * 
+ *
  * @author semancik
  *
  */
@@ -49,11 +49,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestPasswordDefault extends AbstractPasswordTest {
-			
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class TestPasswordDefault extends AbstractPasswordTest {
 	protected void assertShadowLifecycle(PrismObject<ShadowType> shadow, boolean focusCreated) {
 		assertShadowLifecycle(shadow, null);
 	}
-	
+
 	/**
 	 * Reconcile user after password policy change. There is a RED account with a strong password
 	 * mapping. The reconcile and the strong mapping will try to set the short password to RED account.
@@ -79,25 +79,25 @@ public class TestPasswordDefault extends AbstractPasswordTest {
         // GIVEN
         Task task = taskManager.createTaskInstance(AbstractPasswordTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
 		display("User before", userBefore);
 		assertLinks(userBefore, 4);
-        
+
 		try {
 			// WHEN
 	        reconcileUser(USER_JACK_OID, task, result);
-	        
+
 	        assertNotReached();
-	        
+
 		} catch (PolicyViolationException e) {
 			display("Expected exception", e);
 		}
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertFailure(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		assertLinks(userAfter, 4);
@@ -106,28 +106,28 @@ public class TestPasswordDefault extends AbstractPasswordTest {
         // Check account in dummy resource (yellow): password is too short for this, original password should remain there
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyPasswordConditional(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_1_CLEAR);
-        
+
         // Check account in dummy resource (red)
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
-        
+
         // User and default dummy account should have unchanged passwords
         assertUserPassword(userAfter, USER_PASSWORD_AA_CLEAR);
      	assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_AA_CLEAR);
 
 		// this one is not changed
 		assertDummyPassword(RESOURCE_DUMMY_UGLY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD);
-		
+
 		assertPasswordHistoryEntries(userAfter);
 	}
-	
+
 	@Override
 	protected void assert31xBluePasswordAfterAssignment(PrismObject<UserType> userAfter) throws Exception {
 		assertDummyPassword(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_1);
 		PrismObject<ShadowType> shadow = getBlueShadow(userAfter);
 		assertIncompleteShadowPassword(shadow);
 	}
-	
+
 	@Override
 	protected void assert31xBluePasswordAfterPasswordChange(PrismObject<UserType> userAfter) throws Exception {
 		// Password is set during the assign operation. As password mapping is weak it is never changed.
@@ -141,5 +141,5 @@ public class TestPasswordDefault extends AbstractPasswordTest {
 		// We have passwords here. We are not doing initialization.
 		checkDummyTransportMessages(NOTIFIER_ACCOUNT_ACTIVATION_NAME, 0);
 	}
-	
+
 }

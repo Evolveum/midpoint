@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ext.DOMSerializer;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 public class DomElementSerializer extends DOMSerializer {
-	
+
 	@Override
 	public void serializeWithType(Node value, JsonGenerator jgen, SerializerProvider provider,
 			TypeSerializer typeSer) throws IOException, JsonProcessingException {

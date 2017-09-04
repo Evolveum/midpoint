@@ -32,7 +32,7 @@ import javax.xml.namespace.QName;
 
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
- * 
+ *
  * Simple implementation, now it can't handle multivalue properties.
  *
  * @author lazyman
@@ -56,7 +56,7 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
         this.path = path;
     }
 
-   
+
     @Override
     public void detach() {
     }
@@ -70,7 +70,7 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
 	@Override
 	public void setObject(ContainerWrapper<C> arg0) {
 		throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
-		
+
 	}
 
 }

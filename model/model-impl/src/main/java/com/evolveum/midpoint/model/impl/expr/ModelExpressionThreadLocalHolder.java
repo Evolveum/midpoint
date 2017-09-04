@@ -42,7 +42,7 @@ public class ModelExpressionThreadLocalHolder {
 
 	private static ThreadLocal<Deque<ExpressionEnvironment<ObjectType>>> expressionEnvironmentStackTl =
 			new ThreadLocal<>();
-	
+
 	public static <F extends ObjectType> void pushExpressionEnvironment(ExpressionEnvironment<F> env) {
 		Deque<ExpressionEnvironment<ObjectType>> stack = expressionEnvironmentStackTl.get();
 		if (stack == null) {
@@ -51,7 +51,7 @@ public class ModelExpressionThreadLocalHolder {
 		}
 		stack.push((ExpressionEnvironment<ObjectType>)env);
 	}
-	
+
 	public static <F extends ObjectType> void popExpressionEnvironment() {
 		Deque<ExpressionEnvironment<ObjectType>> stack = expressionEnvironmentStackTl.get();
 		stack.pop();
@@ -64,7 +64,7 @@ public class ModelExpressionThreadLocalHolder {
 		}
 		return (ExpressionEnvironment<F>) stack.peek();
 	}
-	
+
 	public static <F extends ObjectType> LensContext<F> getLensContext() {
 		ExpressionEnvironment<ObjectType> env = getExpressionEnvironment();
 		if (env == null) {
@@ -72,7 +72,7 @@ public class ModelExpressionThreadLocalHolder {
 		}
 		return (LensContext<F>) env.getLensContext();
 	}
-	
+
 	public static <F extends ObjectType> LensProjectionContext getProjectionContext() {
 		ExpressionEnvironment<ObjectType> env = getExpressionEnvironment();
 		if (env == null) {
@@ -80,7 +80,7 @@ public class ModelExpressionThreadLocalHolder {
 		}
 		return env.getProjectionContext();
 	}
-	
+
 	public static Task getCurrentTask() {
 		ExpressionEnvironment<ObjectType> env = getExpressionEnvironment();
 		if (env == null) {
@@ -88,7 +88,7 @@ public class ModelExpressionThreadLocalHolder {
 		}
 		return env.getCurrentTask();
 	}
-	
+
 	public static OperationResult getCurrentResult() {
 		ExpressionEnvironment<ObjectType> env = getExpressionEnvironment();
 		if (env == null) {
@@ -96,7 +96,7 @@ public class ModelExpressionThreadLocalHolder {
 		}
 		return env.getCurrentResult();
 	}
-	
+
 	// TODO move to better place
 	public static <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateExpressionInContext(Expression<PrismPropertyValue<T>,
 			PrismPropertyDefinition<T>> expression, ExpressionEvaluationContext context, Task task, OperationResult result)

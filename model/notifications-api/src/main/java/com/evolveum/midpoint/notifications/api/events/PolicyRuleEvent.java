@@ -67,7 +67,7 @@ public class PolicyRuleEvent extends BaseEvent {
 	public String getRuleName() {
 		return policyRule.getName();
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);

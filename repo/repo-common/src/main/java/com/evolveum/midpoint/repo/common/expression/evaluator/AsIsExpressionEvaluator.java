@@ -34,13 +34,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvalua
  * @author Radovan Semancik
  */
 public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
-	
+
 	private PrismContext prismContext;
 	D outputDefinition;
 	private AsIsExpressionEvaluatorType asIsExpressionEvaluatorType;
 	private Protector protector;
 
-	public AsIsExpressionEvaluator(AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, 
+	public AsIsExpressionEvaluator(AsIsExpressionEvaluatorType asIsExpressionEvaluatorType,
 			D outputDefinition, Protector protector, PrismContext prismContext) {
 		this.asIsExpressionEvaluatorType = asIsExpressionEvaluatorType;
 		this.outputDefinition = outputDefinition;
@@ -51,7 +51,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-        
+
 		Source<V,D> source;
     	if (context.getSources().isEmpty()) {
     		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+ context.getContextDescription());
@@ -68,7 +68,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     		source = (Source<V,D>) context.getSources().iterator().next();
     	}
         PrismValueDeltaSetTriple<V> sourceTriple = ItemDelta.toDeltaSetTriple(source.getItemOld(), source.getDelta());
-        
+
         if (sourceTriple == null) {
         	return null;
         }

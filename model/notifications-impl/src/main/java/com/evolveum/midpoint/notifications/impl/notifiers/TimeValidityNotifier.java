@@ -52,10 +52,10 @@ public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
     	   return false;
        }
        PolicyRuleEvent modelEvent = (PolicyRuleEvent) event;
-       
+
         return UserType.class.isAssignableFrom(modelEvent.getRequesteeObject().getClass());
     }
-    
+
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
 	    PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
@@ -64,29 +64,29 @@ public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
 			    policyConstraints.getTimeValidity() != null &&
 			    !policyConstraints.getTimeValidity().isEmpty();
     }
-    
+
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task,
     		OperationResult result) {
-    	
-    	
+
+
     	return "Planned deactivation of user " + getUserName(event);
     }
-    
+
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task,
     		OperationResult result) throws SchemaException {
-    	
+
     	return "User " + getUserName(event) + " is going to be deactivated on " + getUser(event).getActivation().getValidTo();
-    	
+
     }
-    
+
     private String getUserName(Event event){
 		UserType user = getUser(event);
 		PolyStringType username = user.getName();
 		return username.getOrig();
 	}
-    
+
     private UserType getUser(Event event){
     	PolicyRuleEvent taskEvent = (PolicyRuleEvent) event;
 		UserType user = (UserType) taskEvent.getRequesteeObject();

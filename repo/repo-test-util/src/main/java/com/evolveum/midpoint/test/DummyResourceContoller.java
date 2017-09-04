@@ -62,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class DummyResourceContoller extends AbstractResourceController {
-	
+
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME = "fullname";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME = "title";
 	public static final String DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME = "location";
@@ -100,18 +100,18 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
 	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
     public static final String DUMMY_GROUP_ATTRIBUTE_CC = "cc";
-    
+
     public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
-	
+
 	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
 	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "privileges";
-	
+
 	public static final String CONNECTOR_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
 	public static final String CONNECTOR_DUMMY_USELESS_STRING_NAME = "uselessString";
 	public static final QName CONNECTOR_DUMMY_USELESS_STRING_QNAME = new QName(CONNECTOR_DUMMY_NS, CONNECTOR_DUMMY_USELESS_STRING_NAME);
 
 	public static final String ORG_TOP_NAME = "top";
-	
+
 	public static final String OBJECTCLASS_ORG_LOCAL_PART = "CustomorgObjectClass";
 
 	public static final String DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME = "posixAccount";
@@ -120,23 +120,23 @@ public class DummyResourceContoller extends AbstractResourceController {
 	private boolean isExtendedSchema = false;
 	private String instanceName;
 
-	
+
 	public static DummyResourceContoller create(String instanceName) {
 		return create(instanceName, null);
 	}
 
 	public static DummyResourceContoller create(String instanceName, PrismObject<ResourceType> resource) {
 		DummyResourceContoller ctl = new DummyResourceContoller();
-		
+
 		ctl.instanceName = instanceName;
 		ctl.dummyResource = DummyResource.getInstance(instanceName);
 		ctl.dummyResource.reset();
-		
+
 		ctl.resource = resource;
-		
+
 		return ctl;
 	}
-	
+
 	public DummyResource getDummyResource() {
 		return dummyResource;
 	}
@@ -150,7 +150,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 
 	/**
-	 * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc.  
+	 * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc.
 	 */
 	public void extendSchemaPirate() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		populateWithDefaultSchema();
@@ -167,19 +167,19 @@ public class DummyResourceContoller extends AbstractResourceController {
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, String.class, false, false);
-		
+
 		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();
 		addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, String.class, false, false);
         addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_CC, String.class, false, false);
-        
+
         DummyObjectClass privilegeObjectClass = dummyResource.getPrivilegeObjectClass();
 		addAttrDef(privilegeObjectClass, DUMMY_PRIVILEGE_ATTRIBUTE_POWER, Integer.class, false, false);
-		
+
 		isExtendedSchema = true;
 	}
-	
+
 	/**
-	 * Extend dummy schema to look like AD 
+	 * Extend dummy schema to look like AD
 	 */
 	public void extendSchemaAd() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
@@ -199,7 +199,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_ACCOUNT_EXPIRES_NAME, Long.class, false, false);
 		// This should in fact be icfs:groups but this is OK for now
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GROUPS_NAME, String.class, false, true);
-		
+
 		isExtendedSchema = true;
 	}
 
@@ -219,19 +219,19 @@ public class DummyResourceContoller extends AbstractResourceController {
 		accountObjectClass.add(attrDef);
 		return attrDef;
 	}
-	
+
 	public QName getAttributeQName(String attrName) {
 		return new QName(getNamespace(), attrName);
 	}
-	
+
 	public ItemPath getAttributePath(QName attrQName) {
 		return new ItemPath(ShadowType.F_ATTRIBUTES, attrQName);
 	}
-	
+
 	public ItemPath getAttributePath(String attrName) {
 		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeQName(attrName));
 	}
-	
+
 	public QName getAttributeFullnameQName() {
 		return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);
 	}
@@ -239,7 +239,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public ItemPath getAttributeFullnamePath() {
 		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeFullnameQName());
 	}
-	
+
 	public QName getAttributeWeaponQName() {
 		assertExtendedSchema();
 		return  getAttributeQName(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
@@ -263,18 +263,18 @@ public class DummyResourceContoller extends AbstractResourceController {
 	private void assertExtendedSchema() {
 		assert isExtendedSchema : "Resource "+resource+" does not have extended schema yet an extended attribute was requested";
 	}
-	
+
 	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema) {
 		assertDummyResourceSchemaSanity(resourceSchema, resource.asObjectable(), true);
 	}
-	
+
 	public void assertDummyResourceSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
 		IntegrationTestTools.assertIcfResourceSchemaSanity(resourceSchema, resourceType);
-		
+
 		// ACCOUNT
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("No ACCOUNT kind definition", accountDef);
-		
+
 		ResourceAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
 		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
@@ -287,11 +287,11 @@ public class DummyResourceContoller extends AbstractResourceController {
 			assertTrue("Wrong displayOrder for attribute fullName: "+fullnameDef.getDisplayOrder(),
 					fullnameDef.getDisplayOrder() == 200 || fullnameDef.getDisplayOrder() == 250);
 		}
-		
+
 		// GROUP
 		ObjectClassComplexTypeDefinition groupObjectClass = resourceSchema.findObjectClassDefinition(SchemaTestConstants.GROUP_OBJECT_CLASS_LOCAL_NAME);
 		assertNotNull("No group objectClass", groupObjectClass);
-		
+
 		ResourceAttributeDefinition membersDef = groupObjectClass.findAttributeDefinition(DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME);
 		assertNotNull("No definition for members", membersDef);
 		assertEquals("Wrong maxOccurs", -1, membersDef.getMaxOccurs());
@@ -299,27 +299,27 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No members create", membersDef.canAdd());
 		assertTrue("No members update", membersDef.canModify());
 		assertTrue("No members read", membersDef.canRead());
-		
+
 		assertEquals("Unexpected number of schema definitions in "+getName()+" dummy resource", dummyResource.getNumberOfObjectclasses(), resourceSchema.getDefinitions().size());
-		
+
 		for (Definition def: resourceSchema.getDefinitions()) {
 			if (def instanceof RefinedObjectClassDefinition) {
 				AssertJUnit.fail("Refined definition sneaked into resource schema of "+getName()+" dummy resource: "+def);
 			}
 		}
 	}
-	
+
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema) {
 		assertDummyResourceSchemaSanityExtended(resourceSchema, resource.asObjectable(), true);
 	}
-	
+
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder) {
 		assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, checkDisplayOrder, 17);
 	}
-	
+
 	public void assertDummyResourceSchemaSanityExtended(ResourceSchema resourceSchema, ResourceType resourceType, boolean checkDisplayOrder, int numberOfAccountDefinitions) {
 		assertDummyResourceSchemaSanity(resourceSchema, resourceType, checkDisplayOrder);
-		
+
 		ObjectClassComplexTypeDefinition accountDef = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("No default account definition", accountDef);
 		ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ICF_ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
@@ -336,7 +336,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	}
 
 	public void assertRefinedSchemaSanity(RefinedResourceSchema refinedSchema) {
-		
+
 		RefinedObjectClassDefinition accountDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		assertNotNull("Account definition is missing", accountDef);
 		assertNotNull("Null identifiers in account", accountDef.getPrimaryIdentifiers());
@@ -371,11 +371,11 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertTrue("No fullname create", fullnameDef.canAdd());
 		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
-		
+
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
-		
+
 	}
-	
+
 	public QName getAccountObjectClass() {
         return new QName(ResourceTypeUtil.getResourceNamespace(getResourceType()), "AccountObjectClass");
     }
@@ -383,7 +383,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 	public QName getGroupObjectClass() {
         return new QName(ResourceTypeUtil.getResourceNamespace(getResourceType()), "GroupObjectClass");
     }
-	
+
 	public DummyOrg addOrgTop() throws ConnectException, FileNotFoundException, ObjectAlreadyExistsException, SchemaViolationException, ConflictException {
 		DummyOrg org = new DummyOrg(ORG_TOP_NAME);
 		dummyResource.addOrg(org);
@@ -406,7 +406,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		account.addAttributeValues(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, location);
 		dummyResource.addAccount(account);
 	}
-	
+
 	public void addGroup(String name) throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException, ConflictException {
 		assertExtendedSchema();
 		DummyGroup group = new DummyGroup(name);

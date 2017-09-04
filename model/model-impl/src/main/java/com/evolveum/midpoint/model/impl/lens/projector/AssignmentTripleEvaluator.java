@@ -48,14 +48,14 @@ import java.util.Collection;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
- * 
+ *
  * @author semancik
  *
  */
 public class AssignmentTripleEvaluator<F extends FocusType> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTripleEvaluator.class);
-	
+
 	private LensContext<F> context;
 	private ObjectType source;
 	private AssignmentEvaluator<F> assignmentEvaluator;
@@ -64,7 +64,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	private XMLGregorianCalendar now;
 	private Task task;
 	private OperationResult result;
-	
+
 	public LensContext<F> getContext() {
 		return context;
 	}
@@ -132,25 +132,25 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	public void reset() {
 		assignmentEvaluator.reset();
 	}
-	
+
 	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
-		
+
 		LensFocusContext<F> focusContext = context.getFocusContext();
-		
+
 		ObjectDelta<F> focusDelta = focusContext.getDelta();
-		
+
 		ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
         assignmentDelta.expand(focusContext.getObjectCurrent());
 
         LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
-        
+
         SmartAssignmentCollection<F> assignmentCollection = new SmartAssignmentCollection<>();
         assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta);
-        		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
 		}
-		
+
 		// Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
         // therefore it contains all three types of assignments (plus, minus and zero). As it is an union each assignment
         // will be processed only once. Inside the loop we determine whether it was added, deleted or remains unchanged.
@@ -162,10 +162,10 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         for (SmartAssignmentElement assignmentElement : assignmentCollection) {
         	processAssignment(evaluatedAssignmentTriple, focusDelta, assignmentDelta, assignmentElement);
         }
-        
+
         return evaluatedAssignmentTriple;
 	}
-	
+
     private void processAssignment(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
     		ObjectDelta<F> focusDelta, ContainerDelta<AssignmentType> assignmentDelta, SmartAssignmentElement assignmentElement)
     				throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
@@ -196,12 +196,12 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
         		// Small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted)
         		subItemDeltas = assignmentItemDeltas;
-        		
+
         		// The subItemDeltas above will handle some changes. But not other.
         		// E.g. a replace of the whole construction will not be handled properly.
         		// Therefore we force recon to sort it out.
             	forceRecon = true;
-            	
+
             	isAssignmentChanged = true;
             	PrismContainer<AssignmentType> assContNew = focusContext.getObjectNew().findContainer(FocusType.F_ASSIGNMENT);
             	assignmentCValNew = assContNew.getValue(assignmentCVal.getId());
@@ -211,9 +211,9 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         // The following code is using collectToAccountMap() to collect the account constructions to one of the three "delta"
         // sets (zero, plus, minus). It is handling several situations that needs to be handled specially.
         // It is also collecting assignments to evaluatedAssignmentTriple.
-        
+
         if (focusDelta != null && focusDelta.isDelete()) {
-        	
+
         	// USER DELETE
         	// If focus (user) is being deleted that all the assignments are to be gone. Including those that
         	// were not changed explicitly.
@@ -227,7 +227,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 			evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 			evaluatedAssignment.setPresentInOldObject(presentInOld);
 			collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-            
+
         } else {
         	if (assignmentDelta.isReplace()) {
 
@@ -276,15 +276,15 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         			LOGGER.error("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta)\n{}", assignmentElement.debugDump(1));
         			throw new SystemException("Whoops. Unexpected things happen. Assignment is neither current, old nor new (replace delta).");
         		}
-        		
+
         	} else {
 
-        		// ADD/DELETE of entire assignment or small changes inside existing assignments 
+        		// ADD/DELETE of entire assignment or small changes inside existing assignments
         		// This is the usual situation.
 	            // Just sort assignments to sets: unchanged (zero), added (plus), removed (minus)
 	            if (isAssignmentChanged) {
 	                // There was some change
-	
+
 	            	boolean isAdd = assignmentDelta.isValueToAdd(assignmentCVal, true);
 	            	boolean isDelete = assignmentDelta.isValueToDelete(assignmentCVal, true);
 	                if (isAdd & !isDelete) {
@@ -326,13 +326,13 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 						evaluatedAssignment.setPresentInCurrentObject(presentInCurrent);
 						evaluatedAssignment.setPresentInOldObject(presentInOld);
 	                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
-	                    
+
 	                } else {
 	                	// Small change inside an assignment
 	                	// The only thing that we need to worry about is assignment validity change. That is a cause
 	                	// of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
 	                	// not significant, i.e. reconciliation can handle them.
-	                	boolean isValidOld = LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(), 
+	                	boolean isValidOld = LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
 	                			assignmentCValOld.asContainerable(), now, activationComputer);
 	                	boolean isValid = LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
 	                			assignmentCValNew.asContainerable(), now, activationComputer);
@@ -380,7 +380,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 	                        collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 	                	}
 	                }
-	
+
 	            } else {
 	                // No change in assignment
 	            	if (LOGGER.isTraceEnabled()) {
@@ -466,7 +466,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         									  new IdItemPathSegment(id)));
 	}
 
-	private <F extends FocusType> void collectToZero(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
+	private <F extends FocusType> void collectToZero(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
     		EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean forceRecon) {
         if (forceRecon) {
             evaluatedAssignment.setForceRecon(true);
@@ -474,7 +474,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
     	evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
     }
 
-    private <F extends FocusType> void collectToPlus(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
+    private <F extends FocusType> void collectToPlus(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
     		EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean forceRecon) {
         if (forceRecon) {
             evaluatedAssignment.setForceRecon(true);
@@ -482,7 +482,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
     	evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
     }
 
-    private <F extends FocusType> void collectToMinus(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, 
+    private <F extends FocusType> void collectToMinus(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
     		EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean forceRecon) {
         if (forceRecon) {
             evaluatedAssignment.setForceRecon(true);
@@ -491,13 +491,13 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
     }
 
     private <F extends FocusType> EvaluatedAssignmentImpl<F> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-    		PlusMinusZero mode, boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
+    		PlusMinusZero mode, boolean evaluateOld, LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator,
 			String assignmentPlacementDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 		OperationResult result = parentResult.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
 		result.addParam("assignmentDescription", assignmentPlacementDesc);
         try{
-			// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
-        	// evaluates all the expressions, etc. 
+			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,
+        	// evaluates all the expressions, etc.
         	EvaluatedAssignmentImpl<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, task, result);
         	context.rememberResources(evaluatedAssignment.getResources(task, result));
         	result.recordSuccess();
@@ -526,8 +526,8 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         		// This is a role assignment or something like that. Just throw the original exception for now.
         		throw ex;
         	}
-        	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid, 
-        			FocusTypeUtil.determineConstructionKind(assignmentType), 
+        	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
+        			FocusTypeUtil.determineConstructionKind(assignmentType),
         			FocusTypeUtil.determineConstructionIntent(assignmentType));
 			LensProjectionContext accCtx = context.findProjectionContext(rad);
 			if (accCtx != null) {
@@ -543,7 +543,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         	throw e;
         }
 	}
-	
+
 	/**
      * Returns delta of user assignments, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
@@ -557,16 +557,16 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
             return createEmptyAssignmentDelta(focusContext);
         }
         ContainerDelta<AssignmentType> assignmentDelta = focusDelta.findContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT));
-        if (assignmentDelta == null) { 
+        if (assignmentDelta == null) {
             return createEmptyAssignmentDelta(focusContext);
         }
         return assignmentDelta;
     }
-	
+
 	private <F extends FocusType> ContainerDelta<AssignmentType> createEmptyAssignmentDelta(LensFocusContext<F> focusContext) {
         return new ContainerDelta<>(getAssignmentContainerDefinition(focusContext), prismContext);
     }
-	
+
 	private <F extends FocusType> PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition(LensFocusContext<F> focusContext) {
 		return focusContext.getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 	}

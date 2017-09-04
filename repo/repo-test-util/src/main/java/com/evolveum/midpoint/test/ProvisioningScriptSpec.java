@@ -24,7 +24,7 @@ import java.util.Map;
  *
  */
 public class ProvisioningScriptSpec {
-	
+
 	private String code;
 	private Map<String,Object> args = new HashMap<String, Object>();
 	private String language;
@@ -49,11 +49,11 @@ public class ProvisioningScriptSpec {
 	public void setArgs(Map<String, Object> args) {
 		this.args = args;
 	}
-	
+
 	public void addArgSingle(String name, String val) {
 		args.put(name, val);
 	}
-	
+
 	public void addArgMulti(String name, String... val) {
 		args.put(name, Arrays.asList(val));
 	}
@@ -65,7 +65,7 @@ public class ProvisioningScriptSpec {
 	public void setLanguage(String language) {
 		this.language = language;
 	}
-	
-	
+
+
 
 }

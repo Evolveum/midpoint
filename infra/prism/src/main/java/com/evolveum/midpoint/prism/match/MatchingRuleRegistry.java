@@ -30,15 +30,15 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class MatchingRuleRegistry {
-	
+
 	@NotNull public final MatchingRule<?> defaultMatchingRule;
 	public Map<QName, ? extends MatchingRule<?>> matchingRules = new HashMap<>();
-	
+
 	public MatchingRuleRegistry() {
 		super();
 		this.defaultMatchingRule = new DefaultMatchingRule<>();
 	}
-	
+
 	public MatchingRuleRegistry(Collection<? extends MatchingRule<?>> matchingRules) {
 		this();
 		for (MatchingRule<?> matchingRule: matchingRules) {
@@ -57,7 +57,7 @@ public class MatchingRuleRegistry {
 			//try match according to the localPart
 			if (QNameUtil.matchAny(ruleName, matchingRules.keySet())){
 				ruleName = QNameUtil.resolveNs(ruleName, matchingRules.keySet());
-				matchingRule = (MatchingRule<T>) matchingRules.get(ruleName); 
+				matchingRule = (MatchingRule<T>) matchingRules.get(ruleName);
 			}
 			if (matchingRule == null) {
 				throw new SchemaException("Unknown matching rule for name " + ruleName);
@@ -68,7 +68,7 @@ public class MatchingRuleRegistry {
 		}
 		return matchingRule;
 	}
-	
+
 	public <T> void registerMatchingRule(MatchingRule<T> rule) {
 		((Map)this.matchingRules).put(rule.getName(), rule);
 	}

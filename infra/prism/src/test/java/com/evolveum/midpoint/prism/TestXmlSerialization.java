@@ -38,18 +38,18 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  */
 public class TestXmlSerialization {
-	
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
-	
+
 	@Test
     public void testHandlingInvalidChars() throws Exception {
 		final String TEST_NAME = "testHandlingInvalidChars";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();

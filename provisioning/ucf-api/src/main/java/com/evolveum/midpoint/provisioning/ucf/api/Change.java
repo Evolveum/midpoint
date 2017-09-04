@@ -31,7 +31,7 @@ import java.util.Collection;
  *
  */
 public final class Change implements DebugDumpable {
-	
+
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ObjectDelta<ShadowType> objectDelta;
@@ -53,7 +53,7 @@ public final class Change implements DebugDumpable {
         this.currentShadow = currentShadow;
         this.token = token;
     }
-    
+
     public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismObject<ShadowType> oldStadow, ObjectDelta<ShadowType> objectDetla){
     	this.identifiers = identifiers;
     	this.currentShadow = currentShadow;
@@ -81,7 +81,7 @@ public final class Change implements DebugDumpable {
     public void setIdentifiers(Collection<ResourceAttribute<?>> identifiers) {
         this.identifiers = identifiers;
     }
-    
+
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return objectClassDefinition;
 	}
@@ -113,7 +113,7 @@ public final class Change implements DebugDumpable {
 	public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
-	
+
 	public boolean isTokenOnly() {
 		return identifiers == null && objectDelta == null && currentShadow == null && token != null;
 	}
@@ -148,5 +148,5 @@ public final class Change implements DebugDumpable {
 		DebugUtil.debugDumpWithLabel(sb, "currentShadow", currentShadow, indent + 1);
 		return sb.toString();
 	}
-	
+
 }

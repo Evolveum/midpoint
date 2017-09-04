@@ -53,7 +53,7 @@ public class EventHandlerChainType
 
     /**
      * Creates a new {@code EventHandlerChainType} instance.
-     * 
+     *
      */
     public EventHandlerChainType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -62,8 +62,8 @@ public class EventHandlerChainType
 
     /**
      * Creates a new {@code EventHandlerChainType} instance by deeply copying a given {@code EventHandlerChainType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -83,20 +83,20 @@ public class EventHandlerChainType
 
     /**
      * Gets the value of the handler property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the handler property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getHandler().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link SimpleWorkflowNotifierType }{@code >}
@@ -112,8 +112,8 @@ public class EventHandlerChainType
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link EventHandlerForkType }{@code >}
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link EventOperationFilterType }{@code >}
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link SimpleUserNotifierType }{@code >}
-     * 
-     * 
+     *
+     *
      */
     public List<JAXBElement<? extends EventHandlerType>> getHandler() {
         if (handler == null) {
@@ -125,7 +125,7 @@ public class EventHandlerChainType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
@@ -172,7 +172,7 @@ public class EventHandlerChainType
 
     /**
      * Copies all values of property {@code Handler} deeply.
-     * 
+     *
      * @param source
      *     The source to copy from.
      * @param target
@@ -222,7 +222,7 @@ public class EventHandlerChainType
 
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType>} instance.
-     * 
+     *
      * @param e
      *     The instance to copy or {@code null}.
      * @return
@@ -244,7 +244,7 @@ public class EventHandlerChainType
 
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType>} instance.
-     * 
+     *
      * @param e
      *     The instance to copy or {@code null}.
      * @return
@@ -265,7 +265,7 @@ public class EventHandlerChainType
 
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryFilterType>} instance.
-     * 
+     *
      * @param e
      *     The instance to copy or {@code null}.
      * @return
@@ -287,7 +287,7 @@ public class EventHandlerChainType
 
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType>} instance.
-     * 
+     *
      * @param e
      *     The instance to copy or {@code null}.
      * @return
@@ -309,7 +309,7 @@ public class EventHandlerChainType
 
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType>} instance.
-     * 
+     *
      * @param e
      *     The instance to copy or {@code null}.
      * @return
@@ -330,8 +330,8 @@ public class EventHandlerChainType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

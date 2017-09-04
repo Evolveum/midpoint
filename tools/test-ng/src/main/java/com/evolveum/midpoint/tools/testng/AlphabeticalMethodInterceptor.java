@@ -58,9 +58,9 @@ public class AlphabeticalMethodInterceptor implements IMethodInterceptor {
 			Arrays.sort(array, comparator);
 			result.addAll(Arrays.asList(array));
 	    }
-	    
+
 	    System.out.println("AlphabeticalMethodInterceptor: "+result);
 
-	    return result;		
+	    return result;
 	}
 }

@@ -36,13 +36,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public class EvaluatedAssignmentTargetCache implements DebugDumpable {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentTargetCache.class);
 
 	// Triple. Target processed for addition is not necessarily reusable for deletion
 	// This is indexed by OID and relation only
 	private DeltaTriple<Set<Key>> processedKeys;
-	
+
 	// Triple. Target processed for addition is not necessarily reusable for deletion
 	// This is indexed by OID, relation and order
 	private DeltaTriple<Set<OrderKey>> processedOrderKeys;
@@ -52,7 +52,7 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 		processedOrderKeys = new DeltaTriple<>(() -> new HashSet<>());
 		processedKeys = new DeltaTriple<>(() -> new HashSet<>());
 	}
-	
+
 	public void reset() {
 		processedOrderKeys.foreach(set -> set.clear());
 		processedKeys.foreach(set -> set.clear());
@@ -67,12 +67,12 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 			return;
 		}
 		processedOrderKeys.get(mode).add(new OrderKey(segment));
-		
+
 		if (targetType.getOid() != null) {
 			processedKeys.get(mode).add(new Key(segment));
 		}
 	}
-	
+
 	private boolean isCacheable(AbstractRoleType targetType) {
 		IdempotenceType idempotence = targetType.getIdempotence();
 		return idempotence != null && idempotence != IdempotenceType.NONE;
@@ -109,11 +109,11 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 			return processedOrderKeys.get(mode).contains(new OrderKey(segment));
 		}
 	}
-	
+
 	private class Key {
 		private String targetOid;
 		private QName relation;
-		
+
 		public Key(AssignmentPathSegmentImpl segment) {
 			super();
 			this.targetOid = segment.getTarget().getOid();
@@ -170,17 +170,17 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 		public String toString() {
 			return "Key(" + content() + ")";
 		}
-		
-		
+
+
 		protected String content() {
 			return targetOid + "[" + relation + "]";
 		}
 
 	}
-	
+
 	private class OrderKey extends Key {
 		private EvaluationOrder evaluationOrder;
-		
+
 		public OrderKey(AssignmentPathSegmentImpl segment) {
 			super(segment);
 			this.evaluationOrder = segment.getEvaluationOrder();
@@ -228,7 +228,7 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 		public String toString() {
 			return "OrderKey("+ content() + ": order=" + evaluationOrder + ")";
 		}
-		
+
 	}
 
 	@Override
@@ -242,5 +242,5 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 		processedOrderKeys.debugDumpNoTitle(sb, indent + 2);
 		return sb.toString();
 	}
-	
+
 }

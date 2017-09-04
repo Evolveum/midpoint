@@ -46,22 +46,22 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
  */
 @Component
 public class AccessCertificationCloseStageTriggerHandler implements TriggerHandler {
-	
+
 	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
 
 	@Autowired
 	private TriggerHandlerRegistry triggerHandlerRegistry;
-	
+
 	@Autowired
 	private CertificationManager certificationManager;
-	
+
 	@PostConstruct
 	private void initialize() {
 		triggerHandlerRegistry.register(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, Task task, OperationResult result) {
 		try {

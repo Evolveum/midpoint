@@ -169,7 +169,7 @@ public class AssignmentCatalogPanel<F extends AbstractRoleType> extends BasePane
         initCartButton(headerPanel);
         addOrReplaceSearchPanel(headerPanel);
     }
-    
+
     public void addOrReplaceLayout(AjaxRequestTarget target, WebMarkupContainer panelContainer, ModelServiceLocator serviceLocator) {
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);

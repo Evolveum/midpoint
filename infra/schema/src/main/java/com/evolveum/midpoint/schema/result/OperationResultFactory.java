@@ -32,9 +32,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public abstract class OperationResultFactory {
 

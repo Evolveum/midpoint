@@ -112,7 +112,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     private static String taskOid(String test) {
     	return taskOid(test, "0");
     }
-    
+
     private static OperationResult createResult(String test) {
     	System.out.println("===[ test"+test+" ]===");
     	LOGGER.info("===[ test"+test+" ]===");
@@ -212,7 +212,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(repositoryService);
         AssertJUnit.assertNotNull(taskManager);
     }
-    
+
     /**
      * Here we only test setting various task properties.
      */
@@ -1798,7 +1798,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         File file = new File(filePath);
         return PrismTestUtil.parseObject(file);
     }
-    
+
     private <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath) throws Exception {
     	return addObjectFromFile(filePath, false);
     }

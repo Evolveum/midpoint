@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttributeDefinition<T> {
-	
+
 	private RefinedAttributeDefinition<T> refinedAttributeDefinition;
 	private LayerType layer;
 	private Boolean overrideCanRead = null;
@@ -59,7 +59,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		}
 		return new LayerRefinedAttributeDefinitionImpl<T>(rAttrDef, layer);
 	}
-	
+
 	static List<LayerRefinedAttributeDefinition<?>> wrapCollection(
 			Collection<? extends ItemDefinition> defs, LayerType layer) {
 		List outs = new ArrayList<LayerRefinedAttributeDefinition<?>>(defs.size());
@@ -185,7 +185,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -199,7 +199,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		sb.append(refinedAttributeDefinition.debugDump(indent+1, layer));
 		return sb.toString();
 	}
-	
+
 	/**
      * Return a human readable name of this class suitable for logs.
      */

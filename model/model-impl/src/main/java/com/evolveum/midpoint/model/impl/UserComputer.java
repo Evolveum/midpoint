@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @Component
 public class UserComputer {
-	
+
 	@Autowired(required = true)
 	private ActivationComputer activationComputer;
 
@@ -40,5 +40,5 @@ public class UserComputer {
 			activationComputer.computeEffective(userType.getLifecycleState(), activationType);
 		}
 	}
-	
+
 }

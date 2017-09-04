@@ -102,7 +102,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
 		this.descriptionAttribute = descriptionAttribute;
 	}
-	
+
 	@Override
 	public <X> ResourceAttributeDefinition<X> getNamingAttribute() {
 		return namingAttribute;
@@ -111,11 +111,11 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
 		this.namingAttribute = namingAttribute;
 	}
-	
+
 	public void setNamingAttribute(QName namingAttribute) {
 		setNamingAttribute(findAttributeDefinition(namingAttribute));
 	}
-	
+
 	@Override
 	public String getNativeObjectClass() {
 		return nativeObjectClass;
@@ -124,7 +124,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public void setNativeObjectClass(String nativeObjectClass) {
 		this.nativeObjectClass = nativeObjectClass;
 	}
-	
+
 	@Override
 	public boolean isAuxiliary() {
 		return auxiliary;
@@ -147,20 +147,20 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public boolean isDefaultInAKind() {
 		return defaultInAKind;
 	}
-	
+
 	public void setDefaultInAKind(boolean defaultAccountType) {
 		this.defaultInAKind = defaultAccountType;
 	}
-	
+
 	@Override
 	public String getIntent() {
 		return intent;
 	}
-	
+
 	public void setIntent(String intent) {
 		this.intent = intent;
 	}
-	
+
 	@Override
 	public ResourceAttributeDefinition<?> getDisplayNameAttribute() {
 		return displayNameAttribute;
@@ -169,10 +169,10 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
 		this.displayNameAttribute = displayName;
 	}
-	
+
 	/**
 	 * TODO
-	 * 
+	 *
 	 * Convenience method. It will internally look up the correct definition.
 	 */
 	public void setDisplayNameAttribute(QName displayName) {
@@ -184,18 +184,18 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		add(propDef);
 		return propDef;
 	}
-	
+
 	public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createAttributeDefinition(name,typeName);
 	}
-	
+
 	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createAttributeDefinition(name,typeName);
 	}
-	
+
 	@Override
 	public boolean matches(ShadowType shadowType) {
 		if (shadowType == null) {
@@ -214,7 +214,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public ResourceAttributeContainer instantiate(QName elementName) {
 		return instantiate(elementName, this);
 	}
-	
+
 	public static ResourceAttributeContainer instantiate(QName elementName, ObjectClassComplexTypeDefinition ocdef) {
 		ResourceAttributeContainerDefinition racDef = ocdef.toResourceAttributeContainerDefinition(elementName);
 		return new ResourceAttributeContainer(elementName, racDef, ocdef.getPrismContext());
@@ -249,7 +249,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		clone.secondaryIdentifiers.addAll(this.secondaryIdentifiers);
 		clone.auxiliary = this.auxiliary;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

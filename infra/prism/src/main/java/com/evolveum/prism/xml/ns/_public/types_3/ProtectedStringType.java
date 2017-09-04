@@ -33,13 +33,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 public class ProtectedStringType extends ProtectedDataType<String> implements Cloneable {
 
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedStringType");
-	
+
 	private static final String CHARSET = "UTF-8";
-	
+
 	public ProtectedStringType() {
 		content = new ContentList();
 	}
-	
+
 	@Override
 	public byte[] getClearBytes() {
 		String clearValue = getClearValue();
@@ -66,12 +66,12 @@ public class ProtectedStringType extends ProtectedDataType<String> implements Cl
 		return String.class.isAssignableFrom(type);
 	}
 
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		return super.equals(obj);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return super.hashCode();

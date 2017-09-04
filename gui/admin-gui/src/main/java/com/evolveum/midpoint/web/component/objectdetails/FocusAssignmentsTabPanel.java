@@ -48,7 +48,7 @@ import java.util.List;
  */
 public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
@@ -57,16 +57,16 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 	private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
-	
+
 	private LoadableModel<List<AssignmentDto>> assignmentsModel;
-	
-	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
+
+	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
 			LoadableModel<List<AssignmentDto>> assignmentsModel, PageBase page) {
 		super(id, mainForm, focusWrapperModel, page);
 		this.assignmentsModel = assignmentsModel;
 		initLayout();
 	}
-	
+
 	private void initLayout() {
 
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
@@ -75,9 +75,9 @@ public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjec
 
 		Component panel;
 //		if (isEnableExperimentalFeatures()){
-			
-			
-			
+
+
+
 			panel = new AbstractRoleAssignmentPanel(ID_ASSIGNMENTS_PANEL, assignmentsModel, pageBase);
 //		} else {
 //			panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,

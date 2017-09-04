@@ -30,6 +30,17 @@ import java.util.regex.Pattern;
  * @author semancik
  */
 public class TrivialItemPathParser {
+    // This is using regexp to "parse" the declarations. It is not ideal,
+    // it does not check the syntax, does not show reasonable errors, etc.
+    // But it was all done in like 20minutes. Good value/price ;-)
+    private static final String PARSE_REGEX = "(^|;)[\\s\\p{Z}]*declare[\\s\\p{Z}]+(default[\\s\\p{Z}]+)?namespace[\\s\\p{Z}]+((\\w+)[\\s\\p{Z}]*=[\\s\\p{Z}]*)?(['\"])([^'\"]*)\\5[\\s\\p{Z}]*(?=;)";
+    private static final Pattern PARSE_PATTERN = Pattern.compile(PARSE_REGEX);
+
+    private static final String NBWS_HEAD_REGEX = "^[\\p{Z}\\s]+";
+    private static final Pattern NBSP_HEAD_PATTERN = Pattern.compile(NBWS_HEAD_REGEX);
+
+    private static final String NBWS_TAIL_REGEX = "[\\p{Z}\\s]+$";
+    private static final Pattern NBWS_TAIL_PATTERN = Pattern.compile(NBWS_TAIL_REGEX);
 
     private final Map<String,String> namespaceMap = new HashMap<>();
     private String pureItemPathString;
@@ -42,13 +53,8 @@ public class TrivialItemPathParser {
 
         TrivialItemPathParser parser = new TrivialItemPathParser();
 
-        // This is using regexp to "parse" the declarations. It is not ideal,
-        // it does not check the syntax, does not show reasonable errors, etc.
-        // But it was all done in like 20minutes. Good value/price ;-)
 
-        String regexp = "(^|;)[\\s\\p{Z}]*declare[\\s\\p{Z}]+(default[\\s\\p{Z}]+)?namespace[\\s\\p{Z}]+((\\w+)[\\s\\p{Z}]*=[\\s\\p{Z}]*)?(['\"])([^'\"]*)\\5[\\s\\p{Z}]*(?=;)";
-        Pattern pattern = Pattern.compile(regexp);
-        Matcher matcher = pattern.matcher(itemPath);
+        Matcher matcher = PARSE_PATTERN.matcher(itemPath);
 
         int lastEnd = 0;
         while (matcher.find()) {
@@ -71,8 +77,7 @@ public class TrivialItemPathParser {
 
         // Trim whitechars
         // trim() won't do here. it is not trimming non-breakable spaces.
-
-        parser.pureItemPathString = parser.pureItemPathString.replaceFirst("^[\\p{Z}\\s]+", "").replaceFirst("[\\p{Z}\\s]+$", "");
+        parser.pureItemPathString = NBWS_TAIL_PATTERN.matcher(NBSP_HEAD_PATTERN.matcher(parser.pureItemPathString).replaceFirst("")).replaceFirst("");
 
         return parser;
     }

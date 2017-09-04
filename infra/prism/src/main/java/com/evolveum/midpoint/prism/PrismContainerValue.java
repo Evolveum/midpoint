@@ -52,7 +52,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     // output in DOM and other ordering-sensitive representations
 	protected List<Item<?,?>> items = null;
     private Long id;
-    
+
 	private C containerable = null;
 
 	// Definition of this value. Usually it is the same as CTD declared in the parent container.
@@ -110,15 +110,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 
 	/**
      * Returns a set of items that the property container contains. The items may be properties or inner property containers.
-     * <p/>
+     * <p>
      * The set may be null. In case there are no properties an empty set is
      * returned.
-     * <p/>
+     * <p>
      * Returned set is mutable. Live object is returned.
      *
      * @return set of items that the property container contains.
      */
-    
+
     public List<Item<?,?>> getItems() {
     	if (items == null) {
     		return null;
@@ -129,7 +129,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			return items;
 		}
     }
-    
+
     public Item<?,?> getNextItem(Item<?,?> referenceItem) {
     	if (items == null) {
     		return null;
@@ -165,13 +165,13 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	throw new IllegalArgumentException("Item "+referenceItem+" is not part of "+this);
     }
 
-    
+
     /**
      * Returns a set of properties that the property container contains.
-     * <p/>
+     * <p>
      * The set must not be null. In case there are no properties an empty set is
      * returned.
-     * <p/>
+     * <p>
      * Returned set is immutable! Any change to it will be ignored.
      *
      * @return set of properties that the property container contains.
@@ -187,7 +187,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
         return properties;
     }
-    
+
     public Long getId() {
 		return id;
 	}
@@ -196,7 +196,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		checkMutability();
 		this.id = id;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public PrismContainerable<C> getParent() {
 		Itemable parent = super.getParent();
@@ -209,7 +209,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return (PrismContainerable<C>)parent;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public PrismContainer<C> getContainer() {
 		Itemable parent = super.getParent();
@@ -222,7 +222,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return (PrismContainer<C>)super.getParent();
 	}
-	
+
 	@NotNull
 	public ItemPath getPath() {
 		Itemable parent = getParent();
@@ -236,7 +236,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			return parentPath;
 		}
 	}
-	
+
 	// For compatibility with other PrismValue types
 	public C getValue() {
 		return asContainerable();
@@ -318,16 +318,16 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return names;
 	}
-    
+
 	public <IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV,ID> item) throws SchemaException {
 		return add(item, true);
 	}
-	
+
     /**
      * Adds an item to a property container.
      *
      * @param item item to add.
-     * @throws SchemaException 
+     * @throws SchemaException
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
     public <IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV,ID> item, boolean checkUniqueness) throws SchemaException {
@@ -371,7 +371,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			return changed;
 		}
 	}
-	
+
 	/**
      * Subtract the provided item from this item. The values of the provided item are deleted
      * from this item.
@@ -410,7 +410,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
         add(item);
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition> void remove(Item<IV,ID> item) {
         Validate.notNull(item, "Item must not be null.");
 		checkMutability();
@@ -421,7 +421,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
             existingItem.setParent(null);
         }
     }
-    
+
     public void removeAll() {
 		checkMutability();
     	if (items == null){
@@ -463,7 +463,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
         addAll(itemsToAdd);
     }
-    
+
 	public <IV extends PrismValue,ID extends ItemDefinition> void replace(Item<IV,ID> oldItem, Item<IV,ID> newItem) throws SchemaException {
 		remove(oldItem);
 		add(newItem);
@@ -475,7 +475,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     		items.clear();
     	}
     }
-    
+
     public boolean contains(Item item) {
 		return items != null && items.contains(item);
 	}
@@ -483,7 +483,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     public boolean contains(QName itemName) {
         return findItem(itemName) != null;
     }
-    
+
     public static <C extends Containerable> boolean containsRealValue(Collection<PrismContainerValue<C>> cvalCollection,
     		PrismContainerValue<C> cval) {
     	for (PrismContainerValue<C> colVal: cvalCollection) {
@@ -493,7 +493,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	}
     	return false;
     }
-    
+
     @Override
     public Object find(ItemPath path) {
     	if (path == null || path.isEmpty()) {
@@ -511,7 +511,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	}
     	return subItem.find(rest);
     }
-    
+
     @Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
     	if (path == null || path.isEmpty()) {
@@ -535,14 +535,14 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public <X> PrismProperty<X> findProperty(QName propertyQName) {
         return findItem(propertyQName, PrismProperty.class);
     }
-    
+
     public <X> PrismProperty<X> findProperty(ItemPath propertyPath) {
         return (PrismProperty) findItem(propertyPath);
     }
 
     /**
      * Finds a specific property in the container by definition.
-     * <p/>
+     * <p>
      * Returns null if nothing is found.
      *
      * @param propertyDefinition property definition to find.
@@ -554,15 +554,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
         return findProperty(propertyDefinition.getName());
     }
-    
+
     public <X extends Containerable> PrismContainer<X> findContainer(QName containerName) {
     	return findItem(containerName, PrismContainer.class);
     }
-    
+
     public PrismReference findReference(QName elementName) {
     	return findItem(elementName, PrismReference.class);
     }
-    
+
     public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
     	if (items == null){
     		return null;
@@ -580,7 +580,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	}
     	return null;
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findItem(QName itemName, Class<I> type) {
     	try {
 			return findCreateItem(itemName, type, null, false);
@@ -589,7 +589,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			throw new SystemException("Internal Error: "+e.getMessage(),e);
 		}
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(QName itemName) {
     	try {
 			return findCreateItem(itemName, Item.class, null, false);
@@ -598,7 +598,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			throw new SystemException("Internal Error: "+e.getMessage(),e);
 		}
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findItem(ItemPath itemPath) {
     	try {
 			return findCreateItem(itemPath, Item.class, null, false);
@@ -607,7 +607,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			throw new SystemException("Internal Error: "+e.getMessage(),e);
 		}
     }
-    
+
     @SuppressWarnings("unchecked")
     <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findCreateItem(QName itemName, Class<I> type, ID itemDefinition, boolean create) throws SchemaException {
     	Item<IV,ID> item = findItemByQName(itemName);
@@ -629,7 +629,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     		return null;
     	}
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> I findItem(ItemDefinition itemDefinition, Class<I> type) {
         if (itemDefinition == null) {
             throw new IllegalArgumentException("No item definition");
@@ -790,19 +790,19 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public <T extends Containerable> PrismContainer<T> findOrCreateContainer(QName containerName) throws SchemaException {
     	return findCreateItem(containerName, PrismContainer.class, null, true);
     }
-    
+
     public PrismReference findOrCreateReference(QName referenceName) throws SchemaException {
     	return findCreateItem(referenceName, PrismReference.class, null, true);
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> findOrCreateItem(QName containerName) throws SchemaException {
     	return findCreateItem(containerName, Item.class, null, true);
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(QName containerName, Class<I> type) throws SchemaException {
     	return findCreateItem(containerName, type, null, true);
     }
-    
+
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath path, Class<I> type, ID definition) throws SchemaException {
     	return findCreateItem(path, type, definition, true);
     }
@@ -814,11 +814,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         }
         return createProperty(propertyQName);
     }
-    
+
     public <X> PrismProperty<X> findOrCreateProperty(ItemPath propertyPath) throws SchemaException {
         return findOrCreateItem(propertyPath, PrismProperty.class, null);
     }
-    
+
     public <X> PrismProperty<X> findOrCreateProperty(PrismPropertyDefinition propertyDef) throws SchemaException {
         PrismProperty<X> property = findItem(propertyDef.getName(), PrismProperty.class);
         if (property != null) {
@@ -846,25 +846,25 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
         add(property, false);
         return property;
     }
-    
+
     public <X> PrismProperty<X> createProperty(PrismPropertyDefinition propertyDefinition) throws SchemaException {
     	PrismProperty<X> property = propertyDefinition.instantiate();
     	add(property);
         return property;
     }
-    
+
     public void removeProperty(QName propertyName) {
     	removeProperty(new ItemPath(propertyName));
     }
-    
+
 	public void removeProperty(ItemPath propertyPath) {
 		removeItem(propertyPath, PrismProperty.class);
 	}
-	
+
 	public void removeContainer(QName containerName) {
 		removeContainer(new ItemPath(containerName));
     }
-    
+
 	public void removeContainer(ItemPath itemPath) {
 		removeItem(itemPath, PrismContainer.class);
 	}
@@ -903,11 +903,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
            				throw new IllegalArgumentException("Attempt to remove item "+subName+" from "+this+
            						" of type "+itemType+" while the existing item is of incompatible type "+item.getClass());
             		}
-            	}        
+            	}
             }
         }
     }
-    
+
     public void setPropertyRealValue(QName propertyName, Object realValue, PrismContext prismContext) throws SchemaException {
 		checkMutability();
     	PrismProperty<?> property = findOrCreateProperty(propertyName);
@@ -916,7 +916,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
             property.setPrismContext(prismContext);
         }
     }
-    
+
     public <T> T getPropertyRealValue(QName propertyName, Class<T> type) {
     	PrismProperty<T> property = findProperty(propertyName);
     	if (property == null) {          // when using sql repo, even non-existing properties do not have 'null' here
@@ -924,12 +924,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	}
     	return property.getRealValue(type);
     }
-    
+
     @Override
 	public void recompute(PrismContext prismContext) {
 		// Nothing to do. The subitems should be already recomputed as they are added to this container.
 	}
-    
+
     @Override
 	public void accept(Visitor visitor) {
 		super.accept(visitor);
@@ -939,7 +939,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
-    
+
     @Override
 	public void accept(Visitor visitor, ItemPath path, boolean recursive) {
     	if (path == null || path.isEmpty()) {
@@ -965,7 +965,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
-    
+
     public boolean hasCompleteDefinition() {
 		if (items != null) {
 			for (Item<?,?> item : getItems()) {
@@ -985,7 +985,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			return false;
 		}
 	}
-	
+
 	@SuppressWarnings("Duplicates")
 	private boolean representsSameValue(PrismContainerValue<C> other, boolean lax) {
 		if (lax && getParent() != null) {
@@ -1020,19 +1020,19 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			diffRepresentation((PrismContainerValue)otherValue, deltas, ignoreMetadata, isLiteral);
 		} else {
 			throw new IllegalStateException("Comparing incompatible values "+this+" - "+otherValue);
-		}		
+		}
 	}
-	
+
 	void diffRepresentation(PrismContainerValue<C> otherValue,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		diffItems(this, otherValue, deltas, ignoreMetadata, isLiteral);
 	}
-	
+
 	@Override
 	public boolean isRaw() {
 		return false;
 	}
-	
+
 	public boolean addRawElement(Object element) throws SchemaException {
 		checkMutability();
 		PrismContainerDefinition<C> definition = getDefinition();
@@ -1044,7 +1044,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			return merge(subitem);
 		}
 	}
-	
+
 	public boolean deleteRawElement(Object element) throws SchemaException {
 		checkMutability();
 		PrismContainerDefinition<C> definition = getDefinition();
@@ -1057,7 +1057,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 	}
 
-	
+
 	public boolean removeRawElement(Object element) {
 		checkMutability();
 		throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
@@ -1067,15 +1067,15 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		JaxbDomHack jaxbDomHack = definition.getPrismContext().getJaxbDomHack();
 		return jaxbDomHack.parseRawElement(element, definition);
 	}
-	
+
 	private PrismContainerValue<C> parseRawElementsToNewValue(PrismContainerValue<C> origCVal, PrismContainerValue<C> definitionSource) throws SchemaException {
 		throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void diffItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
-		
+
 		if (thisValue.getItems() !=  null) {
 			for (Item<?,?> thisItem: thisValue.getItems()) {
 				Item otherItem = other.findItem(thisItem.getElementName());
@@ -1093,7 +1093,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				thisItem.diffInternal(otherItem, deltas, ignoreMetadata, isLiteral);
 			}
 		}
-		
+
 		if (other.getItems() != null) {
 			for (Item otherItem: other.getItems()) {
 				Item thisItem = thisValue.findItem(otherItem.getElementName());
@@ -1119,8 +1119,8 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 				}
 			}
 		}
-	}	
-	
+	}
+
 	private boolean isOperationalOnly(Item item, ItemDefinition itemDef) {
 		if (itemDef != null && itemDef.isOperational()) {
 			return true;
@@ -1227,7 +1227,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
-    
+
 	@Override
     public boolean isEmpty() {
 		if (id != null) {
@@ -1238,7 +1238,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
         return items.isEmpty();
     }
-    
+
     @Override
 	public void normalize() {
 		checkMutability();
@@ -1273,11 +1273,11 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
-    
+
     public void assertDefinitions(String sourceDescription) throws SchemaException {
     	assertDefinitions(false, sourceDescription);
     }
-    
+
 	public void assertDefinitions(boolean tolerateRaw, String sourceDescription) throws SchemaException {
 		if (getItems() == null){
 			return;
@@ -1293,7 +1293,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
     	copyValues(clone);
         return clone;
     }
-    
+
 	protected void copyValues(PrismContainerValue<C> clone) {
 		super.copyValues(clone);
 		clone.id = this.id;
@@ -1325,7 +1325,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 			}
 		}
 	}
-	
+
 	private <IV extends PrismValue,ID extends ItemDefinition, I extends Item<IV,ID>> void deepCloneDefinitionItem(I item, boolean ultraDeep, PrismContainerDefinition<C> clonedContainerDef) {
 		PrismContainerDefinition<C> oldContainerDef = getDefinition();
 		QName itemName = item.getElementName();
@@ -1340,7 +1340,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		item.propagateDeepCloneDefinition(ultraDeep, clonedItemDef);		// propagate to items in values
 		item.setDefinition(clonedItemDef);									// sets CTD in values only if null!
 	}
-	
+
 	@Override
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
 		if (other == null || !(other instanceof PrismContainerValue<?>)) {
@@ -1348,7 +1348,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return equalsComplex((PrismContainerValue<?>)other, ignoreMetadata, isLiteral);
 	}
-		
+
 	public boolean equalsComplex(PrismContainerValue<?> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
 			return false;
@@ -1368,12 +1368,12 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return true;
 	}
-	
+
 	boolean equalsItems(PrismContainerValue<C> other, boolean ignoreMetadata, boolean isLiteral) {
 		return equalsItems(this, other, ignoreMetadata, isLiteral);
 	}
-	
-	boolean equalsItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other, 
+
+	boolean equalsItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
 			boolean ignoreMetadata, boolean isLiteral) {
 		Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<ItemDelta<?,?>>();
 		// The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
@@ -1385,7 +1385,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 	public boolean equivalent(PrismContainerValue<?> other) {
         return equalsRealValue(other);
     }
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -1397,7 +1397,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		PrismContainerValue<?> other = (PrismContainerValue<?>) obj;
 		return equalsComplex(other, false, false);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -1414,7 +1414,7 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return result;
 	}
-		
+
 	@Override
     public String toString() {
 		StringBuilder sb = new StringBuilder();

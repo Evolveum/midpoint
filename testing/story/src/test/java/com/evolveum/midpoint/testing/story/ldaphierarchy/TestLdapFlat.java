@@ -49,16 +49,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Flat LDAP structure. All accounts in ou=people. The organizational structure is
  * reflected to (non-nested) LDAP groups. Users are members of the groups to reflect
  * the orgstruct.
- *  
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapFlat extends AbstractLdapHierarchyTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-flat");
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -68,12 +68,12 @@ public class TestLdapFlat extends AbstractLdapHierarchyTest {
 	protected File getTestDir() {
 		return TEST_DIR;
 	}
-	
+
 	@Override
 	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
 		Entry accountEntry = openDJController.searchSingle("uid="+username);
-		
+
 		Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
 		assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
 		openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
@@ -85,13 +85,13 @@ public class TestLdapFlat extends AbstractLdapHierarchyTest {
 				openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
 			}
 		}
-		
+
 		return user;
 	}
-	
+
 	@Override
 	protected void recomputeIfNeeded(String changedOrgOid) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		reconcileAllUsers();
 	}
-	
+
 }

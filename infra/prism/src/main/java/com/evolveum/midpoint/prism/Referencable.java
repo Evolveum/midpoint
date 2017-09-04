@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
 public interface Referencable {
 
 	PrismReferenceValue asReferenceValue();
-	
+
 	void setupReferenceValue(PrismReferenceValue value);
 
 	String getOid();

@@ -54,9 +54,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Holds internal (parsed) form of midPoint-style XPath-like expressions.
  * It is able to retrieve/export these expressions from/to various forms (text, text in XML document,
  * XPathSegment list, prism path specification).
- * 
+ *
  * Assumes relative XPath, but somehow can also work with absolute XPaths.
- * 
+ *
  * @author semancik
  * @author mederly
  */
@@ -364,12 +364,12 @@ public class ItemPathHolder {
 				} else if (IdentifierPathSegment.QNAME.equals(qname)) {
 					sb.append(IdentifierPathSegment.SYMBOL);
 				} else if (!StringUtils.isEmpty(qname.getPrefix())) {
-                    sb.append(qname.getPrefix() + ":" + qname.getLocalPart());
+                    sb.append(qname.getPrefix()).append(':').append(qname.getLocalPart());
                 } else {
                     if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
                         String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(qname.getNamespaceURI());
                         seg.setQNamePrefix(prefix);     // hack - we modify the path segment here (only the form, not the meaning), but nevertheless it's ugly
-                        sb.append(seg.getQName().getPrefix() + ":" + seg.getQName().getLocalPart());
+                        sb.append(seg.getQName().getPrefix()).append(':').append(seg.getQName().getLocalPart());
                     } else {
                         // no namespace, no prefix
                         sb.append(qname.getLocalPart());
@@ -378,12 +378,12 @@ public class ItemPathHolder {
             }
 		}
 	}
-	
+
 	public String toCanonicalPath(Class objectType, PrismContext prismContext) {
 		StringBuilder sb = new StringBuilder("\\");
-		
+
         boolean first = true;
-        
+
         PrismObjectDefinition objDef = null;
         if (objectType != null) {
         	 objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
@@ -392,13 +392,13 @@ public class ItemPathHolder {
 		for (PathHolderSegment seg : segments) {
 
             if (seg.isIdValueFilter()) {
-            	//for now, we don't want to save concrete id, just the path 
+            	//for now, we don't want to save concrete id, just the path
                 continue;
 
             } else {
 
             	QName qname = seg.getQName();
-            	
+
                 if (!first) {
                     sb.append("\\");
                     if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
@@ -406,7 +406,7 @@ public class ItemPathHolder {
                         	PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
                         	def = containerDef.findItemDefinition(qname);
                         }
-                    	
+
                     	if (def != null) {
                     		qname = def.getName();
                     	}
@@ -421,12 +421,12 @@ public class ItemPathHolder {
                     first = false;
                 }
 
-                
-                
+
+
 				sb.append(QNameUtil.qNameToUri(qname));
             }
 		}
-		
+
 		return sb.toString();
 	}
 
@@ -538,8 +538,8 @@ public class ItemPathHolder {
 		allSegments.addAll(toSegments());
 		return new ItemPathHolder(allSegments);
 	}
-	
-	
+
+
 
 	private void addExplicitNsDeclarations(StringBuilder sb) {
 		if (explicitNamespaceDeclarations != null) {
@@ -585,7 +585,7 @@ public class ItemPathHolder {
 			return true;
 		if (obj == null)
 			return false;
-		
+
 		// Special case
 		if (obj instanceof QName) {
 			if (segments.size() != 1) {
@@ -594,7 +594,7 @@ public class ItemPathHolder {
 			PathHolderSegment segment = segments.get(0);
 			return segment.getQName().equals((QName)obj);
 		}
-		
+
 		if (getClass() != obj.getClass())
 			return false;
 		ItemPathHolder other = (ItemPathHolder) obj;
@@ -632,7 +632,7 @@ public class ItemPathHolder {
 	/**
 	 * Returns a list of segments that are the "tail" after specified path.
 	 * The path in the parameter is assumed to be a "superpath" to this path, e.i.
-	 * this path is below specified path. This method returns all the segments 
+	 * this path is below specified path. This method returns all the segments
 	 * of this path that are below the specified path.
 	 * Returns null if the assumption is false.
 	 */
@@ -664,14 +664,14 @@ public class ItemPathHolder {
 		return false;
 	}
 
-	
+
 	private Long idToLong(String stringVal) {
 		if (stringVal == null) {
 			return null;
 		}
 		return Long.valueOf(stringVal);
 	}
-	
+
 	private String idToString(Long longVal) {
 		if (longVal == null) {
 			return null;

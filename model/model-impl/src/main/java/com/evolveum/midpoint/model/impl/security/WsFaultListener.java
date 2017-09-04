@@ -29,7 +29,7 @@ import org.apache.wss4j.common.ext.WSSecurityException;
 public class WsFaultListener implements FaultListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WsFaultListener.class);
-	
+
 	private SecurityHelper securityHelper;
 
     public WsFaultListener(SecurityHelper securityHelper) {
@@ -73,5 +73,5 @@ public class WsFaultListener implements FaultListener {
     	return true;
 	}
 
-    
+
 }

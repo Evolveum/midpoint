@@ -120,7 +120,7 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
         if (key == null) {
             key = "";
         }
-        
+
         return PageBase.createStringResourceStatic(getPage(), key).getString();
 
 //        return new StringResourceModel(key, getPage(), null, key).getString();

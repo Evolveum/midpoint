@@ -28,13 +28,13 @@ import org.apache.wss4j.common.ext.WSPasswordCallback;
  *
  */
 public class ClientPasswordHandler implements CallbackHandler {
-	
+
 	 private static String password;
 
     public static void setPassword(String password) {
         ClientPasswordHandler.password = password;
     }
-	
+
 	 @Override
 	public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
 		WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];

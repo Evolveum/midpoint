@@ -46,7 +46,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
                 && PasswordType.F_VALUE.equals(property.getElementName())) {
 			super.setDisplayName("prismPropertyPanel.name.credentials.password");
 		}
-        
+
         values = createValues();
     }
 

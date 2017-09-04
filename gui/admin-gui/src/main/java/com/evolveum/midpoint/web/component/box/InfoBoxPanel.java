@@ -34,7 +34,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  */
 public class InfoBoxPanel extends Panel{
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_INFO_BOX = "infoBox";
 	private static final String ID_INFO_BOX_ICON = "infoBoxIcon";
 	private static final String ID_IMAGE_ID = "imageId";
@@ -51,34 +51,34 @@ public class InfoBoxPanel extends Panel{
 
 		initLayout(model, null);
 	}
-	
+
 	public InfoBoxPanel(String id, IModel<InfoBoxType> model, Class<? extends IRequestablePage> linkPage) {
 		super(id, model);
 		add(AttributeModifier.append("class", "dashboard-info-box"));
 		initLayout(model, linkPage);
 	}
-	
+
 	private void initLayout(final IModel<InfoBoxType> model, final Class<? extends IRequestablePage> linkPage) {
-		
+
 		WebMarkupContainer infoBox = new WebMarkupContainer(ID_INFO_BOX);
 		add(infoBox);
 		infoBox.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.BOX_BACKGROUND_COLOR)));
-		
+
 		WebMarkupContainer infoBoxIcon = new WebMarkupContainer(ID_INFO_BOX_ICON);
 		infoBox.add(infoBoxIcon);
 		infoBoxIcon.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.ICON_BACKGROUND_COLOR)));
-        
-        
+
+
         WebMarkupContainer image = new WebMarkupContainer(ID_IMAGE_ID);
         image.add(AttributeModifier.append("class", new PropertyModel<String>(model, InfoBoxType.IMAGE_ID)));
         infoBoxIcon.add(image);
-        
+
         Label message = new Label(ID_MESSAGE, new PropertyModel<String>(model, InfoBoxType.MESSAGE));
         infoBox.add(message);
-        
+
         Label number = new Label(ID_NUMBER, new PropertyModel<String>(model, InfoBoxType.NUMBER));
         infoBox.add(number);
-        
+
         WebMarkupContainer progress = new WebMarkupContainer(ID_PROGRESS);
         infoBox.add(progress);
         progress.add(new VisibleEnableBehaviour() {
@@ -98,7 +98,7 @@ public class InfoBoxPanel extends Panel{
         if (linkPage != null) {
 	        add(new AjaxEventBehavior("click") {
 				private static final long serialVersionUID = 1L;
-	
+
 				@Override
 				protected void onEvent(AjaxRequestTarget target) {
 					setResponsePage(linkPage);
@@ -106,6 +106,6 @@ public class InfoBoxPanel extends Panel{
 			});
         }
 	}
-	
-	
+
+
 }

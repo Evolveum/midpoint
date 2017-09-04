@@ -44,7 +44,7 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
             protected void onSortChanged() {
                 getTable().setCurrentPage(0);
             }
-            
+
             @Override
             protected void onAjaxClick(AjaxRequestTarget target) {
             	target.add(getTable());

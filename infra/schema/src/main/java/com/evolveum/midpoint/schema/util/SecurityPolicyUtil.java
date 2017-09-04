@@ -23,9 +23,9 @@ public class SecurityPolicyUtil {
 		return checkAndGetAuthPolicyConsistence(mailAuthPolicy, smsAuthPolicy);
 
 	}
-	
-	
-	
+
+
+
 	public static NonceCredentialsPolicyType getCredentialPolicy(String policyName,
 			SecurityPolicyType securityPolicy) throws SchemaException {
 		CredentialsPolicyType credentialsPolicy = securityPolicy.getCredentials();
@@ -65,7 +65,7 @@ public class SecurityPolicyUtil {
 
 		return availableNoncePolicies.iterator().next();
 	}
-	
+
 	private static MailAuthenticationPolicyType getMailAuthenticationPolicy(String authName,
 			SecurityPolicyType securityPolicy) throws SchemaException {
 		AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
@@ -99,7 +99,7 @@ public class SecurityPolicyUtil {
 		return smsPolicy;
 
 	}
-	
+
 	private static <T extends AbstractAuthenticationPolicyType> T getAuthenticationPolicy(String authName,
 			List<T> authPolicies) throws SchemaException {
 
@@ -137,5 +137,5 @@ public class SecurityPolicyUtil {
 
 	}
 
-	
+
 }

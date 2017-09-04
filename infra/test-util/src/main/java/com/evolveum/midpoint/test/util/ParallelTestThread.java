@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.test.util;
 
-import com.evolveum.midpoint.util.FailableRunnable;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,19 +26,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ParallelTestThread extends Thread {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ParallelTestThread.class);
-	
-	private FailableRunnable target;
+
+	private int i;
+	private MultithreadRunner target;
 	private Throwable exception;
 
-	public ParallelTestThread(FailableRunnable target) {
+	public ParallelTestThread(int i, MultithreadRunner target) {
 		super();
+		this.i = i;
 		this.target = target;
 	}
 
 	@Override
 	public void run() {
 		try {
-			target.run();
+			target.run(i);
 		} catch (RuntimeException | Error e) {
 			recordException(e);
 			throw e;
@@ -57,5 +58,5 @@ public class ParallelTestThread extends Thread {
 		LOGGER.error("Test thread failed: {}", e.getMessage(), e);
 		this.exception = e;
 	}
-	
+
 }

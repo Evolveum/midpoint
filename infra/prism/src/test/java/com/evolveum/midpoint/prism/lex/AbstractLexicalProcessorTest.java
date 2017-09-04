@@ -58,8 +58,8 @@ import static org.testng.AssertJUnit.*;
  *
  */
 public abstract class AbstractLexicalProcessorTest {
-	
-	private static final QName XSD_COMPLEX_TYPE_ELEMENT_NAME 
+
+	private static final QName XSD_COMPLEX_TYPE_ELEMENT_NAME
 			= new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
 
     public static final String EVENT_HANDLER_FILE_BASENAME = "event-handler";
@@ -75,26 +75,26 @@ public abstract class AbstractLexicalProcessorTest {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
-	
+
 	protected abstract String getSubdirName();
-	
+
 	protected abstract String getFilenameSuffix();
-	
+
 	protected File getCommonSubdir() {
 		return new File(COMMON_DIR_PATH, getSubdirName());
 	}
-	
+
 	protected File getFile(String baseName) {
 		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
 	}
-	
+
 	protected abstract LexicalProcessor<String> createParser();
 
 	@Test
     public void testParseUserToPrism() throws Exception {
 		final String TEST_NAME = "testParseUserToPrism";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		LexicalProcessor lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -103,18 +103,18 @@ public abstract class AbstractLexicalProcessorTest {
 		RootXNode xnode = lexicalProcessor.read(getFileSource(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
-		
+
 		// WHEN (parse to prism)
 		PrismObject<UserType> user = prismContext.parserFor(xnode).parse();
-		
+
 		// THEN
 		System.out.println("Parsed user:");
 		System.out.println(user.debugDump());
 
 		assertUserJackXNodeOrdering("serialized xnode", xnode);
-		
+
 		assertUserJack(user, true);
-		
+
 	}
 
 	ParserSource getFileSource(String basename) {
@@ -125,7 +125,7 @@ public abstract class AbstractLexicalProcessorTest {
     public void testParseUserRoundTrip() throws Exception {
 		final String TEST_NAME = "testParseUserRoundTrip";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		LexicalProcessor<String> lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -135,19 +135,19 @@ public abstract class AbstractLexicalProcessorTest {
 		System.out.println("\nParsed xnode:");
 		System.out.println(xnode.debugDump());
 		PrismObject<UserType> user = prismContext.parserFor(xnode).parse();
-		
+
 		// THEN
 		System.out.println("\nParsed user:");
 		System.out.println(user.debugDump());
-		
+
 		assertUserJack(user, true);
-		
+
 		// WHEN (re-serialize to XNode)
 		RootXNode serializedXNode = prismContext.xnodeSerializer()
 				.options(SerializationOptions.createSerializeCompositeObjects())
 				.serialize(user);
 		String serializedString = lexicalProcessor.write(serializedXNode, new QName(NS_FOO, "user"), null);
-		
+
 		// THEN
 		System.out.println("\nXNode after re-serialization:");
 		System.out.println(serializedXNode.debugDump());
@@ -156,15 +156,15 @@ public abstract class AbstractLexicalProcessorTest {
 
 		String whenSerialized = getWhenItemSerialized();
 		assertTrue("Serialized form does not contain " + whenSerialized, serializedString.contains(whenSerialized));
-		
+
 		assertUserJackXNodeOrdering("serialized xnode", serializedXNode);
-		
+
 		validateUserSchema(serializedString, prismContext);
-		
+
 		// WHEN (re-parse)
 		RootXNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
 		PrismObject<UserType> reparsedUser = prismContext.parserFor(reparsedXnode).parse();
-		
+
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
 		System.out.println(reparsedXnode.debugDump());
@@ -172,20 +172,20 @@ public abstract class AbstractLexicalProcessorTest {
 		System.out.println(reparsedUser.debugDump());
 
 		assertUserJackXNodeOrdering("serialized xnode", reparsedXnode);
-				
+
 		ObjectDelta<UserType> diff = DiffUtil.diff(user, reparsedUser);
 		System.out.println("\nDiff:");
 		System.out.println(diff.debugDump());
-		
+
 		PrismObject accountRefObjOrig = findObjectFromAccountRef(user);
 		PrismObject accountRefObjRe = findObjectFromAccountRef(reparsedUser);
-		
+
 		ObjectDelta<UserType> accountRefObjDiff = DiffUtil.diff(accountRefObjOrig, accountRefObjRe);
 		System.out.println("\naccountRef object diff:");
 		System.out.println(accountRefObjDiff.debugDump());
-		
+
 		assertTrue("Re-parsed object in accountRef does not match: "+accountRefObjDiff, accountRefObjDiff.isEmpty());
-		
+
 		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
 	}
 
@@ -196,7 +196,7 @@ public abstract class AbstractLexicalProcessorTest {
     public void testParseResourceRumToPrism() throws Exception {
 		final String TEST_NAME = "testParseResourceRumToPrism";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		LexicalProcessor lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -205,23 +205,23 @@ public abstract class AbstractLexicalProcessorTest {
 		RootXNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
-		
+
 		// WHEN (parse to prism)
 		PrismObject<ResourceType> resource = prismContext.parserFor(xnode).parse();
-		
+
 		// THEN
 		System.out.println("Parsed resource:");
 		System.out.println(resource.debugDump());
-		
-		assertResourceRum(resource);		
-		
+
+		assertResourceRum(resource);
+
 	}
 
 	@Test
     public void testParseResourceRoundTrip() throws Exception {
 		final String TEST_NAME = "testParseResourceRoundTrip";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		LexicalProcessor<String> lexicalProcessor = createParser();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -229,63 +229,63 @@ public abstract class AbstractLexicalProcessorTest {
 		// WHEN (parse)
 		RootXNode xnode = lexicalProcessor.read(getFileSource(RESOURCE_RUM_FILE_BASENAME), ParsingContext.createDefault());
 		PrismObject<ResourceType> resource = prismContext.parserFor(xnode).parse();
-		
+
 		// THEN
 		System.out.println("\nParsed resource:");
 		System.out.println(resource.debugDump());
-		
+
 		assertResourceRum(resource);
-		
+
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = prismContext.xnodeSerializer()
 				.options(SerializationOptions.createSerializeCompositeObjects())
 				.serialize(resource);
 		String serializedString = lexicalProcessor.write(serializedXNode, new QName(NS_FOO, "resource"), null);
-				
+
 		// THEN
 		System.out.println("\nXNode after re-serialization:");
 		System.out.println(serializedXNode.debugDump());
 		System.out.println("\nRe-serialized string:");
 		System.out.println(serializedString);
-		
+
 		validateResourceSchema(serializedString, prismContext);
-		
+
 		// WHEN (re-parse)
 		RootXNode reparsedXnode = lexicalProcessor.read(new ParserStringSource(serializedString), ParsingContext.createDefault());
 		PrismObject<ResourceType> reparsedResource = prismContext.parserFor(reparsedXnode).parse();
-		
+
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
 		System.out.println(reparsedXnode.debugDump());
 		System.out.println("\nRe-parsed resource:");
 		System.out.println(reparsedResource.debugDump());
-		
+
 		ObjectDelta<ResourceType> diff = DiffUtil.diff(resource, reparsedResource);
 		System.out.println("\nDiff:");
 		System.out.println(diff.debugDump());
-				
+
 		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
-	}	
+	}
 
 
 	private void assertResourceRum(PrismObject<ResourceType> resource) throws SchemaException {
 		resource.checkConsistence();
 		resource.assertDefinitions("test");
-		
+
 		assertEquals("Wrong oid", RESOURCE_RUM_OID, resource.getOid());
 		PrismAsserts.assertObjectDefinition(resource.getDefinition(), RESOURCE_QNAME, RESOURCE_TYPE_QNAME, ResourceType.class);
 		PrismAsserts.assertParentConsistency(resource);
-		
+
 		assertPropertyValue(resource, "name", new PolyString("Rum Delivery System", "rum delivery system"));
 		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-		
+
 		PrismProperty<SchemaDefinitionType> propSchema = resource.findProperty(ResourceType.F_SCHEMA);
 		assertNotNull("No schema property in resource", propSchema);
 		PrismPropertyDefinition<SchemaDefinitionType> propSchemaDef = propSchema.getDefinition();
 		assertNotNull("No definition of schema property in resource", propSchemaDef);
 		SchemaDefinitionType schemaDefinitionType = propSchema.getRealValue();
 		assertNotNull("No value of schema property in resource", schemaDefinitionType);
-		
+
 		Element schemaElement = schemaDefinitionType.getSchema();
 		assertNotNull("No schema element in schema property in resource", schemaElement);
 		System.out.println("Resource schema:");
@@ -312,13 +312,13 @@ public abstract class AbstractLexicalProcessorTest {
 				expectedClass.isAssignableFrom(xnode.getClass()));
 		return (X) xnode;
 	}
-	
+
 	protected <X extends XNode> X getAssertXMapSubnode(String message, MapXNode xmap, QName key, Class<X> expectedClass) {
 		XNode xsubnode = xmap.get(key);
 		assertNotNull(message+" no key "+key, xsubnode);
 		return getAssertXNode(message+" key "+key, xsubnode, expectedClass);
 	}
-	
+
 	protected void assertUserJackXNodeOrdering(String message, XNode xnode) {
 		if (xnode instanceof RootXNode) {
 			xnode = ((RootXNode)xnode).getSubnode();
@@ -336,11 +336,11 @@ public abstract class AbstractLexicalProcessorTest {
 		assertEquals(message+": Wrong entry 3, the xnodes were shuffled", UserType.F_DESCRIPTION, reTopMapEntry3.getKey());
 
 	}
-	
+
 	protected void validateUserSchema(String dataString, PrismContext prismContext) throws SAXException, IOException {
 		// Nothing to do by default
 	}
-	
+
 	protected void validateResourceSchema(String dataString, PrismContext prismContext) throws SAXException, IOException {
 		// Nothing to do by default
 	}

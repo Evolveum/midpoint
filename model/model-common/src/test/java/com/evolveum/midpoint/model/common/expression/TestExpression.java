@@ -55,15 +55,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  */
 public class TestExpression {
-    
+
 	private static final File TEST_DIR = new File("src/test/resources/expression/expression");
-	
+
 	private static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
-	
+
 	private static final File ACCOUNT_JACK_DUMMYFILE = new File(TEST_DIR, "account-jack-dummy.xml");
-	
+
 	private static final File EXPRESSION_ITERATION_CONDITION_FILE = new File(TEST_DIR, "iteration-condition.xml");
-	
+
     private PrismContext prismContext;
 
 	private long lastScriptExecutionCount;
@@ -73,7 +73,7 @@ public class TestExpression {
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-		
+
 		prismContext = PrismTestUtil.createInitializedPrismContext();
 		ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
 		ProtectorImpl protector = ExpressionTestUtil.createInitializedProtector(prismContext);
@@ -84,12 +84,12 @@ public class TestExpression {
     public void testIterationCondition() throws Exception {
     	final String TEST_NAME = "testIterationCondition";
     	TestUtil.displayTestTitle(TEST_NAME);
-    	
+
     	// GIVEN
     	OperationResult result = new OperationResult(TestExpression.class.getName()+"."+TEST_NAME);
-    	
+
     	rememberScriptExecutionCount();
-    	
+
     	ExpressionType expressionType = PrismTestUtil.parseAtomicValue(
     			EXPRESSION_ITERATION_CONDITION_FILE, ExpressionType.COMPLEX_TYPE);
 
@@ -97,7 +97,7 @@ public class TestExpression {
 				ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, null, result);
-		
+
 		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
@@ -106,20 +106,20 @@ public class TestExpression {
 		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 1);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, "001");
-		
+
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, null, result);
-		
+
 		// WHEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
-    	
+
 		// THEN
 		assertNotNull(outputTriple);
 		outputTriple.checkConsistence();
-		
+
 		// Make sure that the script is executed only once. There is no delta in the variables, no need to do it twice.
 		assertScriptExecutionIncrement(1);
     }
-    
+
     protected void rememberScriptExecutionCount() {
 		lastScriptExecutionCount = InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
 	}
@@ -130,5 +130,5 @@ public class TestExpression {
 		assertEquals("Unexpected increment in script execution count", (long)expectedIncrement, actualIncrement);
 		lastScriptExecutionCount = currentScriptExecutionCount;
 	}
-    
+
 }

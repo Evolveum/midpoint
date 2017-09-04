@@ -71,9 +71,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMapping extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/mapping");
-	
+
 	// CRIMSON resource has STRONG mappings, non-tolerant attributes, absolute-like mappings
 	protected static final File RESOURCE_DUMMY_CRIMSON_FILE = new File(TEST_DIR, "resource-dummy-crimson.xml");
 	protected static final String RESOURCE_DUMMY_CRIMSON_OID = "10000000-0000-0000-0000-0000000001c4";
@@ -85,10 +85,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_LIGHT_CRIMSON_OID = "aa5d09b4-54d9-11e7-8ece-576137828ab7";
 	protected static final String RESOURCE_DUMMY_LIGHT_CRIMSON_NAME = "lightCrimson";
 	protected static final String RESOURCE_DUMMY_LIGHT_CRIMSON_NAMESPACE = MidPointConstants.NS_RI;
-	
+
 	protected static final String USER_GUYBRUSH_PASSWORD_1_CLEAR = "1wannaBEaP1rat3";
 	protected static final String USER_GUYBRUSH_PASSWORD_2_CLEAR = "1wannaBEtheP1rat3";
-	
+
 	protected static final String LOCALITY_BLOOD_ISLAND = "Blood Island";
 	protected static final String LOCALITY_BOOTY_ISLAND = "Booty Island";
 	protected static final String LOCALITY_SCABB_ISLAND = "Scabb Island";
@@ -104,12 +104,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-		initDummyResourcePirate(RESOURCE_DUMMY_CRIMSON_NAME, 
+
+		initDummyResourcePirate(RESOURCE_DUMMY_CRIMSON_NAME,
 				RESOURCE_DUMMY_CRIMSON_FILE, RESOURCE_DUMMY_CRIMSON_OID, initTask, initResult);
-		initDummyResourcePirate(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, 
+		initDummyResourcePirate(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME,
 				RESOURCE_DUMMY_LIGHT_CRIMSON_FILE, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, initTask, initResult);
-		
+
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 	}
 
@@ -125,28 +125,28 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         String accountOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, getDummyResourceType(RESOURCE_DUMMY_BLUE_NAME));
-        
+
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
@@ -157,11 +157,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         UUID drinkUuidBlue = UUID.fromString(drinkBlue);
         assertNotNull("No drink UUID", drinkUuidBlue);
         display("Drink UUID", drinkUuidBlue.toString());
-        
+
         assertAccountShip(userJack, ACCOUNT_JACK_DUMMY_FULLNAME, null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
-		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, 
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Jack Sparrow");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -172,7 +172,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test101ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test101ModifyUserFullName";
@@ -187,20 +187,20 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		PrismTestUtil.createPolyString("Cpt. Jack Sparrow"));
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Cpt. Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
-		
+
 		// 'quote' is non-tolerant attribute. As the source of the mapping is changed, the current
 		// value is no longer legal and the reconciliation has to remove it.
-		assertNoDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, 
+		assertNoDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
 
         // Check audit
@@ -212,7 +212,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test102ModifyUserFullNameRecon() throws Exception {
 		final String TEST_NAME = "test102ModifyUserFullNameRecon";
@@ -225,24 +225,24 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, 
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
         		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
-		
+
 		// The quote attribute was empty before this operation. So the weak mapping kicks in
 		// and sets a new value.
-		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, 
+		assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME,
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Captain Jack Sparrow");
 
 
@@ -269,14 +269,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
         		PrismTestUtil.createPolyString("Black Pearl"));
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
@@ -289,7 +289,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test105ModifyAccountShip() throws Exception {
 		final String TEST_NAME = "test105ModifyAccountShip";
@@ -299,10 +299,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -311,14 +311,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Jack Sparrow", "Flying Dutchman", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
@@ -332,7 +332,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	}
 
 	/**
-	 * There is a weak mapping for ship attribute. 
+	 * There is a weak mapping for ship attribute.
 	 * Therefore try to remove the value. The weak mapping should be applied.
 	 */
 	@Test
@@ -344,10 +344,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -356,14 +356,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
@@ -375,7 +375,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test107ModifyAccountShipAgain() throws Exception {
 		final String TEST_NAME = "test107ModifyAccountShipAgain";
@@ -385,10 +385,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -397,14 +397,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Jack Sparrow", "HMS Dauntless", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
@@ -416,9 +416,9 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	/**
-	 * There is a weak mapping for ship attribute. 
+	 * There is a weak mapping for ship attribute.
 	 * Therefore try to remove the value. The weak mapping should be applied.
 	 */
 	@Test
@@ -430,10 +430,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -442,14 +442,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_BLUE_NAME), task);
 
         // Check audit
@@ -461,7 +461,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test109ModifyUserUnassignAccountBlue() throws Exception {
 		final String TEST_NAME = "test109ModifyUserUnassignAccountBlue";
@@ -471,27 +471,27 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, false);
         userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
         userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
         deltas.add(userDelta);
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
-                
+
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -502,8 +502,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
-	
+
+
 	/**
 	 * Red dummy has STRONG mappings.
 	 */
@@ -516,39 +516,39 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, 
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
         		RESOURCE_DUMMY_RED_OID, null, true);
         deltas.add(userDelta);
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         String accountOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType(RESOURCE_DUMMY_RED_NAME));
-        
+
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
-        
- 		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
  				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "mouth", "pistol");
- 		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
  				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- red resource");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -559,7 +559,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test121ModifyUserFullName() throws Exception {
 		final String TEST_NAME = "test121ModifyUserFullName";
@@ -573,14 +573,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Captain Jack Sparrow", null, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
@@ -607,14 +607,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
         		PrismTestUtil.createPolyString("Black Pearl"));
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
@@ -627,7 +627,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test123ModifyAccountShip() throws Exception {
 		final String TEST_NAME = "test123ModifyAccountShip";
@@ -637,10 +637,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -650,21 +650,21 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         try {
         	modelService.executeChanges(deltas, null, task, result);
-        	
+
         	AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
         	// This is expected
         	display("Expected exception", e);
         }
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
@@ -690,28 +690,28 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		prismContext);
         deltas.add(accountDelta);
-        
+
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
-        
+
         // THEN
         assertSuccess(result);
-         
+
  		userJack = getUser(USER_JACK_OID);
  		display("User after change execution", userJack);
  		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
- 		
+
  		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
- 		
+
          // Check audit
          display("Audit", dummyAuditService);
          dummyAuditService.assertSimpleRecordSanity();
@@ -731,10 +731,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
         		accountOid, getDummyResourceController(RESOURCE_DUMMY_RED_NAME).getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -744,21 +744,21 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
      // WHEN
         try {
         	modelService.executeChanges(deltas, null, task, result);
-        	
+
         	AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// This is expected
         	display("Expected exception", e);
         }
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Captain Jack Sparrow", "Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
@@ -769,10 +769,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(0);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 	}
-	
+
 	/**
 	 * Organization is used in the expression for "ship" attribute. But it is not specified as a source.
-	 * Nevertheless the mapping is strong, therefore the result should be applied anyway. 
+	 * Nevertheless the mapping is strong, therefore the result should be applied anyway.
 	 * Reconciliation should be triggered.
 	 */
 	@Test
@@ -788,14 +788,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATION, task, result,
         		PrismTestUtil.createPolyString("Brethren of the Coast"));
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 
         // Check audit
@@ -808,7 +808,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	/**
 	 * Note: red resource disables account on unsassign, does NOT delete it
 	 */
@@ -821,41 +821,41 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
-        
+
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		assertSuccess(result);
-        
+
         XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		String accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
-		
+
 		XMLGregorianCalendar trigStart = clock.currentTimeXMLGregorianCalendar();
         trigStart.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
         XMLGregorianCalendar trigEnd = clock.currentTimeXMLGregorianCalendar();
         trigEnd.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
 		assertTrigger(accountRed, RecomputeTriggerHandler.HANDLER_URI, trigStart, trigEnd);
-		
+
 		XMLGregorianCalendar disableTimestamp = accountRed.asObjectable().getActivation().getDisableTimestamp();
 		TestUtil.assertBetween("Wrong disableTimestamp", start, end, disableTimestamp);
 
 		assertAccountShip(userJack, "Captain Jack Sparrow", "Brethren of the Coast / Black Pearl", false, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
-                
+
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -866,7 +866,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	/**
 	 * Note: red resource disables account on unsassign, does NOT delete it
 	 * So let's delete the account explicitly to make room for the following tests
@@ -880,28 +880,28 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String acccountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, acccountRedOid, prismContext);
         deltas.add(shadowDelta);
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		assertSuccess(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		assertNoLinkedAccount(userJack);
-                
+
         // Check if dummy resource accounts are gone
         assertNoDummyAccount("jack");
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -913,7 +913,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 
-	
+
 	/**
 	 * Default dummy has combination of NORMAL, WEAK and STRONG mappings.
 	 */
@@ -926,36 +926,36 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, 
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID,
         		RESOURCE_DUMMY_OID, null, true);
         userDelta.addModificationReplaceProperty(UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
         userDelta.addModificationReplaceProperty(UserType.F_ORGANIZATIONAL_UNIT);
         deltas.add(userDelta);
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         String accountOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         assertAccountShadowRepo(accountShadow, accountOid, "jack", getDummyResourceType());
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         assertAccountShadowModel(accountModel, accountOid, "jack", getDummyResourceType());
-        
+
         // Check account in dummy resource
         assertDummyAccount(null, "jack", "Jack Sparrow", true);
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -966,7 +966,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	/**
 	 * fullName mapping is NORMAL, the change should go through
 	 */
@@ -983,14 +983,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
         		PrismTestUtil.createPolyString("Captain Jack Sparrow"));
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
-		
+
 		assertAccountShip(userJack, "Captain Jack Sparrow", null, dummyResourceCtl, task);
 
 		// Check audit
@@ -1020,14 +1020,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result,
         		PrismTestUtil.createPolyString("Fountain of Youth"));
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
-		
+
 		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
@@ -1040,7 +1040,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test143ModifyAccountLocation() throws Exception {
 		final String TEST_NAME = "test143ModifyAccountLocation";
@@ -1050,10 +1050,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
@@ -1063,21 +1063,21 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         try {
         	modelService.executeChanges(deltas, null, task, result);
-        	
+
         	AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
         	// This is expected
         	display("Expected exception", e);
         }
-		
+
 		// THEN
 		result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
-		
+
 		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
@@ -1103,26 +1103,26 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
         		prismContext);
         deltas.add(accountDelta);
-        
+
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
-        
+
         // THEN
         assertSuccess(result);
-         
+
  		userJack = getUser(USER_JACK_OID);
  		display("User after change execution", userJack);
  		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
- 		
+
  		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
 
          // Check audit
@@ -1144,10 +1144,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         String accountOid = getSingleLinkOid(userJack);
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
         		accountOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME),
@@ -1157,21 +1157,21 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
      // WHEN
         try {
         	modelService.executeChanges(deltas, null, task, result);
-        	
+
         	AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
         	// This is expected
         	display("Expected exception", e);
         }
-		
+
 		// THEN
         result.computeStatus();
         TestUtil.assertFailure(result);
-        
+
 		userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
-		
+
 		assertAccountLocation(userJack, "Captain Jack Sparrow", "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
@@ -1182,7 +1182,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(0);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
 	}
-	
+
 	@Test
     public void test148ModifyUserRename() throws Exception {
 		final String TEST_NAME = "test148ModifyUserRename";
@@ -1196,14 +1196,14 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_NAME, task, result,
         		PrismTestUtil.createPolyString("renamedJack"));
-		
+
 		// THEN
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
-		
+
 		assertAccountRename(userJack, "renamedJack", "Captain Jack Sparrow", dummyResourceCtl, task);
 
         // Check audit
@@ -1216,8 +1216,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
-	
+
+
 	@Test
     public void test149ModifyUserUnassignAccountDummy() throws Exception {
 		final String TEST_NAME = "test149ModifyUserUnassignAccountDummy";
@@ -1227,25 +1227,25 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-        
+
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
-                
+
 		// WHEN
 		modelService.executeChanges(deltas, null, task, result);
-		
+
 		// THEN
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "renamedJack", "Captain Jack Sparrow", "Jack", "Sparrow", "Fountain of Youth");
 		// Check accountRef
         assertUserNoAccountRefs(userJack);
-                
+
         // Check if dummy resource account is gone
         assertNoDummyAccount("renamedJack");
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
@@ -1257,65 +1257,65 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 
-	
+
 	private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, true, resourceCtl, task);
 	}
-	
+
 	private void assertAccountShip(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
 			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, expectedShip, expectedEnabled, resourceCtl, task);
 	}
-	
+
 	private void assertAccountLocation(PrismObject<UserType> userJack, String expectedFullName, String expectedShip,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		assertAccount(userJack, expectedFullName, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, expectedShip, true, resourceCtl, task);
 	}
-	
+
 	private void assertAccountRename(PrismObject<UserType> userJack, String name, String expectedFullName,
 			DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		assertAccount(userJack, name, expectedFullName, null, null, true, resourceCtl, task);
 	}
-	
+
 	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String shipAttributeName, String expectedShip,
 			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
-		// ship inbound mapping is used, it is strong 
+		// ship inbound mapping is used, it is strong
         String accountOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, task.getResult());
         display("Repo shadow", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
-        
+
         // Check account
         // All the changes should be reflected to the account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, task.getResult());
         display("Model shadow", accountModel);
         assertAccountShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
-        PrismAsserts.assertPropertyValue(accountModel, 
+        PrismAsserts.assertPropertyValue(accountModel,
         		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
         		expectedFullName);
         if (shipAttributeName != null) {
 	        if (expectedShip == null) {
-	        	PrismAsserts.assertNoItem(accountModel, 
-	            		resourceCtl.getAttributePath(shipAttributeName));        	
+	        	PrismAsserts.assertNoItem(accountModel,
+	            		resourceCtl.getAttributePath(shipAttributeName));
 	        } else {
-	        	PrismAsserts.assertPropertyValue(accountModel, 
+	        	PrismAsserts.assertPropertyValue(accountModel,
 	        		resourceCtl.getAttributePath(shipAttributeName),
 	        		expectedShip);
 	        }
         }
-        
+
         // Check account in dummy resource
         assertDummyAccount(resourceCtl.getName(), name, expectedFullName, expectedEnabled);
 	}
-	
+
 	private void assertAccount(PrismObject<UserType> userJack, String expectedFullName, String attributeName, String expectedShip,
 			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		assertAccount(userJack, "jack", expectedFullName, attributeName, expectedShip, expectedEnabled, resourceCtl, task);
 	}
-	
+
 
 	@Test
     public void test200ModifyUserAssignAccountDummyCrimson() throws Exception {
@@ -1325,29 +1325,29 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account", dummyAccount);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
-        
+
 	}
-	
+
 	/**
 	 * MID-3661
 	 */
@@ -1359,38 +1359,38 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_VODKA, DRINK_WHISKY);
-        
+
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_VODKA, DRINK_WHISKY, rumFrom(ACCOUNT_GUYBRUSH_DUMMY_LOCATION));
-        
+
 	}
-	
+
 	/**
 	 * Just make sure that plain recon does not destroy anything.
 	 * MID-3661
@@ -1403,36 +1403,36 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_VODKA, DRINK_WHISKY, rumFrom(ACCOUNT_GUYBRUSH_DUMMY_LOCATION));
 	}
 
@@ -1449,46 +1449,46 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertPartialError(result);
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
-        		DRINK_VODKA, DRINK_WHISKY, rumFrom(ACCOUNT_GUYBRUSH_DUMMY_LOCATION));   
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
+        		DRINK_VODKA, DRINK_WHISKY, rumFrom(ACCOUNT_GUYBRUSH_DUMMY_LOCATION));
 	}
-	
+
 	/**
 	 * Just make sure that second recon run does not destroy anything.
 	 * MID-3661
@@ -1501,38 +1501,38 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_VODKA, DRINK_WHISKY, rumFrom(ACCOUNT_GUYBRUSH_DUMMY_LOCATION));
 	}
 
@@ -1547,41 +1547,41 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BLOOD_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_VODKA, DRINK_WHISKY, rumFrom(LOCALITY_BLOOD_ISLAND));
 	}
-	
+
 	/**
 	 * MID-3661
 	 */
@@ -1593,45 +1593,45 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY), 
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY),
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
 		modelService.executeChanges(deltas, options, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_SCABB_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_VODKA, DRINK_WHISKY, "rum from Scabb Island");
 	}
-	
+
 	/**
 	 * MID-3661
 	 */
@@ -1643,48 +1643,48 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
         // TODO: How? Why?
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_VODKA, DRINK_WHISKY, "rum from Scabb Island");
 	}
-	
+
 	/**
 	 * MID-3661
 	 */
@@ -1692,56 +1692,56 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
     public void test220NativeModifyDummyCrimsonThenChangePassword() throws Exception {
 		final String TEST_NAME = "test220NativeModifyDummyCrimsonThenChangePassword";
         displayTestTitle(TEST_NAME);
-        
+
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_BRANDY, DRINK_GRAPPA);
         display("Dummy account before", dummyAccountBefore);
-        
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_GUYBRUSH_OID, USER_GUYBRUSH_PASSWORD_1_CLEAR, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD_1_CLEAR);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         // location haven't changed and recon was not requested. The mapping was not evaluated.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_BRANDY, DRINK_GRAPPA);
 	}
-	
+
 	@Test
     public void test229ModifyUserUnassignAccountDummyCrimson() throws Exception {
 		final String TEST_NAME = "test229ModifyUserUnassignAccountDummyCrimson";
@@ -1750,27 +1750,27 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 		assertNoAssignments(userAfter);
 		assertLinks(userAfter, 0);
-        
+
         // Check account in dummy resource
         assertNoDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        
+
 	}
-	
+
 	@Test
     public void test250ModifyUserAssignAccountDummyLightCrimson() throws Exception {
 		final String TEST_NAME = "test250ModifyUserAssignAccountDummyLightCrimson";
@@ -1779,35 +1779,35 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // preconditions
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
 		display("User before", userBefore);
         PrismAsserts.assertPropertyValue(userBefore, UserType.F_LOCALITY, createPolyString(LOCALITY_BOOTY_ISLAND));
         assertNoDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account", dummyAccount);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
-        
+
 	}
-	
+
 	/**
 	 * MID-3661, MID-3674
 	 */
@@ -1819,38 +1819,38 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL);
-        
+
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
-        
+
 	}
-	
+
 	/**
 	 * Just make sure that plain recon does not destroy anything.
 	 * MID-3661, MID-3674
@@ -1863,40 +1863,40 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
-        
+
 	}
-	
+
 	/**
 	 * IO Error on the resource. The account is not fetched. The operation should fail
 	 * and nothing should be destroyed.
@@ -1910,46 +1910,46 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertPartialError(result);
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
 	}
-	
+
 	/**
 	 * Just make sure that second recon run does not destroy anything.
 	 * MID-3661, MID-3674
@@ -1962,41 +1962,41 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         reconcileUser(USER_GUYBRUSH_OID, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
 	}
-	
+
 	/**
 	 * MID-3661, MID-3674
 	 */
@@ -2008,41 +2008,41 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BLOOD_ISLAND));
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BLOOD_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BLOOD_ISLAND));
 	}
-	
+
 	/**
 	 * MID-3661, MID-3674
 	 */
@@ -2054,45 +2054,45 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
-        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY), 
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, new ItemPath(UserType.F_LOCALITY),
         		PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
 		modelService.executeChanges(deltas, options, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_SCABB_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_SCABB_ISLAND));
 	}
-	
+
 	/**
 	 * MID-3661, MID-3674
 	 */
@@ -2104,48 +2104,48 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         display("Dummy account before", dummyAccountBefore);
-        
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, createPolyString(LOCALITY_BOOTY_ISLAND));
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
         // TODO: How? Why?
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_SCABB_ISLAND));
 	}
-	
+
 	/**
 	 * MID-3661, MID-3674
 	 */
@@ -2153,56 +2153,56 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
     public void test270NativeModifyDummyLightCrimsonThenChangePassword() throws Exception {
 		final String TEST_NAME = "test270NativeModifyDummyLightCrimsonThenChangePassword";
         displayTestTitle(TEST_NAME);
-        
+
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_BRANDY, DRINK_GRAPPA);
         display("Dummy account before", dummyAccountBefore);
-        
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserChangePassword(USER_GUYBRUSH_OID, USER_GUYBRUSH_PASSWORD_2_CLEAR, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-		
+
 		String accountOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow after", repoShadow);
         assertNoPostponedOperation(repoShadow);
-        
+
         assertEncryptedUserPassword(userAfter, USER_GUYBRUSH_PASSWORD_2_CLEAR);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account after", dummyAccountAfter);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         // location haven't changed and recon was not requested. The mapping was not evaluated.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		DRINK_BRANDY, DRINK_GRAPPA);
 	}
-	
+
 	@Test
     public void test279ModifyUserUnassignAccountDummyLightCrimson() throws Exception {
 		final String TEST_NAME = "test279ModifyUserUnassignAccountDummyLightCrimson";
@@ -2211,28 +2211,28 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 		assertNoAssignments(userAfter);
 		assertLinks(userAfter, 0);
-        
+
         // Check account in dummy resource
         assertNoDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        
+
 	}
-	
+
 	/**
 	 * MID-3816, MID-4008
 	 */
@@ -2244,36 +2244,36 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
-        
+
         // Check account in dummy resource
-        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
         		ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
         display("Dummy account", dummyAccount);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
         		IntegrationTestTools.CONST_DRINK);
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
         		IntegrationTestTools.CONST_BLABLA + " administrator -- administrator");
-        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, 
+        assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"Some say elaine -- administrator");
 	}
-	
+
 	@Test
     public void test309UnassignGuybrushDummyYellow() throws Exception {
 		final String TEST_NAME = "test309UnassignGuybrushDummyYellow";
@@ -2282,26 +2282,26 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
 		// WHEN
         displayWhen(TEST_NAME);
         unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
-		
+
 		// THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, 
+		assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME,
 				USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 		assertNoAssignments(userAfter);
 		assertLinks(userAfter, 0);
-        
+
         // Check account in dummy resource
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
-	
+
 	private String rumFrom(String locality) {
 		return "rum from " + locality;
 	}

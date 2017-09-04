@@ -27,21 +27,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Library of standard midPoint functions. These functions are made available to all
  * midPoint expressions.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class BasicExpressionFunctionsXPath {
-	
+
 	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctionsXPath.class);
-	
+
 	private BasicExpressionFunctions functions;
 
 	public BasicExpressionFunctionsXPath(BasicExpressionFunctions functions) {
 		super();
 		this.functions = functions;
 	}
-	
+
 	/**
 	 * Convert string to lower case.
 	 */
@@ -55,7 +55,7 @@ public class BasicExpressionFunctionsXPath {
 	public static String uc(String orig) {
 		return BasicExpressionFunctions.uc(orig);
 	}
-	
+
 	/**
 	 * Remove whitespaces at the beginning and at the end of the string.
 	 */
@@ -74,28 +74,28 @@ public class BasicExpressionFunctionsXPath {
 	/**
 	 * Normalize a string value. It follows the default normalization algorithm
 	 * used for PolyString values.
-	 * 
+	 *
 	 * @param orig original value to normalize
 	 * @return normalized value
 	 */
 	public String norm(String orig) {
 		return functions.norm(orig);
 	}
-	
+
 	public String stringify(Object whatever) {
 		return functions.stringify(whatever);
 	}
-		
+
 	public String determineLdapSingleAttributeValue(Element dn, String attributeName, Element valueElement) throws NamingException {
 		// Trivial case: the value is a single element therefore it has a single value.
 		return valueElement.getTextContent();
 	}
-	
+
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Element valueElement) throws NamingException {
 		// Trivial case: the value is a single element therefore it has a single value.
 		return valueElement.getTextContent();
 	}
-	
+
 	public String determineLdapSingleAttributeValue(Element dnElement, String attributeName, Collection<String> values) throws NamingException {
 		if (values == null || values.isEmpty()) {
 			// Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
@@ -106,9 +106,9 @@ public class BasicExpressionFunctionsXPath {
 		}
 		return functions.determineLdapSingleAttributeValue(dnElement.getTextContent(), attributeName, values);
 	}
-	
+
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {
 		return functions.determineLdapSingleAttributeValue(dns, attributeName, values);
 	}
-	
+
 }

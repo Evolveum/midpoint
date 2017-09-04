@@ -19,7 +19,7 @@ package com.evolveum.midpoint.prism.polystring;
  * Normalizer for PolyStrings. Classes implementing this interface are able to take an
  * original string (in the PolyString sense) and return a normalized version of the
  * string.
- * 
+ *
  * @see PolyString
  * @author Radovan Semancik
  */

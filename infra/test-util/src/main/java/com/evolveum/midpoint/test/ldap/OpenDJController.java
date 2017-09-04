@@ -78,11 +78,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * This class controls embedded OpenDJ instance.
- * 
+ *
  * It is used in Unit tests. It configures and starts and stops the instance. It
  * can even manage a "template" configuration of OpenDJ and copy it to working
  * instance configuration.
- * 
+ *
  * @author Radovan Semancik
  */
 public class OpenDJController extends AbstractResourceController {
@@ -90,10 +90,10 @@ public class OpenDJController extends AbstractResourceController {
 	private String DATA_TEMPLATE_DIR = "test-data";
 	private String SERVER_ROOT = "target/test-data/opendj";
 	private String LDAP_SUFFIX = "dc=example,dc=com";
-	
+
 	public static final String DEFAULT_TEMPLATE_NAME = "opendj.template";
 	public static final String RI_TEMPLATE_NAME = "opendj.template.ri";
-	
+
 	public static final String OBJECT_CLASS_INETORGPERSON_NAME = "inetOrgPerson";
 	public static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
 	public static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
@@ -118,7 +118,7 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Initialize
-	 * 
+	 *
 	 */
 
 	private void init() {
@@ -133,10 +133,10 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Get the value of serverRoot.
-	 * 
+	 *
 	 * The top directory of working OpenDS installation. The OpenDS placed in
 	 * this directory will be used during the tests.
-	 * 
+	 *
 	 * @return the value of serverRoot
 	 */
 	public File getServerRoot() {
@@ -145,10 +145,10 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Set the value of serverRoot
-	 * 
+	 *
 	 * The top directory of working OpenDS installation. The OpenDS placed in
 	 * this directory will be used during the tests.
-	 * 
+	 *
 	 * @param serverRoot
 	 *            new value of serverRoot
 	 */
@@ -158,10 +158,10 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Get the value of configFile
-	 * 
+	 *
 	 * File name of primary OpenDS configuration file. Normally
 	 * <serverRoot>/config/config.ldif
-	 * 
+	 *
 	 * @return the value of configFile
 	 */
 	public File getConfigFile() {
@@ -170,10 +170,10 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Set the value of configFile
-	 * 
+	 *
 	 * File name of primary OpenDS configuration file. Normally
 	 * <serverRoot>/config/config.ldif
-	 * 
+	 *
 	 * @param configFile
 	 *            new value of configFile
 	 */
@@ -183,11 +183,11 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Get the value of templateServerRoot
-	 * 
+	 *
 	 * The top directory of template OpenDS installation. All the files from
 	 * this directory will be copied to the working OpenDS directory
 	 * (serverRoot). This usually happens before the tests.
-	 * 
+	 *
 	 * @return the value of templateServerRoot
 	 */
 	public File getTemplateServerRoot() {
@@ -197,22 +197,22 @@ public class OpenDJController extends AbstractResourceController {
 	public String getSuffix() {
 		return LDAP_SUFFIX;
 	}
-	
-	
+
+
 	public String getSuffixPeople() {
 		return "ou=People,"+LDAP_SUFFIX;
 	}
-	
+
 	public String getAccountDn(String username) {
 		return "uid="+username+","+getSuffixPeople();
 	}
-	
+
 	/**
 	 * Get the value of internalConnection
-	 * 
+	 *
 	 * The connection to the OpenDS instance. It can be used to fetch and
 	 * manipulate the data.
-	 * 
+	 *
 	 * @return the value of internelConnection
 	 */
 	public InternalClientConnection getInternalConnection() {
@@ -222,13 +222,13 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Refresh working OpenDS installation from the template.
-	 * 
+	 *
 	 * The existing working OpenDS installation (in serverRoot) will be
 	 * discarded and replaced by a fresh known-state setup (from
 	 * templateServerRoot).
-	 * 
+	 *
 	 * @throws IOException
-	 * @throws URISyntaxException 
+	 * @throws URISyntaxException
 	 */
 	public void refreshFromTemplate(String templateName) throws IOException, URISyntaxException {
 		deleteDirectory(serverRoot);
@@ -245,7 +245,7 @@ public class OpenDJController extends AbstractResourceController {
 			LOGGER.debug("Creating target dir {}", dst.getPath());
 			dst.mkdirs();
 		}
-		
+
 		templateRoot = new File(DATA_TEMPLATE_DIR, templateName);
 		String templateRootPath = DATA_TEMPLATE_DIR + "/" + templateName;		// templateRoot.getPath does not work on Windows, as it puts "\" into the path name (leading to problems with getSystemResource)
 
@@ -358,9 +358,9 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Start the embedded OpenDJ directory server.
-	 * 
+	 *
 	 * Configuration and databases from serverRoot location will be used.
-	 * 
+	 *
 	 * @return
 	 */
 	public InternalClientConnection start() {
@@ -407,7 +407,7 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Stop the embedded OpenDS server.
-	 * 
+	 *
 	 */
 	public void stop() {
 		if (EmbeddedUtils.isRunning()) {
@@ -418,17 +418,17 @@ public class OpenDJController extends AbstractResourceController {
 			LOGGER.warn("Attempt to stop OpenDJ server that is already stopped.");
 		}
 	}
-	
+
 	public boolean isRunning() {
 		return EmbeddedUtils.isRunning();
 	}
-	
+
 	public void assumeRunning() {
 		if (!isRunning()) {
 			start();
 		}
 	}
-	
+
 	public void assumeStopped() {
 		if (isRunning()) {
 			stop();
@@ -437,7 +437,7 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Delete a directory and its contents.
-	 * 
+	 *
 	 * @param dir
 	 *            The name of the directory to delete.
 	 * @throws IOException
@@ -470,9 +470,9 @@ public class OpenDJController extends AbstractResourceController {
 
 		return result;
 	}
-	
+
 	// Generic utility methods
-	
+
 	public Entry searchByEntryUuid(String entryUuid) throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
@@ -495,7 +495,7 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		return entry;
 	}
-	
+
 	public Entry searchSingle(String filter) throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				getSuffix(), SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
@@ -508,11 +508,11 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		return op.getSearchEntries().get(0);
 	}
-	
+
 	public Entry searchByUid(String string) throws DirectoryException {
 		return searchSingle("(uid=" + string + ")");
 	}
-	
+
 	public Entry fetchEntry(String dn) throws DirectoryException {
 		Validate.notNull(dn);
 		InternalSearchOperation op = getInternalConnection().processSearch(
@@ -526,7 +526,7 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		return op.getSearchEntries().get(0);
 	}
-	
+
 	public Entry fetchAndAssertEntry(String dn, String objectClass) throws DirectoryException {
 		Entry entry = fetchEntry(dn);
 		AssertJUnit.assertNotNull("No entry for DN "+dn, entry);
@@ -562,11 +562,11 @@ public class OpenDJController extends AbstractResourceController {
 		Attribute attribute = attrs.get(0);
 		return getAttributeValue(attribute);
 	}
-	
+
 	public static String getAttributeValue(Attribute attribute) {
 		return attribute.iterator().next().getValue().toString();
 	}
-	
+
 	public static byte[] getAttributeValueBinary(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
@@ -578,7 +578,7 @@ public class OpenDJController extends AbstractResourceController {
 		ByteString value = attribute.iterator().next().getValue();
 		return value.toByteArray();
 	}
-	
+
 	public static Collection<String> getAttributeValues(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
@@ -600,27 +600,27 @@ public class OpenDJController extends AbstractResourceController {
 		DN dn = response.getDN();
 		return dn.toString();
 	}
-	
+
 	public static void assertDn(Entry response, String expected) throws DirectoryException {
 		DN actualDn = response.getDN();
 		if (actualDn.compareTo(DN.decode(expected)) != 0) {
 			AssertJUnit.fail("Wrong DN, expected "+expected+" but was "+actualDn.toString());
 		}
 	}
-	
+
 	public void assertNoEntry(String dn) throws DirectoryException {
 		Entry entry = fetchEntry(dn);
 		if (entry != null) {
 			AssertJUnit.fail("Found entry for dn "+dn+" while not expecting it: "+entry);
 		}
 	}
-	
+
 	public static void assertObjectClass(Entry response, String expected) throws DirectoryException {
 		Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
 		AssertJUnit.assertTrue("Wrong objectclass for entry "+getDn(response)+", expected "+expected+" but got "+objectClassValues,
 				objectClassValues.contains(expected));
 	}
-	
+
 	public static void assertNoObjectClass(Entry response, String unexpected) throws DirectoryException {
 		Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
 		AssertJUnit.assertFalse("Unexpected objectclass for entry "+getDn(response)+": "+unexpected+", got "+objectClassValues,
@@ -632,7 +632,7 @@ public class OpenDJController extends AbstractResourceController {
 		assertContainsDn("No member "+accountDn+" in group "+getDn(groupEntry),
 				members, accountDn);
 	}
-	
+
 	public static void assertContainsDn(String message, Collection<String> actualValues, String expectedValue) throws DirectoryException {
 		AssertJUnit.assertNotNull(message+", expected "+expectedValue+", got null", actualValues);
 		DN expectedDn = DN.decode(expectedValue);
@@ -644,17 +644,17 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		AssertJUnit.fail(message+", expected "+expectedValue+", got "+actualValues);
 	}
-	
+
 	public void assertUniqueMember(String groupDn, String accountDn) throws DirectoryException {
 		Entry groupEntry = fetchEntry(groupDn);
 		assertUniqueMember(groupEntry, accountDn);
 	}
-	
+
 	public void assertNoUniqueMember(String groupDn, String accountDn) throws DirectoryException {
 		Entry groupEntry = fetchEntry(groupDn);
 		assertNoUniqueMember(groupEntry, accountDn);
 	}
-	
+
 	public void assertNoUniqueMember(Entry groupEntry, String accountDn) {
 		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
 		MidPointAsserts.assertNotContainsCaseIgnore("Member "+accountDn+" in group "+getDn(groupEntry),
@@ -693,7 +693,7 @@ public class OpenDJController extends AbstractResourceController {
 			}
 		}
 	}
-	
+
 	public static void assertNoAttribute(Entry response, String name) {
 		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
 		if (attrs == null || attrs.size() == 0) {
@@ -710,15 +710,15 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		AssertJUnit.fail("Attribute "+name+" exists while not expecting it: "+attribute);
 	}
-	
+
 	public void assertActive(Entry response, boolean active) {
 		assertEquals("Unexpected activation of entry "+response, active, isAccountEnabled(response));
 	}
-	
+
 	public Entry addEntryFromLdifFile(File file) throws IOException, LDIFException {
 		return addEntryFromLdifFile(file.getPath());
 	}
-	
+
 	public Entry addEntryFromLdifFile(String filename) throws IOException, LDIFException {
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
@@ -741,7 +741,7 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		return retval;
 	}
-	
+
 	public void addEntry(Entry ldapEntry) {
 		 AddOperation addOperation = getInternalConnection().processAdd(ldapEntry);
 
@@ -756,48 +756,48 @@ public class OpenDJController extends AbstractResourceController {
 	    Entry ldifEntry = ldifReader.readEntry();
 	    addEntry(ldifEntry);
 	}
-	
+
 	public ChangeRecordEntry executeRenameChange(String filename) throws LDIFException, IOException{
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
         ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
-      
+
         if (!(entry instanceof ModifyDNChangeRecordEntry)){
         	throw new LDIFException(new MessageBuilder("Could not execute rename..Bad change").toMessage());
         }
-        
+
         ModifyDNOperation modifyOperation = getInternalConnection().processModifyDN((ModifyDNChangeRecordEntry)entry);
-        
+
         if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
         	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
         }
         return entry;
-        
+
 	}
-	
+
 	public ChangeRecordEntry executeLdifChange(File file) throws IOException, LDIFException {
 		LDIFImportConfig importConfig = new LDIFImportConfig(file.getPath());
         LDIFReader ldifReader = new LDIFReader(importConfig);
         ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
-      
+
         ModifyOperation modifyOperation = getInternalConnection()
         		.processModify((ModifyChangeRecordEntry) entry);
-        
+
         if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
         	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
         }
         return entry;
 	}
-	
+
 	public ChangeRecordEntry executeLdifChange(String ldif) throws IOException, LDIFException {
 		InputStream ldifInputStream = IOUtils.toInputStream(ldif, "UTF-8");
 		LDIFImportConfig importConfig = new LDIFImportConfig(ldifInputStream);
         LDIFReader ldifReader = new LDIFReader(importConfig);
         ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
-      
+
         ModifyOperation modifyOperation = getInternalConnection()
         		.processModify((ModifyChangeRecordEntry) entry);
-        
+
         if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
         	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
         }
@@ -808,24 +808,24 @@ public class OpenDJController extends AbstractResourceController {
         String ldif = "dn: " + entryDn + "\nchangetype: modify\nreplace: "+attributeName+"\n"+attributeName+": " + value;
         return executeLdifChange(ldif);
     }
-	
+
 	public ChangeRecordEntry modifyAdd(String entryDn, String attributeName, String value) throws IOException, LDIFException {
         String ldif = "dn: " + entryDn + "\nchangetype: modify\nadd: "+attributeName+"\n"+attributeName+": " + value;
         return executeLdifChange(ldif);
     }
-	
+
 	public ChangeRecordEntry modifyDelete(String entryDn, String attributeName, String value) throws IOException, LDIFException {
         String ldif = "dn: " + entryDn + "\nchangetype: modify\ndelete: "+attributeName+"\n"+attributeName+": " + value;
         return executeLdifChange(ldif);
     }
-	
+
 	public void delete(String entryDn) {
 		DeleteOperation deleteOperation = getInternalConnection().processDelete(entryDn);
 		if (ResultCode.SUCCESS != deleteOperation.getResultCode()) {
         	throw new RuntimeException("LDAP operation error: "+deleteOperation.getResultCode()+": "+deleteOperation.getErrorMessage());
         }
 	}
-	
+
 	public String dumpEntries() throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				LDAP_SUFFIX, SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
@@ -836,17 +836,17 @@ public class OpenDJController extends AbstractResourceController {
 			sb.append(toHumanReadableLdifoid(searchEntry));
 			sb.append("\n");
 		}
-		
+
 		return sb.toString();
 	}
-	
+
 	public String dumpTree() throws DirectoryException {
 		StringBuilder sb = new StringBuilder();
 		sb.append(LDAP_SUFFIX).append("\n");
 		dumpTreeLevel(sb, LDAP_SUFFIX, 1);
 		return sb.toString();
 	}
-		
+
 	private void dumpTreeLevel(StringBuilder sb, String dn, int indent) throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
 				dn, SearchScope.SINGLE_LEVEL, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
@@ -916,7 +916,7 @@ public class OpenDJController extends AbstractResourceController {
 		}
 		return executeLdifChange(sb.toString());
 	}
-	
+
 	public boolean checkPassword(String entryDn, String password) throws DirectoryException {
 		InternalClientConnection conn = new InternalClientConnection(DN.decode(entryDn));
 		BindOperation op = conn.processSimpleBind(entryDn, password);
@@ -927,7 +927,7 @@ public class OpenDJController extends AbstractResourceController {
 			return false;
 		}
 	}
-	
+
 	public void assertPassword(String entryDn, String password) throws DirectoryException {
 		if (!checkPassword(entryDn, password)) {
 			AssertJUnit.fail("Expected that entry "+entryDn+" will have password '"+password+"'. But the check failed.");

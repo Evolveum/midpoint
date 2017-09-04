@@ -100,7 +100,7 @@ import java.util.*;
  * that are implemented here.
  * <p/>
  * Great deal of code is copied from the old ModelControllerImpl.
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
  *
@@ -189,10 +189,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	@Autowired(required = true)
 	private SchemaTransformer schemaTransformer;
-	
+
 	@Autowired(required = true)
 	private ObjectMerger objectMerger;
-	
+
 	@Autowired(required = true)
 	private SystemObjectCache systemObjectCache;
 
@@ -245,7 +245,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //            Special-purpose code to hunt down read-write resource fetch from GUI.
 //            Normally the code is not active. It is too brutal. Just for MID-3424.
 //            if (ResourceType.class == clazz && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isReadOnly(rootOptions)) {
-//            	LOGGER.info("READWRITE resource get: {} {}:\n{}", oid, options, 
+//            	LOGGER.info("READWRITE resource get: {} {}:\n{}", oid, options,
 //            			LoggingUtils.dumpStackTrace());
 //            }
 
@@ -414,11 +414,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			});
 		}
-		
+
 		RepositoryCache.enter();
 
 		try {
-		
+
 			if (ModelExecuteOptions.isRaw(options)) {
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
@@ -577,10 +577,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 						executedDeltas.addAll(projectionContext.getExecutedDeltas());
 					}
-					
+
 					if (context.hasExplosiveProjection()) {
 						PrismObject<? extends ObjectType> focus = context.getFocusContext().getObjectAny();
-						
+
 						LOGGER.debug("Recomputing {} because there was explosive projection", focus);
 
 						LensContext<? extends ObjectType> recomputeContext = contextFactory.createRecomputeContext(focus, options, task, result);
@@ -601,7 +601,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					task.markObjectActionExecutedBoundary();
 				}
 			}
-			
+
 			invalidateCaches(executedDeltas);
 
 		} catch (RuntimeException e) {		// just for sure (TODO split this method into two: raw and non-raw case)
@@ -610,7 +610,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} finally {
 			RepositoryCache.exit();
 		}
-		
+
         return executedDeltas;
 	}
 
@@ -676,35 +676,35 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
 		recompute(type, oid, options, task, parentResult);
 	}
-	
+
 	@Override
 	public <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-			
+
 		OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
 		result.addParam(OperationResult.PARAM_OID, oid);
 		result.addParam(OperationResult.PARAM_TYPE, type);
-		
+
 		RepositoryCache.enter();
-		
+
 		try {
 
             Utils.clearRequestee(task);
 			PrismObject<F> focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
-			
+
 			LOGGER.debug("Recomputing {}", focus);
 
-			LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result); 
+			LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDump());
 			}
 			clockwork.run(lensContext, task, result);
-			
+
 			result.computeStatus();
-			
+
 			LOGGER.trace("Recomputing of {}: {}", focus, result.getStatus());
-			
+
 			result.cleanupResult();
-			
+
 		} catch (ExpressionEvaluationException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
@@ -1089,7 +1089,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParam(OperationResult.PARAM_QUERY, query);
 		result.addArbitraryObjectAsParam("searchProvider", searchProvider);
-		
+
 		query = preProcessQuerySecurity(type, query);
 		if (isFilterNone(query, result)) {
 			return null;
@@ -1116,7 +1116,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 			return handler.handle(object, parentResult1);
 		};
-        
+
 		SearchResultMetadata metadata;
 		try {
 			RepositoryCache.enter();
@@ -1142,7 +1142,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} finally {
 			RepositoryCache.exit();
 		}
-		
+
 		return metadata;
 	}
 
@@ -1168,7 +1168,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
 		result.addParam(OperationResult.PARAM_QUERY, query);
-		
+
 		query = preProcessQuerySecurity(type, query);
 		if (isFilterNone(query, result)) {
 			return 0;
@@ -1197,13 +1197,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} finally {
 			RepositoryCache.exit();
 		}
-		
+
 		result.computeStatus();
 		result.cleanupResult();
 		return count;
-        
+
 	}
-	
+
 	@Override
 	@Deprecated
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
@@ -1214,14 +1214,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		RepositoryCache.enter();
 
 		PrismObject<UserType> user;
-		
+
 		LOGGER.trace("Listing account shadow owner for account with oid {}.", new Object[]{accountOid});
 
 		OperationResult result = parentResult.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
 		result.addParam("accountOid", accountOid);
 
 		try {
-			
+
 			user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
 			result.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
@@ -1255,10 +1255,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				throw ex;
 			}
 		}
-		
+
 		return user;
 	}
-	
+
 	@Override
 	public PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
@@ -1305,7 +1305,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				throw ex;
 			}
 		}
-		
+
 		return focus;
 	}
 
@@ -1430,7 +1430,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					LOGGER.warn("Synchronization is disabled for "+resource+", import will probably do nothing");
 				}
 			}
-			
+
 			result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 
 			importAccountsFromResourceTaskHandler.launch(resource, objectClass, task, result);
@@ -1441,18 +1441,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			if (!task.isAsynchronous()) {
 				result.recordSuccess();
 			}
-			
+
 			result.cleanupResult();
-		
+
 		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
 		}
-		
+
 	}
-	
+
 	@Override
 	public void importFromResource(String shadowOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException,
@@ -1469,24 +1469,24 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
         try {
         	boolean wasOk = importAccountsFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
-			
+
         	if (wasOk) {
         		result.recordSuccess();
         	} else {
         		// the error should be in the result already, compute should reveal that to the top-level
         		result.computeStatus();
         	}
-			
-			
+
+
 			result.cleanupResult();
-		
+
 		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException| RuntimeException | Error ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
 		}
-		
+
 	}
 
 	@Override
@@ -1545,7 +1545,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.evolveum.midpoint.model.api.ModelService#discoverConnectors(com.evolveum
 	 * .midpoint.xml.ns._public.common.common_1.ConnectorHostType,
@@ -1571,18 +1571,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.cleanupResult();
 		return new HashSet<>(connectorList);
 	}
-	
+
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.
 	 * midpoint.common.result.OperationResult)
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
-		systemObjectCache.invalidateCaches(); // necessary for testing situations where we re-import different system configurations with the same version (on system init)        
+		systemObjectCache.invalidateCaches(); // necessary for testing situations where we re-import different system configurations with the same version (on system init)
 
 		RepositoryCache.enter();
 		OperationResult result = parentResult.createSubresult(POST_INIT);
@@ -1801,7 +1801,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return objectQuery;
 		}
 	}
-	
+
 	//region Task-related operations
 
     @Override
@@ -2068,25 +2068,25 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	//endregion
 
 	@Override
-	public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, 
-			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult) 
+	public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type,
+			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException {
-		
+
 		OperationResult result = parentResult.createSubresult(MERGE_OBJECTS);
         result.addParam("leftOid", leftOid);
         result.addParam("rightOid", rightOid);
         result.addParam("class", type);
-        
+
         RepositoryCache.enter();
-        
+
         try {
-			
-			Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = 
+
+			Collection<ObjectDeltaOperation<? extends ObjectType>> deltas =
 					objectMerger.mergeObjects(type, leftOid, rightOid, mergeConfigurationName, task, result);
-			
+
 			result.computeStatus();
 			return deltas;
-			
+
 		} catch (ObjectNotFoundException | SchemaException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException | CommunicationException | PolicyViolationException | SecurityViolationException | RuntimeException | Error e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
@@ -2094,6 +2094,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
 			RepositoryCache.exit();
 		}
-			
+
 	}
 }

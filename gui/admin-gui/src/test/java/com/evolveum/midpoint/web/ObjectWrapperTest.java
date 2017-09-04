@@ -49,7 +49,7 @@ public class ObjectWrapperTest extends AbstractGuiIntegrationTest {
         PrismObject<UserType> user = prismContext.parseObject(new File("./src/test/resources/wrapper/user.xml"));
 
         Task task = taskManager.createTaskInstance("testEmptyPolyString");
-        
+
         ObjectWrapperFactory owf = new ObjectWrapperFactory(null);
         ObjectWrapper<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING, task);
         //simulate change on honorific prefix

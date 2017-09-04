@@ -211,7 +211,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final File SCABB_OU_LDIF_FILE = new File(TEST_DIR, "scabb.ldif");
 	private static final File BOOTY_OU_LDIF_FILE = new File(TEST_DIR, "booty.ldif");
 	private static final File BOOTY_LOOKOUT_OU_LDIF_FILE = new File(TEST_DIR, "booty-lookout.ldif");
-	
+
 	protected static final int TASK_WAIT_TIMEOUT = 40000;
 
 	@Autowired(required = true)
@@ -237,7 +237,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	protected String getTopOrgOid() {
 		return ORG_TOP_OID;
 	}
-	
+
 	@Override
 	protected void startResources() throws Exception {
 		openDJController.startCleanServer();
@@ -1209,7 +1209,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		System.out.println("group members after test = " + membersAfterTest);
 		assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN,
 				// ...it seems to get lowercased during the reconciliation
-				membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase())); 
+				membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));
 	}
 
 	protected void assertUserGuybrush(PrismObject<UserType> user) {

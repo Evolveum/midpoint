@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class PasswordPolicyEvaluator extends CredentialPolicyEvaluator<PasswordType,PasswordCredentialsPolicyType> {
-	
+
 	private static final ItemPath PASSWORD_CONTAINER_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD);
 
 	@Override
@@ -39,7 +39,7 @@ public class PasswordPolicyEvaluator extends CredentialPolicyEvaluator<PasswordT
 	protected String getCredentialHumanReadableName() {
 		return "password";
 	}
-	
+
 	@Override
 	protected boolean supportsHistory() {
 		return true;
@@ -50,6 +50,6 @@ public class PasswordPolicyEvaluator extends CredentialPolicyEvaluator<PasswordT
 	protected PasswordCredentialsPolicyType determineEffectiveCredentialPolicy() {
 		return SecurityUtil.getEffectivePasswordCredentialsPolicy(getSecurityPolicy());
 	}
-	
-	
+
+
 }

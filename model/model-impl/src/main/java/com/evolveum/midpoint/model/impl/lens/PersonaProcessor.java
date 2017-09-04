@@ -68,45 +68,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionT
 
 /**
  * Runs persona-related changes after the primary operation is all done. Executed directly from clockwork.
- * 
+ *
  * Not entirely clean solution. Ideally, this should be somehow integrated in the clockwork process (nested contexts).
  * But should be good enough for now.
- * 
+ *
  * @author semancik
  */
 @Component
 public class PersonaProcessor {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PersonaProcessor.class);
-	
+
 	@Autowired(required=true)
     private ConstructionProcessor constructionProcessor;
-	
+
 	@Autowired(required=true)
 	private ObjectTemplateProcessor objectTemplateProcessor;
-	
+
 	@Autowired(required=true)
     private ObjectResolver objectResolver;
-	
+
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService repositoryService;
-	
+
 	@Autowired(required = true)
 	private ContextFactory contextFactory;
-	
+
 	@Autowired(required = true)
 	private Clockwork clockwork;
-	
+
 	@Autowired(required=true)
 	private Clock clock;
-	
+
 	@Autowired(required=true)
 	private PrismContext prismContext;
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <O extends ObjectType> HookOperationMode processPersonaChanges(LensContext<O> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
-		
+
 		LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return HookOperationMode.FOREGROUND;
@@ -115,7 +115,7 @@ public class PersonaProcessor {
     		// We can do this only for FocusType.
     		return HookOperationMode.FOREGROUND;
     	}
-    	
+
     	if (focusContext.isDelete()) {
     		// Special case. Simply delete all the existing personas.
     		// TODO: maybe we need to do this before actual focus delete?
@@ -123,18 +123,18 @@ public class PersonaProcessor {
     		// TODO
     		return HookOperationMode.FOREGROUND;
     	}
-		
+
 		return processPersonaChangesFocus((LensContext) context, task, result);
 	}
-	
+
 	public <F extends FocusType> HookOperationMode processPersonaChangesFocus(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 		DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple = (DeltaSetTriple)context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null || evaluatedAssignmentTriple.isEmpty()) {
 			return HookOperationMode.FOREGROUND;
 		}
-		
+
 		DeltaSetTriple<PersonaKey> activePersonaKeyTriple = new DeltaSetTriple<>();
-		
+
 		ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>> consumer = new ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>>() {
 
 			@Override
@@ -154,7 +154,7 @@ public class PersonaProcessor {
 
 			@Override
 			public void onUnchangedInvalid(PersonaKey key, String desc) {
-				
+
 			}
 
 			@Override
@@ -167,21 +167,21 @@ public class PersonaProcessor {
 					DeltaMapTriple<PersonaKey, ConstructionPack<PersonaConstruction<F>>> constructionMapTriple) {
 			}
 
-			
+
 		};
-		
-		DeltaMapTriple<PersonaKey, ConstructionPack<PersonaConstruction<F>>> constructionMapTriple = 
-			constructionProcessor.processConstructions(context, evaluatedAssignmentTriple, 
+
+		DeltaMapTriple<PersonaKey, ConstructionPack<PersonaConstruction<F>>> constructionMapTriple =
+			constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
 				evaluatedAssignment -> evaluatedAssignment.getPersonaConstructionTriple(),
         		construction -> new PersonaKey(construction.getConstructionType()),
         		consumer,
         		task, result);
-		
+
 		LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily());
-		
+
 		List<FocusType> existingPersonas = readExistingPersonas(context, task, result);
 		LOGGER.trace("existingPersonas:\n{}", existingPersonas);
-		
+
 		for (PersonaKey key: activePersonaKeyTriple.getNonNegativeValues()) {
 			FocusType existingPersona = findPersona(existingPersonas, key);
 			LOGGER.trace("existingPersona: {}", existingPersona);
@@ -205,22 +205,22 @@ public class PersonaProcessor {
 				personaModify(context, key, construction, existingPersona.asPrismObject(), task, result);
 			}
 		}
-		
+
 		for (PersonaKey key: activePersonaKeyTriple.getMinusSet()) {
 			FocusType existingPersona = findPersona(existingPersonas, key);
 			if (existingPersona != null) {
 				personaDelete(context, key, existingPersona, task, result);
 			}
 		}
-		
+
 		return HookOperationMode.FOREGROUND;
 	}
-	
-	
+
+
 	public <F extends FocusType> List<FocusType> readExistingPersonas(LensContext<F> context, Task task, OperationResult result) {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		PrismObject<F> focus = focusContext.getObjectNew();
-		
+
 		List<FocusType> personas = new ArrayList<>();
 		String desc = "personaRef in "+focus;
 		for (ObjectReferenceType personaRef: focus.asObjectable().getPersonaRef()) {
@@ -232,7 +232,7 @@ public class PersonaProcessor {
 				// But go on...
 			}
 		}
-		
+
 		return personas;
 	}
 
@@ -259,82 +259,82 @@ public class PersonaProcessor {
 		}
 		return true;
 	}
-	
-	public <F extends FocusType, T extends FocusType> void personaAdd(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction, 
-			Task task, OperationResult result) 
+
+	public <F extends FocusType, T extends FocusType> void personaAdd(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction,
+			Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<F> focus = context.getFocusContext().getObjectNew();
 		LOGGER.debug("Adding persona {} for {} using construction {}", key, focus, construction);
 		PersonaConstructionType constructionType = construction.getConstructionType();
 		ObjectReferenceType objectMappingRef = constructionType.getObjectMappingRef();
 		ObjectTemplateType objectMappingType = objectResolver.resolve(objectMappingRef, ObjectTemplateType.class, null, "object mapping in persona construction in "+focus, task, result);
-		
+
 		QName targetType = constructionType.getTargetType();
 		PrismObjectDefinition<T> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetType);
 		PrismObject<T> target = objectDef.instantiate();
-		
+
 		FocusTypeUtil.setSubtype(target, constructionType.getTargetSubtype());
-		
+
 		// pretend ADD focusOdo. We need to push all the items through the object template
 		ObjectDeltaObject<F> focusOdo = new ObjectDeltaObject<>(null, focus.createAddDelta(), focus);
 		ObjectDelta<T> targetDelta = target.createAddDelta();
-		
+
 		String contextDesc = "object mapping "+objectMappingType+ " for persona construction for "+focus;
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-		
-		Collection<ItemDelta<?, ?>> itemDeltas = objectTemplateProcessor.processObjectMapping(context, objectMappingType, 
+
+		Collection<ItemDelta<?, ?>> itemDeltas = objectTemplateProcessor.processObjectMapping(context, objectMappingType,
 				focusOdo, target, targetDelta, contextDesc, now, task, result);
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("itemDeltas:\n{}", DebugUtil.debugDump(itemDeltas));
 		}
-		
+
 		for (ItemDelta itemDelta: itemDeltas) {
 			itemDelta.applyTo(target);
 		}
-		
+
 		LOGGER.trace("Creating persona:\n{}", target.debugDumpLazily());
-		
+
 		executePersonaDelta(targetDelta, task, result);
-		
+
 		link(context, target.asObjectable(), result);
 	}
-	
-	public <F extends FocusType, T extends FocusType> void personaModify(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction, 
-			PrismObject<T> existingPersona, Task task, OperationResult result) 
+
+	public <F extends FocusType, T extends FocusType> void personaModify(LensContext<F> context, PersonaKey key, PersonaConstruction<F> construction,
+			PrismObject<T> existingPersona, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismObject<F> focus = context.getFocusContext().getObjectNew();
 		LOGGER.debug("Modifying persona {} for {} using construction {}", key, focus, construction);
 		PersonaConstructionType constructionType = construction.getConstructionType();
 		ObjectReferenceType objectMappingRef = constructionType.getObjectMappingRef();
 		ObjectTemplateType objectMappingType = objectResolver.resolve(objectMappingRef, ObjectTemplateType.class, null, "object mapping in persona construction in "+focus, task, result);
-		
+
 		ObjectDeltaObject<F> focusOdo = context.getFocusContext().getObjectDeltaObject();
 		String contextDesc = "object mapping "+objectMappingType+ " for persona construction for "+focus;
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-		
-		Collection<ItemDelta<?, ?>> itemDeltas = objectTemplateProcessor.processObjectMapping(context, objectMappingType, 
+
+		Collection<ItemDelta<?, ?>> itemDeltas = objectTemplateProcessor.processObjectMapping(context, objectMappingType,
 				focusOdo, existingPersona, null, contextDesc, now, task, result);
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("itemDeltas:\n{}", DebugUtil.debugDump(itemDeltas));
 		}
-		
+
 		ObjectDelta<T> targetDelta = existingPersona.createModifyDelta();
 		for (ItemDelta itemDelta: itemDeltas) {
 			targetDelta.addModification(itemDelta);
 		}
-		
+
 		executePersonaDelta(targetDelta, task, result);
 	}
-	
-	public <F extends FocusType> void personaDelete(LensContext<F> context, PersonaKey key, FocusType existingPersona, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {		
+
+	public <F extends FocusType> void personaDelete(LensContext<F> context, PersonaKey key, FocusType existingPersona, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PrismObject<F> focus = context.getFocusContext().getObjectOld();
 		LOGGER.debug("Deleting persona {} for {}: ", key, focus, existingPersona);
 		ObjectDelta<? extends FocusType> targetDelta = existingPersona.asPrismObject().createDeleteDelta();
 
 		executePersonaDelta(targetDelta, task, result);
-		
+
 		unlink(context, existingPersona, result);
 	}
 
@@ -344,20 +344,20 @@ public class PersonaProcessor {
 		refValue.setOid(persona.getOid());
 		refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
 		delta.addModificationAddReference(FocusType.F_PERSONA_REF, refValue);
-		
+
 		repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
 	}
-	
+
 	private <F extends FocusType>  void unlink(LensContext<F> context, FocusType persona, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
 		PrismReferenceValue refValue = new PrismReferenceValue();
 		refValue.setOid(persona.getOid());
 		refValue.setTargetType(persona.asPrismObject().getDefinition().getTypeName());
 		delta.addModificationDeleteReference(FocusType.F_PERSONA_REF, refValue);
-		
+
 		repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
 	}
-	
+
 	private <O extends ObjectType> void executePersonaDelta(ObjectDelta<O> delta, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 		LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, null, task, result);
@@ -368,7 +368,7 @@ public class PersonaProcessor {
 	}
 
 	class PersonaKey implements HumanReadableDescribable {
-		
+
 		private QName type;
 		private List<String> subtypes;
 
@@ -377,7 +377,7 @@ public class PersonaProcessor {
 			this.type = constructionType.getTargetType();
 			this.subtypes = constructionType.getTargetSubtype();
 		}
-		
+
 		public QName getType() {
 			return type;
 		}
@@ -433,7 +433,7 @@ public class PersonaProcessor {
 		private PersonaProcessor getOuterType() {
 			return PersonaProcessor.this;
 		}
-		
+
 	}
 
 }

@@ -68,7 +68,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public String getName() {
 		return policyRuleType.getName();
 	}
-	
+
 	@Override
 	public PolicyRuleType getPolicyRule() {
 		return policyRuleType;
@@ -120,7 +120,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public Collection<PolicyExceptionType> getPolicyExceptions() {
 		return policyExceptions;
 	}
-	
+
 	void addPolicyException(PolicyExceptionType exception) {
 		policyExceptions.add(exception);
 	}
@@ -129,14 +129,14 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public PolicyActionsType getActions() {
 		return policyRuleType.getPolicyActions();
 	}
-	
+
 	@Override
 	public String getPolicySituation() {
 		// TODO default situations depending on getTriggeredConstraintKinds
 		if (policyRuleType.getPolicySituation() != null) {
 			return policyRuleType.getPolicySituation();
 		}
-		
+
 		if (!triggers.isEmpty()) {
 			EvaluatedPolicyRuleTrigger firstTrigger = triggers.iterator().next();
 			if (firstTrigger instanceof EvaluatedSituationTrigger) {
@@ -151,7 +151,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 				return predefinedSituation.getUrl();
 			}
 		}
-		
+
 		PolicyConstraintsType policyConstraints = getPolicyConstraints();
 		return getSituationFromConstraints(policyConstraints);
 	}

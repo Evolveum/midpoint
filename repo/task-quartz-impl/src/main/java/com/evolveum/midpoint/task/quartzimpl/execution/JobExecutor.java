@@ -53,7 +53,7 @@ public class JobExecutor implements InterruptableJob {
 	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl tmqi) {
 		taskManagerImpl = tmqi;
 	}
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
@@ -63,17 +63,17 @@ public class JobExecutor implements InterruptableJob {
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
 	 * the task here.
-	 * 
+	 *
 	 * http://quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-03
-	 * "Each (and every) time the scheduler executes the job, it creates a new instance of 
+	 * "Each (and every) time the scheduler executes the job, it creates a new instance of
 	 * the class before calling its execute(..) method."
 	 */
 	private volatile TaskQuartzImpl task;
 	private volatile Thread executingThread;				// used for interruptions
-	
+
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		
+
 		OperationResult executionResult = createOperationResult("execute");
 
         if (taskManagerImpl == null) {
@@ -147,11 +147,11 @@ public class JobExecutor implements InterruptableJob {
 		try {
 
             taskManagerImpl.registerRunningTask(task);
-        
+
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
             logThreadRunStart(handler);
             taskManagerImpl.notifyTaskThreadStart(task, isRecovering);
-		
+
 			if (handler==null) {
 				LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
                 executionResult.recordFatalError("No handler for URI '" + task.getHandlerUri() + "', closing the task.");
@@ -161,7 +161,7 @@ public class JobExecutor implements InterruptableJob {
                 // actually there is no point in throwing JEE; the only thing that is done with it is
                 // that it is logged by Quartz
 			}
-			
+
 			// Setup Spring Security context
 			PrismObject<UserType> taskOwner = task.getOwner();
 			try {
@@ -170,7 +170,7 @@ public class JobExecutor implements InterruptableJob {
 	            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be executed: error setting security context", e, oid);
 	            return;
 			}
-		
+
 			if (task.isCycle()) {
 				executeRecurrentTask(handler);
 			} else if (task.isSingle()) {
@@ -180,7 +180,7 @@ public class JobExecutor implements InterruptableJob {
                 executionResult.recordFatalError("Tasks must be either recurrent or single-run. This one is neither. Closing it.");
                 closeFlawedTask(task, executionResult);
 			}
-		
+
 		} finally {
             waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
@@ -399,7 +399,7 @@ public class JobExecutor implements InterruptableJob {
         Validate.notNull(handler, "Task handler is null");
 
 		try {
-			
+
 			TaskRunResult runResult;
 
 			recordCycleRunStart(executionResult, handler);
@@ -440,7 +440,7 @@ public class JobExecutor implements InterruptableJob {
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
 	}
-	
+
 	private void executeRecurrentTask(TaskHandler handler) throws JobExecutionException {
 
 		try {
@@ -457,7 +457,7 @@ mainCycle:
                     LOGGER.trace("CycleRunner loop: task latest start time ({}) has elapsed, exiting the execution cycle. Task = {}", task.getSchedule().getLatestStartTime(), task);
                     break;
                 }
-				
+
 				LOGGER.trace("CycleRunner loop: start");
 
                 TaskRunResult runResult;
@@ -528,7 +528,7 @@ mainCycle:
 				long sleepFor = lastRunStartTime + (interval * 1000) - System.currentTimeMillis();
 				if (sleepFor < 0)
 					sleepFor = 0;
-				
+
 				LOGGER.trace("CycleRunner loop: sleep ({})", sleepFor);
 
                 for (long time = 0; time < sleepFor + WATCHFUL_SLEEP_INCREMENT; time += WATCHFUL_SLEEP_INCREMENT) {
@@ -571,7 +571,7 @@ mainCycle:
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
 	}
-	
+
     private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
     	TaskRunResult runResult;
@@ -615,15 +615,15 @@ mainCycle:
     private OperationResult createOperationResult(String methodName) {
 		return new OperationResult(DOT_CLASS + methodName);
 	}
-	
+
 	private void logThreadRunStart(TaskHandler handler) {
 		LOGGER.trace("Task thread run STARTING  " + task + ", handler = " + handler);
 	}
-	
+
 	private void logThreadRunFinish(TaskHandler handler) {
 		LOGGER.trace("Task thread run FINISHED " + task + ", handler = " + handler);
 	}
-    
+
 	private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
 		LOGGER.trace("Task cycle run STARTING " + task + ", handler = " + handler);
         taskManagerImpl.notifyTaskStart(task);

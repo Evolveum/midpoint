@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class ReconciliationTaskResult implements DebugDumpable {
-	
+
 	private TaskRunResult runResult;
 	PrismObject<ResourceType> resource;
 	ObjectClassComplexTypeDefinition objectclassDefinition;
@@ -161,5 +161,5 @@ public class ReconciliationTaskResult implements DebugDumpable {
 	public String debugDump() {
 		return debugDump(0);
 	}
-	
+
 }

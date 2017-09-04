@@ -64,7 +64,7 @@ public class StandardLogger extends LoggerConfiguration{
         if (!(getAppenders().isEmpty())){
         	type.getAppender().addAll(getAppenders());
         }
-        
+
         return type;
     }
 

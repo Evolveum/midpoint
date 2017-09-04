@@ -8,10 +8,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 public class ServiceMemberPanel extends RoleMemberPanel<ServiceType>{
 
-		
+
 	private static final long serialVersionUID = 1L;
 
-	
+
 	public ServiceMemberPanel(String id, IModel<ServiceType> model, PageBase pageBase) {
 		super(id, model, pageBase);
 	}
@@ -20,6 +20,6 @@ public class ServiceMemberPanel extends RoleMemberPanel<ServiceType>{
 	protected boolean isRole() {
 		return false;
 	}
-	
-	
+
+
 }

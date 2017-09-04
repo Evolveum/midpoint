@@ -21,5 +21,5 @@ public class PolyStringDeserializer extends JsonDeserializer<PolyString>{
 		return new PolyString(str);
 	}
 
-	
+
 }

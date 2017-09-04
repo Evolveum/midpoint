@@ -77,33 +77,33 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author lazyman
  */
 public class ProtectorImpl extends BaseProtector {
-	
+
 	private static final String ALGORITHM_PKKDF2_NAME = "PBKDF2WithHmacSHA512";
 	private static final QName ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME = new QName(PrismConstants.NS_CRYPTO_ALGORITHM_PBKD, ALGORITHM_PKKDF2_NAME);
 	private static final String ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI = QNameUtil.qNameToUri(ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME);
-	
+
 	private static final String KEY_DIGEST_TYPE = "SHA1";
 	private static final String DEFAULT_ENCRYPTION_ALGORITHM = XMLCipher.AES_128;
     private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
-	
+
     private static final String DEFAULT_DIGEST_ALGORITHM = ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI;
 //    "http://www.w3.org/2009/xmlenc11#pbkdf2"
-    
+
     private Random randomNumberGenerator;
-    
+
 	private static final Trace LOGGER = TraceManager.getTrace(ProtectorImpl.class);
 
 	private String keyStorePath;
     private String keyStorePassword;
     private String encryptionKeyAlias = "default";
-	
+
 	private String requestedJceProviderName = null;
 	private String encryptionAlgorithm;
 	private String digestAlgorithm;
-	
+
 	private List<TrustManager> trustManagers;
     private static final KeyStore keyStore;
-    
+
     static {
         try {
             keyStore = KeyStore.getInstance("jceks");
@@ -111,7 +111,7 @@ public class ProtectorImpl extends BaseProtector {
             throw new SystemException(ex.getMessage(), ex);
         }
     }
-    
+
     /**
      * @throws SystemException if jceks keystore is not available on {@link ProtectorImpl#getKeyStorePath}
      */
@@ -159,16 +159,16 @@ public class ProtectorImpl extends BaseProtector {
             for (TrustManager trustManager : tmFactory.getTrustManagers()) {
                 trustManagers.add(trustManager);
             }
-            
+
             //init apache crypto library
             Init.init();
-            
+
         } catch (Exception ex) {
             LOGGER.error("Unable to work with keystore {}, reason {}.",
                     new Object[]{getKeyStorePath(), ex.getMessage()}, ex);
             throw new SystemException(ex.getMessage(), ex);
         }
-        
+
         randomNumberGenerator = new SecureRandom();
     }
 
@@ -187,7 +187,7 @@ public class ProtectorImpl extends BaseProtector {
 	public void setEncryptionAlgorithm(String encryptionAlgorithm) {
 		this.encryptionAlgorithm = encryptionAlgorithm;
 	}
-	
+
 	private String getCipherAlgorithm() {
 		if (encryptionAlgorithm != null) {
 			return encryptionAlgorithm;
@@ -195,7 +195,7 @@ public class ProtectorImpl extends BaseProtector {
 			return DEFAULT_ENCRYPTION_ALGORITHM;
 		}
 	}
-	
+
 	private String getDigestAlgorithm() {
 		if (digestAlgorithm != null) {
 			return digestAlgorithm;
@@ -203,9 +203,9 @@ public class ProtectorImpl extends BaseProtector {
 			return DEFAULT_DIGEST_ALGORITHM;
 		}
 	}
-	
+
 	// TODO: make it configurable
-	
+
 	private int getPbkdKeyLength() {
 		return 256;
 	}
@@ -217,7 +217,7 @@ public class ProtectorImpl extends BaseProtector {
 	private int getPbkdSaltLength() {
 		return 32;
 	}
-	
+
 	/**
      * @return the encryptionKeyAlias
      * @throws IllegalStateException if encryption key digest is null or empty string
@@ -228,7 +228,7 @@ public class ProtectorImpl extends BaseProtector {
         }
         return encryptionKeyAlias;
     }
-	
+
     @Override
     protected <T> byte[] decryptBytes(ProtectedData<T> protectedData) throws SchemaException, EncryptionException {
         EncryptedDataType encryptedDataType = protectedData.getEncryptedDataType();
@@ -279,9 +279,9 @@ public class ProtectorImpl extends BaseProtector {
 		}
 		SecretKey key = getSecretKeyByAlias(getEncryptionKeyAlias());
 		String algorithm = getCipherAlgorithm();
-		
+
 		byte[] clearBytes = protectedData.getClearBytes();
-		
+
 		byte[] encryptedBytes;
 		try {
 			encryptedBytes = encryptBytes(clearBytes, algorithm, key);
@@ -289,22 +289,22 @@ public class ProtectorImpl extends BaseProtector {
 				| NoSuchProviderException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e) {
 			throw new EncryptionException(e.getMessage(), e);
 		}
-		
+
 		// Construct encryption types
 		EncryptedDataType encryptedDataType = new EncryptedDataType();
-		
+
 		EncryptionMethodType encryptionMethodType = new EncryptionMethodType();
 		encryptionMethodType.setAlgorithm(algorithm);
 		encryptedDataType.setEncryptionMethod(encryptionMethodType);
-		
+
 		KeyInfoType keyInfoType = new KeyInfoType();
 		keyInfoType.setKeyName(getSecretKeyDigest(key));
 		encryptedDataType.setKeyInfo(keyInfoType);
-		
+
 		CipherDataType cipherDataType = new CipherDataType();
 		cipherDataType.setCipherValue(encryptedBytes);
 		encryptedDataType.setCipherData(cipherDataType);
-		
+
 		protectedData.setEncryptedData(encryptedDataType);
 		protectedData.destroyCleartext();
 	}
@@ -312,34 +312,34 @@ public class ProtectorImpl extends BaseProtector {
     private byte[] encryptBytes(byte[] clearData, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
 		Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithmUri);
 		cipher.init(Cipher.ENCRYPT_MODE, key);
-		
+
 		byte[] encryptedData = cipher.doFinal(clearData);
-		
+
 		// Place IV at the beginning of the encrypted bytes so it can be reused on decryption
 		byte[] iv = cipher.getIV();
 		byte[] encryptedBytes = new byte[iv.length + encryptedData.length];
 		System.arraycopy(iv, 0, encryptedBytes, 0, iv.length);
 		System.arraycopy(encryptedData, 0, encryptedBytes, iv.length, encryptedData.length);
-		
+
 		return encryptedBytes;
 	}
-	
+
 	private byte[] decryptBytes(byte[] encryptedBytes, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
 		Cipher cipher = getCipher(Cipher.DECRYPT_MODE, algorithmUri);
-		
+
 		// Extract IV from the beginning of the encrypted bytes
 		int ivLen = cipher.getBlockSize();
 		byte[] ivBytes = new byte[ivLen];
 		System.arraycopy(encryptedBytes, 0, ivBytes, 0, ivLen);
 		IvParameterSpec iv = new IvParameterSpec(ivBytes);
-		
+
 		cipher.init(Cipher.DECRYPT_MODE, key, iv);
-		
+
 		byte[] decryptedData = cipher.doFinal(encryptedBytes, ivLen, encryptedBytes.length - ivLen);
-		
+
 		return decryptedData;
 	}
-	
+
 	private Cipher getCipher(int cipherMode, String algorithmUri) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException {
 		String jceAlgorithm = JCEMapper.translateURItoJCEID(algorithmUri);//JCEMapper.getJCEKeyAlgorithmFromURI(algorithmUri);
 		Cipher cipher;
@@ -362,7 +362,7 @@ public class ProtectorImpl extends BaseProtector {
 		}
 		return cipher;
 	}
-	
+
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
         MessageDigest sha1;
         try {
@@ -373,7 +373,7 @@ public class ProtectorImpl extends BaseProtector {
 
         return Base64.encode(sha1.digest(key.getEncoded()));
     }
-	
+
 	@Override
 	public List<TrustManager> getTrustManagers() {
 		return trustManagers;
@@ -425,7 +425,7 @@ public class ProtectorImpl extends BaseProtector {
         }
         return keyStorePath;
     }
-    
+
     private SecretKey getSecretKeyByAlias(String alias) throws EncryptionException {
         Key key;
         try {
@@ -473,7 +473,7 @@ public class ProtectorImpl extends BaseProtector {
 
         throw new EncryptionException("Key '" + digest + "' is not in keystore.");
     }
-    
+
     @Override
 	public <T> void hash(ProtectedData<T> protectedData) throws EncryptionException, SchemaException {
     	if (protectedData.isHashed()) {
@@ -485,7 +485,7 @@ public class ProtectorImpl extends BaseProtector {
 		if (algorithmNamespace == null) {
 			throw new SchemaException("No algorithm namespace");
 		}
-		
+
 		HashedDataType hashedDataType;
 		switch (algorithmNamespace) {
 			case PrismConstants.NS_CRYPTO_ALGORITHM_PBKD:
@@ -497,18 +497,18 @@ public class ProtectorImpl extends BaseProtector {
 			default:
 				throw new SchemaException("Unkown namespace "+algorithmNamespace);
 		}
-		
+
 		protectedData.setHashedData(hashedDataType);
 		protectedData.destroyCleartext();
 		protectedData.setEncryptedData(null);
     }
-    
-    private HashedDataType hashPbkd(ProtectedData<String> protectedData, String algorithmUri, String algorithmName) throws EncryptionException {	
-		
+
+    private HashedDataType hashPbkd(ProtectedData<String> protectedData, String algorithmUri, String algorithmName) throws EncryptionException {
+
     	char[] clearChars = getClearChars(protectedData);
     	byte[] salt = generatePbkdSalt();
     	int iterations = getPbkdIterations();
-		
+
 		SecretKeyFactory secretKeyFactory;
 		try {
 			secretKeyFactory = SecretKeyFactory.getInstance( algorithmName );
@@ -525,15 +525,15 @@ public class ProtectorImpl extends BaseProtector {
         byte[] hashBytes = key.getEncoded( );
 
         HashedDataType hashedDataType = new HashedDataType();
-        
+
         DigestMethodType digestMethod = new DigestMethodType();
         digestMethod.setAlgorithm(algorithmUri);
         digestMethod.setSalt(salt);
         digestMethod.setWorkFactor(iterations);
 		hashedDataType.setDigestMethod(digestMethod);
-		
+
 		hashedDataType.setDigestValue(hashBytes);
-		
+
 		return hashedDataType;
 	}
 
@@ -565,7 +565,7 @@ public class ProtectorImpl extends BaseProtector {
 		if (a.isHashed() && b.isHashed()) {
 			throw new SchemaException("Cannot compare two hased protected strings");
 		}
-		
+
 		if (a.isHashed() || b.isHashed()) {
 			String clear;
 			ProtectedStringType hashedPs;
@@ -580,7 +580,7 @@ public class ProtectorImpl extends BaseProtector {
 				return false;
 			}
 			return compareHashed(hashedPs, clear.toCharArray());
-			
+
 		} else {
 			String aClear = decryptString(a);
 			String bClear = decryptString(b);
@@ -606,7 +606,7 @@ public class ProtectorImpl extends BaseProtector {
 		if (algorithmNamespace == null) {
 			throw new SchemaException("No algorithm namespace");
 		}
-		
+
 		switch (algorithmNamespace) {
 			case PrismConstants.NS_CRYPTO_ALGORITHM_PBKD:
 				return compareHashedPbkd(hashedDataType, algorithmQName.getLocalPart(), clearChars);
@@ -621,7 +621,7 @@ public class ProtectorImpl extends BaseProtector {
 		Integer workFactor = digestMethodType.getWorkFactor();
 		byte[] digestValue = hashedDataType.getDigestValue();
 		int keyLen = digestValue.length * 8;
-		
+
 		SecretKeyFactory secretKeyFactory;
 		try {
 			secretKeyFactory = SecretKeyFactory.getInstance( algorithmName );
@@ -636,10 +636,10 @@ public class ProtectorImpl extends BaseProtector {
 			throw new EncryptionException(e.getMessage(), e);
 		}
         byte[] hashBytes = key.getEncoded( );
-        
+
         return Arrays.equals(digestValue, hashBytes);
 	}
 
-	
-    	
+
+
 }

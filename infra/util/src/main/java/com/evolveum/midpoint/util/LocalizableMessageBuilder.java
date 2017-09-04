@@ -22,9 +22,9 @@ import java.util.List;
  *
  */
 public class LocalizableMessageBuilder {
-	
+
 	private String key;
-	private Object[] args;	
+	private Object[] args;
 	private String fallbackMessage;
 
 	public LocalizableMessageBuilder() {
@@ -34,7 +34,7 @@ public class LocalizableMessageBuilder {
 	public void key(String key) {
 		this.key = key;
 	}
-	
+
 	public static LocalizableMessage buildKey(String key) {
 		return new LocalizableMessage(key, null, null);
 	}
@@ -42,7 +42,7 @@ public class LocalizableMessageBuilder {
 	public void args(Object... args) {
 		this.args = args;
 	}
-	
+
 	public void args(List<Object> args) {
 		this.args = args.toArray();
 	}
@@ -50,7 +50,7 @@ public class LocalizableMessageBuilder {
 	public void fallbackMessage(String fallbackMessage) {
 		this.fallbackMessage = fallbackMessage;
 	}
-	
+
 	public static LocalizableMessage buildFallbackMessage(String fallbackMessage) {
 		return new LocalizableMessage(null, null, fallbackMessage);
 	}

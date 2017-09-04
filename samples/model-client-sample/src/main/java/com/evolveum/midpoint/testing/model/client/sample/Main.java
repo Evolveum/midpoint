@@ -82,12 +82,12 @@ import java.util.Map;
  *
  */
 public class Main {
-	
+
 	// Configuration
 	public static final String ADM_USERNAME = "administrator";
 	public static final String ADM_PASSWORD = "5ecr3t";
 	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-3";
-	
+
 	// Object OIDs
 	private static final String ROLE_PIRATE_OID = "2de6a600-636f-11e4-9cc7-3c970e467874";
 	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
@@ -97,7 +97,7 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		try {
-			
+
 			ModelPortType modelPort = createModelPort(args);
 
 			SystemConfigurationType configurationType = getConfiguration(modelPort);
@@ -176,7 +176,7 @@ public class Main {
             deleteUser(modelPort, userLeChuckOid);
             deleteRole(modelPort, seaSuperuserRole);
 			System.out.println("Deleted user(s)");
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -195,10 +195,10 @@ public class Main {
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-		
+
 		modelPort.getObject(ModelClientUtil.getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
                 objectHolder, resultHolder);
-		
+
 		return (SystemConfigurationType) objectHolder.value;
 	}
 
@@ -207,10 +207,10 @@ public class Main {
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
-		
+
 		modelPort.getObject(ModelClientUtil.getTypeQName(UserType.class), oid, options,
 				objectHolder, resultHolder);
-		
+
 		return (UserType) objectHolder.value;
 	}
 
@@ -220,7 +220,7 @@ public class Main {
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(ResourceType.class), null, options, objectListHolder, resultHolder);
-		
+
 		ObjectListType objectList = objectListHolder.value;
 		return (Collection) objectList.getObject();
 	}
@@ -273,7 +273,7 @@ public class Main {
 
     private static String createUserGuybrush(ModelPortType modelPort, RoleType role) throws FaultMessage {
 		Document doc = ModelClientUtil.getDocumnent();
-		
+
 		UserType user = new UserType();
 		user.setName(ModelClientUtil.createPolyStringType("guybrush", doc));
 		user.setFullName(ModelClientUtil.createPolyStringType("Guybrush Threepwood", doc));
@@ -283,19 +283,19 @@ public class Main {
 		user.getOrganization().add(ModelClientUtil.createPolyStringType("Pirate Brethren International", doc));
 		user.getOrganizationalUnit().add(ModelClientUtil.createPolyStringType("Pirate Wannabes", doc));
 		user.setCredentials(ModelClientUtil.createPasswordCredentials("IwannaBEaPIRATE"));
-		
+
 		if (role != null) {
 			// create user with a role assignment
 			AssignmentType roleAssignment = ModelClientUtil.createRoleAssignment(role.getOid());
 			user.getAssignment().add(roleAssignment);
 		}
-		
+
 		return createUser(modelPort, user);
 	}
 
 	private static String createUserFromSystemResource(ModelPortType modelPort, String resourcePath) throws FileNotFoundException, JAXBException, FaultMessage {
 		UserType user = ModelClientUtil.unmarshallResource(resourcePath);
-		
+
 		return createUser(modelPort, user);
 	}
 
@@ -304,7 +304,7 @@ public class Main {
 
         return createRole(modelPort, role);
     }
-	
+
     private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
@@ -328,7 +328,7 @@ public class Main {
         ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
         return ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
     }
-	
+
 	private static void changeUserPassword(ModelPortType modelPort, String oid, String newPassword) throws FaultMessage {
 		ItemDeltaType passwordDelta = new ItemDeltaType();
 		passwordDelta.setModificationType(ModificationTypeType.REPLACE);
@@ -383,11 +383,11 @@ public class Main {
     private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
 		modifyRoleAssignment(modelPort, userOid, true, roleOids);
 	}
-	
+
 	private static void unAssignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
 		modifyRoleAssignment(modelPort, userOid, false, roleOids);
 	}
-	
+
 	private static void modifyRoleAssignment(ModelPortType modelPort, String userOid, boolean isAdd, String... roleOids) throws FaultMessage {
 		ItemDeltaType assignmentDelta = new ItemDeltaType();
 		if (isAdd) {
@@ -521,9 +521,9 @@ public class Main {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		
+
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(UserType.class), createUserQuery1(username), options, objectListHolder, resultHolder);
-		
+
 		ObjectListType objectList = objectListHolder.value;
 		List<ObjectType> objects = objectList.getObject();
 		if (objects.isEmpty()) {
@@ -534,7 +534,7 @@ public class Main {
 		}
 		throw new IllegalStateException("Expected to find a single user with username '"+username+"' but found "+objects.size()+" users instead");
 	}
-	
+
 	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage, JAXBException {
 		// WARNING: in a real case make sure that the role name is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
@@ -548,9 +548,9 @@ public class Main {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		
+
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(RoleType.class), query, options, objectListHolder, resultHolder);
-		
+
 		ObjectListType objectList = objectListHolder.value;
 		List<ObjectType> objects = objectList.getObject();
 		if (objects.isEmpty()) {
@@ -574,9 +574,9 @@ public class Main {
         SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		
+
 		modelPort.searchObjects(ModelClientUtil.getTypeQName(RoleType.class), query, options, objectListHolder, resultHolder);
-		
+
 		ObjectListType objectList = objectListHolder.value;
 		return (Collection) objectList.getObject();
 	}
@@ -622,10 +622,10 @@ public class Main {
         executeOptionsType.setRaw(true);
         modelPort.executeChanges(deltaListType, executeOptionsType);
     }
-	
+
 	public static ModelPortType createModelPort(String[] args) {
 		String endpointUrl = DEFAULT_ENDPOINT_URL;
-		
+
 		if (args.length > 0) {
 			endpointUrl = args[0];
 		}
@@ -634,23 +634,23 @@ public class Main {
 
         // uncomment this if you want to use Fiddler or any other proxy
         //ProxySelector.setDefault(new MyProxySelector("127.0.0.1", 8888));
-		
+
 		ModelService modelService = new ModelService();
 		ModelPortType modelPort = modelService.getModelPort();
 		BindingProvider bp = (BindingProvider)modelPort;
 		Map<String, Object> requestContext = bp.getRequestContext();
 		requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
-		
+
 		org.apache.cxf.endpoint.Client client = ClientProxy.getClient(modelPort);
 		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
-		
+
 		Map<String,Object> outProps = new HashMap<String,Object>();
-		
+
 		outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
 		outProps.put(WSHandlerConstants.USER, ADM_USERNAME);
 		outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_DIGEST);
 		outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
-		
+
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
         // enable the following to get client-side logging of outgoing requests and incoming responses

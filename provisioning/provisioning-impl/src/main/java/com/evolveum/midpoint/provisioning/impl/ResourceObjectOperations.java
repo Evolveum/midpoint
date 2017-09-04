@@ -30,22 +30,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ResourceObjectOperations {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectOperations.class);
-	
+
 	private Collection<Operation> operations = new ArrayList<>();
 	private PrismObject<ShadowType> currentShadow = null;
 	private ProvisioningContext resourceObjectContext = null;
 	private Collection<? extends ResourceAttribute<?>> allIdentifiers;
-	
+
 	public PrismObject<ShadowType> getCurrentShadow() {
 		return currentShadow;
 	}
-	
+
 	public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
 		this.currentShadow = currentShadow;
 	}
-	
+
 	public ProvisioningContext getResourceObjectContext() {
 		return resourceObjectContext;
 	}
@@ -57,7 +57,7 @@ public class ResourceObjectOperations {
 	public Collection<Operation> getOperations() {
 		return operations;
 	}
-	
+
 	public void add(Operation operation) {
 		if (!operations.contains(operation)) {
 			operations.add(operation);
@@ -78,6 +78,6 @@ public class ResourceObjectOperations {
 				+ ", ctx=" + resourceObjectContext + ")";
 	}
 
-	
+
 
 }

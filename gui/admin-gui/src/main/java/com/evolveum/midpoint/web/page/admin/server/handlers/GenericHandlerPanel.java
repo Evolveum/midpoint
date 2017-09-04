@@ -36,7 +36,7 @@ public class GenericHandlerPanel extends BasePanel<GenericHandlerDto> {
 		initLayout(parentPage);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(final PageTaskEdit parentPage) {
 		PrismContainerPanel containerPanel = new PrismContainerPanel(
 				ID_CONTAINER, new PropertyModel<>(getModel(), GenericHandlerDto.F_CONTAINER),

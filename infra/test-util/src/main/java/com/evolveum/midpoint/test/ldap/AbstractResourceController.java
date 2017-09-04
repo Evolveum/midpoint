@@ -28,9 +28,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public abstract class AbstractResourceController {
-	
+
 	protected PrismObject<ResourceType> resource;
-	
+
 	public String getNamespace() {
 		return ResourceTypeUtil.getResourceNamespace(resource);
 	}
@@ -42,7 +42,7 @@ public abstract class AbstractResourceController {
 	public void setResource(PrismObject<ResourceType> resource) {
 		this.resource = resource;
 	}
-	
+
 	public ResourceType getResourceType() {
 		return resource.asObjectable();
 	}
@@ -50,7 +50,7 @@ public abstract class AbstractResourceController {
 	public QName getAttributeQName(String attributeName) {
 		return new QName(getNamespace(), attributeName);
 	}
-	
+
 	public ItemPath getAttributePath(String attributeName) {
 		return new ItemPath(
 				ShadowType.F_ATTRIBUTES,

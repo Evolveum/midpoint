@@ -76,7 +76,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
     public Map<K,V> getMinusMap() {
         return minusMap;
     }
-    
+
     public Map<K,V> getMap(PlusMinusZero plusMinusZero) {
     	if (plusMinusZero == null) {
     		return null;
@@ -89,7 +89,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
     	// notreached
     	throw new IllegalStateException();
     }
-    
+
     public boolean hasPlusMap() {
     	return (plusMap != null && !plusMap.isEmpty());
     }
@@ -101,7 +101,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
     public boolean hasMinusMap() {
     	return (minusMap != null && !minusMap.isEmpty());
     }
-    
+
 	public boolean isZeroOnly() {
 		return hasZeroMap() && !hasPlusMap() && !hasMinusMap();
 	}
@@ -142,7 +142,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
     		addAllToMap(zeroMap, map);
     	}
     }
-    
+
 	private void addAllToMap(Map<K,V> set, Map<K,V> items) {
 		if (items == null) {
 			return;
@@ -158,15 +158,15 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
     	}
 		set.put(key, value);
 	}
-	
+
 	public void clearPlusMap() {
 		clearMap(plusMap);
 	}
-	
+
 	public void clearMinusMap() {
 		clearMap(minusMap);
 	}
-	
+
 	public void clearZeroMap() {
 		clearMap(zeroMap);
 	}
@@ -176,7 +176,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
 			set.clear();
 		}
 	}
-	
+
 	public int size() {
 		return sizeMap(zeroMap) + sizeMap(plusMap) + sizeMap(minusMap);
 	}
@@ -187,20 +187,20 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
 		}
 		return set.size();
 	}
-        
+
 	public void merge(DeltaMapTriple<K,V> triple) {
 		addAllToZeroMap(triple.zeroMap);
 		addAllToPlusMap(triple.plusMap);
 		addAllToMinusMap(triple.minusMap);
 	}
-	
+
 	/**
      * Returns all values, regardless of the internal sets.
      */
     public Collection<K> unionKeySets() {
         return MiscUtil.union(zeroMap.keySet(), plusMap.keySet(), minusMap.keySet());
     }
-	
+
 	public DeltaMapTriple<K,V> clone(Cloner<Entry<K, V>> cloner) {
 		DeltaMapTriple<K,V> clone = new DeltaMapTriple<K,V>();
 		copyValues(clone, cloner);
@@ -210,7 +210,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
 	protected void copyValues(DeltaMapTriple<K,V> clone, Cloner<Entry<K, V>> cloner) {
 		clone.zeroMap = cloneSet(this.zeroMap, cloner);
 		clone.plusMap = cloneSet(this.plusMap, cloner);
-		clone.minusMap = cloneSet(this.minusMap, cloner);		
+		clone.minusMap = cloneSet(this.minusMap, cloner);
 	}
 
 	private Map<K,V> cloneSet(Map<K,V> origSet, Cloner<Entry<K, V>> cloner) {
@@ -224,18 +224,18 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
 		}
 		return clonedSet;
 	}
-	
+
 	public boolean isEmpty() {
 		return isEmpty(minusMap) && isEmpty(plusMap) && isEmpty(zeroMap);
 	}
-	
+
 	private boolean isEmpty(Map<K,V> set) {
 		if (set == null) {
 			return true;
 		}
 		return set.isEmpty();
 	}
-	
+
 	@Override
 	public void simpleAccept(SimpleVisitor<Entry<K, V>> visitor) {
 		acceptMap(visitor, zeroMap);
@@ -262,7 +262,7 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
         sb.append(")");
         return sb.toString();
     }
-    
+
     protected String debugName() {
     	return "DeltaMapTriple";
     }
@@ -300,5 +300,5 @@ public class DeltaMapTriple<K,V> implements DebugDumpable, Serializable, SimpleV
 		sb.append("\n");
 		DebugUtil.debugDumpMapMultiLine(sb, set, indent + 1);
 	}
-	
+
 }

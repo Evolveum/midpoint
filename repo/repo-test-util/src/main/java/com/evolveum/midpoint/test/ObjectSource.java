@@ -23,5 +23,5 @@ package com.evolveum.midpoint.test;
 public interface ObjectSource<T> {
 
 	public T get();
-	
+
 }

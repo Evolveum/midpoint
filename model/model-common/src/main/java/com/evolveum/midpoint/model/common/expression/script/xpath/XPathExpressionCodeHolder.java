@@ -24,16 +24,16 @@ import com.evolveum.midpoint.prism.marshaller.TrivialItemPathParser;
  *
  */
 public class XPathExpressionCodeHolder {
-	
+
 	private String expression;              // TODO think about this one! (there's a problem with namespaces now)
-	
+
 	public XPathExpressionCodeHolder(String expression) {
     	if (expression == null) {
     		throw new IllegalArgumentException("Attempt to create "+XPathExpressionCodeHolder.class.getSimpleName()+" with null DOM element");
     	}
         this.expression = expression;
     }
-	
+
 //	public NodeList getExpression() {
 //        return dom.getChildNodes();
 //    }

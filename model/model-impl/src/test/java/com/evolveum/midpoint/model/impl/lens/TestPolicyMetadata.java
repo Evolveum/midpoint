@@ -44,14 +44,14 @@ import static org.testng.AssertJUnit.assertEquals;
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPolicyMetadata extends AbstractLensTest {
-		
+
 	private static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_NAME = "criminal exclusion";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
-		
+
 		addObject(ROLE_PIRATE_SITUATION_ONLY_FILE);
 		addObject(ROLE_MUTINIER_FILE);
 		addObject(ROLE_JUDGE_SITUATION_ONLY_FILE);
@@ -61,7 +61,7 @@ public class TestPolicyMetadata extends AbstractLensTest {
 		addObjects(ROLE_CORP_FILES);
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		
+
 		InternalMonitor.reset();
 
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);

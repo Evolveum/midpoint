@@ -46,11 +46,11 @@ public class TestMiscUtil {
 		c.add("C1");
 		c.add("X");
 		c.add("Y");
-		
+
 		Collection<String> union = MiscUtil.union(a,b,c);
-		
+
 		System.out.println("Union: "+union);
-		
+
 		assertEquals(6,union.size());
 		assertTrue(union.contains("A1"));
 		assertTrue(union.contains("X"));
@@ -59,7 +59,7 @@ public class TestMiscUtil {
 		assertTrue(union.contains("B2"));
 		assertTrue(union.contains("C1"));
 	}
-	
+
 	@Test
 	public void testUglyXsiHack1() {
 		System.out.println("===[ testUglyXsiHack1 ]===");
@@ -83,11 +83,11 @@ public class TestMiscUtil {
 		String out = UglyHacks.forceXsiNsDeclaration(in);
 		assertEquals(in, out);
 	}
-	
+
 	@Test
 	public void testCarthesian() {
 		System.out.println("===[ testCarthesian ]===");
-		
+
 		// GIVEN
 		Collection<Collection<String>> dimensions = new ArrayList<Collection<String>>();
 		Collection<String> dim1 = new ArrayList<String>();
@@ -105,7 +105,7 @@ public class TestMiscUtil {
 		dim3.add("y");
 		dim3.add("z");
 		dimensions.add(dim3);
-		
+
 		final List<String> combinations = new ArrayList<String>();
 		Processor<Collection<String>> processor = new Processor<Collection<String>>() {
 			@Override
@@ -114,10 +114,10 @@ public class TestMiscUtil {
 				combinations.add(MiscUtil.concat(s));
 			}
 		};
-		
+
 		// WHEN
 		MiscUtil.carthesian(dimensions, processor);
-		
+
 		// THEN
 		System.out.println(combinations);
 		assertEquals("Wrong number of results", 24, combinations.size());

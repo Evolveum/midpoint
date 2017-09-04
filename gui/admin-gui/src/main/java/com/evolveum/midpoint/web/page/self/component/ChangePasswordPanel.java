@@ -90,7 +90,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         Label oldPasswordLabel = new Label(ID_OLD_PASSWORD_LABEL, createStringResource("PageSelfCredentials.oldPasswordLabel"));
         add(oldPasswordLabel);
         oldPasswordLabel.add(new VisibleEnableBehaviour() {
-        	
+
         	private static final long serialVersionUID = 1L;
 
 			@Override
@@ -108,9 +108,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         oldPasswordField.setResetPassword(false);
         add(oldPasswordField);
         oldPasswordField.add(new VisibleEnableBehaviour() {
-        	
+
         	private static final long serialVersionUID = 1L;
-        	
+
         	public boolean isVisible() {
         		return oldPasswordVisible;
         	};
@@ -136,7 +136,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
         AjaxLink help = new AjaxLink(ID_BUTTON_HELP) {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHelpPerformed(target);
@@ -152,12 +152,12 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
         IColumn column = new IconColumn<PasswordAccountDto>(new Model<String>()) {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             protected IModel<String> createIconModel(final IModel<PasswordAccountDto> rowModel) {
                 return new AbstractReadOnlyModel<String>() {
                 	private static final long serialVersionUID = 1L;
-                	
+
                     @Override
                     public String getObject() {
                         PasswordAccountDto item = rowModel.getObject();
@@ -184,10 +184,10 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                 final ImagePanel imagePanel = (ImagePanel) item.get(0);
 
                 final PasswordAccountDto passwordAccountDto = rowModel.getObject();
-                
+
                 imagePanel.add(new AjaxEventBehavior("click") {
                 	private static final long serialVersionUID = 1L;
-                	
+
                                    protected void onEvent(final AjaxRequestTarget target) {
                                        if (!passwordAccountDto.isMidpoint()) {
                                            if (passwordAccountDto.getCssClass().equals(PROPAGATED_ACCOUNT_ICON_CSS)) {
@@ -217,9 +217,9 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
                                    }
                                }
                 );
-                
+
                 imagePanel.add(new VisibleEnableBehaviour() {
-                	
+
                 	private static final long serialVersionUID = 1L;
 
 					@Override

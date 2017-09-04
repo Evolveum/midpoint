@@ -75,42 +75,42 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Unix test with tolerant auxiliary object classes. 
- * 
+ * Unix test with tolerant auxiliary object classes.
+ *
  * Also this is using different timestamp format in LDAP connector configuration.
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestUnixTolerantAux extends TestUnix {
-		
+
 	protected static final File RESOURCE_OPENDJ_TOLERANT_AUX_FILE = new File(TEST_DIR, "resource-opendj-tolerant-aux.xml");
 	protected static final String RESOURCE_OPENDJ_TOLERANT_AUX_OID = "10000000-0000-0000-0000-000000000003";
 	private static final String URI_WHATEVER = "http://whatever/";
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);		
+		super.initSystem(initTask, initResult);
 	}
-	
+
 	@Override
 	protected File getResourceFile() {
 		return RESOURCE_OPENDJ_TOLERANT_AUX_FILE;
 	}
-	
+
 	@Override
 	protected String getResourceOid() {
 		return RESOURCE_OPENDJ_TOLERANT_AUX_OID;
 	}
-	
+
 	@Override
 	protected void assertTest132User(PrismObject<UserType> userAfter) {
 		super.assertTest132User(userAfter);
 		assertUserAuxes(userAfter, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
 	}
-	
+
 	@Override
 	protected void assertTest132Audit() {
         display("Audit", dummyAuditService);
@@ -120,7 +120,7 @@ public class TestUnixTolerantAux extends TestUnix {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
 	}
-	
+
 	@Override
 	protected void assertTest135Audit() {
 		display("Audit", dummyAuditService);
@@ -130,23 +130,23 @@ public class TestUnixTolerantAux extends TestUnix {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
 	}
-	
+
 	@Override
 	protected void assertAccountTest136(PrismObject<ShadowType> shadow) throws Exception {
 		assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 	}
-	
+
 	@Override
 	protected void assertTest137User(PrismObject<UserType> userAfter) {
 		super.assertTest137User(userAfter);
 		assertUserAuxes(userAfter, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
 	}
-		
+
 	@Override
 	protected void assertTest137Account(PrismObject<ShadowType> shadow) throws Exception {
 		assertPosixAccount(shadow, USER_LARGO_UID_NUMBER);
 	}
-	
+
 	@Test
     public void test140AssignUserLargoBasic() throws Exception {
 		final String TEST_NAME = "test140AssignUserLargoBasic";
@@ -155,27 +155,27 @@ public class TestUnixTolerantAux extends TestUnix {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_BASIC_OID);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUser(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME);
-        
+
         accountLargoOid = getSingleLinkOid(userAfter);
-        
+
         PrismObject<ShadowType> shadow = getShadowModel(accountLargoOid);
         display("Shadow (model)", shadow);
         accountLargoDn = assertBasicAccount(shadow);
 	}
-	
+
 	/**
 	 * Modify the account directly on resource: add aux object class, add the
 	 * attributes. Then reconcile the user. The recon should leave the aux object
@@ -189,7 +189,7 @@ public class TestUnixTolerantAux extends TestUnix {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
-        
+
         openDJController.executeLdifChange(
         		"dn: "+accountLargoDn+"\n"+
         		"changetype: modify\n" +
@@ -197,38 +197,38 @@ public class TestUnixTolerantAux extends TestUnix {
         		"objectClass: "+OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME.getLocalPart()+"\n" +
         		"-\n" +
         		"add: labeledURI\n" +
-        		"labeledURI: "+ URI_WHATEVER + "\n"        		
+        		"labeledURI: "+ URI_WHATEVER + "\n"
         );
-        
+
         Entry entryBefore = openDJController.fetchEntry(accountLargoDn);
         display("Entry before", entryBefore);
-        
+
         dummyAuditService.clear();
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
 		reconcileUser(userBefore.getOid(), task, result);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
         assertUserAuxes(userAfter, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
-        
+
         String accountOid = getSingleLinkOid(userAfter);
-        
+
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         assertAccount(shadow, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
         assertLabeledUri(shadow, URI_WHATEVER);
-        
+
         // TODO: check audit
 	}
-	
+
 	@Test
     public void test144AssignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test144AssignUserLargoUnix";
@@ -237,29 +237,29 @@ public class TestUnixTolerantAux extends TestUnix {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         assignRole(userBefore.getOid(), ROLE_UNIX_OID);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
         assertUserAuxes(userAfter, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
-        
+
         String accountOid = getSingleLinkOid(userAfter);
-        
+
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         assertAccount(shadow, OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
         assertLabeledUri(shadow, URI_WHATEVER);
 	}
-	
+
 	@Test
     public void test146UnassignUserLargoUnix() throws Exception {
 		final String TEST_NAME = "test146UnassignUserLargoUnix";
@@ -268,29 +268,29 @@ public class TestUnixTolerantAux extends TestUnix {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_UNIX_OID);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
         assertUserAuxes(userAfter, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
-        
+
         String accountOid = getSingleLinkOid(userAfter);
-        
+
         PrismObject<ShadowType> shadow = getShadowModel(accountOid);
         display("Shadow (model)", shadow);
         assertAccount(shadow, OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME);
         assertLabeledUri(shadow, URI_WHATEVER);
 	}
-	
+
 	@Test
     public void test149UnAssignUserLargoBasic() throws Exception {
 		final String TEST_NAME = "test149UnAssignUserLargoBasic";
@@ -299,26 +299,26 @@ public class TestUnixTolerantAux extends TestUnix {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_LARGO_USERNAME);
-        
+
         // WHEN
 		displayWhen(TEST_NAME);
         unassignRole(userBefore.getOid(), ROLE_BASIC_OID);
-        
+
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = findUserByUsername(USER_LARGO_USERNAME);
         assertNotNull("No user after", userAfter);
         display("User after", userAfter);
         assertUserPosix(userAfter, USER_LARGO_USERNAME, USER_LARGO_FIST_NAME, USER_LARGO_LAST_NAME, USER_LARGO_UID_NUMBER);
         assertLinks(userAfter, 0);
-        
+
         assertNoObject(ShadowType.class, accountLargoOid, task, result);
-        
+
         openDJController.assertNoEntry(accountLargoDn);
 	}
-	
+
 	// The assignment was disabled in the repository. There was no change that went through
 	// model. MidPoint won't remove the aux object class.
 	@Override
@@ -326,7 +326,7 @@ public class TestUnixTolerantAux extends TestUnix {
 		assertPosixAccount(shadow, null);
 		assertGroupAssociation(shadow, groupMonkeyIslandOid);
 	}
-	
+
 	@Override
 	protected Long getTimestampAttribute(PrismObject<ShadowType> shadow) throws Exception {
 		String attributeValue = ShadowUtil.getAttributeValue(shadow, OPENDJ_MODIFY_TIMESTAMP_ATTRIBUTE_QNAME);
@@ -339,12 +339,12 @@ public class TestUnixTolerantAux extends TestUnix {
 		GeneralizedTime gt = new GeneralizedTime(attributeValue);
 		return gt.getCalendar().getTimeInMillis();
 	}
-	
+
 	private void assertUserAuxes(PrismObject<UserType> userAfter, QName... expectedAuxClasses) {
 		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATIONAL_UNIT,
 				Arrays.stream(expectedAuxClasses).map(x -> createPolyString(x.getLocalPart())).toArray(PolyString[]::new));
 	}
-	
+
 	private void assertLabeledUri(PrismObject<ShadowType> shadow, String expecteduri) throws DirectoryException {
 		ShadowType shadowType = shadow.asObjectable();
 		String dn = (String) ShadowUtil.getSecondaryIdentifiers(shadow).iterator().next().getRealValue();

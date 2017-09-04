@@ -85,7 +85,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 
 	@Override
 	public TaskRunResult run(Task task) {
-		
+
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(JdbcPingTaskHandler.class.getName()+".run");
 

@@ -26,13 +26,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * Runnable with proper set of exceptions that fit running of projector components.
- * 
+ *
  * @author semancik
  */
 @FunctionalInterface
 public interface ProjectorComponentRunnable {
-	
-	void run() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
+
+	void run() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
 
 }

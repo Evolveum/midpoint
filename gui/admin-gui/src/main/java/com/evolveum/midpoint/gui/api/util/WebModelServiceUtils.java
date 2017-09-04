@@ -67,7 +67,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility class that contains methods that interact with ModelService and other
  * midPoint components.
- * 
+ *
  * @author lazyman
  */
 public class WebModelServiceUtils {
@@ -123,23 +123,23 @@ public class WebModelServiceUtils {
         return loadObject(definition.getCompileTimeClass(), reference.getOid(),
 				SelectorOptions.createCollection(GetOperationOptions.createRaw()), page, task, result);
     }
-    
+
     public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap){
 		referenceMap.clear();
-		
+
         OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_REFS);
 //        Task task = page.createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-        
+
         try{
             List<PrismObject<O>> objects = searchObjects(type, null, result, page);
         	result.recomputeStatus();
         	if(objects != null){
         		List<ObjectReferenceType> references = new ArrayList<>();
-                
+
                 for(PrismObject<O> object: objects){
                 	referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
                     references.add(ObjectTypeUtil.createObjectRef(object));
-                    
+
                 }
                 return references;
             }
@@ -176,16 +176,16 @@ public class WebModelServiceUtils {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 			return null;
 		}
-    	
+
     }
-    
+
     public static void runTask(Collection<TaskType> tasksToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
 //    	try {
-    		
+
     		for (TaskType taskToRun : tasksToRun){
     			runTask(tasksToRun, operationalTask, parentResult, pageBase);
     		}
-    		
+
 //    		}
 //			ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
 //			pageBase.getPrismContext().adopt(delta);
@@ -204,7 +204,7 @@ public class WebModelServiceUtils {
 //			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
 //			return null;
 //		}
-    	
+
     }
 
 	@Nullable
@@ -213,7 +213,7 @@ public class WebModelServiceUtils {
 		Class<T> type = page.getPrismContext().getSchemaRegistry().determineClassForType(objectReference.getType());
         return loadObject(type, objectReference.getOid(), null, page, task, result);
     }
-	
+
 	@Nullable
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
 			PageBase page, Task task, OperationResult result) {
@@ -301,7 +301,7 @@ public class WebModelServiceUtils {
                                                                             OperationResult result, PageBase page) {
         return searchObjects(type, query, null, result, page, null);
     }
-    
+
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result, PageBase page) {
@@ -342,7 +342,7 @@ public class WebModelServiceUtils {
 
         return objects;
     }
-    
+
     public static <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, PageBase page) {
     	LOGGER.debug("Count object: type => {}, query => {}", type, query);
     	Task task = page.createSimpleTask(OPERATION_COUNT_OBJECT);
@@ -419,16 +419,16 @@ public class WebModelServiceUtils {
     public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
         save(delta, result, null, page);
     }
-    
+
     public static void save(ObjectDelta delta, OperationResult result, Task task, PageBase page) {
         save(delta, null, result, task, page);
     }
-    
+
     public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
         save(WebComponentUtil.createDeltaCollection(delta), options, result, task, page);
     }
-    
- 
+
+
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
                             OperationResult result, Task task, PageBase page) {
         LOGGER.debug("Saving deltas {}, options {}", new Object[]{deltas, options});
@@ -441,10 +441,10 @@ public class WebModelServiceUtils {
         }
 
         try {
-            if (task == null) { 
+            if (task == null) {
             	task = page.createSimpleTask(result.getOperation());
             }
-            
+
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
             subResult.recordFatalError(ex.getMessage());
@@ -469,7 +469,7 @@ public class WebModelServiceUtils {
 
         return objectDelta;
     }
-    
+
     public static String getLoggedInUserOid() {
     	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");

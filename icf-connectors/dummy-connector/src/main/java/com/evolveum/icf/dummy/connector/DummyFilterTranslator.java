@@ -29,7 +29,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
 public class DummyFilterTranslator implements FilterTranslator<Filter> {
 
 	private static final Log log = Log.getLog(DummyFilterTranslator.class);
-	
+
 	/* (non-Javadoc)
 	 * @see org.identityconnectors.framework.common.objects.filter.FilterTranslator#translate(org.identityconnectors.framework.common.objects.filter.Filter)
 	 */

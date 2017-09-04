@@ -51,10 +51,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author Radovan Semancik
  *
  */
-public class AssociationFromLinkExpressionEvaluator 
+public class AssociationFromLinkExpressionEvaluator
 						implements ExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
 						                               PrismContainerDefinition<ShadowAssociationType>> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
 
 	private AssociationFromLinkExpressionEvaluatorType evaluatorType;
@@ -62,7 +62,7 @@ public class AssociationFromLinkExpressionEvaluator
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 
-	AssociationFromLinkExpressionEvaluator(AssociationFromLinkExpressionEvaluatorType evaluatorType, 
+	AssociationFromLinkExpressionEvaluator(AssociationFromLinkExpressionEvaluatorType evaluatorType,
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition, ObjectResolver objectResolver, PrismContext prismContext) {
 		this.evaluatorType = evaluatorType;
 		this.outputDefinition = outputDefinition;
@@ -76,7 +76,7 @@ public class AssociationFromLinkExpressionEvaluator
 	@Override
 	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-				            
+
 		String desc = context.getContextDescription();
 		Object orderOneObject = context.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
 		if (orderOneObject == null) {
@@ -87,14 +87,14 @@ public class AssociationFromLinkExpressionEvaluator
 					+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
 		}
 		AbstractRoleType thisRole = (AbstractRoleType)orderOneObject;
-		
-		LOGGER.trace("Evaluating association from link on: {}", thisRole); 
-		
+
+		LOGGER.trace("Evaluating association from link on: {}", thisRole);
+
 		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
 		if (rAssocTargetDef == null) {
 			throw new ExpressionEvaluationException("No association target object class definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
-		}		
-		
+		}
+
 		ShadowDiscriminatorType projectionDiscriminator = evaluatorType.getProjectionDiscriminator();
 		if (projectionDiscriminator == null) {
 			throw new ExpressionEvaluationException("No projectionDiscriminator in "+desc);
@@ -104,21 +104,21 @@ public class AssociationFromLinkExpressionEvaluator
 			throw new ExpressionEvaluationException("No kind in projectionDiscriminator in "+desc);
 		}
 		String intent = projectionDiscriminator.getIntent();
-		
+
 		PrismContainer<ShadowAssociationType> output = outputDefinition.instantiate();
-		
+
 		QName assocName = context.getMappingQName();
 		String resourceOid = rAssocTargetDef.getResourceOid();
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
-		
+
 		// Always process the first role (myself) regardless of recursion setting
 		gatherAssociationsFromAbstractRole(thisRole, output, resourceOid, kind, intent, assocName, options, desc, context);
-		
+
 		if (thisRole instanceof OrgType && matchesForRecursion((OrgType)thisRole)) {
 			gatherAssociationsFromAbstractRoleRecurse((OrgType)thisRole, output, resourceOid, kind, intent, assocName, options, desc,
 					context);
 		}
-		
+
 		return ItemDelta.toDeltaSetTriple(output, null);
 	}
 
@@ -146,14 +146,14 @@ public class AssociationFromLinkExpressionEvaluator
 			}
 		}
 	}
-	
+
 	private void gatherAssociationsFromAbstractRoleRecurse(OrgType thisOrg,
 			PrismContainer<ShadowAssociationType> output, String resourceOid, ShadowKindType kind,
 			String intent, QName assocName, Collection<SelectorOptions<GetOperationOptions>> options,
 			String desc, ExpressionEvaluationContext params) throws SchemaException, ObjectNotFoundException {
-		
+
 		gatherAssociationsFromAbstractRole(thisOrg, output, resourceOid, kind, intent, assocName, options, desc, params);
-		
+
 		for (ObjectReferenceType parentOrgRef: thisOrg.getParentOrgRef()) {
 			OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, params.getTask(), params.getResult());
 			if (matchesForRecursion(parent)) {
@@ -161,7 +161,7 @@ public class AssociationFromLinkExpressionEvaluator
 			}
 		}
 	}
-	
+
 	private boolean matchesForRecursion(OrgType thisOrg) {
 		for (String recurseUpOrgType: evaluatorType.getRecurseUpOrgType()) {
 			thisOrg.getOrgType().contains(recurseUpOrgType);

@@ -27,9 +27,9 @@ import com.evolveum.midpoint.task.api.Task;
 
 /**
  * Simple DTO used to contain all the parameters of expression execution.
- * 
+ *
  * Designed to allow future compatible changes (addition of optional parameters).
- * 
+ *
  * @author semancik
  *
  */
@@ -49,7 +49,7 @@ public class ExpressionEvaluationContext {
 	private Task task;
 	private OperationResult result;
 	private Function<Object, Object> additionalConvertor;
-	
+
 	public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
 			ExpressionVariables variables, String contextDescription, Task task,
 			OperationResult result) {
@@ -64,11 +64,11 @@ public class ExpressionEvaluationContext {
 	public Collection<Source<?,?>> getSources() {
 		return sources;
 	}
-	
+
 	public void setSources(Collection<Source<?,?>> sources) {
 		this.sources = sources;
 	}
-	
+
 	public Source<?,?> getDefaultSource() {
 		return defaultSource;
 	}
@@ -80,11 +80,11 @@ public class ExpressionEvaluationContext {
 	public ExpressionVariables getVariables() {
 		return variables;
 	}
-	
+
 	public void setVariables(ExpressionVariables variables) {
 		this.variables = variables;
 	}
-	
+
 	public boolean isSkipEvaluationPlus() {
 		return skipEvaluationPlus;
 	}
@@ -104,11 +104,11 @@ public class ExpressionEvaluationContext {
 	public StringPolicyResolver getStringPolicyResolver() {
 		return stringPolicyResolver;
 	}
-	
+
 	public void setStringPolicyResolver(StringPolicyResolver stringPolicyResolver) {
 		this.stringPolicyResolver = stringPolicyResolver;
 	}
-	
+
 	public ExpressionFactory getExpressionFactory() {
 		return expressionFactory;
 	}
@@ -144,11 +144,11 @@ public class ExpressionEvaluationContext {
 	public String getContextDescription() {
 		return contextDescription;
 	}
-	
+
 	public void setContextDescription(String contextDescription) {
 		this.contextDescription = contextDescription;
 	}
-	
+
 	public Task getTask() {
 		return task;
 	}
@@ -160,7 +160,7 @@ public class ExpressionEvaluationContext {
 	public OperationResult getResult() {
 		return result;
 	}
-	
+
 	public void setResult(OperationResult result) {
 		this.result = result;
 	}

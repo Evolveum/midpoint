@@ -37,7 +37,7 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
+
 	private PrismContext prismContext;
 	private Protector protector;
 
@@ -63,7 +63,7 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 																										D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for asIs expression evaluator");
-		
+
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {
 			if (evaluatorElements.size() > 1) {
@@ -71,7 +71,7 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 			}
 			evaluatorElement = evaluatorElements.iterator().next();
 		}
-		
+
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
@@ -79,7 +79,7 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AsIsExpressionEvaluatorType)) {
             throw new SchemaException("AsIs value constructor cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        return new AsIsExpressionEvaluator<V,D>((AsIsExpressionEvaluatorType)evaluatorTypeObject, 
+        return new AsIsExpressionEvaluator<V,D>((AsIsExpressionEvaluatorType)evaluatorTypeObject,
         		outputDefinition, protector, prismContext);
 	}
 

@@ -72,7 +72,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
         super(id, model);
 
         setOutputMarkupId(true);
-        
+
         initLayout();
     }
 
@@ -105,7 +105,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
                 name.setOutputMarkupId(true);
                 name.add(new AjaxFormComponentUpdatingBehavior("blur") {
                 	private static final long serialVersionUID = 1L;
-                	
+
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {}
                 });
@@ -214,7 +214,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
         };
         remove.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             public boolean isVisible() {
                 return isRemoveButtonVisible();
@@ -273,7 +273,7 @@ public class ObjectPolicyConfigurationEditor extends BasePanel<List<ObjectPolicy
 	                    }
                         sb.append(config.getType().getLocalPart());
                     }
-                    
+
                     if (config.getSubtype() != null) {
                     	sb.append("(").append(config.getSubtype()).append(")");
                     }

@@ -30,83 +30,83 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class TestProtector {
-	
-	private static transient Trace LOGGER = TraceManager.getTrace(TestProtector.class);	
-	
+
+	private static transient Trace LOGGER = TraceManager.getTrace(TestProtector.class);
+
 	@Test
 	public void testProtectorEncryptionRoundTrip() throws Exception {
 		String value = "someValue";
-		
+
 		Protector protector256 = PrismInternalTestUtil.createProtector(XMLCipher.AES_256);
 		Protector protector128 = PrismInternalTestUtil.createProtector(XMLCipher.AES_128);
-		
+
 		ProtectedStringType pdt = new ProtectedStringType();
 		pdt.setClearValue(value);
 		assertFalse(pdt.isEmpty());
 		assertFalse(pdt.isHashed());
 		assertFalse(pdt.isEncrypted());
-		
+
 		// WHEN
 		protector256.encrypt(pdt);
-		
+
 		// THEN
 		assertFalse(pdt.isEmpty());
 		assertTrue(pdt.isEncrypted());
 		assertFalse(pdt.isHashed());
 		assertNull(pdt.getClearValue());
-		
+
 		// WHEN
 		protector128.decrypt(pdt);
-		
+
 		// THEN
 		assertFalse(pdt.isEmpty());
 		assertFalse(pdt.isEncrypted());
 		assertFalse(pdt.isHashed());
 		AssertJUnit.assertEquals(value, pdt.getClearValue());
-		  
+
 		// WHEN
 		ProtectedStringType pstEnc = protector256.encryptString(value);
-		  
+
 		// THEN
 		assertFalse(pstEnc.isEmpty());
 		assertTrue(pstEnc.isEncrypted());
 		assertFalse(pstEnc.isHashed());
-		  
+
 		// WHEN
 		String clear = protector256.decryptString(pstEnc);
 		assertNotNull(clear);
-		  
+
 		// THEN
 		AssertJUnit.assertEquals(value, clear);
-		  
+
 		// WHEN
 		boolean compare1 = protector256.compare(pdt, pstEnc);
-		  
+
 		// THEN
 		assertTrue("compare1 failed", compare1);
-		  
+
 		// WHEN
 		boolean compare2 = protector256.compare(pstEnc, pdt);
-		  
+
 		// THEN
 		assertTrue("compare2 failed", compare2);
-		
+
 		ProtectedStringType wrongPst = new ProtectedStringType();
 		wrongPst.setClearValue("nonono This is not it");
-		  
+
 		// WHEN
 		boolean compare5 = protector256.compare(pdt, wrongPst);
-		  
+
 		// THEN
 		assertFalse("compare5 unexpected success", compare5);
-		  
+
 		// WHEN
 		boolean compare6 = protector256.compare(wrongPst, pdt);
-			  
+
 		// THEN
 		assertFalse("compare6 unexpected success", compare6);
 	}
-  
+
 	@Test
 	public void testProtectorHashRoundTrip() throws Exception {
 		String value = "someValue";
@@ -201,15 +201,15 @@ public class TestProtector {
 
 		// THEN
 		assertFalse("compare10 unexpected success", compare10);
-		
+
 		ProtectedStringType pstEncHash = new ProtectedStringType();
 		pstEncHash.setClearValue(value);
 		assertFalse(pstEncHash.isEmpty());
 		protector256.encrypt(pstEncHash);
-		
+
 		// WHEN
 		protector256.hash(pstEncHash);
-		
+
 		// THEN
 		assertFalse(pstEncHash.isEmpty());
 		assertTrue(pstEncHash.isHashed());

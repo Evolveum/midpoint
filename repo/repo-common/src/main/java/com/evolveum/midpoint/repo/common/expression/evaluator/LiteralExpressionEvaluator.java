@@ -29,9 +29,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
-	
+
 	PrismValueDeltaSetTriple<V> outputTriple;
-	
+
 	/**
 	 * @param deltaSetTriple
 	 */

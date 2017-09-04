@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
+ *
  * @author Igor Farinic
  */
 public interface FilterManager<T extends Filter> {

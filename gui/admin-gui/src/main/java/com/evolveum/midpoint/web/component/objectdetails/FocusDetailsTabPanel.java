@@ -38,20 +38,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
 	private static final long serialVersionUID = 1L;
-	
+
 	protected static final String ID_FOCUS_FORM = "focusDetails";
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
 
-	public FocusDetailsTabPanel(String id, Form mainForm, 
-			LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
-			LoadableModel<List<AssignmentDto>> assignmentsModel, 
+	public FocusDetailsTabPanel(String id, Form mainForm,
+			LoadableModel<ObjectWrapper<F>> focusWrapperModel,
+			LoadableModel<List<AssignmentDto>> assignmentsModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
 			PageBase pageBase) {
 		super(id, mainForm, focusWrapperModel, assignmentsModel, projectionModel, pageBase);
 		initLayout();
 	}
-	
+
 	private void initLayout() {
 
 		PrismObjectPanel<F> panel = new PrismObjectPanel<F>(ID_FOCUS_FORM, getObjectWrapperModel(),

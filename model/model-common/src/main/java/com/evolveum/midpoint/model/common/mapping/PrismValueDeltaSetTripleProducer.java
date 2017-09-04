@@ -32,7 +32,7 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
 	 * Empty output triple means "the mapping is applicable but there are no values".
 	 */
 	PrismValueDeltaSetTriple<V> getOutputTriple();
-	
+
 	MappingStrengthType getStrength();
 
 	PrismValueDeltaSetTripleProducer<V, D> clone();
@@ -46,6 +46,6 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
 	 * it has to be evaluated for any delta. This really applies
 	 * only to normal-strength mappings.
 	 */
-	boolean isSourceless(); 
+	boolean isSourceless();
 
 }
