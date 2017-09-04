@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
 
 /**
  * One of interfaces of the notifier to midPoint.
@@ -55,9 +54,9 @@ import java.util.Collection;
  * @author mederly
  */
 @Component
-public class NotificationChangeHook implements ChangeHook {
+public class NotificationHook implements ChangeHook {
 
-    private static final Trace LOGGER = TraceManager.getTrace(NotificationChangeHook.class);
+    private static final Trace LOGGER = TraceManager.getTrace(NotificationHook.class);
 
 	private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/notification-hook-3";
 
@@ -117,7 +116,7 @@ public class NotificationChangeHook implements ChangeHook {
 	}
 
 	private void emitPolicyEventIfPresent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
-		if (!rule.getTriggers().isEmpty() && rule.getActions() != null && rule.getActions().getNotification() != null) {
+		if (rule.isTriggered() && rule.getActions() != null && rule.getActions().getNotification() != null) {
 			emitPolicyEvent(rule.getActions().getNotification(), rule, context, task, result);
 		}
 	}

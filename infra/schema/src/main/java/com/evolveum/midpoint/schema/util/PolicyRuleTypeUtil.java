@@ -279,7 +279,7 @@ public class PolicyRuleTypeUtil {
 				|| hasMatchingPrimitiveConstraint(pc.getModification(), F_MODIFICATION, matcher)
 				|| hasMatchingPrimitiveConstraint(pc.getTimeValidity(), F_TIME_VALIDITY, matcher)
 				|| hasMatchingPrimitiveConstraint(pc.getAssignmentState(), F_ASSIGNMENT_STATE, matcher)
-				|| hasMatchingPrimitiveConstraint(pc.getFocusState(), F_FOCUS_STATE, matcher)
+				|| hasMatchingPrimitiveConstraint(pc.getObjectState(), F_OBJECT_STATE, matcher)
 				|| hasMatchingPrimitiveConstraint(pc.getSituation(), F_SITUATION, matcher);
 		if (recursive) {
 			rv = rv
@@ -320,11 +320,11 @@ public class PolicyRuleTypeUtil {
 		if (rule.getEvaluationTarget() != null) {
 			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.ASSIGNMENT;
 		} else {
-			return hasAssignmentOnlyConstraint(rule) || !hasFocusRelatedConstraint(rule);
+			return hasAssignmentOnlyConstraint(rule) || !hasObjectRelatedConstraint(rule);
 		}
 	}
 
-	public static boolean isApplicableToFocus(PolicyRuleType rule) {
+	public static boolean isApplicableToObject(PolicyRuleType rule) {
 		if (rule.getEvaluationTarget() != null) {
 			return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.FOCUS;
 		} else {
@@ -336,9 +336,9 @@ public class PolicyRuleTypeUtil {
 		return hasMatchingPrimitiveConstraint(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isAssignmentOnly, true);
 	}
 
-	// do we have a constraint that indicates a use against focus?
-	private static boolean hasFocusRelatedConstraint(PolicyRuleType rule) {
-		return hasMatchingPrimitiveConstraint(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isFocusRelated, true);
+	// do we have a constraint that indicates a use against object?
+	private static boolean hasObjectRelatedConstraint(PolicyRuleType rule) {
+		return hasMatchingPrimitiveConstraint(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isObjectRelated, true);
 	}
 
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
@@ -353,9 +353,9 @@ public class PolicyRuleTypeUtil {
 	private static final Set<Class<? extends AbstractPolicyConstraintType>> FOCUS_RELATED_CONSTRAINTS_CLASSES =
 			new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class, ModificationPolicyConstraintType.class));
 
-	private static boolean isFocusRelated(QName name, AbstractPolicyConstraintType c) {
+	private static boolean isObjectRelated(QName name, AbstractPolicyConstraintType c) {
 		return FOCUS_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
-				|| QNameUtil.match(name, PolicyConstraintsType.F_FOCUS_STATE)
+				|| QNameUtil.match(name, PolicyConstraintsType.F_OBJECT_STATE)
 				|| c instanceof TimeValidityPolicyConstraintType && !Boolean.TRUE.equals(((TimeValidityPolicyConstraintType) c).isAssignment());
 	}
 }

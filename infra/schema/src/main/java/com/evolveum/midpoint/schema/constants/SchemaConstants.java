@@ -316,8 +316,8 @@ public abstract class SchemaConstants {
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasAssignment"));        // TODO
 	public static final String MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "hasNoAssignment"));        // TODO
-	public static final String MODEL_POLICY_SITUATION_FOCUS_STATE =
-			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "focusState"));           // TODO
+	public static final String MODEL_POLICY_SITUATION_OBJECT_STATE =
+			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "objectState"));           // TODO
 	public static final String MODEL_POLICY_SITUATION_ASSIGNMENT_STATE =
 			QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));      // TODO
 	public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =

@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.FocusPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -50,10 +50,10 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 	public <F extends FocusType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<ModificationPolicyConstraintType> constraint,
 			PolicyRuleEvaluationContext<F> rctx, OperationResult result) throws SchemaException {
 
-		if (!(rctx instanceof FocusPolicyRuleEvaluationContext)) {
+		if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
 			return null;
 		}
-		FocusPolicyRuleEvaluationContext<F> ctx = (FocusPolicyRuleEvaluationContext<F>) rctx;
+		ObjectPolicyRuleEvaluationContext<F> ctx = (ObjectPolicyRuleEvaluationContext<F>) rctx;
 
 		if (modificationConstraintMatches(constraint.getValue(), ctx)) {
 			return new EvaluatedPolicyRuleTrigger<>(PolicyConstraintKindType.MODIFICATION,
@@ -64,7 +64,7 @@ public class ModificationConstraintEvaluator implements PolicyConstraintEvaluato
 	}
 
 	private <F extends FocusType> boolean modificationConstraintMatches(ModificationPolicyConstraintType constraint,
-			FocusPolicyRuleEvaluationContext<F> ctx) throws SchemaException {
+			ObjectPolicyRuleEvaluationContext<F> ctx) throws SchemaException {
 		if (!operationMatches(ctx.focusContext, constraint.getOperation())) {
 			LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());
 			return false;

@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.ASSIGNMENT_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.FOCUS_STATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.OBJECT_STATE;
 
 /**
  * @author mederly
@@ -73,20 +73,20 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 		boolean assignmentState;
 		if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_ASSIGNMENT_STATE)) {
 			assignmentState = true;
-		} else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_FOCUS_STATE)) {
+		} else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_STATE)) {
 			assignmentState = false;
 		} else {
 			throw new AssertionError("unexpected state constraint " + constraint.getName());
 		}
 
 		List<ObjectInState<F>> objects = new ArrayList<>();
-		List<FocusStateType> states = constraint.getValue().getCheckInState().isEmpty()
-				? Collections.singletonList(FocusStateType.CURRENT)
+		List<ObjectStateType> states = constraint.getValue().getCheckInState().isEmpty()
+				? Collections.singletonList(ObjectStateType.CURRENT)
 				: constraint.getValue().getCheckInState();
-		for (FocusStateType state : states) {
+		for (ObjectStateType state : states) {
 			PrismObject<F> object;
 			if (state == null) {
-				state = FocusStateType.CURRENT;
+				state = ObjectStateType.CURRENT;
 			}
 			switch (state) {
 				case OLD: object = rctx.focusContext.getObjectOld(); break;
@@ -120,9 +120,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
 	private static class ObjectInState<F extends FocusType> {
 		final PrismObject<F> object;
-		final FocusStateType state;
+		final ObjectStateType state;
 
-		private ObjectInState(PrismObject<F> object, FocusStateType state) {
+		private ObjectInState(PrismObject<F> object, ObjectStateType state) {
 			this.object = object;
 			this.state = state;
 		}
@@ -156,7 +156,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 			}
 
 			if (match) {
-				return new EvaluatedPolicyRuleTrigger<>(FOCUS_STATE, constraint, "Focus state ("+ objectInState.state.value() + ") matches " +
+				return new EvaluatedPolicyRuleTrigger<>(
+						OBJECT_STATE, constraint, "Focus state ("+ objectInState.state.value() + ") matches " +
 						(constraint.getName() != null ? "constraint '" + constraint.getName() + "'" : "the constraint"));
 			}
 		}

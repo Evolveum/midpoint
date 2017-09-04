@@ -78,7 +78,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 		// not trigger, whereas exclusions probably would.) Overall, our responsibility is simply to collect
 		// all triggered rules.
 		return evaluatedAssignment.getAllTargetsPolicyRules().stream()
-				.filter(r -> !r.getTriggers().isEmpty() && situations.contains(r.getPolicySituation()))
+				.filter(r -> r.isTriggered() && situations.contains(r.getPolicySituation()))
 				.collect(Collectors.toList());
 	}
 }

@@ -1046,7 +1046,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {
-		return (int) policyRules.stream().filter(r -> !r.getTriggers().isEmpty()).count();
+		return (int) policyRules.stream().filter(EvaluatedPolicyRule::isTriggered).count();
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {

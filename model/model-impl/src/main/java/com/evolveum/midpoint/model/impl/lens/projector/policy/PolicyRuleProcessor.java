@@ -139,7 +139,7 @@ public class PolicyRuleProcessor {
 	//endregion
 
 	//region ------------------------------------------------------------------ Focus policy rules
-	public <F extends FocusType> void evaluateFocusPolicyRules(LensContext<F> context, String activityDescription,
+	public <F extends FocusType> void evaluateObjectPolicyRules(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result)
 			throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -149,15 +149,15 @@ public class PolicyRuleProcessor {
 
 		List<EvaluatedPolicyRule> rules = new ArrayList<>();
 		collectFocusRulesFromAssignments(rules, context);
-		collectGlobalFocusRules(rules, context, task, result);
+		collectGlobalObjectRules(rules, context, task, result);
 
 		for (EvaluatedPolicyRule rule : rules) {
-			if (!hasSituationConstraint(rule) && isApplicableToFocus(rule)) {
+			if (!hasSituationConstraint(rule) && isApplicableToObject(rule)) {
 				evaluateFocusRule(rule, context, task, result);
 			}
 		}
 		for (EvaluatedPolicyRule rule : rules) {
-			if (hasSituationConstraint(rule) && isApplicableToFocus(rule)) {
+			if (hasSituationConstraint(rule) && isApplicableToObject(rule)) {
 				evaluateFocusRule(rule, context, task, result);
 			}
 		}
@@ -166,7 +166,7 @@ public class PolicyRuleProcessor {
 	private <F extends FocusType> void evaluateFocusRule(EvaluatedPolicyRule rule, LensContext<F> context, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		context.getFocusContext().addPolicyRule(rule);
-		evaluateRule(new FocusPolicyRuleEvaluationContext<>(rule, context, task), result);
+		evaluateRule(new ObjectPolicyRuleEvaluationContext<>(rule, context, task), result);
 	}
 
 	private <F extends FocusType> void collectFocusRulesFromAssignments(List<EvaluatedPolicyRule> rules, LensContext<F> context) {
@@ -179,7 +179,7 @@ public class PolicyRuleProcessor {
 		}
 	}
 
-	private <F extends FocusType> void collectGlobalFocusRules(List<EvaluatedPolicyRule> rules, LensContext<F> context,
+	private <F extends FocusType> void collectGlobalObjectRules(List<EvaluatedPolicyRule> rules, LensContext<F> context,
 			Task task, OperationResult result)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException {
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
@@ -230,8 +230,8 @@ public class PolicyRuleProcessor {
 		return PolicyRuleTypeUtil.isApplicableToAssignment(rule.getPolicyRule());
 	}
 
-	private boolean isApplicableToFocus(EvaluatedPolicyRule rule) {
-		return PolicyRuleTypeUtil.isApplicableToFocus(rule.getPolicyRule());
+	private boolean isApplicableToObject(EvaluatedPolicyRule rule) {
+		return PolicyRuleTypeUtil.isApplicableToObject(rule.getPolicyRule());
 	}
 
 	/**

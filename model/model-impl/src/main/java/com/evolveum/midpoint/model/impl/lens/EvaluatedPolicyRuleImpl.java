@@ -174,8 +174,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			return PredefinedPolicySituation.HAS_ASSIGNMENT.getUrl();
 		} else if (policyConstraints.getHasNoAssignment() != null) {
 			return PredefinedPolicySituation.HAS_NO_ASSIGNMENT.getUrl();
-		} else if (policyConstraints.getFocusState() != null) {
-			return PredefinedPolicySituation.FOCUS_STATE.getUrl();
+		} else if (policyConstraints.getObjectState() != null) {
+			return PredefinedPolicySituation.OBJECT_STATE.getUrl();
 		} else if (policyConstraints.getAssignmentState() != null) {
 			return PredefinedPolicySituation.ASSIGNMENT_STATE.getUrl();
 		}

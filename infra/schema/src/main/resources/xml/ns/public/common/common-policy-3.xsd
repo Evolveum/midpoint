@@ -98,10 +98,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="focusState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="objectState" type="tns:StatePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Particular state of the focus, described by a filter or an expression.
+                        Particular state of the object, described by a filter or an expression.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.7</a:since>
@@ -519,7 +519,7 @@
     <xsd:complexType name="StatePolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
-                A constraint that triggers when a focus or assignment is in a given state.
+                A constraint that triggers when a object or assignment is in a given state.
                 If both filter and expressions are specified, both must be true in order for constraint to be triggered.
             </xsd:documentation>
             <xsd:appinfo>
@@ -545,7 +545,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="checkInState" type="tns:FocusStateType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="checkInState" type="tns:ObjectStateType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 On what state(s) of the focal object this constraint is to be checked.
@@ -557,10 +557,10 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="focusStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+    <xsd:element name="objectStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
     <xsd:element name="assignmentStatePolicyConstraintType" type="tns:StatePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
-    <xsd:simpleType name="FocusStateType">
+    <xsd:simpleType name="ObjectStateType">
         <xsd:annotation>
             <xsd:documentation>
                 On which state of the object a constraint is to be evaluated.

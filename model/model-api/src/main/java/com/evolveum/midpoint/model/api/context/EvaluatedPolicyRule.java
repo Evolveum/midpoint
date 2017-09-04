@@ -32,6 +32,10 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
 
+	default boolean isTriggered() {
+		return !getTriggers().isEmpty();
+	}
+
 	/**
 	 * Returns all triggers, even those that were indirectly "collected" via situation policy rules.
 	 */

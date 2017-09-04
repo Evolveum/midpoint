@@ -109,7 +109,7 @@ public class TestPolicyRules extends AbstractLensTest {
 		//dumpPolicySituations(context);
 
 		assertEvaluatedTargetPolicyRules(context, 7);
-		assertTargetTriggers(context, PolicyConstraintKindType.FOCUS_STATE, 2);
+		assertTargetTriggers(context, PolicyConstraintKindType.OBJECT_STATE, 2);
 		assertTargetTriggers(context, PolicyConstraintKindType.ASSIGNMENT, 4);
 		assertTargetTriggers(context, null, 6);
 	}

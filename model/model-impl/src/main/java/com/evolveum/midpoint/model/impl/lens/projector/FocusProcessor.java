@@ -305,7 +305,7 @@ public class FocusProcessor {
 		        // focus deltas so we can properly trigger the rules.
 
 		        LensUtil.partialExecute("focusPolicyRules",
-						() -> policyRuleProcessor.evaluateFocusPolicyRules(context, activityDescription, now, task, result),
+						() -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result),
 						partialProcessingOptions::getFocusPolicyRules);
 
 		        // Processing done, check for success

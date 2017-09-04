@@ -39,13 +39,13 @@
 			<!-- but because it contains only focus-specific constraints, it will be evaluated on Student role itself -->
 			<name>ambivalent-rule</name>
 			<policyConstraints>
-				<focusState>
+				<objectState>
 					<expression>
 						<script>
 							<code>true</code>
 						</script>
 					</expression>
-				</focusState>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -58,13 +58,13 @@
 			<!-- but evaluationTarget=assignment ensures it will trigger only on assignment of Student role -->
 			<name>ambivalent-rule-manually-resolved-to-assignment</name>
 			<policyConstraints>
-				<focusState>
+				<objectState>
 					<expression>
 						<script>
 							<code>true</code>
 						</script>
 					</expression>
-				</focusState>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -78,13 +78,13 @@
 			<!-- but evaluationTarget=focus ensures it will trigger only on Student role itself -->
 			<name>ambivalent-rule-manually-resolved-to-focus</name>
 			<policyConstraints>
-				<focusState>
+				<objectState>
 					<expression>
 						<script>
 							<code>true</code>
 						</script>
 					</expression>
-				</focusState>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -105,7 +105,7 @@
     	<policyRule>
 			<name>no-students-from-1900-current</name>
     		<policyConstraints>
-		    	<focusState>
+		    	<objectState>
 					<name>cc-1900-current</name>
 					<filter>
 						<q:equal>
@@ -115,7 +115,7 @@
 						</q:equal>
 					</filter>
 					<!-- no state means current -->
-				</focusState>
+				</objectState>
 		    </policyConstraints>
 		    <policyActions>
 		    	<!-- none -->
@@ -126,7 +126,7 @@
     	<policyRule>
 			<name>no-students-from-1900-new</name>
     		<policyConstraints>
-		    	<focusState>
+		    	<objectState>
 					<name>cc-1900-new</name>
 					<filter>
 						<q:equal>
@@ -136,7 +136,7 @@
 						</q:equal>
 					</filter>
 					<checkInState>new</checkInState>
-				</focusState>
+				</objectState>
 		    </policyConstraints>
 		    <policyActions>
 				<!-- none -->
@@ -147,7 +147,7 @@
 		<policyRule>
 			<name>no-students-from-1900-old</name>
 			<policyConstraints>
-				<focusState>
+				<objectState>
 					<name>cc-1900-old</name>
 					<filter>
 						<q:equal>
@@ -157,7 +157,7 @@
 						</q:equal>
 					</filter>
 					<checkInState>old</checkInState>
-				</focusState>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<!-- none -->
@@ -169,7 +169,7 @@
 			<!-- this is a better check: we look at current and new object value -->
 			<name>no-students-from-1910-current-or-new</name>
     		<policyConstraints>
-		    	<focusState>
+		    	<objectState>
 					<name>cc-1910-current-or-new</name>
 					<filter>
 						<q:equal>
@@ -179,7 +179,7 @@
 					</filter>
 					<checkInState>current</checkInState>
 					<checkInState>new</checkInState>
-				</focusState>
+				</objectState>
 		    </policyConstraints>
 		    <policyActions>
 				<!-- none -->

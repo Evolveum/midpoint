@@ -67,14 +67,14 @@
 				<assignment>
 					<operation>add</operation>
 				</assignment>
-				<focusState>
+				<objectState>
 					<filter>
 						<q:equal>
 							<q:path>name</q:path>
 							<q:value>jack</q:value>
 						</q:equal>
 					</filter>
-				</focusState>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<certification/>
@@ -86,14 +86,14 @@
 			<name>all-assignment-operations-on-elaine</name>
 			<policyConstraints>
 				<assignment/>
-				<focusState>
+				<objectState>
 					<filter>
 						<q:equal>
 							<q:path>name</q:path>
 							<q:value>elaine</q:value>
 						</q:equal>
 					</filter>
-				</focusState>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<certification/>
@@ -107,7 +107,7 @@
 				<assignment>
 					<operation>add</operation>
 				</assignment>
-				<focusState>
+				<objectState>
 					<expression>
 						<script>
 							<code>
@@ -115,7 +115,7 @@
 							</code>
 						</script>
 					</expression>
-				</focusState>
+				</objectState>
 			</policyConstraints>
 			<policyActions>
 				<certification/>

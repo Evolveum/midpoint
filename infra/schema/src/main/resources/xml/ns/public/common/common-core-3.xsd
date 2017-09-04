@@ -12788,10 +12788,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="focusState">
+            <xsd:enumeration value="objectState">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="FOCUS_STATE"/>
+                        <jaxb:typesafeEnumMember name="OBJECT_STATE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

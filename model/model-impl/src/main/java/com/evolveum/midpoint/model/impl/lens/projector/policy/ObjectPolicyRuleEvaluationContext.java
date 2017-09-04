@@ -25,9 +25,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author mederly
  */
-public class FocusPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
+public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
 
-	public FocusPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context, Task task) {
+	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, LensContext<F> context, Task task) {
 		super(policyRule, context, task);
 	}
 
